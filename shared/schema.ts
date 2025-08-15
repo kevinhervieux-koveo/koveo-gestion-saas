@@ -1,7 +1,12 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, uuid, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Enums for improvement suggestions
+export const suggestionCategoryEnum = pgEnum('suggestion_category', ['Code Quality', 'Security', 'Testing', 'Documentation', 'Performance']);
+export const suggestionPriorityEnum = pgEnum('suggestion_priority', ['Low', 'Medium', 'High', 'Critical']);
+export const suggestionStatusEnum = pgEnum('suggestion_status', ['New', 'Acknowledged', 'Done']);
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -90,3 +95,29 @@ export type QualityMetric = typeof qualityMetrics.$inferSelect;
 
 export type InsertFrameworkConfig = z.infer<typeof insertFrameworkConfigSchema>;
 export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
+
+// Improvement Suggestions table
+export const improvementSuggestions = pgTable("improvement_suggestions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: suggestionCategoryEnum("category").notNull(),
+  priority: suggestionPriorityEnum("priority").notNull(),
+  status: suggestionStatusEnum("status").notNull().default('New'),
+  filePath: text("file_path"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schema for improvement suggestions
+export const insertImprovementSuggestionSchema = createInsertSchema(improvementSuggestions).pick({
+  title: true,
+  description: true,
+  category: true,
+  priority: true,
+  status: true,
+  filePath: true,
+});
+
+// Types for improvement suggestions
+export type InsertImprovementSuggestion = z.infer<typeof insertImprovementSuggestionSchema>;
+export type ImprovementSuggestion = typeof improvementSuggestions.$inferSelect;
