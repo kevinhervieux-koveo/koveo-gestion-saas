@@ -81,7 +81,7 @@ export function Sidebar() {
       key: 'residents',
       icon: Users,
       items: [
-        { name: 'Dashboard', href: '/residents/dashboard', icon: Home },
+        { name: 'Dashboard', href: '/dashboard', icon: Home },
         { name: 'My Residence', href: '/residents/residence', icon: Home },
         { name: 'My Building', href: '/residents/building', icon: Building },
         { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },

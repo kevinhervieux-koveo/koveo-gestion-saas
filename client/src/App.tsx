@@ -39,7 +39,7 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      {/* Default route - redirect to residents dashboard */}
+      {/* Default route - redirect to dashboard */}
       <Route path="/" component={ResidentsDashboard} />
       
       {/* Owner routes */}
@@ -58,7 +58,7 @@ function Router() {
       <Route path="/manager/demands" component={ManagerDemands} />
       
       {/* Residents routes */}
-      <Route path="/residents/dashboard" component={ResidentsDashboard} />
+      <Route path="/dashboard" component={ResidentsDashboard} />
       <Route path="/residents/residence" component={ResidentsResidence} />
       <Route path="/residents/building" component={ResidentsBuilding} />
       <Route path="/residents/demands" component={ResidentsDemands} />
