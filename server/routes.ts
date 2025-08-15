@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPillarSchema, insertWorkspaceStatusSchema, insertQualityMetricSchema, insertFrameworkConfigSchema } from "@shared/schema";
+import { insertPillarSchema, insertWorkspaceStatusSchema, insertQualityMetricSchema, insertFrameworkConfigSchema, insertUserSchema, insertOrganizationSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Development Pillars API
@@ -195,6 +195,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(suggestion);
     } catch (error) {
       res.status(500).json({ message: "Failed to update suggestion status" });
+    }
+  });
+
+  // Users API
+  app.get("/api/users", async (req, res) => {
+    try {
+      // This would be implemented with proper pagination and filtering
+      res.json({ message: "Users endpoint - TODO: Implement based on documentation" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      // Remove password from response
+      const { password, ...userResponse } = user;
+      res.json(userResponse);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(validatedData);
+      // Remove password from response
+      const { password, ...userResponse } = user;
+      res.status(201).json(userResponse);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  // Organizations API
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      // This would be implemented with proper pagination and filtering
+      res.json({ message: "Organizations endpoint - TODO: Implement based on documentation" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch organizations" });
+    }
+  });
+
+  app.get("/api/organizations/:id", async (req, res) => {
+    try {
+      // This would use storage.getOrganization when implemented
+      res.json({ message: "Organization details - TODO: Implement based on documentation" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch organization" });
+    }
+  });
+
+  app.post("/api/organizations", async (req, res) => {
+    try {
+      const validatedData = insertOrganizationSchema.parse(req.body);
+      // This would use storage.createOrganization when implemented
+      res.status(201).json({ message: "Organization created - TODO: Implement based on documentation" });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid organization data" });
     }
   });
 

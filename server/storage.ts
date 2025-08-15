@@ -16,9 +16,19 @@ import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User operations
+  getUsers(): Promise<User[]>;
   getUser(_id: string): Promise<User | undefined>;
-  getUserByUsername(_username: string): Promise<User | undefined>;
+  getUserByEmail(_email: string): Promise<User | undefined>;
   createUser(_user: InsertUser): Promise<User>;
+  updateUser(_id: string, _updates: Partial<User>): Promise<User | undefined>;
+
+  // Organization operations
+  getOrganizations(): Promise<Organization[]>;
+  getOrganization(_id: string): Promise<Organization | undefined>;
+  getOrganizationByName(_name: string): Promise<Organization | undefined>;
+  createOrganization(_organization: InsertOrganization): Promise<Organization>;
+  updateOrganization(_id: string, _updates: Partial<Organization>): Promise<Organization | undefined>;
+  getBuildingsByOrganization(_organizationId: string): Promise<Building[]>;
 
   // Development Pillar operations
   getPillars(): Promise<DevelopmentPillar[]>;
@@ -56,6 +66,8 @@ export class MemStorage implements IStorage {
   private qualityMetrics: Map<string, QualityMetric>;
   private frameworkConfigs: Map<string, FrameworkConfiguration>;
   private improvementSuggestions: Map<string, ImprovementSuggestion>;
+  private organizations: Map<string, Organization>;
+  private buildings: Map<string, Building>;
 
   constructor() {
     this.users = new Map();
@@ -64,6 +76,8 @@ export class MemStorage implements IStorage {
     this.qualityMetrics = new Map();
     this.frameworkConfigs = new Map();
     this.improvementSuggestions = new Map();
+    this.organizations = new Map();
+    this.buildings = new Map();
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -144,13 +158,83 @@ export class MemStorage implements IStorage {
   }
 
   // User operations
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.email === email,
+    );
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const existingUser = this.users.get(id);
+    if (!existingUser) {
+      return undefined;
+    }
+
+    const updatedUser = {
+      ...existingUser,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Organization operations
+  async getOrganizations(): Promise<Organization[]> {
+    return Array.from(this.organizations.values());
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    return this.organizations.get(id);
+  }
+
+  async getOrganizationByName(name: string): Promise<Organization | undefined> {
+    return Array.from(this.organizations.values()).find(
+      (org) => org.name === name,
+    );
+  }
+
+  async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
+    const id = randomUUID();
+    const organization: Organization = {
+      ...insertOrganization,
+      type: insertOrganization.type || 'management_company',
+      province: insertOrganization.province || 'QC',
+      id,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.organizations.set(id, organization);
+    return organization;
+  }
+
+  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+    const existingOrganization = this.organizations.get(id);
+    if (!existingOrganization) {
+      return undefined;
+    }
+
+    const updatedOrganization = {
+      ...existingOrganization,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.organizations.set(id, updatedOrganization);
+    return updatedOrganization;
+  }
+
+  async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
+    return Array.from(this.buildings.values()).filter(
+      (building) => building.organizationId === organizationId,
     );
   }
 
@@ -158,9 +242,14 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const user: User = { 
       ...insertUser,
-      language: insertUser.language || 'en', 
+      language: insertUser.language || 'fr', 
+      role: insertUser.role || 'tenant',
+      phone: insertUser.phone || null,
       id,
+      isActive: true,
+      lastLoginAt: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.users.set(id, user);
     return user;
