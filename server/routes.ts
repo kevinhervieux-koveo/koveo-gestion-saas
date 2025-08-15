@@ -9,6 +9,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register dedicated API routes
   registerUserRoutes(app);
   registerOrganizationRoutes(app);
+  // Improvement Suggestions API (MUST be defined before /api/pillars/:id)
+  app.get("/api/pillars/suggestions", async (req, res) => {
+    try {
+      const suggestions = await storage.getTopImprovementSuggestions(5);
+      res.json(suggestions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch improvement suggestions" });
+    }
+  });
+
+  app.post("/api/pillars/suggestions/:id/acknowledge", async (req, res) => {
+    try {
+      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Acknowledged');
+      if (!suggestion) {
+        return res.status(404).json({ message: "Suggestion not found" });
+      }
+      res.json(suggestion);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update suggestion status" });
+    }
+  });
+
+  app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
+    try {
+      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Done');
+      if (!suggestion) {
+        return res.status(404).json({ message: "Suggestion not found" });
+      }
+      res.json(suggestion);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update suggestion status" });
+    }
+  });
+
   // Development Pillars API
   app.get("/api/pillars", async (req, res) => {
     try {
@@ -169,39 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Improvement Suggestions API (under /pillars namespace)
-  app.get("/api/pillars/suggestions", async (req, res) => {
-    try {
-      const suggestions = await storage.getTopImprovementSuggestions(5);
-      res.json(suggestions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch improvement suggestions" });
-    }
-  });
-
-  app.post("/api/pillars/suggestions/:id/acknowledge", async (req, res) => {
-    try {
-      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Acknowledged');
-      if (!suggestion) {
-        return res.status(404).json({ message: "Suggestion not found" });
-      }
-      res.json(suggestion);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update suggestion status" });
-    }
-  });
-
-  app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
-    try {
-      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Done');
-      if (!suggestion) {
-        return res.status(404).json({ message: "Suggestion not found" });
-      }
-      res.json(suggestion);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update suggestion status" });
-    }
-  });
+  // Note: Suggestions API routes moved above to prevent route conflicts
 
   // Note: Users API routes are handled by registerUserRoutes above
 
