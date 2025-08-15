@@ -720,7 +720,7 @@ async function getQualityMetrics() {
     // Get performance metrics
     const performanceMetrics = await getPerformanceMetrics();
 
-    return {
+    const qualityData = {
       coverage: `${Math.round(coverage)}%`,
       codeQuality,
       securityIssues: securityIssues.toString(),
@@ -728,6 +728,18 @@ async function getQualityMetrics() {
       translationCoverage,
       ...performanceMetrics,
     };
+
+    // Analyze metrics and generate improvement suggestions for continuous improvement pillar
+    await analyzeMetricsForImprovements({
+      coverage,
+      codeQuality,
+      securityIssues,
+      buildTime,
+      translationCoverage,
+      ...performanceMetrics,
+    });
+
+    return qualityData;
   } catch (error) {
     // Fallback to some calculated values with baseline performance metrics
     return {
@@ -851,4 +863,248 @@ async function getPerformanceMetrics() {
     dbQueryTime,
     pageLoadTime,
   };
+}
+
+/**
+ * Quality metric analyzers registry for the continuous improvement pillar.
+ * Each analyzer defines thresholds and suggestion generation logic for specific metrics.
+ */
+interface QualityMetricAnalyzer {
+  metricName: string;
+  analyze: (value: any, allMetrics: any) => Promise<any[]>;
+}
+
+const qualityAnalyzers: QualityMetricAnalyzer[] = [
+  // Coverage analyzer
+  {
+    metricName: 'coverage',
+    analyze: async (coverage: number) => {
+      if (coverage < 80) {
+        return [{
+          title: 'Low Code Coverage Detected',
+          description: `Current test coverage is ${coverage}%. Target is 80% or higher for quality assurance.`,
+          category: 'Quality Assurance',
+          priority: coverage < 60 ? 'Critical' : 'High',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  // Code quality analyzer
+  {
+    metricName: 'codeQuality',
+    analyze: async (grade: string) => {
+      if (['C', 'D', 'F'].includes(grade)) {
+        return [{
+          title: 'Poor Code Quality Grade',
+          description: `Code quality grade is ${grade}. Consider refactoring complex functions and addressing linting issues.`,
+          category: 'Code Quality',
+          priority: grade === 'F' ? 'Critical' : 'High',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  // Security analyzer
+  {
+    metricName: 'securityIssues',
+    analyze: async (issues: number) => {
+      if (issues > 0) {
+        return [{
+          title: 'Security Vulnerabilities Found',
+          description: `Found ${issues} security vulnerabilities in dependencies. Run 'npm audit fix' to address them.`,
+          category: 'Security',
+          priority: issues > 10 ? 'Critical' : issues > 5 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  // Performance analyzers
+  {
+    metricName: 'responseTime',
+    analyze: async (responseTime: string) => {
+      const responseTimeMs = parseInt(responseTime.replace('ms', '') || '0');
+      if (responseTimeMs > 200) {
+        return [{
+          title: 'Slow API Response Time',
+          description: `API response time is ${responseTimeMs}ms. Target is under 200ms for optimal user experience.`,
+          category: 'Performance',
+          priority: responseTimeMs > 500 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  {
+    metricName: 'memoryUsage',
+    analyze: async (memoryUsage: string) => {
+      const memoryMB = parseInt(memoryUsage.replace('MB', '') || '0');
+      if (memoryMB > 100) {
+        return [{
+          title: 'High Memory Usage',
+          description: `Memory usage is ${memoryMB}MB. Consider optimizing memory-intensive operations and implementing garbage collection strategies.`,
+          category: 'Performance',
+          priority: memoryMB > 200 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  {
+    metricName: 'bundleSize',
+    analyze: async (bundleSize: string) => {
+      const bundleMB = parseFloat(bundleSize.replace('MB', '') || '0');
+      if (bundleMB > 5) {
+        return [{
+          title: 'Large Bundle Size',
+          description: `Bundle size is ${bundleMB}MB. Consider code splitting, tree shaking, and removing unused dependencies.`,
+          category: 'Performance',
+          priority: bundleMB > 10 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  {
+    metricName: 'dbQueryTime',
+    analyze: async (dbQueryTime: string) => {
+      const dbQueryMs = parseInt(dbQueryTime.replace('ms', '') || '0');
+      if (dbQueryMs > 100) {
+        return [{
+          title: 'Slow Database Queries',
+          description: `Average database query time is ${dbQueryMs}ms. Consider adding indexes, optimizing queries, or implementing caching.`,
+          category: 'Performance',
+          priority: dbQueryMs > 300 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  {
+    metricName: 'pageLoadTime',
+    analyze: async (pageLoadTime: string) => {
+      const pageLoadMs = parseInt(pageLoadTime.replace('ms', '') || '0');
+      if (pageLoadMs > 2000) {
+        return [{
+          title: 'Slow Page Load Time',
+          description: `Page load time is ${pageLoadMs}ms. Target is under 2 seconds. Consider optimizing images, reducing bundle size, and implementing lazy loading.`,
+          category: 'Performance',
+          priority: pageLoadMs > 5000 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: null,
+        }];
+      }
+      return [];
+    },
+  },
+  
+  {
+    metricName: 'translationCoverage',
+    analyze: async (translationCoverage: string) => {
+      const coverage = parseInt(translationCoverage.replace('%', '') || '100');
+      if (coverage < 95) {
+        return [{
+          title: 'Incomplete Translation Coverage',
+          description: `Translation coverage is ${coverage}%. Ensure all user-facing text is properly internationalized.`,
+          category: 'Internationalization',
+          priority: coverage < 80 ? 'High' : 'Medium',
+          status: 'New',
+          filePath: 'client/src/lib/i18n.ts',
+        }];
+      }
+      return [];
+    },
+  },
+];
+
+/**
+ * Registers a new quality metric analyzer with the continuous improvement pillar.
+ * Use this function to add new quality metrics that should be monitored for issues.
+ * 
+ * @example
+ * ```typescript
+ * registerQualityAnalyzer({
+ *   metricName: 'customMetric',
+ *   analyze: async (value) => {
+ *     if (value > threshold) {
+ *       return [{ title: 'Issue detected', ... }];
+ *     }
+ *     return [];
+ *   }
+ * });
+ * ```
+ */
+export function registerQualityAnalyzer(analyzer: QualityMetricAnalyzer): void {
+  // Remove existing analyzer with same metric name to prevent duplicates
+  const existingIndex = qualityAnalyzers.findIndex(a => a.metricName === analyzer.metricName);
+  if (existingIndex >= 0) {
+    qualityAnalyzers.splice(existingIndex, 1);
+  }
+  qualityAnalyzers.push(analyzer);
+}
+
+/**
+ * Analyzes quality metrics and automatically generates improvement suggestions
+ * for the continuous improvement pillar when issues are detected.
+ * 
+ * This ensures all quality assurance metrics are monitored by the continuous improvement system.
+ * New metrics can be added using registerQualityAnalyzer().
+ */
+async function analyzeMetricsForImprovements(metrics: any): Promise<void> {
+  try {
+    const allSuggestions: any[] = [];
+
+    // Run all registered analyzers on the metrics
+    for (const analyzer of qualityAnalyzers) {
+      try {
+        const metricValue = metrics[analyzer.metricName];
+        if (metricValue !== undefined && metricValue !== null) {
+          const suggestions = await analyzer.analyze(metricValue, metrics);
+          allSuggestions.push(...suggestions);
+        }
+      } catch (error) {
+        console.error(`Error running analyzer for ${analyzer.metricName}:`, error);
+        // Continue with other analyzers
+      }
+    }
+
+    // Save suggestions to continuous improvement pillar
+    if (allSuggestions.length > 0) {
+      // Clear existing suggestions from this analysis to prevent duplicates
+      await storage.clearNewSuggestions();
+      
+      // Create new suggestions
+      for (const suggestion of allSuggestions) {
+        await storage.createImprovementSuggestion(suggestion);
+      }
+      
+      console.log(`📊 Generated ${allSuggestions.length} improvement suggestions from quality metrics analysis`);
+    }
+
+  } catch (error) {
+    console.error('Error analyzing metrics for improvements:', error);
+    // Don't fail the metrics request if suggestion creation fails
+  }
 }
