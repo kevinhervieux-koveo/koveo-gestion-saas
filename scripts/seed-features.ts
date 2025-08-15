@@ -17,9 +17,9 @@ const roadmapData = [
   {
     category: 'Dashboard & Home',
     features: [
-      { name: 'Property Overview Dashboard', description: 'Real-time overview of all properties, occupancy rates, and key metrics', status: 'completed' as const },
-      { name: 'Quick Actions Panel', description: 'Fast access to common tasks like creating bills or maintenance requests', status: 'completed' as const },
-      { name: 'Notification Center', description: 'Centralized notification management with priority levels', status: 'completed' as const },
+      { name: 'Property Overview Dashboard', description: 'Real-time overview of all properties, occupancy rates, and key metrics', status: 'in-progress' as const },
+      { name: 'Quick Actions Panel', description: 'Fast access to common tasks like creating bills or maintenance requests', status: 'in-progress' as const },
+      { name: 'Notification Center', description: 'Centralized notification management with priority levels', status: 'planned' as const, priority: 'high' as const },
       { name: 'Multi-language Support', description: 'Full French and English language support', status: 'completed' as const },
       { name: 'Dark Mode', description: 'Toggle between light and dark themes', status: 'in-progress' as const },
       { name: 'Customizable Widgets', description: 'Drag-and-drop dashboard customization', status: 'planned' as const, priority: 'medium' as const },
@@ -29,9 +29,9 @@ const roadmapData = [
   {
     category: 'Property Management',
     features: [
-      { name: 'Multi-Building Management', description: 'Manage multiple buildings from a single platform', status: 'completed' as const },
-      { name: 'Residence Registry', description: 'Complete registry of all units with detailed information', status: 'completed' as const },
-      { name: 'Occupancy Tracking', description: 'Real-time tracking of occupied, vacant, and reserved units', status: 'completed' as const },
+      { name: 'Multi-Building Management', description: 'Manage multiple buildings from a single platform', status: 'in-progress' as const },
+      { name: 'Residence Registry', description: 'Complete registry of all units with detailed information', status: 'in-progress' as const },
+      { name: 'Occupancy Tracking', description: 'Real-time tracking of occupied, vacant, and reserved units', status: 'planned' as const, priority: 'high' as const },
       { name: 'Common Areas Management', description: 'Booking system for amenities and common spaces', status: 'in-progress' as const },
       { name: 'Parking Management', description: 'Assign and track parking spaces and storage units', status: 'in-progress' as const },
       { name: 'Digital Floor Plans', description: 'Interactive building floor plans with unit details', status: 'planned' as const, priority: 'medium' as const },
@@ -41,9 +41,9 @@ const roadmapData = [
   {
     category: 'Resident Management',
     features: [
-      { name: 'Resident Portal', description: 'Self-service portal for residents to view bills and submit requests', status: 'completed' as const },
-      { name: 'User Authentication', description: 'Secure login with role-based access control', status: 'completed' as const },
-      { name: 'Resident Onboarding', description: 'Automated workflow for new resident registration', status: 'completed' as const },
+      { name: 'Resident Portal', description: 'Self-service portal for residents to view bills and submit requests', status: 'in-progress' as const },
+      { name: 'User Authentication', description: 'Secure login with role-based access control', status: 'in-progress' as const },
+      { name: 'Resident Onboarding', description: 'Automated workflow for new resident registration', status: 'planned' as const, priority: 'high' as const },
       { name: 'Tenant Screening', description: 'Background checks and credit verification', status: 'in-progress' as const },
       { name: 'Digital Lease Management', description: 'Electronic lease signing and storage', status: 'in-progress' as const },
       { name: 'Move-in/Move-out Checklists', description: 'Digital inspection forms with photo documentation', status: 'planned' as const, priority: 'high' as const },
@@ -53,10 +53,10 @@ const roadmapData = [
   {
     category: 'Financial Management',
     features: [
-      { name: 'Bill Generation', description: 'Automated monthly bill creation with customizable templates', status: 'completed' as const },
-      { name: 'Payment Processing', description: 'Multiple payment methods including bank transfer and credit cards', status: 'completed' as const },
-      { name: 'Budget Management', description: 'Annual budget planning with line item tracking', status: 'completed' as const },
-      { name: 'Financial Reporting', description: 'Detailed financial reports and statements', status: 'completed' as const },
+      { name: 'Bill Generation', description: 'Automated monthly bill creation with customizable templates', status: 'in-progress' as const },
+      { name: 'Payment Processing', description: 'Multiple payment methods including bank transfer and credit cards', status: 'planned' as const, priority: 'critical' as const },
+      { name: 'Budget Management', description: 'Annual budget planning with line item tracking', status: 'planned' as const, priority: 'high' as const },
+      { name: 'Financial Reporting', description: 'Detailed financial reports and statements', status: 'planned' as const, priority: 'high' as const },
       { name: 'Late Payment Management', description: 'Automated reminders and penalty calculations', status: 'in-progress' as const },
       { name: 'Payment Plans', description: 'Flexible payment arrangements for residents', status: 'in-progress' as const },
       { name: 'Expense Tracking', description: 'Track and categorize all property expenses', status: 'in-progress' as const },
@@ -67,10 +67,10 @@ const roadmapData = [
   {
     category: 'Maintenance & Requests',
     features: [
-      { name: 'Request Submission', description: 'Easy submission with photo uploads and location details', status: 'completed' as const },
-      { name: 'Priority Management', description: 'Automatic prioritization based on urgency and category', status: 'completed' as const },
-      { name: 'Work Order Assignment', description: 'Assign to internal staff or external contractors', status: 'completed' as const },
-      { name: 'Progress Tracking', description: 'Real-time status updates and completion tracking', status: 'completed' as const },
+      { name: 'Request Submission', description: 'Easy submission with photo uploads and location details', status: 'in-progress' as const },
+      { name: 'Priority Management', description: 'Automatic prioritization based on urgency and category', status: 'planned' as const, priority: 'high' as const },
+      { name: 'Work Order Assignment', description: 'Assign to internal staff or external contractors', status: 'planned' as const, priority: 'high' as const },
+      { name: 'Progress Tracking', description: 'Real-time status updates and completion tracking', status: 'planned' as const, priority: 'medium' as const },
       { name: 'Preventive Maintenance', description: 'Scheduled maintenance calendar and reminders', status: 'in-progress' as const },
       { name: 'Vendor Management', description: 'Contractor database with ratings and history', status: 'in-progress' as const },
       { name: 'Inventory Management', description: 'Track maintenance supplies and equipment', status: 'planned' as const, priority: 'medium' as const },
@@ -80,8 +80,8 @@ const roadmapData = [
   {
     category: 'Document Management',
     features: [
-      { name: 'Document Upload', description: 'Secure upload with automatic categorization', status: 'completed' as const },
-      { name: 'Access Control', description: 'Role-based document access permissions', status: 'completed' as const },
+      { name: 'Document Upload', description: 'Secure upload with automatic categorization', status: 'planned' as const, priority: 'high' as const },
+      { name: 'Access Control', description: 'Role-based document access permissions', status: 'planned' as const, priority: 'high' as const },
       { name: 'Version Control', description: 'Track document versions and changes', status: 'in-progress' as const },
       { name: 'Digital Signatures', description: 'Electronic signature integration', status: 'in-progress' as const },
       { name: 'Meeting Minutes', description: 'Template-based meeting documentation', status: 'in-progress' as const },
@@ -92,7 +92,7 @@ const roadmapData = [
   {
     category: 'Communication',
     features: [
-      { name: 'Email Notifications', description: 'Automated email alerts for important events', status: 'completed' as const },
+      { name: 'Email Notifications', description: 'Automated email alerts for important events', status: 'planned' as const, priority: 'high' as const },
       { name: 'In-App Messaging', description: 'Direct messaging between users', status: 'in-progress' as const },
       { name: 'SMS Alerts', description: 'Text message notifications for urgent matters', status: 'in-progress' as const },
       { name: 'Announcement Board', description: 'Building-wide announcements and notices', status: 'in-progress' as const },
@@ -105,7 +105,7 @@ const roadmapData = [
     features: [
       { name: 'AI Property Assistant', description: 'Natural language chat interface for queries', status: 'in-progress' as const },
       { name: 'Predictive Maintenance', description: 'AI-powered maintenance predictions', status: 'planned' as const, priority: 'high' as const },
-      { name: 'Automated Bill Generation', description: 'Smart billing with automatic adjustments', status: 'completed' as const },
+      { name: 'Automated Bill Generation', description: 'Smart billing with automatic adjustments', status: 'planned' as const, priority: 'medium' as const },
       { name: 'Document Intelligence', description: 'AI document analysis and extraction', status: 'planned' as const, priority: 'medium' as const },
       { name: 'Expense Optimization', description: 'AI recommendations for cost reduction', status: 'planned' as const, priority: 'high' as const },
       { name: 'Occupancy Predictions', description: 'Forecast vacancy rates and trends', status: 'planned' as const, priority: 'medium' as const },
@@ -115,9 +115,9 @@ const roadmapData = [
   {
     category: 'Compliance & Security',
     features: [
-      { name: 'Law 25 Compliance', description: 'Full compliance with Quebec privacy law', status: 'completed' as const },
-      { name: 'Data Encryption', description: 'End-to-end encryption for sensitive data', status: 'completed' as const },
-      { name: 'Audit Logging', description: 'Complete audit trail of all actions', status: 'completed' as const },
+      { name: 'Law 25 Compliance', description: 'Full compliance with Quebec privacy law', status: 'in-progress' as const },
+      { name: 'Data Encryption', description: 'End-to-end encryption for sensitive data', status: 'planned' as const, priority: 'critical' as const },
+      { name: 'Audit Logging', description: 'Complete audit trail of all actions', status: 'planned' as const, priority: 'high' as const },
       { name: 'Two-Factor Authentication', description: '2FA for enhanced security', status: 'in-progress' as const },
       { name: 'GDPR Compliance', description: 'European data protection compliance', status: 'in-progress' as const },
       { name: 'Data Retention Policies', description: 'Automated data lifecycle management', status: 'planned' as const, priority: 'high' as const },
@@ -127,7 +127,7 @@ const roadmapData = [
   {
     category: 'Analytics & Reporting',
     features: [
-      { name: 'Financial Reports', description: 'Comprehensive financial statements', status: 'completed' as const },
+      { name: 'Financial Reports', description: 'Comprehensive financial statements', status: 'planned' as const, priority: 'high' as const },
       { name: 'Occupancy Analytics', description: 'Occupancy trends and forecasting', status: 'in-progress' as const },
       { name: 'Maintenance Analytics', description: 'Maintenance cost and frequency analysis', status: 'in-progress' as const },
       { name: 'Custom Report Builder', description: 'Drag-and-drop report creation', status: 'planned' as const, priority: 'medium' as const },
@@ -138,7 +138,7 @@ const roadmapData = [
   {
     category: 'Integration & API',
     features: [
-      { name: 'Payment Gateway Integration', description: 'Stripe and Moneris integration', status: 'completed' as const },
+      { name: 'Payment Gateway Integration', description: 'Stripe and Moneris integration', status: 'planned' as const, priority: 'critical' as const },
       { name: 'Accounting Software Sync', description: 'QuickBooks and Sage integration', status: 'in-progress' as const },
       { name: 'RESTful API', description: 'Full API for third-party integrations', status: 'in-progress' as const },
       { name: 'Webhook System', description: 'Event-driven webhooks', status: 'planned' as const, priority: 'medium' as const },
@@ -150,8 +150,8 @@ const roadmapData = [
     category: 'Infrastructure & Performance',
     features: [
       { name: 'Cloud Hosting', description: 'Scalable cloud infrastructure on Vercel', status: 'completed' as const },
-      { name: 'Database Optimization', description: 'PostgreSQL with read replicas', status: 'completed' as const },
-      { name: 'CDN Distribution', description: 'Global content delivery network', status: 'completed' as const },
+      { name: 'Database Optimization', description: 'PostgreSQL with read replicas', status: 'in-progress' as const },
+      { name: 'CDN Distribution', description: 'Global content delivery network', status: 'planned' as const, priority: 'medium' as const },
       { name: 'Auto-scaling', description: 'Automatic resource scaling', status: 'in-progress' as const },
       { name: 'Backup & Recovery', description: 'Automated backups with point-in-time recovery', status: 'in-progress' as const },
       { name: 'Load Balancing', description: 'Multi-region load distribution', status: 'planned' as const, priority: 'high' as const },
