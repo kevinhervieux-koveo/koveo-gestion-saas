@@ -1,6 +1,12 @@
 import { 
   type User, 
   type InsertUser,
+  type Organization,
+  type InsertOrganization,
+  type Building,
+  type InsertBuilding,
+  type Residence,
+  type InsertResidence,
   type DevelopmentPillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -29,6 +35,21 @@ export interface IStorage {
   createOrganization(_organization: InsertOrganization): Promise<Organization>;
   updateOrganization(_id: string, _updates: Partial<Organization>): Promise<Organization | undefined>;
   getBuildingsByOrganization(_organizationId: string): Promise<Building[]>;
+
+  // Building operations
+  getBuildings(): Promise<Building[]>;
+  getBuilding(_id: string): Promise<Building | undefined>;
+  createBuilding(_building: InsertBuilding): Promise<Building>;
+  updateBuilding(_id: string, _updates: Partial<Building>): Promise<Building | undefined>;
+  deleteBuilding(_id: string): Promise<boolean>;
+
+  // Residence operations
+  getResidences(): Promise<Residence[]>;
+  getResidence(_id: string): Promise<Residence | undefined>;
+  getResidencesByBuilding(_buildingId: string): Promise<Residence[]>;
+  createResidence(_residence: InsertResidence): Promise<Residence>;
+  updateResidence(_id: string, _updates: Partial<Residence>): Promise<Residence | undefined>;
+  deleteResidence(_id: string): Promise<boolean>;
 
   // Development Pillar operations
   getPillars(): Promise<DevelopmentPillar[]>;
@@ -68,6 +89,7 @@ export class MemStorage implements IStorage {
   private improvementSuggestions: Map<string, ImprovementSuggestion>;
   private organizations: Map<string, Organization>;
   private buildings: Map<string, Building>;
+  private residences: Map<string, Residence>;
 
   constructor() {
     this.users = new Map();
@@ -78,6 +100,7 @@ export class MemStorage implements IStorage {
     this.improvementSuggestions = new Map();
     this.organizations = new Map();
     this.buildings = new Map();
+    this.residences = new Map();
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -236,6 +259,119 @@ export class MemStorage implements IStorage {
     return Array.from(this.buildings.values()).filter(
       (building) => building.organizationId === organizationId,
     );
+  }
+
+  // Building operations
+  async getBuildings(): Promise<Building[]> {
+    return Array.from(this.buildings.values());
+  }
+
+  async getBuilding(id: string): Promise<Building | undefined> {
+    return this.buildings.get(id);
+  }
+
+  async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
+    const id = randomUUID();
+    const building: Building = {
+      ...insertBuilding,
+      province: insertBuilding.province || 'QC',
+      id,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.buildings.set(id, building);
+    return building;
+  }
+
+  async updateBuilding(id: string, updates: Partial<Building>): Promise<Building | undefined> {
+    const existingBuilding = this.buildings.get(id);
+    if (!existingBuilding) {
+      return undefined;
+    }
+
+    const updatedBuilding = {
+      ...existingBuilding,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.buildings.set(id, updatedBuilding);
+    return updatedBuilding;
+  }
+
+  async deleteBuilding(id: string): Promise<boolean> {
+    const existing = this.buildings.get(id);
+    if (!existing) {
+      return false;
+    }
+
+    // Soft delete by setting isActive to false
+    const updated = {
+      ...existing,
+      isActive: false,
+      updatedAt: new Date(),
+    };
+    this.buildings.set(id, updated);
+    return true;
+  }
+
+  // Residence operations
+  async getResidences(): Promise<Residence[]> {
+    return Array.from(this.residences.values());
+  }
+
+  async getResidence(id: string): Promise<Residence | undefined> {
+    return this.residences.get(id);
+  }
+
+  async getResidencesByBuilding(buildingId: string): Promise<Residence[]> {
+    return Array.from(this.residences.values()).filter(
+      (residence) => residence.buildingId === buildingId,
+    );
+  }
+
+  async createResidence(insertResidence: InsertResidence): Promise<Residence> {
+    const id = randomUUID();
+    const residence: Residence = {
+      ...insertResidence,
+      id,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.residences.set(id, residence);
+    return residence;
+  }
+
+  async updateResidence(id: string, updates: Partial<Residence>): Promise<Residence | undefined> {
+    const existingResidence = this.residences.get(id);
+    if (!existingResidence) {
+      return undefined;
+    }
+
+    const updatedResidence = {
+      ...existingResidence,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.residences.set(id, updatedResidence);
+    return updatedResidence;
+  }
+
+  async deleteResidence(id: string): Promise<boolean> {
+    const existing = this.residences.get(id);
+    if (!existing) {
+      return false;
+    }
+
+    // Soft delete by setting isActive to false
+    const updated = {
+      ...existing,
+      isActive: false,
+      updatedAt: new Date(),
+    };
+    this.residences.set(id, updated);
+    return true;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
