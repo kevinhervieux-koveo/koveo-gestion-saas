@@ -1,36 +1,71 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface QualityMetricsData {
+  coverage: string;
+  codeQuality: string;
+  securityIssues: string;
+  buildTime: string;
+}
 
 export function QualityMetrics() {
   const { t } = useLanguage();
 
-  const metrics = [
+  const { data: metricsData, isLoading } = useQuery<QualityMetricsData>({
+    queryKey: ['/api/quality-metrics'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+
+  const getColorByValue = (label: string, value: string) => {
+    if (label === t('codeCoverage')) {
+      const coverage = parseInt(value);
+      if (coverage >= 80) return { bg: 'bg-green-50', text: 'text-green-600' };
+      if (coverage >= 60) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      return { bg: 'bg-red-50', text: 'text-red-600' };
+    }
+    
+    if (label === t('codeQuality')) {
+      if (['A+', 'A'].includes(value)) return { bg: 'bg-green-50', text: 'text-green-600' };
+      if (['B+', 'B'].includes(value)) return { bg: 'bg-blue-50', text: 'text-blue-600' };
+      return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+    }
+    
+    if (label === t('securityIssues')) {
+      const issues = parseInt(value);
+      if (issues === 0) return { bg: 'bg-green-50', text: 'text-green-600' };
+      if (issues <= 5) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      return { bg: 'bg-red-50', text: 'text-red-600' };
+    }
+    
+    return { bg: 'bg-orange-50', text: 'text-orange-600' };
+  };
+
+  const metrics = metricsData ? [
     {
-      value: '95%',
+      value: metricsData.coverage,
       label: t('codeCoverage'),
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600',
+      ...getColorByValue(t('codeCoverage'), metricsData.coverage)
     },
     {
-      value: 'A+',
+      value: metricsData.codeQuality,
       label: t('codeQuality'),
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600',
+      ...getColorByValue(t('codeQuality'), metricsData.codeQuality)
     },
     {
-      value: '0',
+      value: metricsData.securityIssues,
       label: t('securityIssues'),
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
+      ...getColorByValue(t('securityIssues'), metricsData.securityIssues)
     },
     {
-      value: '12ms',
+      value: metricsData.buildTime,
       label: t('buildTime'),
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-600',
+      ...getColorByValue(t('buildTime'), metricsData.buildTime)
     },
-  ];
+  ] : [];
 
   return (
     <Card>
@@ -41,15 +76,25 @@ export function QualityMetrics() {
         </h3>
         
         <div className="grid grid-cols-2 gap-4">
-          {metrics.map((metric) => (
-            <div
-              key={metric.label}
-              className={`text-center p-4 ${metric.bgColor} rounded-lg`}
-            >
-              <div className={`text-2xl font-bold ${metric.textColor}`}>{metric.value}</div>
-              <div className="text-sm text-gray-600">{metric.label}</div>
-            </div>
-          ))}
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
+                <Skeleton className="h-8 w-16 mx-auto mb-2" />
+                <Skeleton className="h-4 w-20 mx-auto" />
+              </div>
+            ))
+          ) : (
+            metrics.map((metric) => (
+              <div
+                key={metric.label}
+                className={`text-center p-4 ${metric.bg} rounded-lg`}
+              >
+                <div className={`text-2xl font-bold ${metric.text}`}>{metric.value}</div>
+                <div className="text-sm text-gray-600">{metric.label}</div>
+              </div>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
