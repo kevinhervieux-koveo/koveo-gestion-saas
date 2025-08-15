@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   CheckCircle2,
   Circle,
@@ -19,6 +26,8 @@ import {
   BarChart3,
   Database,
   Cloud,
+  Plus,
+  Target,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
@@ -41,6 +50,7 @@ interface Section {
 export default function OwnerRoadmap() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   // Fetch features from the database
   const { data: features = [], isLoading } = useQuery({
@@ -57,6 +67,14 @@ export default function OwnerRoadmap() {
     setDialogOpen(true);
   };
 
+  /**
+   * Handles creating a new feature item
+   */
+  const handleCreateNewItem = () => {
+    setSelectedFeature(null);
+    setDialogOpen(true);
+  };
+
   // Group features by category
   const groupedFeatures = features.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
     if (!acc[feature.category]) {
@@ -67,6 +85,12 @@ export default function OwnerRoadmap() {
   }, {});
 
   const sections: Section[] = [
+    {
+      title: 'Strategic Path',
+      icon: Target,
+      description: 'High-level strategic initiatives and business objectives',
+      features: groupedFeatures['Strategic Path'] || [],
+    },
     {
       title: 'Dashboard & Home',
       icon: Home,
@@ -223,6 +247,13 @@ export default function OwnerRoadmap() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          {/* Create New Item Button */}
+          <div className='flex justify-end mb-6'>
+            <Button onClick={handleCreateNewItem} className='bg-koveo-navy hover:bg-koveo-navy/90'>
+              <Plus className='w-4 h-4 mr-2' />
+              Create New Item
+            </Button>
+          </div>
           {/* Overview Stats */}
           <div className='grid grid-cols-4 gap-4 mb-6'>
             <Card>
@@ -268,67 +299,97 @@ export default function OwnerRoadmap() {
             </Card>
           </div>
 
-          {/* Feature Sections */}
-          {sections.map((section) => {
-            const SectionIcon = section.icon;
-            const stats = calculateProgress(section.features);
+          {/* Feature Sections - Now Collapsible */}
+          <Accordion
+            type="multiple"
+            value={expandedSections}
+            onValueChange={setExpandedSections}
+            className="space-y-4"
+          >
+            {sections.map((section) => {
+              const SectionIcon = section.icon;
+              const stats = calculateProgress(section.features);
 
-            return (
-              <Card key={section.title} className='overflow-hidden'>
-                <CardHeader className='bg-gray-50'>
-                  <div className='flex items-start justify-between'>
-                    <div className='flex items-start space-x-3'>
-                      <div className='w-10 h-10 bg-koveo-navy rounded-lg flex items-center justify-center'>
-                        <SectionIcon className='w-5 h-5 text-white' />
-                      </div>
-                      <div>
-                        <CardTitle className='text-lg'>{section.title}</CardTitle>
-                        <CardDescription className='mt-1'>{section.description}</CardDescription>
-                      </div>
-                    </div>
-                    <div className='text-right'>
-                      <div className='text-2xl font-bold text-koveo-navy'>{stats.progress}%</div>
-                      <div className='text-xs text-gray-500'>
-                        {stats.completed}/{section.features.length} complete
-                      </div>
-                    </div>
-                  </div>
-                  <div className='mt-4'>
-                    <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
-                      <div
-                        className='h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500'
-                        style={{ width: `${stats.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className='p-0'>
-                  <div className='divide-y divide-gray-100'>
-                    {section.features.map((feature) => (
-                      <div
-                        key={feature.id || feature.name}
-                        className='p-4 hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-transparent hover:border-blue-400'
-                        onClick={() => handleFeatureClick(feature)}
-                      >
-                        <div className='flex items-start space-x-3'>
-                          {getStatusIcon(feature.status)}
-                          <div className='flex-1'>
-                            <div className='flex items-center'>
-                              <span className='font-medium text-gray-900 hover:text-blue-600 transition-colors'>{feature.name}</span>
-                              {getStatusBadge(feature.status)}
-                              {feature.priority && getPriorityBadge(feature.priority)}
+              return (
+                <AccordionItem key={section.title} value={section.title} className="border rounded-lg overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline">
+                    <Card className='w-full shadow-none border-none'>
+                      <CardHeader className='bg-gray-50'>
+                        <div className='flex items-start justify-between'>
+                          <div className='flex items-start space-x-3'>
+                            <div className='w-10 h-10 bg-koveo-navy rounded-lg flex items-center justify-center'>
+                              <SectionIcon className='w-5 h-5 text-white' />
                             </div>
-                            <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
-                            <p className='text-xs text-blue-600 mt-2 font-medium'>Click to plan development →</p>
+                            <div>
+                              <CardTitle className='text-lg text-left'>{section.title}</CardTitle>
+                              <CardDescription className='mt-1 text-left'>{section.description}</CardDescription>
+                            </div>
+                          </div>
+                          <div className='text-right'>
+                            <div className='text-2xl font-bold text-koveo-navy'>{stats.progress}%</div>
+                            <div className='text-xs text-gray-500'>
+                              {stats.completed}/{section.features.length} complete
+                            </div>
                           </div>
                         </div>
+                        <div className='mt-4'>
+                          <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+                            <div
+                              className='h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500'
+                              style={{ width: `${stats.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <CardContent className='p-0 bg-white'>
+                      <div className='divide-y divide-gray-100'>
+                        {section.features.length === 0 ? (
+                          <div className='p-8 text-center text-gray-500'>
+                            <div className='mb-2'>No features in this category yet</div>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCreateNewItem();
+                              }}
+                            >
+                              <Plus className='w-4 h-4 mr-1' />
+                              Add First Feature
+                            </Button>
+                          </div>
+                        ) : (
+                          section.features.map((feature) => (
+                            <div
+                              key={feature.id || feature.name}
+                              className='p-4 hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-transparent hover:border-blue-400'
+                              onClick={() => handleFeatureClick(feature)}
+                            >
+                              <div className='flex items-start space-x-3'>
+                                {getStatusIcon(feature.status)}
+                                <div className='flex-1'>
+                                  <div className='flex items-center'>
+                                    <span className='font-medium text-gray-900 hover:text-blue-600 transition-colors'>{feature.name}</span>
+                                    {getStatusBadge(feature.status)}
+                                    {feature.priority && getPriorityBadge(feature.priority)}
+                                  </div>
+                                  <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
+                                  <p className='text-xs text-blue-600 mt-2 font-medium'>Click to plan development →</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    </CardContent>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </div>
 
