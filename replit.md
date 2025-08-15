@@ -52,6 +52,7 @@ Preferred communication style: Simple, everyday language.
 - **TypeScript Configuration**: Unified type checking across frontend and backend
 - **Build System**: Separate build processes for client (Vite) and server (ESBuild)
 - **Path Aliases**: Consistent import paths with @ aliases for clean code organization
+- **Centralized Forms**: All form components located in `client/src/components/forms/` for reusability and maintainability
 
 ## External Dependencies
 
@@ -87,6 +88,12 @@ Preferred communication style: Simple, everyday language.
 - **Property Management APIs**: External integrations for Quebec property data
 
 ## Recent Changes
+
+### August 15, 2025 - Forms Architecture Centralized
+- ✅ **Centralized Forms Directory**: Created `client/src/components/forms/` directory for all form components
+- ✅ **Form Reorganization**: Moved `FeaturePlanningDialog` to `FeatureForm` in centralized forms directory
+- ✅ **Form Index Export**: Created index file for clean form imports across the application
+- ✅ **Improved Maintainability**: All future forms will be organized in the same directory for easy reuse
 
 ### August 15, 2025 - Pillar Automation Engine Complete
 - ✅ **Roadmap & Work Breakdown (Pillar 4)**: Created comprehensive `ROADMAP.md` with phased development approach

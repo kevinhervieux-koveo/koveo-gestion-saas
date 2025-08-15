@@ -23,23 +23,24 @@ import { useToast } from '@/hooks/use-toast';
 import type { Feature } from '@shared/schema';
 
 /**
- * Props for the FeaturePlanningDialog component.
+ * Props for the FeatureForm component.
  */
-interface FeaturePlanningDialogProps {
+interface FeatureFormProps {
   feature: Feature | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 /**
- * Dialog component for planning feature development.
+ * Reusable form dialog component for planning feature development.
  * Collects detailed requirements and generates development prompts.
+ * Located in forms directory for easy reuse across the application.
  * @param root0
  * @param root0.feature
  * @param root0.open
  * @param root0.onOpenChange
  */
-export function FeaturePlanningDialog({ feature, open, onOpenChange }: FeaturePlanningDialogProps) {
+export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     // General questions

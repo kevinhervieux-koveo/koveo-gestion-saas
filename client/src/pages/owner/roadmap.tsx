@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
-import { FeaturePlanningDialog } from '@/components/roadmap/feature-planning-dialog';
+import { FeatureForm } from '@/components/forms';
 
 /**
  *
@@ -393,7 +393,7 @@ export default function OwnerRoadmap() {
         </div>
       </div>
 
-      <FeaturePlanningDialog
+      <FeatureForm
         feature={selectedFeature}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
