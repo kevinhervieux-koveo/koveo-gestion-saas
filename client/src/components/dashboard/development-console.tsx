@@ -40,7 +40,7 @@ export function DevelopmentConsole() {
         </div>
         <div className="font-mono text-sm space-y-2">
           {consoleLines.slice(0, currentLine + 1).map((line, index) => (
-            <div key={index} className={line.color}>
+            <div key={`console-line-${index}-${line.text}`} className={line.color}>
               {line.text}
             </div>
           ))}

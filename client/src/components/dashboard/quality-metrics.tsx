@@ -79,7 +79,7 @@ export function QualityMetrics() {
           {isLoading ? (
             // Loading skeleton
             Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
+              <div key={`skeleton-${index}`} className="text-center p-4 bg-gray-50 rounded-lg">
                 <Skeleton className="h-8 w-16 mx-auto mb-2" />
                 <Skeleton className="h-4 w-20 mx-auto" />
               </div>

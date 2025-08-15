@@ -254,8 +254,8 @@ export default function OwnerRoadmap() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-gray-100">
-                    {section.features.map((feature, index) => (
-                      <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                    {section.features.map((feature) => (
+                      <div key={feature.id || feature.name} className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start space-x-3">
                           {getStatusIcon(feature.status)}
                           <div className="flex-1">

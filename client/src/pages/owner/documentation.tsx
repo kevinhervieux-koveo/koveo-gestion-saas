@@ -72,7 +72,7 @@ export default function OwnerDocumentation() {
   const { data: docData, isLoading, refetch, isFetching } = useQuery<DocumentationData>({
     queryKey: ['/api/documentation/comprehensive'],
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     queryFn: () => {
       // Generate comprehensive documentation data with current timestamp
       const currentTimestamp = new Date().toISOString();

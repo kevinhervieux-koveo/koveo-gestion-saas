@@ -197,7 +197,7 @@ export default function ResidentsDashboard() {
             {quickStats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <Card key={index}>
+                <Card key={`${stat.title}-${stat.value}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
