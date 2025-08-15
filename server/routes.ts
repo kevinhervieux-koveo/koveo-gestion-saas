@@ -371,6 +371,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Feature status workflow endpoints
+  app.post('/api/features/:id/update-status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
+      
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+
+      const [feature] = await db
+        .update(schema.features)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(schema.features.id, req.params.id))
+        .returning();
+
+      if (!feature) {
+        return res.status(404).json({ message: 'Feature not found' });
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error('Error updating feature status:', error);
+      res.status(500).json({ message: 'Failed to update feature status' });
+    }
+  });
+
+  // AI analysis endpoint
+  app.post('/api/features/:id/analyze', async (req, res) => {
+    try {
+      const { analyzeFeatureWithGemini, formatActionableItemsForDatabase, getDocumentationContext } = await import('./services/gemini-analysis');
+      
+      // Get the feature
+      const [feature] = await db
+        .select()
+        .from(schema.features)
+        .where(eq(schema.features.id, req.params.id));
+
+      if (!feature) {
+        return res.status(404).json({ message: 'Feature not found' });
+      }
+
+      // Check if feature is ready for analysis (should be in 'in-progress' status)
+      if (feature.status !== 'in-progress') {
+        return res.status(400).json({ 
+          message: 'Feature must be in "in-progress" status with all details filled before analysis' 
+        });
+      }
+
+      // Get documentation context
+      const documentationContext = await getDocumentationContext();
+
+      // Analyze with Gemini
+      const analysisResult = await analyzeFeatureWithGemini(feature, documentationContext);
+
+      // Format actionable items for database
+      const actionableItems = formatActionableItemsForDatabase(feature.id, analysisResult);
+
+      // Delete existing actionable items if any
+      await db
+        .delete(schema.actionableItems)
+        .where(eq(schema.actionableItems.featureId, feature.id));
+
+      // Insert new actionable items
+      const insertedItems = await db
+        .insert(schema.actionableItems)
+        .values(actionableItems)
+        .returning();
+
+      // Update feature with AI analysis results
+      const [updatedFeature] = await db
+        .update(schema.features)
+        .set({
+          status: 'ai-analyzed',
+          aiAnalysisResult: analysisResult,
+          aiAnalyzedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.features.id, feature.id))
+        .returning();
+
+      res.json({
+        feature: updatedFeature,
+        actionableItems: insertedItems,
+        analysis: analysisResult,
+      });
+    } catch (error) {
+      console.error('Error analyzing feature:', error);
+      res.status(500).json({ message: 'Failed to analyze feature', error: error.toString() });
+    }
+  });
+
+  // Actionable items endpoints
+  app.get('/api/features/:id/actionable-items', async (req, res) => {
+    try {
+      const items = await db
+        .select()
+        .from(schema.actionableItems)
+        .where(eq(schema.actionableItems.featureId, req.params.id))
+        .orderBy(schema.actionableItems.orderIndex);
+
+      res.json(items);
+    } catch (error) {
+      console.error('Error fetching actionable items:', error);
+      res.status(500).json({ message: 'Failed to fetch actionable items' });
+    }
+  });
+
+  app.put('/api/actionable-items/:id', async (req, res) => {
+    try {
+      const [item] = await db
+        .update(schema.actionableItems)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(schema.actionableItems.id, req.params.id))
+        .returning();
+
+      if (!item) {
+        return res.status(404).json({ message: 'Actionable item not found' });
+      }
+
+      // Check if all items are completed for the feature
+      const allItems = await db
+        .select()
+        .from(schema.actionableItems)
+        .where(eq(schema.actionableItems.featureId, item.featureId));
+
+      const allCompleted = allItems.every(i => i.status === 'completed');
+
+      // Update feature status if all items are completed
+      if (allCompleted) {
+        await db
+          .update(schema.features)
+          .set({ 
+            status: 'completed',
+            completedDate: new Date().toISOString(),
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.features.id, item.featureId));
+      }
+
+      res.json(item);
+    } catch (error) {
+      console.error('Error updating actionable item:', error);
+      res.status(500).json({ message: 'Failed to update actionable item' });
+    }
+  });
+
+  app.delete('/api/actionable-items/:id', async (req, res) => {
+    try {
+      const [deletedItem] = await db
+        .delete(schema.actionableItems)
+        .where(eq(schema.actionableItems.id, req.params.id))
+        .returning();
+
+      if (!deletedItem) {
+        return res.status(404).json({ message: 'Actionable item not found' });
+      }
+      res.json({ message: 'Actionable item deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting actionable item:', error);
+      res.status(500).json({ message: 'Failed to delete actionable item' });
+    }
+  });
+
   // Note: Suggestions API routes moved above to prevent route conflicts
 
   // Note: Users API routes are handled by registerUserRoutes above

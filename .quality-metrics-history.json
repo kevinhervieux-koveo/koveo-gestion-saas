@@ -1,0 +1,294 @@
+[
+  {
+    "metric": "coverage",
+    "calculatedValue": "75%",
+    "realIssuesFound": 8,
+    "falsePositives": 1,
+    "missedIssues": 2,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 3,
+      "moderateIssues": 4,
+      "minorIssues": 1,
+      "description": "Uncovered error handling in payment processing"
+    },
+    "timestamp": "2025-08-15T23:31:52.155Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "coverage",
+    "calculatedValue": "82%",
+    "realIssuesFound": 5,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Missing test coverage for edge cases in validation"
+    },
+    "timestamp": "2025-08-15T23:31:52.156Z",
+    "accuracy": 83.33333333333334
+  },
+  {
+    "metric": "badMetric",
+    "calculatedValue": "Critical",
+    "realIssuesFound": 1,
+    "falsePositives": 8,
+    "missedIssues": 5,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.179Z",
+    "accuracy": 16.666666666666664
+  },
+  {
+    "metric": "badMetric",
+    "calculatedValue": "High Risk",
+    "realIssuesFound": 0,
+    "falsePositives": 6,
+    "missedIssues": 4,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.180Z",
+    "accuracy": 0
+  },
+  {
+    "metric": "coverage",
+    "calculatedValue": "88%",
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.195Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "codeQuality",
+    "calculatedValue": "A",
+    "realIssuesFound": 3,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.195Z",
+    "accuracy": 75
+  },
+  {
+    "metric": "securityIssues",
+    "calculatedValue": "2",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.196Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "coverage",
+    "calculatedValue": "76%",
+    "realIssuesFound": 6,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 3,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Found uncovered error handling in user authentication, payment processing validation, and file upload edge cases"
+    },
+    "timestamp": "2025-08-15T23:31:52.198Z",
+    "accuracy": 85.71428571428571
+  },
+  {
+    "metric": "codeQuality",
+    "calculatedValue": "B+",
+    "realIssuesFound": 4,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Found complex authentication function, duplicated validation logic, and inconsistent naming in API endpoints"
+    },
+    "timestamp": "2025-08-15T23:31:52.212Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "securityIssues",
+    "calculatedValue": "3",
+    "realIssuesFound": 3,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Found SQL injection in user search, vulnerable lodash version, and weak password requirements"
+    },
+    "timestamp": "2025-08-15T23:31:52.214Z",
+    "accuracy": 75
+  },
+  {
+    "metric": "translationCoverage",
+    "calculatedValue": "87%",
+    "realIssuesFound": 8,
+    "falsePositives": 0,
+    "missedIssues": 2,
+    "projectPhase": "staging",
+    "issueDetails": {
+      "criticalIssues": 3,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Found missing translations for error messages, form validation, and help tooltips affecting French users"
+    },
+    "timestamp": "2025-08-15T23:31:52.215Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "buildTime",
+    "calculatedValue": "4.2s",
+    "realIssuesFound": 1,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 0,
+      "description": "Slow build time affecting development workflow and hot reload performance"
+    },
+    "timestamp": "2025-08-15T23:31:52.216Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "improvingCoverage",
+    "calculatedValue": "70%",
+    "realIssuesFound": 10,
+    "falsePositives": 3,
+    "missedIssues": 5,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.217Z",
+    "accuracy": 66.66666666666666
+  },
+  {
+    "metric": "improvingCoverage",
+    "calculatedValue": "78%",
+    "realIssuesFound": 8,
+    "falsePositives": 2,
+    "missedIssues": 3,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.217Z",
+    "accuracy": 72.72727272727273
+  },
+  {
+    "metric": "improvingCoverage",
+    "calculatedValue": "85%",
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.218Z",
+    "accuracy": 83.33333333333334
+  },
+  {
+    "metric": "improvingCoverage",
+    "calculatedValue": "92%",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.218Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "degradingMetric",
+    "calculatedValue": "A+",
+    "realIssuesFound": 8,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.220Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "degradingMetric",
+    "calculatedValue": "A",
+    "realIssuesFound": 5,
+    "falsePositives": 2,
+    "missedIssues": 2,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.220Z",
+    "accuracy": 71.42857142857143
+  },
+  {
+    "metric": "degradingMetric",
+    "calculatedValue": "B+",
+    "realIssuesFound": 3,
+    "falsePositives": 4,
+    "missedIssues": 4,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.220Z",
+    "accuracy": 42.857142857142854
+  },
+  {
+    "metric": "coverage",
+    "calculatedValue": "60%",
+    "realIssuesFound": 10,
+    "falsePositives": 3,
+    "missedIssues": 2,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.223Z",
+    "accuracy": 83.33333333333334
+  },
+  {
+    "metric": "codeQuality",
+    "calculatedValue": "70%",
+    "realIssuesFound": 8,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.224Z",
+    "accuracy": 88.88888888888889
+  },
+  {
+    "metric": "securityIssues",
+    "calculatedValue": "80%",
+    "realIssuesFound": 6,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.225Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "translationCoverage",
+    "calculatedValue": "90%",
+    "realIssuesFound": 4,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.226Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "buildTime",
+    "calculatedValue": "100%",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.228Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "testMetric",
+    "calculatedValue": "85%",
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "timestamp": "2025-08-15T23:31:52.231Z",
+    "accuracy": 83.33333333333334
+  }
+]

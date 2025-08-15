@@ -19,6 +19,8 @@ import {
   type InsertImprovementSuggestion,
   type Feature,
   type InsertFeature,
+  type ActionableItem,
+  type InsertActionableItem,
 } from '@shared/schema';
 import { randomUUID } from 'crypto';
 
@@ -118,6 +120,15 @@ export interface IStorage {
   createFeature(_feature: InsertFeature): Promise<Feature>;
   updateFeature(_id: string, _updates: Partial<InsertFeature>): Promise<Feature | undefined>;
   deleteFeature(_id: string): Promise<boolean>;
+
+  // Actionable Items operations
+  getActionableItemsByFeature(_featureId: string): Promise<ActionableItem[]>;
+  getActionableItem(_id: string): Promise<ActionableItem | undefined>;
+  createActionableItem(_item: InsertActionableItem): Promise<ActionableItem>;
+  createActionableItems(_items: InsertActionableItem[]): Promise<ActionableItem[]>;
+  updateActionableItem(_id: string, _updates: Partial<ActionableItem>): Promise<ActionableItem | undefined>;
+  deleteActionableItem(_id: string): Promise<boolean>;
+  deleteActionableItemsByFeature(_featureId: string): Promise<boolean>;
 }
 
 /**
@@ -143,6 +154,7 @@ export class MemStorage implements IStorage {
   private frameworkConfigs: Map<string, FrameworkConfiguration>;
   private improvementSuggestions: Map<string, ImprovementSuggestion>;
   private features: Map<string, Feature>;
+  private actionableItems: Map<string, ActionableItem>;
   private organizations: Map<string, Organization>;
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
@@ -159,6 +171,7 @@ export class MemStorage implements IStorage {
     this.frameworkConfigs = new Map();
     this.improvementSuggestions = new Map();
     this.features = new Map();
+    this.actionableItems = new Map();
     this.organizations = new Map();
     this.buildings = new Map();
     this.residences = new Map();
@@ -1028,7 +1041,67 @@ export class MemStorage implements IStorage {
    *
    */
   async deleteFeature(id: string): Promise<boolean> {
+    // Also delete associated actionable items
+    await this.deleteActionableItemsByFeature(id);
     return this.features.delete(id);
+  }
+
+  // Actionable Items
+  async getActionableItemsByFeature(featureId: string): Promise<ActionableItem[]> {
+    return Array.from(this.actionableItems.values())
+      .filter(item => item.featureId === featureId)
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }
+
+  async getActionableItem(id: string): Promise<ActionableItem | undefined> {
+    return this.actionableItems.get(id);
+  }
+
+  async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
+    const id = randomUUID();
+    const newItem: ActionableItem = {
+      id,
+      ...item,
+      completedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as ActionableItem;
+    this.actionableItems.set(id, newItem);
+    return newItem;
+  }
+
+  async createActionableItems(items: InsertActionableItem[]): Promise<ActionableItem[]> {
+    const created: ActionableItem[] = [];
+    for (const item of items) {
+      const newItem = await this.createActionableItem(item);
+      created.push(newItem);
+    }
+    return created;
+  }
+
+  async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
+    const existing = this.actionableItems.get(id);
+    if (!existing) return undefined;
+    
+    const updated = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.actionableItems.set(id, updated);
+    return updated;
+  }
+
+  async deleteActionableItem(id: string): Promise<boolean> {
+    return this.actionableItems.delete(id);
+  }
+
+  async deleteActionableItemsByFeature(featureId: string): Promise<boolean> {
+    const items = await this.getActionableItemsByFeature(featureId);
+    for (const item of items) {
+      this.actionableItems.delete(item.id);
+    }
+    return true;
   }
 }
 
