@@ -22,6 +22,20 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
+/**
+ * Registers all API routes for the Koveo Gestion property management system.
+ * Sets up endpoints for quality metrics, pillars, workspace status, features, and more.
+ * 
+ * @param {Express} app - The Express application instance
+ * @returns {Promise<Server>} HTTP server instance with all routes registered
+ * 
+ * @example
+ * ```typescript
+ * const app = express();
+ * const server = await registerRoutes(app);
+ * server.listen(3000);
+ * ```
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register dedicated API routes
   registerUserRoutes(app);
@@ -392,6 +406,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
+/**
+ * Retrieves comprehensive quality metrics for the codebase including test coverage,
+ * code quality grades, security vulnerabilities, and build performance.
+ * 
+ * @returns {Promise<object>} Quality metrics object containing:
+ *   - coverage: Test coverage percentage as string
+ *   - codeQuality: Code quality grade (A+, A, B+, B, C)
+ *   - securityIssues: Number of security vulnerabilities as string
+ *   - buildTime: Build time in seconds or milliseconds
+ * 
+ * @example
+ * ```typescript
+ * const metrics = await getQualityMetrics();
+ * console.log(`Coverage: ${metrics.coverage}`);
+ * // Coverage: 68%
+ * ```
+ */
 async function getQualityMetrics() {
   try {
     // Get real test coverage

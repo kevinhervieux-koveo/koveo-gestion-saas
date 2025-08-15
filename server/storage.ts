@@ -22,6 +22,22 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+/**
+ * Storage interface for the Koveo Gestion property management system.
+ * Defines all storage operations for users, organizations, buildings, residences,
+ * development pillars, quality metrics, and features.
+ * 
+ * @interface IStorage
+ * @example
+ * ```typescript
+ * class MyStorage implements IStorage {
+ *   async getUsers(): Promise<User[]> {
+ *     // implementation
+ *   }
+ *   // ... other methods
+ * }
+ * ```
+ */
 export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
@@ -91,6 +107,21 @@ export interface IStorage {
   deleteFeature(_id: string): Promise<boolean>;
 }
 
+/**
+ * In-memory storage implementation for the Koveo Gestion system.
+ * Stores all data in memory using Map collections with automatic initialization
+ * of default data including development pillars and workspace status.
+ * 
+ * @class MemStorage
+ * @implements {IStorage}
+ * 
+ * @example
+ * ```typescript
+ * const storage = new MemStorage();
+ * const users = await storage.getUsers();
+ * const newUser = await storage.createUser(userData);
+ * ```
+ */
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private pillars: Map<string, DevelopmentPillar>;
@@ -103,6 +134,10 @@ export class MemStorage implements IStorage {
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
 
+  /**
+   * Creates a new MemStorage instance and initializes default data.
+   * Automatically sets up development pillars, workspace status, and quality metrics.
+   */
   constructor() {
     this.users = new Map();
     this.pillars = new Map();
@@ -119,6 +154,12 @@ export class MemStorage implements IStorage {
     this.initializeDefaultData();
   }
 
+  /**
+   * Initializes default data for the storage including development pillars,
+   * workspace status tracking, and baseline quality metrics.
+   * 
+   * @private
+   */
   private initializeDefaultData() {
     // Initialize default pillars
     const defaultPillars = [
@@ -194,20 +235,74 @@ export class MemStorage implements IStorage {
   }
 
   // User operations
+  /**
+   * Retrieves all users from storage.
+   * 
+   * @returns {Promise<User[]>} Array of all user records
+   * 
+   * @example
+   * ```typescript
+   * const users = await storage.getUsers();
+   * console.log(`Found ${users.length} users`);
+   * ```
+   */
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
 
+  /**
+   * Retrieves a specific user by ID.
+   * 
+   * @param {string} id - The unique identifier of the user
+   * @returns {Promise<User | undefined>} The user record or undefined if not found
+   * 
+   * @example
+   * ```typescript
+   * const user = await storage.getUser('user-123');
+   * if (user) {
+   *   console.log(`User: ${user.email}`);
+   * }
+   * ```
+   */
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
 
+  /**
+   * Finds a user by their email address.
+   * 
+   * @param {string} email - The email address to search for
+   * @returns {Promise<User | undefined>} The user record or undefined if not found
+   * 
+   * @example
+   * ```typescript
+   * const user = await storage.getUserByEmail('john@example.com');
+   * if (user) {
+   *   console.log(`Found user: ${user.name}`);
+   * }
+   * ```
+   */
   async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.email === email,
     );
   }
 
+  /**
+   * Updates an existing user with partial data.
+   * 
+   * @param {string} id - The unique identifier of the user to update
+   * @param {Partial<User>} updates - Partial user data to update
+   * @returns {Promise<User | undefined>} The updated user record or undefined if not found
+   * 
+   * @example
+   * ```typescript
+   * const updatedUser = await storage.updateUser('user-123', {
+   *   name: 'John Doe',
+   *   phone: '+1-555-0123'
+   * });
+   * ```
+   */
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const existingUser = this.users.get(id);
     if (!existingUser) {
@@ -224,6 +319,17 @@ export class MemStorage implements IStorage {
   }
 
   // Organization operations
+  /**
+   * Retrieves all organizations from storage.
+   * 
+   * @returns {Promise<Organization[]>} Array of all organization records
+   * 
+   * @example
+   * ```typescript
+   * const orgs = await storage.getOrganizations();
+   * console.log(`Managing ${orgs.length} organizations`);
+   * ```
+   */
   async getOrganizations(): Promise<Organization[]> {
     return Array.from(this.organizations.values());
   }
@@ -238,6 +344,23 @@ export class MemStorage implements IStorage {
     );
   }
 
+  /**
+   * Creates a new organization with automatic ID generation and default values.
+   * 
+   * @param {InsertOrganization} insertOrganization - Organization data to create
+   * @returns {Promise<Organization>} The newly created organization record
+   * 
+   * @example
+   * ```typescript
+   * const org = await storage.createOrganization({
+   *   name: 'ABC Property Management',
+   *   email: 'contact@abc-pm.ca',
+   *   address: '123 Main St',
+   *   city: 'Montreal',
+   *   postalCode: 'H1A 1A1'
+   * });
+   * ```
+   */
   async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
     const id = randomUUID();
     const organization: Organization = {
@@ -275,6 +398,17 @@ export class MemStorage implements IStorage {
   }
 
   // Building operations
+  /**
+   * Retrieves all buildings from storage.
+   * 
+   * @returns {Promise<Building[]>} Array of all building records
+   * 
+   * @example
+   * ```typescript
+   * const buildings = await storage.getBuildings();
+   * const activeBuildings = buildings.filter(b => b.isActive);
+   * ```
+   */
   async getBuildings(): Promise<Building[]> {
     return Array.from(this.buildings.values());
   }
@@ -283,6 +417,23 @@ export class MemStorage implements IStorage {
     return this.buildings.get(id);
   }
 
+  /**
+   * Creates a new building with automatic ID generation and Quebec defaults.
+   * 
+   * @param {InsertBuilding} insertBuilding - Building data to create
+   * @returns {Promise<Building>} The newly created building record
+   * 
+   * @example
+   * ```typescript
+   * const building = await storage.createBuilding({
+   *   organizationId: 'org-123',
+   *   name: 'Maple Towers',
+   *   address: '456 Rue Saint-Laurent',
+   *   city: 'Quebec City',
+   *   postalCode: 'G1K 1K1'
+   * });
+   * ```
+   */
   async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
     const id = randomUUID();
     const building: Building = {
@@ -387,6 +538,22 @@ export class MemStorage implements IStorage {
     return true;
   }
 
+  /**
+   * Creates a new user with automatic ID generation and French/tenant defaults.
+   * 
+   * @param {InsertUser} insertUser - User data to create
+   * @returns {Promise<User>} The newly created user record
+   * 
+   * @example
+   * ```typescript
+   * const user = await storage.createUser({
+   *   name: 'Marie Tremblay',
+   *   email: 'marie@example.com',
+   *   language: 'fr',
+   *   role: 'tenant'
+   * });
+   * ```
+   */
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
@@ -405,6 +572,18 @@ export class MemStorage implements IStorage {
   }
 
   // Development Pillar operations
+  /**
+   * Retrieves all development pillars sorted by order.
+   * Development pillars track the implementation of core system frameworks.
+   * 
+   * @returns {Promise<DevelopmentPillar[]>} Array of development pillars sorted by order
+   * 
+   * @example
+   * ```typescript
+   * const pillars = await storage.getPillars();
+   * const completedPillars = pillars.filter(p => p.status === 'complete');
+   * ```
+   */
   async getPillars(): Promise<DevelopmentPillar[]> {
     return Array.from(this.pillars.values()).sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
@@ -413,6 +592,22 @@ export class MemStorage implements IStorage {
     return this.pillars.get(id);
   }
 
+  /**
+   * Creates a new development pillar for system framework tracking.
+   * 
+   * @param {InsertPillar} insertPillar - Pillar data to create
+   * @returns {Promise<DevelopmentPillar>} The newly created pillar record
+   * 
+   * @example
+   * ```typescript
+   * const pillar = await storage.createPillar({
+   *   name: 'Performance Pillar',
+   *   description: 'System performance monitoring framework',
+   *   order: '4',
+   *   configuration: { tools: ['lighthouse', 'webvitals'] }
+   * });
+   * ```
+   */
   async createPillar(insertPillar: InsertPillar): Promise<DevelopmentPillar> {
     const id = randomUUID();
     const pillar: DevelopmentPillar = {
@@ -516,6 +711,17 @@ export class MemStorage implements IStorage {
   }
 
   // Improvement Suggestions operations
+  /**
+   * Retrieves all improvement suggestions from quality analysis.
+   * 
+   * @returns {Promise<ImprovementSuggestion[]>} Array of all improvement suggestions
+   * 
+   * @example
+   * ```typescript
+   * const suggestions = await storage.getImprovementSuggestions();
+   * const criticalSuggestions = suggestions.filter(s => s.priority === 'Critical');
+   * ```
+   */
   async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> {
     return Array.from(this.improvementSuggestions.values());
   }
@@ -532,6 +738,23 @@ export class MemStorage implements IStorage {
       .slice(0, limit);
   }
 
+  /**
+   * Creates a new improvement suggestion from quality analysis results.
+   * 
+   * @param {InsertImprovementSuggestion} insertSuggestion - Suggestion data to create
+   * @returns {Promise<ImprovementSuggestion>} The newly created suggestion record
+   * 
+   * @example
+   * ```typescript
+   * const suggestion = await storage.createImprovementSuggestion({
+   *   title: 'High Cyclomatic Complexity in UserService',
+   *   description: 'Function complexity exceeds threshold of 10',
+   *   category: 'Code Quality',
+   *   priority: 'High',
+   *   filePath: 'src/services/UserService.ts'
+   * });
+   * ```
+   */
   async createImprovementSuggestion(insertSuggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
     const id = randomUUID();
     const suggestion: ImprovementSuggestion = {
@@ -570,6 +793,17 @@ export class MemStorage implements IStorage {
   }
 
   // Features operations
+  /**
+   * Retrieves all features from the roadmap system.
+   * 
+   * @returns {Promise<Feature[]>} Array of all feature records
+   * 
+   * @example
+   * ```typescript
+   * const features = await storage.getFeatures();
+   * const completedFeatures = features.filter(f => f.status === 'completed');
+   * ```
+   */
   async getFeatures(): Promise<Feature[]> {
     return Array.from(this.features.values());
   }
@@ -592,6 +826,23 @@ export class MemStorage implements IStorage {
     );
   }
 
+  /**
+   * Creates a new feature for the product roadmap with defaults.
+   * 
+   * @param {InsertFeature} insertFeature - Feature data to create
+   * @returns {Promise<Feature>} The newly created feature record
+   * 
+   * @example
+   * ```typescript
+   * const feature = await storage.createFeature({
+   *   name: 'Advanced Reporting',
+   *   description: 'Customizable financial and operational reports',
+   *   category: 'Analytics & Reporting',
+   *   status: 'planned',
+   *   priority: 'high'
+   * });
+   * ```
+   */
   async createFeature(insertFeature: InsertFeature): Promise<Feature> {
     const id = randomUUID();
     const feature: Feature = {
