@@ -9,15 +9,12 @@ import type { Organization, User } from '@shared/schema';
 export default function Dashboard() {
   const { t } = useLanguage();
 
-  // Auto-updating queries
   const { data: organizations, isLoading: organizationsLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
-    refetchInterval: 5000, // Auto-update every 5 seconds
   });
 
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
-    refetchInterval: 5000,
   });
 
   const isLoading = organizationsLoading || usersLoading;
@@ -173,20 +170,6 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Status Indicator */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-700">Dashboard auto-updating every 5 seconds</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  Last updated: {new Date().toLocaleTimeString()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

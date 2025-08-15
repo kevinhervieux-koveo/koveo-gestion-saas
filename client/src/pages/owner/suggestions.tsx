@@ -19,7 +19,6 @@ interface ImprovementSuggestion {
 export default function OwnerSuggestions() {
   const { data: suggestions, isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
-    refetchInterval: 5000, // Auto-update every 5 seconds
   });
 
   const acknowledgeMutation = useMutation({
