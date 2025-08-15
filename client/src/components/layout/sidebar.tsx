@@ -1,4 +1,4 @@
-import { ArrowUp, Home, Columns, CheckCircle, GitBranch, Settings, User } from 'lucide-react';
+import { ArrowUp, Home, ShieldCheck, CheckCircle, GitBranch, Settings, User } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
@@ -9,7 +9,7 @@ export function Sidebar() {
 
   const navigation = [
     { name: t('dashboard'), href: '/', icon: Home, current: location === '/' },
-    { name: t('pillarFramework'), href: '/pillars', icon: Columns, current: location === '/pillars' },
+    { name: t('pillarFramework'), href: '/pillars', icon: ShieldCheck, current: location === '/pillars' },
     { name: t('qualityAssurance'), href: '/quality', icon: CheckCircle, current: location === '/quality' },
     { name: t('workflowSetup'), href: '/workflow', icon: GitBranch, current: location === '/workflow' },
     { name: t('configuration'), href: '/config', icon: Settings, current: location === '/config' },
