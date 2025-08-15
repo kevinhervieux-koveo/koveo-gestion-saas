@@ -254,66 +254,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/features", async (req, res) => {
     try {
       const { status, category, roadmap } = req.query;
-      let features;
+      console.log('Features API called with query:', { status, category, roadmap });
       
-      if (roadmap === 'true') {
-        features = await storage.getPublicRoadmapFeatures();
-      } else if (status) {
-        features = await storage.getFeaturesByStatus(status as any);
-      } else if (category) {
-        features = await storage.getFeaturesByCategory(category as string);
-      } else {
-        features = await storage.getFeatures();
-      }
+      // Simple query to test connection
+      const features = await db.query.features.findMany({
+        where: roadmap === 'true' 
+          ? eq(schema.features.isPublicRoadmap, true)
+          : undefined
+      });
       
+      console.log('Found features:', features.length);
       res.json(features);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch features" });
+      console.error('Error fetching features:', error);
+      res.status(500).json({ message: "Failed to fetch features", error: error.message });
     }
   });
 
   app.get("/api/features/:id", async (req, res) => {
     try {
-      const features = await storage.getFeatures();
-      const feature = features.find(f => f.id === req.params.id);
+      const [feature] = await db
+        .select()
+        .from(schema.features)
+        .where(eq(schema.features.id, req.params.id));
+      
       if (!feature) {
         return res.status(404).json({ message: "Feature not found" });
       }
       res.json(feature);
     } catch (error) {
+      console.error('Error fetching feature:', error);
       res.status(500).json({ message: "Failed to fetch feature" });
     }
   });
 
   app.post("/api/features", async (req, res) => {
     try {
-      const feature = await storage.createFeature(req.body);
+      const [feature] = await db
+        .insert(schema.features)
+        .values(req.body)
+        .returning();
       res.json(feature);
     } catch (error) {
+      console.error('Error creating feature:', error);
       res.status(400).json({ message: "Invalid feature data" });
     }
   });
 
   app.put("/api/features/:id", async (req, res) => {
     try {
-      const feature = await storage.updateFeature(req.params.id, req.body);
+      const [feature] = await db
+        .update(schema.features)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(schema.features.id, req.params.id))
+        .returning();
+      
       if (!feature) {
         return res.status(404).json({ message: "Feature not found" });
       }
       res.json(feature);
     } catch (error) {
+      console.error('Error updating feature:', error);
       res.status(400).json({ message: "Invalid feature data" });
     }
   });
 
   app.delete("/api/features/:id", async (req, res) => {
     try {
-      const success = await storage.deleteFeature(req.params.id);
-      if (!success) {
+      const [deletedFeature] = await db
+        .delete(schema.features)
+        .where(eq(schema.features.id, req.params.id))
+        .returning();
+      
+      if (!deletedFeature) {
         return res.status(404).json({ message: "Feature not found" });
       }
       res.json({ message: "Feature deleted successfully" });
     } catch (error) {
+      console.error('Error deleting feature:', error);
       res.status(500).json({ message: "Failed to delete feature" });
     }
   });
