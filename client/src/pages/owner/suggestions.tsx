@@ -3,8 +3,10 @@ import { Header } from '@/components/layout/header';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, MessageSquare } from 'lucide-react';
+import { CheckCircle, Clock, MessageSquare, AlertCircle, Shield, Code, FileText, Zap } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { FilterSort } from '@/components/filter-sort/FilterSort';
+import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 
 interface ImprovementSuggestion {
   id: string;
@@ -16,9 +18,149 @@ interface ImprovementSuggestion {
   createdAt: string;
 }
 
+// Filter and sort configuration for suggestions
+const filterSortConfig: FilterSortConfig = {
+  filters: [
+    {
+      id: 'priority',
+      field: 'priority',
+      label: 'Priority',
+      type: 'select',
+      icon: AlertCircle,
+      options: [
+        { label: 'Critical', value: 'Critical', color: 'purple' },
+        { label: 'High', value: 'High', color: 'red' },
+        { label: 'Medium', value: 'Medium', color: 'yellow' },
+        { label: 'Low', value: 'Low', color: 'blue' },
+      ],
+      defaultOperator: 'equals',
+    },
+    {
+      id: 'status',
+      field: 'status',
+      label: 'Status',
+      type: 'select',
+      icon: Clock,
+      options: [
+        { label: 'New', value: 'New' },
+        { label: 'Acknowledged', value: 'Acknowledged' },
+        { label: 'Done', value: 'Done' },
+      ],
+      defaultOperator: 'equals',
+    },
+    {
+      id: 'category',
+      field: 'category',
+      label: 'Category',
+      type: 'select',
+      icon: MessageSquare,
+      options: [
+        { label: 'Code Quality', value: 'Code Quality', icon: Code },
+        { label: 'Testing', value: 'Testing' },
+        { label: 'Documentation', value: 'Documentation', icon: FileText },
+        { label: 'Security', value: 'Security', icon: Shield },
+        { label: 'Performance', value: 'Performance', icon: Zap },
+      ],
+      defaultOperator: 'equals',
+    },
+    {
+      id: 'title',
+      field: 'title',
+      label: 'Title',
+      type: 'text',
+      placeholder: 'Search in title...',
+      defaultOperator: 'contains',
+    },
+    {
+      id: 'description',
+      field: 'description',
+      label: 'Description',
+      type: 'text',
+      placeholder: 'Search in description...',
+      defaultOperator: 'contains',
+    },
+  ],
+  sortOptions: [
+    { field: 'createdAt', label: 'Date Created (Newest)', defaultDirection: 'desc' },
+    { field: 'createdAt', label: 'Date Created (Oldest)', defaultDirection: 'asc' },
+    { field: 'priority', label: 'Priority' },
+    { field: 'status', label: 'Status' },
+    { field: 'category', label: 'Category' },
+    { field: 'title', label: 'Title' },
+  ],
+  presets: [
+    {
+      id: 'critical-new',
+      name: 'Critical & New',
+      description: 'Show critical priority items that are new',
+      icon: AlertCircle,
+      filters: [
+        { field: 'priority', operator: 'equals', value: 'Critical' },
+        { field: 'status', operator: 'equals', value: 'New' },
+      ],
+    },
+    {
+      id: 'high-priority',
+      name: 'High Priority',
+      description: 'Show high and critical priority items',
+      filters: [
+        { field: 'priority', operator: 'in', value: ['Critical', 'High'] },
+      ],
+      sort: { field: 'createdAt', direction: 'desc' },
+    },
+    {
+      id: 'pending-work',
+      name: 'Pending Work',
+      description: 'Show items that are not done',
+      filters: [
+        { field: 'status', operator: 'not_equals', value: 'Done' },
+      ],
+      sort: { field: 'priority', direction: 'asc' },
+    },
+    {
+      id: 'security-issues',
+      name: 'Security Issues',
+      description: 'Show all security-related suggestions',
+      icon: Shield,
+      filters: [
+        { field: 'category', operator: 'equals', value: 'Security' },
+      ],
+    },
+  ],
+  searchable: true,
+  searchPlaceholder: 'Search suggestions...',
+  searchFields: ['title', 'description', 'category'],
+  allowMultipleFilters: false,
+  persistState: true,
+  storageKey: 'suggestions-filters',
+};
+
 export default function OwnerSuggestions() {
-  const { data: suggestions, isLoading } = useQuery<ImprovementSuggestion[]>({
+  const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
+  });
+
+  // Use the filter and sort hook
+  const {
+    filteredData,
+    filters,
+    sort,
+    search,
+    addFilter,
+    removeFilter,
+    clearFilters,
+    toggleSort,
+    setSearch,
+    applyPreset,
+    hasActiveFilters,
+    activeFilterCount,
+    resultCount,
+  } = useFilterSort({
+    data: suggestions,
+    config: filterSortConfig,
+    initialState: {
+      sort: { field: 'createdAt', direction: 'desc' },
+    },
   });
 
   const acknowledgeMutation = useMutation({
@@ -78,6 +220,13 @@ export default function OwnerSuggestions() {
     }
   };
 
+  const handleApplyPreset = (presetId: string) => {
+    const preset = filterSortConfig.presets?.find(p => p.id === presetId);
+    if (preset) {
+      applyPreset(preset);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
@@ -87,14 +236,33 @@ export default function OwnerSuggestions() {
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto">
+          {/* Filter and Sort Component */}
+          <FilterSort
+            config={filterSortConfig}
+            filters={filters}
+            sort={sort}
+            search={search}
+            onAddFilter={addFilter}
+            onRemoveFilter={removeFilter}
+            onUpdateFilter={() => {}}
+            onClearFilters={clearFilters}
+            onSetSort={() => {}}
+            onToggleSort={toggleSort}
+            onSetSearch={setSearch}
+            onApplyPreset={handleApplyPreset}
+            activeFilterCount={activeFilterCount}
+            resultCount={resultCount}
+            totalCount={suggestions.length}
+            className="mb-6"
+          />
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-koveo-navy"></div>
             </div>
           ) : (
             <div className="space-y-4">
-              {suggestions && suggestions.length > 0 ? (
-                suggestions.map((suggestion) => (
+              {filteredData && filteredData.length > 0 ? (
+                filteredData.map((suggestion) => (
                   <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -180,11 +348,24 @@ export default function OwnerSuggestions() {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-16">
                     <MessageSquare size={48} className="text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">No Suggestions Available</h3>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                      {hasActiveFilters ? 'No Matching Suggestions' : 'No Suggestions Available'}
+                    </h3>
                     <p className="text-gray-500 text-center">
-                      No improvement suggestions have been generated yet. 
-                      Run the quality check to generate recommendations.
+                      {hasActiveFilters
+                        ? 'Try adjusting your filters to see more results.'
+                        : 'No improvement suggestions have been generated yet. Run the quality check to generate recommendations.'}
                     </p>
+                    {hasActiveFilters && (
+                      <Button
+                        onClick={clearFilters}
+                        variant="outline"
+                        size="sm"
+                        className="mt-4"
+                      >
+                        Clear Filters
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
