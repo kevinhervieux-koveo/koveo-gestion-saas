@@ -5,13 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- *
+ * Interface for quality metrics data from the API.
  */
 interface QualityMetricsData {
   coverage: string;
   codeQuality: string;
   securityIssues: string;
   buildTime: string;
+  translationCoverage: string;
 }
 
 /**
@@ -31,6 +32,20 @@ export function QualityMetrics() {
       const coverage = parseInt(value);
       if (coverage >= 80) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
+      }
+      if (coverage >= 60) {
+        return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      }
+      return { bg: 'bg-red-50', text: 'text-red-600' };
+    }
+
+    if (label === t('translationCoverage')) {
+      const coverage = parseInt(value);
+      if (coverage >= 95) {
+        return { bg: 'bg-green-50', text: 'text-green-600' };
+      }
+      if (coverage >= 80) {
+        return { bg: 'bg-blue-50', text: 'text-blue-600' };
       }
       if (coverage >= 60) {
         return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
@@ -84,6 +99,11 @@ export function QualityMetrics() {
           label: t('buildTime'),
           ...getColorByValue(t('buildTime'), metricsData.buildTime),
         },
+        {
+          value: metricsData.translationCoverage,
+          label: t('translationCoverage'),
+          ...getColorByValue(t('translationCoverage'), metricsData.translationCoverage),
+        },
       ]
     : [];
 
@@ -95,10 +115,10 @@ export function QualityMetrics() {
           {t('qualityMetrics')}
         </h3>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-2 lg:grid-cols-5 gap-4'>
           {isLoading
             ? // Loading skeleton
-              Array.from({ length: 4 }).map((_, index) => (
+              Array.from({ length: 5 }).map((_, index) => (
                 <div key={`skeleton-${index}`} className='text-center p-4 bg-gray-50 rounded-lg'>
                   <Skeleton className='h-8 w-16 mx-auto mb-2' />
                   <Skeleton className='h-4 w-20 mx-auto' />

@@ -48,6 +48,7 @@ export interface Translations {
   codeQuality: string;
   securityIssues: string;
   buildTime: string;
+  translationCoverage: string;
   nextActions: string;
   initializeQAPillar: string;
   setupValidationQualityAssurance: string;
@@ -99,6 +100,7 @@ const translations: Record<Language, Translations> = {
     codeQuality: 'Code Quality',
     securityIssues: 'Security Issues',
     buildTime: 'Build Time',
+    translationCoverage: 'Translation Coverage',
     nextActions: 'Next Actions',
     initializeQAPillar: 'Initialize QA Pillar',
     setupValidationQualityAssurance: 'Set up validation and quality assurance framework',
@@ -149,6 +151,7 @@ const translations: Record<Language, Translations> = {
     codeQuality: 'Qualité du code',
     securityIssues: 'Problèmes de sécurité',
     buildTime: 'Temps de compilation',
+    translationCoverage: 'Couverture de traduction',
     nextActions: 'Prochaines actions',
     initializeQAPillar: 'Initialiser le pilier AQ',
     setupValidationQualityAssurance: "Configurer le cadre de validation et d'assurance qualité",
