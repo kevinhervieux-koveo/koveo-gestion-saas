@@ -1,5 +1,8 @@
 import { DatabaseStorage } from '../server/db-storage';
 
+/**
+ *
+ */
 async function seedSuggestions() {
   const storage = new DatabaseStorage();
   

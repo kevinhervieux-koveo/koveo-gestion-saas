@@ -4,6 +4,9 @@ import { useLanguage } from '@/hooks/use-language';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 
+/**
+ *
+ */
 interface QualityMetricsData {
   coverage: string;
   codeQuality: string;
@@ -11,6 +14,9 @@ interface QualityMetricsData {
   buildTime: string;
 }
 
+/**
+ *
+ */
 export function QualityMetrics() {
   const { t } = useLanguage();
 
@@ -23,78 +29,87 @@ export function QualityMetrics() {
   const getColorByValue = (label: string, value: string) => {
     if (label === t('codeCoverage')) {
       const coverage = parseInt(value);
-      if (coverage >= 80) return { bg: 'bg-green-50', text: 'text-green-600' };
-      if (coverage >= 60) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      if (coverage >= 80) {
+        return { bg: 'bg-green-50', text: 'text-green-600' };
+      }
+      if (coverage >= 60) {
+        return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      }
       return { bg: 'bg-red-50', text: 'text-red-600' };
     }
-    
+
     if (label === t('codeQuality')) {
-      if (['A+', 'A'].includes(value)) return { bg: 'bg-green-50', text: 'text-green-600' };
-      if (['B+', 'B'].includes(value)) return { bg: 'bg-blue-50', text: 'text-blue-600' };
+      if (['A+', 'A'].includes(value)) {
+        return { bg: 'bg-green-50', text: 'text-green-600' };
+      }
+      if (['B+', 'B'].includes(value)) {
+        return { bg: 'bg-blue-50', text: 'text-blue-600' };
+      }
       return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
     }
-    
+
     if (label === t('securityIssues')) {
       const issues = parseInt(value);
-      if (issues === 0) return { bg: 'bg-green-50', text: 'text-green-600' };
-      if (issues <= 5) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      if (issues === 0) {
+        return { bg: 'bg-green-50', text: 'text-green-600' };
+      }
+      if (issues <= 5) {
+        return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+      }
       return { bg: 'bg-red-50', text: 'text-red-600' };
     }
-    
+
     return { bg: 'bg-orange-50', text: 'text-orange-600' };
   };
 
-  const metrics = metricsData ? [
-    {
-      value: metricsData.coverage,
-      label: t('codeCoverage'),
-      ...getColorByValue(t('codeCoverage'), metricsData.coverage)
-    },
-    {
-      value: metricsData.codeQuality,
-      label: t('codeQuality'),
-      ...getColorByValue(t('codeQuality'), metricsData.codeQuality)
-    },
-    {
-      value: metricsData.securityIssues,
-      label: t('securityIssues'),
-      ...getColorByValue(t('securityIssues'), metricsData.securityIssues)
-    },
-    {
-      value: metricsData.buildTime,
-      label: t('buildTime'),
-      ...getColorByValue(t('buildTime'), metricsData.buildTime)
-    },
-  ] : [];
+  const metrics = metricsData
+    ? [
+        {
+          value: metricsData.coverage,
+          label: t('codeCoverage'),
+          ...getColorByValue(t('codeCoverage'), metricsData.coverage),
+        },
+        {
+          value: metricsData.codeQuality,
+          label: t('codeQuality'),
+          ...getColorByValue(t('codeQuality'), metricsData.codeQuality),
+        },
+        {
+          value: metricsData.securityIssues,
+          label: t('securityIssues'),
+          ...getColorByValue(t('securityIssues'), metricsData.securityIssues),
+        },
+        {
+          value: metricsData.buildTime,
+          label: t('buildTime'),
+          ...getColorByValue(t('buildTime'), metricsData.buildTime),
+        },
+      ]
+    : [];
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <TrendingUp className="text-koveo-navy mr-3" size={20} />
+      <CardContent className='p-6'>
+        <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
+          <TrendingUp className='text-koveo-navy mr-3' size={20} />
           {t('qualityMetrics')}
         </h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-          {isLoading ? (
-            // Loading skeleton
-            Array.from({ length: 4 }).map((_, index) => (
-              <div key={`skeleton-${index}`} className="text-center p-4 bg-gray-50 rounded-lg">
-                <Skeleton className="h-8 w-16 mx-auto mb-2" />
-                <Skeleton className="h-4 w-20 mx-auto" />
-              </div>
-            ))
-          ) : (
-            metrics.map((metric) => (
-              <div
-                key={metric.label}
-                className={`text-center p-4 ${metric.bg} rounded-lg`}
-              >
-                <div className={`text-2xl font-bold ${metric.text}`}>{metric.value}</div>
-                <div className="text-sm text-gray-600">{metric.label}</div>
-              </div>
-            ))
-          )}
+
+        <div className='grid grid-cols-2 gap-4'>
+          {isLoading
+            ? // Loading skeleton
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`skeleton-${index}`} className='text-center p-4 bg-gray-50 rounded-lg'>
+                  <Skeleton className='h-8 w-16 mx-auto mb-2' />
+                  <Skeleton className='h-4 w-20 mx-auto' />
+                </div>
+              ))
+            : metrics.map((metric) => (
+                <div key={metric.label} className={`text-center p-4 ${metric.bg} rounded-lg`}>
+                  <div className={`text-2xl font-bold ${metric.text}`}>{metric.value}</div>
+                  <div className='text-sm text-gray-600'>{metric.label}</div>
+                </div>
+              ))}
         </div>
       </CardContent>
     </Card>

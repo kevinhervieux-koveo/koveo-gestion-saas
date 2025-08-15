@@ -1,11 +1,17 @@
 // Filter and Sort type definitions for reusable component system
 
+/**
+ *
+ */
 export type SortDirection = 'asc' | 'desc';
 
-export type FilterOperator = 
-  | 'equals' 
+/**
+ *
+ */
+export type FilterOperator =
+  | 'equals'
   | 'not_equals'
-  | 'contains' 
+  | 'contains'
   | 'not_contains'
   | 'starts_with'
   | 'ends_with'
@@ -18,14 +24,14 @@ export type FilterOperator =
   | 'is_empty'
   | 'is_not_empty';
 
-export type FilterType = 
-  | 'text' 
-  | 'number' 
-  | 'date' 
-  | 'select' 
-  | 'multi_select' 
-  | 'boolean';
+/**
+ *
+ */
+export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi_select' | 'boolean';
 
+/**
+ *
+ */
 export interface FilterOption {
   label: string;
   value: string | number | boolean;
@@ -33,6 +39,9 @@ export interface FilterOption {
   color?: string;
 }
 
+/**
+ *
+ */
 export interface FilterConfig {
   id: string;
   field: string;
@@ -47,12 +56,18 @@ export interface FilterConfig {
   multiple?: boolean;
 }
 
+/**
+ *
+ */
 export interface FilterValue {
   field: string;
   operator: FilterOperator;
   value: any;
 }
 
+/**
+ *
+ */
 export interface SortConfig {
   field: string;
   label: string;
@@ -60,17 +75,26 @@ export interface SortConfig {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
+/**
+ *
+ */
 export interface SortValue {
   field: string;
   direction: SortDirection;
 }
 
+/**
+ *
+ */
 export interface FilterSortState {
   filters: FilterValue[];
   sort: SortValue | null;
   search: string;
 }
 
+/**
+ *
+ */
 export interface FilterSortPreset {
   id: string;
   name: string;
@@ -80,6 +104,9 @@ export interface FilterSortPreset {
   sort?: SortValue;
 }
 
+/**
+ *
+ */
 export interface FilterSortConfig {
   filters: FilterConfig[];
   sortOptions: SortConfig[];

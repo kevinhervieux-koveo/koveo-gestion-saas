@@ -1,43 +1,49 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  FilterSortState, 
-  FilterValue, 
-  SortValue, 
+import {
+  FilterSortState,
+  FilterValue,
+  SortValue,
   FilterSortConfig,
-  FilterSortPreset 
+  FilterSortPreset,
 } from './types';
 import { applyFilterSort } from './utils';
 
+/**
+ *
+ */
 interface UseFilterSortOptions<T> {
   data: T[];
   config: FilterSortConfig;
   initialState?: Partial<FilterSortState>;
 }
 
+/**
+ *
+ */
 interface UseFilterSortReturn<T> {
   // Filtered and sorted data
   filteredData: T[];
-  
+
   // State
   filters: FilterValue[];
   sort: SortValue | null;
   search: string;
-  
+
   // Actions
   addFilter: (filter: FilterValue) => void;
   removeFilter: (field: string) => void;
   updateFilter: (field: string, filter: FilterValue) => void;
   clearFilters: () => void;
-  
+
   setSort: (sort: SortValue | null) => void;
   toggleSort: (field: string) => void;
-  
+
   setSearch: (search: string) => void;
   clearSearch: () => void;
-  
+
   applyPreset: (preset: FilterSortPreset) => void;
   reset: () => void;
-  
+
   // Metadata
   hasActiveFilters: boolean;
   activeFilterCount: number;
@@ -46,11 +52,13 @@ interface UseFilterSortReturn<T> {
 
 const STORAGE_PREFIX = 'filter-sort-state-';
 
-export function useFilterSort<T>(
-  options: UseFilterSortOptions<T>
-): UseFilterSortReturn<T> {
+/**
+ *
+ * @param options
+ */
+export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
-  
+
   // Load initial state from localStorage if persistence is enabled
   const getInitialState = (): FilterSortState => {
     if (config.persistState && config.storageKey) {
@@ -63,104 +71,101 @@ export function useFilterSort<T>(
         }
       }
     }
-    
+
     return {
       filters: initialState?.filters || [],
       sort: initialState?.sort || null,
       search: initialState?.search || '',
     };
   };
-  
+
   const [state, setState] = useState<FilterSortState>(getInitialState);
-  
+
   // Persist state to localStorage when it changes
   useEffect(() => {
     if (config.persistState && config.storageKey) {
-      localStorage.setItem(
-        STORAGE_PREFIX + config.storageKey,
-        JSON.stringify(state)
-      );
+      localStorage.setItem(STORAGE_PREFIX + config.storageKey, JSON.stringify(state));
     }
   }, [state, config.persistState, config.storageKey]);
-  
+
   // Apply filters, search, and sort to data
   const filteredData = useMemo(() => {
-    return applyFilterSort(
-      data,
-      state.filters,
-      state.search,
-      state.sort,
-      config.searchFields
-    );
+    return applyFilterSort(data, state.filters, state.search, state.sort, config.searchFields);
   }, [data, state.filters, state.search, state.sort, config.searchFields]);
-  
+
   // Filter management
-  const addFilter = useCallback((filter: FilterValue) => {
-    setState(prev => {
-      if (!config.allowMultipleFilters) {
-        // Replace existing filter for the same field
-        const otherFilters = prev.filters.filter(f => f.field !== filter.field);
-        return { ...prev, filters: [...otherFilters, filter] };
-      }
-      return { ...prev, filters: [...prev.filters, filter] };
-    });
-  }, [config.allowMultipleFilters]);
-  
+  const addFilter = useCallback(
+    (filter: FilterValue) => {
+      setState((prev) => {
+        if (!config.allowMultipleFilters) {
+          // Replace existing filter for the same field
+          const otherFilters = prev.filters.filter((f) => f.field !== filter.field);
+          return { ...prev, filters: [...otherFilters, filter] };
+        }
+        return { ...prev, filters: [...prev.filters, filter] };
+      });
+    },
+    [config.allowMultipleFilters]
+  );
+
   const removeFilter = useCallback((field: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      filters: prev.filters.filter(f => f.field !== field)
+      filters: prev.filters.filter((f) => f.field !== field),
     }));
   }, []);
-  
+
   const updateFilter = useCallback((field: string, filter: FilterValue) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      filters: prev.filters.map(f => f.field === field ? filter : f)
+      filters: prev.filters.map((f) => (f.field === field ? filter : f)),
     }));
   }, []);
-  
+
   const clearFilters = useCallback(() => {
-    setState(prev => ({ ...prev, filters: [] }));
+    setState((prev) => ({ ...prev, filters: [] }));
   }, []);
-  
+
   // Sort management
   const setSort = useCallback((sort: SortValue | null) => {
-    setState(prev => ({ ...prev, sort }));
+    setState((prev) => ({ ...prev, sort }));
   }, []);
-  
-  const toggleSort = useCallback((field: string) => {
-    setState(prev => {
-      if (prev.sort?.field === field) {
-        // Toggle direction or clear
-        if (prev.sort.direction === 'asc') {
-          return { ...prev, sort: { field, direction: 'desc' } };
+
+  const toggleSort = useCallback(
+    (field: string) => {
+      setState((prev) => {
+        if (prev.sort?.field === field) {
+          // Toggle direction or clear
+          if (prev.sort.direction === 'asc') {
+            return { ...prev, sort: { field, direction: 'desc' } };
+          } else {
+            return { ...prev, sort: null };
+          }
         } else {
-          return { ...prev, sort: null };
+          // Set new sort field
+          const sortConfig = config.sortOptions.find((s) => s.field === field);
+          return {
+            ...prev,
+            sort: {
+              field,
+              direction: sortConfig?.defaultDirection || 'asc',
+            },
+          };
         }
-      } else {
-        // Set new sort field
-        const sortConfig = config.sortOptions.find(s => s.field === field);
-        return { 
-          ...prev, 
-          sort: { 
-            field, 
-            direction: sortConfig?.defaultDirection || 'asc' 
-          } 
-        };
-      }
-    });
-  }, [config.sortOptions]);
-  
+      });
+    },
+    [config.sortOptions]
+  );
+
   // Search management
   const setSearch = useCallback((search: string) => {
-    setState(prev => ({ ...prev, search }));
+    setState((prev) => ({ ...prev, search }));
   }, []);
-  
+
   const clearSearch = useCallback(() => {
-    setState(prev => ({ ...prev, search: '' }));
+    setState((prev) => ({ ...prev, search: '' }));
   }, []);
-  
+
   // Preset management
   const applyPreset = useCallback((preset: FilterSortPreset) => {
     setState({
@@ -169,7 +174,7 @@ export function useFilterSort<T>(
       search: '',
     });
   }, []);
-  
+
   // Reset to initial state
   const reset = useCallback(() => {
     setState({
@@ -178,21 +183,21 @@ export function useFilterSort<T>(
       search: initialState?.search || '',
     });
   }, [initialState]);
-  
+
   // Computed values
   const hasActiveFilters = state.filters.length > 0 || state.search !== '';
   const activeFilterCount = state.filters.length;
   const resultCount = filteredData.length;
-  
+
   return {
     // Data
     filteredData,
-    
+
     // State
     filters: state.filters,
     sort: state.sort,
     search: state.search,
-    
+
     // Actions
     addFilter,
     removeFilter,
@@ -204,7 +209,7 @@ export function useFilterSort<T>(
     clearSearch,
     applyPreset,
     reset,
-    
+
     // Metadata
     hasActiveFilters,
     activeFilterCount,

@@ -2,6 +2,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Columns } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
+/**
+ *
+ */
 export function PillarFramework() {
   const { t } = useLanguage();
 
@@ -43,13 +46,13 @@ export function PillarFramework() {
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Columns className="text-koveo-navy mr-3" size={20} />
+      <CardContent className='p-6'>
+        <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
+          <Columns className='text-koveo-navy mr-3' size={20} />
           {t('pillarMethodology')}
         </h3>
-        
-        <div className="space-y-3">
+
+        <div className='space-y-3'>
           {pillars.map((pillar) => (
             <div
               key={pillar.id}
@@ -57,15 +60,21 @@ export function PillarFramework() {
                 pillar.status === 'pending' ? 'opacity-50' : ''
               }`}
             >
-              <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${pillar.numberBg} rounded-full flex items-center justify-center`}>
-                  <span className="text-white font-bold text-sm">{pillar.id}</span>
+              <div className='flex items-center space-x-3'>
+                <div
+                  className={`w-8 h-8 ${pillar.numberBg} rounded-full flex items-center justify-center`}
+                >
+                  <span className='text-white font-bold text-sm'>{pillar.id}</span>
                 </div>
                 <div>
-                  <p className={`font-medium ${pillar.status === 'pending' ? 'text-gray-600' : 'text-gray-900'}`}>
+                  <p
+                    className={`font-medium ${pillar.status === 'pending' ? 'text-gray-600' : 'text-gray-900'}`}
+                  >
                     {pillar.title}
                   </p>
-                  <p className={`text-sm ${pillar.status === 'pending' ? 'text-gray-500' : 'text-gray-600'}`}>
+                  <p
+                    className={`text-sm ${pillar.status === 'pending' ? 'text-gray-500' : 'text-gray-600'}`}
+                  >
                     {pillar.description}
                   </p>
                 </div>

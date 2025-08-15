@@ -1,4 +1,9 @@
-import { insertUserSchema, insertOrganizationSchema, insertBuildingSchema, insertFeatureSchema } from '@shared/schema';
+import {
+  insertUserSchema,
+  insertOrganizationSchema,
+  insertBuildingSchema,
+  insertFeatureSchema,
+} from '../../shared/schema';
 import { z } from 'zod';
 
 describe('Schema Validation Tests', () => {
@@ -10,7 +15,7 @@ describe('Schema Validation Tests', () => {
       lastName: 'Tremblay',
       phone: '+1-514-555-0123',
       language: 'fr',
-      role: 'tenant' as const
+      role: 'tenant' as const,
     };
 
     it('should validate correct user data', () => {
@@ -49,10 +54,10 @@ describe('Schema Validation Tests', () => {
     });
 
     it('should accept valid names at length limit', () => {
-      const validData = { 
-        ...validUserData, 
+      const validData = {
+        ...validUserData,
         firstName: 'a'.repeat(100),
-        lastName: 'b'.repeat(100)
+        lastName: 'b'.repeat(100),
       };
       const result = insertUserSchema.safeParse(validData);
       expect(result.success).toBe(true);
@@ -66,7 +71,7 @@ describe('Schema Validation Tests', () => {
       city: 'Montreal',
       postalCode: 'H3A 1A1',
       type: 'management_company',
-      province: 'QC'
+      province: 'QC',
     };
 
     it('should validate correct organization data', () => {
@@ -78,7 +83,7 @@ describe('Schema Validation Tests', () => {
       const dataWithOptionals = {
         ...validOrgData,
         email: 'test@org.ca',
-        phone: '+1-514-555-0100'
+        phone: '+1-514-555-0100',
       };
       const result = insertOrganizationSchema.safeParse(dataWithOptionals);
       expect(result.success).toBe(true);
@@ -91,7 +96,7 @@ describe('Schema Validation Tests', () => {
       name: 'Test Building',
       address: '456 Test Avenue',
       city: 'Quebec City',
-      postalCode: 'G1K 1K1'
+      postalCode: 'G1K 1K1',
     };
 
     it('should validate correct building data', () => {
@@ -105,7 +110,7 @@ describe('Schema Validation Tests', () => {
         province: 'QC',
         buildingType: 'condo',
         yearBuilt: 2010,
-        totalUnits: 50
+        totalUnits: 50,
       };
       const result = insertBuildingSchema.safeParse(dataWithOptionals);
       expect(result.success).toBe(true);
@@ -117,7 +122,7 @@ describe('Schema Validation Tests', () => {
       name: 'Test Feature',
       description: 'A test feature for validation',
       category: 'core',
-      status: 'planned' as const
+      status: 'planned' as const,
     };
 
     it('should validate correct feature data', () => {
@@ -127,8 +132,8 @@ describe('Schema Validation Tests', () => {
 
     it('should accept valid status values', () => {
       const statuses = ['completed', 'in-progress', 'planned', 'cancelled', 'requested'] as const;
-      
-      statuses.forEach(status => {
+
+      statuses.forEach((status) => {
         const data = { ...validFeatureData, status };
         const result = insertFeatureSchema.safeParse(data);
         expect(result.success).toBe(true);
@@ -137,8 +142,8 @@ describe('Schema Validation Tests', () => {
 
     it('should accept valid priority values', () => {
       const priorities = ['low', 'medium', 'high'] as const;
-      
-      priorities.forEach(priority => {
+
+      priorities.forEach((priority) => {
         const data = { ...validFeatureData, priority };
         const result = insertFeatureSchema.safeParse(data);
         expect(result.success).toBe(true);

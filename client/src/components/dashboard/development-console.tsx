@@ -3,6 +3,9 @@ import { Terminal } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useEffect, useState } from 'react';
 
+/**
+ *
+ */
 export function DevelopmentConsole() {
   const { t } = useLanguage();
   const [currentLine, setCurrentLine] = useState(0);
@@ -25,20 +28,20 @@ export function DevelopmentConsole() {
   }, [consoleLines.length]);
 
   return (
-    <Card className="bg-gray-900 text-white border-gray-700">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center">
-            <Terminal className="mr-3" size={20} />
+    <Card className='bg-gray-900 text-white border-gray-700'>
+      <CardContent className='p-6'>
+        <div className='flex items-center justify-between mb-4'>
+          <h3 className='text-lg font-semibold flex items-center'>
+            <Terminal className='mr-3' size={20} />
             {t('developmentConsole')}
           </h3>
-          <div className="flex space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          <div className='flex space-x-2'>
+            <div className='w-3 h-3 bg-red-500 rounded-full'></div>
+            <div className='w-3 h-3 bg-yellow-500 rounded-full'></div>
+            <div className='w-3 h-3 bg-green-500 rounded-full'></div>
           </div>
         </div>
-        <div className="font-mono text-sm space-y-2">
+        <div className='font-mono text-sm space-y-2'>
           {consoleLines.slice(0, currentLine + 1).map((line, index) => (
             <div key={`console-line-${index}-${line.text}`} className={line.color}>
               {line.text}

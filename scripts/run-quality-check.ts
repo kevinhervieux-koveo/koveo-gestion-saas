@@ -65,6 +65,9 @@ interface VulnerabilityResult {
 
 /**
  * Generates improvement suggestions based on analysis results.
+ * @param complexity
+ * @param coverage
+ * @param vulnerabilities
  */
 async function generateSuggestions(
   complexity: ComplexityResult,
@@ -217,7 +220,7 @@ async function checkBuildPerformance(): Promise<number> {
 
 /**
  * Analyzes code complexity using complexity-report.
- * @returns Promise containing complexity analysis results
+ * @returns Promise containing complexity analysis results.
  */
 async function analyzeComplexity(): Promise<ComplexityResult> {
   try {
@@ -286,7 +289,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
 
 /**
  * Analyzes test coverage from Jest coverage reports.
- * @returns Promise containing coverage analysis results
+ * @returns Promise containing coverage analysis results.
  */
 async function analyzeCoverage(): Promise<CoverageResult> {
   try {
@@ -343,7 +346,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
 
 /**
  * Analyzes security vulnerabilities using npm audit.
- * @returns Promise containing vulnerability analysis results
+ * @returns Promise containing vulnerability analysis results.
  */
 async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
   try {
@@ -397,10 +400,10 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
 
 /**
  * Validates quality metrics against defined thresholds.
- * @param complexity - Complexity analysis results
- * @param coverage - Coverage analysis results
- * @param vulnerabilities - Vulnerability analysis results
- * @returns Boolean indicating if all thresholds are met
+ * @param complexity - Complexity analysis results.
+ * @param coverage - Coverage analysis results.
+ * @param vulnerabilities - Vulnerability analysis results.
+ * @returns Boolean indicating if all thresholds are met.
  */
 function validateQuality(
   complexity: ComplexityResult, 

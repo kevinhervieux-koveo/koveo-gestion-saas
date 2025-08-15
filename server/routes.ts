@@ -1,22 +1,29 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { execSync } from "child_process";
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
-import { storage } from "./storage";
-import { insertPillarSchema, insertWorkspaceStatusSchema, insertQualityMetricSchema, insertFrameworkConfigSchema, insertUserSchema, insertOrganizationSchema } from "@shared/schema";
-import { registerUserRoutes } from "./api/users";
-import { registerOrganizationRoutes } from "./api/organizations";
+import type { Express } from 'express';
+import { createServer, type Server } from 'http';
+import { execSync } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { storage } from './storage';
+import {
+  insertPillarSchema,
+  insertWorkspaceStatusSchema,
+  insertQualityMetricSchema,
+  insertFrameworkConfigSchema,
+  insertUserSchema,
+  insertOrganizationSchema,
+} from '@shared/schema';
+import { registerUserRoutes } from './api/users';
+import { registerOrganizationRoutes } from './api/organizations';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
 import { desc, eq } from 'drizzle-orm';
-import ws from "ws";
+import ws from 'ws';
 
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -25,10 +32,10 @@ const db = drizzle({ client: pool, schema });
 /**
  * Registers all API routes for the Koveo Gestion property management system.
  * Sets up endpoints for quality metrics, pillars, workspace status, features, and more.
- * 
- * @param {Express} app - The Express application instance
- * @returns {Promise<Server>} HTTP server instance with all routes registered
- * 
+ *
+ * @param {Express} app - The Express application instance.
+ * @returns {Promise<Server>} HTTP server instance with all routes registered.
+ *
  * @example
  * ```typescript
  * const app = express();
@@ -42,16 +49,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerOrganizationRoutes(app);
 
   // Quality Metrics API
-  app.get("/api/quality-metrics", async (req, res) => {
+  app.get('/api/quality-metrics', async (req, res) => {
     try {
       const metrics = await getQualityMetrics();
       res.json(metrics);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch quality metrics" });
+      res.status(500).json({ message: 'Failed to fetch quality metrics' });
     }
   });
   // Improvement Suggestions API (MUST be defined before /api/pillars/:id)
-  app.get("/api/pillars/suggestions", async (req, res) => {
+  app.get('/api/pillars/suggestions', async (req, res) => {
     try {
       // Fetch directly from database since we're using in-memory storage for other data
       const suggestions = await db
@@ -62,11 +69,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(suggestions);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
-      res.status(500).json({ message: "Failed to fetch improvement suggestions" });
+      res.status(500).json({ message: 'Failed to fetch improvement suggestions' });
     }
   });
 
-  app.post("/api/pillars/suggestions/:id/acknowledge", async (req, res) => {
+  app.post('/api/pillars/suggestions/:id/acknowledge', async (req, res) => {
     try {
       // Update directly in database
       const [suggestion] = await db
@@ -74,291 +81,293 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({ status: 'Acknowledged' })
         .where(eq(schema.improvementSuggestions.id, req.params.id))
         .returning();
-      
+
       if (!suggestion) {
-        return res.status(404).json({ message: "Suggestion not found" });
+        return res.status(404).json({ message: 'Suggestion not found' });
       }
       res.json(suggestion);
     } catch (error) {
       console.error('Error acknowledging suggestion:', error);
-      res.status(500).json({ message: "Failed to update suggestion status" });
+      res.status(500).json({ message: 'Failed to update suggestion status' });
     }
   });
 
-  app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
+  app.post('/api/pillars/suggestions/:id/complete', async (req, res) => {
     try {
       // Delete the suggestion from database
       const [deletedSuggestion] = await db
         .delete(schema.improvementSuggestions)
         .where(eq(schema.improvementSuggestions.id, req.params.id))
         .returning();
-      
+
       if (!deletedSuggestion) {
-        return res.status(404).json({ message: "Suggestion not found" });
+        return res.status(404).json({ message: 'Suggestion not found' });
       }
 
       // Trigger continuous improvement update in background
       console.log('🔄 Triggering continuous improvement update...');
-      import('child_process').then(({ spawn }) => {
-        const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
-          detached: true,
-          stdio: 'ignore'
+      import('child_process')
+        .then(({ spawn }) => {
+          const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
+            detached: true,
+            stdio: 'ignore',
+          });
+          qualityCheck.unref();
+        })
+        .catch((error) => {
+          console.error('Error triggering quality check:', error);
         });
-        qualityCheck.unref();
-      }).catch((error) => {
-        console.error('Error triggering quality check:', error);
-      });
-      
-      res.json({ message: "Suggestion completed and deleted successfully" });
+
+      res.json({ message: 'Suggestion completed and deleted successfully' });
     } catch (error) {
       console.error('Error completing suggestion:', error);
-      res.status(500).json({ message: "Failed to complete suggestion" });
+      res.status(500).json({ message: 'Failed to complete suggestion' });
     }
   });
 
   // Development Pillars API
-  app.get("/api/pillars", async (req, res) => {
+  app.get('/api/pillars', async (req, res) => {
     try {
       const pillars = await storage.getPillars();
       res.json(pillars);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pillars" });
+      res.status(500).json({ message: 'Failed to fetch pillars' });
     }
   });
 
-  app.get("/api/pillars/:id", async (req, res) => {
+  app.get('/api/pillars/:id', async (req, res) => {
     try {
       const pillar = await storage.getPillar(req.params.id);
       if (!pillar) {
-        return res.status(404).json({ message: "Pillar not found" });
+        return res.status(404).json({ message: 'Pillar not found' });
       }
       res.json(pillar);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pillar" });
+      res.status(500).json({ message: 'Failed to fetch pillar' });
     }
   });
 
-  app.post("/api/pillars", async (req, res) => {
+  app.post('/api/pillars', async (req, res) => {
     try {
       const validatedData = insertPillarSchema.parse(req.body);
       const pillar = await storage.createPillar(validatedData);
       res.status(201).json(pillar);
     } catch (error) {
-      res.status(400).json({ message: "Invalid pillar data" });
+      res.status(400).json({ message: 'Invalid pillar data' });
     }
   });
 
-  app.patch("/api/pillars/:id", async (req, res) => {
+  app.patch('/api/pillars/:id', async (req, res) => {
     try {
       const pillar = await storage.updatePillar(req.params.id, req.body);
       if (!pillar) {
-        return res.status(404).json({ message: "Pillar not found" });
+        return res.status(404).json({ message: 'Pillar not found' });
       }
       res.json(pillar);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update pillar" });
+      res.status(500).json({ message: 'Failed to update pillar' });
     }
   });
 
   // Workspace Status API
-  app.get("/api/workspace-status", async (req, res) => {
+  app.get('/api/workspace-status', async (req, res) => {
     try {
       const statuses = await storage.getWorkspaceStatuses();
       res.json(statuses);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch workspace status" });
+      res.status(500).json({ message: 'Failed to fetch workspace status' });
     }
   });
 
-  app.get("/api/workspace-status/:component", async (req, res) => {
+  app.get('/api/workspace-status/:component', async (req, res) => {
     try {
       const status = await storage.getWorkspaceStatus(req.params.component);
       if (!status) {
-        return res.status(404).json({ message: "Workspace status not found" });
+        return res.status(404).json({ message: 'Workspace status not found' });
       }
       res.json(status);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch workspace status" });
+      res.status(500).json({ message: 'Failed to fetch workspace status' });
     }
   });
 
-  app.post("/api/workspace-status", async (req, res) => {
+  app.post('/api/workspace-status', async (req, res) => {
     try {
       const validatedData = insertWorkspaceStatusSchema.parse(req.body);
       const status = await storage.createWorkspaceStatus(validatedData);
       res.status(201).json(status);
     } catch (error) {
-      res.status(400).json({ message: "Invalid workspace status data" });
+      res.status(400).json({ message: 'Invalid workspace status data' });
     }
   });
 
-  app.patch("/api/workspace-status/:component", async (req, res) => {
+  app.patch('/api/workspace-status/:component', async (req, res) => {
     try {
       const { status } = req.body;
       const updatedStatus = await storage.updateWorkspaceStatus(req.params.component, status);
       if (!updatedStatus) {
-        return res.status(404).json({ message: "Workspace status not found" });
+        return res.status(404).json({ message: 'Workspace status not found' });
       }
       res.json(updatedStatus);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update workspace status" });
+      res.status(500).json({ message: 'Failed to update workspace status' });
     }
   });
 
   // Quality Metrics API
-  app.get("/api/quality-metrics", async (req, res) => {
+  app.get('/api/quality-metrics', async (req, res) => {
     try {
       const metrics = await storage.getQualityMetrics();
       res.json(metrics);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch quality metrics" });
+      res.status(500).json({ message: 'Failed to fetch quality metrics' });
     }
   });
 
-  app.post("/api/quality-metrics", async (req, res) => {
+  app.post('/api/quality-metrics', async (req, res) => {
     try {
       const validatedData = insertQualityMetricSchema.parse(req.body);
       const metric = await storage.createQualityMetric(validatedData);
       res.status(201).json(metric);
     } catch (error) {
-      res.status(400).json({ message: "Invalid quality metric data" });
+      res.status(400).json({ message: 'Invalid quality metric data' });
     }
   });
 
   // Framework Configuration API
-  app.get("/api/framework-config", async (req, res) => {
+  app.get('/api/framework-config', async (req, res) => {
     try {
       const configs = await storage.getFrameworkConfigs();
       res.json(configs);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch framework configuration" });
+      res.status(500).json({ message: 'Failed to fetch framework configuration' });
     }
   });
 
-  app.get("/api/framework-config/:key", async (req, res) => {
+  app.get('/api/framework-config/:key', async (req, res) => {
     try {
       const config = await storage.getFrameworkConfig(req.params.key);
       if (!config) {
-        return res.status(404).json({ message: "Configuration not found" });
+        return res.status(404).json({ message: 'Configuration not found' });
       }
       res.json(config);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch configuration" });
+      res.status(500).json({ message: 'Failed to fetch configuration' });
     }
   });
 
-  app.post("/api/framework-config", async (req, res) => {
+  app.post('/api/framework-config', async (req, res) => {
     try {
       const validatedData = insertFrameworkConfigSchema.parse(req.body);
       const config = await storage.setFrameworkConfig(validatedData);
       res.status(201).json(config);
     } catch (error) {
-      res.status(400).json({ message: "Invalid configuration data" });
+      res.status(400).json({ message: 'Invalid configuration data' });
     }
   });
 
   // Progress tracking endpoint for initialization
-  app.post("/api/progress/update", async (req, res) => {
+  app.post('/api/progress/update', async (req, res) => {
     try {
       const { step, progress } = req.body;
-      
+
       // This could be expanded to track actual progress
       // For now, we'll just return a success response
-      
-      res.json({ 
-        success: true, 
-        step, 
+
+      res.json({
+        success: true,
+        step,
         progress,
-        message: "Progress updated successfully" 
+        message: 'Progress updated successfully',
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to update progress" });
+      res.status(500).json({ message: 'Failed to update progress' });
     }
   });
 
   // Features API
-  app.get("/api/features", async (req, res) => {
+  app.get('/api/features', async (req, res) => {
     try {
       const { status, category, roadmap } = req.query;
       console.log('Features API called with query:', { status, category, roadmap });
-      
+
       // Simple query to test connection
       const features = await db.query.features.findMany({
-        where: roadmap === 'true' 
-          ? eq(schema.features.isPublicRoadmap, true)
-          : undefined
+        where: roadmap === 'true' ? eq(schema.features.isPublicRoadmap, true) : undefined,
       });
-      
+
       console.log('Found features:', features.length);
       res.json(features);
     } catch (error) {
       console.error('Error fetching features:', error);
-      res.status(500).json({ message: "Failed to fetch features", error: error instanceof Error ? error.message : String(error) });
+      res
+        .status(500)
+        .json({
+          message: 'Failed to fetch features',
+          error: error instanceof Error ? error.message : String(error),
+        });
     }
   });
 
-  app.get("/api/features/:id", async (req, res) => {
+  app.get('/api/features/:id', async (req, res) => {
     try {
       const [feature] = await db
         .select()
         .from(schema.features)
         .where(eq(schema.features.id, req.params.id));
-      
+
       if (!feature) {
-        return res.status(404).json({ message: "Feature not found" });
+        return res.status(404).json({ message: 'Feature not found' });
       }
       res.json(feature);
     } catch (error) {
       console.error('Error fetching feature:', error);
-      res.status(500).json({ message: "Failed to fetch feature" });
+      res.status(500).json({ message: 'Failed to fetch feature' });
     }
   });
 
-  app.post("/api/features", async (req, res) => {
+  app.post('/api/features', async (req, res) => {
     try {
-      const [feature] = await db
-        .insert(schema.features)
-        .values(req.body)
-        .returning();
+      const [feature] = await db.insert(schema.features).values(req.body).returning();
       res.json(feature);
     } catch (error) {
       console.error('Error creating feature:', error);
-      res.status(400).json({ message: "Invalid feature data" });
+      res.status(400).json({ message: 'Invalid feature data' });
     }
   });
 
-  app.put("/api/features/:id", async (req, res) => {
+  app.put('/api/features/:id', async (req, res) => {
     try {
       const [feature] = await db
         .update(schema.features)
         .set({ ...req.body, updatedAt: new Date() })
         .where(eq(schema.features.id, req.params.id))
         .returning();
-      
+
       if (!feature) {
-        return res.status(404).json({ message: "Feature not found" });
+        return res.status(404).json({ message: 'Feature not found' });
       }
       res.json(feature);
     } catch (error) {
       console.error('Error updating feature:', error);
-      res.status(400).json({ message: "Invalid feature data" });
+      res.status(400).json({ message: 'Invalid feature data' });
     }
   });
 
-  app.delete("/api/features/:id", async (req, res) => {
+  app.delete('/api/features/:id', async (req, res) => {
     try {
       const [deletedFeature] = await db
         .delete(schema.features)
         .where(eq(schema.features.id, req.params.id))
         .returning();
-      
+
       if (!deletedFeature) {
-        return res.status(404).json({ message: "Feature not found" });
+        return res.status(404).json({ message: 'Feature not found' });
       }
-      res.json({ message: "Feature deleted successfully" });
+      res.json({ message: 'Feature deleted successfully' });
     } catch (error) {
       console.error('Error deleting feature:', error);
-      res.status(500).json({ message: "Failed to delete feature" });
+      res.status(500).json({ message: 'Failed to delete feature' });
     }
   });
 
@@ -369,31 +378,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: Organizations API routes are handled by registerOrganizationRoutes above
 
   // Initialize QA Pillar endpoint
-  app.post("/api/pillars/initialize-qa", async (req, res) => {
+  app.post('/api/pillars/initialize-qa', async (req, res) => {
     try {
       // Update the QA pillar status to 'in-progress'
-      const qaPillar = Array.from((storage as any).pillars.values())
-        .find((p: any) => p.name.includes("QA")) as any;
-      
+      const qaPillar = Array.from((storage as any).pillars.values()).find((p: any) =>
+        p.name.includes('QA')
+      ) as any;
+
       if (qaPillar?.id) {
-        const updated = await storage.updatePillar(qaPillar.id, { 
+        const updated = await storage.updatePillar(qaPillar.id, {
           status: 'in-progress',
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
-        
+
         // Also update workspace status
-        await storage.updateWorkspaceStatus("Pillar Framework", "in-progress");
-        
-        res.json({ 
-          success: true, 
+        await storage.updateWorkspaceStatus('Pillar Framework', 'in-progress');
+
+        res.json({
+          success: true,
           pillar: updated,
-          message: "QA Pillar initialization started" 
+          message: 'QA Pillar initialization started',
         });
       } else {
-        res.status(404).json({ message: "QA Pillar not found" });
+        res.status(404).json({ message: 'QA Pillar not found' });
       }
     } catch (error) {
-      res.status(500).json({ message: "Failed to initialize QA pillar" });
+      res.status(500).json({ message: 'Failed to initialize QA pillar' });
     }
   });
 
@@ -409,13 +419,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 /**
  * Retrieves comprehensive quality metrics for the codebase including test coverage,
  * code quality grades, security vulnerabilities, and build performance.
- * 
+ *
  * @returns {Promise<object>} Quality metrics object containing:
  *   - coverage: Test coverage percentage as string
  *   - codeQuality: Code quality grade (A+, A, B+, B, C)
  *   - securityIssues: Number of security vulnerabilities as string
- *   - buildTime: Build time in seconds or milliseconds
- * 
+ *   - buildTime: Build time in seconds or milliseconds.
+ *
  * @example
  * ```typescript
  * const metrics = await getQualityMetrics();
@@ -440,10 +450,10 @@ async function getQualityMetrics() {
       } else {
         // Run a quick coverage check
         try {
-          execSync('npm run test:coverage -- --silent --passWithNoTests', { 
-            encoding: 'utf-8', 
+          execSync('npm run test:coverage -- --silent --passWithNoTests', {
+            encoding: 'utf-8',
             stdio: 'pipe',
-            timeout: 15000
+            timeout: 15000,
           });
           if (existsSync(coveragePath)) {
             const coverageData = JSON.parse(readFileSync(coveragePath, 'utf-8'));
@@ -459,14 +469,14 @@ async function getQualityMetrics() {
 
     // Get code quality based on linting
     try {
-      const lintResult = execSync('npm run lint:check 2>&1 || true', { 
+      const lintResult = execSync('npm run lint:check 2>&1 || true', {
         encoding: 'utf-8',
         stdio: 'pipe',
-        timeout: 10000
+        timeout: 10000,
       });
       const errorCount = (lintResult.match(/error/gi) || []).length;
       const warningCount = (lintResult.match(/warning/gi) || []).length;
-      
+
       if (errorCount === 0 && warningCount <= 5) {
         codeQuality = 'A+';
       } else if (errorCount === 0 && warningCount <= 15) {
@@ -487,7 +497,7 @@ async function getQualityMetrics() {
       const auditResult = execSync('npm audit --json 2>/dev/null || echo "{}"', {
         encoding: 'utf-8',
         stdio: 'pipe',
-        timeout: 10000
+        timeout: 10000,
       });
       const auditData = JSON.parse(auditResult);
       securityIssues = auditData.metadata?.vulnerabilities?.total || 0;
@@ -498,10 +508,10 @@ async function getQualityMetrics() {
     // Get build time
     try {
       const startTime = Date.now();
-      execSync('npm run build --silent', { 
+      execSync('npm run build --silent', {
         encoding: 'utf-8',
         stdio: 'pipe',
-        timeout: 30000
+        timeout: 30000,
       });
       const buildTimeMs = Date.now() - startTime;
       buildTime = buildTimeMs > 1000 ? `${(buildTimeMs / 1000).toFixed(1)}s` : `${buildTimeMs}ms`;
@@ -513,15 +523,15 @@ async function getQualityMetrics() {
       coverage: `${Math.round(coverage)}%`,
       codeQuality,
       securityIssues: securityIssues.toString(),
-      buildTime
+      buildTime,
     };
   } catch (error) {
     // Fallback to some calculated values
     return {
       coverage: '68%',
-      codeQuality: 'B+', 
+      codeQuality: 'B+',
       securityIssues: '2',
-      buildTime: '2.8s'
+      buildTime: '2.8s',
     };
   }
 }

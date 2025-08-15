@@ -4,6 +4,9 @@ import { userEvent } from '@testing-library/user-event';
 import { LanguageProvider, useLanguage } from '../../client/src/hooks/use-language';
 
 // Test component to use the language hook
+/**
+ *
+ */
 function TestComponent(): JSX.Element {
   const { language, t, setLanguage } = useLanguage();
   

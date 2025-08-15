@@ -86,7 +86,7 @@ describe('DatabaseStorage', () => {
         { id: '1', email: 'user1@test.com', firstName: 'User', lastName: 'One' },
         { id: '2', email: 'user2@test.com', firstName: 'User', lastName: 'Two' },
       ];
-      
+
       // Mock the db chain to return our mock users
       require('drizzle-orm/neon-http').drizzle.mockReturnValue({
         select: jest.fn().mockReturnThis(),
@@ -99,7 +99,7 @@ describe('DatabaseStorage', () => {
 
     it('should get user by id', async () => {
       const mockUser = { id: '1', email: 'user@test.com', firstName: 'Test', lastName: 'User' };
-      
+
       require('drizzle-orm/neon-http').drizzle.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         from: jest.fn().mockReturnThis(),
@@ -112,7 +112,7 @@ describe('DatabaseStorage', () => {
 
     it('should get user by email', async () => {
       const mockUser = { id: '1', email: 'user@test.com', firstName: 'Test', lastName: 'User' };
-      
+
       require('drizzle-orm/neon-http').drizzle.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         from: jest.fn().mockReturnThis(),
@@ -128,7 +128,7 @@ describe('DatabaseStorage', () => {
         email: 'new@test.com',
         password: 'password123',
         firstName: 'New',
-        lastName: 'User'
+        lastName: 'User',
       };
       const mockCreatedUser = { id: '1', ...userData };
 
@@ -209,9 +209,7 @@ describe('DatabaseStorage', () => {
     });
 
     it('should get public roadmap features', async () => {
-      const mockFeatures = [
-        { id: '1', name: 'Public Feature', isPublicRoadmap: true },
-      ];
+      const mockFeatures = [{ id: '1', name: 'Public Feature', isPublicRoadmap: true }];
 
       require('drizzle-orm/neon-http').drizzle.mockReturnValue({
         select: jest.fn().mockReturnThis(),

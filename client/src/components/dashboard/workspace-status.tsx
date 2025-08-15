@@ -2,6 +2,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Monitor, CheckCircle, Clock, Circle } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
+/**
+ *
+ */
 export function WorkspaceStatus() {
   const { t } = useLanguage();
 
@@ -47,21 +50,21 @@ export function WorkspaceStatus() {
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Monitor className="text-koveo-navy mr-3" size={20} />
+      <CardContent className='p-6'>
+        <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
+          <Monitor className='text-koveo-navy mr-3' size={20} />
           {t('workspaceStatus')}
         </h3>
-        
-        <div className="space-y-4">
+
+        <div className='space-y-4'>
           {statusItems.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.name} className="flex items-center justify-between py-2">
-                <span className="text-gray-600">{item.name}</span>
+              <div key={item.name} className='flex items-center justify-between py-2'>
+                <span className='text-gray-600'>{item.name}</span>
                 <div className={`flex items-center ${item.color}`}>
-                  <Icon className="mr-2" size={16} />
-                  <span className="text-sm font-medium">{getStatusText(item.status)}</span>
+                  <Icon className='mr-2' size={16} />
+                  <span className='text-sm font-medium'>{getStatusText(item.status)}</span>
                 </div>
               </div>
             );

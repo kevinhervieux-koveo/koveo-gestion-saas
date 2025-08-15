@@ -11,8 +11,8 @@ jest.mock('../../server/storage', () => ({
     getUser: jest.fn(),
     getUserByEmail: jest.fn(),
     createUser: jest.fn(),
-    updateUser: jest.fn()
-  }
+    updateUser: jest.fn(),
+  },
 }));
 
 const mockStorage = storage as jest.Mocked<typeof storage>;
@@ -39,7 +39,7 @@ describe('User API Routes', () => {
     isActive: true,
     lastLoginAt: null,
     createdAt: new Date('2024-01-15T10:00:00Z'),
-    updatedAt: new Date('2024-01-15T10:00:00Z')
+    updatedAt: new Date('2024-01-15T10:00:00Z'),
   };
 
   const mockUserData: InsertUser = {
@@ -48,16 +48,14 @@ describe('User API Routes', () => {
     email: 'jean@koveo.ca',
     password: 'securePassword123',
     role: 'manager',
-    language: 'fr'
+    language: 'fr',
   };
 
   describe('GET /api/users', () => {
     it('should return all users successfully', async () => {
       mockStorage.getUsers.mockResolvedValue([mockUser]);
 
-      const response = await request(app)
-        .get('/api/users')
-        .expect(200);
+      const response = await request(app).get('/api/users').expect(200);
 
       expect(response.body).toHaveLength(1);
       expect(response.body[0]).toEqual(mockUser);
@@ -67,9 +65,7 @@ describe('User API Routes', () => {
     it('should return empty array when no users exist', async () => {
       mockStorage.getUsers.mockResolvedValue([]);
 
-      const response = await request(app)
-        .get('/api/users')
-        .expect(200);
+      const response = await request(app).get('/api/users').expect(200);
 
       expect(response.body).toEqual([]);
     });
@@ -77,13 +73,11 @@ describe('User API Routes', () => {
     it('should handle storage errors', async () => {
       mockStorage.getUsers.mockRejectedValue(new Error('Database connection failed'));
 
-      const response = await request(app)
-        .get('/api/users')
-        .expect(500);
+      const response = await request(app).get('/api/users').expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to fetch users'
+        message: 'Failed to fetch users',
       });
     });
   });
@@ -92,16 +86,14 @@ describe('User API Routes', () => {
     it('should return user by ID without password', async () => {
       mockStorage.getUser.mockResolvedValue(mockUser);
 
-      const response = await request(app)
-        .get('/api/users/user-123')
-        .expect(200);
+      const response = await request(app).get('/api/users/user-123').expect(200);
 
       expect(response.body).toMatchObject({
         id: 'user-123',
         firstName: 'Marie',
         lastName: 'Dubois',
         email: 'marie@koveo.ca',
-        role: 'tenant'
+        role: 'tenant',
       });
       expect(response.body).not.toHaveProperty('password');
       expect(mockStorage.getUser).toHaveBeenCalledWith('user-123');
@@ -110,32 +102,26 @@ describe('User API Routes', () => {
     it('should return 404 when user not found', async () => {
       mockStorage.getUser.mockResolvedValue(undefined);
 
-      const response = await request(app)
-        .get('/api/users/non-existent')
-        .expect(404);
+      const response = await request(app).get('/api/users/non-existent').expect(404);
 
       expect(response.body).toMatchObject({
         error: 'Not found',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
     it('should return 400 when ID is missing', async () => {
-      const response = await request(app)
-        .get('/api/users/')
-        .expect(404); // Express returns 404 for empty parameter
+      const response = await request(app).get('/api/users/').expect(404); // Express returns 404 for empty parameter
     });
 
     it('should handle storage errors', async () => {
       mockStorage.getUser.mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .get('/api/users/user-123')
-        .expect(500);
+      const response = await request(app).get('/api/users/user-123').expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to fetch user'
+        message: 'Failed to fetch user',
       });
     });
   });
@@ -144,15 +130,13 @@ describe('User API Routes', () => {
     it('should return user by email without password', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(mockUser);
 
-      const response = await request(app)
-        .get('/api/users/email/marie@koveo.ca')
-        .expect(200);
+      const response = await request(app).get('/api/users/email/marie@koveo.ca').expect(200);
 
       expect(response.body).toMatchObject({
         id: 'user-123',
         firstName: 'Marie',
         lastName: 'Dubois',
-        email: 'marie@koveo.ca'
+        email: 'marie@koveo.ca',
       });
       expect(response.body).not.toHaveProperty('password');
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith('marie@koveo.ca');
@@ -161,22 +145,18 @@ describe('User API Routes', () => {
     it('should return 404 when user not found', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined);
 
-      const response = await request(app)
-        .get('/api/users/email/notfound@koveo.ca')
-        .expect(404);
+      const response = await request(app).get('/api/users/email/notfound@koveo.ca').expect(404);
 
       expect(response.body).toMatchObject({
         error: 'Not found',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
     it('should handle URL encoded emails', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(mockUser);
 
-      const response = await request(app)
-        .get('/api/users/email/marie%40koveo.ca')
-        .expect(200);
+      const response = await request(app).get('/api/users/email/marie%40koveo.ca').expect(200);
 
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith('marie@koveo.ca');
     });
@@ -184,13 +164,11 @@ describe('User API Routes', () => {
     it('should handle storage errors', async () => {
       mockStorage.getUserByEmail.mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .get('/api/users/email/marie@koveo.ca')
-        .expect(500);
+      const response = await request(app).get('/api/users/email/marie@koveo.ca').expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to fetch user'
+        message: 'Failed to fetch user',
       });
     });
   });
@@ -198,19 +176,20 @@ describe('User API Routes', () => {
   describe('POST /api/users', () => {
     it('should create user successfully', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined); // No existing user
-      mockStorage.createUser.mockResolvedValue({ ...mockUser, ...mockUserData, id: 'new-user-123' });
+      mockStorage.createUser.mockResolvedValue({
+        ...mockUser,
+        ...mockUserData,
+        id: 'new-user-123',
+      });
 
-      const response = await request(app)
-        .post('/api/users')
-        .send(mockUserData)
-        .expect(201);
+      const response = await request(app).post('/api/users').send(mockUserData).expect(201);
 
       expect(response.body).toMatchObject({
         id: 'new-user-123',
         firstName: 'Jean',
         lastName: 'Tremblay',
         email: 'jean@koveo.ca',
-        role: 'manager'
+        role: 'manager',
       });
       expect(response.body).not.toHaveProperty('password');
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith('jean@koveo.ca');
@@ -220,14 +199,11 @@ describe('User API Routes', () => {
     it('should return 409 when user already exists', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(mockUser); // Existing user
 
-      const response = await request(app)
-        .post('/api/users')
-        .send(mockUserData)
-        .expect(409);
+      const response = await request(app).post('/api/users').send(mockUserData).expect(409);
 
       expect(response.body).toMatchObject({
         error: 'Conflict',
-        message: 'User with this email already exists'
+        message: 'User with this email already exists',
       });
       expect(mockStorage.createUser).not.toHaveBeenCalled();
     });
@@ -240,7 +216,7 @@ describe('User API Routes', () => {
 
       expect(response.body).toMatchObject({
         error: 'Validation error',
-        message: 'Invalid user data'
+        message: 'Invalid user data',
       });
       expect(response.body.details).toBeDefined();
     });
@@ -250,13 +226,13 @@ describe('User API Routes', () => {
         .post('/api/users')
         .send({
           ...mockUserData,
-          email: 'invalid-email'
+          email: 'invalid-email',
         })
         .expect(400);
 
       expect(response.body).toMatchObject({
         error: 'Validation error',
-        message: 'Invalid user data'
+        message: 'Invalid user data',
       });
     });
 
@@ -269,13 +245,10 @@ describe('User API Routes', () => {
         email: 'luc@koveo.ca',
         password: 'motdepasse123',
         language: 'fr',
-        role: 'tenant'
+        role: 'tenant',
       };
 
-      const response = await request(app)
-        .post('/api/users')
-        .send(quebecUserData)
-        .expect(201);
+      const response = await request(app).post('/api/users').send(quebecUserData).expect(201);
 
       expect(response.body.language).toBe('fr');
       expect(mockStorage.createUser).toHaveBeenCalledWith(quebecUserData);
@@ -285,14 +258,11 @@ describe('User API Routes', () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined);
       mockStorage.createUser.mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .post('/api/users')
-        .send(mockUserData)
-        .expect(500);
+      const response = await request(app).post('/api/users').send(mockUserData).expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to create user'
+        message: 'Failed to create user',
       });
     });
   });
@@ -301,27 +271,24 @@ describe('User API Routes', () => {
     const updateData = {
       firstName: 'Marie Updated',
       phone: '+1-514-555-9999',
-      language: 'en'
+      language: 'en',
     };
 
     it('should update user successfully', async () => {
       const updatedUser = { ...mockUser, ...updateData, updatedAt: new Date() };
       mockStorage.updateUser.mockResolvedValue(updatedUser);
 
-      const response = await request(app)
-        .put('/api/users/user-123')
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put('/api/users/user-123').send(updateData).expect(200);
 
       expect(response.body).toMatchObject({
         id: 'user-123',
         firstName: 'Marie Updated',
-        phone: '+1-514-555-9999'
+        phone: '+1-514-555-9999',
       });
       expect(response.body).not.toHaveProperty('password');
       expect(mockStorage.updateUser).toHaveBeenCalledWith('user-123', {
         ...updateData,
-        updatedAt: expect.any(Date)
+        updatedAt: expect.any(Date),
       });
     });
 
@@ -335,7 +302,7 @@ describe('User API Routes', () => {
 
       expect(response.body).toMatchObject({
         error: 'Not found',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
@@ -354,7 +321,7 @@ describe('User API Routes', () => {
         firstName: updateData.firstName,
         phone: updateData.phone,
         language: updateData.language,
-        updatedAt: expect.any(Date)
+        updatedAt: expect.any(Date),
       });
     });
 
@@ -366,21 +333,18 @@ describe('User API Routes', () => {
 
       expect(response.body).toMatchObject({
         error: 'Validation error',
-        message: 'Invalid user data'
+        message: 'Invalid user data',
       });
     });
 
     it('should handle storage errors', async () => {
       mockStorage.updateUser.mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .put('/api/users/user-123')
-        .send(updateData)
-        .expect(500);
+      const response = await request(app).put('/api/users/user-123').send(updateData).expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to update user'
+        message: 'Failed to update user',
       });
     });
   });
@@ -390,43 +354,37 @@ describe('User API Routes', () => {
       const deactivatedUser = { ...mockUser, isActive: false, updatedAt: new Date() };
       mockStorage.updateUser.mockResolvedValue(deactivatedUser);
 
-      const response = await request(app)
-        .delete('/api/users/user-123')
-        .expect(200);
+      const response = await request(app).delete('/api/users/user-123').expect(200);
 
       expect(response.body).toMatchObject({
         message: 'User deactivated successfully',
-        id: 'user-123'
+        id: 'user-123',
       });
       expect(mockStorage.updateUser).toHaveBeenCalledWith('user-123', {
         isActive: false,
-        updatedAt: expect.any(Date)
+        updatedAt: expect.any(Date),
       });
     });
 
     it('should return 404 when user not found', async () => {
       mockStorage.updateUser.mockResolvedValue(undefined);
 
-      const response = await request(app)
-        .delete('/api/users/non-existent')
-        .expect(404);
+      const response = await request(app).delete('/api/users/non-existent').expect(404);
 
       expect(response.body).toMatchObject({
         error: 'Not found',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
     it('should handle storage errors', async () => {
       mockStorage.updateUser.mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .delete('/api/users/user-123')
-        .expect(500);
+      const response = await request(app).delete('/api/users/user-123').expect(500);
 
       expect(response.body).toMatchObject({
         error: 'Internal server error',
-        message: 'Failed to deactivate user'
+        message: 'Failed to deactivate user',
       });
     });
   });
@@ -434,18 +392,18 @@ describe('User API Routes', () => {
   describe('Input Validation Edge Cases', () => {
     it('should handle extremely long names', async () => {
       const longName = 'a'.repeat(300);
-      
+
       const response = await request(app)
         .post('/api/users')
         .send({
           ...mockUserData,
-          firstName: longName
+          firstName: longName,
         })
         .expect(400); // Should fail validation
 
       expect(response.body).toMatchObject({
         error: 'Validation error',
-        message: 'Invalid user data'
+        message: 'Invalid user data',
       });
     });
 
@@ -455,32 +413,29 @@ describe('User API Routes', () => {
 
       const quebecFirstName = 'Jean-François';
       const quebecLastName = 'Bélanger-Côté';
-      
+
       const response = await request(app)
         .post('/api/users')
         .send({
           ...mockUserData,
           firstName: quebecFirstName,
-          lastName: quebecLastName
+          lastName: quebecLastName,
         })
         .expect(201);
 
       expect(mockStorage.createUser).toHaveBeenCalledWith({
         ...mockUserData,
         firstName: quebecFirstName,
-        lastName: quebecLastName
+        lastName: quebecLastName,
       });
     });
 
     it('should handle empty request bodies', async () => {
-      const response = await request(app)
-        .post('/api/users')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/users').send({}).expect(400);
 
       expect(response.body).toMatchObject({
         error: 'Validation error',
-        message: 'Invalid user data'
+        message: 'Invalid user data',
       });
     });
 
@@ -507,7 +462,7 @@ describe('User API Routes', () => {
           email: 'sylvie@koveo.ca',
           password: 'motdepasse123',
           language: 'fr',
-          role: 'manager'
+          role: 'manager',
         })
         .expect(201);
 
@@ -517,9 +472,9 @@ describe('User API Routes', () => {
 
     it('should handle different user roles', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined);
-      
+
       const roles = ['admin', 'manager', 'owner', 'tenant', 'board_member'] as const;
-      
+
       for (const role of roles) {
         const testUser = { ...mockUser, role };
         mockStorage.createUser.mockResolvedValue(testUser);
@@ -529,7 +484,7 @@ describe('User API Routes', () => {
           .send({
             ...mockUserData,
             email: `${role}@koveo.ca`,
-            role
+            role,
           })
           .expect(201);
 

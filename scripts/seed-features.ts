@@ -160,6 +160,9 @@ const roadmapData = [
   },
 ];
 
+/**
+ *
+ */
 async function seedFeatures() {
   console.log('🌱 Starting to seed features...');
 
