@@ -1,18 +1,70 @@
-import { ArrowUp, Home, ShieldCheck, CheckCircle, GitBranch, Settings, User } from 'lucide-react';
+import { ArrowUp, Home, ShieldCheck, CheckCircle, Settings, User, Building, Users, DollarSign, FileText, AlertCircle, Lightbulb, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
+import { useState } from 'react';
 
 export function Sidebar() {
   const [location] = useLocation();
   const { t } = useLanguage();
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['owner']);
 
-  const navigation = [
-    { name: t('dashboard'), href: '/', icon: Home, current: location === '/' },
-    { name: t('pillarFramework'), href: '/pillars', icon: ShieldCheck, current: location === '/pillars' },
-    { name: t('qualityAssurance'), href: '/quality', icon: CheckCircle, current: location === '/quality' },
-    { name: t('workflowSetup'), href: '/workflow', icon: GitBranch, current: location === '/workflow' },
-    { name: t('configuration'), href: '/config', icon: Settings, current: location === '/config' },
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuName) 
+        ? prev.filter(name => name !== menuName)
+        : [...prev, menuName]
+    );
+  };
+
+  const handleLogout = () => {
+    // Navigate to home page (external website)
+    window.location.href = '/';
+  };
+
+  const menuSections = [
+    {
+      name: 'Owner',
+      key: 'owner',
+      icon: User,
+      items: [
+        { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
+        { name: 'Pillar Framework', href: '/owner/pillars', icon: ShieldCheck },
+        { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
+      ]
+    },
+    {
+      name: 'Manager',
+      key: 'manager', 
+      icon: Building,
+      items: [
+        { name: 'Buildings', href: '/manager/buildings', icon: Building },
+        { name: 'Residences', href: '/manager/residences', icon: Home },
+        { name: 'Budget', href: '/manager/budget', icon: DollarSign },
+        { name: 'Bills', href: '/manager/bills', icon: FileText },
+        { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
+      ]
+    },
+    {
+      name: 'Residents',
+      key: 'residents',
+      icon: Users,
+      items: [
+        { name: 'My Residence', href: '/residents/residence', icon: Home },
+        { name: 'My Building', href: '/residents/building', icon: Building },
+        { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
+      ]
+    },
+    {
+      name: 'Settings',
+      key: 'settings',
+      icon: Settings,
+      items: [
+        { name: 'Settings', href: '/settings/settings', icon: Settings },
+        { name: 'Bug Reports', href: '/settings/bug-reports', icon: AlertCircle },
+        { name: 'Idea Box', href: '/settings/idea-box', icon: Lightbulb },
+      ]
+    },
   ];
 
   return (
@@ -37,24 +89,61 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-6 py-4">
-        <div className="space-y-2">
-          {navigation.map((item) => {
-            const Icon = item.icon;
+        <div className="space-y-1">
+          {menuSections.map((section) => {
+            const SectionIcon = section.icon;
+            const isExpanded = expandedMenus.includes(section.key);
+            
             return (
-              <Link key={item.name} href={item.href}>
-                <a
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors ${
-                    item.current
-                      ? 'bg-koveo-light text-koveo-navy'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+              <div key={section.key}>
+                <button
+                  onClick={() => toggleMenu(section.key)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </a>
-              </Link>
+                  <div className="flex items-center space-x-3">
+                    <SectionIcon className="w-5 h-5" />
+                    <span>{section.name}</span>
+                  </div>
+                  {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </button>
+                
+                {isExpanded && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {section.items.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isActive = location === item.href;
+                      
+                      return (
+                        <Link key={item.name} href={item.href}>
+                          <div
+                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                              isActive
+                                ? 'bg-koveo-light text-koveo-navy font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <ItemIcon className="w-4 h-4" />
+                            <span>{item.name}</span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
+        </div>
+        
+        {/* Logout Button */}
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
+          </button>
         </div>
       </nav>
 
