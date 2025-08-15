@@ -8,6 +8,9 @@ import type {
   Organization,
   InsertOrganization,
   Building,
+  InsertBuilding,
+  Residence,
+  InsertResidence,
   DevelopmentPillar,
   InsertPillar,
   WorkspaceStatus,
@@ -17,7 +20,9 @@ import type {
   FrameworkConfiguration,
   InsertFrameworkConfig,
   ImprovementSuggestion,
-  InsertImprovementSuggestion
+  InsertImprovementSuggestion,
+  Feature,
+  InsertFeature
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -83,6 +88,72 @@ export class DatabaseStorage implements IStorage {
 
   async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
     return await db.select().from(schema.buildings).where(eq(schema.buildings.organizationId, organizationId));
+  }
+
+  // Building operations
+  async getBuildings(): Promise<Building[]> {
+    return await db.select().from(schema.buildings);
+  }
+
+  async getBuilding(id: string): Promise<Building | undefined> {
+    const result = await db.select().from(schema.buildings).where(eq(schema.buildings.id, id));
+    return result[0];
+  }
+
+  async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
+    const result = await db.insert(schema.buildings).values(insertBuilding).returning();
+    return result[0];
+  }
+
+  async updateBuilding(id: string, updates: Partial<Building>): Promise<Building | undefined> {
+    const result = await db.update(schema.buildings)
+      .set(updates)
+      .where(eq(schema.buildings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteBuilding(id: string): Promise<boolean> {
+    const result = await db.update(schema.buildings)
+      .set({ isActive: false })
+      .where(eq(schema.buildings.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Residence operations
+  async getResidences(): Promise<Residence[]> {
+    return await db.select().from(schema.residences);
+  }
+
+  async getResidence(id: string): Promise<Residence | undefined> {
+    const result = await db.select().from(schema.residences).where(eq(schema.residences.id, id));
+    return result[0];
+  }
+
+  async getResidencesByBuilding(buildingId: string): Promise<Residence[]> {
+    return await db.select().from(schema.residences).where(eq(schema.residences.buildingId, buildingId));
+  }
+
+  async createResidence(insertResidence: InsertResidence): Promise<Residence> {
+    const result = await db.insert(schema.residences).values(insertResidence).returning();
+    return result[0];
+  }
+
+  async updateResidence(id: string, updates: Partial<Residence>): Promise<Residence | undefined> {
+    const result = await db.update(schema.residences)
+      .set(updates)
+      .where(eq(schema.residences.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteResidence(id: string): Promise<boolean> {
+    const result = await db.update(schema.residences)
+      .set({ isActive: false })
+      .where(eq(schema.residences.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   // Development Pillar operations
@@ -193,5 +264,43 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.improvementSuggestions.id, id))
       .returning();
     return result[0];
+  }
+
+  // Feature operations
+  async getFeatures(): Promise<Feature[]> {
+    return await db.select().from(schema.features);
+  }
+
+  async getFeaturesByStatus(status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'): Promise<Feature[]> {
+    return await db.select().from(schema.features).where(eq(schema.features.status, status));
+  }
+
+  async getFeaturesByCategory(category: string): Promise<Feature[]> {
+    const features = await db.select().from(schema.features);
+    return features.filter(feature => feature.category === category);
+  }
+
+  async getPublicRoadmapFeatures(): Promise<Feature[]> {
+    return await db.select().from(schema.features).where(eq(schema.features.isPublicRoadmap, true));
+  }
+
+  async createFeature(insertFeature: InsertFeature): Promise<Feature> {
+    const result = await db.insert(schema.features).values(insertFeature).returning();
+    return result[0];
+  }
+
+  async updateFeature(id: string, updates: Partial<InsertFeature>): Promise<Feature | undefined> {
+    const result = await db.update(schema.features)
+      .set(updates)
+      .where(eq(schema.features.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteFeature(id: string): Promise<boolean> {
+    const result = await db.delete(schema.features)
+      .where(eq(schema.features.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
