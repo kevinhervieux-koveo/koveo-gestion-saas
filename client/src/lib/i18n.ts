@@ -49,6 +49,12 @@ export interface Translations {
   securityIssues: string;
   buildTime: string;
   translationCoverage: string;
+  // Performance metrics
+  responseTime: string;
+  memoryUsage: string;
+  bundleSize: string;
+  dbQueryTime: string;
+  pageLoadTime: string;
   nextActions: string;
   initializeQAPillar: string;
   setupValidationQualityAssurance: string;
@@ -101,6 +107,12 @@ const translations: Record<Language, Translations> = {
     securityIssues: 'Security Issues',
     buildTime: 'Build Time',
     translationCoverage: 'Translation Coverage',
+    // Performance metrics
+    responseTime: 'Response Time',
+    memoryUsage: 'Memory Usage',
+    bundleSize: 'Bundle Size',
+    dbQueryTime: 'DB Query Time',
+    pageLoadTime: 'Page Load Time',
     nextActions: 'Next Actions',
     initializeQAPillar: 'Initialize QA Pillar',
     setupValidationQualityAssurance: 'Set up validation and quality assurance framework',
@@ -152,6 +164,12 @@ const translations: Record<Language, Translations> = {
     securityIssues: 'Problèmes de sécurité',
     buildTime: 'Temps de compilation',
     translationCoverage: 'Couverture de traduction',
+    // Performance metrics
+    responseTime: 'Temps de réponse',
+    memoryUsage: 'Utilisation mémoire',
+    bundleSize: 'Taille du bundle',
+    dbQueryTime: 'Temps de requête BD',
+    pageLoadTime: 'Temps de chargement',
     nextActions: 'Prochaines actions',
     initializeQAPillar: 'Initialiser le pilier AQ',
     setupValidationQualityAssurance: "Configurer le cadre de validation et d'assurance qualité",
