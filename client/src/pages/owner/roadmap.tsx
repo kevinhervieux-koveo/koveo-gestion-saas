@@ -2,13 +2,8 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, Clock, Home, Building, Users, DollarSign, FileText, Wrench, Bell, Settings, Shield, Bot, BarChart3, Database, Cloud } from 'lucide-react';
-
-interface Feature {
-  name: string;
-  description: string;
-  status: 'completed' | 'in-progress' | 'planned';
-  priority?: 'high' | 'medium' | 'low';
-}
+import { useQuery } from '@tanstack/react-query';
+import type { Feature } from '@shared/schema';
 
 interface Section {
   title: string;
@@ -18,174 +13,93 @@ interface Section {
 }
 
 export default function OwnerRoadmap() {
+  // Fetch features from the database
+  const { data: features = [], isLoading } = useQuery({
+    queryKey: ['/api/features', { roadmap: true }],
+    queryFn: () => fetch('/api/features?roadmap=true').then(res => res.json()),
+  });
+
+  // Group features by category
+  const groupedFeatures = features.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
+    if (!acc[feature.category]) {
+      acc[feature.category] = [];
+    }
+    acc[feature.category].push(feature);
+    return acc;
+  }, {});
+
   const sections: Section[] = [
     {
       title: 'Dashboard & Home',
       icon: Home,
       description: 'Central hub for property management overview',
-      features: [
-        { name: 'Property Overview Dashboard', description: 'Real-time overview of all properties, occupancy rates, and key metrics', status: 'completed' },
-        { name: 'Quick Actions Panel', description: 'Fast access to common tasks like creating bills or maintenance requests', status: 'completed' },
-        { name: 'Notification Center', description: 'Centralized notification management with priority levels', status: 'completed' },
-        { name: 'Multi-language Support', description: 'Full French and English language support', status: 'completed' },
-        { name: 'Dark Mode', description: 'Toggle between light and dark themes', status: 'in-progress' },
-        { name: 'Customizable Widgets', description: 'Drag-and-drop dashboard customization', status: 'planned', priority: 'medium' },
-        { name: 'Mobile App', description: 'Native iOS and Android applications', status: 'planned', priority: 'high' },
-      ]
+      features: groupedFeatures['Dashboard & Home'] || []
     },
     {
       title: 'Property Management',
       icon: Building,
       description: 'Building and residence management features',
-      features: [
-        { name: 'Multi-Building Management', description: 'Manage multiple buildings from a single platform', status: 'completed' },
-        { name: 'Residence Registry', description: 'Complete registry of all units with detailed information', status: 'completed' },
-        { name: 'Occupancy Tracking', description: 'Real-time tracking of occupied, vacant, and reserved units', status: 'completed' },
-        { name: 'Common Areas Management', description: 'Booking system for amenities and common spaces', status: 'in-progress' },
-        { name: 'Parking Management', description: 'Assign and track parking spaces and storage units', status: 'in-progress' },
-        { name: 'Digital Floor Plans', description: 'Interactive building floor plans with unit details', status: 'planned', priority: 'medium' },
-        { name: 'Virtual Tours', description: '360° virtual tours for vacant units', status: 'planned', priority: 'low' },
-      ]
+      features: groupedFeatures['Property Management'] || []
     },
     {
       title: 'Resident Management',
       icon: Users,
       description: 'Resident and tenant management system',
-      features: [
-        { name: 'Resident Portal', description: 'Self-service portal for residents to view bills and submit requests', status: 'completed' },
-        { name: 'User Authentication', description: 'Secure login with role-based access control', status: 'completed' },
-        { name: 'Resident Onboarding', description: 'Automated workflow for new resident registration', status: 'completed' },
-        { name: 'Tenant Screening', description: 'Background checks and credit verification', status: 'in-progress' },
-        { name: 'Digital Lease Management', description: 'Electronic lease signing and storage', status: 'in-progress' },
-        { name: 'Move-in/Move-out Checklists', description: 'Digital inspection forms with photo documentation', status: 'planned', priority: 'high' },
-        { name: 'Community Board', description: 'Social features for resident communication', status: 'planned', priority: 'medium' },
-      ]
+      features: groupedFeatures['Resident Management'] || []
     },
     {
       title: 'Financial Management',
       icon: DollarSign,
       description: 'Comprehensive financial and billing system',
-      features: [
-        { name: 'Bill Generation', description: 'Automated monthly bill creation with customizable templates', status: 'completed' },
-        { name: 'Payment Processing', description: 'Multiple payment methods including bank transfer and credit cards', status: 'completed' },
-        { name: 'Budget Management', description: 'Annual budget planning with line item tracking', status: 'completed' },
-        { name: 'Financial Reporting', description: 'Detailed financial reports and statements', status: 'completed' },
-        { name: 'Late Payment Management', description: 'Automated reminders and penalty calculations', status: 'in-progress' },
-        { name: 'Payment Plans', description: 'Flexible payment arrangements for residents', status: 'in-progress' },
-        { name: 'Expense Tracking', description: 'Track and categorize all property expenses', status: 'in-progress' },
-        { name: 'Reserve Fund Management', description: 'Track and project reserve fund requirements', status: 'planned', priority: 'high' },
-        { name: 'Tax Document Generation', description: 'Automated tax forms and receipts', status: 'planned', priority: 'high' },
-      ]
+      features: groupedFeatures['Financial Management'] || []
     },
     {
       title: 'Maintenance & Requests',
       icon: Wrench,
       description: 'Maintenance request and work order management',
-      features: [
-        { name: 'Request Submission', description: 'Easy submission with photo uploads and location details', status: 'completed' },
-        { name: 'Priority Management', description: 'Automatic prioritization based on urgency and category', status: 'completed' },
-        { name: 'Work Order Assignment', description: 'Assign to internal staff or external contractors', status: 'completed' },
-        { name: 'Progress Tracking', description: 'Real-time status updates and completion tracking', status: 'completed' },
-        { name: 'Preventive Maintenance', description: 'Scheduled maintenance calendar and reminders', status: 'in-progress' },
-        { name: 'Vendor Management', description: 'Contractor database with ratings and history', status: 'in-progress' },
-        { name: 'Inventory Management', description: 'Track maintenance supplies and equipment', status: 'planned', priority: 'medium' },
-        { name: 'Cost Estimation', description: 'AI-powered maintenance cost predictions', status: 'planned', priority: 'high' },
-      ]
+      features: groupedFeatures['Maintenance & Requests'] || []
     },
     {
       title: 'Document Management',
       icon: FileText,
       description: 'Centralized document storage and management',
-      features: [
-        { name: 'Document Upload', description: 'Secure upload with automatic categorization', status: 'completed' },
-        { name: 'Access Control', description: 'Role-based document access permissions', status: 'completed' },
-        { name: 'Version Control', description: 'Track document versions and changes', status: 'in-progress' },
-        { name: 'Digital Signatures', description: 'Electronic signature integration', status: 'in-progress' },
-        { name: 'Meeting Minutes', description: 'Template-based meeting documentation', status: 'in-progress' },
-        { name: 'Contract Management', description: 'Track contract expiry and renewals', status: 'planned', priority: 'high' },
-        { name: 'Document OCR', description: 'Text extraction from scanned documents', status: 'planned', priority: 'medium' },
-      ]
+      features: groupedFeatures['Document Management'] || []
     },
     {
       title: 'Communication',
       icon: Bell,
       description: 'Multi-channel communication system',
-      features: [
-        { name: 'Email Notifications', description: 'Automated email alerts for important events', status: 'completed' },
-        { name: 'In-App Messaging', description: 'Direct messaging between users', status: 'in-progress' },
-        { name: 'SMS Alerts', description: 'Text message notifications for urgent matters', status: 'in-progress' },
-        { name: 'Announcement Board', description: 'Building-wide announcements and notices', status: 'in-progress' },
-        { name: 'Push Notifications', description: 'Mobile push notifications', status: 'planned', priority: 'high' },
-        { name: 'Newsletter System', description: 'Monthly newsletter generation and distribution', status: 'planned', priority: 'low' },
-      ]
+      features: groupedFeatures['Communication'] || []
     },
     {
       title: 'AI & Automation',
       icon: Bot,
       description: 'Artificial intelligence and automation features',
-      features: [
-        { name: 'AI Property Assistant', description: 'Natural language chat interface for queries', status: 'in-progress' },
-        { name: 'Predictive Maintenance', description: 'AI-powered maintenance predictions', status: 'planned', priority: 'high' },
-        { name: 'Automated Bill Generation', description: 'Smart billing with automatic adjustments', status: 'completed' },
-        { name: 'Document Intelligence', description: 'AI document analysis and extraction', status: 'planned', priority: 'medium' },
-        { name: 'Expense Optimization', description: 'AI recommendations for cost reduction', status: 'planned', priority: 'high' },
-        { name: 'Occupancy Predictions', description: 'Forecast vacancy rates and trends', status: 'planned', priority: 'medium' },
-        { name: 'Smart Scheduling', description: 'AI-optimized maintenance scheduling', status: 'planned', priority: 'medium' },
-      ]
+      features: groupedFeatures['AI & Automation'] || []
     },
     {
       title: 'Compliance & Security',
       icon: Shield,
       description: 'Quebec Law 25 compliance and security features',
-      features: [
-        { name: 'Law 25 Compliance', description: 'Full compliance with Quebec privacy law', status: 'completed' },
-        { name: 'Data Encryption', description: 'End-to-end encryption for sensitive data', status: 'completed' },
-        { name: 'Audit Logging', description: 'Complete audit trail of all actions', status: 'completed' },
-        { name: 'Two-Factor Authentication', description: '2FA for enhanced security', status: 'in-progress' },
-        { name: 'GDPR Compliance', description: 'European data protection compliance', status: 'in-progress' },
-        { name: 'Data Retention Policies', description: 'Automated data lifecycle management', status: 'planned', priority: 'high' },
-        { name: 'Security Monitoring', description: 'Real-time threat detection', status: 'planned', priority: 'high' },
-      ]
+      features: groupedFeatures['Compliance & Security'] || []
     },
     {
       title: 'Analytics & Reporting',
       icon: BarChart3,
       description: 'Business intelligence and reporting tools',
-      features: [
-        { name: 'Financial Reports', description: 'Comprehensive financial statements', status: 'completed' },
-        { name: 'Occupancy Analytics', description: 'Occupancy trends and forecasting', status: 'in-progress' },
-        { name: 'Maintenance Analytics', description: 'Maintenance cost and frequency analysis', status: 'in-progress' },
-        { name: 'Custom Report Builder', description: 'Drag-and-drop report creation', status: 'planned', priority: 'medium' },
-        { name: 'Executive Dashboards', description: 'High-level KPI dashboards', status: 'planned', priority: 'high' },
-        { name: 'Benchmark Analysis', description: 'Compare performance against industry standards', status: 'planned', priority: 'low' },
-      ]
+      features: groupedFeatures['Analytics & Reporting'] || []
     },
     {
       title: 'Integration & API',
       icon: Database,
       description: 'Third-party integrations and API access',
-      features: [
-        { name: 'Payment Gateway Integration', description: 'Stripe and Moneris integration', status: 'completed' },
-        { name: 'Accounting Software Sync', description: 'QuickBooks and Sage integration', status: 'in-progress' },
-        { name: 'RESTful API', description: 'Full API for third-party integrations', status: 'in-progress' },
-        { name: 'Webhook System', description: 'Event-driven webhooks', status: 'planned', priority: 'medium' },
-        { name: 'Calendar Sync', description: 'Google and Outlook calendar integration', status: 'planned', priority: 'low' },
-        { name: 'Banking API', description: 'Direct bank account integration', status: 'planned', priority: 'high' },
-      ]
+      features: groupedFeatures['Integration & API'] || []
     },
     {
       title: 'Infrastructure & Performance',
       icon: Cloud,
       description: 'Platform infrastructure and optimization',
-      features: [
-        { name: 'Cloud Hosting', description: 'Scalable cloud infrastructure on Vercel', status: 'completed' },
-        { name: 'Database Optimization', description: 'PostgreSQL with read replicas', status: 'completed' },
-        { name: 'CDN Distribution', description: 'Global content delivery network', status: 'completed' },
-        { name: 'Auto-scaling', description: 'Automatic resource scaling', status: 'in-progress' },
-        { name: 'Backup & Recovery', description: 'Automated backups with point-in-time recovery', status: 'in-progress' },
-        { name: 'Load Balancing', description: 'Multi-region load distribution', status: 'planned', priority: 'high' },
-        { name: 'Performance Monitoring', description: 'Real-time performance analytics', status: 'planned', priority: 'medium' },
-      ]
+      features: groupedFeatures['Infrastructure & Performance'] || []
     },
   ];
 
@@ -242,11 +156,28 @@ export default function OwnerRoadmap() {
     };
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header
+          title="Product Roadmap"
+          subtitle="Loading roadmap data..."
+        />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-koveo-navy mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading features...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
         title="Product Roadmap"
-        subtitle="Complete feature list and development progress"
+        subtitle="Complete feature list and development progress (Live Data)"
       />
       
       <div className="flex-1 overflow-auto p-6">

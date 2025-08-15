@@ -9,6 +9,24 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', ['Code Quali
 export const suggestionPriorityEnum = pgEnum('suggestion_priority', ['Low', 'Medium', 'High', 'Critical']);
 export const suggestionStatusEnum = pgEnum('suggestion_status', ['New', 'Acknowledged', 'Done']);
 
+// Enums for features
+export const featureStatusEnum = pgEnum('feature_status', ['completed', 'in-progress', 'planned', 'cancelled', 'requested']);
+export const featurePriorityEnum = pgEnum('feature_priority', ['low', 'medium', 'high', 'critical']);
+export const featureCategoryEnum = pgEnum('feature_category', [
+  'Dashboard & Home',
+  'Property Management', 
+  'Resident Management',
+  'Financial Management',
+  'Maintenance & Requests',
+  'Document Management',
+  'Communication',
+  'AI & Automation',
+  'Compliance & Security',
+  'Analytics & Reporting',
+  'Integration & API',
+  'Infrastructure & Performance'
+]);
+
 // Enums for core application
 export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'owner', 'tenant', 'board_member']);
 export const billStatusEnum = pgEnum('bill_status', ['draft', 'sent', 'overdue', 'paid', 'cancelled']);
@@ -445,6 +463,48 @@ export const insertImprovementSuggestionSchema = createInsertSchema(improvementS
 // Types for improvement suggestions
 export type InsertImprovementSuggestion = z.infer<typeof insertImprovementSuggestionSchema>;
 export type ImprovementSuggestion = typeof improvementSuggestions.$inferSelect;
+
+// Features table
+export const features = pgTable("features", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: featureCategoryEnum("category").notNull(),
+  status: featureStatusEnum("status").notNull().default('planned'),
+  priority: featurePriorityEnum("priority").notNull().default('medium'),
+  requestedBy: uuid("requested_by").references(() => users.id),
+  assignedTo: uuid("assigned_to").references(() => users.id),
+  estimatedHours: integer("estimated_hours"),
+  actualHours: integer("actual_hours"),
+  startDate: date("start_date"),
+  completedDate: date("completed_date"),
+  isPublicRoadmap: boolean("is_public_roadmap").notNull().default(true),
+  tags: jsonb("tags"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schema for features
+export const insertFeatureSchema = createInsertSchema(features).pick({
+  name: true,
+  description: true,
+  category: true,
+  status: true,
+  priority: true,
+  requestedBy: true,
+  assignedTo: true,
+  estimatedHours: true,
+  startDate: true,
+  completedDate: true,
+  isPublicRoadmap: true,
+  tags: true,
+  metadata: true,
+});
+
+// Types for features
+export type InsertFeature = z.infer<typeof insertFeatureSchema>;
+export type Feature = typeof features.$inferSelect;
 
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({

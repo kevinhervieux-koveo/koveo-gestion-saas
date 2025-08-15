@@ -216,6 +216,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Features API
+  app.get("/api/features", async (req, res) => {
+    try {
+      const { status, category, roadmap } = req.query;
+      let features;
+      
+      if (roadmap === 'true') {
+        features = await storage.getPublicRoadmapFeatures();
+      } else if (status) {
+        features = await storage.getFeaturesByStatus(status as any);
+      } else if (category) {
+        features = await storage.getFeaturesByCategory(category as string);
+      } else {
+        features = await storage.getFeatures();
+      }
+      
+      res.json(features);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch features" });
+    }
+  });
+
+  app.get("/api/features/:id", async (req, res) => {
+    try {
+      const features = await storage.getFeatures();
+      const feature = features.find(f => f.id === req.params.id);
+      if (!feature) {
+        return res.status(404).json({ message: "Feature not found" });
+      }
+      res.json(feature);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch feature" });
+    }
+  });
+
+  app.post("/api/features", async (req, res) => {
+    try {
+      const feature = await storage.createFeature(req.body);
+      res.json(feature);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid feature data" });
+    }
+  });
+
+  app.put("/api/features/:id", async (req, res) => {
+    try {
+      const feature = await storage.updateFeature(req.params.id, req.body);
+      if (!feature) {
+        return res.status(404).json({ message: "Feature not found" });
+      }
+      res.json(feature);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid feature data" });
+    }
+  });
+
+  app.delete("/api/features/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteFeature(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Feature not found" });
+      }
+      res.json({ message: "Feature deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete feature" });
+    }
+  });
+
   // Note: Suggestions API routes moved above to prevent route conflicts
 
   // Note: Users API routes are handled by registerUserRoutes above

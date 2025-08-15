@@ -16,7 +16,9 @@ import {
   type FrameworkConfiguration,
   type InsertFrameworkConfig,
   type ImprovementSuggestion,
-  type InsertImprovementSuggestion
+  type InsertImprovementSuggestion,
+  type Feature,
+  type InsertFeature
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -78,6 +80,15 @@ export interface IStorage {
   createImprovementSuggestion(_suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion>;
   clearNewSuggestions(): Promise<void>;
   updateSuggestionStatus(_id: string, _status: 'New' | 'Acknowledged' | 'Done'): Promise<ImprovementSuggestion | undefined>;
+
+  // Features operations
+  getFeatures(): Promise<Feature[]>;
+  getFeaturesByStatus(_status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'): Promise<Feature[]>;
+  getFeaturesByCategory(_category: string): Promise<Feature[]>;
+  getPublicRoadmapFeatures(): Promise<Feature[]>;
+  createFeature(_feature: InsertFeature): Promise<Feature>;
+  updateFeature(_id: string, _updates: Partial<InsertFeature>): Promise<Feature | undefined>;
+  deleteFeature(_id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -87,6 +98,7 @@ export class MemStorage implements IStorage {
   private qualityMetrics: Map<string, QualityMetric>;
   private frameworkConfigs: Map<string, FrameworkConfiguration>;
   private improvementSuggestions: Map<string, ImprovementSuggestion>;
+  private features: Map<string, Feature>;
   private organizations: Map<string, Organization>;
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
@@ -98,6 +110,7 @@ export class MemStorage implements IStorage {
     this.qualityMetrics = new Map();
     this.frameworkConfigs = new Map();
     this.improvementSuggestions = new Map();
+    this.features = new Map();
     this.organizations = new Map();
     this.buildings = new Map();
     this.residences = new Map();
@@ -554,6 +567,71 @@ export class MemStorage implements IStorage {
     };
     this.improvementSuggestions.set(id, updated);
     return updated;
+  }
+
+  // Features operations
+  async getFeatures(): Promise<Feature[]> {
+    return Array.from(this.features.values());
+  }
+
+  async getFeaturesByStatus(status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter(
+      (feature) => feature.status === status
+    );
+  }
+
+  async getFeaturesByCategory(category: string): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter(
+      (feature) => feature.category === category
+    );
+  }
+
+  async getPublicRoadmapFeatures(): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter(
+      (feature) => feature.isPublicRoadmap === true
+    );
+  }
+
+  async createFeature(insertFeature: InsertFeature): Promise<Feature> {
+    const id = randomUUID();
+    const feature: Feature = {
+      ...insertFeature,
+      status: insertFeature.status || 'planned',
+      priority: insertFeature.priority || 'medium',
+      isPublicRoadmap: insertFeature.isPublicRoadmap ?? true,
+      requestedBy: insertFeature.requestedBy || null,
+      assignedTo: insertFeature.assignedTo || null,
+      estimatedHours: insertFeature.estimatedHours || null,
+      actualHours: null,
+      startDate: insertFeature.startDate || null,
+      completedDate: insertFeature.completedDate || null,
+      tags: insertFeature.tags || null,
+      metadata: insertFeature.metadata || null,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.features.set(id, feature);
+    return feature;
+  }
+
+  async updateFeature(id: string, updates: Partial<InsertFeature>): Promise<Feature | undefined> {
+    const existingFeature = this.features.get(id);
+    if (!existingFeature) {
+      return undefined;
+    }
+
+    const updatedFeature = {
+      ...existingFeature,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.features.set(id, updatedFeature);
+    return updatedFeature;
+  }
+
+  async deleteFeature(id: string): Promise<boolean> {
+    return this.features.delete(id);
   }
 }
 
