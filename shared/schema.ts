@@ -1,18 +1,193 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb, uuid, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, uuid, pgEnum, boolean, integer, decimal, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Enums for improvement suggestions
 export const suggestionCategoryEnum = pgEnum('suggestion_category', ['Code Quality', 'Security', 'Testing', 'Documentation', 'Performance']);
 export const suggestionPriorityEnum = pgEnum('suggestion_priority', ['Low', 'Medium', 'High', 'Critical']);
 export const suggestionStatusEnum = pgEnum('suggestion_status', ['New', 'Acknowledged', 'Done']);
 
+// Enums for core application
+export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'owner', 'tenant', 'board_member']);
+export const billStatusEnum = pgEnum('bill_status', ['draft', 'sent', 'overdue', 'paid', 'cancelled']);
+export const billTypeEnum = pgEnum('bill_type', ['condo_fees', 'special_assessment', 'utility', 'maintenance', 'other']);
+export const maintenanceStatusEnum = pgEnum('maintenance_status', ['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled']);
+export const maintenancePriorityEnum = pgEnum('maintenance_priority', ['low', 'medium', 'high', 'urgent', 'emergency']);
+export const notificationTypeEnum = pgEnum('notification_type', ['bill', 'maintenance', 'meeting', 'announcement', 'document']);
+export const buildingTypeEnum = pgEnum('building_type', ['condo', 'cooperative', 'syndicate', 'rental']);
+
+// Core Application Tables
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  language: text("language").notNull().default('en'),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  language: text("language").notNull().default('fr'), // Default to French for Quebec
+  role: userRoleEnum("role").notNull().default('tenant'),
+  isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'management_company', 'syndicate', 'cooperative'
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  province: text("province").notNull().default('QC'),
+  postalCode: text("postal_code").notNull(),
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  registrationNumber: text("registration_number"), // Quebec business registration
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const buildings = pgTable("buildings", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  province: text("province").notNull().default('QC'),
+  postalCode: text("postal_code").notNull(),
+  buildingType: buildingTypeEnum("building_type").notNull(),
+  yearBuilt: integer("year_built"),
+  totalUnits: integer("total_units").notNull(),
+  totalFloors: integer("total_floors"),
+  parkingSpaces: integer("parking_spaces"),
+  storageSpaces: integer("storage_spaces"),
+  amenities: jsonb("amenities"), // Array of amenities
+  managementCompany: text("management_company"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const residences = pgTable("residences", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  buildingId: uuid("building_id").notNull().references(() => buildings.id),
+  unitNumber: text("unit_number").notNull(),
+  floor: integer("floor"),
+  squareFootage: decimal("square_footage", { precision: 8, scale: 2 }),
+  bedrooms: integer("bedrooms"),
+  bathrooms: decimal("bathrooms", { precision: 3, scale: 1 }),
+  balcony: boolean("balcony").default(false),
+  parkingSpaceNumber: text("parking_space_number"),
+  storageSpaceNumber: text("storage_space_number"),
+  ownershipPercentage: decimal("ownership_percentage", { precision: 5, scale: 4 }), // For condos
+  monthlyFees: decimal("monthly_fees", { precision: 10, scale: 2 }),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userResidences = pgTable("user_residences", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  residenceId: uuid("residence_id").notNull().references(() => residences.id),
+  relationshipType: text("relationship_type").notNull(), // 'owner', 'tenant', 'occupant'
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const bills = pgTable("bills", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  residenceId: uuid("residence_id").notNull().references(() => residences.id),
+  billNumber: text("bill_number").notNull().unique(),
+  type: billTypeEnum("type").notNull(),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  dueDate: date("due_date").notNull(),
+  issueDate: date("issue_date").notNull(),
+  status: billStatusEnum("status").notNull().default('draft'),
+  notes: text("notes"),
+  lateFeeAmount: decimal("late_fee_amount", { precision: 10, scale: 2 }),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }),
+  finalAmount: decimal("final_amount", { precision: 12, scale: 2 }).notNull(),
+  paymentReceivedDate: date("payment_received_date"),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const maintenanceRequests = pgTable("maintenance_requests", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  residenceId: uuid("residence_id").notNull().references(() => residences.id),
+  submittedBy: uuid("submitted_by").notNull().references(() => users.id),
+  assignedTo: uuid("assigned_to").references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // 'plumbing', 'electrical', 'hvac', 'general', etc.
+  priority: maintenancePriorityEnum("priority").notNull().default('medium'),
+  status: maintenanceStatusEnum("status").notNull().default('submitted'),
+  estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 }),
+  actualCost: decimal("actual_cost", { precision: 10, scale: 2 }),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  notes: text("notes"),
+  images: jsonb("images"), // Array of image URLs
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const budgets = pgTable("budgets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  buildingId: uuid("building_id").notNull().references(() => buildings.id),
+  year: integer("year").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // 'operational', 'reserve', 'special_project'
+  budgetedAmount: decimal("budgeted_amount", { precision: 12, scale: 2 }).notNull(),
+  actualAmount: decimal("actual_amount", { precision: 12, scale: 2 }).default('0'),
+  variance: decimal("variance", { precision: 12, scale: 2 }).default('0'),
+  approvedBy: uuid("approved_by").references(() => users.id),
+  approvedDate: date("approved_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const documents = pgTable("documents", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: uuid("organization_id").references(() => organizations.id),
+  buildingId: uuid("building_id").references(() => buildings.id),
+  residenceId: uuid("residence_id").references(() => residences.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // 'bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes'
+  fileUrl: text("file_url").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  isPublic: boolean("is_public").notNull().default(false),
+  uploadedBy: uuid("uploaded_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedEntityId: uuid("related_entity_id"), // ID of related bill, maintenance request, etc.
+  relatedEntityType: text("related_entity_type"), // 'bill', 'maintenance_request', etc.
+  isRead: boolean("is_read").notNull().default(false),
+  readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -49,11 +224,132 @@ export const frameworkConfiguration = pgTable("framework_configuration", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Insert schemas
+// Insert schemas for core application
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
+  email: true,
   password: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
   language: true,
+  role: true,
+});
+
+export const insertOrganizationSchema = createInsertSchema(organizations).pick({
+  name: true,
+  type: true,
+  address: true,
+  city: true,
+  province: true,
+  postalCode: true,
+  phone: true,
+  email: true,
+  website: true,
+  registrationNumber: true,
+});
+
+export const insertBuildingSchema = createInsertSchema(buildings).pick({
+  organizationId: true,
+  name: true,
+  address: true,
+  city: true,
+  province: true,
+  postalCode: true,
+  buildingType: true,
+  yearBuilt: true,
+  totalUnits: true,
+  totalFloors: true,
+  parkingSpaces: true,
+  storageSpaces: true,
+  amenities: true,
+  managementCompany: true,
+});
+
+export const insertResidenceSchema = createInsertSchema(residences).pick({
+  buildingId: true,
+  unitNumber: true,
+  floor: true,
+  squareFootage: true,
+  bedrooms: true,
+  bathrooms: true,
+  balcony: true,
+  parkingSpaceNumber: true,
+  storageSpaceNumber: true,
+  ownershipPercentage: true,
+  monthlyFees: true,
+});
+
+export const insertUserResidenceSchema = createInsertSchema(userResidences).pick({
+  userId: true,
+  residenceId: true,
+  relationshipType: true,
+  startDate: true,
+  endDate: true,
+});
+
+export const insertBillSchema = createInsertSchema(bills).pick({
+  residenceId: true,
+  billNumber: true,
+  type: true,
+  description: true,
+  amount: true,
+  dueDate: true,
+  issueDate: true,
+  status: true,
+  notes: true,
+  lateFeeAmount: true,
+  discountAmount: true,
+  finalAmount: true,
+  createdBy: true,
+});
+
+export const insertMaintenanceRequestSchema = createInsertSchema(maintenanceRequests).pick({
+  residenceId: true,
+  submittedBy: true,
+  assignedTo: true,
+  title: true,
+  description: true,
+  category: true,
+  priority: true,
+  estimatedCost: true,
+  scheduledDate: true,
+  notes: true,
+  images: true,
+});
+
+export const insertBudgetSchema = createInsertSchema(budgets).pick({
+  buildingId: true,
+  year: true,
+  name: true,
+  description: true,
+  category: true,
+  budgetedAmount: true,
+  actualAmount: true,
+  createdBy: true,
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).pick({
+  organizationId: true,
+  buildingId: true,
+  residenceId: true,
+  title: true,
+  description: true,
+  category: true,
+  fileUrl: true,
+  fileName: true,
+  fileSize: true,
+  mimeType: true,
+  isPublic: true,
+  uploadedBy: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  userId: true,
+  type: true,
+  title: true,
+  message: true,
+  relatedEntityId: true,
+  relatedEntityType: true,
 });
 
 export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
@@ -80,10 +376,38 @@ export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfigura
   description: true,
 });
 
-// Types
+// Types for core application
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
+
+export type InsertBuilding = z.infer<typeof insertBuildingSchema>;
+export type Building = typeof buildings.$inferSelect;
+
+export type InsertResidence = z.infer<typeof insertResidenceSchema>;
+export type Residence = typeof residences.$inferSelect;
+
+export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
+export type UserResidence = typeof userResidences.$inferSelect;
+
+export type InsertBill = z.infer<typeof insertBillSchema>;
+export type Bill = typeof bills.$inferSelect;
+
+export type InsertMaintenanceRequest = z.infer<typeof insertMaintenanceRequestSchema>;
+export type MaintenanceRequest = typeof maintenanceRequests.$inferSelect;
+
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+export type Budget = typeof budgets.$inferSelect;
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+// Framework types
 export type InsertPillar = z.infer<typeof insertPillarSchema>;
 export type DevelopmentPillar = typeof developmentPillars.$inferSelect;
 
@@ -121,3 +445,118 @@ export const insertImprovementSuggestionSchema = createInsertSchema(improvementS
 // Types for improvement suggestions
 export type InsertImprovementSuggestion = z.infer<typeof insertImprovementSuggestionSchema>;
 export type ImprovementSuggestion = typeof improvementSuggestions.$inferSelect;
+
+// Relations
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  buildings: many(buildings),
+  documents: many(documents),
+}));
+
+export const buildingsRelations = relations(buildings, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [buildings.organizationId],
+    references: [organizations.id],
+  }),
+  residences: many(residences),
+  budgets: many(budgets),
+  documents: many(documents),
+}));
+
+export const residencesRelations = relations(residences, ({ one, many }) => ({
+  building: one(buildings, {
+    fields: [residences.buildingId],
+    references: [buildings.id],
+  }),
+  userResidences: many(userResidences),
+  bills: many(bills),
+  maintenanceRequests: many(maintenanceRequests),
+  documents: many(documents),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  userResidences: many(userResidences),
+  createdBills: many(bills),
+  submittedMaintenanceRequests: many(maintenanceRequests),
+  assignedMaintenanceRequests: many(maintenanceRequests),
+  createdBudgets: many(budgets),
+  uploadedDocuments: many(documents),
+  notifications: many(notifications),
+}));
+
+export const userResidencesRelations = relations(userResidences, ({ one }) => ({
+  user: one(users, {
+    fields: [userResidences.userId],
+    references: [users.id],
+  }),
+  residence: one(residences, {
+    fields: [userResidences.residenceId],
+    references: [residences.id],
+  }),
+}));
+
+export const billsRelations = relations(bills, ({ one }) => ({
+  residence: one(residences, {
+    fields: [bills.residenceId],
+    references: [residences.id],
+  }),
+  createdBy: one(users, {
+    fields: [bills.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const maintenanceRequestsRelations = relations(maintenanceRequests, ({ one }) => ({
+  residence: one(residences, {
+    fields: [maintenanceRequests.residenceId],
+    references: [residences.id],
+  }),
+  submittedBy: one(users, {
+    fields: [maintenanceRequests.submittedBy],
+    references: [users.id],
+  }),
+  assignedTo: one(users, {
+    fields: [maintenanceRequests.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export const budgetsRelations = relations(budgets, ({ one }) => ({
+  building: one(buildings, {
+    fields: [budgets.buildingId],
+    references: [buildings.id],
+  }),
+  createdBy: one(users, {
+    fields: [budgets.createdBy],
+    references: [users.id],
+  }),
+  approvedBy: one(users, {
+    fields: [budgets.approvedBy],
+    references: [users.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [documents.organizationId],
+    references: [organizations.id],
+  }),
+  building: one(buildings, {
+    fields: [documents.buildingId],
+    references: [buildings.id],
+  }),
+  residence: one(residences, {
+    fields: [documents.residenceId],
+    references: [residences.id],
+  }),
+  uploadedBy: one(users, {
+    fields: [documents.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
