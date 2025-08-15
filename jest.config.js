@@ -1,11 +1,13 @@
 export default {
+  preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@assets/(.*)$': '<rootDir>/attached_assets/$1'
+    '^@assets/(.*)$': '<rootDir>/attached_assets/$1',
+    '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
@@ -31,10 +33,16 @@ export default {
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
       tsconfig: {
-        jsx: 'react-jsx'
+        jsx: 'react-jsx',
+        moduleResolution: 'node',
+        allowSyntheticDefaultImports: true,
+        esModuleInterop: true
       }
     }]
-  }
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$|@testing-library|@hookform|wouter))'
+  ],
+  testTimeout: 10000
 };
