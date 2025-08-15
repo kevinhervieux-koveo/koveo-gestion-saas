@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.94% </span>
+                <span class="strong">56.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>90/170</span>
+                <span class='fraction'>96/170</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.6% </span>
+                <span class="strong">57.22% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>84/166</span>
+                <span class='fraction'>95/166</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">53.96% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>34/63</span>
+                <span class='fraction'>36/63</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">53.01% </span>
+                <span class="strong">55.42% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>88/166</span>
+                <span class='fraction'>92/166</span>
             </div>
         
             
@@ -1604,7 +1604,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1750,9 +1750,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1790,8 +1790,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1829,19 +1829,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2674,10 +2674,10 @@ export class MemStorage implements IStorage {
     const priorityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
     
     return Array.from(this.improvementSuggestions.values())
-      .sort(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; {
-        const priorityDiff = <span class="cstat-no" title="statement not covered" >priorityOrder[a.priority] - priorityOrder[b.priority];</span>
-<span class="cstat-no" title="statement not covered" >        if (priorityDiff !== 0) <span class="cstat-no" title="statement not covered" >return priorityDiff;</span></span>
-<span class="cstat-no" title="statement not covered" >        return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);</span>
+      .sort((a, b) =&gt; {
+        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        if (priorityDiff !== 0) return priorityDiff;
+        return (b.createdAt<span class="branch-0 cbranch-no" title="branch not covered" >?.g</span>etTime() || <span class="branch-1 cbranch-no" title="branch not covered" >0)</span> - (a.createdAt<span class="branch-0 cbranch-no" title="branch not covered" >?.g</span>etTime() || <span class="branch-1 cbranch-no" title="branch not covered" >0)</span>;
       })
       .slice(0, limit);
   }
@@ -2715,11 +2715,11 @@ export class MemStorage implements IStorage {
   async clearNewSuggestions(): Promise&lt;void&gt; {
     const toDelete: string[] = [];
     this.improvementSuggestions.forEach((suggestion, id) =&gt; {
-      <span class="missing-if-branch" title="if path not taken" >I</span>if (suggestion.status === 'New') {
-<span class="cstat-no" title="statement not covered" >        toDelete.push(id);</span>
+      if (suggestion.status === 'New') {
+        toDelete.push(id);
       }
     });
-    toDelete.forEach(<span class="fstat-no" title="function not covered" >id </span>=&gt; <span class="cstat-no" title="statement not covered" >this.improvementSuggestions.delete(id))</span>;
+    toDelete.forEach(id =&gt; this.improvementSuggestions.delete(id));
   }
 &nbsp;
   async updateSuggestionStatus(id: string, status: 'New' | 'Acknowledged' | 'Done'): Promise&lt;ImprovementSuggestion | undefined&gt; {
@@ -2845,7 +2845,7 @@ export const storage = new MemStorage();
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:36:53.441Z
+                at 2025-08-15T22:46:58.873Z
             </div>
         <script src="../prettify.js"></script>
         <script>

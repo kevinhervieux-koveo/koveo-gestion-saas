@@ -251,6 +251,11 @@ export const insertUserSchema = createInsertSchema(users).pick({
   phone: true,
   language: true,
   role: true,
+}).extend({
+  firstName: z.string().min(1).max(100, "First name must be 100 characters or less"),
+  lastName: z.string().min(1).max(100, "Last name must be 100 characters or less"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export const insertOrganizationSchema = createInsertSchema(organizations).pick({

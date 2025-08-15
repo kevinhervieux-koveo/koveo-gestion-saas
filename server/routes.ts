@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(features);
     } catch (error) {
       console.error('Error fetching features:', error);
-      res.status(500).json({ message: "Failed to fetch features", error: error.message });
+      res.status(500).json({ message: "Failed to fetch features", error: error instanceof Error ? error.message : String(error) });
     }
   });
 

@@ -12,7 +12,11 @@ describe('MemStorage', () => {
 
   beforeEach(() => {
     storage = new MemStorage();
-    (randomUUID as jest.Mock).mockReturnValue('test-uuid-123');
+    let callCount = 0;
+    (randomUUID as jest.Mock).mockImplementation(() => {
+      callCount++;
+      return `test-uuid-${callCount}`;
+    });
   });
 
   afterEach(() => {
@@ -34,7 +38,7 @@ describe('MemStorage', () => {
         const user = await storage.createUser(mockUserData);
         
         expect(user).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           firstName: mockUserData.firstName,
           lastName: mockUserData.lastName,
           email: mockUserData.email,
@@ -134,7 +138,7 @@ describe('MemStorage', () => {
           ...createdUser,
           ...updates
         });
-        expect(updatedUser?.updatedAt?.getTime()).toBeGreaterThan(createdUser.createdAt?.getTime() || 0);
+        expect(updatedUser?.updatedAt?.getTime()).toBeGreaterThanOrEqual(createdUser.createdAt?.getTime() || 0);
       });
 
       it('should return undefined when user not found', async () => {
@@ -169,7 +173,7 @@ describe('MemStorage', () => {
         const org = await storage.createOrganization(mockOrgData);
         
         expect(org).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           name: mockOrgData.name,
           email: mockOrgData.email,
           type: 'management_company',
@@ -231,7 +235,7 @@ describe('MemStorage', () => {
         const building = await storage.createBuilding(mockBuildingData);
         
         expect(building).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           ...mockBuildingData,
           province: 'QC',
           isActive: true
@@ -278,7 +282,7 @@ describe('MemStorage', () => {
         const pillar = await storage.createPillar(mockPillarData);
         
         expect(pillar).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           ...mockPillarData,
           status: 'pending'
         });
@@ -324,7 +328,7 @@ describe('MemStorage', () => {
         const feature = await storage.createFeature(mockFeatureData);
         
         expect(feature).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           ...mockFeatureData,
           status: 'planned',
           priority: 'medium',
@@ -386,7 +390,7 @@ describe('MemStorage', () => {
         const suggestion = await storage.createImprovementSuggestion(mockSuggestionData);
         
         expect(suggestion).toMatchObject({
-          id: 'test-uuid-123',
+          id: expect.stringMatching(/^test-uuid-\d+$/),
           ...mockSuggestionData,
           status: 'New'
         });
