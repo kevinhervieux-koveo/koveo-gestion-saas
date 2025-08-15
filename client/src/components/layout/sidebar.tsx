@@ -17,6 +17,59 @@ export function Sidebar() {
     );
   };
 
+  const renderMenuButton = (section: typeof menuSections[0]) => {
+    const SectionIcon = section.icon;
+    const isExpanded = expandedMenus.includes(section.key);
+    
+    return (
+      <button
+        onClick={() => toggleMenu(section.key)}
+        className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center space-x-3">
+          <SectionIcon className="w-5 h-5" />
+          <span>{section.name}</span>
+        </div>
+        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+      </button>
+    );
+  };
+
+  const renderMenuItem = (item: any) => {
+    const ItemIcon = item.icon;
+    const isActive = location === item.href;
+    
+    return (
+      <Link key={item.name} href={item.href}>
+        <div
+          className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+            isActive
+              ? 'bg-koveo-light text-koveo-navy font-medium'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          <ItemIcon className="w-4 h-4" />
+          <span>{item.name}</span>
+        </div>
+      </Link>
+    );
+  };
+
+  const renderMenuSection = (section: typeof menuSections[0]) => {
+    const isExpanded = expandedMenus.includes(section.key);
+    
+    return (
+      <div key={section.key}>
+        {renderMenuButton(section)}
+        {isExpanded && (
+          <div className="ml-6 mt-1 space-y-1">
+            {section.items.map(renderMenuItem)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const handleLogout = () => {
     // Navigate to home page (external website)
     window.location.href = '/';
@@ -92,49 +145,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-6 py-4">
         <div className="space-y-1">
-          {menuSections.map((section) => {
-            const SectionIcon = section.icon;
-            const isExpanded = expandedMenus.includes(section.key);
-            
-            return (
-              <div key={section.key}>
-                <button
-                  onClick={() => toggleMenu(section.key)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <SectionIcon className="w-5 h-5" />
-                    <span>{section.name}</span>
-                  </div>
-                  {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
-                
-                {isExpanded && (
-                  <div className="ml-6 mt-1 space-y-1">
-                    {section.items.map((item) => {
-                      const ItemIcon = item.icon;
-                      const isActive = location === item.href;
-                      
-                      return (
-                        <Link key={item.name} href={item.href}>
-                          <div
-                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                              isActive
-                                ? 'bg-koveo-light text-koveo-navy font-medium'
-                                : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            <ItemIcon className="w-4 h-4" />
-                            <span>{item.name}</span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {menuSections.map(renderMenuSection)}
         </div>
         
         {/* Logout Button */}

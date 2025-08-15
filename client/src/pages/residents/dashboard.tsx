@@ -130,45 +130,36 @@ export default function ResidentsDashboard() {
     }
   ];
 
+  const statusBadgeConfig = {
+    paid: { className: "bg-green-100 text-green-800 hover:bg-green-100", label: "Paid" },
+    pending: { className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100", label: "Pending" },
+    overdue: { className: "bg-red-100 text-red-800 hover:bg-red-100", label: "Overdue" },
+    in_progress: { className: "bg-blue-100 text-blue-800 hover:bg-blue-100", label: "In Progress" },
+  } as const;
+
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
-      case 'overdue':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Overdue</Badge>;
-      case 'in_progress':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">In Progress</Badge>;
-      default:
-        return null;
-    }
+    const config = statusBadgeConfig[status as keyof typeof statusBadgeConfig];
+    return config ? <Badge className={config.className}>{config.label}</Badge> : null;
   };
+
+  const priorityColorMap = {
+    high: 'text-red-600',
+    medium: 'text-yellow-600',
+    low: 'text-gray-600',
+  } as const;
 
   const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return 'text-red-600';
-      case 'medium':
-        return 'text-yellow-600';
-      case 'low':
-        return 'text-gray-600';
-      default:
-        return 'text-gray-600';
-    }
+    return priorityColorMap[priority.toLowerCase() as keyof typeof priorityColorMap] || 'text-gray-600';
   };
 
+  const statusIconMap = {
+    in_progress: <Clock className="w-4 h-4 text-blue-600" />,
+    completed: <CheckCircle2 className="w-4 h-4 text-green-600" />,
+    pending: <AlertCircle className="w-4 h-4 text-yellow-600" />,
+  } as const;
+
   const getRequestStatusIcon = (status: string) => {
-    switch (status) {
-      case 'in_progress':
-        return <Clock className="w-4 h-4 text-blue-600" />;
-      case 'completed':
-        return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-      case 'pending':
-        return <AlertCircle className="w-4 h-4 text-yellow-600" />;
-      default:
-        return null;
-    }
+    return statusIconMap[status as keyof typeof statusIconMap] || null;
   };
 
   return (
@@ -319,11 +310,11 @@ export default function ResidentsDashboard() {
                         <div className="flex items-center space-x-2">
                           <h4 className="font-medium">{announcement.title}</h4>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            announcement.priority === 'high' 
-                              ? 'bg-red-100 text-red-800' 
-                              : announcement.priority === 'medium'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
+                            {
+                              high: 'bg-red-100 text-red-800',
+                              medium: 'bg-yellow-100 text-yellow-800',
+                              low: 'bg-gray-100 text-gray-800'
+                            }[announcement.priority] || 'bg-gray-100 text-gray-800'
                           }`}>
                             {announcement.priority}
                           </span>
