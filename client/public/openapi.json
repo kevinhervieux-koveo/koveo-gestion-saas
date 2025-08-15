@@ -1,0 +1,24 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Koveo Gestion API",
+    "description": "AI-powered property management platform for Quebec's residential communities",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Koveo Gestion Inc.",
+      "url": "https://koveo-gestion.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "API Server"
+    }
+  ],
+  "paths": {},
+  "components": {
+    "schemas": {},
+    "securitySchemes": {}
+  },
+  "tags": []
+}

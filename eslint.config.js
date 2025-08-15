@@ -4,6 +4,7 @@ import typescriptParser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import jsdoc from 'eslint-plugin-jsdoc';
 
 export default [
   js.configs.recommended,
@@ -14,6 +15,7 @@ export default [
       react,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
+      jsdoc,
     },
     languageOptions: {
       parser: typescriptParser,
@@ -89,6 +91,41 @@ export default [
       'no-multi-spaces': 'error',
       'no-mixed-spaces-and-tabs': 'error',
       'prefer-const': 'error',
+      
+      // JSDoc rules
+      'jsdoc/require-description': 'error',
+      'jsdoc/require-description-complete-sentence': 'error',
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-param-type': 'off', // TypeScript provides types
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
+      'jsdoc/require-returns-type': 'off', // TypeScript provides types
+      'jsdoc/valid-types': 'error',
+      'jsdoc/check-param-names': 'error',
+      'jsdoc/check-tag-names': 'error',
+      'jsdoc/check-types': 'error',
+      'jsdoc/no-undefined-types': 'off', // TypeScript handles this
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          require: {
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+            ArrowFunctionExpression: false,
+            FunctionExpression: false
+          },
+          contexts: [
+            'ExportNamedDeclaration[declaration.type="FunctionDeclaration"]',
+            'ExportDefaultDeclaration[declaration.type="FunctionDeclaration"]',
+            'ExportNamedDeclaration[declaration.type="ClassDeclaration"]',
+            'ExportDefaultDeclaration[declaration.type="ClassDeclaration"]',
+            'TSInterfaceDeclaration',
+            'TSTypeAliasDeclaration'
+          ]
+        }
+      ],
     },
     settings: {
       react: {

@@ -1,0 +1,64 @@
+Build the Integrated "Pillar Framework" Page
+We are creating a dedicated "Pillar Framework" section within the application to serve as an administrative health dashboard. This will be a new page accessible at the /pillars route and will display actionable suggestions for improving the codebase.
+
+This task has four parts: creating the database model, upgrading the backend analysis script, creating a new namespaced API endpoint, and building the dedicated frontend page.
+
+1. Backend: Create the Database Model
+
+This step remains the same.
+
+Generate and execute a new SQL CREATE TABLE statement for a table named improvement_suggestions.
+
+This table must have the following columns:
+
+id (UUID, Primary Key)
+
+title (String, not null)
+
+description (Text, not null)
+
+category (Enum type with values: 'Code Quality', 'Security', 'Testing', 'Documentation', 'Performance')
+
+priority (Enum type with values: 'Low', 'Medium', 'High', 'Critical')
+
+status (Enum type with values: 'New', 'Acknowledged', 'Done', default: 'New')
+
+file_path (String, optional, to point to a specific file)
+
+created_at (Timestamp, default: now())
+
+Generate the corresponding ORM model for this table.
+
+2. Backend: Upgrade the Analysis Script (The "Auditor")
+
+This step remains the same.
+
+Heavily modify the /scripts/run-quality-check.ts script. It will now function as a comprehensive "Auditor."
+
+Its new logic will be:
+a. Clear all existing 'New' suggestions from the improvement_suggestions table.
+b. Perform Scans: Run all existing code quality checks (test coverage, cyclomatic complexity) and add a new scan for dependency vulnerabilities by running npm audit --json.
+c. Generate Suggestions: Instead of just printing warnings, the script will now generate structured suggestion objects based on its findings and save them to the database.
+d. Save to Database: For each finding, the script will insert a new row into the improvement_suggestions table.
+
+3. Backend: Create the API Endpoint (Revised)
+
+Create a new, admin-only API route under a /pillars namespace: GET /api/pillars/suggestions.
+
+This endpoint should query the improvement_suggestions table and return the top 5 suggestions, ordered by priority (Critical > High > Medium > Low) and then by creation date.
+
+4. Frontend: Build the "Pillar Framework" Page (Revised)
+
+Create a new, dedicated page component accessible at the /pillars route. As seen in your design, this page should render when the user navigates to .../pillars.
+
+This page should have a clear title, such as "Pillar Framework Health Dashboard".
+
+It will fetch its data from the new GET /api/pillars/suggestions endpoint.
+
+The main content of the page will be the list of the top 5 improvement suggestions, clearly displaying the title, category, and priority for each.
+
+Handle loading and empty states gracefully (e.g., "No suggestions at this time. The system is healthy.").
+
+Finally, update the main administrative sidebar navigation to include a link titled "Pillar Framework" that points to the /pillars route, matching your design.
+
+Please proceed with implementing this full feature. Ensure all new backend code is fully tested and documented as required by our existing pillars.
