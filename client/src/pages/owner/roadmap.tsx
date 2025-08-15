@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
+import { FeaturePlanningDialog } from '@/components/roadmap/feature-planning-dialog';
 
 /**
  *
@@ -33,14 +35,27 @@ interface Section {
 }
 
 /**
- *
+ * Owner roadmap page displaying all features with planning capabilities.
+ * Users can click on any feature to open a detailed planning dialog.
  */
 export default function OwnerRoadmap() {
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   // Fetch features from the database
   const { data: features = [], isLoading } = useQuery({
     queryKey: ['/api/features', { roadmap: true }],
     queryFn: () => fetch('/api/features?roadmap=true').then((res) => res.json()),
   });
+
+  /**
+   * Handles clicking on a feature item to open the planning dialog.
+   * @param feature
+   */
+  const handleFeatureClick = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setDialogOpen(true);
+  };
 
   // Group features by category
   const groupedFeatures = features.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
@@ -292,17 +307,19 @@ export default function OwnerRoadmap() {
                     {section.features.map((feature) => (
                       <div
                         key={feature.id || feature.name}
-                        className='p-4 hover:bg-gray-50 transition-colors'
+                        className='p-4 hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-transparent hover:border-blue-400'
+                        onClick={() => handleFeatureClick(feature)}
                       >
                         <div className='flex items-start space-x-3'>
                           {getStatusIcon(feature.status)}
                           <div className='flex-1'>
                             <div className='flex items-center'>
-                              <span className='font-medium text-gray-900'>{feature.name}</span>
+                              <span className='font-medium text-gray-900 hover:text-blue-600 transition-colors'>{feature.name}</span>
                               {getStatusBadge(feature.status)}
                               {feature.priority && getPriorityBadge(feature.priority)}
                             </div>
                             <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
+                            <p className='text-xs text-blue-600 mt-2 font-medium'>Click to plan development →</p>
                           </div>
                         </div>
                       </div>
@@ -314,6 +331,12 @@ export default function OwnerRoadmap() {
           })}
         </div>
       </div>
+
+      <FeaturePlanningDialog
+        feature={selectedFeature}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }
