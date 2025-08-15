@@ -105,6 +105,7 @@ export function Sidebar() {
       icon: User,
       items: [
         { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
+        { name: 'Documentation', href: '/owner/documentation', icon: FileText },
         { name: 'Roadmap', href: '/owner/roadmap', icon: ShieldCheck },
         { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/owner/suggestions', icon: Lightbulb },

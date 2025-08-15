@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 
 // Owner pages
 import OwnerDashboard from "@/pages/owner/dashboard";
+import OwnerDocumentation from "@/pages/owner/documentation";
 import OwnerPillars from "@/pages/owner/pillars";
 import OwnerRoadmap from "@/pages/owner/roadmap";
 import OwnerQuality from "@/pages/owner/quality";
@@ -43,6 +44,7 @@ function Router() {
       
       {/* Owner routes */}
       <Route path="/owner/dashboard" component={OwnerDashboard} />
+      <Route path="/owner/documentation" component={OwnerDocumentation} />
       <Route path="/owner/pillars" component={OwnerPillars} />
       <Route path="/owner/roadmap" component={OwnerRoadmap} />
       <Route path="/owner/quality" component={OwnerQuality} />
