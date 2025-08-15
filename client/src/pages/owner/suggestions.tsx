@@ -10,8 +10,8 @@ interface ImprovementSuggestion {
   id: string;
   title: string;
   description: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'Acknowledged' | 'Done';
+  priority: 'High' | 'Medium' | 'Low' | 'Critical';
+  status: 'New' | 'Acknowledged' | 'Done';
   category: string;
   createdAt: string;
 }
@@ -37,6 +37,7 @@ export default function OwnerSuggestions() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
+      case 'Critical': return 'bg-purple-100 text-purple-800';
       case 'High': return 'bg-red-100 text-red-800';
       case 'Medium': return 'bg-yellow-100 text-yellow-800';
       case 'Low': return 'bg-blue-100 text-blue-800';
@@ -48,7 +49,7 @@ export default function OwnerSuggestions() {
     switch (status) {
       case 'Done': return 'bg-green-100 text-green-800';
       case 'Acknowledged': return 'bg-blue-100 text-blue-800';
-      case 'Pending': return 'bg-gray-100 text-gray-800';
+      case 'New': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -105,7 +106,7 @@ export default function OwnerSuggestions() {
                         </div>
                         
                         <div className="flex gap-2">
-                          {suggestion.status === 'Pending' && (
+                          {suggestion.status === 'New' && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -118,7 +119,7 @@ export default function OwnerSuggestions() {
                             </Button>
                           )}
                           
-                          {(suggestion.status === 'Pending' || suggestion.status === 'Acknowledged') && (
+                          {(suggestion.status === 'New' || suggestion.status === 'Acknowledged') && (
                             <Button
                               size="sm"
                               onClick={() => completeMutation.mutate(suggestion.id)}
