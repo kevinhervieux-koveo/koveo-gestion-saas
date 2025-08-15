@@ -22,7 +22,7 @@ export function DevelopmentConsole() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [consoleLines.length]);
 
   return (
     <Card className="bg-gray-900 text-white border-gray-700">

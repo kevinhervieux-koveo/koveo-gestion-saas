@@ -14,30 +14,30 @@ import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User operations
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getUser(_id: string): Promise<User | undefined>;
+  getUserByUsername(_username: string): Promise<User | undefined>;
+  createUser(_user: InsertUser): Promise<User>;
 
   // Development Pillar operations
   getPillars(): Promise<DevelopmentPillar[]>;
-  getPillar(id: string): Promise<DevelopmentPillar | undefined>;
-  createPillar(pillar: InsertPillar): Promise<DevelopmentPillar>;
-  updatePillar(id: string, pillar: Partial<DevelopmentPillar>): Promise<DevelopmentPillar | undefined>;
+  getPillar(_id: string): Promise<DevelopmentPillar | undefined>;
+  createPillar(_pillar: InsertPillar): Promise<DevelopmentPillar>;
+  updatePillar(_id: string, _pillar: Partial<DevelopmentPillar>): Promise<DevelopmentPillar | undefined>;
 
   // Workspace Status operations
   getWorkspaceStatuses(): Promise<WorkspaceStatus[]>;
-  getWorkspaceStatus(component: string): Promise<WorkspaceStatus | undefined>;
-  createWorkspaceStatus(status: InsertWorkspaceStatus): Promise<WorkspaceStatus>;
-  updateWorkspaceStatus(component: string, status: string): Promise<WorkspaceStatus | undefined>;
+  getWorkspaceStatus(_component: string): Promise<WorkspaceStatus | undefined>;
+  createWorkspaceStatus(_status: InsertWorkspaceStatus): Promise<WorkspaceStatus>;
+  updateWorkspaceStatus(_component: string, _status: string): Promise<WorkspaceStatus | undefined>;
 
   // Quality Metrics operations
   getQualityMetrics(): Promise<QualityMetric[]>;
-  createQualityMetric(metric: InsertQualityMetric): Promise<QualityMetric>;
+  createQualityMetric(_metric: InsertQualityMetric): Promise<QualityMetric>;
 
   // Framework Configuration operations
   getFrameworkConfigs(): Promise<FrameworkConfiguration[]>;
-  getFrameworkConfig(key: string): Promise<FrameworkConfiguration | undefined>;
-  setFrameworkConfig(config: InsertFrameworkConfig): Promise<FrameworkConfiguration>;
+  getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined>;
+  setFrameworkConfig(_config: InsertFrameworkConfig): Promise<FrameworkConfiguration>;
 }
 
 export class MemStorage implements IStorage {
@@ -146,7 +146,8 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
-      ...insertUser, 
+      ...insertUser,
+      language: insertUser.language || 'en', 
       id,
       createdAt: new Date(),
     };
@@ -167,6 +168,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const pillar: DevelopmentPillar = {
       ...insertPillar,
+      status: insertPillar.status || 'pending',
+      configuration: insertPillar.configuration || null,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -177,7 +180,9 @@ export class MemStorage implements IStorage {
 
   async updatePillar(id: string, updates: Partial<DevelopmentPillar>): Promise<DevelopmentPillar | undefined> {
     const existingPillar = this.pillars.get(id);
-    if (!existingPillar) return undefined;
+    if (!existingPillar) {
+      return undefined;
+    }
 
     const updatedPillar = {
       ...existingPillar,
@@ -201,6 +206,7 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const status: WorkspaceStatus = {
       ...insertStatus,
+      status: insertStatus.status || 'pending',
       id,
       lastUpdated: new Date(),
     };
@@ -210,7 +216,9 @@ export class MemStorage implements IStorage {
 
   async updateWorkspaceStatus(component: string, statusValue: string): Promise<WorkspaceStatus | undefined> {
     const existing = this.workspaceStatuses.get(component);
-    if (!existing) return undefined;
+    if (!existing) {
+      return undefined;
+    }
 
     const updated = {
       ...existing,
@@ -250,6 +258,7 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const config: FrameworkConfiguration = {
       ...insertConfig,
+      description: insertConfig.description || null,
       id,
       updatedAt: new Date(),
     };

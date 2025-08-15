@@ -169,9 +169,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Update the QA pillar status to 'in-progress'
       const qaPillar = Array.from((storage as any).pillars.values())
-        .find((p: any) => p.name.includes("QA"));
+        .find((p: any) => p.name.includes("QA")) as any;
       
-      if (qaPillar) {
+      if (qaPillar?.id) {
         const updated = await storage.updatePillar(qaPillar.id, { 
           status: 'in-progress',
           updatedAt: new Date()
