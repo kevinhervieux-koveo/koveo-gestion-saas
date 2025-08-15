@@ -1,4 +1,4 @@
-import { ArrowUp, Home, ShieldCheck, CheckCircle, Settings, User, Building, Users, DollarSign, FileText, AlertCircle, Lightbulb, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowUp, Home, ShieldCheck, CheckCircle, Settings, User, Building, Users, DollarSign, FileText, AlertCircle, Lightbulb, LogOut, ChevronDown, ChevronRight, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
@@ -31,6 +31,7 @@ export function Sidebar() {
         { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
         { name: 'Pillar Framework', href: '/owner/pillars', icon: ShieldCheck },
         { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
+        { name: 'Suggestions', href: '/owner/suggestions', icon: MessageSquare },
       ]
     },
     {
