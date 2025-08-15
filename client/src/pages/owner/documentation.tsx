@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,9 @@ import {
   Cpu, 
   Loader2,
   CheckCircle,
-  AlertCircle 
+  AlertCircle,
+  RefreshCw,
+  Clock 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -61,19 +63,28 @@ export default function OwnerDocumentation() {
   const [isExportingGoogleSuite, setIsExportingGoogleSuite] = useState(false);
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false);
   const [llmDocumentation, setLlmDocumentation] = useState('');
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch comprehensive documentation data
-  const { data: docData, isLoading } = useQuery<DocumentationData>({
+  const { data: docData, isLoading, refetch, isFetching } = useQuery<DocumentationData>({
     queryKey: ['/api/documentation/comprehensive'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
     queryFn: () => {
-      // Generate comprehensive documentation data
+      // Generate comprehensive documentation data with current timestamp
+      const currentTimestamp = new Date().toISOString();
+      setLastRefresh(new Date());
+      
       return Promise.resolve({
         projectOverview: {
           name: "Koveo Gestion",
           description: "AI-powered property management SaaS platform for Quebec residential communities",
           version: "1.0.0",
-          architecture: "React/TypeScript frontend with Node.js/Express backend, PostgreSQL database"
+          architecture: "React/TypeScript frontend with Node.js/Express backend, PostgreSQL database",
+          lastUpdated: currentTimestamp
         },
         components: [
           {
@@ -155,6 +166,77 @@ export default function OwnerDocumentation() {
       });
     }
   });
+
+  // Auto-refresh documentation every 30 minutes when working in Replit
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    // Check if we're in a Replit environment
+    const isReplit = window.location.hostname.includes('replit') || 
+                     window.location.hostname.includes('.repl.') ||
+                     import.meta.env.REPLIT_ENV;
+    
+    if (isReplit) {
+      // Set up 30-minute auto-refresh
+      intervalId = setInterval(() => {
+        setIsAutoRefreshing(true);
+        refetch().finally(() => {
+          setIsAutoRefreshing(false);
+          toast({
+            title: "Documentation Updated",
+            description: "Documentation has been automatically refreshed.",
+          });
+        });
+      }, 30 * 60 * 1000); // 30 minutes
+      
+      console.log('📄 Documentation auto-refresh enabled (every 30 minutes)');
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [refetch, toast]);
+
+  // Listen for deployment events or page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, check if we should refresh
+        const timeSinceLastRefresh = Date.now() - lastRefresh.getTime();
+        const fiveMinutes = 5 * 60 * 1000;
+        
+        if (timeSinceLastRefresh > fiveMinutes) {
+          setIsAutoRefreshing(true);
+          refetch().finally(() => setIsAutoRefreshing(false));
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [lastRefresh, refetch]);
+
+  // Manual refresh function
+  const handleManualRefresh = async () => {
+    setIsAutoRefreshing(true);
+    try {
+      await refetch();
+      toast({
+        title: "Documentation Refreshed",
+        description: "Documentation data has been updated with the latest information.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Refresh Failed",
+        description: "Failed to refresh documentation. Please try again.",
+      });
+    } finally {
+      setIsAutoRefreshing(false);
+    }
+  };
 
   const handleExportGoogleSuite = async () => {
     setIsExportingGoogleSuite(true);
@@ -467,6 +549,34 @@ This documentation provides a complete technical portrait of the Koveo Gestion p
         title="Documentation Center"
         subtitle="Generate and export comprehensive project documentation"
       />
+      
+      {/* Auto-refresh status bar */}
+      <div className="px-6 py-2 bg-gray-50 border-b">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4 text-gray-600">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
+            </div>
+            {isAutoRefreshing && (
+              <div className="flex items-center gap-2 text-blue-600">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span>Auto-refreshing...</span>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={isFetching || isAutoRefreshing}
+            className="h-8"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${(isFetching || isAutoRefreshing) ? 'animate-spin' : ''}`} />
+            Refresh Now
+          </Button>
+        </div>
+      </div>
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
