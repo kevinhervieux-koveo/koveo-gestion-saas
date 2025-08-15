@@ -24,14 +24,13 @@ export function Sidebar() {
 
   const menuSections = [
     {
-      name: 'Owner',
-      key: 'owner',
-      icon: User,
+      name: 'Residents',
+      key: 'residents',
+      icon: Users,
       items: [
-        { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
-        { name: 'Pillar Framework', href: '/owner/pillars', icon: ShieldCheck },
-        { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
-        { name: 'Suggestions', href: '/owner/suggestions', icon: MessageSquare },
+        { name: 'My Residence', href: '/residents/residence', icon: Home },
+        { name: 'My Building', href: '/residents/building', icon: Building },
+        { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
       ]
     },
     {
@@ -47,13 +46,14 @@ export function Sidebar() {
       ]
     },
     {
-      name: 'Residents',
-      key: 'residents',
-      icon: Users,
+      name: 'Owner',
+      key: 'owner',
+      icon: User,
       items: [
-        { name: 'My Residence', href: '/residents/residence', icon: Home },
-        { name: 'My Building', href: '/residents/building', icon: Building },
-        { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
+        { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
+        { name: 'Pillar Framework', href: '/owner/pillars', icon: ShieldCheck },
+        { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
+        { name: 'Suggestions', href: '/owner/suggestions', icon: MessageSquare },
       ]
     },
     {
