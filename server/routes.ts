@@ -7,6 +7,20 @@ import { storage } from "./storage";
 import { insertPillarSchema, insertWorkspaceStatusSchema, insertQualityMetricSchema, insertFrameworkConfigSchema, insertUserSchema, insertOrganizationSchema } from "@shared/schema";
 import { registerUserRoutes } from "./api/users";
 import { registerOrganizationRoutes } from "./api/organizations";
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import * as schema from '@shared/schema';
+import { desc, eq } from 'drizzle-orm';
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+}
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool, schema });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register dedicated API routes
@@ -25,33 +39,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Improvement Suggestions API (MUST be defined before /api/pillars/:id)
   app.get("/api/pillars/suggestions", async (req, res) => {
     try {
-      const suggestions = await storage.getTopImprovementSuggestions(5);
+      // Fetch directly from database since we're using in-memory storage for other data
+      const suggestions = await db
+        .select()
+        .from(schema.improvementSuggestions)
+        .orderBy(desc(schema.improvementSuggestions.createdAt))
+        .limit(10);
       res.json(suggestions);
     } catch (error) {
+      console.error('Error fetching suggestions:', error);
       res.status(500).json({ message: "Failed to fetch improvement suggestions" });
     }
   });
 
   app.post("/api/pillars/suggestions/:id/acknowledge", async (req, res) => {
     try {
-      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Acknowledged');
+      // Update directly in database
+      const [suggestion] = await db
+        .update(schema.improvementSuggestions)
+        .set({ status: 'Acknowledged' })
+        .where(eq(schema.improvementSuggestions.id, req.params.id))
+        .returning();
+      
       if (!suggestion) {
         return res.status(404).json({ message: "Suggestion not found" });
       }
       res.json(suggestion);
     } catch (error) {
+      console.error('Error acknowledging suggestion:', error);
       res.status(500).json({ message: "Failed to update suggestion status" });
     }
   });
 
   app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
     try {
-      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Done');
+      // Update directly in database
+      const [suggestion] = await db
+        .update(schema.improvementSuggestions)
+        .set({ status: 'Done' })
+        .where(eq(schema.improvementSuggestions.id, req.params.id))
+        .returning();
+      
       if (!suggestion) {
         return res.status(404).json({ message: "Suggestion not found" });
       }
       res.json(suggestion);
     } catch (error) {
+      console.error('Error completing suggestion:', error);
       res.status(500).json({ message: "Failed to update suggestion status" });
     }
   });
