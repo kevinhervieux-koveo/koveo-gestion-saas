@@ -8,7 +8,9 @@ import {
   type QualityMetric,
   type InsertQualityMetric,
   type FrameworkConfiguration,
-  type InsertFrameworkConfig
+  type InsertFrameworkConfig,
+  type ImprovementSuggestion,
+  type InsertImprovementSuggestion
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -38,6 +40,13 @@ export interface IStorage {
   getFrameworkConfigs(): Promise<FrameworkConfiguration[]>;
   getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined>;
   setFrameworkConfig(_config: InsertFrameworkConfig): Promise<FrameworkConfiguration>;
+
+  // Improvement Suggestions operations
+  getImprovementSuggestions(): Promise<ImprovementSuggestion[]>;
+  getTopImprovementSuggestions(_limit: number): Promise<ImprovementSuggestion[]>;
+  createImprovementSuggestion(_suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion>;
+  clearNewSuggestions(): Promise<void>;
+  updateSuggestionStatus(_id: string, _status: 'New' | 'Acknowledged' | 'Done'): Promise<ImprovementSuggestion | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -46,6 +55,7 @@ export class MemStorage implements IStorage {
   private workspaceStatuses: Map<string, WorkspaceStatus>;
   private qualityMetrics: Map<string, QualityMetric>;
   private frameworkConfigs: Map<string, FrameworkConfiguration>;
+  private improvementSuggestions: Map<string, ImprovementSuggestion>;
 
   constructor() {
     this.users = new Map();
@@ -53,6 +63,7 @@ export class MemStorage implements IStorage {
     this.workspaceStatuses = new Map();
     this.qualityMetrics = new Map();
     this.frameworkConfigs = new Map();
+    this.improvementSuggestions = new Map();
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -264,6 +275,60 @@ export class MemStorage implements IStorage {
     };
     this.frameworkConfigs.set(insertConfig.key, config);
     return config;
+  }
+
+  // Improvement Suggestions operations
+  async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> {
+    return Array.from(this.improvementSuggestions.values());
+  }
+
+  async getTopImprovementSuggestions(limit: number): Promise<ImprovementSuggestion[]> {
+    const priorityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+    
+    return Array.from(this.improvementSuggestions.values())
+      .sort((a, b) => {
+        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        if (priorityDiff !== 0) return priorityDiff;
+        return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
+      })
+      .slice(0, limit);
+  }
+
+  async createImprovementSuggestion(insertSuggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
+    const id = randomUUID();
+    const suggestion: ImprovementSuggestion = {
+      ...insertSuggestion,
+      status: insertSuggestion.status || 'New',
+      filePath: insertSuggestion.filePath || null,
+      id,
+      createdAt: new Date(),
+    };
+    this.improvementSuggestions.set(id, suggestion);
+    return suggestion;
+  }
+
+  async clearNewSuggestions(): Promise<void> {
+    const toDelete: string[] = [];
+    this.improvementSuggestions.forEach((suggestion, id) => {
+      if (suggestion.status === 'New') {
+        toDelete.push(id);
+      }
+    });
+    toDelete.forEach(id => this.improvementSuggestions.delete(id));
+  }
+
+  async updateSuggestionStatus(id: string, status: 'New' | 'Acknowledged' | 'Done'): Promise<ImprovementSuggestion | undefined> {
+    const existing = this.improvementSuggestions.get(id);
+    if (!existing) {
+      return undefined;
+    }
+
+    const updated = {
+      ...existing,
+      status,
+    };
+    this.improvementSuggestions.set(id, updated);
+    return updated;
   }
 }
 

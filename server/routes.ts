@@ -164,6 +164,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Improvement Suggestions API (under /pillars namespace)
+  app.get("/api/pillars/suggestions", async (req, res) => {
+    try {
+      const suggestions = await storage.getTopImprovementSuggestions(5);
+      res.json(suggestions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch improvement suggestions" });
+    }
+  });
+
+  app.post("/api/pillars/suggestions/:id/acknowledge", async (req, res) => {
+    try {
+      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Acknowledged');
+      if (!suggestion) {
+        return res.status(404).json({ message: "Suggestion not found" });
+      }
+      res.json(suggestion);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update suggestion status" });
+    }
+  });
+
+  app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
+    try {
+      const suggestion = await storage.updateSuggestionStatus(req.params.id, 'Done');
+      if (!suggestion) {
+        return res.status(404).json({ message: "Suggestion not found" });
+      }
+      res.json(suggestion);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update suggestion status" });
+    }
+  });
+
   // Initialize QA Pillar endpoint
   app.post("/api/pillars/initialize-qa", async (req, res) => {
     try {

@@ -16,7 +16,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "validate": "npm run lint:check && npm run format:check && npm run test && tsx scripts/run-quality-check.ts",,
+    "validate": "npm run lint:check && npm run format:check && npm run test && tsx scripts/run-quality-check.ts",
     "validate:basic": "npm run lint:check --silent ; npm run test --silent",
     "docs": "typedoc --out docs --entryPoints client/src --exclude '**/node_modules/**' --exclude '**/tests/**' --name 'Koveo Gestion Documentation'"
   },
