@@ -54,6 +54,30 @@ export default function OwnerSuggestions() {
     }
   };
 
+  const getAIPrompt = (suggestion: ImprovementSuggestion) => {
+    const baseContext = "You are working on a Quebec property management SaaS called Koveo Gestion. ";
+    
+    switch (suggestion.category) {
+      case 'Code Quality':
+        return `${baseContext}${suggestion.description} Focus on improving code maintainability while preserving existing functionality. Follow existing TypeScript patterns and ensure all changes maintain type safety.`;
+      
+      case 'Testing':
+        return `${baseContext}${suggestion.description} Add comprehensive unit tests using Jest and React Testing Library. Focus on critical paths and edge cases. Ensure tests follow the existing test structure in /tests/ directory.`;
+      
+      case 'Documentation':
+        return `${baseContext}${suggestion.description} Add JSDoc comments to all exported functions and classes. Follow the existing documentation style and include parameter descriptions, return values, and usage examples where appropriate.`;
+      
+      case 'Security':
+        return `${baseContext}${suggestion.description} Address security vulnerabilities while maintaining Law 25 compliance for Quebec privacy regulations. Update dependencies safely and validate all changes don't break authentication or data protection.`;
+      
+      case 'Performance':
+        return `${baseContext}${suggestion.description} Optimize performance while maintaining the existing user experience. Consider code splitting, lazy loading, and bundle optimization. Test changes thoroughly to ensure no regressions.`;
+      
+      default:
+        return `${baseContext}${suggestion.description} Implement this improvement following the existing codebase patterns and Quebec property management requirements. Ensure all changes are well-tested and documented.`;
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
@@ -94,8 +118,8 @@ export default function OwnerSuggestions() {
                     </CardHeader>
                     
                     <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="mb-4">
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                           <span className="flex items-center gap-1">
                             <MessageSquare size={16} />
                             {suggestion.category}
@@ -104,6 +128,23 @@ export default function OwnerSuggestions() {
                             Created: {new Date(suggestion.createdAt).toLocaleDateString()}
                           </span>
                         </div>
+                        
+                        {/* AI Agent Prompt */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="text-xs font-semibold text-blue-800 mb-2 uppercase tracking-wide">
+                            AI Agent Prompt
+                          </div>
+                          <div className="text-sm text-blue-900 font-mono bg-white border rounded px-3 py-2 select-all cursor-pointer">
+                            {getAIPrompt(suggestion)}
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            Click to select and copy the prompt above
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div></div>
                         
                         <div className="flex gap-2">
                           {suggestion.status === 'New' && (
