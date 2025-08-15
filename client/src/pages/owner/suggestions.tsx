@@ -7,6 +7,7 @@ import { CheckCircle, Clock, MessageSquare, AlertCircle, Shield, Code, FileText,
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImprovementSuggestion {
   id: string;
@@ -136,6 +137,7 @@ const filterSortConfig: FilterSortConfig = {
 };
 
 export default function OwnerSuggestions() {
+  const { toast } = useToast();
   const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
   });
@@ -174,6 +176,11 @@ export default function OwnerSuggestions() {
     mutationFn: (id: string) => apiRequest('POST', `/api/pillars/suggestions/${id}/complete`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pillars/suggestions'] });
+      // Show success message indicating deletion and continuous improvement update
+      toast({
+        title: "Suggestion Completed",
+        description: "Suggestion has been removed and continuous improvement analysis is running in the background.",
+      });
     },
   });
 

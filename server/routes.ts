@@ -73,20 +73,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/pillars/suggestions/:id/complete", async (req, res) => {
     try {
-      // Update directly in database
-      const [suggestion] = await db
-        .update(schema.improvementSuggestions)
-        .set({ status: 'Done' })
+      // Delete the suggestion from database
+      const [deletedSuggestion] = await db
+        .delete(schema.improvementSuggestions)
         .where(eq(schema.improvementSuggestions.id, req.params.id))
         .returning();
       
-      if (!suggestion) {
+      if (!deletedSuggestion) {
         return res.status(404).json({ message: "Suggestion not found" });
       }
-      res.json(suggestion);
+
+      // Trigger continuous improvement update in background
+      console.log('🔄 Triggering continuous improvement update...');
+      import('child_process').then(({ spawn }) => {
+        const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
+          detached: true,
+          stdio: 'ignore'
+        });
+        qualityCheck.unref();
+      }).catch((error) => {
+        console.error('Error triggering quality check:', error);
+      });
+      
+      res.json({ message: "Suggestion completed and deleted successfully" });
     } catch (error) {
       console.error('Error completing suggestion:', error);
-      res.status(500).json({ message: "Failed to update suggestion status" });
+      res.status(500).json({ message: "Failed to complete suggestion" });
     }
   });
 
