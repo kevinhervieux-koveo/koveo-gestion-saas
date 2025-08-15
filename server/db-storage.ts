@@ -5,6 +5,9 @@ import * as schema from "@shared/schema";
 import type { 
   User, 
   InsertUser,
+  Organization,
+  InsertOrganization,
+  Building,
   DevelopmentPillar,
   InsertPillar,
   WorkspaceStatus,
@@ -23,6 +26,10 @@ const db = drizzle(sql, { schema });
 
 export class DatabaseStorage implements IStorage {
   // User operations
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(schema.users);
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
     return result[0];
@@ -36,6 +43,46 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(schema.users).values(insertUser).returning();
     return result[0];
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const result = await db.update(schema.users)
+      .set(updates)
+      .where(eq(schema.users.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Organization operations
+  async getOrganizations(): Promise<Organization[]> {
+    return await db.select().from(schema.organizations);
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    const result = await db.select().from(schema.organizations).where(eq(schema.organizations.id, id));
+    return result[0];
+  }
+
+  async getOrganizationByName(name: string): Promise<Organization | undefined> {
+    const result = await db.select().from(schema.organizations).where(eq(schema.organizations.name, name));
+    return result[0];
+  }
+
+  async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
+    const result = await db.insert(schema.organizations).values(insertOrganization).returning();
+    return result[0];
+  }
+
+  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+    const result = await db.update(schema.organizations)
+      .set(updates)
+      .where(eq(schema.organizations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
+    return await db.select().from(schema.buildings).where(eq(schema.buildings.organizationId, organizationId));
   }
 
   // Development Pillar operations

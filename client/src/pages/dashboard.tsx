@@ -1,127 +1,192 @@
 import { Header } from '@/components/layout/header';
-import { InitializationWizard } from '@/components/dashboard/initialization-wizard';
-import { PillarFramework } from '@/components/dashboard/pillar-framework';
-import { WorkspaceStatus } from '@/components/dashboard/workspace-status';
-import { QualityMetrics } from '@/components/dashboard/quality-metrics';
-import { DevelopmentConsole } from '@/components/dashboard/development-console';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Layers, Database, Shield, Play, Lock, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Building, DollarSign, Users, FileText, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useQuery } from '@tanstack/react-query';
+import type { Organization, User } from '@shared/schema';
 
 export default function Dashboard() {
   const { t } = useLanguage();
 
+  // Auto-updating queries
+  const { data: organizations, isLoading: organizationsLoading } = useQuery<Organization[]>({
+    queryKey: ['/api/organizations'],
+    refetchInterval: 5000, // Auto-update every 5 seconds
+  });
+
+  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+    refetchInterval: 5000,
+  });
+
+  const isLoading = organizationsLoading || usersLoading;
+
+  // Calculate owner-related statistics
+  const totalOrganizations = Array.isArray(organizations) ? organizations.length : 0;
+  const totalUsers = Array.isArray(users) ? users.length : 0;
+  const activeOrganizations = Array.isArray(organizations) ? organizations.filter((org: Organization) => org.isActive).length : 0;
+  const ownerUsers = Array.isArray(users) ? users.filter((user: User) => user.role === 'owner').length : 0;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
-        title={t('developmentFrameworkInitialization')}
-        subtitle={t('settingUpPillarMethodology')}
+        title="Owner Dashboard"
+        subtitle="Property management overview and insights"
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto">
-          <InitializationWizard />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Setup Configuration */}
-            <div className="space-y-6">
-              {/* Framework Selection */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Layers className="text-koveo-navy mr-3" size={20} />
-                    {t('frameworkConfiguration')}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-blue-500 text-xl">⚛</div>
-                          <div>
-                            <p className="font-medium text-gray-900">Next.js + TypeScript</p>
-                            <p className="text-sm text-gray-600">{t('recommended')}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center text-green-600">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                          <span className="text-sm font-medium">{t('selected')}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 border border-gray-200 rounded-lg">
-                        <Database className="text-blue-500 mb-2" size={16} />
-                        <p className="font-medium text-sm">{t('database')}</p>
-                        <p className="text-xs text-gray-600">PostgreSQL</p>
-                      </div>
-                      <div className="p-3 border border-gray-200 rounded-lg">
-                        <Shield className="text-green-500 mb-2" size={16} />
-                        <p className="font-medium text-sm">{t('auth')}</p>
-                        <p className="text-xs text-gray-600">NextAuth.js</p>
-                      </div>
-                    </div>
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Organizations</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '-' : totalOrganizations}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                  <Building className="text-koveo-navy" size={24} />
+                </div>
+              </CardContent>
+            </Card>
 
-              <PillarFramework />
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Active Organizations</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {isLoading ? '-' : activeOrganizations}
+                    </p>
+                  </div>
+                  <DollarSign className="text-green-600" size={24} />
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Right Column: Current Status & Actions */}
-            <div className="space-y-6">
-              <WorkspaceStatus />
-              <QualityMetrics />
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Users</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '-' : totalUsers}
+                    </p>
+                  </div>
+                  <Users className="text-koveo-navy" size={24} />
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Next Actions */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <div className="text-koveo-navy mr-3">📋</div>
-                    {t('nextActions')}
-                  </h3>
-                  
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Property Owners</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {isLoading ? '-' : ownerUsers}
+                    </p>
+                  </div>
+                  <FileText className="text-blue-600" size={24} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Organizations Overview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Building className="text-koveo-navy mr-2" size={20} />
+                  Organizations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
                   <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between border-koveo-navy bg-koveo-navy bg-opacity-5 hover:bg-opacity-10 text-left h-auto p-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Play className="text-koveo-navy" size={16} />
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">{t('initializeQAPillar')}</div>
-                          <p className="text-sm text-gray-600 mt-1">{t('setupValidationQualityAssurance')}</p>
-                        </div>
-                      </div>
-                      <ArrowRight className="text-koveo-navy" size={16} />
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      disabled
-                      className="w-full justify-between opacity-50 cursor-not-allowed text-left h-auto p-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Lock className="text-gray-400" size={16} />
-                        <div className="text-left">
-                          <div className="font-medium text-gray-500">{t('configureTesting')}</div>
-                          <p className="text-sm text-gray-400 mt-1">{t('availableAfterQACompletion')}</p>
-                        </div>
-                      </div>
-                      <Lock className="text-gray-400" size={16} />
-                    </Button>
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                ) : Array.isArray(organizations) && organizations.length > 0 ? (
+                  <div className="space-y-3">
+                    {organizations.slice(0, 5).map((org: Organization) => (
+                      <div key={org.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                        <div>
+                          <p className="font-medium text-gray-900">{org.name}</p>
+                          <p className="text-sm text-gray-600">{org.type}</p>
+                        </div>
+                        <Badge variant={org.isActive ? "default" : "secondary"}>
+                          {org.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Building className="mx-auto mb-3" size={48} />
+                    <p>No organizations found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="text-koveo-navy mr-2" size={20} />
+                  Recent Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                ) : Array.isArray(users) && users.length > 0 ? (
+                  <div className="space-y-3">
+                    {users.slice(0, 5).map((user: User) => (
+                      <div key={user.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                        <div>
+                          <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                        </div>
+                        <Badge variant={user.role === 'owner' ? "default" : "outline"}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="mx-auto mb-3" size={48} />
+                    <p>No users found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Command Line Interface Preview */}
-          <div className="mt-8">
-            <DevelopmentConsole />
-          </div>
+          {/* Status Indicator */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-gray-700">Dashboard auto-updating every 5 seconds</span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Last updated: {new Date().toLocaleTimeString()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

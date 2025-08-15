@@ -1,5 +1,3 @@
-import { Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-language';
 
 interface HeaderProps {
@@ -22,10 +20,6 @@ export function Header({ title, subtitle }: HeaderProps) {
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span>{t('workspaceActive')}</span>
           </div>
-          <Button className="bg-koveo-navy hover:bg-koveo-navy/90">
-            <Save className="mr-2 h-4 w-4" />
-            {t('saveProgress')}
-          </Button>
         </div>
       </div>
     </header>
