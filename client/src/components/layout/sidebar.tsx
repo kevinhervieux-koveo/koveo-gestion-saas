@@ -72,6 +72,26 @@ export function Sidebar() {
     );
   };
 
+  const renderTopLevelItem = (item: any) => {
+    const ItemIcon = item.icon;
+    const isActive = location === item.href;
+
+    return (
+      <Link key={item.name} href={item.href}>
+        <div
+          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
+            isActive
+              ? 'bg-koveo-light text-koveo-navy'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <ItemIcon className='w-5 h-5' />
+          <span>{item.name}</span>
+        </div>
+      </Link>
+    );
+  };
+
   const renderMenuSection = (section: (typeof menuSections)[0]) => {
     const isExpanded = expandedMenus.includes(section.key);
 
@@ -90,13 +110,16 @@ export function Sidebar() {
     window.location.href = '/';
   };
 
+  const topLevelItems = [
+    { name: t('dashboard'), href: '/dashboard', icon: Home },
+  ];
+
   const menuSections = [
     {
       name: 'Residents',
       key: 'residents',
       icon: Users,
       items: [
-        { name: 'Dashboard', href: '/dashboard', icon: Home },
         { name: 'My Residence', href: '/residents/residence', icon: Home },
         { name: 'My Building', href: '/residents/building', icon: Building },
         { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
@@ -160,6 +183,12 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className='flex-1 px-6 py-4'>
+        {/* Top-level items */}
+        <div className='space-y-1 mb-4'>
+          {topLevelItems.map(renderTopLevelItem)}
+        </div>
+        
+        {/* Menu sections */}
         <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
 
         {/* Logout Button */}
