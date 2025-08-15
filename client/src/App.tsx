@@ -21,6 +21,7 @@ import ManagerBills from "@/pages/manager/bills";
 import ManagerDemands from "@/pages/manager/demands";
 
 // Residents pages
+import ResidentsDashboard from "@/pages/residents/dashboard";
 import ResidentsResidence from "@/pages/residents/residence";
 import ResidentsBuilding from "@/pages/residents/building";
 import ResidentsDemands from "@/pages/residents/demands";
@@ -37,8 +38,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      {/* Default route - redirect to owner dashboard */}
-      <Route path="/" component={OwnerDashboard} />
+      {/* Default route - redirect to residents dashboard */}
+      <Route path="/" component={ResidentsDashboard} />
       
       {/* Owner routes */}
       <Route path="/owner/dashboard" component={OwnerDashboard} />
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/manager/demands" component={ManagerDemands} />
       
       {/* Residents routes */}
+      <Route path="/residents/dashboard" component={ResidentsDashboard} />
       <Route path="/residents/residence" component={ResidentsResidence} />
       <Route path="/residents/building" component={ResidentsBuilding} />
       <Route path="/residents/demands" component={ResidentsDemands} />
