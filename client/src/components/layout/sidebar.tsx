@@ -14,7 +14,6 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
-  MessageSquare,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';

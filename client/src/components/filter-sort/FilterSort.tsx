@@ -32,14 +32,14 @@ interface FilterSortProps {
   filters: FilterValue[];
   sort: SortValue | null;
   search: string;
-  onAddFilter: (filter: FilterValue) => void;
-  onRemoveFilter: (field: string) => void;
-  onUpdateFilter: (field: string, filter: FilterValue) => void;
+  onAddFilter: (_filter: FilterValue) => void;
+  onRemoveFilter: (_field: string) => void;
+  onUpdateFilter: (_field: string, _filter: FilterValue) => void;
   onClearFilters: () => void;
-  onSetSort: (sort: SortValue | null) => void;
-  onToggleSort: (field: string) => void;
-  onSetSearch: (search: string) => void;
-  onApplyPreset?: (presetId: string) => void;
+  onSetSort: (_sort: SortValue | null) => void;
+  onToggleSort: (_field: string) => void;
+  onSetSearch: (_search: string) => void;
+  onApplyPreset?: (_presetId: string) => void;
   activeFilterCount?: number;
   resultCount?: number;
   totalCount?: number;
@@ -73,7 +73,6 @@ export function FilterSort({
   search,
   onAddFilter,
   onRemoveFilter,
-  onUpdateFilter,
   onClearFilters,
   onSetSort,
   onToggleSort,

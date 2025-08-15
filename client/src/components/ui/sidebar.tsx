@@ -264,8 +264,12 @@ const Sidebar = React.forwardRef<
       </div>
     );
 
-    if (collapsible === 'none') return renderNonCollapsible();
-    if (isMobile) return renderMobileSidebar();
+    if (collapsible === 'none') {
+      return renderNonCollapsible();
+    }
+    if (isMobile) {
+      return renderMobileSidebar();
+    }
     return renderDesktopSidebar();
   }
 );
