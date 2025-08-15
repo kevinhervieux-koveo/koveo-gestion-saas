@@ -43,6 +43,11 @@ interface FeatureFormProps {
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
+    // New feature fields
+    featureName: '',
+    featureCategory: '',
+    featureDescription: '',
+    
     // General questions
     businessObjective: '',
     targetUsers: '',
@@ -84,15 +89,19 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * Generates a comprehensive development prompt based on the collected requirements.
    */
   const generatePrompt = () => {
-    if (!feature) {return;}
+    const featureName = feature?.name || formData.featureName || 'New Feature';
+    const featureCategory = feature?.category || formData.featureCategory || 'Not specified';
+    const featureStatus = feature?.status || 'submitted';
+    const featurePriority = formData.priority || feature?.priority || 'Medium';
+    const featureDescription = feature?.description || formData.featureDescription || 'Feature description not provided';
 
-    const prompt = `# Feature Development Request: ${feature.name}
+    const prompt = `# Feature Development Request: ${featureName}
 
 ## 🎯 Overview
-**Category:** ${feature.category}
-**Current Status:** ${feature.status}
-**Priority:** ${formData.priority || feature.priority || 'Medium'}
-**Description:** ${feature.description}
+**Category:** ${featureCategory}
+**Current Status:** ${featureStatus}
+**Priority:** ${featurePriority}
+**Description:** ${featureDescription}
 
 ## 📋 Business Requirements
 
@@ -240,6 +249,9 @@ ${formData.additionalNotes || 'No additional notes'}
   const resetDialog = () => {
     setStep('form');
     setFormData({
+      featureName: '',
+      featureCategory: '',
+      featureDescription: '',
       businessObjective: '',
       targetUsers: '',
       successMetrics: '',
@@ -267,7 +279,7 @@ ${formData.additionalNotes || 'No additional notes'}
     onOpenChange(open);
   };
 
-  if (!feature) {return null;}
+  const isNewFeature = !feature;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -275,28 +287,82 @@ ${formData.additionalNotes || 'No additional notes'}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            {step === 'form' ? 'Plan Feature Development' : 'Generated Development Prompt'}
+            {step === 'form' ? 
+              (isNewFeature ? 'Create New Feature' : 'Plan Feature Development') : 
+              'Generated Development Prompt'
+            }
           </DialogTitle>
         </DialogHeader>
 
         {step === 'form' ? (
           <div className="space-y-6">
             {/* Feature Info */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-2">{feature.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{feature.description}</p>
-              <div className="flex gap-2">
-                <Badge variant="outline">{feature.category}</Badge>
-                <Badge variant={feature.status === 'completed' ? 'default' : 'secondary'}>
-                  {feature.status}
-                </Badge>
-                {feature.priority && (
-                  <Badge variant={feature.priority === 'high' ? 'destructive' : 'secondary'}>
-                    {feature.priority}
+            {!isNewFeature && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-2">{feature.name}</h3>
+                <p className="text-sm text-gray-600 mb-2">{feature.description}</p>
+                <div className="flex gap-2">
+                  <Badge variant="outline">{feature.category}</Badge>
+                  <Badge variant={feature.status === 'completed' ? 'default' : 'secondary'}>
+                    {feature.status}
                   </Badge>
-                )}
+                  {feature.priority && (
+                    <Badge variant={feature.priority === 'high' ? 'destructive' : 'secondary'}>
+                      {feature.priority}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* New Feature Fields */}
+            {isNewFeature && (
+              <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold">New Feature Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="featureName">Feature Name *</Label>
+                    <Input
+                      id="featureName"
+                      placeholder="Enter feature name"
+                      value={formData.featureName || ''}
+                      onChange={(e) => updateFormData('featureName', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="featureCategory">Category *</Label>
+                    <Select value={formData.featureCategory || ''} onValueChange={(value) => updateFormData('featureCategory', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Dashboard & Home">Dashboard & Home</SelectItem>
+                        <SelectItem value="Property Management">Property Management</SelectItem>
+                        <SelectItem value="Resident Management">Resident Management</SelectItem>
+                        <SelectItem value="Financial Management">Financial Management</SelectItem>
+                        <SelectItem value="Maintenance & Requests">Maintenance & Requests</SelectItem>
+                        <SelectItem value="Document Management">Document Management</SelectItem>
+                        <SelectItem value="Communication">Communication</SelectItem>
+                        <SelectItem value="AI & Automation">AI & Automation</SelectItem>
+                        <SelectItem value="Compliance & Security">Compliance & Security</SelectItem>
+                        <SelectItem value="Analytics & Reporting">Analytics & Reporting</SelectItem>
+                        <SelectItem value="Integration & API">Integration & API</SelectItem>
+                        <SelectItem value="Infrastructure & Performance">Infrastructure & Performance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="featureDescription">Feature Description *</Label>
+                  <Textarea
+                    id="featureDescription"
+                    placeholder="Describe what this feature will do"
+                    value={formData.featureDescription || ''}
+                    onChange={(e) => updateFormData('featureDescription', e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Business Requirements */}
@@ -498,7 +564,7 @@ ${formData.additionalNotes || 'No additional notes'}
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-gray-600">
-                  Generated development prompt for <strong>{feature.name}</strong>
+                  Generated development prompt for <strong>{feature?.name || formData.featureName || 'New Feature'}</strong>
                 </p>
                 <Button onClick={copyPrompt} size="sm" variant="outline">
                   <Copy className="h-4 w-4 mr-1" />
@@ -524,7 +590,12 @@ ${formData.additionalNotes || 'No additional notes'}
             )}
             <Button 
               onClick={generatePrompt} 
-              disabled={!formData.businessObjective || !formData.targetUsers || !formData.userFlow}
+              disabled={
+                !formData.businessObjective || 
+                !formData.targetUsers || 
+                !formData.userFlow ||
+                (isNewFeature && (!formData.featureName || !formData.featureCategory || !formData.featureDescription))
+              }
               className="flex items-center gap-2"
             >
               <Zap className="h-4 w-4" />
