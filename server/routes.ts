@@ -238,6 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve static home page
+  app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: 'public' });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
