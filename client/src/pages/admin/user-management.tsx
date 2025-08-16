@@ -172,6 +172,15 @@ export default function UserManagement() {
     );
   }
 
+  // Show loading while auth is still loading
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
   // Check permissions only after auth has loaded
   if (!currentUser || !canManageUsers) {
     return (
