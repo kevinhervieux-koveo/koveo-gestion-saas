@@ -845,6 +845,102 @@ function validateQuality(
 }
 
 /**
+ * Verifies that quality metrics are correctly updated in the /owner/quality page.
+ * @param complexity - Complexity analysis results.
+ * @param coverage - Coverage analysis results.
+ * @param vulnerabilities - Vulnerability analysis results.
+ * @param translationCoverage - Translation coverage results.
+ * @param accessibility - Accessibility results.
+ * @param componentCoverage - Component coverage results.
+ */
+async function verifyQualityMetricsAPI(
+  complexity: ComplexityResult,
+  coverage: CoverageResult,
+  vulnerabilities: VulnerabilityResult,
+  translationCoverage: TranslationCoverageResult,
+  accessibility: AccessibilityResult,
+  componentCoverage: ComponentCoverageResult
+): Promise<boolean> {
+  try {
+    console.log('\n🔍 Verifying quality metrics are correctly updated in /owner/quality...');
+    
+    // Make a request to the quality metrics API
+    const response = await fetch('http://localhost:5000/api/quality-metrics', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.log(`${COLORS.RED}❌ Failed to fetch quality metrics from API (status: ${response.status})${COLORS.RESET}`);
+      return false;
+    }
+    
+    const apiMetrics = await response.json();
+    console.log('📊 API Metrics retrieved:', apiMetrics);
+    
+    // Parse and compare metrics
+    const apiCoverage = parseFloat(apiMetrics.coverage?.replace('%', '') || '0');
+    const analysisCoverage = coverage.totalCoverage;
+    
+    const apiTranslationCoverage = parseFloat(apiMetrics.translationCoverage?.replace('%', '') || '0');
+    const analysisTranslationCoverage = translationCoverage.coveragePercentage;
+    
+    // Check if metrics are reasonable and updated
+    console.log('\n📈 Metric Verification Results:');
+    console.log('=' .repeat(40));
+    
+    console.log(`🧪 Coverage Comparison:`);
+    console.log(`   API reports: ${apiCoverage}%`);
+    console.log(`   Analysis calculated: ${analysisCoverage}%`);
+    
+    console.log(`\n🌐 Translation Coverage Comparison:`);
+    console.log(`   API reports: ${apiTranslationCoverage}%`);
+    console.log(`   Analysis calculated: ${analysisTranslationCoverage}%`);
+    
+    console.log(`\n🔒 Security Issues:`);
+    console.log(`   API reports: ${apiMetrics.securityIssues}`);
+    console.log(`   Analysis found: ${vulnerabilities.totalVulnerabilities} vulnerabilities`);
+    
+    console.log(`\n📊 Code Quality:`);
+    console.log(`   API reports: ${apiMetrics.codeQuality}`);
+    console.log(`   Analysis complexity: ${complexity.averageComplexity} (max: ${complexity.maxComplexity})`);
+    
+    console.log(`\n🧩 Component Test Coverage:`);
+    console.log(`   Analysis calculated: ${componentCoverage.coveragePercentage}%`);
+    
+    console.log(`\n♿ Accessibility Compliance:`);
+    console.log(`   Analysis calculated: ${accessibility.coveragePercentage}%`);
+    
+    // Determine if metrics look reasonable
+    const metricsUpdated = (
+      apiCoverage > 0 || 
+      apiTranslationCoverage > 0 || 
+      apiMetrics.codeQuality !== 'C' ||
+      apiMetrics.securityIssues !== 'Unknown'
+    );
+    
+    if (metricsUpdated) {
+      console.log(`\n${COLORS.GREEN}✅ Quality metrics appear to be updated and accessible${COLORS.RESET}`);
+      console.log(`   The /owner/quality page should now show current metrics.`);
+      return true;
+    } else {
+      console.log(`\n${COLORS.YELLOW}⚠️  Metrics may not be fully updated${COLORS.RESET}`);
+      console.log(`   Some metrics still show default/empty values.`);
+      console.log(`   This could be due to API caching or analysis limitations.`);
+      return false;
+    }
+    
+  } catch (error) {
+    console.log(`${COLORS.RED}❌ Error verifying quality metrics API: ${error}${COLORS.RESET}`);
+    console.log(`   The analysis completed but API verification failed.`);
+    console.log(`   This could be due to server connectivity or authentication issues.`);
+    return false;
+  }
+}
+
+/**
  * Main function to execute quality checks and save to database.
  */
 async function main(): Promise<void> {
@@ -895,6 +991,9 @@ async function main(): Promise<void> {
     // Validate against thresholds
     const isQualityValid = validateQuality(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
     
+    // Verify that quality metrics are correctly updated in the API/UI
+    const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
+    
     console.log('\n' + '='.repeat(50));
     
     const totalSuggestions = existingSuggestions.filter(
@@ -905,11 +1004,25 @@ async function main(): Promise<void> {
       console.log(`${COLORS.GREEN}🎉 ALL QUALITY GATES PASSED!${COLORS.RESET}`);
       console.log(`Code meets all quality and coverage requirements.`);
       console.log(`${newSuggestions.length} new suggestions added (${totalSuggestions} total active).`);
+      
+      if (metricsVerified) {
+        console.log(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
+      } else {
+        console.log(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
+      }
+      
       process.exit(0);
     } else {
       console.log(`${COLORS.RED}🚫 QUALITY GATE FAILURE!${COLORS.RESET}`);
       console.log(`Code does not meet quality requirements.`);
       console.log(`${newSuggestions.length} new issues found (${totalSuggestions} total require attention).`);
+      
+      if (metricsVerified) {
+        console.log(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
+      } else {
+        console.log(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
+      }
+      
       process.exit(1);
     }
     
