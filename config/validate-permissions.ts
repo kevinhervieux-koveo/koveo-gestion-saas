@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { validatePermissions, validatePermissionNaming } from './permissions-schema';
 
 /**
@@ -16,6 +17,8 @@ export async function validatePermissionsFile(): Promise<{
 
   try {
     // Read and parse the permissions.json file
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
     const permissionsPath = join(__dirname, 'permissions.json');
     const permissionsContent = readFileSync(permissionsPath, 'utf-8');
     const permissionsData = JSON.parse(permissionsContent);
@@ -31,7 +34,7 @@ export async function validatePermissionsFile(): Promise<{
     } else {
       // Additional validation checks
       const allPermissions = Object.values(validation.data).flat();
-      const uniquePermissions = [...new Set(allPermissions)];
+      const uniquePermissions = Array.from(new Set(allPermissions));
       
       if (allPermissions.length !== uniquePermissions.length) {
         warnings.push('Duplicate permissions found across roles');
@@ -53,19 +56,19 @@ export async function validatePermissionsFile(): Promise<{
       const tenantPermissions = new Set(validation.data.tenant);
 
       // Manager should not have more permissions than admin
-      const managerExtraPerms = [...managerPermissions].filter(p => !adminPermissions.has(p));
+      const managerExtraPerms = Array.from(managerPermissions).filter(p => !adminPermissions.has(p));
       if (managerExtraPerms.length > 0) {
         warnings.push(`Manager has permissions that admin doesn't have: ${managerExtraPerms.join(', ')}`);
       }
 
       // Owner should not have more permissions than manager
-      const ownerExtraPerms = [...ownerPermissions].filter(p => !managerPermissions.has(p));
+      const ownerExtraPerms = Array.from(ownerPermissions).filter(p => !managerPermissions.has(p));
       if (ownerExtraPerms.length > 0) {
         warnings.push(`Owner has permissions that manager doesn't have: ${ownerExtraPerms.join(', ')}`);
       }
 
       // Tenant should have the most restrictive permissions
-      const tenantExtraPerms = [...tenantPermissions].filter(p => !ownerPermissions.has(p));
+      const tenantExtraPerms = Array.from(tenantPermissions).filter(p => !ownerPermissions.has(p));
       if (tenantExtraPerms.length > 0) {
         warnings.push(`Tenant has permissions that owner doesn't have: ${tenantExtraPerms.join(', ')}`);
       }
@@ -78,7 +81,14 @@ export async function validatePermissionsFile(): Promise<{
     };
 
   } catch (error) {
-    errors.push(`Failed to read or parse permissions.json: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('ENOENT')) {
+      errors.push('permissions.json file not found. Please ensure the file exists in the config directory.');
+    } else if (errorMessage.includes('SyntaxError')) {
+      errors.push('permissions.json contains invalid JSON syntax.');
+    } else {
+      errors.push(`Failed to read or parse permissions.json: ${errorMessage}`);
+    }
     return { valid: false, errors, warnings };
   }
 }
