@@ -138,7 +138,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const [formData, setFormData] = useState({
     // New feature fields
     featureName: '',
-    featureCategory: '',
+    featureCategory: 'Compliance & Security', // Default to a valid category
     featureDescription: '',
     
     // General questions
@@ -211,7 +211,14 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       const savedDraft = localStorage.getItem(getDraftKey());
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
-        setFormData(draftData.formData);
+        const formData = draftData.formData;
+        
+        // Fix invalid category if it exists
+        if (formData.featureCategory === 'Strategic Path') {
+          formData.featureCategory = 'Compliance & Security';
+        }
+        
+        setFormData(formData);
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
@@ -454,7 +461,7 @@ ${formData.additionalNotes || 'No additional notes'}
     setStep('form');
     setFormData({
       featureName: '',
-      featureCategory: '',
+      featureCategory: 'Compliance & Security', // Default to a valid category
       featureDescription: '',
       businessObjective: '',
       targetUsers: '',
@@ -498,9 +505,30 @@ ${formData.additionalNotes || 'No additional notes'}
     return () => clearTimeout(timer);
   }, [formData, isDirty, saveDraft]);
 
-  // Load draft when form opens
+  // Clear invalid drafts and load draft when form opens
   useEffect(() => {
     if (open) {
+      // Clear any drafts with invalid "Strategic Path" category
+      try {
+        const allKeys = Object.keys(localStorage);
+        const draftKeys = allKeys.filter(key => key.startsWith('koveo-feature-draft'));
+        
+        draftKeys.forEach(key => {
+          try {
+            const draftData = JSON.parse(localStorage.getItem(key) || '{}');
+            if (draftData.formData?.featureCategory === 'Strategic Path') {
+              localStorage.removeItem(key);
+              console.log('Cleared invalid draft:', key);
+            }
+          } catch (error) {
+            // Invalid JSON, remove it
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (error) {
+        console.error('Error clearing invalid drafts:', error);
+      }
+      
       loadDraft();
     }
   }, [open, loadDraft]);
