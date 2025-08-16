@@ -99,8 +99,8 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
     }
   });
 
-  // Check if user has admin or owner role
-  const hasAdminAccess = hasAnyRole(['admin', 'owner']);
+  // Check if user has admin role
+  const hasAdminAccess = hasAnyRole(['admin']);
 
   // Query SSL certificate information
   const { 
@@ -145,7 +145,7 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
             <ShieldX className="h-4 w-4" />
             <AlertTitle>Access Denied</AlertTitle>
             <AlertDescription>
-              Only administrators and owners can view SSL certificate information.
+              Only administrators can view SSL certificate information.
             </AlertDescription>
           </Alert>
         </CardContent>

@@ -133,7 +133,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
 /**
  * Role-based authorization middleware factory for Quebec property management roles.
- * Creates middleware that restricts access based on user roles such as admin, manager, owner, tenant.
+ * Creates middleware that restricts access based on user roles such as admin, manager, tenant.
  * Must be used after requireAuth middleware.
  * 
  * @param {string[]} allowedRoles - Array of roles that can access the route (e.g., ['admin', 'manager']).

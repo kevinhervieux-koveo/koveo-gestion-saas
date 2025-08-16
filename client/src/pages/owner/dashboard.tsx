@@ -29,7 +29,7 @@ export default function Dashboard() {
     ? organizations.filter((org: Organization) => org.isActive).length
     : 0;
   const ownerUsers = Array.isArray(users)
-    ? users.filter((user: User) => user.role === 'owner').length
+    ? users.filter((user: User) => user.role === 'admin').length
     : 0;
 
   return (
@@ -177,7 +177,7 @@ export default function Dashboard() {
                           </p>
                           <p className='text-sm text-gray-600'>{user.email}</p>
                         </div>
-                        <Badge variant={user.role === 'owner' ? 'default' : 'outline'}>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>
                           {user.role}
                         </Badge>
                       </div>

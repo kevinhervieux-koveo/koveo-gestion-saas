@@ -22,7 +22,7 @@ export interface UserContext {
   /** User ID from authentication */
   userId: string;
   /** User role determining base permissions */
-  role: 'admin' | 'manager' | 'owner' | 'tenant';
+  role: 'admin' | 'manager' | 'tenant';
   /** Organization IDs the user is associated with (for managers) */
   organizationIds?: string[];
   /** Building IDs the user manages or has access to */

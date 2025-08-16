@@ -282,7 +282,7 @@ describe('Invitation RBAC System Integration', () => {
 
   describe('Permission Inheritance System', () => {
     test('should allow permission inheritance for organizational owners', async () => {
-      mockReq.user!.role = 'owner';
+      mockReq.user!.role = 'admin';
       mockReq.body = {
         organizationId: 'org-1',
         role: 'tenant'

@@ -119,7 +119,7 @@ export default function Permissions() {
   }, {} as Record<string, RolePermission[]>) || {};
 
   // Available roles (now from actual RBAC system)
-  const roles = ['admin', 'manager', 'owner', 'tenant'];
+  const roles = ['admin', 'manager', 'tenant'];
   
   // Fetch permission categories for filtering
   const { data: permissionCategories } = useQuery<any[]>({
@@ -596,7 +596,6 @@ export default function Permissions() {
                       <ul className="space-y-1 ml-4">
                         <li>• <strong className="text-red-600">Admin</strong>: Full system access ({permissionsConfig?.admin?.length || 0} permissions)</li>
                         <li>• <strong className="text-blue-600">Manager</strong>: Building management ({permissionsConfig?.manager?.length || 0} permissions)</li>
-                        <li>• <strong className="text-green-600">Owner</strong>: Property oversight ({permissionsConfig?.owner?.length || 0} permissions)</li>
                         <li>• <strong className="text-yellow-600">Tenant</strong>: Personal data only ({permissionsConfig?.tenant?.length || 0} permissions)</li>
                       </ul>
                     </div>

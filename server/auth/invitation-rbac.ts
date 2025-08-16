@@ -266,12 +266,12 @@ export class InvitationPermissionValidator {
     }
 
     // Admin restrictions: can invite managers and tenants
-    if (inviterRole === 'owner') {
+    if (inviterRole === 'admin') {
       if (targetRole !== 'tenant') {
-        return { valid: false, reason: 'Owners can only invite tenants' };
+        return { valid: false, reason: 'Admins can only invite tenants' };
       }
       
-      // Owners can only invite to their own buildings
+      // Admins can only invite to their own buildings
       if (buildingId) {
         const ownerBuilding = await db.select()
           .from(schema.userResidences)
@@ -284,7 +284,7 @@ export class InvitationPermissionValidator {
           .limit(1);
 
         if (ownerBuilding.length === 0) {
-          return { valid: false, reason: 'Owners can only invite to buildings they own units in' };
+          return { valid: false, reason: 'Admins can only invite to buildings they own units in' };
         }
       }
     }
