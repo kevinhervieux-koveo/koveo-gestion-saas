@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +41,7 @@ import {
   ChevronRight,
   ListTodo,
   MessageCircle,
+  Search,
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -145,6 +147,7 @@ export default function OwnerRoadmap() {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [expandedFeatures, setExpandedFeatures] = useState<string[]>([]);
   const [actionableItems, setActionableItems] = useState<Record<string, ActionableItem[]>>({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch features from the database
   const { data: features = [], isLoading } = useQuery({
@@ -417,8 +420,22 @@ export default function OwnerRoadmap() {
     }
   };
 
+  // Filter features based on search term
+  const filteredFeatures = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return features;
+    }
+    
+    const searchLower = searchTerm.toLowerCase().trim();
+    return features.filter(feature => 
+      feature.name.toLowerCase().includes(searchLower) ||
+      feature.description?.toLowerCase().includes(searchLower) ||
+      feature.category.toLowerCase().includes(searchLower)
+    );
+  }, [features, searchTerm]);
+
   // Group features by category and strategic path
-  const groupedFeatures = features.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
+  const groupedFeatures = filteredFeatures.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
     // Handle Strategic Path as a special case
     if ((feature as any).isStrategicPath) {
       if (!acc['Strategic Path']) {
@@ -679,6 +696,33 @@ export default function OwnerRoadmap() {
         title='Product Roadmap'
         subtitle='Complete feature list and development progress (Live Data)'
       />
+      
+      {/* Search Bar */}
+      <div className='bg-white border-b px-6 py-4'>
+        <div className='relative max-w-md'>
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+          <Input
+            type='text'
+            placeholder='Search features by name, description, or category...'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className='pl-10 pr-4'
+          />
+        </div>
+        {searchTerm && (
+          <div className='mt-2 text-sm text-gray-600'>
+            Found {filteredFeatures.length} feature{filteredFeatures.length !== 1 ? 's' : ''} matching "{searchTerm}"
+            {filteredFeatures.length !== features.length && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className='ml-2 text-blue-600 hover:text-blue-800 underline'
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Refresh Command */}
       <div className='border-b bg-gray-50 px-6 py-3'>
