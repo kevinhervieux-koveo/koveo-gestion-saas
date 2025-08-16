@@ -35,7 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Query to get current user
   const { data: userData, isLoading } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user'),
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/auth/user');
+        return response as User;
+      } catch {
+        return null;
+      }
+    },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

@@ -903,6 +903,112 @@ export type InsertActionableItem = z.infer<typeof insertActionableItemSchema>;
  */
 export type ActionableItem = typeof actionableItems.$inferSelect;
 
+// AI Monitoring Tables
+
+/**
+ * Enum defining AI interaction statuses.
+ * Tracks the success state of AI agent operations.
+ */
+export const aiInteractionStatusEnum = pgEnum('ai_interaction_status', [
+  'success',
+  'error',
+  'pending',
+]);
+
+/**
+ * Enum defining AI insight types.
+ * Categories for AI-generated improvement recommendations.
+ */
+export const aiInsightTypeEnum = pgEnum('ai_insight_type', [
+  'performance',
+  'quality',
+  'security',
+  'ux',
+  'efficiency',
+]);
+
+/**
+ * Enum defining AI insight priorities.
+ * Importance levels for AI-generated recommendations.
+ */
+export const aiInsightPriorityEnum = pgEnum('ai_insight_priority', [
+  'low',
+  'medium',
+  'high',
+]);
+
+/**
+ * Enum defining AI insight statuses.
+ * Tracks the lifecycle of AI recommendations.
+ */
+export const aiInsightStatusEnum = pgEnum('ai_insight_status', [
+  'new',
+  'in_progress',
+  'completed',
+]);
+
+/**
+ * Table for tracking AI agent interactions.
+ * Records all interactions between the Replit AI agent and the application.
+ */
+export const aiInteractions = pgTable('ai_interactions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+  action: text('action').notNull(),
+  category: varchar('category', { length: 100 }).notNull(),
+  duration: integer('duration').notNull(), // in milliseconds
+  status: aiInteractionStatusEnum('status').notNull(),
+  improvement: text('improvement'),
+  impact: varchar('impact', { length: 20 }), // 'high', 'medium', 'low'
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Table for storing AI-generated insights.
+ * Contains improvement recommendations from AI analysis.
+ */
+export const aiInsights = pgTable('ai_insights', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  type: aiInsightTypeEnum('type').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').notNull(),
+  recommendation: text('recommendation').notNull(),
+  priority: aiInsightPriorityEnum('priority').notNull(),
+  status: aiInsightStatusEnum('status').notNull().default('new'),
+  implementedAt: timestamp('implemented_at'),
+  implementedBy: uuid('implemented_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Table for AI metrics aggregation.
+ * Stores calculated metrics for AI performance monitoring.
+ */
+export const aiMetrics = pgTable('ai_metrics', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  date: date('date').notNull(),
+  totalInteractions: integer('total_interactions').default(0),
+  successRate: decimal('success_rate', { precision: 5, scale: 2 }).default('0'),
+  avgResponseTime: integer('avg_response_time').default(0), // in milliseconds
+  improvementsSuggested: integer('improvements_suggested').default(0),
+  improvementsImplemented: integer('improvements_implemented').default(0),
+  categoriesAnalyzed: jsonb('categories_analyzed').default('[]'),
+  lastAnalysis: timestamp('last_analysis').defaultNow(),
+  aiEfficiency: decimal('ai_efficiency', { precision: 5, scale: 2 }).default('0'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Export types for AI monitoring
+export type AIInteraction = typeof aiInteractions.$inferSelect;
+export type InsertAIInteraction = typeof aiInteractions.$inferInsert;
+export type AIInsight = typeof aiInsights.$inferSelect;
+export type InsertAIInsight = typeof aiInsights.$inferInsert;
+export type AIMetrics = typeof aiMetrics.$inferSelect;
+export type InsertAIMetrics = typeof aiMetrics.$inferInsert;
+
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   buildings: many(buildings),
@@ -1034,5 +1140,12 @@ export const actionableItemsRelations = relations(actionableItems, ({ one }) => 
   feature: one(features, {
     fields: [actionableItems.featureId],
     references: [features.id],
+  }),
+}));
+
+export const aiInsightsRelations = relations(aiInsights, ({ one }) => ({
+  implementedByUser: one(users, {
+    fields: [aiInsights.implementedBy],
+    references: [users.id],
   }),
 }));

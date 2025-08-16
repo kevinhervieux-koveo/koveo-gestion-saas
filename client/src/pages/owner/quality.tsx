@@ -1,5 +1,6 @@
 import { Header } from '@/components/layout/header';
 import { QualityMetrics } from '@/components/dashboard/quality-metrics';
+import { ReplitAIMonitoring } from '@/components/dashboard/replit-ai-monitoring';
 import { Terminal } from 'lucide-react';
 
 /**
@@ -22,8 +23,9 @@ export default function Quality() {
       </div>
 
       <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto'>
+        <div className='max-w-7xl mx-auto space-y-8'>
           <QualityMetrics />
+          <ReplitAIMonitoring />
         </div>
       </div>
     </div>
