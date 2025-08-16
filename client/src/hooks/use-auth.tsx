@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', '/api/auth/user');
-        return response as User;
+        return await response.json() as User;
       } catch {
         return null;
       }
