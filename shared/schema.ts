@@ -27,6 +27,7 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', [
   'Testing',
   'Documentation',
   'Performance',
+  'Continuous Improvement',
 ]);
 /**
  * Enum defining priority levels for improvement suggestions.

@@ -74,6 +74,7 @@ const filterSortConfig: FilterSortConfig = {
         { label: 'Documentation', value: 'Documentation', icon: FileText },
         { label: 'Security', value: 'Security', icon: Shield },
         { label: 'Performance', value: 'Performance', icon: Zap },
+        { label: 'Continuous Improvement', value: 'Continuous Improvement', icon: Terminal },
       ],
       defaultOperator: 'equals',
     },

@@ -38,6 +38,7 @@ const categoryConfig = [
   { name: 'Documentation', icon: FileText, color: 'bg-purple-50 text-purple-700 border-purple-200' },
   { name: 'Security', icon: Shield, color: 'bg-red-50 text-red-700 border-red-200' },
   { name: 'Performance', icon: Zap, color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  { name: 'Continuous Improvement', icon: Terminal, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
 ];
 
 /**
