@@ -1,5 +1,6 @@
 // Polyfills for Jest environment
 const { TextEncoder, TextDecoder } = require('util');
+require('whatwg-fetch');
 
 // Text Encoder/Decoder polyfills for Node.js environment
 global.TextEncoder = TextEncoder;
@@ -27,6 +28,3 @@ const sessionStorageMock = {
   clear: jest.fn(),
 };
 global.sessionStorage = sessionStorageMock;
-
-// Import whatwg-fetch for fetch polyfill
-require('whatwg-fetch');

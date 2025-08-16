@@ -92,11 +92,13 @@ describe('Schema Validation Tests', () => {
 
   describe('insertBuildingSchema', () => {
     const validBuildingData = {
-      organizationId: 'org-123',
+      organizationId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Valid UUID
       name: 'Test Building',
       address: '456 Test Avenue',
       city: 'Quebec City',
       postalCode: 'G1K 1K1',
+      buildingType: 'condo' as const,
+      totalUnits: 25,
     };
 
     it('should validate correct building data', () => {
@@ -121,7 +123,7 @@ describe('Schema Validation Tests', () => {
     const validFeatureData = {
       name: 'Test Feature',
       description: 'A test feature for validation',
-      category: 'core',
+      category: 'Dashboard & Home' as const,
       status: 'planned' as const,
     };
 
@@ -131,7 +133,7 @@ describe('Schema Validation Tests', () => {
     });
 
     it('should accept valid status values', () => {
-      const statuses = ['completed', 'in-progress', 'planned', 'cancelled', 'requested'] as const;
+      const statuses = ['completed', 'in-progress', 'planned', 'cancelled', 'submitted'] as const;
 
       statuses.forEach((status) => {
         const data = { ...validFeatureData, status };
@@ -141,7 +143,7 @@ describe('Schema Validation Tests', () => {
     });
 
     it('should accept valid priority values', () => {
-      const priorities = ['low', 'medium', 'high'] as const;
+      const priorities = ['low', 'medium', 'high', 'critical'] as const;
 
       priorities.forEach((priority) => {
         const data = { ...validFeatureData, priority };

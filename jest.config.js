@@ -1,5 +1,7 @@
-export default {
-  preset: 'ts-jest',
+/** @type {import('jest').Config} */
+const config = {
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js'],
@@ -33,16 +35,24 @@ export default {
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
+      useESM: true,
+      isolatedModules: true,
       tsconfig: {
         jsx: 'react-jsx',
+        module: 'ESNext',
         moduleResolution: 'node',
         allowSyntheticDefaultImports: true,
-        esModuleInterop: true
+        esModuleInterop: true,
+        target: 'es2020',
+        lib: ['es2020', 'dom', 'dom.iterable']
       }
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@testing-library|@hookform|wouter))'
+    'node_modules/(?!(.*\\.mjs$))'
   ],
-  testTimeout: 10000
+  testTimeout: 10000,
+  maxWorkers: 1
 };
+
+export default config;

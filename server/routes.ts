@@ -1187,7 +1187,7 @@ const qualityAnalyzers: QualityMetricAnalyzer[] = [
         return [{
           title: 'Low Code Coverage Detected',
           description: `Current test coverage is ${coverage}%. Target is 80% or higher for quality assurance.`,
-          category: 'Quality Assurance',
+          category: 'Testing',
           priority: coverage < 60 ? 'Critical' : 'High',
           status: 'New',
           filePath: null,
