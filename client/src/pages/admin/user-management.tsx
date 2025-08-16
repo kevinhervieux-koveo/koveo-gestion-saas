@@ -85,8 +85,16 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
 
-  // Check permissions
-  const canManageUsers = hasRole(['admin', 'manager']);
+  // Check permissions - wait for user to be loaded first
+  const canManageUsers = currentUser && hasRole(['admin', 'manager']);
+  
+  // Debug logging to see what's happening
+  console.log('UserManagement Debug:', {
+    currentUser,
+    userRole: currentUser?.role,
+    canManageUsers,
+    hasRoleResult: hasRole(['admin', 'manager'])
+  });
 
   // Fetch user management data
   const { 
@@ -152,6 +160,15 @@ export default function UserManagement() {
     }
   });
 
+  // Show loading while checking permissions
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   if (!canManageUsers) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -163,6 +180,8 @@ export default function UserManagement() {
             </CardTitle>
             <CardDescription>
               {t('accessDeniedDescription')}
+              <br /><br />
+              <small>User: {currentUser?.email}, Role: {currentUser?.role}</small>
             </CardDescription>
           </CardHeader>
         </Card>
