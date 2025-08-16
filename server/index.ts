@@ -12,33 +12,50 @@ app.use(express.urlencoded({ extended: false }));
 // Add immediate health check endpoints before any other middleware
 // These respond instantly without any database or external dependencies
 app.get('/', (req, res) => {
+  // Immediate response for deployment health checks
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     status: 'ok', 
     message: 'Koveo Gestion API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    port: port,
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
 app.get('/health', (req, res) => {
+  // Comprehensive health check with immediate response
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     status: 'healthy', 
     uptime: process.uptime(),
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString(),
     pid: process.pid,
-    nodeVersion: process.version
+    nodeVersion: process.version,
+    port: port,
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
 app.get('/healthz', (req, res) => {
-  // Kubernetes-style health check endpoint
+  // Kubernetes-style health check endpoint - fastest possible response
+  res.setHeader('Cache-Control', 'no-cache');
   res.status(200).send('OK');
 });
 
 app.get('/ready', (req, res) => {
-  // Readiness probe endpoint - always ready to serve traffic
-  res.status(200).json({ ready: true });
+  // Readiness probe endpoint - immediate response for deployment platforms
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'application/json');
+  res.status(200).json({ 
+    ready: true, 
+    timestamp: new Date().toISOString(),
+    port: port
+  });
 });
 
 // Add global error handlers to prevent application crashes
@@ -84,7 +101,8 @@ app.use((req, res, next) => {
 });
 
 // Start the server immediately with health checks first
-const port = parseInt(process.env.PORT || '5000', 10);
+// Use port 80 for Cloud Run compatibility, fallback to 5000 for development
+const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
 const server = app.listen(
   {
     port,

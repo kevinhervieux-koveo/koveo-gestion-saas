@@ -1495,10 +1495,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve static home page
-  app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: 'public' });
-  });
+  // Static file serving is handled by serveStatic() in index.ts
+  // Root route for health checks is handled in index.ts
 
   const httpServer = createServer(app);
   return httpServer;
