@@ -51,6 +51,48 @@ interface CoverageResult {
 }
 
 /**
+ * Interface for translation coverage analysis.
+ */
+interface TranslationCoverageResult {
+  totalComponents: number;
+  translatedComponents: number;
+  coveragePercentage: number;
+  missingTranslations: Array<{
+    component: string;
+    file: string;
+    missingKeys: string[];
+  }>;
+}
+
+/**
+ * Interface for accessibility analysis.
+ */
+interface AccessibilityResult {
+  totalComponents: number;
+  accessibleComponents: number;
+  coveragePercentage: number;
+  missingAccessibility: Array<{
+    component: string;
+    file: string;
+    issues: string[];
+  }>;
+}
+
+/**
+ * Interface for component coverage analysis.
+ */
+interface ComponentCoverageResult {
+  totalComponents: number;
+  testedComponents: number;
+  coveragePercentage: number;
+  untestedComponents: Array<{
+    component: string;
+    file: string;
+    type: 'ui' | 'layout' | 'form' | 'page';
+  }>;
+}
+
+/**
  * Interface for vulnerability analysis results.
  */
 interface VulnerabilityResult {
@@ -72,7 +114,10 @@ interface VulnerabilityResult {
 async function generateSuggestions(
   complexity: ComplexityResult,
   coverage: CoverageResult,
-  vulnerabilities: VulnerabilityResult
+  vulnerabilities: VulnerabilityResult,
+  translationCoverage: TranslationCoverageResult,
+  accessibility: AccessibilityResult,
+  componentCoverage: ComponentCoverageResult
 ): Promise<InsertImprovementSuggestion[]> {
   const suggestions: InsertImprovementSuggestion[] = [];
 
@@ -180,6 +225,69 @@ async function generateSuggestions(
       filePath: 'vite.config.ts',
     });
   }
+
+  // Translation coverage suggestions
+  if (translationCoverage.coveragePercentage < 100) {
+    suggestions.push({
+      title: 'Incomplete Translation Coverage',
+      description: `${translationCoverage.totalComponents - translationCoverage.translatedComponents} components lack proper translation support. This includes critical UI elements like sidebar navigation.`,
+      category: 'Documentation',
+      priority: translationCoverage.coveragePercentage < 80 ? 'High' : 'Medium',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  // Add specific translation issues
+  translationCoverage.missingTranslations.slice(0, 5).forEach(missing => {
+    suggestions.push({
+      title: `Missing Translations: ${missing.component}`,
+      description: `Component lacks translation keys: ${missing.missingKeys.join(', ')}. Ensure all user-facing text supports Quebec's bilingual requirements.`,
+      category: 'Documentation',
+      priority: missing.component.includes('sidebar') || missing.component.includes('navigation') ? 'High' : 'Medium',
+      status: 'New',
+      filePath: missing.file,
+    });
+  });
+
+  // Accessibility suggestions
+  if (accessibility.coveragePercentage < 95) {
+    suggestions.push({
+      title: 'Accessibility Compliance Issues',
+      description: `${accessibility.totalComponents - accessibility.accessibleComponents} components lack proper accessibility features. Quebec Law 25 requires full accessibility compliance.`,
+      category: 'Security',
+      priority: 'High',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  // Component testing suggestions
+  if (componentCoverage.coveragePercentage < 85) {
+    suggestions.push({
+      title: 'Insufficient Component Test Coverage',
+      description: `${componentCoverage.totalComponents - componentCoverage.testedComponents} UI components lack proper test coverage. Critical user interfaces require comprehensive testing.`,
+      category: 'Testing',
+      priority: componentCoverage.coveragePercentage < 60 ? 'Critical' : 'High',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  // Add specific component testing issues for critical components
+  componentCoverage.untestedComponents
+    .filter(comp => comp.type === 'layout' || comp.component.includes('sidebar') || comp.component.includes('navigation'))
+    .slice(0, 3)
+    .forEach(comp => {
+      suggestions.push({
+        title: `Critical Component Needs Tests: ${comp.component}`,
+        description: `This ${comp.type} component lacks test coverage. Layout and navigation components require thorough testing for user experience reliability.`,
+        category: 'Testing',
+        priority: 'High',
+        status: 'New',
+        filePath: comp.file,
+      });
+    });
 
   return suggestions;
 }
@@ -345,6 +453,222 @@ async function analyzeCoverage(): Promise<CoverageResult> {
 }
 
 /**
+ * Analyzes translation coverage across all UI components.
+ */
+async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> {
+  try {
+    console.log('🌐 Analyzing translation coverage...');
+    
+    const componentFiles = execSync(
+      'find client/src -name "*.tsx" -o -name "*.ts" | grep -E "(components|pages|layout)" | head -100',
+      { encoding: 'utf-8' }
+    ).trim().split('\n').filter(Boolean);
+    
+    const missingTranslations: TranslationCoverageResult['missingTranslations'] = [];
+    let translatedComponents = 0;
+    
+    for (const file of componentFiles) {
+      try {
+        const content = readFileSync(file, 'utf-8');
+        const fileName = file.split('/').pop() || file;
+        
+        // Check for translation usage patterns
+        const hasTranslationHook = content.includes('useLanguage') || content.includes('useTranslation');
+        const hasHardcodedText = /['"](\w+\s+\w+.*?)['"]/g.test(content.replace(/import.*?;/g, ''));
+        const hasNavigationText = content.includes('sidebar') || content.includes('navigation') || content.includes('menu');
+        
+        if (hasTranslationHook || !hasHardcodedText) {
+          translatedComponents++;
+        } else {
+          const hardcodedMatches = content.match(/['"](\w+\s+\w+.*?)['"]/g) || [];
+          const missingKeys = hardcodedMatches
+            .filter(match => !/^(className|src|href|alt|id|data-|aria-)/.test(match.replace(/['"]/, '')))
+            .slice(0, 5)
+            .map(match => match.replace(/['"]/, ''));
+          
+          if (missingKeys.length > 0 || hasNavigationText) {
+            missingTranslations.push({
+              component: fileName.replace(/\.(tsx?|jsx?)$/, ''),
+              file,
+              missingKeys: missingKeys.length > 0 ? missingKeys : ['Navigation text needs translation'],
+            });
+          } else {
+            translatedComponents++;
+          }
+        }
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+    
+    return {
+      totalComponents: componentFiles.length,
+      translatedComponents,
+      coveragePercentage: Math.round((translatedComponents / componentFiles.length) * 100),
+      missingTranslations,
+    };
+  } catch (error) {
+    console.warn(`🌐 Translation analysis failed: ${error}`);
+    return {
+      totalComponents: 0,
+      translatedComponents: 0,
+      coveragePercentage: 0,
+      missingTranslations: [],
+    };
+  }
+}
+
+/**
+ * Analyzes accessibility compliance across components.
+ */
+async function analyzeAccessibility(): Promise<AccessibilityResult> {
+  try {
+    console.log('♿ Analyzing accessibility compliance...');
+    
+    const componentFiles = execSync(
+      'find client/src -name "*.tsx" | grep -E "(components|pages)" | head -100',
+      { encoding: 'utf-8' }
+    ).trim().split('\n').filter(Boolean);
+    
+    const missingAccessibility: AccessibilityResult['missingAccessibility'] = [];
+    let accessibleComponents = 0;
+    
+    for (const file of componentFiles) {
+      try {
+        const content = readFileSync(file, 'utf-8');
+        const fileName = file.split('/').pop() || file;
+        
+        // Check for accessibility patterns
+        const hasAriaLabels = content.includes('aria-label') || content.includes('aria-describedby');
+        const hasSemanticHTML = /<(button|nav|main|header|footer|section|article)/g.test(content);
+        const hasInteractiveElements = /<(button|input|select|textarea)/g.test(content);
+        const hasKeyboardHandlers = content.includes('onKeyDown') || content.includes('onKeyPress');
+        
+        const issues: string[] = [];
+        
+        if (hasInteractiveElements && !hasAriaLabels) {
+          issues.push('Missing ARIA labels for interactive elements');
+        }
+        
+        if (content.includes('<div') && content.includes('onClick') && !content.includes('role=')) {
+          issues.push('Clickable divs need proper roles');
+        }
+        
+        if (hasInteractiveElements && !hasKeyboardHandlers) {
+          issues.push('Missing keyboard navigation support');
+        }
+        
+        if (!hasSemanticHTML && content.includes('className')) {
+          issues.push('Consider using semantic HTML elements');
+        }
+        
+        if (issues.length === 0) {
+          accessibleComponents++;
+        } else {
+          missingAccessibility.push({
+            component: fileName.replace(/\.(tsx?|jsx?)$/, ''),
+            file,
+            issues,
+          });
+        }
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+    
+    return {
+      totalComponents: componentFiles.length,
+      accessibleComponents,
+      coveragePercentage: Math.round((accessibleComponents / componentFiles.length) * 100),
+      missingAccessibility,
+    };
+  } catch (error) {
+    console.warn(`♿ Accessibility analysis failed: ${error}`);
+    return {
+      totalComponents: 0,
+      accessibleComponents: 0,
+      coveragePercentage: 0,
+      missingAccessibility: [],
+    };
+  }
+}
+
+/**
+ * Analyzes component test coverage.
+ */
+async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
+  try {
+    console.log('🧩 Analyzing component test coverage...');
+    
+    const componentFiles = execSync(
+      'find client/src -name "*.tsx" | grep -E "(components|pages|layout)" | head -100',
+      { encoding: 'utf-8' }
+    ).trim().split('\n').filter(Boolean);
+    
+    const testFiles = execSync(
+      'find tests -name "*.test.tsx" -o -name "*.test.ts" 2>/dev/null || echo ""',
+      { encoding: 'utf-8' }
+    ).trim().split('\n').filter(Boolean);
+    
+    const testedComponentNames = new Set();
+    
+    // Extract component names from test files
+    for (const testFile of testFiles) {
+      try {
+        const content = readFileSync(testFile, 'utf-8');
+        const componentMatches = content.match(/describe\(['"]([^'"]+)['"],/g) || [];
+        componentMatches.forEach(match => {
+          const componentName = match.match(/describe\(['"]([^'"]+)['"],/)?.[1];
+          if (componentName) {
+            testedComponentNames.add(componentName.toLowerCase());
+          }
+        });
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+    
+    const untestedComponents: ComponentCoverageResult['untestedComponents'] = [];
+    let testedComponents = 0;
+    
+    for (const file of componentFiles) {
+      const fileName = file.split('/').pop() || file;
+      const componentName = fileName.replace(/\.(tsx?|jsx?)$/, '').toLowerCase();
+      
+      let componentType: 'ui' | 'layout' | 'form' | 'page' = 'ui';
+      if (file.includes('/pages/')) componentType = 'page';
+      else if (file.includes('/layout/') || componentName.includes('sidebar') || componentName.includes('header')) componentType = 'layout';
+      else if (file.includes('/forms/') || componentName.includes('form')) componentType = 'form';
+      
+      if (testedComponentNames.has(componentName) || testedComponentNames.has(componentName.replace(/[\W]/g, ''))) {
+        testedComponents++;
+      } else {
+        untestedComponents.push({
+          component: fileName.replace(/\.(tsx?|jsx?)$/, ''),
+          file,
+          type: componentType,
+        });
+      }
+    }
+    
+    return {
+      totalComponents: componentFiles.length,
+      testedComponents,
+      coveragePercentage: Math.round((testedComponents / componentFiles.length) * 100),
+      untestedComponents,
+    };
+  } catch (error) {
+    console.warn(`🧩 Component coverage analysis failed: ${error}`);
+    return {
+      totalComponents: 0,
+      testedComponents: 0,
+      coveragePercentage: 0,
+      untestedComponents: [],
+    };
+  }
+}
+
+/**
  * Analyzes security vulnerabilities using npm audit.
  * @returns Promise containing vulnerability analysis results.
  */
@@ -408,7 +732,10 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
 function validateQuality(
   complexity: ComplexityResult, 
   coverage: CoverageResult,
-  vulnerabilities: VulnerabilityResult
+  vulnerabilities: VulnerabilityResult,
+  translationCoverage: TranslationCoverageResult,
+  accessibility: AccessibilityResult,
+  componentCoverage: ComponentCoverageResult
 ): boolean {
   let isValid = true;
   
@@ -462,6 +789,52 @@ function validateQuality(
     console.log(`${COLORS.GREEN}✅ No critical security issues${COLORS.RESET}`);
   }
   
+  // Translation coverage validation
+  console.log(`\n🌐 Translation Coverage:`);
+  console.log(`   Components: ${translationCoverage.translatedComponents}/${translationCoverage.totalComponents} (${translationCoverage.coveragePercentage}%)`);
+  console.log(`   Missing translations: ${translationCoverage.missingTranslations.length}`);
+  
+  if (translationCoverage.coveragePercentage < 100) {
+    console.log(`${COLORS.YELLOW}⚠️  Translation gaps detected (including sidebar/navigation)${COLORS.RESET}`);
+    if (translationCoverage.missingTranslations.some(m => m.component.includes('sidebar') || m.component.includes('navigation'))) {
+      console.log(`${COLORS.RED}❌ Critical navigation components lack translation support${COLORS.RESET}`);
+      isValid = false;
+    }
+  } else {
+    console.log(`${COLORS.GREEN}✅ Full translation coverage achieved${COLORS.RESET}`);
+  }
+  
+  // Accessibility validation
+  console.log(`\n♿ Accessibility Compliance:`);
+  console.log(`   Accessible components: ${accessibility.accessibleComponents}/${accessibility.totalComponents} (${accessibility.coveragePercentage}%)`);
+  console.log(`   Accessibility issues: ${accessibility.missingAccessibility.length}`);
+  
+  if (accessibility.coveragePercentage < 95) {
+    console.log(`${COLORS.RED}❌ ACCESSIBILITY COMPLIANCE ISSUES!${COLORS.RESET}`);
+    console.log(`   Quebec Law 25 requires full accessibility compliance`);
+    isValid = false;
+  } else {
+    console.log(`${COLORS.GREEN}✅ Accessibility requirements met${COLORS.RESET}`);
+  }
+  
+  // Component testing validation
+  console.log(`\n🧩 Component Test Coverage:`);
+  console.log(`   Tested components: ${componentCoverage.testedComponents}/${componentCoverage.totalComponents} (${componentCoverage.coveragePercentage}%)`);
+  console.log(`   Untested components: ${componentCoverage.untestedComponents.length}`);
+  
+  if (componentCoverage.coveragePercentage < 85) {
+    console.log(`${COLORS.YELLOW}⚠️  Component test coverage below recommended threshold${COLORS.RESET}`);
+    const criticalUntested = componentCoverage.untestedComponents.filter(c => 
+      c.type === 'layout' || c.component.includes('sidebar') || c.component.includes('navigation')
+    );
+    if (criticalUntested.length > 0) {
+      console.log(`${COLORS.RED}❌ Critical UI components lack test coverage${COLORS.RESET}`);
+      isValid = false;
+    }
+  } else {
+    console.log(`${COLORS.GREEN}✅ Component testing coverage adequate${COLORS.RESET}`);
+  }
+  
   return isValid;
 }
 
@@ -482,14 +855,17 @@ async function main(): Promise<void> {
     );
     
     // Run analysis in parallel for efficiency
-    const [complexity, coverage, vulnerabilities] = await Promise.all([
+    const [complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage] = await Promise.all([
       analyzeComplexity(),
       analyzeCoverage(),
       analyzeVulnerabilities(),
+      analyzeTranslationCoverage(),
+      analyzeAccessibility(),
+      analyzeComponentCoverage(),
     ]);
     
     // Generate suggestions based on findings
-    const allSuggestions = await generateSuggestions(complexity, coverage, vulnerabilities);
+    const allSuggestions = await generateSuggestions(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
     
     // Filter out suggestions that already exist (by title)
     const newSuggestions = allSuggestions.filter(
@@ -508,7 +884,7 @@ async function main(): Promise<void> {
     }
     
     // Validate against thresholds
-    const isQualityValid = validateQuality(complexity, coverage, vulnerabilities);
+    const isQualityValid = validateQuality(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
     
     console.log('\n' + '='.repeat(50));
     
