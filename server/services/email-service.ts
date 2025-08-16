@@ -1,19 +1,6 @@
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { MailService } from '@sendgrid/mail';
 import { createHash } from 'crypto';
 
-/**
- * Configuration interface for SMTP settings.
- */
-interface SMTPConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
 
 /**
  * Email template data interface.
@@ -59,48 +46,40 @@ interface EmailTemplate {
  * Provides bilingual email templates with accessibility support and privacy compliance.
  */
 export class EmailService {
-  private transporter: Transporter | null = null;
+  private mailService: MailService;
   private templates: Map<EmailType, EmailTemplate> = new Map();
   private baseUrl: string;
   private fromAddress: string;
+  private isInitialized: boolean = false;
 
   /**
    *
    */
   constructor() {
+    this.mailService = new MailService();
     this.baseUrl = process.env.BASE_URL || 'http://localhost:5000';
     this.fromAddress = process.env.EMAIL_FROM || 'noreply@koveo-gestion.com';
     this.initializeTemplates();
   }
 
   /**
-   * Initializes the SMTP transporter with configuration.
+   * Initializes the SendGrid service with API key.
    */
   async initialize(): Promise<void> {
-    const smtpConfig: SMTPConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASSWORD || '',
-      },
-    };
-
-    // Validate SMTP configuration
-    if (!smtpConfig.auth.user || !smtpConfig.auth.pass) {
-      console.warn('SMTP credentials not configured. Email service will not function.');
+    const apiKey = process.env.SENDGRID_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('SENDGRID_API_KEY not configured. Email service will not function.');
       return;
     }
 
-    this.transporter = nodemailer.createTransport(smtpConfig);
-
     try {
-      await this.transporter.verify();
-      console.log('✅ Email service initialized successfully');
+      this.mailService.setApiKey(apiKey);
+      this.isInitialized = true;
+      console.log('✅ SendGrid email service initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize email service:', error);
-      this.transporter = null;
+      console.error('❌ Failed to initialize SendGrid email service:', error);
+      this.isInitialized = false;
     }
   }
 
@@ -194,8 +173,8 @@ export class EmailService {
     to: string,
     data: EmailTemplateData
   ): Promise<boolean> {
-    if (!this.transporter) {
-      console.error('Email service not initialized');
+    if (!this.isInitialized) {
+      console.error('SendGrid email service not initialized');
       return false;
     }
 
@@ -213,10 +192,10 @@ export class EmailService {
       const html = this.processTemplate(template.html[language], data);
       const text = this.processTemplate(template.text[language], data);
 
-      await this.transporter.sendMail({
+      await this.mailService.send({
         from: {
           name: language === 'fr' ? 'Koveo Gestion' : 'Koveo Management',
-          address: this.fromAddress,
+          email: this.fromAddress,
         },
         to,
         subject,
