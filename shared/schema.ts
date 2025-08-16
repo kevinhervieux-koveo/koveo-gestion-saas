@@ -153,8 +153,6 @@ export const notificationTypeEnum = pgEnum('notification_type', [
  */
 export const buildingTypeEnum = pgEnum('building_type', [
   'condo',
-  'cooperative',
-  'syndicate',
   'rental',
 ]);
 
