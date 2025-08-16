@@ -764,7 +764,7 @@ export class MemStorage implements IStorage {
         firstName: 'Admin',
         lastName: 'User',
         password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
-        role: 'admin',
+        role: 'admin' as const,
         language: 'en',
         phone: null,
         isActive: true,
@@ -778,7 +778,7 @@ export class MemStorage implements IStorage {
         firstName: 'François-Pierre',
         lastName: 'Landry',
         password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
-        role: 'admin',
+        role: 'admin' as const,
         language: 'fr',
         phone: null,
         isActive: true,
@@ -792,7 +792,7 @@ export class MemStorage implements IStorage {
         firstName: 'Kevin',
         lastName: 'Hervieux',
         password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
-        role: 'admin',
+        role: 'admin' as const,
         language: 'fr',
         phone: null,
         isActive: true,
@@ -806,7 +806,7 @@ export class MemStorage implements IStorage {
         firstName: 'Kevin',
         lastName: 'Hervieux',
         password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
-        role: 'admin',
+        role: 'admin' as const,
         language: 'fr',
         phone: null,
         isActive: true,
