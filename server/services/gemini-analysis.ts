@@ -67,16 +67,23 @@ Provide your response in the following JSON format:
 }
 
 # Guidelines for Actionable Items:
-1. Each item should be independently implementable (except for explicit dependencies)
-2. Include specific technical details about the Koveo Gestion architecture (React, Express, PostgreSQL, Drizzle ORM)
-3. Reference existing patterns and components from the codebase
-4. Implementation prompts should be detailed enough for an AI to execute without additional context
-5. Testing requirements should include unit tests, integration tests, and manual testing steps
-6. Order items logically, with database changes first, then backend, then frontend
-7. Consider security, performance, and maintainability in every item
-8. Follow Quebec-specific requirements and Law 25 compliance where relevant
+1. **IMPORTANT**: Create MULTIPLE actionable items (typically 3-8 items) that break down the feature into distinct, manageable tasks
+2. Each item should be independently implementable (except for explicit dependencies)
+3. Include specific technical details about the Koveo Gestion architecture (React, Express, PostgreSQL, Drizzle ORM)
+4. Reference existing patterns and components from the codebase
+5. **Implementation prompts must be complete, standalone prompts** that a Replit AI agent can execute directly without needing additional context
+6. Each implementation prompt should:
+   - Start with a clear objective (e.g., "Add SSL certificate management table to the database schema")
+   - Include specific file paths to modify or create
+   - Reference existing patterns in the codebase
+   - Include validation requirements
+   - Specify exact TypeScript types and Zod schemas needed
+7. Testing requirements should include unit tests, integration tests, and manual testing steps
+8. Order items logically, with database changes first, then backend, then frontend
+9. Consider security, performance, and maintainability in every item
+10. Follow Quebec-specific requirements and Law 25 compliance where relevant
 
-Generate a comprehensive analysis and actionable items for this feature.`;
+Generate a comprehensive analysis with MULTIPLE actionable items for this feature. Each actionable item should be a distinct task with its own implementation prompt.`;
 
   try {
     const response = await fetch(

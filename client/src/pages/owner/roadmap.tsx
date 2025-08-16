@@ -98,6 +98,25 @@ export default function OwnerRoadmap() {
   };
 
   /**
+   * Copies the implementation prompt to clipboard
+   */
+  const handleCopyPrompt = async (prompt: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      toast({
+        title: 'Prompt copied!',
+        description: 'The implementation prompt has been copied to your clipboard.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Failed to copy',
+        description: 'Could not copy the prompt to clipboard.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  /**
    * Toggles feature expansion and fetches actionable items if needed
    */
   const toggleFeatureExpansion = (featureId: string) => {
@@ -762,6 +781,27 @@ export default function OwnerRoadmap() {
                                                   <p className='text-xs text-gray-500 mt-1'>
                                                     <strong>Technical:</strong> {item.technicalDetails}
                                                   </p>
+                                                )}
+                                                {item.implementationPrompt && (
+                                                  <div className='mt-2 p-2 bg-blue-50 border border-blue-200 rounded'>
+                                                    <div className='flex items-start justify-between'>
+                                                      <div className='flex-1'>
+                                                        <p className='text-xs font-medium text-blue-900 mb-1'>Replit AI Agent Prompt:</p>
+                                                        <p className='text-xs text-blue-800 whitespace-pre-wrap font-mono'>
+                                                          {item.implementationPrompt}
+                                                        </p>
+                                                      </div>
+                                                      <Button
+                                                        variant='ghost'
+                                                        size='sm'
+                                                        className='ml-2 h-6 px-2'
+                                                        onClick={() => handleCopyPrompt(item.implementationPrompt)}
+                                                      >
+                                                        <Copy className='w-3 h-3 mr-1' />
+                                                        Copy
+                                                      </Button>
+                                                    </div>
+                                                  </div>
                                                 )}
                                               </div>
                                             </div>

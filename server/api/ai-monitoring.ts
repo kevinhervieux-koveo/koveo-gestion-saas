@@ -83,7 +83,7 @@ export async function getAIMetrics(req: Request, res: Response) {
         avgResponseTime: Math.round(avgResponseTime),
         improvementsSuggested,
         improvementsImplemented,
-        categoriesAnalyzed: categories,
+        categoriesAnalyzed: categories as any, // Store as JSONB
         lastAnalysis: new Date(),
         aiEfficiency: aiEfficiency.toFixed(2),
       };
@@ -422,7 +422,7 @@ async function updateAIMetrics() {
       avgResponseTime: Math.round(avgResponseTime),
       improvementsSuggested,
       improvementsImplemented,
-      categoriesAnalyzed: categories,
+      categoriesAnalyzed: categories as any, // Store as JSONB
       lastAnalysis: new Date(),
       aiEfficiency: aiEfficiency.toFixed(2),
     })
@@ -434,7 +434,7 @@ async function updateAIMetrics() {
         avgResponseTime: Math.round(avgResponseTime),
         improvementsSuggested,
         improvementsImplemented,
-        categoriesAnalyzed: categories,
+        categoriesAnalyzed: categories as any, // Store as JSONB
         lastAnalysis: new Date(),
         aiEfficiency: aiEfficiency.toFixed(2),
         updatedAt: new Date(),
