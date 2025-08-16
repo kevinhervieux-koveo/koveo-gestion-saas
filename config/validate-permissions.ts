@@ -16,12 +16,41 @@ export async function validatePermissionsFile(): Promise<{
   const warnings: string[] = [];
 
   try {
-    // Read and parse the permissions.json file
+    // Read and parse the permissions.json file with fallback paths
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const permissionsPath = join(__dirname, 'permissions.json');
-    const permissionsContent = readFileSync(permissionsPath, 'utf-8');
-    const permissionsData = JSON.parse(permissionsContent);
+    
+    // Try multiple possible locations for the permissions.json file
+    const possiblePaths = [
+      // Development path (relative to config directory)
+      join(__dirname, 'permissions.json'),
+      // Production path (in dist/config)
+      join(__dirname, '../config/permissions.json'),
+      // Alternative production path
+      join(process.cwd(), 'config/permissions.json'),
+      // Dist path
+      join(process.cwd(), 'dist/config/permissions.json')
+    ];
+
+    let permissionsContent: string;
+    let foundPath: string | null = null;
+
+    for (const path of possiblePaths) {
+      try {
+        permissionsContent = readFileSync(path, 'utf-8');
+        foundPath = path;
+        break;
+      } catch (error) {
+        // Continue to next path
+        continue;
+      }
+    }
+
+    if (!foundPath) {
+      throw new Error(`Could not find permissions.json file. Tried paths: ${possiblePaths.join(', ')}`);
+    }
+
+    const permissionsData = JSON.parse(permissionsContent!);
 
     // Validate against Zod schema
     const validation = validatePermissions(permissionsData);
