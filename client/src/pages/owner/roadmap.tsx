@@ -95,6 +95,33 @@ export default function OwnerRoadmap() {
     },
   });
 
+  // Actionable item status update mutation
+  const actionableItemMutation = useMutation({
+    mutationFn: ({ itemId, status }: { itemId: string; status: string }) =>
+      apiRequest('PUT', `/api/actionable-items/${itemId}`, { 
+        status, 
+        completedAt: status === 'completed' ? new Date() : null 
+      }),
+    onSuccess: () => {
+      toast({
+        title: 'Task Updated',
+        description: 'Actionable item status has been updated successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+      // Refetch actionable items for all expanded features
+      expandedFeatures.forEach(featureId => {
+        queryClient.invalidateQueries({ queryKey: ['/api/features', featureId, 'actionable-items'] });
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update actionable item status.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Strategic path toggle mutation
   const strategicMutation = useMutation({
     mutationFn: ({ featureId, isStrategicPath }: { featureId: string; isStrategicPath: boolean }) =>
@@ -191,6 +218,24 @@ export default function OwnerRoadmap() {
         variant: 'destructive',
       });
     }
+  };
+
+  /**
+   * Handles toggling actionable item status between pending and completed.
+   * @param item
+   */
+  const handleToggleActionableItem = (item: ActionableItem) => {
+    const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+    actionableItemMutation.mutate({ itemId: item.id, status: newStatus });
+  };
+
+  /**
+   * Handles updating actionable item status via dropdown.
+   * @param item
+   * @param newStatus
+   */
+  const handleActionableItemStatusChange = (item: ActionableItem, newStatus: string) => {
+    actionableItemMutation.mutate({ itemId: item.id, status: newStatus });
   };
 
   /**
@@ -1019,16 +1064,41 @@ export default function OwnerRoadmap() {
                                         {items.map((item, index) => (
                                           <div key={item.id || index} className='p-3 pl-12 hover:bg-white transition-colors'>
                                             <div className='flex items-start space-x-3'>
-                                              {getActionableItemStatusIcon(item.status)}
+                                              <button
+                                                onClick={() => handleToggleActionableItem(item)}
+                                                className='p-1 hover:bg-gray-100 rounded transition-colors'
+                                                title={`Mark as ${item.status === 'completed' ? 'pending' : 'completed'}`}
+                                              >
+                                                {getActionableItemStatusIcon(item.status)}
+                                              </button>
                                               <div className='flex-1'>
-                                                <div className='flex items-center space-x-2'>
-                                                  <span className='text-sm font-medium text-gray-900'>{item.title}</span>
-                                                  {getActionableItemStatusBadge(item.status)}
-                                                  {item.estimatedEffort && (
-                                                    <Badge variant='outline' className='text-xs'>
-                                                      {item.estimatedEffort}
-                                                    </Badge>
-                                                  )}
+                                                <div className='flex items-center justify-between'>
+                                                  <div className='flex items-center space-x-2'>
+                                                    <span className='text-sm font-medium text-gray-900'>{item.title}</span>
+                                                    {getActionableItemStatusBadge(item.status)}
+                                                    {item.estimatedEffort && (
+                                                      <Badge variant='outline' className='text-xs'>
+                                                        {item.estimatedEffort}
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+                                                  <div className='flex items-center gap-2'>
+                                                    <Select
+                                                      value={item.status}
+                                                      onValueChange={(value) => handleActionableItemStatusChange(item, value)}
+                                                      disabled={actionableItemMutation.isPending}
+                                                    >
+                                                      <SelectTrigger className='w-24 h-6 text-xs'>
+                                                        <SelectValue />
+                                                      </SelectTrigger>
+                                                      <SelectContent>
+                                                        <SelectItem value='pending'>Todo</SelectItem>
+                                                        <SelectItem value='in-progress'>Working</SelectItem>
+                                                        <SelectItem value='completed'>Done</SelectItem>
+                                                        <SelectItem value='blocked'>Blocked</SelectItem>
+                                                      </SelectContent>
+                                                    </Select>
+                                                  </div>
                                                 </div>
                                                 <p className='text-xs text-gray-600 mt-1'>{item.description}</p>
                                                 {item.technicalDetails && (

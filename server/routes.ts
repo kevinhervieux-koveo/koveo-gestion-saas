@@ -30,7 +30,7 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, or } from 'drizzle-orm';
 import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
 
@@ -926,6 +926,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting actionable item:', error);
       res.status(500).json({ message: 'Failed to delete actionable item' });
+    }
+  });
+
+  // Auto-detect completion endpoint
+  app.post('/api/actionable-items/auto-detect-completion', requireAuth, authorize('update:actionable_item'), async (req, res) => {
+    try {
+      const { keywords = [], filePaths = [], commitMessages = [] } = req.body;
+      
+      console.log('🔍 Auto-detecting completed actionable items...', { keywords, filePaths, commitMessages });
+      
+      // Get all pending or in-progress actionable items
+      const pendingItems = await db
+        .select()
+        .from(schema.actionableItems)
+        .where(
+          or(
+            eq(schema.actionableItems.status, 'pending'),
+            eq(schema.actionableItems.status, 'in-progress')
+          )
+        );
+
+      const updatedItems = [];
+      
+      for (const item of pendingItems) {
+        let shouldComplete = false;
+        const reasonsForCompletion = [];
+        
+        // Check if implementation prompt keywords match development work
+        if (item.implementationPrompt) {
+          const promptLower = item.implementationPrompt.toLowerCase();
+          
+          // Check against provided keywords
+          for (const keyword of keywords) {
+            if (promptLower.includes(keyword.toLowerCase())) {
+              shouldComplete = true;
+              reasonsForCompletion.push(`Keyword match: "${keyword}"`);
+            }
+          }
+          
+          // Check against file paths
+          for (const filePath of filePaths) {
+            if (promptLower.includes(filePath.toLowerCase()) || 
+                promptLower.includes(filePath.split('/').pop()?.toLowerCase() || '')) {
+              shouldComplete = true;
+              reasonsForCompletion.push(`File match: "${filePath}"`);
+            }
+          }
+          
+          // Check against commit messages
+          for (const commitMsg of commitMessages) {
+            const msgLower = commitMsg.toLowerCase();
+            // Check if commit message mentions the item title or key technical details
+            if (msgLower.includes(item.title.toLowerCase()) ||
+                (item.technicalDetails && msgLower.includes(item.technicalDetails.toLowerCase()))) {
+              shouldComplete = true;
+              reasonsForCompletion.push(`Commit match: "${commitMsg}"`);
+            }
+          }
+        }
+        
+        // Auto-complete if criteria are met
+        if (shouldComplete) {
+          const [updatedItem] = await db
+            .update(schema.actionableItems)
+            .set({ 
+              status: 'completed',
+              completedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.actionableItems.id, item.id))
+            .returning();
+            
+          if (updatedItem) {
+            updatedItems.push({
+              ...updatedItem,
+              autoCompletionReasons: reasonsForCompletion
+            });
+            
+            console.log(`✅ Auto-completed: "${item.title}" - Reasons: ${reasonsForCompletion.join(', ')}`);
+          }
+        }
+      }
+      
+      // Check if any features should be marked as completed
+      const completedFeatures = [];
+      if (updatedItems.length > 0) {
+        const featureIds = [...new Set(updatedItems.map(item => item.featureId))];
+        
+        for (const featureId of featureIds) {
+          const allItems = await db
+            .select()
+            .from(schema.actionableItems)
+            .where(eq(schema.actionableItems.featureId, featureId));
+            
+          const allCompleted = allItems.every(i => i.status === 'completed');
+          
+          if (allCompleted) {
+            const [updatedFeature] = await db
+              .update(schema.features)
+              .set({ 
+                status: 'completed',
+                completedDate: new Date().toISOString(),
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.features.id, featureId))
+              .returning();
+              
+            if (updatedFeature) {
+              completedFeatures.push(updatedFeature);
+              console.log(`🎉 Auto-completed feature: "${updatedFeature.name}"`);
+            }
+          }
+        }
+      }
+      
+      res.json({
+        message: `Auto-detection completed. ${updatedItems.length} actionable items and ${completedFeatures.length} features marked as completed.`,
+        updatedItems,
+        completedFeatures,
+        summary: {
+          totalItemsChecked: pendingItems.length,
+          itemsCompleted: updatedItems.length,
+          featuresCompleted: completedFeatures.length
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error in auto-detection:', error);
+      res.status(500).json({ message: 'Failed to auto-detect completed items' });
     }
   });
 
