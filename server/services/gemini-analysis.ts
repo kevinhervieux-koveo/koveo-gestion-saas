@@ -164,6 +164,14 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
     if (result.candidates && result.candidates[0] && result.candidates[0].content) {
       const text = result.candidates[0].content.parts[0].text;
       const analysis: AnalysisResult = typeof text === 'string' ? JSON.parse(text) : text;
+      
+      // Validate that we have multiple actionable items as required
+      if (!analysis.actionableItems || analysis.actionableItems.length < 2) {
+        console.warn(`⚠️ AI analysis returned only ${analysis.actionableItems?.length || 0} actionable items, but should return 3-8 items`);
+        throw new Error(`AI analysis failed to generate multiple actionable items. Expected 3-8 items, got ${analysis.actionableItems?.length || 0}. Please try again.`);
+      }
+      
+      console.log(`✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`);
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');

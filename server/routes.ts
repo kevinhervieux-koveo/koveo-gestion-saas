@@ -880,7 +880,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values(itemsWithSyncedStatus)
         .returning();
 
-      // Update feature with AI analysis results
+      // Validate that multiple items were actually created
+      if (insertedItems.length < 2) {
+        throw new Error(`Failed to create multiple actionable items. Expected multiple items, but only ${insertedItems.length} were created.`);
+      }
+
+      console.log(`✅ Successfully created ${insertedItems.length} actionable items for feature "${feature.name}"`);
+
+      // Update feature with AI analysis results - only after successful item creation
       const [updatedFeature] = await db
         .update(schema.features)
         .set({
