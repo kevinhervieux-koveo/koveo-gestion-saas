@@ -84,6 +84,7 @@ export const featureCategoryEnum = pgEnum('feature_category', [
   'Analytics & Reporting',
   'Integration & API',
   'Infrastructure & Performance',
+  'Website',
 ]);
 
 // Enums for core application

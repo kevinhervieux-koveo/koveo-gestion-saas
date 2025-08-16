@@ -29,6 +29,7 @@ import {
   Plus,
   Target,
   Terminal,
+  Globe,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
@@ -163,6 +164,12 @@ export default function OwnerRoadmap() {
       icon: Cloud,
       description: 'Platform infrastructure and optimization',
       features: groupedFeatures['Infrastructure & Performance'] || [],
+    },
+    {
+      title: 'Website',
+      icon: Globe,
+      description: 'Website features, SEO, and automation tools',
+      features: groupedFeatures['Website'] || [],
     },
   ];
 
