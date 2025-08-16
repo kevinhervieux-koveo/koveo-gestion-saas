@@ -13,7 +13,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
@@ -32,9 +32,14 @@ export default function HomePage() {
           </div>
           <div className="flex space-x-3">
             {isAuthenticated ? (
-              <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
-                Go to Dashboard
-              </Button>
+              <>
+                <Button variant="outline" onClick={logout}>
+                  Logout
+                </Button>
+                <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
+                  Go to Dashboard
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" onClick={() => setLocation('/login')}>
