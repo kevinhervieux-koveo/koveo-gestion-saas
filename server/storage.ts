@@ -21,6 +21,10 @@ import {
   type InsertFeature,
   type ActionableItem,
   type InsertActionableItem,
+  type Invitation,
+  type InsertInvitation,
+  type InvitationAuditLog,
+  type InsertInvitationAuditLog,
 } from '@shared/schema';
 import { randomUUID } from 'crypto';
 
@@ -493,6 +497,128 @@ export interface IStorage {
    * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
    */
   deleteActionableItemsByFeature(_featureId: string): Promise<boolean>;
+
+  // Invitation operations
+  /**
+   * Retrieves all invitations from storage.
+   *
+   * @returns {Promise<Invitation[]>} Array of all invitation records.
+   */
+  getInvitations(): Promise<Invitation[]>;
+  
+  /**
+   * Retrieves a specific invitation by its unique identifier.
+   *
+   * @param {string} _id - The unique invitation identifier.
+   * @returns {Promise<Invitation | undefined>} Invitation record or undefined if not found.
+   */
+  getInvitation(_id: string): Promise<Invitation | undefined>;
+  
+  /**
+   * Retrieves an invitation by its secure token.
+   *
+   * @param {string} _token - The invitation token.
+   * @returns {Promise<Invitation | undefined>} Invitation record or undefined if not found.
+   */
+  getInvitationByToken(_token: string): Promise<Invitation | undefined>;
+  
+  /**
+   * Retrieves all invitations for a specific email address.
+   *
+   * @param {string} _email - The email address to search for.
+   * @returns {Promise<Invitation[]>} Array of invitations for the email.
+   */
+  getInvitationsByEmail(_email: string): Promise<Invitation[]>;
+  
+  /**
+   * Retrieves all invitations sent by a specific user.
+   *
+   * @param {string} _userId - The unique user identifier of the inviter.
+   * @returns {Promise<Invitation[]>} Array of invitations sent by the user.
+   */
+  getInvitationsByInviter(_userId: string): Promise<Invitation[]>;
+  
+  /**
+   * Retrieves all invitations filtered by their status.
+   *
+   * @param {'pending' | 'accepted' | 'expired' | 'cancelled'} _status - The status to filter by.
+   * @returns {Promise<Invitation[]>} Array of invitations with the specified status.
+   */
+  getInvitationsByStatus(_status: 'pending' | 'accepted' | 'expired' | 'cancelled'): Promise<Invitation[]>;
+  
+  /**
+   * Creates a new invitation with secure token generation.
+   *
+   * @param {InsertInvitation} _invitation - Invitation data for creation.
+   * @returns {Promise<Invitation>} The created invitation record with generated token and security data.
+   */
+  createInvitation(_invitation: InsertInvitation): Promise<Invitation>;
+  
+  /**
+   * Updates an existing invitation's information.
+   *
+   * @param {string} _id - The unique invitation identifier.
+   * @param {Partial<Invitation>} _updates - Partial invitation data containing fields to update.
+   * @returns {Promise<Invitation | undefined>} Updated invitation record or undefined if not found.
+   */
+  updateInvitation(_id: string, _updates: Partial<Invitation>): Promise<Invitation | undefined>;
+  
+  /**
+   * Accepts an invitation by its token and creates a new user account.
+   *
+   * @param {string} _token - The invitation token.
+   * @param {object} _userData - User account data for the new user.
+   * @param {string} _ipAddress - IP address of the user accepting the invitation.
+   * @param {string} _userAgent - Browser/client information.
+   * @returns {Promise<{ user: User; invitation: Invitation } | null>} Created user and updated invitation or null if invalid.
+   */
+  acceptInvitation(
+    _token: string,
+    _userData: { firstName: string; lastName: string; password: string },
+    _ipAddress?: string,
+    _userAgent?: string
+  ): Promise<{ user: User; invitation: Invitation } | null>;
+  
+  /**
+   * Cancels an invitation by setting its status to cancelled.
+   *
+   * @param {string} _id - The unique invitation identifier.
+   * @param {string} _cancelledBy - User ID of who cancelled the invitation.
+   * @returns {Promise<Invitation | undefined>} Updated invitation record or undefined if not found.
+   */
+  cancelInvitation(_id: string, _cancelledBy: string): Promise<Invitation | undefined>;
+  
+  /**
+   * Expires all invitations that have passed their expiry date.
+   *
+   * @returns {Promise<number>} Number of invitations that were expired.
+   */
+  expireInvitations(): Promise<number>;
+  
+  /**
+   * Deletes an invitation from storage.
+   *
+   * @param {string} _id - The unique invitation identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
+  deleteInvitation(_id: string): Promise<boolean>;
+
+  // Invitation Audit Log operations
+  /**
+   * Retrieves all audit log entries for a specific invitation.
+   *
+   * @param {string} _invitationId - The unique invitation identifier.
+   * @returns {Promise<InvitationAuditLog[]>} Array of audit log entries for the invitation.
+   */
+  getInvitationAuditLogs(_invitationId: string): Promise<InvitationAuditLog[]>;
+  
+  /**
+   * Creates a new invitation audit log entry.
+   *
+   * @param {InsertInvitationAuditLog} _logEntry - Audit log data for creation.
+   * @returns {Promise<InvitationAuditLog>} The created audit log entry.
+   */
+  createInvitationAuditLog(_logEntry: InsertInvitationAuditLog): Promise<InvitationAuditLog>;
 }
 
 /**
@@ -519,6 +645,8 @@ export class MemStorage implements IStorage {
   private improvementSuggestions: Map<string, ImprovementSuggestion>;
   private features: Map<string, Feature>;
   private actionableItems: Map<string, ActionableItem>;
+  private invitations: Map<string, Invitation>;
+  private invitationAuditLogs: Map<string, InvitationAuditLog>;
   private organizations: Map<string, Organization>;
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
@@ -536,6 +664,8 @@ export class MemStorage implements IStorage {
     this.improvementSuggestions = new Map();
     this.features = new Map();
     this.actionableItems = new Map();
+    this.invitations = new Map();
+    this.invitationAuditLogs = new Map();
     this.organizations = new Map();
     this.buildings = new Map();
     this.residences = new Map();

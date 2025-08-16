@@ -11,6 +11,7 @@ import {
   integer,
   decimal,
   date,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -146,6 +147,16 @@ export const userRoleEnum = pgEnum('user_role', [
   'manager',
   'owner',
   'tenant',
+]);
+/**
+ * Enum defining invitation status values for user invitation system.
+ * Tracks the lifecycle of user invitations from creation to completion.
+ */
+export const invitationStatusEnum = pgEnum('invitation_status', [
+  'pending',
+  'accepted',
+  'expired',
+  'cancelled',
 ]);
 /**
  * Enum defining status values for feature actionable items.
@@ -1384,6 +1395,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdBudgets: many(budgets),
   uploadedDocuments: many(documents),
   notifications: many(notifications),
+  sentInvitations: many(invitations),
+  acceptedInvitations: many(invitations),
+  auditLogActions: many(invitationAuditLog),
 }));
 
 export const userResidencesRelations = relations(userResidences, ({ one }) => ({
@@ -1683,6 +1697,88 @@ export const certificateStatusEnum = pgEnum('certificate_status', [
  * SSL certificates table for managing domain SSL certificates.
  * Stores certificate metadata, expiry tracking, and renewal status.
  */
+/**
+ * User invitations table for managing user invitation system.
+ * Stores secure invitation tokens with status tracking and audit logging.
+ * Supports Quebec Law 25 compliance with secure token generation and expiry management.
+ */
+export const invitations = pgTable('invitations', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(), // Secure cryptographically generated token
+  role: userRoleEnum('role').notNull().default('tenant'),
+  status: invitationStatusEnum('status').notNull().default('pending'),
+  // Invitation metadata
+  invitedByUserId: uuid('invited_by_user_id')
+    .notNull()
+    .references(() => users.id),
+  organizationId: uuid('organization_id')
+    .references(() => organizations.id), // Optional: Invite to specific organization
+  buildingId: uuid('building_id')
+    .references(() => buildings.id), // Optional: Invite to specific building
+  // Token security and expiry
+  expiresAt: timestamp('expires_at').notNull(),
+  tokenHash: text('token_hash').notNull(), // SHA-256 hash of token for security
+  usageCount: integer('usage_count').notNull().default(0), // Track token usage attempts
+  maxUsageCount: integer('max_usage_count').notNull().default(1), // Max allowed usage
+  // Audit logging
+  acceptedAt: timestamp('accepted_at'),
+  acceptedByUserId: uuid('accepted_by_user_id')
+    .references(() => users.id), // User who accepted the invitation
+  lastAccessedAt: timestamp('last_accessed_at'),
+  ipAddress: text('ip_address'), // IP address where invitation was accessed
+  userAgent: text('user_agent'), // Browser/client information
+  // Quebec compliance and security
+  personalMessage: text('personal_message'), // Optional personal message from inviter
+  invitationContext: jsonb('invitation_context'), // Additional context (building access, etc.)
+  securityLevel: text('security_level').notNull().default('standard'), // 'standard', 'high', 'critical'
+  requires2FA: boolean('requires_2fa').notNull().default(false), // Require 2FA for acceptance
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  // Performance indexes
+  emailIdx: index('invitations_email_idx').on(table.email),
+  tokenIdx: index('invitations_token_idx').on(table.token),
+  statusIdx: index('invitations_status_idx').on(table.status),
+  expiresAtIdx: index('invitations_expires_at_idx').on(table.expiresAt),
+  invitedByIdx: index('invitations_invited_by_idx').on(table.invitedByUserId),
+  organizationIdx: index('invitations_organization_idx').on(table.organizationId),
+  // Compound indexes for common queries
+  emailStatusIdx: index('invitations_email_status_idx').on(table.email, table.status),
+  tokenStatusIdx: index('invitations_token_status_idx').on(table.token, table.status),
+}));
+
+/**
+ * Invitation audit log table for detailed tracking of invitation lifecycle events.
+ * Provides comprehensive audit trail for Quebec Law 25 compliance and security monitoring.
+ */
+export const invitationAuditLog = pgTable('invitation_audit_log', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  invitationId: uuid('invitation_id')
+    .notNull()
+    .references(() => invitations.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(), // 'created', 'sent', 'accessed', 'accepted', 'expired', 'cancelled'
+  performedBy: uuid('performed_by')
+    .references(() => users.id), // User who performed the action (null for system actions)
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  details: jsonb('details'), // Additional details about the action
+  previousStatus: invitationStatusEnum('previous_status'),
+  newStatus: invitationStatusEnum('new_status'),
+  timestamp: timestamp('timestamp').defaultNow(),
+}, (table) => ({
+  // Performance indexes for audit queries
+  invitationIdx: index('invitation_audit_invitation_idx').on(table.invitationId),
+  actionIdx: index('invitation_audit_action_idx').on(table.action),
+  timestampIdx: index('invitation_audit_timestamp_idx').on(table.timestamp),
+  performedByIdx: index('invitation_audit_performed_by_idx').on(table.performedBy),
+}));
+
 export const sslCertificates = pgTable('ssl_certificates', {
   id: uuid('id')
     .primaryKey()
@@ -1711,6 +1807,38 @@ export const sslCertificates = pgTable('ssl_certificates', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Invitations Relations
+export const invitationsRelations = relations(invitations, ({ one, many }) => ({
+  invitedByUser: one(users, {
+    fields: [invitations.invitedByUserId],
+    references: [users.id],
+  }),
+  acceptedByUser: one(users, {
+    fields: [invitations.acceptedByUserId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [invitations.organizationId],
+    references: [organizations.id],
+  }),
+  building: one(buildings, {
+    fields: [invitations.buildingId],
+    references: [buildings.id],
+  }),
+  auditLogs: many(invitationAuditLog),
+}));
+
+export const invitationAuditLogRelations = relations(invitationAuditLog, ({ one }) => ({
+  invitation: one(invitations, {
+    fields: [invitationAuditLog.invitationId],
+    references: [invitations.id],
+  }),
+  performedBy: one(users, {
+    fields: [invitationAuditLog.performedBy],
+    references: [users.id],
+  }),
+}));
+
 // SSL Certificates Relations
 export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
   createdBy: one(users, {
@@ -1733,3 +1861,56 @@ export type InsertSSLCertificate = z.infer<typeof insertSSLCertificateSchema>;
  *
  */
 export type SSLCertificate = typeof sslCertificates.$inferSelect;
+
+// Invitations Insert and Select Schemas
+export const insertInvitationSchema = createInsertSchema(invitations).pick({
+  email: true,
+  role: true,
+  invitedByUserId: true,
+  organizationId: true,
+  buildingId: true,
+  expiresAt: true,
+  personalMessage: true,
+  invitationContext: true,
+  securityLevel: true,
+  requires2FA: true,
+}).extend({
+  email: z.string().email('Invalid email address'),
+  expiresAt: z.date().refine(
+    (date) => date > new Date(),
+    { message: 'Expiry date must be in the future' }
+  ),
+});
+
+export const insertInvitationAuditLogSchema = createInsertSchema(invitationAuditLog).pick({
+  invitationId: true,
+  action: true,
+  performedBy: true,
+  ipAddress: true,
+  userAgent: true,
+  details: true,
+  previousStatus: true,
+  newStatus: true,
+});
+
+/**
+ * Type for creating new invitation records with validation.
+ * Derived from the insertInvitationSchema for type-safe invitation creation.
+ */
+export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+/**
+ * Type representing a complete invitation record from the database.
+ * Inferred from the invitations table schema for type safety.
+ */
+export type Invitation = typeof invitations.$inferSelect;
+
+/**
+ * Type for creating new invitation audit log records with validation.
+ * Derived from the insertInvitationAuditLogSchema for type-safe audit logging.
+ */
+export type InsertInvitationAuditLog = z.infer<typeof insertInvitationAuditLogSchema>;
+/**
+ * Type representing a complete invitation audit log record from the database.
+ * Inferred from the invitationAuditLog table schema for type safety.
+ */
+export type InvitationAuditLog = typeof invitationAuditLog.$inferSelect;
