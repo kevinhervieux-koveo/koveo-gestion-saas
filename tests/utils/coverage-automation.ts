@@ -369,12 +369,62 @@ export class CoverageAutomationService {
   // Helper methods for calculations and analysis
 
   private calculateAggregateCoverage(coverageData: any): CoverageMetrics {
-    // Implementation for aggregate coverage calculation
+    if (!coverageData || typeof coverageData !== 'object') {
+      return { statements: 0, branches: 0, functions: 0, lines: 0 };
+    }
+
+    const files = Object.keys(coverageData);
+    if (files.length === 0) {
+      return { statements: 0, branches: 0, functions: 0, lines: 0 };
+    }
+
+    let totalStatements = 0, coveredStatements = 0;
+    let totalBranches = 0, coveredBranches = 0;
+    let totalFunctions = 0, coveredFunctions = 0;
+    let totalLines = 0, coveredLines = 0;
+
+    for (const file of files) {
+      const fileCoverage = coverageData[file];
+      if (fileCoverage) {
+        // Statements
+        if (fileCoverage.s) {
+          const statements = Object.values(fileCoverage.s) as number[];
+          totalStatements += statements.length;
+          coveredStatements += statements.filter(count => count > 0).length;
+        }
+        
+        // Branches
+        if (fileCoverage.b) {
+          const branches = Object.values(fileCoverage.b) as number[][];
+          branches.forEach(branch => {
+            totalBranches += branch.length;
+            coveredBranches += branch.filter(count => count > 0).length;
+          });
+        }
+        
+        // Functions
+        if (fileCoverage.f) {
+          const functions = Object.values(fileCoverage.f) as number[];
+          totalFunctions += functions.length;
+          coveredFunctions += functions.filter(count => count > 0).length;
+        }
+        
+        // Lines
+        if (fileCoverage.statementMap) {
+          const lines = Object.keys(fileCoverage.statementMap);
+          totalLines += lines.length;
+          if (fileCoverage.s) {
+            coveredLines += lines.filter(line => fileCoverage.s[line] > 0).length;
+          }
+        }
+      }
+    }
+
     return {
-      statements: 85,
-      branches: 80,
-      functions: 90,
-      lines: 87
+      statements: totalStatements > 0 ? Math.round((coveredStatements / totalStatements) * 100) : 0,
+      branches: totalBranches > 0 ? Math.round((coveredBranches / totalBranches) * 100) : 0,
+      functions: totalFunctions > 0 ? Math.round((coveredFunctions / totalFunctions) * 100) : 0,
+      lines: totalLines > 0 ? Math.round((coveredLines / totalLines) * 100) : 0
     };
   }
 
@@ -392,11 +442,35 @@ export class CoverageAutomationService {
   }
 
   private calculateOverallCoverage(coverageData: any): number {
-    return 92.5;
+    if (!coverageData || !coverageData.aggregate) {
+      return 0;
+    }
+    
+    const { statements, branches, functions, lines } = coverageData.aggregate;
+    return Math.round((statements + branches + functions + lines) / 4 * 100) / 100;
   }
 
   private calculateQualityScore(qualityScores: QualityMetrics): number {
-    return 88.5;
+    const weights = {
+      testCoverage: 0.4,
+      testQuality: 0.25,
+      quebecCompliance: 0.2,
+      performance: 0.1,
+      accessibility: 0.05
+    };
+
+    const coverageScore = (qualityScores.testCoverage.statements + 
+                          qualityScores.testCoverage.branches + 
+                          qualityScores.testCoverage.functions + 
+                          qualityScores.testCoverage.lines) / 4;
+
+    return Math.round((
+      coverageScore * weights.testCoverage +
+      qualityScores.testQuality * weights.testQuality +
+      qualityScores.quebecCompliance * weights.quebecCompliance +
+      qualityScores.performance * weights.performance +
+      qualityScores.accessibility * weights.accessibility
+    ) * 100) / 100;
   }
 
   private generateRecommendations(data: TestEffectivenessData): string[] {
@@ -463,37 +537,124 @@ export class CoverageAutomationService {
     console.log('=' .repeat(50));
   }
 
-  // Placeholder implementations for helper methods
+  // Real implementations for helper methods
   private async analyzeTestCoverageDepth(): Promise<CoverageMetrics> {
-    return { statements: 92, branches: 88, functions: 95, lines: 90 };
+    try {
+      const coveragePath = join(this.projectRoot, 'coverage', 'coverage-final.json');
+      if (existsSync(coveragePath)) {
+        const coverageData = JSON.parse(readFileSync(coveragePath, 'utf8'));
+        return this.calculateAggregateCoverage(coverageData);
+      }
+    } catch (error) {
+      console.warn('Failed to analyze test coverage depth:', error);
+    }
+    return { statements: 0, branches: 0, functions: 0, lines: 0 };
   }
 
   private async evaluateTestQuality(): Promise<number> {
-    return 88;
+    const testFiles = this.getAllTestFiles();
+    if (testFiles.length === 0) return 0;
+
+    let totalScore = 0;
+    let validFiles = 0;
+
+    for (const file of testFiles) {
+      try {
+        const content = readFileSync(file, 'utf8');
+        const testCount = (content.match(/test\(|it\(/g) || []).length;
+        const assertionCount = (content.match(/expect\(/g) || []).length;
+        const hasDescribe = content.includes('describe(');
+        
+        if (testCount > 0) {
+          let fileScore = 100;
+          if (assertionCount < testCount * 2) fileScore -= 20; // Less than 2 assertions per test
+          if (!hasDescribe) fileScore -= 10; // No describe blocks
+          
+          totalScore += fileScore;
+          validFiles++;
+        }
+      } catch (error) {
+        console.warn('Failed to evaluate test quality for file:', file);
+      }
+    }
+
+    return validFiles > 0 ? Math.round(totalScore / validFiles) : 0;
   }
 
   private async checkQuebecComplianceTests(): Promise<number> {
-    return 92;
+    const testFiles = this.getAllTestFiles();
+    if (testFiles.length === 0) return 0;
+
+    const quebecKeywords = ['quebec', 'français', 'Loi 25', 'TPS', 'TVQ', 'québécois'];
+    let quebecTestFiles = 0;
+
+    for (const file of testFiles) {
+      try {
+        const content = readFileSync(file, 'utf8').toLowerCase();
+        if (quebecKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
+          quebecTestFiles++;
+        }
+      } catch (error) {
+        console.warn('Failed to check Quebec compliance for file:', file);
+      }
+    }
+
+    return Math.round((quebecTestFiles / testFiles.length) * 100);
   }
 
   private async measureTestPerformance(): Promise<number> {
-    return 85;
+    try {
+      const startTime = Date.now();
+      execSync('npm run test -- --passWithNoTests --silent', { 
+        stdio: 'pipe',
+        timeout: 30000
+      });
+      const executionTime = Date.now() - startTime;
+      
+      // Score based on execution time (30s = 0%, 5s = 100%)
+      const maxTime = 30000;
+      const minTime = 5000;
+      const score = Math.max(0, Math.min(100, 
+        100 - ((executionTime - minTime) / (maxTime - minTime)) * 100
+      ));
+      
+      return Math.round(score);
+    } catch (error) {
+      return 50; // Default middle score if measurement fails
+    }
   }
 
   private async validateAccessibilityTests(): Promise<number> {
-    return 90;
+    const testFiles = this.getAllTestFiles();
+    if (testFiles.length === 0) return 0;
+
+    const a11yKeywords = ['aria-label', 'aria-describedby', 'role=', 'screen reader', 'accessibility'];
+    let a11yTestFiles = 0;
+
+    for (const file of testFiles) {
+      try {
+        const content = readFileSync(file, 'utf8').toLowerCase();
+        if (a11yKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
+          a11yTestFiles++;
+        }
+      } catch (error) {
+        console.warn('Failed to validate accessibility tests for file:', file);
+      }
+    }
+
+    return Math.round((a11yTestFiles / testFiles.length) * 100);
   }
 
   private async getCurrentCoverageMetrics(): Promise<any> {
-    return { statements: 92, branches: 88, functions: 95, lines: 90 };
+    return await this.analyzeTestCoverageDepth();
   }
 
   private async getCurrentQualityMetrics(): Promise<any> {
-    return { overall: 88 };
+    return { overall: await this.evaluateTestQuality() };
   }
 
   private async getCurrentQuebecMetrics(): Promise<any> {
-    return { compliance: 92 };
+    return { compliance: await this.checkQuebecComplianceTests() };
   }
 }
 

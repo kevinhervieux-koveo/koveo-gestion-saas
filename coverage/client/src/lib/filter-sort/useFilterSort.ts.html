@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.41% </span>
+                <span class="strong">72.22% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>54/68</span>
+                <span class='fraction'>26/36</span>
             </div>
         
             
@@ -635,7 +635,7 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * - Sorting with direction toggle
  * - Preset filter configurations
  * - Local storage persistence
- * - Optimized performance with useMemo and useCallback
+ * - Optimized performance with useMemo and useCallback.
  * 
  * @template T - The type of data items being filtered and sorted.
  * @param {UseFilterSortOptions&lt;T&gt;} options - Configuration object with data, config, and initial state.
@@ -716,19 +716,19 @@ export function useFilterSort&lt;T&gt;(options: UseFilterSortOptions&lt;T&gt;): 
   }, []);
 &nbsp;
   const updateFilter = useCallback(<span class="fstat-no" title="function not covered" >(f</span>ield: string, filter: FilterValue) =&gt; {
-<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >({</span></span>
+<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
       ...prev,
       filters: prev.filters.map(<span class="fstat-no" title="function not covered" >(f</span>) =&gt; (<span class="cstat-no" title="statement not covered" >f.field === field ? filter : f)</span>),
     }));
   }, []);
 &nbsp;
   const clearFilters = useCallback(<span class="fstat-no" title="function not covered" >() =</span>&gt; {
-<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >({ ...prev, filters: [] }))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, filters: [] })</span>);</span>
   }, []);
 &nbsp;
   // Sort management
   const setSort = useCallback(<span class="fstat-no" title="function not covered" >(s</span>ort: SortValue | null) =&gt; {
-<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >({ ...prev, sort }))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, sort })</span>);</span>
   }, []);
 &nbsp;
   const toggleSort = useCallback(
@@ -748,7 +748,7 @@ export function useFilterSort&lt;T&gt;(options: UseFilterSortOptions&lt;T&gt;): 
             ...prev,
             sort: {
               field,
-              direction: sortConfig<span class="branch-0 cbranch-no" title="branch not covered" >?.d</span>efaultDirection || <span class="branch-1 cbranch-no" title="branch not covered" >'asc',</span>
+              direction: sortConfig?.defaultDirection || <span class="branch-1 cbranch-no" title="branch not covered" >'asc',</span>
             },
           };
         }
@@ -763,7 +763,7 @@ export function useFilterSort&lt;T&gt;(options: UseFilterSortOptions&lt;T&gt;): 
   }, []);
 &nbsp;
   const clearSearch = useCallback(<span class="fstat-no" title="function not covered" >() =</span>&gt; {
-<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >({ ...prev, search: '' }))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, search: '' })</span>);</span>
   }, []);
 &nbsp;
   // Preset management
@@ -778,9 +778,9 @@ export function useFilterSort&lt;T&gt;(options: UseFilterSortOptions&lt;T&gt;): 
   // Reset to initial state
   const reset = useCallback(() =&gt; {
     setState({
-      filters: initialState<span class="branch-0 cbranch-no" title="branch not covered" >?.f</span>ilters || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span>
-      sort: initialState<span class="branch-0 cbranch-no" title="branch not covered" >?.s</span>ort || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-      search: initialState<span class="branch-0 cbranch-no" title="branch not covered" >?.s</span>earch || <span class="branch-1 cbranch-no" title="branch not covered" >'',</span>
+      filters: initialState?.filters || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span>
+      sort: initialState?.sort || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
+      search: initialState?.search || <span class="branch-1 cbranch-no" title="branch not covered" >'',</span>
     });
   }, [initialState]);
 &nbsp;
@@ -823,7 +823,7 @@ export function useFilterSort&lt;T&gt;(options: UseFilterSortOptions&lt;T&gt;): 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-16T01:40:57.937Z
+                at 2025-08-16T04:35:35.074Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

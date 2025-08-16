@@ -197,25 +197,24 @@ class CoverageMonitoringService {
     // Calculate trends
     const trends = await this.calculateTrends(coverageData, qualityReport);
     
+    const aggregateCoverage = coverageData.coverageData.aggregate;
+    const overallCoverage = aggregateCoverage ? 
+      (aggregateCoverage.statements + aggregateCoverage.branches + aggregateCoverage.functions + aggregateCoverage.lines) / 4 : 0;
+
     const metrics: MonitoringMetrics = {
       timestamp: new Date().toISOString(),
       coverage: {
-        statements: coverageData.coverageData.aggregate.statements,
-        branches: coverageData.coverageData.aggregate.branches,
-        functions: coverageData.coverageData.aggregate.functions,
-        lines: coverageData.coverageData.aggregate.lines,
-        overall: (
-          coverageData.coverageData.aggregate.statements +
-          coverageData.coverageData.aggregate.branches +
-          coverageData.coverageData.aggregate.functions +
-          coverageData.coverageData.aggregate.lines
-        ) / 4
+        statements: aggregateCoverage?.statements || 0,
+        branches: aggregateCoverage?.branches || 0,
+        functions: aggregateCoverage?.functions || 0,
+        lines: aggregateCoverage?.lines || 0,
+        overall: Math.round(overallCoverage * 100) / 100
       },
       quality: {
-        testQuality: qualityReport.testQuality,
-        quebecCompliance: qualityReport.quebecCompliance,
-        performance: qualityReport.performance,
-        accessibility: qualityReport.accessibility
+        testQuality: qualityReport.testQuality || 0,
+        quebecCompliance: qualityReport.quebecCompliance || 0,
+        performance: qualityReport.performance || 0,
+        accessibility: qualityReport.accessibility || 0
       },
       trends,
       alerts: []
@@ -333,17 +332,14 @@ class CoverageMonitoringService {
     }
 
     const latest = historical[historical.length - 1];
-    const currentCoverage = (
-      coverageData.coverageData.aggregate.statements +
-      coverageData.coverageData.aggregate.branches +
-      coverageData.coverageData.aggregate.functions +
-      coverageData.coverageData.aggregate.lines
-    ) / 4;
+    const aggregateCoverage = coverageData.coverageData.aggregate;
+    const currentCoverage = aggregateCoverage ? 
+      (aggregateCoverage.statements + aggregateCoverage.branches + aggregateCoverage.functions + aggregateCoverage.lines) / 4 : 0;
 
     return {
-      coverageChange: currentCoverage - latest.coverage.overall,
-      qualityChange: qualityReport.testQuality - latest.quality.testQuality,
-      quebecComplianceChange: qualityReport.quebecCompliance - latest.quality.quebecCompliance
+      coverageChange: currentCoverage - (latest.coverage?.overall || 0),
+      qualityChange: (qualityReport.testQuality || 0) - (latest.quality?.testQuality || 0),
+      quebecComplianceChange: (qualityReport.quebecCompliance || 0) - (latest.quality?.quebecCompliance || 0)
     };
   }
 
@@ -626,7 +622,7 @@ class CoverageMonitoringService {
 export const coverageMonitor = new CoverageMonitoringService();
 
 // Run monitoring if script is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
   
   if (command === 'start') {

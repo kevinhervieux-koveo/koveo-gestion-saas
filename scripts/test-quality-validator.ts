@@ -40,6 +40,8 @@ class TestQualityValidator {
   private projectRoot: string;
   private qualityThresholds: any;
   private quebecRequirements: string[];
+  private passedValidations: string[] = [];
+  private failedValidations: string[] = [];
 
   constructor() {
     this.projectRoot = process.cwd();
@@ -87,6 +89,10 @@ class TestQualityValidator {
     };
 
     try {
+      // Reset validation arrays for each run
+      this.passedValidations = [];
+      this.failedValidations = [];
+      
       // 1. Validate test coverage
       console.log('📊 Validating test coverage...');
       report.testCoverage = await this.validateTestCoverage();
@@ -107,10 +113,14 @@ class TestQualityValidator {
       console.log('♿ Validating accessibility test coverage...');
       report.accessibility = await this.validateAccessibilityTests();
       
-      // 6. Calculate overall score
+      // 6. Set validation results
+      report.passedValidations = [...this.passedValidations];
+      report.failedValidations = [...this.failedValidations];
+      
+      // 7. Calculate overall score
       report.overallScore = this.calculateOverallScore(report);
       
-      // 7. Generate recommendations
+      // 8. Generate recommendations
       report.recommendations = this.generateRecommendations(report);
       
       // 8. Output results
@@ -557,11 +567,11 @@ class TestQualityValidator {
     console.log(`   Accessibility: ${report.accessibility.toFixed(1)}%`);
 
     console.log('\n✅ PASSED VALIDATIONS:');
-    this.passedValidations.forEach(validation => console.log(`   ${validation}`));
+    report.passedValidations.forEach(validation => console.log(`   ${validation}`));
 
-    if (this.failedValidations.length > 0) {
+    if (report.failedValidations.length > 0) {
       console.log('\n❌ FAILED VALIDATIONS:');
-      this.failedValidations.forEach(validation => console.log(`   ${validation}`));
+      report.failedValidations.forEach(validation => console.log(`   ${validation}`));
     }
 
     if (report.recommendations.length > 0) {
@@ -667,15 +677,15 @@ class TestQualityValidator {
           <div class="passed">
             <h3>✅ Validations Réussies</h3>
             <ul>
-              ${this.passedValidations.map(val => `<li>${val}</li>`).join('')}
+              ${report.passedValidations.map(val => `<li>${val}</li>`).join('')}
             </ul>
           </div>
           
-          ${this.failedValidations.length > 0 ? `
+          ${report.failedValidations.length > 0 ? `
           <div class="failed">
             <h3>❌ Validations Échouées</h3>
             <ul>
-              ${this.failedValidations.map(val => `<li>${val}</li>`).join('')}
+              ${report.failedValidations.map(val => `<li>${val}</li>`).join('')}
             </ul>
           </div>
           ` : ''}
@@ -686,15 +696,16 @@ class TestQualityValidator {
     `;
   }
 
-  private passedValidations: string[] = [];
-  private failedValidations: string[] = [];
 }
 
+// Export singleton instance for use in other modules
+export const testQualityValidator = new TestQualityValidator();
+
 // Run validation if script is executed directly
-if (require.main === module) {
-  const validator = new TestQualityValidator();
-  validator.validateTestQuality()
+if (import.meta.url === `file://${process.argv[1]}`) {
+  testQualityValidator.validateTestQuality()
     .then(report => {
+      console.log(`\n🏆 Test quality validation completed with score: ${report.overallScore}%`);
       process.exit(report.overallScore >= 90 ? 0 : 1);
     })
     .catch(error => {

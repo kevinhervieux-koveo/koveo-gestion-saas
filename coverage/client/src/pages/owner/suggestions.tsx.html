@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/71</span>
+                <span class='fraction'>0/61</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/49</span>
+                <span class='fraction'>0/41</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/68</span>
+                <span class='fraction'>0/58</span>
             </div>
         
             
@@ -393,12 +393,9 @@
 <a name='L328'></a><a href='#L328'>328</a>
 <a name='L329'></a><a href='#L329'>329</a>
 <a name='L330'></a><a href='#L330'>330</a>
-<a name='L331'></a><a href='#L331'>331</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -409,9 +406,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -427,6 +423,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -438,7 +440,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -723,12 +727,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { useQuery, useMutation } from '@tanstack/react-query';</span>
-<span class="cstat-no" title="statement not covered" >import { Header } from '@/components/layout/header';</span>
-<span class="cstat-no" title="statement not covered" >import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';</span>
-<span class="cstat-no" title="statement not covered" >import { Button } from '@/components/ui/button';</span>
-<span class="cstat-no" title="statement not covered" >import { Badge } from '@/components/ui/badge';</span>
-<span class="cstat-no" title="statement not covered" >import {</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useQuery, useMutation } from '@tanstack/react-query';
+import { Header } from '@/components/layout/header';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
   CheckCircle,
   Clock,
   MessageSquare,
@@ -739,9 +743,9 @@
   Zap,
   Terminal,
 } from 'lucide-react';
-<span class="cstat-no" title="statement not covered" >import { apiRequest, queryClient } from '@/lib/queryClient';</span>
-<span class="cstat-no" title="statement not covered" >import { useToast } from '@/hooks/use-toast';</span>
-<span class="cstat-no" title="statement not covered" >import { useMemo } from 'react';</span>
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 &nbsp;
 /**
  *
@@ -763,12 +767,14 @@ const categoryConfig = <span class="cstat-no" title="statement not covered" >[</
   { name: 'Documentation', icon: FileText, color: 'bg-purple-50 text-purple-700 border-purple-200' },
   { name: 'Security', icon: Shield, color: 'bg-red-50 text-red-700 border-red-200' },
   { name: 'Performance', icon: Zap, color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  { name: 'Continuous Improvement', icon: Terminal, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Replit AI Agent Monitoring', icon: MessageSquare, color: 'bg-teal-50 text-teal-700 border-teal-200' },
 ];
 &nbsp;
 /**
  *
  */
-<span class="cstat-no" title="statement not covered" >export default function <span class="fstat-no" title="function not covered" >O</span>wnerSuggestions(</span>) {
+export default function <span class="fstat-no" title="function not covered" >OwnerSuggestions(</span>) {
   const { toast } = <span class="cstat-no" title="statement not covered" >useToast();</span>
   const { data: suggestions = <span class="branch-0 cbranch-no" title="branch not covered" >[],</span> isLoading } = <span class="cstat-no" title="statement not covered" >useQuery&lt;ImprovementSuggestion[]&gt;({</span>
     queryKey: ['/api/pillars/suggestions'],
@@ -928,7 +934,7 @@ const categoryConfig = <span class="cstat-no" title="statement not covered" >[</
                 const categorySuggestions = <span class="cstat-no" title="statement not covered" >categorizedSuggestions[category.name] || [];</span>
                 const Icon = <span class="cstat-no" title="statement not covered" >category.icon;</span>
                 
-<span class="cstat-no" title="statement not covered" >                if (categorySuggestions.length === 0) <span class="cstat-no" title="statement not covered" >return null;</span></span>
+<span class="cstat-no" title="statement not covered" >                if (categorySuggestions.length === 0) {<span class="cstat-no" title="statement not covered" >return null;}</span></span>
                 
 <span class="cstat-no" title="statement not covered" >                return (</span>
                   &lt;div key={category.name} className='space-y-4'&gt;
@@ -1060,7 +1066,7 @@ const categoryConfig = <span class="cstat-no" title="statement not covered" >[</
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-16T01:40:57.937Z
+                at 2025-08-16T04:35:35.074Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
