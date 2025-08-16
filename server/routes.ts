@@ -3,11 +3,11 @@ import { createServer, type Server } from 'http';
 import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, lstatSync } from 'fs';
 import { join } from 'path';
-import LRU from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 import { storage } from './storage';
 
 // Quality metrics cache with 20-minute TTL to prevent expensive recomputation
-const qualityMetricsCache = new LRU<string, any>({ max: 100, ttl: 1000 * 60 * 20 }); // 20 minutes TTL
+const qualityMetricsCache = new LRUCache<string, any>({ max: 100, ttl: 1000 * 60 * 20 }); // 20 minutes TTL
 import {
   insertPillarSchema,
   insertWorkspaceStatusSchema,
