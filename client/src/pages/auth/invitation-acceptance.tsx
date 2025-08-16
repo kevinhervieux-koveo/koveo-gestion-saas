@@ -12,7 +12,7 @@ import { ProfileCompletionStep } from '@/components/auth/steps/profile-completio
 import { QuebecPrivacyConsentStep } from '@/components/auth/steps/quebec-privacy-consent-step';
 
 /**
- * Invitation Acceptance Page
+ * Invitation Acceptance Page.
  * 
  * Multi-step registration flow for users accepting invitations.
  * Implements Quebec Law 25 compliance and secure password creation.

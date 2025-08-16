@@ -1,5 +1,5 @@
 /**
- * Enhanced Authentication and Authorization Module
+ * Enhanced Authentication and Authorization Module.
  * 
  * Provides comprehensive RBAC, security monitoring, and audit logging
  * for the Koveo Gestion property management system.

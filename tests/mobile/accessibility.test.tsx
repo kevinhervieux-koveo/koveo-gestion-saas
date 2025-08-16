@@ -1,9 +1,10 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const renderWithProviders = (component: React.ReactElement) => {
+const _renderWithProviders = (component: React.ReactElement) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },

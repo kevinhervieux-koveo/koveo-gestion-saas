@@ -6,6 +6,9 @@
 
 import { execSync } from 'child_process';
 
+/**
+ *
+ */
 async function runBuild() {
   console.log('🚀 Starting complete build process...');
   

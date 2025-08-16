@@ -60,8 +60,8 @@ export class MemoryOptimizer {
   private cleanupCallbacks: Array<() => void> = [];
 
   /**
-   *
-   * @param config
+   * Creates a new memory optimizer instance.
+   * @param config - Optional memory configuration parameters
    */
   constructor(config: Partial<MemoryConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -138,7 +138,7 @@ export class MemoryOptimizer {
     }
 
     if (usage.used >= this.config.cleanupThreshold) {
-      console.log('Triggering memory cleanup...');
+      console.warn('Triggering memory cleanup...');
       this.cleanup();
     }
   }

@@ -8,6 +8,9 @@ import { User, Phone, MapPin, Calendar, Globe } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
+/**
+ *
+ */
 interface ProfileCompletionData {
   firstName: string;
   lastName: string;
@@ -23,10 +26,14 @@ interface ProfileCompletionData {
 }
 
 /**
- * Profile Completion Step Component
+ * Profile Completion Step Component.
  * 
  * Collects user profile information required for Quebec property management.
  * Includes address validation and bilingual support.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
  */
 export function ProfileCompletionStep({ 
   data, 
@@ -74,14 +81,14 @@ export function ProfileCompletionStep({
   };
 
   const validatePhone = (phone: string) => {
-    if (!phone) return false;
+    if (!phone) {return false;}
     // Quebec phone number format validation
     const phoneRegex = /^(\+1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/;
     return phoneRegex.test(phone);
   };
 
   const validatePostalCode = (postalCode: string) => {
-    if (!postalCode) return true; // Optional field
+    if (!postalCode) {return true;} // Optional field
     // Canadian postal code format (A1A 1A1)
     const postalRegex = /^[A-Za-z]\d[A-Za-z][-\s]?\d[A-Za-z]\d$/;
     return postalRegex.test(postalCode);
@@ -100,7 +107,7 @@ export function ProfileCompletionStep({
   };
 
   const getFieldError = (field: keyof ProfileCompletionData, label: string) => {
-    if (!touched[field]) return null;
+    if (!touched[field]) {return null;}
     
     const value = formData[field];
     

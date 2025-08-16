@@ -76,7 +76,7 @@ interface User {
 
 /**
  * RBAC Permissions Management Page
- * Shows actual permissions being used in the platform and provides management capabilities
+ * Shows actual permissions being used in the platform and provides management capabilities.
  */
 export default function Permissions() {
   const { t } = useLanguage();
@@ -139,7 +139,7 @@ export default function Permissions() {
   
   // Filter permissions by category
   const filteredPermissions = permissions?.filter(permission => {
-    if (selectedCategory === 'all') return true;
+    if (selectedCategory === 'all') {return true;}
     return permission.category === selectedCategory;
   }) || [];
 
@@ -433,7 +433,7 @@ export default function Permissions() {
                         <div className="space-y-6">
                           {categories.map(category => {
                             const categoryPermissions = permissions?.filter(p => p.category === category) || [];
-                            if (categoryPermissions.length === 0) return null;
+                            if (categoryPermissions.length === 0) {return null;}
                             
                             return (
                               <div key={category} className="border rounded-lg p-4">

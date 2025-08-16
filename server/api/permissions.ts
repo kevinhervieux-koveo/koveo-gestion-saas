@@ -5,8 +5,8 @@ import { storage } from '../storage';
 
 /**
  * Transform a permission string into a structured permission object.
- * @param permission - Permission string in format "action:resource"
- * @returns Structured permission object with metadata
+ * @param permission - Permission string in format "action:resource".
+ * @returns Structured permission object with metadata.
  */
 function transformPermission(permission: string) {
   const [action, resource] = permission.split(':');
@@ -36,7 +36,7 @@ function transformPermission(permission: string) {
 
 /**
  * Register all RBAC permissions management API routes.
- * @param app - Express application instance
+ * @param app - Express application instance.
  */
 export function registerPermissionsRoutes(app: Express) {
   

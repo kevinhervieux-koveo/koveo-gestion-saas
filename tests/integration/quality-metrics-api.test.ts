@@ -2,10 +2,11 @@ import request from 'supertest';
 import express, { type Express } from 'express';
 import { registerRoutes } from '../../server/routes';
 import { jest } from '@jest/globals';
+import { type Server } from 'http';
 
 describe('Quality Metrics API Integration Tests', () => {
   let app: Express;
-  let server: any;
+  let server: Server;
 
   beforeAll(async () => {
     app = express();
@@ -14,7 +15,7 @@ describe('Quality Metrics API Integration Tests', () => {
   });
 
   afterAll(async () => {
-    if (server) {
+    if (server && typeof server.close === 'function') {
       server.close();
     }
   });

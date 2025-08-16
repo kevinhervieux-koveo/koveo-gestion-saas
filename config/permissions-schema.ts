@@ -213,6 +213,7 @@ export function validatePermissions(permissions: unknown) {
  * 
  * @param permissions - The permissions object to validate.
  * @param options - Validation options including whether to allow fallback.
+ * @param options.allowFallback
  * @returns Validation result with fallback data when needed.
  */
 export function validatePermissionsWithFallback(

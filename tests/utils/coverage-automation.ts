@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 /**
- *
+ * Coverage metrics for different aspects of code coverage.
  */
 interface CoverageMetrics {
   statements: number;
@@ -20,7 +20,7 @@ interface CoverageMetrics {
 }
 
 /**
- *
+ * Overall quality metrics including coverage, compliance, and performance.
  */
 interface QualityMetrics {
   testCoverage: CoverageMetrics;
@@ -31,14 +31,31 @@ interface QualityMetrics {
 }
 
 /**
- *
+ * Comprehensive test effectiveness data for quality tracking.
  */
 interface TestEffectivenessData {
-  testSuiteResults: any[];
-  coverageData: any;
+  testSuiteResults: Array<{
+    name: string;
+    status: 'passed' | 'failed';
+    coverage: number;
+  }>;
+  coverageData: {
+    statements: number;
+    branches: number;
+    functions: number;
+    lines: number;
+  };
   qualityScores: QualityMetrics;
-  quebecSpecificMetrics: any;
-  trends: any[];
+  quebecSpecificMetrics: {
+    complianceScore: number;
+    translationCoverage: number;
+    accessibilityScore: number;
+  };
+  trends: Array<{
+    date: string;
+    coverage: number;
+    quality: number;
+  }>;
 }
 
 /**

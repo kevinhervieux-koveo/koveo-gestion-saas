@@ -3,7 +3,7 @@ import type { Transporter } from 'nodemailer';
 import { createHash } from 'crypto';
 
 /**
- * Configuration interface for SMTP settings
+ * Configuration interface for SMTP settings.
  */
 interface SMTPConfig {
   host: string;
@@ -16,7 +16,7 @@ interface SMTPConfig {
 }
 
 /**
- * Email template data interface
+ * Email template data interface.
  */
 interface EmailTemplateData {
   recipientName: string;
@@ -32,12 +32,12 @@ interface EmailTemplateData {
 }
 
 /**
- * Email types supported by the system
+ * Email types supported by the system.
  */
 export type EmailType = 'invitation' | 'reminder' | 'welcome';
 
 /**
- * Email template structure with HTML and text versions
+ * Email template structure with HTML and text versions.
  */
 interface EmailTemplate {
   subject: {
@@ -64,6 +64,9 @@ export class EmailService {
   private baseUrl: string;
   private fromAddress: string;
 
+  /**
+   *
+   */
   constructor() {
     this.baseUrl = process.env.BASE_URL || 'http://localhost:5000';
     this.fromAddress = process.env.EMAIL_FROM || 'noreply@koveo-gestion.com';
@@ -71,7 +74,7 @@ export class EmailService {
   }
 
   /**
-   * Initializes the SMTP transporter with configuration
+   * Initializes the SMTP transporter with configuration.
    */
   async initialize(): Promise<void> {
     const smtpConfig: SMTPConfig = {
@@ -102,7 +105,7 @@ export class EmailService {
   }
 
   /**
-   * Initializes bilingual email templates with Quebec Law 25 compliance
+   * Initializes bilingual email templates with Quebec Law 25 compliance.
    */
   private initializeTemplates(): void {
     // Invitation email template
@@ -155,7 +158,8 @@ export class EmailService {
   }
 
   /**
-   * Generates a secure unsubscribe token for the recipient
+   * Generates a secure unsubscribe token for the recipient.
+   * @param email
    */
   private generateUnsubscribeToken(email: string): string {
     const secret = process.env.UNSUBSCRIBE_SECRET || 'koveo-unsubscribe-secret';
@@ -163,7 +167,9 @@ export class EmailService {
   }
 
   /**
-   * Replaces template variables with actual data
+   * Replaces template variables with actual data.
+   * @param template
+   * @param data
    */
   private processTemplate(template: string, data: EmailTemplateData): string {
     return template
@@ -178,7 +184,10 @@ export class EmailService {
   }
 
   /**
-   * Sends an email using the configured transporter
+   * Sends an email using the configured transporter.
+   * @param type
+   * @param to
+   * @param data
    */
   async sendEmail(
     type: EmailType,
@@ -228,7 +237,14 @@ export class EmailService {
   }
 
   /**
-   * Sends invitation email with secure token
+   * Sends invitation email with secure token.
+   * @param recipientEmail
+   * @param recipientName
+   * @param invitationToken
+   * @param organizationName
+   * @param inviterName
+   * @param expiryDate
+   * @param language
    */
   async sendInvitationEmail(
     recipientEmail: string,
@@ -255,7 +271,13 @@ export class EmailService {
   }
 
   /**
-   * Sends reminder email for pending invitations
+   * Sends reminder email for pending invitations.
+   * @param recipientEmail
+   * @param recipientName
+   * @param invitationToken
+   * @param organizationName
+   * @param expiryDate
+   * @param language
    */
   async sendReminderEmail(
     recipientEmail: string,
@@ -280,7 +302,11 @@ export class EmailService {
   }
 
   /**
-   * Sends welcome email for completed registrations
+   * Sends welcome email for completed registrations.
+   * @param recipientEmail
+   * @param recipientName
+   * @param organizationName
+   * @param language
    */
   async sendWelcomeEmail(
     recipientEmail: string,
@@ -298,7 +324,9 @@ export class EmailService {
   }
 
   /**
-   * Verifies unsubscribe token and marks user as unsubscribed
+   * Verifies unsubscribe token and marks user as unsubscribed.
+   * @param email
+   * @param token
    */
   verifyUnsubscribeToken(email: string, token: string): boolean {
     const expectedToken = this.generateUnsubscribeToken(email);
@@ -306,6 +334,10 @@ export class EmailService {
   }
 
   // Template methods (HTML versions)
+  /**
+   *
+   * @param language
+   */
   private getInvitationTemplateHTML(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `
@@ -427,6 +459,10 @@ export class EmailService {
   }
 
   // Template methods (Text versions for accessibility)
+  /**
+   *
+   * @param language
+   */
   private getInvitationTemplateText(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `
@@ -484,6 +520,10 @@ Compliant with Quebec Law 25 on the protection of personal information.`;
   }
 
   // Additional template methods for reminder and welcome emails...
+  /**
+   *
+   * @param language
+   */
   private getReminderTemplateHTML(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `
@@ -586,6 +626,10 @@ Compliant with Quebec Law 25 on the protection of personal information.`;
     }
   }
 
+  /**
+   *
+   * @param language
+   */
   private getReminderTemplateText(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `
@@ -628,6 +672,10 @@ To unsubscribe: {{unsubscribeUrl}}
     }
   }
 
+  /**
+   *
+   * @param language
+   */
   private getWelcomeTemplateHTML(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `
@@ -756,6 +804,10 @@ To unsubscribe: {{unsubscribeUrl}}
     }
   }
 
+  /**
+   *
+   * @param language
+   */
   private getWelcomeTemplateText(language: 'fr' | 'en'): string {
     if (language === 'fr') {
       return `

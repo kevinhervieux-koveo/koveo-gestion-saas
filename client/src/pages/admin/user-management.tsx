@@ -53,6 +53,9 @@ import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog'
 import { BulkActionsBar } from '@/components/admin/bulk-actions-bar';
 import type { User } from '@shared/schema';
 
+/**
+ *
+ */
 interface UserManagementData {
   users: User[];
   invitations: any[];
@@ -63,7 +66,7 @@ interface UserManagementData {
 }
 
 /**
- * User Management Dashboard Component
+ * User Management Dashboard Component.
  * 
  * Comprehensive interface for admins/managers to manage users, invitations,
  * roles, and permissions with real-time updates and accessibility compliance.

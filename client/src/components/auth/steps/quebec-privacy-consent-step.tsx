@@ -7,6 +7,9 @@ import { Shield, FileText, Eye, Lock, Database, Phone, Mail, Download } from 'lu
 import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
+/**
+ *
+ */
 interface QuebecPrivacyConsentData {
   dataCollectionConsent: boolean;
   marketingConsent: boolean;
@@ -18,10 +21,14 @@ interface QuebecPrivacyConsentData {
 }
 
 /**
- * Quebec Privacy Consent Step Component
+ * Quebec Privacy Consent Step Component.
  * 
  * Collects explicit consent for data processing activities
  * in compliance with Quebec's Law 25 (Bill 64) privacy requirements.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
  */
 export function QuebecPrivacyConsentStep({ 
   data, 

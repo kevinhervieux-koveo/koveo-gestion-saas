@@ -52,6 +52,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@shared/schema';
 
+/**
+ *
+ */
 interface UserListComponentProps {
   users: User[];
   selectedUsers: Set<string>;
@@ -60,6 +63,9 @@ interface UserListComponentProps {
   isLoading?: boolean;
 }
 
+/**
+ *
+ */
 interface EditUserDialogProps {
   user: User | null;
   open: boolean;
@@ -69,7 +75,12 @@ interface EditUserDialogProps {
 
 /**
  * Edit User Dialog Component
- * Allows editing user role and status
+ * Allows editing user role and status.
+ * @param root0
+ * @param root0.user
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
  */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
@@ -79,7 +90,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
 
   const updateUserMutation = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!user) {return;}
       const response = await apiRequest('PUT', `/api/users/${user.id}`, {
         role,
         isActive
@@ -107,7 +118,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
     updateUserMutation.mutate();
   };
 
-  if (!user) return null;
+  if (!user) {return null;}
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -173,7 +184,13 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
 
 /**
  * User List Component
- * Displays users in a responsive table with selection and actions
+ * Displays users in a responsive table with selection and actions.
+ * @param root0
+ * @param root0.users
+ * @param root0.selectedUsers
+ * @param root0.onSelectionChange
+ * @param root0.onBulkAction
+ * @param root0.isLoading
  */
 export function UserListComponent({ 
   users, 
@@ -292,7 +309,7 @@ export function UserListComponent({
   };
 
   const formatDate = (date: Date | string | null) => {
-    if (!date) return t('never');
+    if (!date) {return t('never');}
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return dateObj.toLocaleDateString();
   };

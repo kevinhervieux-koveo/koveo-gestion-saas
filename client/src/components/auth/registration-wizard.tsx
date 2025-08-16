@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
+/**
+ *
+ */
 export interface WizardStep {
   id: string;
   title: string;
@@ -16,6 +19,9 @@ export interface WizardStep {
   canSkip?: boolean;
 }
 
+/**
+ *
+ */
 export interface WizardStepProps {
   data: any;
   onDataChange: (data: any) => void;
@@ -25,6 +31,9 @@ export interface WizardStepProps {
   isActive: boolean;
 }
 
+/**
+ *
+ */
 interface RegistrationWizardProps {
   steps: WizardStep[];
   initialData?: any;
@@ -35,10 +44,17 @@ interface RegistrationWizardProps {
 }
 
 /**
- * Multi-Step Registration Wizard Component
+ * Multi-Step Registration Wizard Component.
  * 
  * Provides a guided registration flow with step validation,
  * progress tracking, and Quebec compliance features.
+ * @param root0
+ * @param root0.steps
+ * @param root0.initialData
+ * @param root0.onComplete
+ * @param root0.onCancel
+ * @param root0.title
+ * @param root0.className
  */
 export function RegistrationWizard({
   steps: initialSteps,

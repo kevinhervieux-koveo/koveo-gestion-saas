@@ -100,6 +100,9 @@ const server = app.listen(
 );
 
 // Initialize application components after server starts
+/**
+ *
+ */
 async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
@@ -142,7 +145,7 @@ async function initializeApplication() {
 }
 
 /**
- * Runs email service initialization in background with timeout handling
+ * Runs email service initialization in background with timeout handling.
  */
 async function initializeEmailServiceInBackground(): Promise<void> {
   try {
@@ -162,7 +165,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
 }
 
 /**
- * Runs database optimizations in background with timeout handling
+ * Runs database optimizations in background with timeout handling.
  */
   async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
     try {
@@ -187,7 +190,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
   }
   
   /**
-   * Runs background jobs initialization with timeout handling
+   * Runs background jobs initialization with timeout handling.
    */
   async function initializeBackgroundJobsInBackground(): Promise<void> {
     try {

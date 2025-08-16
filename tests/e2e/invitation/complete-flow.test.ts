@@ -17,8 +17,26 @@ jest.mock('../../../server/storage', () => ({
 }));
 
 describe('Complete Invitation Flow E2E Tests', () => {
-  let mockManagerUser: any;
-  let mockInvitation: any;
+  let mockManagerUser: {
+    id: string;
+    email: string;
+    role: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+  };
+  let mockInvitation: {
+    id: string;
+    email: string;
+    role: string;
+    token: string;
+    expiresAt: Date;
+    status: string;
+    invitedByUserId: string;
+    organizationId: string;
+    buildingId: string;
+    createdAt: Date;
+  };
   let mockToken: string;
 
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../../server/routes';
@@ -9,15 +9,15 @@ import { sslRenewalJob } from '../../server/jobs/ssl_renewal_job';
 
 describe('SSL Management End-to-End Integration', () => {
   let app: express.Application;
-  let server: any;
-  let adminUser: any;
+  let _server: unknown;
+  let adminUser: { id: string; email: string; role: string; };
   let authCookie: string;
   let testCertificateId: string;
 
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    server = await registerRoutes(app);
+    _server = await registerRoutes(app);
 
     // Create admin user for testing
     const [user] = await db.insert(users).values({
@@ -133,7 +133,7 @@ describe('SSL Management End-to-End Integration', () => {
         warnings: expect.any(Array)
       });
 
-      console.log('✅ SSL Certificate API endpoints working correctly');
+      console.warn('✅ SSL Certificate API endpoints working correctly');
     });
 
     it('should handle expiring certificate monitoring and notifications', async () => {
@@ -170,7 +170,7 @@ describe('SSL Management End-to-End Integration', () => {
       // Clean up
       await db.delete(sslCertificates).where(eq(sslCertificates.id, expiringCert.id));
 
-      console.log('✅ SSL Certificate expiry monitoring working correctly');
+      console.warn('✅ SSL Certificate expiry monitoring working correctly');
     });
 
     it('should validate SSL renewal job status and configuration', async () => {
@@ -191,11 +191,11 @@ describe('SSL Management End-to-End Integration', () => {
       expect(jobStatus.config.expiryNotificationThresholdDays).toBeGreaterThan(0);
       expect(jobStatus.config.renewalThresholdDays).toBeGreaterThan(0);
 
-      console.log('✅ SSL Renewal Job configuration working correctly');
-      console.log(`   - Enabled: ${jobStatus.enabled}`);
-      console.log(`   - Schedule: ${jobStatus.schedule}`);
-      console.log(`   - Expiry notifications: ${jobStatus.config.enableExpiryNotifications}`);
-      console.log(`   - Notification threshold: ${jobStatus.config.expiryNotificationThresholdDays} days`);
+      console.warn('✅ SSL Renewal Job configuration working correctly');
+      console.warn(`   - Enabled: ${jobStatus.enabled}`);
+      console.warn(`   - Schedule: ${jobStatus.schedule}`);
+      console.warn(`   - Expiry notifications: ${jobStatus.config.enableExpiryNotifications}`);
+      console.warn(`   - Notification threshold: ${jobStatus.config.expiryNotificationThresholdDays} days`);
     });
   });
 
@@ -238,7 +238,7 @@ describe('SSL Management End-to-End Integration', () => {
       // Clean up
       await db.delete(users).where(eq(users.id, regularUser.id));
 
-      console.log('✅ SSL API access control working correctly');
+      console.warn('✅ SSL API access control working correctly');
     });
   });
 
@@ -260,7 +260,7 @@ describe('SSL Management End-to-End Integration', () => {
         expect(response.body.error).toBe('Bad Request');
       }
 
-      console.log('✅ Domain validation working correctly');
+      console.warn('✅ Domain validation working correctly');
     });
 
     it('should return proper 404 for non-existent certificates', async () => {
@@ -271,7 +271,7 @@ describe('SSL Management End-to-End Integration', () => {
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Not Found');
 
-      console.log('✅ 404 handling working correctly');
+      console.warn('✅ 404 handling working correctly');
     });
   });
 
@@ -292,7 +292,7 @@ describe('SSL Management End-to-End Integration', () => {
         .limit(1);
       expect(Array.isArray(notificationsCount)).toBe(true);
 
-      console.log('✅ All SSL management components properly integrated');
+      console.warn('✅ All SSL management components properly integrated');
     });
   });
 });

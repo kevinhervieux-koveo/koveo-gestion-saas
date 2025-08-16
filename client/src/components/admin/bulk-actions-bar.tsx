@@ -27,16 +27,21 @@ import {
   Shield, 
   Trash2, 
   Mail,
-  Download,
-  Upload
+  Download
 } from 'lucide-react';
 
+/**
+ * Props for the BulkActionsBar component.
+ */
 interface BulkActionsBarProps {
   selectedCount: number;
-  onBulkAction: (action: string, data?: any) => Promise<void>;
+  onBulkAction: (_action: string, _data?: Record<string, unknown>) => Promise<void>;
   isLoading?: boolean;
 }
 
+/**
+ * Available bulk action types for user management.
+ */
 type BulkActionType = 
   | 'activate'
   | 'deactivate'
@@ -46,21 +51,28 @@ type BulkActionType =
   | 'export'
   | 'send_welcome_email';
 
+/**
+ * Configuration for a bulk action button and its behavior.
+ */
 interface BulkAction {
   type: BulkActionType;
   label: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   variant?: 'default' | 'destructive';
   requiresConfirmation?: boolean;
   requiresData?: boolean;
 }
 
 /**
- * Bulk Actions Bar Component
+ * Bulk Actions Bar Component.
  * 
  * Provides bulk operations for selected users with confirmation dialogs
  * and appropriate permissions checking.
+ * @param root0
+ * @param root0.selectedCount
+ * @param root0.onBulkAction
+ * @param root0.isLoading
  */
 export function BulkActionsBar({ 
   selectedCount, 
@@ -138,7 +150,7 @@ export function BulkActionsBar({
     setSelectedAction(actionType);
     const action = bulkActions.find(a => a.type === actionType);
     
-    if (!action) return;
+    if (!action) {return;}
 
     if (action.requiresConfirmation) {
       setConfirmationDialog({
@@ -153,7 +165,7 @@ export function BulkActionsBar({
   };
 
   const executeBulkAction = async (actionType: BulkActionType) => {
-    let actionData: any = {};
+    let actionData: Record<string, unknown> = {};
 
     switch (actionType) {
       case 'activate':
@@ -167,7 +179,7 @@ export function BulkActionsBar({
         break;
       
       case 'change_role':
-        if (!roleForBulkChange) return;
+        if (!roleForBulkChange) {return;}
         actionData = { role: roleForBulkChange };
         await onBulkAction('change_role', actionData);
         break;

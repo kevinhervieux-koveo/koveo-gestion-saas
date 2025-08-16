@@ -9,6 +9,9 @@ import { execSync } from 'child_process';
 import { mkdirSync, copyFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
+/**
+ *
+ */
 function buildServer() {
   console.log('🔨 Building server...');
   

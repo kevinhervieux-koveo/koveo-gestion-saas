@@ -45,8 +45,8 @@ describe('Invitation RBAC System Integration', () => {
       } as any,
       ip: '127.0.0.1',
       get: jest.fn((header) => {
-        if (header === 'User-Agent') return 'test-agent';
-        if (header === 'Referer') return 'https://example.com';
+        if (header === 'User-Agent') {return 'test-agent';}
+        if (header === 'Referer') {return 'https://example.com';}
         return null;
       }),
       sessionID: 'test-session-id',

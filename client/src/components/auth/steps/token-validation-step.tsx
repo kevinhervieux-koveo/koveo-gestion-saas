@@ -6,6 +6,9 @@ import { CheckCircle, Clock, XCircle, AlertTriangle, Shield, Mail } from 'lucide
 import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
+/**
+ *
+ */
 interface TokenValidationData {
   token: string;
   email: string;
@@ -18,10 +21,14 @@ interface TokenValidationData {
 }
 
 /**
- * Token Validation Step Component
+ * Token Validation Step Component.
  * 
  * Validates invitation token and displays invitation details.
  * Handles expired, invalid, and malformed tokens with appropriate feedback.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
  */
 export function TokenValidationStep({ 
   data, 
@@ -111,7 +118,7 @@ export function TokenValidationStep({
     const expires = new Date(expiresAt);
     const diff = expires.getTime() - now.getTime();
     
-    if (diff <= 0) return 'Expiré';
+    if (diff <= 0) {return 'Expiré';}
     
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

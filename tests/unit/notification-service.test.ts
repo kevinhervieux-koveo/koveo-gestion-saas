@@ -13,11 +13,11 @@ jest.mock('../../server/db', () => ({
 
 describe('Notification Service', () => {
   let notificationService: NotificationService;
-  let mockDb: any;
+  let mockDb: typeof db;
 
   beforeEach(() => {
     notificationService = new NotificationService();
-    mockDb = db as any;
+    mockDb = db as typeof db;
     jest.clearAllMocks();
   });
 

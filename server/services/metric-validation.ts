@@ -86,7 +86,8 @@ export class MetricValidationService {
   };
 
   /**
-   *
+   * Private constructor for singleton pattern.
+   * Initializes the metric validation service instance.
    */
   private constructor() {}
 

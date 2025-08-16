@@ -73,21 +73,36 @@ const bulkInvitationSchema = z.object({
   securityLevel: z.enum(['standard', 'high']).default('standard')
 });
 
+/**
+ *
+ */
 type InvitationFormData = z.infer<typeof invitationSchema>;
+/**
+ *
+ */
 type BulkInvitationFormData = z.infer<typeof bulkInvitationSchema>;
 
+/**
+ *
+ */
 interface SendInvitationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
 
+/**
+ *
+ */
 interface Organization {
   id: string;
   name: string;
   type: string;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -96,10 +111,14 @@ interface Building {
 }
 
 /**
- * Send Invitation Dialog Component
+ * Send Invitation Dialog Component.
  * 
  * Allows sending single or bulk invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
@@ -257,8 +276,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   };
 
   const canInviteRole = (role: string) => {
-    if (hasRole(['admin'])) return true;
-    if (hasRole(['manager']) && ['tenant'].includes(role)) return true;
+    if (hasRole(['admin'])) {return true;}
+    if (hasRole(['manager']) && ['tenant'].includes(role)) {return true;}
     return false;
   };
 

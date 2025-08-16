@@ -10,6 +10,9 @@ import {
   type PasswordCriteria
 } from '@/utils/password-validation';
 
+/**
+ *
+ */
 interface PasswordStrengthIndicatorProps {
   password: string;
   showPassword: boolean;
@@ -18,10 +21,15 @@ interface PasswordStrengthIndicatorProps {
 }
 
 /**
- * Password Strength Indicator Component
+ * Password Strength Indicator Component.
  * 
  * Provides real-time password strength feedback with Quebec French labels
  * and visual indicators for security compliance.
+ * @param root0
+ * @param root0.password
+ * @param root0.showPassword
+ * @param root0.onToggleVisibility
+ * @param root0.className
  */
 export function PasswordStrengthIndicator({ 
   password, 
@@ -128,11 +136,20 @@ export function PasswordStrengthIndicator({
   );
 }
 
+/**
+ *
+ */
 interface CriteriaItemProps {
   met: boolean;
   text: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.met
+ * @param root0.text
+ */
 function CriteriaItem({ met, text }: CriteriaItemProps) {
   return (
     <div className="flex items-center space-x-2">

@@ -45,6 +45,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ *
+ */
 interface Invitation {
   id: string;
   email: string;
@@ -63,6 +66,9 @@ interface Invitation {
   requires2FA: boolean;
 }
 
+/**
+ *
+ */
 interface InvitationManagementProps {
   invitations: Invitation[];
   onSendReminder: (invitationId: string) => void;
@@ -73,6 +79,11 @@ interface InvitationManagementProps {
 /**
  * Invitation Management Component
  * Displays and manages user invitations with actions for reminders, cancellation, etc.
+ * @param root0
+ * @param root0.invitations
+ * @param root0.onSendReminder
+ * @param root0.onRefresh
+ * @param root0.isLoading
  */
 export function InvitationManagement({ 
   invitations, 
@@ -221,7 +232,7 @@ export function InvitationManagement({
     const expires = new Date(expiresAt);
     const diff = expires.getTime() - now.getTime();
     
-    if (diff <= 0) return t('expired');
+    if (diff <= 0) {return t('expired');}
     
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

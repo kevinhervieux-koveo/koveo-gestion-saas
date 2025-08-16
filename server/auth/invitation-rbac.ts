@@ -62,6 +62,7 @@ export class InvitationSecurityMonitor {
 
   /**
    * Register callback for security alerts.
+   * @param callback
    */
   static onAlert(callback: (alert: SecurityAlert) => void) {
     this.alertCallbacks.push(callback);
@@ -69,6 +70,7 @@ export class InvitationSecurityMonitor {
 
   /**
    * Trigger a security alert.
+   * @param alert
    */
   static async triggerAlert(alert: SecurityAlert) {
     console.warn(`🚨 SECURITY ALERT [${alert.level.toUpperCase()}]: ${alert.type}`, {
@@ -111,6 +113,11 @@ export class InvitationSecurityMonitor {
 
   /**
    * Monitor invitation access patterns for suspicious activity.
+   * @param userId
+   * @param action
+   * @param ipAddress
+   * @param userAgent
+   * @param metadata
    */
   static async monitorInvitationAccess(
     userId: string,
@@ -185,6 +192,8 @@ export class InvitationSecurityMonitor {
 
 /**
  * Rate limiting middleware for invitation operations.
+ * @param maxRequests
+ * @param windowMs
  */
 export function rateLimitInvitations(maxRequests: number, windowMs: number = 3600000) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -226,6 +235,11 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
 export class InvitationPermissionValidator {
   /**
    * Validate if user can invite based on role hierarchy and organization context.
+   * @param inviterId
+   * @param inviterRole
+   * @param targetRole
+   * @param organizationId
+   * @param buildingId
    */
   static async validateInvitePermission(
     inviterId: string,
@@ -280,6 +294,9 @@ export class InvitationPermissionValidator {
 
   /**
    * Validate if user can manage specific invitation.
+   * @param userId
+   * @param userRole
+   * @param invitationId
    */
   static async validateInvitationManagement(
     userId: string,
@@ -311,6 +328,9 @@ export class InvitationPermissionValidator {
 
   /**
    * Validate bulk invitation operation.
+   * @param inviterId
+   * @param inviterRole
+   * @param invitations
    */
   static async validateBulkInvitation(
     inviterId: string,
@@ -349,6 +369,12 @@ export class InvitationPermissionValidator {
 /**
  * Enhanced RBAC middleware specifically for invitation operations.
  * Combines role-based permissions with context-aware validation.
+ * @param action
+ * @param options
+ * @param options.validateContext
+ * @param options.requireOwnership
+ * @param options.allowSelfAccess
+ * @param options.auditAction
  */
 export function requireInvitationPermission(
   action: string,
@@ -474,6 +500,13 @@ export function requireInvitationPermission(
 
 /**
  * Enhanced audit logging for invitation operations.
+ * @param invitationId
+ * @param action
+ * @param performedBy
+ * @param req
+ * @param previousStatus
+ * @param newStatus
+ * @param details
  */
 export async function createEnhancedInvitationAuditLog(
   invitationId: string,
@@ -512,12 +545,12 @@ export async function createEnhancedInvitationAuditLog(
       ipAddress,
       userAgent,
       details: enhancedDetails,
-      previousStatus: previousStatus as any,
-      newStatus: newStatus as any
+      previousStatus: previousStatus as string | undefined,
+      newStatus: newStatus as string | undefined
     });
 
     // Log to console for immediate visibility
-    console.log(`📋 INVITATION AUDIT: ${action}`, {
+    console.warn(`📋 INVITATION AUDIT: ${action}`, {
       invitationId,
       performedBy,
       ipAddress,
@@ -534,6 +567,7 @@ export async function createEnhancedInvitationAuditLog(
 /**
  * Delegation and inheritance middleware for invitation permissions.
  * Allows temporary permission elevation based on organizational hierarchy.
+ * @param baseAction
  */
 export function withPermissionInheritance(baseAction: string) {
   return async (req: Request, res: Response, next: NextFunction) => {

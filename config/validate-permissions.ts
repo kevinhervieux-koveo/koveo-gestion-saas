@@ -16,10 +16,11 @@ export async function validatePermissionsFile(): Promise<{
 /**
  * Validates permissions with fallback for startup resilience.
  * This function is designed for use during application startup to prevent crashes.
+ * @param allowFallback
  */
 export async function validatePermissionsForStartup(allowFallback: boolean = true): Promise<{
   valid: boolean;
-  data: any;
+  data: Record<string, unknown>;
   errors: string[];
   warnings: string[];
   usedFallback: boolean;
@@ -147,6 +148,9 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
   }
 }
 
+/**
+ *
+ */
 export async function validatePermissionsFile(): Promise<{
   valid: boolean;
   errors: string[];
@@ -261,21 +265,21 @@ export async function validatePermissionsFile(): Promise<{
 async function runCLI() {
   try {
     const result = await validatePermissionsFile();
-    console.log('\n🔐 Koveo Gestion Permissions Validation\n');
+    console.warn('\n🔐 Koveo Gestion Permissions Validation\n');
     
     if (result.valid) {
-      console.log('✅ Permissions configuration is valid!');
+      console.warn('✅ Permissions configuration is valid!');
     } else {
-      console.log('❌ Permissions configuration has errors:');
-      result.errors.forEach(error => console.log(`   ${error}`));
+      console.warn('❌ Permissions configuration has errors:');
+      result.errors.forEach(error => console.warn(`   ${error}`));
     }
 
     if (result.warnings.length > 0) {
-      console.log('\n⚠️  Warnings:');
-      result.warnings.forEach(warning => console.log(`   ${warning}`));
+      console.warn('\n⚠️  Warnings:');
+      result.warnings.forEach(warning => console.warn(`   ${warning}`));
     }
 
-    console.log('');
+    console.warn('');
     process.exit(result.valid ? 0 : 1);
   } catch (error) {
     console.error('❌ Validation failed:', error);

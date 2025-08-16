@@ -8,6 +8,13 @@ import { eq, and, gte, lte } from 'drizzle-orm';
 
 /**
  * Creates audit log entry for invitation-related email events.
+ * @param invitationId
+ * @param action
+ * @param userId
+ * @param req
+ * @param previousValue
+ * @param currentValue
+ * @param metadata
  */
 async function createInvitationAuditLog(
   invitationId: string,
@@ -38,6 +45,7 @@ async function createInvitationAuditLog(
 /**
  * Registers email management API routes for unsubscribe functionality,
  * reminder emails, and template management.
+ * @param app
  */
 export function registerEmailRoutes(app: Express) {
   // POST /api/email/send-reminder - Send reminder emails for pending invitations

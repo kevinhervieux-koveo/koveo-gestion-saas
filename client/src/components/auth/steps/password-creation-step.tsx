@@ -9,6 +9,9 @@ import { PasswordStrengthIndicator } from '../password-strength-indicator';
 import { validatePasswordStrength } from '@/utils/password-validation';
 import type { WizardStepProps } from '../registration-wizard';
 
+/**
+ *
+ */
 interface PasswordCreationData {
   password: string;
   confirmPassword: string;
@@ -17,10 +20,14 @@ interface PasswordCreationData {
 }
 
 /**
- * Password Creation Step Component
+ * Password Creation Step Component.
  * 
  * Secure password creation with strength validation and confirmation.
  * Implements Quebec-compliant security standards for property management.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
  */
 export function PasswordCreationStep({ 
   data, 
@@ -81,7 +88,7 @@ export function PasswordCreationStep({
   };
 
   const getPasswordMatchError = () => {
-    if (!touched.confirmPassword || !formData.confirmPassword) return null;
+    if (!touched.confirmPassword || !formData.confirmPassword) {return null;}
     
     if (formData.password !== formData.confirmPassword) {
       return 'Les mots de passe ne correspondent pas';

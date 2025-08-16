@@ -8,15 +8,15 @@ import { eq } from 'drizzle-orm';
 
 describe('SSL API Integration', () => {
   let app: express.Application;
-  let _server: any;
-  let adminUser: any;
+  let _server: unknown;
+  let adminUser: { id: string; email: string; role: string; };
   let testCertificateId: string;
   let authCookie: string;
 
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    server = await registerRoutes(app);
+    _server = await registerRoutes(app);
 
     // Create test admin user
     const [user] = await db.insert(users).values({

@@ -60,7 +60,7 @@ const db = drizzle({ client: pool, schema });
 async function syncFeatureToProduction(feature: any) {
   if (!process.env.PRODUCTION_API_URL || !process.env.SYNC_API_KEY) {
     // eslint-disable-next-line no-console
-    console.log('Production sync not configured - skipping sync');
+    console.warn('Production sync not configured - skipping sync');
     return;
   }
 
@@ -80,7 +80,7 @@ async function syncFeatureToProduction(feature: any) {
       console.error('Failed to sync feature to production:', await response.text());
     } else {
       // eslint-disable-next-line no-console
-      console.log(`Feature ${feature.id} synced to production successfully`);
+      console.warn(`Feature ${feature.id} synced to production successfully`);
     }
   } catch (error) {
     console.error('Error syncing feature to production:', error);
@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { metricType } = req.params;
       
-      console.log(`🚀 Triggering calibration for ${metricType} metric...`);
+      console.warn(`🚀 Triggering calibration for ${metricType} metric...`);
       
       const calibrationResult = await metricValidationService.triggerCalibrationUpdate(metricType);
       
@@ -442,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Trigger continuous improvement update in background
-      console.log('🔄 Triggering continuous improvement update...');
+      console.warn('🔄 Triggering continuous improvement update...');
       import('child_process')
         .then(({ spawn }) => {
           const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
@@ -574,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Force refresh quality metrics cache
   app.post('/api/quality-metrics/refresh', requireAuth, authorize('create:quality_metric'), async (req, res) => {
     try {
-      console.log('🔄 Forcing quality metrics cache refresh...');
+      console.warn('🔄 Forcing quality metrics cache refresh...');
       
       // Clear the cache
       qualityMetricsCache.clear();
@@ -649,7 +649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { status, category, roadmap } = req.query;
       // eslint-disable-next-line no-console
-      console.log('Features API called with query:', { status, category, roadmap });
+      console.warn('Features API called with query:', { status, category, roadmap });
 
       // Simple query to test connection
       const features = await db.query.features.findMany({
@@ -657,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // eslint-disable-next-line no-console
-      console.log('Found features:', features.length);
+      console.warn('Found features:', features.length);
       res.json(features);
     } catch (error) {
       console.error('Error fetching features:', error);
@@ -865,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // If a duplicate exists, use its status
           if (existingDuplicates.length > 0) {
-            console.log(`📋 Found existing action item with title "${newItem.title}" - syncing status: ${existingDuplicates[0].status}`);
+            console.warn(`📋 Found existing action item with title "${newItem.title}" - syncing status: ${existingDuplicates[0].status}`);
             return {
               ...newItem,
               status: existingDuplicates[0].status,
@@ -888,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`Failed to create multiple actionable items. Expected multiple items, but only ${insertedItems.length} were created.`);
       }
 
-      console.log(`✅ Successfully created ${insertedItems.length} actionable items for feature "${feature.name}"`);
+      console.warn(`✅ Successfully created ${insertedItems.length} actionable items for feature "${feature.name}"`);
 
       // Update feature with AI analysis results - only after successful item creation
       const [updatedFeature] = await db
@@ -943,7 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If status is being updated, synchronize all duplicates
       if (req.body.status && req.body.status !== originalItem.status) {
-        console.log(`🔄 Synchronizing status for duplicate action items with title: "${originalItem.title}"`);
+        console.warn(`🔄 Synchronizing status for duplicate action items with title: "${originalItem.title}"`);
         
         // Find all action items with the same title
         const duplicates = await db
@@ -951,7 +951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(schema.actionableItems)
           .where(eq(schema.actionableItems.title, originalItem.title));
         
-        console.log(`   Found ${duplicates.length} action items with the same title`);
+        console.warn(`   Found ${duplicates.length} action items with the same title`);
         
         // Update all duplicates with the new status
         const updatedItems = await Promise.all(
@@ -991,7 +991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 updatedAt: new Date(),
               })
               .where(eq(schema.features.id, featureId));
-            console.log(`   ✅ Feature ${featureId} marked as completed`);
+            console.warn(`   ✅ Feature ${featureId} marked as completed`);
           }
         }
         
@@ -1120,7 +1120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { keywords = [], filePaths = [], commitMessages = [] } = req.body;
       
-      console.log('🔍 Auto-detecting completed actionable items...', { keywords, filePaths, commitMessages });
+      console.warn('🔍 Auto-detecting completed actionable items...', { keywords, filePaths, commitMessages });
       
       // Get all pending or in-progress actionable items
       const pendingItems = await db
@@ -1190,7 +1190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               autoCompletionReasons: reasonsForCompletion
             });
             
-            console.log(`✅ Auto-completed: "${item.title}" - Reasons: ${reasonsForCompletion.join(', ')}`);
+            console.warn(`✅ Auto-completed: "${item.title}" - Reasons: ${reasonsForCompletion.join(', ')}`);
           }
         }
       }
@@ -1221,7 +1221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
             if (updatedFeature) {
               completedFeatures.push(updatedFeature);
-              console.log(`🎉 Auto-completed feature: "${updatedFeature.name}"`);
+              console.warn(`🎉 Auto-completed feature: "${updatedFeature.name}"`);
             }
           }
         }
@@ -1279,7 +1279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning();
       }
 
-      console.log(`Feature ${feature.id} synced from ${syncSource}`);
+      console.warn(`Feature ${feature.id} synced from ${syncSource}`);
       res.json({ success: true, feature: syncedFeature });
     } catch (error) {
       console.error('Error syncing feature:', error);
@@ -1425,7 +1425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let syncedCompletedAt = null;
       
       if (existingDuplicates.length > 0) {
-        console.log(`📋 Found existing action item with title "${title}" - syncing status: ${existingDuplicates[0].status}`);
+        console.warn(`📋 Found existing action item with title "${title}" - syncing status: ${existingDuplicates[0].status}`);
         syncedStatus = existingDuplicates[0].status;
         syncedCompletedAt = existingDuplicates[0].completedAt;
       }
@@ -1767,11 +1767,11 @@ async function getQualityMetrics() {
   // Return cached metrics if available (fast response)
   const cached = qualityMetricsCache.get(cacheKey);
   if (cached) {
-    console.log('📊 Returning cached quality metrics (fast response)');
+    console.warn('📊 Returning cached quality metrics (fast response)');
     return cached;
   }
   
-  console.log('📊 Computing fresh quality metrics (this may take time)...');
+  console.warn('📊 Computing fresh quality metrics (this may take time)...');
   
   try {
     // Run all metrics collection in parallel for better performance
@@ -1796,7 +1796,7 @@ async function getQualityMetrics() {
     
     // Cache the results
     qualityMetricsCache.set(cacheKey, metrics);
-    console.log('📊 Quality metrics computed and cached');
+    console.warn('📊 Quality metrics computed and cached');
     
     return metrics;
   } catch (error) {
@@ -2296,7 +2296,7 @@ async function analyzeMetricsForImprovements(metrics: any): Promise<void> {
         await storage.createImprovementSuggestion(suggestion);
       }
       
-      console.log(`📊 Generated ${allSuggestions.length} improvement suggestions from quality metrics analysis`);
+      console.warn(`📊 Generated ${allSuggestions.length} improvement suggestions from quality metrics analysis`);
     }
 
   } catch (error) {
@@ -2314,6 +2314,7 @@ const invitationRateLimit = new LRUCache<string, number[]>({ max: 1000, ttl: 100
 /**
  * Rate limiting middleware for invitation endpoints.
  * Limits users to prevent invitation spam and abuse.
+ * @param maxPerHour
  */
 function rateLimitInvitations(maxPerHour: number = 10) {
   return (req: any, res: any, next: any) => {
@@ -2353,6 +2354,7 @@ function generateSecureToken(): string {
 /**
  * Creates SHA-256 hash of invitation token for secure storage.
  * Prevents token exposure in database while enabling validation.
+ * @param token
  */
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -2361,6 +2363,7 @@ function hashToken(token: string): string {
 /**
  * Validates email format using RFC-compliant regex.
  * Ensures invitation emails meet Quebec business standards.
+ * @param email
  */
 function validateEmailFormat(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2370,6 +2373,13 @@ function validateEmailFormat(email: string): boolean {
 /**
  * Creates audit log entry for invitation activities.
  * Ensures Law 25 compliance with comprehensive audit trail.
+ * @param invitationId
+ * @param action
+ * @param performedBy
+ * @param req
+ * @param previousStatus
+ * @param newStatus
+ * @param details
  */
 async function createInvitationAuditLog(
   invitationId: string,
@@ -2400,6 +2410,7 @@ async function createInvitationAuditLog(
  * Registers comprehensive user invitation management API routes.
  * Provides secure invitation system with role-based access control,
  * rate limiting, and complete audit logging for Quebec Law 25 compliance.
+ * @param app
  */
 function registerInvitationRoutes(app: any) {
   // POST /api/invitations - Create new user invitation
@@ -2691,12 +2702,12 @@ function registerInvitationRoutes(app: any) {
           filters.push(eq(invitations.invitedByUserId, currentUser.id));
         }
         
-        if (status) filters.push(eq(invitations.status, status));
-        if (email) filters.push(like(invitations.email, `%${email}%`));
-        if (role) filters.push(eq(invitations.role, role));
-        if (organization_id) filters.push(eq(invitations.organizationId, organization_id));
-        if (building_id) filters.push(eq(invitations.buildingId, building_id));
-        if (invited_by) filters.push(eq(invitations.invitedByUserId, invited_by));
+        if (status) {filters.push(eq(invitations.status, status));}
+        if (email) {filters.push(like(invitations.email, `%${email}%`));}
+        if (role) {filters.push(eq(invitations.role, role));}
+        if (organization_id) {filters.push(eq(invitations.organizationId, organization_id));}
+        if (building_id) {filters.push(eq(invitations.buildingId, building_id));}
+        if (invited_by) {filters.push(eq(invitations.invitedByUserId, invited_by));}
         
         if (filters.length > 0) {
           query = query.where(and(...filters));

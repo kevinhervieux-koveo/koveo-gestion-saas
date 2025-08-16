@@ -3,12 +3,18 @@
  * Implements Quebec-compliant security standards for property management systems.
  */
 
+/**
+ *
+ */
 export interface PasswordStrengthResult {
   score: number; // 0-4 (weak to very strong)
   feedback: string[];
   isValid: boolean;
 }
 
+/**
+ *
+ */
 export interface PasswordCriteria {
   minLength: boolean;
   hasUpperCase: boolean;
@@ -19,7 +25,7 @@ export interface PasswordCriteria {
 }
 
 /**
- * Common weak passwords and patterns to avoid
+ * Common weak passwords and patterns to avoid.
  */
 const COMMON_PATTERNS = [
   'password', '123456', 'admin', 'user', 'test', 'demo',
@@ -28,7 +34,8 @@ const COMMON_PATTERNS = [
 ];
 
 /**
- * Validates password strength and provides detailed feedback
+ * Validates password strength and provides detailed feedback.
+ * @param password
  */
 export function validatePasswordStrength(password: string): PasswordStrengthResult {
   const criteria = getPasswordCriteria(password);
@@ -97,7 +104,8 @@ export function validatePasswordStrength(password: string): PasswordStrengthResu
 }
 
 /**
- * Gets detailed password criteria evaluation
+ * Gets detailed password criteria evaluation.
+ * @param password
  */
 export function getPasswordCriteria(password: string): PasswordCriteria {
   return {
@@ -113,7 +121,8 @@ export function getPasswordCriteria(password: string): PasswordCriteria {
 }
 
 /**
- * Gets password strength level text with Quebec French labels
+ * Gets password strength level text with Quebec French labels.
+ * @param score
  */
 export function getPasswordStrengthLabel(score: number): string {
   switch (score) {
@@ -132,7 +141,8 @@ export function getPasswordStrengthLabel(score: number): string {
 }
 
 /**
- * Gets password strength color for UI indicators
+ * Gets password strength color for UI indicators.
+ * @param score
  */
 export function getPasswordStrengthColor(score: number): string {
   switch (score) {
@@ -151,7 +161,8 @@ export function getPasswordStrengthColor(score: number): string {
 }
 
 /**
- * Gets progress bar color for password strength visualization
+ * Gets progress bar color for password strength visualization.
+ * @param score
  */
 export function getPasswordStrengthBarColor(score: number): string {
   switch (score) {
