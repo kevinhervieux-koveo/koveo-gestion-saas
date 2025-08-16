@@ -146,11 +146,7 @@ export function getComponentCacheSize(): number {
  */
 export const optimizedPageLoaders = {
   // Admin pages
-  AdminDashboard: createOptimizedLoader(
-    () => import('@/pages/admin/dashboard'),
-    'admin-dashboard',
-    { preloadDelay: 2000, enableMemoryCleanup: true }
-  ),
+
   AdminRoadmap: createOptimizedLoader(
     () => import('@/pages/admin/roadmap'),
     'admin-roadmap',

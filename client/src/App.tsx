@@ -32,7 +32,6 @@ export const useMobileMenu = () => {
 };
 
 // Optimized lazy-loaded Admin pages
-const AdminDashboard = optimizedPageLoaders.AdminDashboard;
 const AdminDocumentation = createOptimizedLoader(
   () => import('@/pages/admin/documentation'),
   'admin-documentation',
@@ -263,7 +262,6 @@ function Router() {
               <Route path='/login' component={LoginRedirect} />
 
               {/* Admin routes */}
-              <Route path='/admin/dashboard' component={AdminDashboard} />
               <Route path='/admin/documentation' component={AdminDocumentation} />
               <Route path='/admin/pillars' component={AdminPillars} />
               <Route path='/admin/roadmap' component={AdminRoadmap} />
