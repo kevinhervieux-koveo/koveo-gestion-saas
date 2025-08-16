@@ -49,7 +49,7 @@ const config = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack))'
   ],
   testTimeout: 10000,
   maxWorkers: 1
