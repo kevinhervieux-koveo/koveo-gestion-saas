@@ -447,28 +447,16 @@ ${formData.additionalNotes || 'No additional notes'}
                   </div>
                 )}
                 
-                <div className="flex items-center gap-1">
+                {lastSaved && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={saveDraft}
-                    className="text-xs"
+                    onClick={clearDraft}
+                    className="text-xs text-red-600 hover:text-red-700"
                   >
-                    <Save className="h-3 w-3 mr-1" />
-                    Save Draft
+                    <Trash2 className="h-3 w-3" />
                   </Button>
-                  
-                  {lastSaved && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearDraft}
-                      className="text-xs text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
             )}
           </div>
