@@ -4,7 +4,7 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
-import { checkPermission, permissions } from '../config';
+import { checkPermission, permissions, getRolePermissions } from '../config';
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
@@ -111,6 +111,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         message: 'User account not found or inactive',
         code: 'USER_INACTIVE' 
       });
+    }
+
+    // Ensure session has role and permissions (for backwards compatibility)
+    if (!req.session.role || !req.session.permissions) {
+      const userPermissions = getRolePermissions(permissions, user.role as keyof typeof permissions);
+      req.session.role = user.role;
+      req.session.permissions = userPermissions;
     }
 
     req.user = user;
@@ -279,9 +286,14 @@ export function setupAuthRoutes(app: any) {
       // Update last login
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
-      // Set session
+      // Get user permissions based on role
+      const userPermissions = getRolePermissions(permissions, user.role as keyof typeof permissions);
+
+      // Set session with user data and permissions
       req.session.userId = user.id;
       req.session.userRole = user.role;
+      req.session.role = user.role;
+      req.session.permissions = userPermissions;
 
       // Return user data (without password)
       const { password: _, ...userData } = user;
@@ -390,10 +402,13 @@ declare global {
 // Extend session interface
 declare module 'express-session' {
   /**
-   *
+   * Extended session data interface for Quebec property management system.
+   * Includes user authentication data and cached permissions for performance.
    */
   interface SessionData {
     userId?: string;
     userRole?: string;
+    role?: string;
+    permissions?: string[];
   }
 }
