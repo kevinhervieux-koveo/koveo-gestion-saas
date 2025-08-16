@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Copy, FileText, Zap } from 'lucide-react';
+import { Copy, FileText, Zap, Save, Clock, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Feature } from '@shared/schema';
 
@@ -75,6 +75,75 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
   const [step, setStep] = useState<'form' | 'prompt'>('form');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+
+  /**
+   * Gets the localStorage key for drafts
+   */
+  const getDraftKey = () => {
+    const baseKey = 'koveo-feature-draft';
+    return feature?.id ? `${baseKey}-${feature.id}` : `${baseKey}-new`;
+  };
+
+  /**
+   * Saves form data to localStorage
+   */
+  const saveDraft = useCallback(() => {
+    try {
+      const draftData = {
+        formData,
+        timestamp: new Date().toISOString(),
+        featureId: feature?.id || null
+      };
+      localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
+      setLastSaved(new Date());
+      setIsDirty(false);
+      
+      toast({
+        title: 'Draft Saved',
+        description: 'Your progress has been automatically saved.',
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+    }
+  }, [formData, feature?.id, toast]);
+
+  /**
+   * Loads draft from localStorage
+   */
+  const loadDraft = useCallback(() => {
+    try {
+      const savedDraft = localStorage.getItem(getDraftKey());
+      if (savedDraft) {
+        const draftData = JSON.parse(savedDraft);
+        setFormData(draftData.formData);
+        setLastSaved(new Date(draftData.timestamp));
+        setIsDirty(false);
+      }
+    } catch (error) {
+      console.error('Failed to load draft:', error);
+    }
+  }, [feature?.id]);
+
+  /**
+   * Clears the saved draft
+   */
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(getDraftKey());
+      setLastSaved(null);
+      setIsDirty(false);
+      
+      toast({
+        title: 'Draft Cleared',
+        description: 'Saved draft has been removed.',
+      });
+    } catch (error) {
+      console.error('Failed to clear draft:', error);
+    }
+  }, [feature?.id, toast]);
 
   /**
    * Updates form data when input values change.
@@ -83,6 +152,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    */
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
   };
 
   /**
@@ -274,10 +344,32 @@ ${formData.additionalNotes || 'No additional notes'}
 
   const handleClose = (open: boolean) => {
     if (!open) {
+      if (isDirty) {
+        // Save draft before closing if there are unsaved changes
+        saveDraft();
+      }
       resetDialog();
     }
     onOpenChange(open);
   };
+
+  // Auto-save effect - saves after 3 seconds of inactivity
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const timer = setTimeout(() => {
+      saveDraft();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [formData, isDirty, saveDraft]);
+
+  // Load draft when form opens
+  useEffect(() => {
+    if (open) {
+      loadDraft();
+    }
+  }, [open, loadDraft]);
 
   const isNewFeature = !feature;
 
@@ -285,13 +377,56 @@ ${formData.additionalNotes || 'No additional notes'}
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {step === 'form' ? 
-              (isNewFeature ? 'Create New Feature' : 'Plan Feature Development') : 
-              'Generated Development Prompt'
-            }
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {step === 'form' ? 
+                (isNewFeature ? 'Create New Feature' : 'Plan Feature Development') : 
+                'Generated Development Prompt'
+              }
+            </DialogTitle>
+            
+            {step === 'form' && (
+              <div className="flex items-center gap-2">
+                {lastSaved && (
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="h-3 w-3" />
+                    Saved {lastSaved.toLocaleTimeString()}
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={saveDraft}
+                    className="text-xs"
+                  >
+                    <Save className="h-3 w-3 mr-1" />
+                    Save Draft
+                  </Button>
+                  
+                  {lastSaved && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearDraft}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {isDirty && step === 'form' && (
+            <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+              <Clock className="h-3 w-3" />
+              Auto-saving in progress...
+            </div>
+          )}
         </DialogHeader>
 
         {step === 'form' ? (
@@ -348,6 +483,7 @@ ${formData.additionalNotes || 'No additional notes'}
                         <SelectItem value="Analytics & Reporting">Analytics & Reporting</SelectItem>
                         <SelectItem value="Integration & API">Integration & API</SelectItem>
                         <SelectItem value="Infrastructure & Performance">Infrastructure & Performance</SelectItem>
+                        <SelectItem value="Website">Website</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -579,15 +715,42 @@ ${formData.additionalNotes || 'No additional notes'}
         )}
 
         <DialogFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => handleClose(false)}>
-            Cancel
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => handleClose(false)}>
+              Cancel
+            </Button>
+            
+            {lastSaved && step === 'form' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearDraft}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear Draft
+              </Button>
+            )}
+          </div>
+          
           <div className="flex gap-2">
+            {step === 'form' && (
+              <Button
+                onClick={saveDraft}
+                variant="outline"
+                className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Progress
+              </Button>
+            )}
+            
             {step === 'prompt' && (
               <Button variant="outline" onClick={() => setStep('form')}>
                 Back to Form
               </Button>
             )}
+            
             <Button 
               onClick={generatePrompt} 
               disabled={
