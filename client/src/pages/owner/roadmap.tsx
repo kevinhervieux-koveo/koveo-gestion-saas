@@ -263,7 +263,39 @@ export default function OwnerRoadmap() {
    * Copies LLM help form to clipboard for feature discussion.
    */
   const handleCopyLLMForm = async () => {
-    const llmHelpForm = `# Feature Development Discussion Form
+    const llmHelpForm = `# Koveo Gestion Feature Development Discussion Form
+
+## 📖 APPLICATION CONTEXT
+**Koveo Gestion** is a comprehensive property management platform for Quebec residential communities.
+
+### Tech Stack:
+- **Frontend**: React 18 with TypeScript, Vite, shadcn/ui components, Tailwind CSS
+- **Backend**: Express.js with TypeScript, RESTful API
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Express sessions with PostgreSQL session store
+- **Validation**: Zod schemas for runtime type validation
+- **State Management**: TanStack Query for server state, React Hook Form for forms
+
+### Key Patterns:
+- Monorepo structure with shared types between frontend and backend
+- Type-safe database operations with Drizzle ORM
+- Comprehensive validation with Zod schemas
+- Internationalization supporting French and English
+- Role-based access control (admin, manager, owner, tenant, board_member)
+
+### Database Schema includes:
+- Users, Organizations, Buildings, Residences
+- Bills, Maintenance Requests, Budgets
+- Documents, Notifications
+- Features and Actionable Items for roadmap management
+
+### Security Considerations:
+- Quebec Law 25 compliance required
+- Secure authentication with bcrypt password hashing
+- Session management with secure cookies
+- Input validation and sanitization
+
+---
 
 ## 🎯 Feature Overview
 **What feature do you want to build?**
@@ -323,13 +355,29 @@ export default function OwnerRoadmap() {
 [Privacy, language, or compliance requirements]
 
 ---
-**Instructions for LLM:** Use this form to discuss and refine the feature requirements. Ask clarifying questions about unclear sections and help develop a comprehensive feature specification.`;
+
+## 🔴 CRITICAL INSTRUCTIONS FOR LLM:
+
+**RESPOND ONLY TO THE SPECIFIC QUESTIONS AND SECTIONS FILLED OUT ABOVE.**
+
+1. **DO NOT** suggest additional features or requirements beyond what's specified
+2. **DO NOT** provide generic advice or best practices unless specifically asked
+3. **ONLY** address the exact questions and requirements mentioned in the completed sections
+4. **FOCUS** on the Koveo Gestion architecture and patterns described in the context
+5. **ENSURE** all suggestions align with Quebec Law 25 compliance and French/English support
+6. **PROVIDE** specific implementation details using the tech stack mentioned (React 18, Express.js, PostgreSQL, Drizzle ORM)
+7. **ASK** clarifying questions ONLY about unclear or incomplete sections in the form
+8. **KEEP** responses concise and directly related to the feature being discussed
+9. **USE** existing database schema and patterns mentioned in the context
+10. **REFERENCE** specific file paths and component structures based on the monorepo architecture
+
+**Your role is to help refine and implement the SPECIFIC feature described, not to expand the scope or suggest alternatives.**`;
 
     try {
       await navigator.clipboard.writeText(llmHelpForm);
       toast({
-        title: 'LLM Help Form Copied',
-        description: 'The feature discussion form has been copied to your clipboard. Use it with any LLM tool to refine your feature requirements.',
+        title: 'Enhanced LLM Help Form Copied',
+        description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
     } catch (error) {
