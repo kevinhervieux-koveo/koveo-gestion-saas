@@ -154,6 +154,7 @@ const InvitationAcceptancePage = createOptimizedLoader(
  */
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -168,20 +169,20 @@ function Router() {
     return <LoadingSpinner />;
   }
 
-  // Public routes available to all users
-  const publicRoutes = (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/login" component={LoginPage} />
-        <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-        <Route component={NotFound} />
-      </Switch>
-    </Suspense>
-  );
-
-  if (!isAuthenticated) {
-    return publicRoutes;
+  // Home page and public routes - always without sidebar
+  const isHomePage = location === '/';
+  
+  if (isHomePage || !isAuthenticated) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
+    );
   }
 
   const mobileMenuContext = {
@@ -210,9 +211,6 @@ function Router() {
         <div className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
-              {/* Home page - accessible to authenticated users */}
-              <Route path='/' component={HomePage} />
-              
               {/* Login page - redirect authenticated users to dashboard */}
               <Route path='/login' component={LoginRedirect} />
 
