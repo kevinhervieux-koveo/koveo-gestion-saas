@@ -1,4 +1,4 @@
-import { Switch, Route } from 'wouter';
+import { Switch, Route, useLocation } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,7 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 
 // Lazy-loaded Owner pages
@@ -42,6 +42,28 @@ const NotFound = lazy(() => import('@/pages/not-found'));
 // Authentication pages
 const LoginPage = lazy(() => import('@/pages/auth/login'));
 
+// Redirect component for root route
+function RootRedirect() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      setLocation('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+  
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  if (isAuthenticated) {
+    return null; // Will redirect via useEffect
+  }
+  
+  return <LoginPage />;
+}
+
 /**
  * Protected router component that handles authentication-based routing.
  * Shows login page for unauthenticated users, main app for authenticated users.
@@ -69,7 +91,7 @@ function Router() {
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
         {/* Default route - redirect to dashboard */}
-        <Route path='/' component={ResidentsDashboard} />
+        <Route path='/' component={RootRedirect} />
 
         {/* Owner routes */}
         <Route path='/owner/dashboard' component={OwnerDashboard} />
