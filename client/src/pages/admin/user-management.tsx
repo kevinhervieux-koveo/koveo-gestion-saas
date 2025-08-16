@@ -91,11 +91,20 @@ export default function UserManagement() {
     userRole: currentUser?.role,
     hasRoleAdmin: hasRole(['admin']),
     hasRoleManager: hasRole(['manager']),
-    hasRoleBoth: hasRole(['admin', 'manager'])
+    hasRoleBoth: hasRole(['admin', 'manager']),
+    hasRoleFunction: hasRole,
+    arrayCheck: Array.isArray(['admin', 'manager']),
+    includesCheck: currentUser ? ['admin', 'manager'].includes(currentUser.role) : 'no user'
   });
   
   // Check permissions - simplified for debugging
   const canManageUsers = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+  
+  console.log('Permission check result:', {
+    canManageUsers,
+    userExists: !!currentUser,
+    roleCheck: currentUser ? (currentUser.role === 'admin' || currentUser.role === 'manager') : false
+  });
 
   // Fetch user management data
   const { 

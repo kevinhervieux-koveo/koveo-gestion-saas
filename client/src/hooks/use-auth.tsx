@@ -133,11 +133,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * @returns True if user has the required role(s).
    */
   const hasRole = (role: string | string[]): boolean => {
-    if (!user) {return false;}
-    if (Array.isArray(role)) {
-      return role.includes(user.role);
+    console.log('hasRole called with:', { role, userRole: user?.role, user });
+    if (!user) {
+      console.log('hasRole: no user, returning false');
+      return false;
     }
-    return user.role === role;
+    if (Array.isArray(role)) {
+      const result = role.includes(user.role);
+      console.log('hasRole array check:', { roles: role, userRole: user.role, result });
+      return result;
+    }
+    const result = user.role === role;
+    console.log('hasRole single check:', { role, userRole: user.role, result });
+    return result;
   };
 
   /**
