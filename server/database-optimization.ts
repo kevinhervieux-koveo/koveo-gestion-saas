@@ -516,6 +516,10 @@ export class DatabaseMaintenance {
       await sql`REINDEX DATABASE CONCURRENTLY ${process.env.PGDATABASE}`;
       console.log('✓ Rebuilt indexes');
       
+      // Refresh materialized views
+      await QueryOptimizer.refreshMaterializedViews();
+      console.log('✓ Refreshed materialized views');
+      
     } catch (error) {
       console.warn('Database maintenance completed with warnings:', error);
     }

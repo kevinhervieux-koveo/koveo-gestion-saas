@@ -36,9 +36,10 @@ import type {
   InsertInvitationAuditLog,
 } from '@shared/schema';
 import type { IStorage } from './storage';
-import { QueryOptimizer } from './database-optimization';
+import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
 import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
+import { exists, sql as sqlOp } from 'drizzle-orm';
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
@@ -110,7 +111,150 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getUsers',
       'all_users',
       'users',
-      () => db.select().from(schema.users).where(eq(schema.users.isActive, true))
+      () => db.select().from(schema.users)
+        .where(eq(schema.users.isActive, true))
+        .limit(100) // Always use LIMIT for large result sets
+        .orderBy(desc(schema.users.createdAt))
+    );
+  }
+
+  /**
+   * Gets paginated users with optimized query structure.
+   */
+  async getPaginatedUsers(options: PaginationOptions): Promise<{ users: User[], total: number }> {
+    PaginationHelper.validatePagination(options);
+    
+    const cacheKey = `paginated_users:${options.page}:${options.pageSize}:${options.sortBy}:${options.sortDirection}`;
+    
+    // Try cache first
+    const cached = queryCache.get<{ users: User[], total: number }>('users', cacheKey);
+    if (cached) {
+      return cached;
+    }
+    
+    // Get total count using covering index
+    const [{ count: total }] = await db
+      .select({ count: count() })
+      .from(schema.users)
+      .where(eq(schema.users.isActive, true));
+    
+    // Get paginated results with LIMIT and optimized ORDER BY
+    const users = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.isActive, true))
+      .orderBy(
+        options.sortDirection === 'DESC' 
+          ? desc(schema.users[options.sortBy as keyof typeof schema.users] || schema.users.createdAt)
+          : schema.users[options.sortBy as keyof typeof schema.users] || schema.users.createdAt
+      )
+      .limit(options.pageSize)
+      .offset((options.page - 1) * options.pageSize);
+    
+    const result = { users, total };
+    queryCache.set('users', cacheKey, result);
+    
+    return result;
+  }
+
+  /**
+   * Gets buildings with residents using EXISTS instead of IN subquery.
+   */
+  async getBuildingsWithResidents(organizationId: string, limit: number = 50): Promise<Building[]> {
+    const cacheKey = `buildings_with_residents:${organizationId}:${limit}`;
+    
+    return this.withOptimizations(
+      'getBuildingsWithResidents',
+      cacheKey,
+      'buildings',
+      () => db
+        .select()
+        .from(schema.buildings)
+        .where(
+          and(
+            eq(schema.buildings.organizationId, organizationId),
+            eq(schema.buildings.isActive, true),
+            exists(
+              db.select()
+                .from(schema.residences)
+                .where(
+                  and(
+                    eq(schema.residences.buildingId, schema.buildings.id),
+                    eq(schema.residences.isActive, true)
+                  )
+                )
+            )
+          )
+        )
+        .limit(limit) // Always use LIMIT for large result sets
+    );
+  }
+
+  /**
+   * Searches users with optimized covering index and LIMIT.
+   */
+  async searchUsers(query: string, limit: number = 20): Promise<User[]> {
+    const cacheKey = `search_users:${query}:${limit}`;
+    
+    return this.withOptimizations(
+      'searchUsers',
+      cacheKey,
+      'users',
+      () => db
+        .select()
+        .from(schema.users)
+        .where(
+          and(
+            eq(schema.users.isActive, true),
+            or(
+              like(schema.users.email, `%${query}%`),
+              like(schema.users.firstName, `%${query}%`),
+              like(schema.users.lastName, `%${query}%`)
+            )
+          )
+        )
+        .limit(limit) // Always limit search results
+        .orderBy(schema.users.lastName, schema.users.firstName)
+    );
+  }
+
+  /**
+   * Gets financial summary using materialized view for complex aggregations.
+   */
+  async getFinancialSummary(buildingId: string): Promise<any[]> {
+    const cacheKey = `financial_summary:${buildingId}`;
+    
+    return this.withOptimizations(
+      'getFinancialSummary',
+      cacheKey,
+      'financial',
+      async () => {
+        // Use materialized view for complex aggregations
+        const summary = await db.execute(
+          sqlOp`SELECT * FROM mv_financial_summary WHERE building_id = ${buildingId} ORDER BY month DESC LIMIT 12`
+        );
+        return summary.rows;
+      }
+    );
+  }
+
+  /**
+   * Gets building statistics using materialized view.
+   */
+  async getBuildingStats(buildingId: string): Promise<any> {
+    const cacheKey = `building_stats:${buildingId}`;
+    
+    return this.withOptimizations(
+      'getBuildingStats',
+      cacheKey,
+      'buildings',
+      async () => {
+        // Use materialized view for dashboard statistics
+        const [stats] = await db.execute(
+          sqlOp`SELECT * FROM mv_building_stats WHERE building_id = ${buildingId}`
+        );
+        return stats.rows[0];
+      }
     );
   }
 
