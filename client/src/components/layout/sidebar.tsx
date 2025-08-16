@@ -181,6 +181,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Budget', href: '/manager/budget', icon: DollarSign },
         { name: 'Bills', href: '/manager/bills', icon: FileText },
         { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
+        { name: 'User Management', href: '/manager/user-management', icon: UserPlus },
       ],
     },
     {
@@ -194,14 +195,6 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/owner/suggestions', icon: Lightbulb },
         { name: 'RBAC Permissions', href: '/owner/permissions', icon: ShieldCheck },
-      ],
-    },
-    {
-      name: 'Admin',
-      key: 'admin',
-      icon: ShieldCheck,
-      items: [
-        { name: 'User Management', href: '/manager/user-management', icon: UserPlus },
       ],
     },
     {
