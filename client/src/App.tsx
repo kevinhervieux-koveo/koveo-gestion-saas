@@ -181,16 +181,18 @@ function Router() {
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
       <div className='h-full flex bg-gray-50 font-inter'>
-        {/* Sidebar - hidden on mobile unless menu is open */}
+        {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
         </div>
         
-        {/* Mobile sidebar overlay */}
-        <Sidebar 
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={closeMobileMenu}
-        />
+        {/* Mobile sidebar overlay - only visible when mobile menu is open */}
+        <div className="md:hidden">
+          <Sidebar 
+            isMobileMenuOpen={isMobileMenuOpen}
+            onMobileMenuClose={closeMobileMenu}
+          />
+        </div>
         
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
