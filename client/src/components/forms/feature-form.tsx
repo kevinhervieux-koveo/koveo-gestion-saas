@@ -467,7 +467,7 @@ ${formData.additionalNotes || 'No additional notes'}
       featureCategory: 'Compliance & Security', // Default to a valid category
       featureDescription: '',
       isStrategicPath: false,
-      businessObjective: ''
+      businessObjective: '',
       targetUsers: '',
       successMetrics: '',
       priority: '',
