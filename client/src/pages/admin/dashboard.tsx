@@ -112,6 +112,21 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Organizations Section */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <Building className='text-koveo-navy mr-2' size={24} />
+              Organizations Management
+            </h2>
+            <Button
+              onClick={() => setIsOrganizationDialogOpen(true)}
+              className='bg-blue-600 hover:bg-blue-700 text-white'
+            >
+              <Plus className='h-4 w-4 mr-2' />
+              Create Organization
+            </Button>
+          </div>
+
           {/* Organizations Overview */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             <Card>
