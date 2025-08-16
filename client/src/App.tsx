@@ -307,15 +307,6 @@ function Router() {
 
               {/* Legacy routes */}
               <Route path='/pillars' component={PillarsPage} />
-              
-              {/* Redirect old admin dashboard to new organizations page */}
-              <Route path='/admin/dashboard' component={() => {
-                const [, setLocation] = useLocation();
-                useEffect(() => {
-                  setLocation('/admin/organizations');
-                }, [setLocation]);
-                return <LoadingSpinner />;
-              }} />
 
               {/* 404 */}
               <Route component={NotFound} />
