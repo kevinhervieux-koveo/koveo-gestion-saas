@@ -21,6 +21,7 @@ import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Props for the Sidebar component.
@@ -223,7 +224,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-3'>
             <img 
-              src="@assets/image_1755317306936.png" 
+              src={koveoLogo} 
               alt="Koveo Gestion Logo" 
               className="h-12 w-auto"
             />
