@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Quebec Law 25 Security Compliance Check
+ * Quebec Law 25 Security Compliance Check.
  * 
  * This script validates Quebec Law 25 privacy and security requirements
  * for the Koveo Gestion property management platform.
@@ -11,6 +11,9 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, lstatSync } from 'fs';
 import { join } from 'path';
 
+/**
+ *
+ */
 interface ComplianceResult {
   category: string;
   status: 'PASS' | 'FAIL' | 'WARNING';
@@ -18,6 +21,9 @@ interface ComplianceResult {
   details?: string[];
 }
 
+/**
+ *
+ */
 class QuebecSecurityChecker {
   private results: ComplianceResult[] = [];
   private criticalIssues = 0;
@@ -420,13 +426,15 @@ class QuebecSecurityChecker {
 
   /**
    * Helper method to find files matching a pattern.
+   * @param directories
+   * @param pattern
    */
   private findFiles(directories: string[], pattern: RegExp): string[] {
     const files: string[] = [];
     
     const scanDirectory = (dir: string) => {
       const fullPath = join(process.cwd(), dir);
-      if (!existsSync(fullPath)) return;
+      if (!existsSync(fullPath)) {return;}
       
       const items = readdirSync(fullPath);
       for (const item of items) {
@@ -450,6 +458,10 @@ class QuebecSecurityChecker {
 
   /**
    * Add a compliance result.
+   * @param category
+   * @param status
+   * @param message
+   * @param details
    */
   private addResult(category: string, status: 'PASS' | 'FAIL' | 'WARNING', message: string, details?: string[]): void {
     this.results.push({ category, status, message, details });

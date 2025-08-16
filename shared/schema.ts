@@ -1627,7 +1627,13 @@ export const insertPermissionSchema = createInsertSchema(permissions).omit({
   createdAt: true,
   updatedAt: true,
 });
+/**
+ *
+ */
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+/**
+ *
+ */
 export type Permission = typeof permissions.$inferSelect;
 
 export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
@@ -1635,7 +1641,13 @@ export const insertRolePermissionSchema = createInsertSchema(rolePermissions).om
   grantedAt: true,
   createdAt: true,
 });
+/**
+ *
+ */
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+/**
+ *
+ */
 export type RolePermission = typeof rolePermissions.$inferSelect;
 
 export const insertUserPermissionSchema = createInsertSchema(userPermissions).omit({
@@ -1643,7 +1655,13 @@ export const insertUserPermissionSchema = createInsertSchema(userPermissions).om
   grantedAt: true,
   createdAt: true,
 });
+/**
+ *
+ */
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+/**
+ *
+ */
 export type UserPermission = typeof userPermissions.$inferSelect;
 
 // SSL Certificates Management
@@ -1707,5 +1725,11 @@ export const insertSSLCertificateSchema = createInsertSchema(sslCertificates).om
   createdAt: true,
   updatedAt: true,
 });
+/**
+ *
+ */
 export type InsertSSLCertificate = z.infer<typeof insertSSLCertificateSchema>;
+/**
+ *
+ */
 export type SSLCertificate = typeof sslCertificates.$inferSelect;

@@ -1,12 +1,12 @@
 /**
  * Job scheduler initialization
- * Initialize and start all background jobs
+ * Initialize and start all background jobs.
  */
 
 import { sslRenewalJob } from './ssl_renewal_job';
 
 /**
- * Start all background jobs
+ * Start all background jobs.
  */
 export async function startJobs(): Promise<void> {
   try {
@@ -23,7 +23,7 @@ export async function startJobs(): Promise<void> {
 }
 
 /**
- * Stop all background jobs
+ * Stop all background jobs.
  */
 export function stopJobs(): void {
   console.log('Stopping background jobs...');
@@ -34,7 +34,7 @@ export function stopJobs(): void {
 }
 
 /**
- * Get status of all background jobs
+ * Get status of all background jobs.
  */
 export function getJobsStatus(): Record<string, any> {
   return {

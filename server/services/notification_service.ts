@@ -10,9 +10,9 @@ export class NotificationService {
   /**
    * Send an SSL certificate expiry notification to all administrators.
    * 
-   * @param domain - The domain name of the expiring certificate
-   * @param expiryDate - The certificate expiry date
-   * @param daysUntilExpiry - Number of days until certificate expires
+   * @param domain - The domain name of the expiring certificate.
+   * @param expiryDate - The certificate expiry date.
+   * @param daysUntilExpiry - Number of days until certificate expires.
    */
   async sendSSLExpiryAlert(
     domain: string, 
@@ -78,10 +78,10 @@ export class NotificationService {
   /**
    * Send SSL certificate renewal failure notification to administrators.
    * 
-   * @param domain - The domain name of the failed certificate renewal
-   * @param errorMessage - The error message from the renewal attempt
-   * @param attemptCount - Current number of renewal attempts
-   * @param maxAttempts - Maximum number of renewal attempts allowed
+   * @param domain - The domain name of the failed certificate renewal.
+   * @param errorMessage - The error message from the renewal attempt.
+   * @param attemptCount - Current number of renewal attempts.
+   * @param maxAttempts - Maximum number of renewal attempts allowed.
    */
   async sendSSLRenewalFailureAlert(
     domain: string,
@@ -137,9 +137,9 @@ export class NotificationService {
    * Send SSL certificate renewal success notification to administrators.
    * Only sent for certificates that previously had renewal issues.
    * 
-   * @param domain - The domain name of the successfully renewed certificate
-   * @param newExpiryDate - The new expiry date of the renewed certificate
-   * @param previousAttempts - Number of previous failed attempts
+   * @param domain - The domain name of the successfully renewed certificate.
+   * @param newExpiryDate - The new expiry date of the renewed certificate.
+   * @param previousAttempts - Number of previous failed attempts.
    */
   async sendSSLRenewalSuccessAlert(
     domain: string,
@@ -201,8 +201,8 @@ export class NotificationService {
   /**
    * Get the count of unread SSL notifications for a user.
    * 
-   * @param userId - The user ID to check notifications for
-   * @returns Number of unread SSL notifications
+   * @param userId - The user ID to check notifications for.
+   * @returns Number of unread SSL notifications.
    */
   async getUnreadSSLNotificationCount(userId: string): Promise<number> {
     try {

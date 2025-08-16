@@ -2,7 +2,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import { registerUserRoutes } from '../../server/api/users';
 import { storage } from '../../server/storage';
-import type { InsertUser, User } from '@shared/schema';
+import type { InsertUser, User } from '../../shared/schema';
 
 // Mock storage module
 jest.mock('../../server/storage', () => ({

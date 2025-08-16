@@ -261,7 +261,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * @param field
    * @param value
    */
-  const updateFormData = (field: string, value: string | boolean) => {
+  const updateFormData = (field: string, value: string | boolean | any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };

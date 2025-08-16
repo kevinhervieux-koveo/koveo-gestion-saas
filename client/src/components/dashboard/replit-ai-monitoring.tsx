@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,7 +73,7 @@ export function ReplitAIMonitoring() {
   const [activeTab, setActiveTab] = useState('overview');
   
   // Fetch AI metrics
-  const { data: metrics, isLoading: metricsLoading } = useQuery<AIMetrics>({
+  const { data: metrics, isLoading: _metricsLoading } = useQuery<AIMetrics>({
     queryKey: ['/api/ai/metrics'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });

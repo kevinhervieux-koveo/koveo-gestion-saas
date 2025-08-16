@@ -33,6 +33,9 @@ interface SidebarProps {
 
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
+ * @param root0
+ * @param root0.isMobileMenuOpen
+ * @param root0.onMobileMenuClose
  */
 export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();

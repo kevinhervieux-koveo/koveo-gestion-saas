@@ -4,7 +4,9 @@ import { useLanguage } from '@/hooks/use-language';
 import { useEffect, useState } from 'react';
 
 /**
- *
+ * Development console component that displays animated terminal output
+ * showing the initialization progress of the Koveo Gestion development framework.
+ * @returns JSX element displaying the development console interface.
  */
 export function DevelopmentConsole() {
   const { t } = useLanguage();

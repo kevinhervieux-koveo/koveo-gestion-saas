@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Security Report Generator
+ * Security Report Generator.
  * 
  * Generates comprehensive security reports for Koveo Gestion
  * including Quebec Law 25 compliance status.
@@ -11,6 +11,9 @@ import { execSync } from 'child_process';
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
+/**
+ *
+ */
 interface SecurityMetrics {
   vulnerabilities: {
     critical: number;
@@ -27,6 +30,9 @@ interface SecurityMetrics {
   recommendations: string[];
 }
 
+/**
+ *
+ */
 class SecurityReportGenerator {
   private metrics: SecurityMetrics = {
     vulnerabilities: {
@@ -44,6 +50,9 @@ class SecurityReportGenerator {
     recommendations: []
   };
 
+  /**
+   *
+   */
   async generateReport(): Promise<void> {
     console.log('📋 Generating Comprehensive Security Report');
     console.log('===========================================\n');
@@ -65,6 +74,9 @@ class SecurityReportGenerator {
     console.log('📁 Reports saved: security-report.md, security-report.json');
   }
 
+  /**
+   *
+   */
   private async collectVulnerabilityData(): Promise<void> {
     console.log('🔍 Collecting vulnerability data...');
 
@@ -92,6 +104,9 @@ class SecurityReportGenerator {
     }
   }
 
+  /**
+   *
+   */
   private async assessQuebecCompliance(): Promise<void> {
     console.log('🇨🇦 Assessing Quebec Law 25 compliance...');
 
@@ -111,6 +126,9 @@ class SecurityReportGenerator {
     }
   }
 
+  /**
+   *
+   */
   private async assessAuthenticationSecurity(): Promise<void> {
     console.log('🔑 Assessing authentication security...');
 
@@ -133,9 +151,9 @@ class SecurityReportGenerator {
           if (existsSync(filePath)) {
             const content = readFileSync(filePath, 'utf-8');
             
-            if (content.includes('bcrypt') || content.includes('hash')) securePatterns++;
-            if (content.includes('session') && content.includes('secure')) securePatterns++;
-            if (content.includes('jwt') && content.includes('secret')) securePatterns++;
+            if (content.includes('bcrypt') || content.includes('hash')) {securePatterns++;}
+            if (content.includes('session') && content.includes('secure')) {securePatterns++;}
+            if (content.includes('jwt') && content.includes('secret')) {securePatterns++;}
           }
         }
         
@@ -158,6 +176,9 @@ class SecurityReportGenerator {
     }
   }
 
+  /**
+   *
+   */
   private async assessDataProtection(): Promise<void> {
     console.log('🛡️ Assessing data protection...');
 
@@ -170,9 +191,9 @@ class SecurityReportGenerator {
         const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
         const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
         
-        if (deps.bcrypt || deps.crypto) protectionScore++;
-        if (deps.helmet) protectionScore++;
-        if (deps['express-session']) protectionScore++;
+        if (deps.bcrypt || deps.crypto) {protectionScore++;}
+        if (deps.helmet) {protectionScore++;}
+        if (deps['express-session']) {protectionScore++;}
       }
       
       // Check for secure database connection
@@ -198,6 +219,9 @@ class SecurityReportGenerator {
     }
   }
 
+  /**
+   *
+   */
   private generateRecommendations(): void {
     // Add vulnerability-based recommendations
     if (this.metrics.vulnerabilities.critical > 0) {
@@ -215,6 +239,9 @@ class SecurityReportGenerator {
     this.metrics.recommendations.push('Ensure Quebec Law 25 compliance documentation is current');
   }
 
+  /**
+   *
+   */
   private createTextReport(): void {
     const timestamp = new Date().toISOString();
     
@@ -285,6 +312,9 @@ ${this.metrics.vulnerabilities.critical > 0 ?
     writeFileSync('security-report.md', report);
   }
 
+  /**
+   *
+   */
   private createJsonReport(): void {
     const report = {
       timestamp: new Date().toISOString(),
@@ -302,6 +332,9 @@ ${this.metrics.vulnerabilities.critical > 0 ?
     writeFileSync('security-report.json', JSON.stringify(report, null, 2));
   }
 
+  /**
+   *
+   */
   private getOverallStatus(): 'SECURE' | 'NEEDS_ATTENTION' | 'CRITICAL' {
     if (this.metrics.vulnerabilities.critical > 0) {
       return 'CRITICAL';
@@ -315,24 +348,27 @@ ${this.metrics.vulnerabilities.critical > 0 ?
     return 'SECURE';
   }
 
+  /**
+   *
+   */
   private getComplianceLevel(): number {
     let score = 0;
     let total = 0;
     
     // Vulnerability score (40% weight)
-    if (this.metrics.vulnerabilities.critical === 0) score += 15;
-    if (this.metrics.vulnerabilities.high <= 3) score += 25;
+    if (this.metrics.vulnerabilities.critical === 0) {score += 15;}
+    if (this.metrics.vulnerabilities.high <= 3) {score += 25;}
     total += 40;
     
     // Compliance score (60% weight)
-    if (this.metrics.compliance.quebec_law25 === 'COMPLIANT') score += 20;
-    else if (this.metrics.compliance.quebec_law25 === 'NEEDS_REVIEW') score += 10;
+    if (this.metrics.compliance.quebec_law25 === 'COMPLIANT') {score += 20;}
+    else if (this.metrics.compliance.quebec_law25 === 'NEEDS_REVIEW') {score += 10;}
     
-    if (this.metrics.compliance.authentication === 'SECURE') score += 20;
-    else if (this.metrics.compliance.authentication === 'NEEDS_REVIEW') score += 10;
+    if (this.metrics.compliance.authentication === 'SECURE') {score += 20;}
+    else if (this.metrics.compliance.authentication === 'NEEDS_REVIEW') {score += 10;}
     
-    if (this.metrics.compliance.data_protection === 'COMPLIANT') score += 20;
-    else if (this.metrics.compliance.data_protection === 'NEEDS_REVIEW') score += 10;
+    if (this.metrics.compliance.data_protection === 'COMPLIANT') {score += 20;}
+    else if (this.metrics.compliance.data_protection === 'NEEDS_REVIEW') {score += 10;}
     
     total += 60;
     

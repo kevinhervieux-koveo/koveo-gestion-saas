@@ -18,8 +18,8 @@ const domainSchema = z.object({
     .refine(
       (domain) => {
         // Additional validation rules
-        if (domain.startsWith('-') || domain.endsWith('-')) return false;
-        if (domain.includes('..')) return false;
+        if (domain.startsWith('-') || domain.endsWith('-')) {return false;}
+        if (domain.includes('..')) {return false;}
         const parts = domain.split('.');
         return parts.every(part => part.length > 0 && part.length <= 63);
       },
@@ -38,8 +38,8 @@ export function registerSSLRoutes(app: Express): void {
    * 
    * Requires authentication and returns certificate data, expiry date, and renewal status.
    * 
-   * @param domain - The domain name to retrieve certificate information for
-   * @returns SSL certificate information including status and expiry details
+   * @param domain - The domain name to retrieve certificate information for.
+   * @returns SSL certificate information including status and expiry details.
    */
   app.get('/api/ssl/:domain', requireAuth, async (req, res) => {
     try {
@@ -204,7 +204,7 @@ export function registerSSLRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/ssl/:domain/status - Get detailed status information for a certificate
+   * GET /api/ssl/:domain/status - Get detailed status information for a certificate.
    * 
    * Returns detailed certificate status including expiry warnings and renewal information.
    */

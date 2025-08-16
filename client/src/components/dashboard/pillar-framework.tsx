@@ -3,7 +3,9 @@ import { Columns } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
- *
+ * Pillar framework component that displays the five core development pillars
+ * of the Koveo Gestion methodology with their descriptions and status.
+ * @returns JSX element displaying the pillar framework interface.
  */
 export function PillarFramework() {
   const { t } = useLanguage();

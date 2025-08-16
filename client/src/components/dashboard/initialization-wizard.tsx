@@ -1,7 +1,9 @@
 import { useLanguage } from '@/hooks/use-language';
 
 /**
- *
+ * Initialization wizard component that guides users through the setup process
+ * of the Koveo Gestion development framework with progress indicators.
+ * @returns JSX element displaying the initialization wizard interface.
  */
 export function InitializationWizard() {
   const { t } = useLanguage();

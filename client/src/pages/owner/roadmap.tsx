@@ -263,12 +263,12 @@ export default function OwnerRoadmap() {
     
     const analysis = new Map<string, DuplicateInfo>();
     
-    features.forEach((feature, index) => {
+    features.forEach((feature: Feature, index: number) => {
       const duplicates: Feature[] = [];
       let exactMatch = false;
       
       // Compare with all other features
-      features.forEach((otherFeature, otherIndex) => {
+      features.forEach((otherFeature: Feature, otherIndex: number) => {
         if (index === otherIndex) {return;}
         
         const nameMatch = feature.name.toLowerCase().trim() === otherFeature.name.toLowerCase().trim();
@@ -281,10 +281,10 @@ export default function OwnerRoadmap() {
         }
         // Check for similar features (containing similar keywords)
         else {
-          const featureWords = feature.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-          const otherWords = otherFeature.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+          const featureWords = feature.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+          const otherWords = otherFeature.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
           
-          const commonWords = featureWords.filter(word => otherWords.includes(word));
+          const commonWords = featureWords.filter((word: string) => otherWords.includes(word));
           
           // If more than 50% of significant words match, consider it similar
           if (featureWords.length > 0 && commonWords.length / featureWords.length > 0.5) {
@@ -472,7 +472,7 @@ export default function OwnerRoadmap() {
     }
     
     const searchLower = searchTerm.toLowerCase().trim();
-    return features.filter(feature => 
+    return features.filter((feature: Feature) => 
       feature.name.toLowerCase().includes(searchLower) ||
       feature.description?.toLowerCase().includes(searchLower) ||
       feature.category.toLowerCase().includes(searchLower)
@@ -1119,7 +1119,7 @@ export default function OwnerRoadmap() {
                                                         variant='ghost'
                                                         size='sm'
                                                         className='ml-2 h-6 px-2'
-                                                        onClick={() => handleCopyPrompt(item.implementationPrompt)}
+                                                        onClick={() => handleCopyPrompt(item.implementationPrompt || '')}
                                                       >
                                                         <Copy className='w-3 h-3 mr-1' />
                                                         Copy

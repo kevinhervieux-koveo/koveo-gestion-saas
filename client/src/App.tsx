@@ -6,12 +6,15 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { lazy, Suspense, useEffect, useState, createContext, useContext } from 'react';
+import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 
 // Mobile menu context
+/**
+ *
+ */
 interface MobileMenuContextType {
   isMobileMenuOpen: boolean;
   toggleMobileMenu: () => void;
@@ -125,7 +128,7 @@ const LoginPage = createOptimizedLoader(
 // Redirect component for root route
 /**
  * Component that handles root route redirection based on authentication status.
- * @returns JSX element for root redirect logic
+ * @returns JSX element for root redirect logic.
  */
 function RootRedirect() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -151,6 +154,7 @@ function RootRedirect() {
 /**
  * Protected router component that handles authentication-based routing.
  * Shows login page for unauthenticated users, main app for authenticated users.
+ * @returns JSX element for the router component.
  */
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -250,6 +254,7 @@ function Router() {
 /**
  * Main App component with authentication integration.
  * Wraps the application with all necessary providers including authentication.
+ * @returns JSX element for the main App component.
  */
 function App() {
   // Initialize memory monitoring on app start

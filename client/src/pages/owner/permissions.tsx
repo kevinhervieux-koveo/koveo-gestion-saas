@@ -14,6 +14,9 @@ import { Shield, Users, Settings, Plus, Search, Filter } from 'lucide-react';
 import { useState } from 'react';
 import { queryClient } from '@/lib/queryClient';
 
+/**
+ *
+ */
 interface Permission {
   id: string;
   name: string;
@@ -25,6 +28,9 @@ interface Permission {
   createdAt: string;
 }
 
+/**
+ *
+ */
 interface RolePermission {
   id: string;
   role: string;
@@ -34,6 +40,9 @@ interface RolePermission {
   grantedAt: string;
 }
 
+/**
+ *
+ */
 interface UserPermission {
   id: string;
   userId: string;
@@ -45,6 +54,9 @@ interface UserPermission {
   grantedAt: string;
 }
 
+/**
+ *
+ */
 interface User {
   id: string;
   email: string;
@@ -54,6 +66,9 @@ interface User {
   isActive: boolean;
 }
 
+/**
+ *
+ */
 export default function Permissions() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('roles');
@@ -84,7 +99,7 @@ export default function Permissions() {
 
   // Group permissions by role
   const permissionsByRole = rolePermissions?.reduce((acc, rp) => {
-    if (!acc[rp.role]) acc[rp.role] = [];
+    if (!acc[rp.role]) {acc[rp.role] = [];}
     acc[rp.role].push(rp);
     return acc;
   }, {} as Record<string, RolePermission[]>) || {};

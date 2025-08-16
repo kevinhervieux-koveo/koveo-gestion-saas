@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 
 /**
- * SSL Management System Validation Script
+ * SSL Management System Validation Script.
  * 
  * This script validates that all SSL Management components are working correctly:
  * - SSL Service initialization
  * - SSL Renewal Job configuration  
  * - Notification Service functionality
  * - Database schema integrity
- * - API endpoint availability
+ * - API endpoint availability.
  */
 
 import { sslRenewalJob } from '../server/jobs/ssl_renewal_job';
@@ -17,6 +17,9 @@ import { db } from '../server/db';
 import { sslCertificates, notifications, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
+/**
+ *
+ */
 interface ValidationResult {
   component: string;
   status: 'PASS' | 'FAIL' | 'WARNING';
@@ -24,15 +27,25 @@ interface ValidationResult {
   details?: any;
 }
 
+/**
+ *
+ */
 class SSLManagementValidator {
   private results: ValidationResult[] = [];
 
+  /**
+   *
+   * @param component
+   * @param status
+   * @param message
+   * @param details
+   */
   private addResult(component: string, status: 'PASS' | 'FAIL' | 'WARNING', message: string, details?: any) {
     this.results.push({ component, status, message, details });
   }
 
   /**
-   * Validate SSL Renewal Job configuration and status
+   * Validate SSL Renewal Job configuration and status.
    */
   async validateSSLRenewalJob(): Promise<void> {
     try {
@@ -82,7 +95,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Validate database schema and connectivity
+   * Validate database schema and connectivity.
    */
   async validateDatabase(): Promise<void> {
     try {
@@ -114,7 +127,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Validate notification service functionality
+   * Validate notification service functionality.
    */
   async validateNotificationService(): Promise<void> {
     try {
@@ -150,7 +163,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Validate environment configuration
+   * Validate environment configuration.
    */
   validateEnvironmentConfig(): void {
     const requiredEnvVars = {
@@ -195,7 +208,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Validate SSL certificate status calculation
+   * Validate SSL certificate status calculation.
    */
   validateCertificateStatusLogic(): void {
     try {
@@ -228,7 +241,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Run all validations
+   * Run all validations.
    */
   async runAllValidations(): Promise<void> {
     console.log('🔍 Starting SSL Management System Validation...\n');
@@ -245,7 +258,7 @@ class SSLManagementValidator {
   }
 
   /**
-   * Print validation results
+   * Print validation results.
    */
   private printResults(): void {
     console.log('\n' + '='.repeat(80));
@@ -265,9 +278,9 @@ class SSLManagementValidator {
         console.log(`   Details: ${JSON.stringify(result.details, null, 4).replace(/^/gm, '   ')}`);
       }
 
-      if (result.status === 'PASS') passCount++;
-      else if (result.status === 'WARNING') warningCount++;
-      else failCount++;
+      if (result.status === 'PASS') {passCount++;}
+      else if (result.status === 'WARNING') {warningCount++;}
+      else {failCount++;}
     });
 
     console.log('\n' + '='.repeat(80));

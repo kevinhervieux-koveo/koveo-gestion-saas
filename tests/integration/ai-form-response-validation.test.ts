@@ -67,7 +67,7 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(analysisResult.actionableItems.length).toBeLessThanOrEqual(10); // Reasonable limit
 
       // Validate each actionable item structure
-      analysisResult.actionableItems.forEach((item, index) => {
+      analysisResult.actionableItems.forEach((item, _index) => {
         expect(item).toHaveProperty('title');
         expect(item).toHaveProperty('description');
         expect(item).toHaveProperty('technicalDetails');

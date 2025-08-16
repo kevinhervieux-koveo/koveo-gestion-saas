@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../../server/routes';
@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 
 describe('SSL API Integration', () => {
   let app: express.Application;
-  let server: any;
+  let _server: any;
   let adminUser: any;
   let testCertificateId: string;
   let authCookie: string;

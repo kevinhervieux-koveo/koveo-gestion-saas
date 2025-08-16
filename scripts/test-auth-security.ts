@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Authentication Security Test Script
+ * Authentication Security Test Script.
  * 
  * Tests authentication and authorization systems for Quebec Law 25 compliance.
  */
@@ -9,16 +9,25 @@
 import { spawn } from 'child_process';
 import { setTimeout } from 'timers/promises';
 
+/**
+ *
+ */
 interface AuthTestResult {
   test: string;
   status: 'PASS' | 'FAIL';
   message: string;
 }
 
+/**
+ *
+ */
 class AuthSecurityTester {
   private results: AuthTestResult[] = [];
   private serverProcess: any;
 
+  /**
+   *
+   */
   async runAuthTests(): Promise<void> {
     console.log('🔑 Testing Authentication Security Systems');
     console.log('==========================================\n');
@@ -49,6 +58,9 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   */
   private async startTestServer(): Promise<void> {
     console.log('🚀 Starting test server...');
     
@@ -73,6 +85,9 @@ class AuthSecurityTester {
     });
   }
 
+  /**
+   *
+   */
   private async stopTestServer(): Promise<void> {
     if (this.serverProcess) {
       this.serverProcess.kill('SIGTERM');
@@ -80,6 +95,9 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   */
   private async testAuthenticationEndpoints(): Promise<void> {
     console.log('🔐 Testing authentication endpoints...');
 
@@ -108,6 +126,9 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   */
   private async testProtectedRoutes(): Promise<void> {
     console.log('🛡️ Testing protected routes...');
 
@@ -135,6 +156,9 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   */
   private async testSessionSecurity(): Promise<void> {
     console.log('🍪 Testing session security...');
 
@@ -166,6 +190,9 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   */
   private async testPasswordSecurity(): Promise<void> {
     console.log('🔒 Testing password security...');
 
@@ -193,6 +220,12 @@ class AuthSecurityTester {
     }
   }
 
+  /**
+   *
+   * @param method
+   * @param path
+   * @param body
+   */
   private async makeRequest(method: string, path: string, body?: any): Promise<any> {
     const fetch = await import('node-fetch').then(m => m.default);
     
@@ -217,10 +250,19 @@ class AuthSecurityTester {
     };
   }
 
+  /**
+   *
+   * @param test
+   * @param status
+   * @param message
+   */
   private addResult(test: string, status: 'PASS' | 'FAIL', message: string): void {
     this.results.push({ test, status, message });
   }
 
+  /**
+   *
+   */
   private generateReport(): void {
     console.log('\n📋 Authentication Security Test Report');
     console.log('======================================\n');

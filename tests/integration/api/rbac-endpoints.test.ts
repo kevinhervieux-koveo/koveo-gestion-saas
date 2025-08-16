@@ -1,6 +1,5 @@
 import request from 'supertest';
 import express from 'express';
-import session from 'express-session';
 import { sessionConfig, setupAuthRoutes } from '../../../server/auth';
 import { registerUserRoutes } from '../../../server/api/users';
 import { storage } from '../../../server/storage';

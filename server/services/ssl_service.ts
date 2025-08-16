@@ -4,6 +4,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
+/**
+ *
+ */
 export interface CertificateData {
   certificate: string;
   privateKey: string;
@@ -15,6 +18,9 @@ export interface CertificateData {
   fingerprint: string;
 }
 
+/**
+ *
+ */
 export interface SSLServiceOptions {
   email: string;
   staging?: boolean;
@@ -22,6 +28,9 @@ export interface SSLServiceOptions {
   storageDir?: string;
 }
 
+/**
+ *
+ */
 export interface DNSRecord {
   name: string;
   type: string;
@@ -29,11 +38,18 @@ export interface DNSRecord {
   ttl?: number;
 }
 
+/**
+ *
+ */
 export class SSLService {
   private client?: acme.Client;
   private accountKey?: Buffer;
   private options: Required<SSLServiceOptions>;
 
+  /**
+   *
+   * @param options
+   */
   constructor(options: SSLServiceOptions) {
     this.options = {
       email: options.email,
@@ -44,7 +60,7 @@ export class SSLService {
   }
 
   /**
-   * Initialize the SSL service with ACME client
+   * Initialize the SSL service with ACME client.
    */
   async initialize(): Promise<void> {
     try {
@@ -72,7 +88,8 @@ export class SSLService {
   }
 
   /**
-   * Request SSL certificate for a domain using DNS challenge
+   * Request SSL certificate for a domain using DNS challenge.
+   * @param domain
    */
   async requestCertificate(domain: string): Promise<CertificateData> {
     if (!this.client) {
@@ -121,7 +138,8 @@ export class SSLService {
   }
 
   /**
-   * Validate domain ownership via DNS records
+   * Validate domain ownership via DNS records.
+   * @param domain
    */
   async validateDomainOwnership(domain: string): Promise<boolean> {
     try {
@@ -142,7 +160,8 @@ export class SSLService {
   }
 
   /**
-   * Rotate certificate (renew before expiry)
+   * Rotate certificate (renew before expiry).
+   * @param domain
    */
   async rotateCertificate(domain: string): Promise<CertificateData> {
     try {
@@ -161,7 +180,8 @@ export class SSLService {
   }
 
   /**
-   * Get stored certificate for domain
+   * Get stored certificate for domain.
+   * @param domain
    */
   async getCertificate(domain: string): Promise<CertificateData | null> {
     try {
@@ -190,7 +210,7 @@ export class SSLService {
   }
 
   /**
-   * List all managed certificates
+   * List all managed certificates.
    */
   async listCertificates(): Promise<{ domain: string; cert: CertificateData | null }[]> {
     try {
@@ -209,7 +229,8 @@ export class SSLService {
   }
 
   /**
-   * Revoke certificate
+   * Revoke certificate.
+   * @param domain
    */
   async revokeCertificate(domain: string): Promise<void> {
     try {
@@ -233,6 +254,9 @@ export class SSLService {
 
   // Private methods
 
+  /**
+   *
+   */
   private async ensureStorageDirectory(): Promise<void> {
     try {
       await fs.access(this.options.storageDir);
@@ -241,6 +265,9 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   */
   private async getOrCreateAccountKey(): Promise<Buffer> {
     const keyPath = path.join(this.options.storageDir, 'account-key.pem');
     
@@ -254,6 +281,9 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   */
   private async ensureAccount(): Promise<void> {
     try {
       await this.client.createAccount({
@@ -268,6 +298,10 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   * @param domain
+   */
   private validateDomain(domain: string): void {
     const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
     
@@ -280,10 +314,19 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   */
   private async generateKeyPair(): Promise<Buffer> {
     return await acme.crypto.createPrivateKey(this.options.keySize);
   }
 
+  /**
+   *
+   * @param authz
+   * @param challenge
+   * @param keyAuthorization
+   */
   private async createDNSChallenge(authz: any, challenge: any, keyAuthorization: string): Promise<void> {
     const dnsRecord: DNSRecord = {
       name: `_acme-challenge.${authz.identifier.value}`,
@@ -304,11 +347,22 @@ export class SSLService {
     await this.waitForDNSPropagation(dnsRecord);
   }
 
+  /**
+   *
+   * @param authz
+   * @param challenge
+   * @param keyAuthorization
+   */
   private async removeDNSChallenge(authz: any, challenge: any, keyAuthorization: string): Promise<void> {
     const recordName = `_acme-challenge.${authz.identifier.value}`;
     console.log(`DNS challenge completed. You can now remove the TXT record: ${recordName}`);
   }
 
+  /**
+   *
+   * @param record
+   * @param maxAttempts
+   */
   private async waitForDNSPropagation(record: DNSRecord, maxAttempts = 30): Promise<void> {
     const dns = await import('dns');
     const { promisify } = await import('util');
@@ -338,6 +392,12 @@ export class SSLService {
     throw new Error('DNS record propagation timeout. Please verify the DNS record was created correctly.');
   }
 
+  /**
+   *
+   * @param domain
+   * @param certificate
+   * @param privateKey
+   */
   private async storeCertificate(domain: string, certificate: string, privateKey: Buffer): Promise<void> {
     const domainDir = path.join(this.options.storageDir, domain);
     await fs.mkdir(domainDir, { recursive: true, mode: 0o700 });
@@ -357,6 +417,11 @@ export class SSLService {
     ]);
   }
 
+  /**
+   *
+   * @param certificate
+   * @param privateKey
+   */
   private async parseCertificate(certificate: string, privateKey: string | Buffer): Promise<CertificateData> {
     try {
       const cert = forge.pki.certificateFromPem(certificate);
@@ -377,6 +442,10 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   * @param cert
+   */
   private shouldRotateCertificate(cert: CertificateData): boolean {
     const now = new Date();
     const expiryDate = new Date(cert.validTo);
@@ -386,6 +455,10 @@ export class SSLService {
     return daysUntilExpiry <= 30;
   }
 
+  /**
+   *
+   * @param filePath
+   */
   private async fileExists(filePath: string): Promise<boolean> {
     try {
       await fs.access(filePath);
@@ -395,6 +468,10 @@ export class SSLService {
     }
   }
 
+  /**
+   *
+   * @param domain
+   */
   private async removeCertificateFromStorage(domain: string): Promise<void> {
     const domainDir = path.join(this.options.storageDir, domain);
     try {
@@ -406,7 +483,8 @@ export class SSLService {
 }
 
 /**
- * Factory function to create and initialize SSL service
+ * Factory function to create and initialize SSL service.
+ * @param options
  */
 export async function createSSLService(options: SSLServiceOptions): Promise<SSLService> {
   const service = new SSLService(options);
@@ -415,7 +493,8 @@ export async function createSSLService(options: SSLServiceOptions): Promise<SSLS
 }
 
 /**
- * Utility function to check certificate status
+ * Utility function to check certificate status.
+ * @param cert
  */
 export function getCertificateStatus(cert: CertificateData): {
   isValid: boolean;

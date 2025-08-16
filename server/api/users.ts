@@ -248,7 +248,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Get permissions for the user's role
-      const userPermissions = getRolePermissions(permissions, userRole as keyof typeof permissions);
+      const userPermissions = getRolePermissions(permissions as any, userRole as keyof typeof permissions);
       
       // Create response with Zod validation
       const responseData = {

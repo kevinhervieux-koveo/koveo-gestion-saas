@@ -16,6 +16,9 @@ import { Shield, ShieldCheck, ShieldAlert, ShieldX, Clock, Calendar, AlertTriang
 import { cn } from '@/lib/utils';
 
 // Types based on the SSL API response
+/**
+ *
+ */
 interface CertificateStatus {
   isValid: boolean;
   isExpiring: boolean;
@@ -23,6 +26,9 @@ interface CertificateStatus {
   statusLabel: string;
 }
 
+/**
+ *
+ */
 interface SslCertificateData {
   domain: string;
   issuer: string;
@@ -43,6 +49,9 @@ interface SslCertificateData {
   certificateStatus: CertificateStatus;
 }
 
+/**
+ *
+ */
 interface SslApiResponse {
   success: boolean;
   data: SslCertificateData;
@@ -59,8 +68,14 @@ const domainFormSchema = z.object({
     )
 });
 
+/**
+ *
+ */
 type DomainFormData = z.infer<typeof domainFormSchema>;
 
+/**
+ *
+ */
 interface SslCertificateInfoProps {
   initialDomain?: string;
   className?: string;
@@ -69,6 +84,9 @@ interface SslCertificateInfoProps {
 /**
  * SSL Certificate Information component that displays SSL certificate details
  * for a given domain. Only accessible by administrators.
+ * @param root0
+ * @param root0.initialDomain
+ * @param root0.className
  */
 export function SslCertificateInfo({ initialDomain = '', className }: SslCertificateInfoProps) {
   const { user, hasAnyRole } = useAuth();

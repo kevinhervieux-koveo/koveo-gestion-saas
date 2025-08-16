@@ -848,7 +848,7 @@ export class MetricValidationService {
 
   /**
    * Retrieves Quebec-specific factors for metric validation.
-   * @param metricType - The type of metric to get factors for
+   * @param metricType - The type of metric to get factors for.
    * @returns Quebec-specific factors for the metric type.
    */
   private getQuebecSpecificFactors(metricType: string): Record<string, number> {
@@ -883,8 +883,8 @@ export class MetricValidationService {
 
   /**
    * Analyzes Quebec compliance effectiveness for metrics.
-   * @param metricType - Optional metric type to analyze
-   * @param timeRangeHours - Time range in hours for analysis
+   * @param metricType - Optional metric type to analyze.
+   * @param timeRangeHours - Time range in hours for analysis.
    * @returns Quebec compliance analysis results.
    */
   private async analyzeQuebecComplianceEffectiveness(
@@ -915,7 +915,7 @@ export class MetricValidationService {
 
   /**
    * Generates effectiveness recommendations based on validation results.
-   * @param results - Array of validation results to analyze
+   * @param results - Array of validation results to analyze.
    * @returns Array of recommendation strings.
    */
   private async generateEffectivenessRecommendations(results: Array<{
@@ -941,7 +941,7 @@ export class MetricValidationService {
 
   /**
    * Gets calibration status for a specific metric type.
-   * @param metricType - Optional metric type to get calibration status for
+   * @param metricType - Optional metric type to get calibration status for.
    * @returns Calibration status information.
    */
   private async getCalibrationStatus(metricType?: string): Promise<{

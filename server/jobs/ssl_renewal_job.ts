@@ -5,6 +5,9 @@ import { sslCertificates } from '@shared/schema';
 import { createSSLService, type SSLService, getCertificateStatus } from '../services/ssl_service';
 import { notificationService } from '../services/notification_service';
 
+/**
+ *
+ */
 interface SSLRenewalJobConfig {
   schedule: string;
   renewalThresholdDays: number;
@@ -17,12 +20,18 @@ interface SSLRenewalJobConfig {
   enableExpiryNotifications: boolean;
 }
 
+/**
+ *
+ */
 class SSLRenewalJob {
   private sslService: SSLService | null = null;
   private config: SSLRenewalJobConfig;
   private jobTask: cron.ScheduledTask | null = null;
   private isRunning = false;
 
+  /**
+   *
+   */
   constructor() {
     this.config = {
       schedule: process.env.SSL_RENEWAL_SCHEDULE || '0 2 * * *', // Daily at 2 AM by default
@@ -40,7 +49,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Start the SSL renewal background job
+   * Start the SSL renewal background job.
    */
   async start(): Promise<void> {
     if (!this.config.enabled) {
@@ -89,7 +98,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Stop the SSL renewal job
+   * Stop the SSL renewal job.
    */
   stop(): void {
     if (this.jobTask) {
@@ -101,7 +110,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Execute the SSL renewal job manually
+   * Execute the SSL renewal job manually.
    */
   async executeRenewalJob(): Promise<void> {
     if (this.isRunning) {
@@ -280,6 +289,8 @@ class SSLRenewalJob {
   /**
    * Determine if we should send an expiry notification for a certificate.
    * This helps prevent spam notifications by implementing smart notification logic.
+   * @param domain
+   * @param daysUntilExpiry
    */
   private async shouldSendExpiryNotification(domain: string, daysUntilExpiry: number): Promise<boolean> {
     // Always notify for expired certificates (daysUntilExpiry <= 0)
@@ -306,7 +317,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Get certificates that are expiring and need renewal
+   * Get certificates that are expiring and need renewal.
    */
   private async getExpiringCertificates() {
     const thresholdDate = new Date();
@@ -332,7 +343,8 @@ class SSLRenewalJob {
   }
 
   /**
-   * Renew a specific certificate
+   * Renew a specific certificate.
+   * @param certificate
    */
   private async renewCertificate(certificate: any): Promise<void> {
     this.log('info', `Starting renewal for certificate: ${certificate.domain}`);
@@ -400,7 +412,9 @@ class SSLRenewalJob {
   }
 
   /**
-   * Handle renewal failure
+   * Handle renewal failure.
+   * @param certificate
+   * @param errorMessage
    */
   private async handleRenewalFailure(certificate: any, errorMessage: string): Promise<void> {
     const newAttempts = (certificate.renewalAttempts || 0) + 1;
@@ -427,7 +441,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Initialize SSL service
+   * Initialize SSL service.
    */
   private async initializeSSLService(): Promise<void> {
     if (this.sslService) {
@@ -446,7 +460,9 @@ class SSLRenewalJob {
   }
 
   /**
-   * Send failure notification
+   * Send failure notification.
+   * @param failureCount
+   * @param successCount
    */
   private async sendFailureNotification(failureCount: number, successCount: number): Promise<void> {
     // This could be extended to send email notifications
@@ -465,7 +481,9 @@ class SSLRenewalJob {
   }
 
   /**
-   * Send success notification for critical domains
+   * Send success notification for critical domains.
+   * @param domain
+   * @param certificate
    */
   private async sendSuccessNotification(domain: string, certificate: any): Promise<void> {
     this.log('info', `Certificate renewed successfully for ${domain}`, {
@@ -477,7 +495,9 @@ class SSLRenewalJob {
   }
 
   /**
-   * Utility method to chunk array into smaller batches
+   * Utility method to chunk array into smaller batches.
+   * @param array
+   * @param size
    */
   private chunkArray<T>(array: T[], size: number): T[][] {
     const chunks: T[][] = [];
@@ -488,14 +508,18 @@ class SSLRenewalJob {
   }
 
   /**
-   * Utility method for delays
+   * Utility method for delays.
+   * @param ms
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
-   * Logging method with configurable levels
+   * Logging method with configurable levels.
+   * @param level
+   * @param message
+   * @param data
    */
   private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: any): void {
     const levels = { error: 0, warn: 1, info: 2, debug: 3 };
@@ -510,7 +534,7 @@ class SSLRenewalJob {
   }
 
   /**
-   * Get current job status
+   * Get current job status.
    */
   getStatus(): {
     enabled: boolean;
