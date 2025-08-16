@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { Translations } from '@/lib/i18n';
 import { 
   Dialog, 
   DialogContent, 
@@ -102,7 +101,7 @@ interface Organization {
 /**
  * Building interface from schema.
  */
-interface Building {
+interface BuildingType {
   id: string;
   organizationId: string;
   name: string;
@@ -129,10 +128,11 @@ interface Building {
  * 
  * Allows sending single or bulk invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
- * @param root0
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.onSuccess
+ * @param root0 - Component props
+ * @param root0.open - Whether dialog is open
+ * @param root0.onOpenChange - Handler for dialog open state changes
+ * @param root0.onSuccess - Handler called when invitation is sent successfully
+ * @returns JSX element for the invitation dialog
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
@@ -178,7 +178,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch buildings
-  const { data: buildings } = useQuery<Building[]>({
+  const { data: _buildings } = useQuery<BuildingType[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/buildings');
@@ -243,7 +243,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     onSuccess: (data) => {
       const successCount = data.results?.length || 0;
-      const errorCount = data.errors?.length || 0;
+      const _errorCount = data.errors?.length || 0;
       
       toast({
         title: t('bulkInvitationsSent'),

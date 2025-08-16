@@ -272,7 +272,7 @@ function Router() {
               {/* Admin/Manager User Management routes */}
               <Route path='/admin/user-management' component={UserManagement} />
               <Route path='/manager/user-management' component={() => {
-                console.log('Loading /manager/user-management route');
+                console.warn('Loading /manager/user-management route');
                 return <UserManagement />;
               }} />
 

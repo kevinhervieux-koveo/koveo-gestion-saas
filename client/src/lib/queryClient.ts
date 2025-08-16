@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack/react-query';
-import { memoryOptimizer } from '@/utils/memory-monitor';
 
 /**
  * Throws an error if the HTTP response is not successful (status not ok).
@@ -56,7 +55,7 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
  * @param {UnauthorizedBehavior} options.on401 - How to handle 401 responses.
  * @returns {QueryFunction<T>} Configured query function for React Query.
  */
-export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
+export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join('/') as string, {
@@ -99,18 +98,11 @@ export const queryClient = new QueryClient({
     onError: (error) => {
       console.error('Query error:', error);
     },
-    // Limit cache size to prevent memory accumulation
-    onRemove: (query) => {
-      console.debug('Query removed from cache:', query.queryKey);
-    },
   }),
   // Limit mutation cache size
   mutationCache: new MutationCache({
     onError: (error) => {
       console.error('Mutation error:', error);
-    },
-    onRemove: (mutation) => {
-      console.debug('Mutation removed from cache:', mutation.mutationId);
     },
   }),
 });
