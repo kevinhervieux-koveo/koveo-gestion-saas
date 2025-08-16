@@ -45,14 +45,8 @@ const organizationSchema = z.object({
   registrationNumber: z.string().optional(),
 });
 
-/**
- *
- */
 type OrganizationFormData = z.infer<typeof organizationSchema>;
 
-/**
- *
- */
 interface OrganizationFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -60,14 +54,6 @@ interface OrganizationFormDialogProps {
   onSuccess?: () => void;
 }
 
-/**
- *
- * @param root0
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.organization
- * @param root0.onSuccess
- */
 export function OrganizationFormDialog({
   open,
   onOpenChange,

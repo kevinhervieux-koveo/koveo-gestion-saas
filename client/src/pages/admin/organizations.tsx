@@ -4,7 +4,7 @@ import { OrganizationsCard } from '@/components/admin/organizations-card';
 
 /**
  * Admin Organizations Management Page
- * Complete CRUD interface for managing organizations.
+ * Complete CRUD interface for managing organizations
  */
 export default function Organizations() {
   return (

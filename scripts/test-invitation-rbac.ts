@@ -4,14 +4,11 @@
  * - Admin can choose organization for invites
  * - Manager can only invite to their organization
  * - Security level removed from form
- * - Residence required for tenants/residents.
+ * - Residence required for tenants/residents
  */
 
 import { apiRequest } from '../client/src/lib/queryClient.js';
 
-/**
- *
- */
 interface TestUser {
   id: string;
   email: string;
@@ -19,36 +16,24 @@ interface TestUser {
   organizations?: string[];
 }
 
-/**
- *
- */
 interface Organization {
   id: string;
   name: string;
   type: string;
 }
 
-/**
- *
- */
 interface Building {
   id: string;
   organizationId: string;
   name: string;
 }
 
-/**
- *
- */
 interface Residence {
   id: string;
   buildingId: string;
   unitNumber: string;
 }
 
-/**
- *
- */
 async function testInvitationRBAC() {
   console.log('🧪 Testing Updated Invitation System with RBAC...\n');
 

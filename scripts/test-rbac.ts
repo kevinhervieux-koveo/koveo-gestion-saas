@@ -1,5 +1,5 @@
 /**
- * Test script to validate RBAC permissions for Quebec property management system.
+ * Test script to validate RBAC permissions for Quebec property management system
  */
 
 import { Pool } from '@neondatabase/serverless';
@@ -17,9 +17,6 @@ import {
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
-/**
- *
- */
 async function testRBAC() {
   console.log('🔒 Testing RBAC System for Quebec Property Management');
   console.log('=' .repeat(60));

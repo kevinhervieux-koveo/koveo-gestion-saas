@@ -7,9 +7,6 @@ import { Request, Response, NextFunction } from 'express';
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
-/**
- *
- */
 export interface AuthenticatedUser {
   id: string;
   username: string;
@@ -22,9 +19,6 @@ export interface AuthenticatedUser {
   canAccessAllOrganizations?: boolean;
 }
 
-/**
- *
- */
 export interface AccessContext {
   user: AuthenticatedUser;
   organizationId?: string;
@@ -35,8 +29,7 @@ export interface AccessContext {
 }
 
 /**
- * Get user's accessible organization IDs based on RBAC rules.
- * @param userId
+ * Get user's accessible organization IDs based on RBAC rules
  */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
@@ -86,8 +79,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 }
 
 /**
- * Get user's accessible residence IDs (for tenants/residents).
- * @param userId
+ * Get user's accessible residence IDs (for tenants/residents)
  */
 export async function getUserAccessibleResidences(userId: string): Promise<string[]> {
   try {
@@ -106,9 +98,7 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
 }
 
 /**
- * Check if user can access a specific organization.
- * @param userId
- * @param organizationId
+ * Check if user can access a specific organization
  */
 export async function canUserAccessOrganization(userId: string, organizationId: string): Promise<boolean> {
   const accessibleOrgs = await getUserAccessibleOrganizations(userId);
@@ -116,9 +106,7 @@ export async function canUserAccessOrganization(userId: string, organizationId: 
 }
 
 /**
- * Check if user can access a specific building.
- * @param userId
- * @param buildingId
+ * Check if user can access a specific building
  */
 export async function canUserAccessBuilding(userId: string, buildingId: string): Promise<boolean> {
   try {
@@ -126,7 +114,7 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
       where: eq(schema.buildings.id, buildingId)
     });
 
-    if (!building) {return false;}
+    if (!building) return false;
 
     return await canUserAccessOrganization(userId, building.organizationId);
   } catch (error) {
@@ -136,9 +124,7 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
 }
 
 /**
- * Check if user can access a specific residence.
- * @param userId
- * @param residenceId
+ * Check if user can access a specific residence
  */
 export async function canUserAccessResidence(userId: string, residenceId: string): Promise<boolean> {
   try {
@@ -146,7 +132,7 @@ export async function canUserAccessResidence(userId: string, residenceId: string
       where: eq(schema.users.id, userId)
     });
 
-    if (!user) {return false;}
+    if (!user) return false;
 
     // Admins and managers can access any residence in their accessible organizations
     if (['admin', 'manager'].includes(user.role)) {
@@ -157,7 +143,7 @@ export async function canUserAccessResidence(userId: string, residenceId: string
         }
       });
 
-      if (!residence) {return false;}
+      if (!residence) return false;
 
       return await canUserAccessOrganization(userId, residence.building.organizationId);
     }
@@ -172,8 +158,7 @@ export async function canUserAccessResidence(userId: string, residenceId: string
 }
 
 /**
- * Middleware to check organization access.
- * @param param
+ * Middleware to check organization access
  */
 export function requireOrganizationAccess(param: string = 'organizationId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -215,8 +200,7 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
 }
 
 /**
- * Middleware to check building access.
- * @param param
+ * Middleware to check building access
  */
 export function requireBuildingAccess(param: string = 'buildingId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -258,8 +242,7 @@ export function requireBuildingAccess(param: string = 'buildingId') {
 }
 
 /**
- * Middleware to check residence access.
- * @param param
+ * Middleware to check residence access
  */
 export function requireResidenceAccess(param: string = 'residenceId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -301,9 +284,7 @@ export function requireResidenceAccess(param: string = 'residenceId') {
 }
 
 /**
- * Filter organizations based on user access.
- * @param userId
- * @param organizations
+ * Filter organizations based on user access
  */
 export async function filterOrganizationsByAccess(userId: string, organizations: any[]): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
@@ -311,9 +292,7 @@ export async function filterOrganizationsByAccess(userId: string, organizations:
 }
 
 /**
- * Filter buildings based on user access.
- * @param userId
- * @param buildings
+ * Filter buildings based on user access
  */
 export async function filterBuildingsByAccess(userId: string, buildings: any[]): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
@@ -321,16 +300,14 @@ export async function filterBuildingsByAccess(userId: string, buildings: any[]):
 }
 
 /**
- * Filter residences based on user access.
- * @param userId
- * @param residences
+ * Filter residences based on user access
  */
 export async function filterResidencesByAccess(userId: string, residences: any[]): Promise<any[]> {
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, userId)
   });
 
-  if (!user) {return [];}
+  if (!user) return [];
 
   // For admins/managers, filter by organization access
   if (['admin', 'manager'].includes(user.role)) {
@@ -351,8 +328,7 @@ export async function filterResidencesByAccess(userId: string, residences: any[]
 }
 
 /**
- * Get organization filter for database queries.
- * @param userId
+ * Get organization filter for database queries
  */
 export async function getOrganizationFilter(userId: string) {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
@@ -360,8 +336,7 @@ export async function getOrganizationFilter(userId: string) {
 }
 
 /**
- * Get building filter for database queries.
- * @param userId
+ * Get building filter for database queries
  */
 export async function getBuildingFilter(userId: string) {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
@@ -369,15 +344,14 @@ export async function getBuildingFilter(userId: string) {
 }
 
 /**
- * Get residence filter for database queries.
- * @param userId
+ * Get residence filter for database queries
  */
 export async function getResidenceFilter(userId: string) {
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, userId)
   });
 
-  if (!user) {return eq(schema.residences.id, 'never-match');}
+  if (!user) return eq(schema.residences.id, 'never-match');
 
   // For admins/managers, filter by organization access
   if (['admin', 'manager'].includes(user.role)) {
