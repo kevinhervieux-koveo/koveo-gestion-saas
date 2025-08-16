@@ -2583,7 +2583,7 @@ function registerInvitationRoutes(app: any) {
             
             // Role-based access control
             if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
-              errors.push({ index, email, error: 'Managers can only invite owners and tenants' });
+              errors.push({ index, email, error: 'Managers can only invite tenants' });
               continue;
             }
             

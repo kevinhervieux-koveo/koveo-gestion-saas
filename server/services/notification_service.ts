@@ -20,7 +20,7 @@ export class NotificationService {
     daysUntilExpiry: number
   ): Promise<void> {
     try {
-      // Get all admin and owner users
+      // Get all admin users
       const adminUsers = await db.select({
         id: users.id,
         email: users.email,
@@ -30,10 +30,7 @@ export class NotificationService {
       })
       .from(users)
       .where(
-        or(
-          eq(users.role, 'admin'),
-          eq(users.role, 'owner')
-        )
+        eq(users.role, 'admin')
       );
 
       if (adminUsers.length === 0) {
@@ -90,7 +87,7 @@ export class NotificationService {
     maxAttempts: number
   ): Promise<void> {
     try {
-      // Get all admin and owner users
+      // Get all admin users
       const adminUsers = await db.select({
         id: users.id,
         email: users.email,
@@ -98,10 +95,7 @@ export class NotificationService {
       })
       .from(users)
       .where(
-        or(
-          eq(users.role, 'admin'),
-          eq(users.role, 'owner')
-        )
+        eq(users.role, 'admin')
       );
 
       if (adminUsers.length === 0) {
@@ -159,10 +153,7 @@ export class NotificationService {
       })
       .from(users)
       .where(
-        or(
-          eq(users.role, 'admin'),
-          eq(users.role, 'owner')
-        )
+        eq(users.role, 'admin')
       );
 
       if (adminUsers.length === 0) {

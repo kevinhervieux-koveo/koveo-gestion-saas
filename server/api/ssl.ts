@@ -138,7 +138,7 @@ export function registerSSLRoutes(app: Express): void {
     try {
       // Check if user has appropriate permissions (assuming admin role required)
       // This could be enhanced with proper RBAC using the permissions system
-      if (req.user?.role !== 'admin' && req.user?.role !== 'owner') {
+      if (req.user?.role !== 'admin') {
         return res.status(403).json({
           error: 'Forbidden',
           message: 'Insufficient permissions to view all SSL certificates'
