@@ -125,6 +125,14 @@ export const PermissionAction = z.enum([
   'create:analytics',
   'export:analytics',
 
+  // Invitation management permissions
+  'read:invitation',
+  'create:invitation',
+  'update:invitation',
+  'cancel:invitation',
+  'resend:invitation',
+  'audit:invitation',
+
   // Integration and security permissions
   'manage:integrations',
   'read:security_logs',
@@ -197,6 +205,55 @@ export type PermissionsConfig = z.infer<typeof PermissionsSchema>;
  */
 export function validatePermissions(permissions: unknown) {
   return PermissionsSchema.safeParse(permissions);
+}
+
+/**
+ * Validates permissions configuration with fallback handling for startup resilience.
+ * This function provides graceful degradation when permissions validation fails.
+ * 
+ * @param permissions - The permissions object to validate.
+ * @param options - Validation options including whether to allow fallback.
+ * @returns Validation result with fallback data when needed.
+ */
+export function validatePermissionsWithFallback(
+  permissions: unknown,
+  options: { allowFallback?: boolean } = {}
+) {
+  try {
+    const result = PermissionsSchema.safeParse(permissions);
+    
+    if (result.success) {
+      return { success: true, data: result.data, usedFallback: false };
+    }
+    
+    // If validation fails and fallback is allowed, provide minimal permissions
+    if (options.allowFallback) {
+      console.warn('Permissions validation failed, using fallback configuration:', 
+        result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', '));
+      
+      const fallbackPermissions = {
+        admin: ['read:user', 'read:organization', 'read:building', 'read:residence'],
+        manager: ['read:user', 'read:organization', 'read:building'],
+        tenant: ['read:profile', 'read:residence']
+      };
+      
+      return { success: true, data: fallbackPermissions, usedFallback: true };
+    }
+    
+    return { success: false, error: result.error, usedFallback: false };
+  } catch (error) {
+    if (options.allowFallback) {
+      console.error('Permissions validation error, using minimal fallback:', error);
+      const fallbackPermissions = {
+        admin: ['read:user'],
+        manager: ['read:user'],
+        tenant: ['read:profile']
+      };
+      return { success: true, data: fallbackPermissions, usedFallback: true };
+    }
+    
+    throw error;
+  }
 }
 
 /**
