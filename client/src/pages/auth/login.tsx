@@ -102,17 +102,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-4 mb-4">
+          <div className="flex items-center justify-center mb-4">
             <img 
               src={koveoLogo} 
               alt="Koveo Gestion Logo" 
               className="h-16 w-auto rounded-lg shadow-sm"
             />
-            <div className="text-left">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Koveo Gestion
-              </h1>
-            </div>
           </div>
         </div>
 
