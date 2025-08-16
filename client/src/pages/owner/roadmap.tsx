@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
   AccordionContent,
@@ -66,6 +67,7 @@ interface Section {
  * Users can click on any feature to open a detailed planning dialog.
  */
 export default function OwnerRoadmap() {
+  const { toast } = useToast();
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
