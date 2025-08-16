@@ -1645,3 +1645,67 @@ export const insertUserPermissionSchema = createInsertSchema(userPermissions).om
 });
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
 export type UserPermission = typeof userPermissions.$inferSelect;
+
+// SSL Certificates Management
+
+/**
+ * Enum defining SSL certificate status values.
+ * Tracks the lifecycle and health of SSL certificates.
+ */
+export const certificateStatusEnum = pgEnum('certificate_status', [
+  'active',
+  'expiring',
+  'expired',
+  'revoked',
+  'pending_renewal',
+  'renewal_failed',
+]);
+
+/**
+ * SSL certificates table for managing domain SSL certificates.
+ * Stores certificate metadata, expiry tracking, and renewal status.
+ */
+export const sslCertificates = pgTable('ssl_certificates', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  domain: text('domain').notNull().unique(),
+  certificateData: text('certificate_data').notNull(), // PEM format certificate
+  privateKey: text('private_key').notNull(), // Encrypted private key
+  certificateChain: text('certificate_chain'), // Full certificate chain
+  issuer: text('issuer').notNull(),
+  subject: text('subject').notNull(),
+  serialNumber: text('serial_number').notNull(),
+  fingerprint: text('fingerprint').notNull(),
+  validFrom: timestamp('valid_from').notNull(),
+  validTo: timestamp('valid_to').notNull(),
+  status: certificateStatusEnum('status').notNull().default('active'),
+  autoRenew: boolean('auto_renew').notNull().default(true),
+  lastRenewalAttempt: timestamp('last_renewal_attempt'),
+  renewalAttempts: integer('renewal_attempts').notNull().default(0),
+  maxRenewalAttempts: integer('max_renewal_attempts').notNull().default(3),
+  renewalError: text('renewal_error'), // Last renewal error message
+  dnsProvider: text('dns_provider'), // DNS provider for automated challenges
+  dnsCredentials: jsonb('dns_credentials'), // Encrypted DNS API credentials
+  notificationEmails: jsonb('notification_emails'), // Array of emails for notifications
+  createdBy: varchar('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// SSL Certificates Relations
+export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [sslCertificates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// SSL Certificates Insert and Select Schemas
+export const insertSSLCertificateSchema = createInsertSchema(sslCertificates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertSSLCertificate = z.infer<typeof insertSSLCertificateSchema>;
+export type SSLCertificate = typeof sslCertificates.$inferSelect;
