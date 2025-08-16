@@ -145,7 +145,6 @@ export const featureCategoryEnum = pgEnum('feature_category', [
 export const userRoleEnum = pgEnum('user_role', [
   'admin',
   'manager',
-  'owner',
   'tenant',
 ]);
 /**

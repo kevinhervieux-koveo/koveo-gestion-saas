@@ -299,7 +299,6 @@ export function BulkActionsBar({
                   <SelectContent>
                     <SelectItem value="admin">{t('admin')}</SelectItem>
                     <SelectItem value="manager">{t('manager')}</SelectItem>
-                    <SelectItem value="owner">{t('owner')}</SelectItem>
                     <SelectItem value="tenant">{t('tenant')}</SelectItem>
                   </SelectContent>
                 </Select>

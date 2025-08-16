@@ -9,7 +9,7 @@
  * import { permissions, checkPermission, validatePermissions } from '@/config';
  * 
  * // Check if a user has a specific permission
- * const canReadBills = checkPermission(permissions, 'owner', 'read:bill');
+ * const canReadBills = checkPermission(permissions, 'admin', 'read:bill');
  * 
  * // Validate permissions configuration
  * const validation = validatePermissions(permissions);
@@ -80,9 +80,8 @@ export { permissionsData as permissions };
  * Quick access to role hierarchies for common permission checks.
  */
 export const ROLE_HIERARCHY = {
-  admin: 4,
-  manager: 3,
-  owner: 2,
+  admin: 3,
+  manager: 2,
   tenant: 1
 } as const;
 
@@ -95,7 +94,7 @@ export const ROLE_HIERARCHY = {
  * 
  * @example
  * ```typescript
- * const hasAccess = hasRoleOrHigher('manager', 'owner'); // true
+ * const hasAccess = hasRoleOrHigher('admin', 'manager'); // true
  * const hasAccess2 = hasRoleOrHigher('tenant', 'admin'); // false
  * ```
  */

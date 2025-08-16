@@ -2420,10 +2420,10 @@ function registerInvitationRoutes(app: any) {
         
         const { email, role, organizationId, buildingId, personalMessage, securityLevel, requires2FA } = validation.data;
         
-        // Role-based access control: owners can invite any role, managers only tenants and owners
+        // Role-based access control: admins can invite any role, managers only tenants
         if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
           return res.status(403).json({
-            message: 'Managers can only invite owners and tenants',
+            message: 'Managers can only invite tenants',
             code: 'INSUFFICIENT_ROLE_PERMISSIONS'
           });
         }

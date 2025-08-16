@@ -65,7 +65,7 @@ interface UserManagementData {
 /**
  * User Management Dashboard Component
  * 
- * Comprehensive interface for owners/managers to manage users, invitations,
+ * Comprehensive interface for admins/managers to manage users, invitations,
  * roles, and permissions with real-time updates and accessibility compliance.
  */
 export default function UserManagement() {
@@ -83,7 +83,7 @@ export default function UserManagement() {
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
 
   // Check permissions
-  const canManageUsers = hasRole(['admin', 'owner', 'manager']);
+  const canManageUsers = hasRole(['admin', 'manager']);
 
   // Fetch user management data
   const { 
@@ -337,7 +337,6 @@ export default function UserManagement() {
                   <SelectItem value="all">{t('allRoles')}</SelectItem>
                   <SelectItem value="admin">{t('admin')}</SelectItem>
                   <SelectItem value="manager">{t('manager')}</SelectItem>
-                  <SelectItem value="owner">{t('owner')}</SelectItem>
                   <SelectItem value="tenant">{t('tenant')}</SelectItem>
                 </SelectContent>
               </Select>

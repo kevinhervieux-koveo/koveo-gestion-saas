@@ -23,7 +23,7 @@ async function testPermissions() {
 
   // Test 2: Check that all roles exist
   console.log('\n2. Checking role completeness...');
-  const requiredRoles = ['admin', 'manager', 'owner', 'tenant'];
+  const requiredRoles = ['admin', 'manager', 'tenant'];
   const availableRoles = Object.keys(permissionsData);
   const missingRoles = requiredRoles.filter(role => !availableRoles.includes(role));
   
@@ -38,15 +38,15 @@ async function testPermissions() {
   console.log('\n3. Checking permission hierarchy...');
   const adminPerms = new Set(permissionsData.admin);
   const managerPerms = new Set(permissionsData.manager);
-  const ownerPerms = new Set(permissionsData.owner);
+  const adminPerms2 = new Set(permissionsData.admin);
   const tenantPerms = new Set(permissionsData.tenant);
 
   console.log(`   Admin permissions: ${adminPerms.size}`);
   console.log(`   Manager permissions: ${managerPerms.size}`);
-  console.log(`   Owner permissions: ${ownerPerms.size}`);
+  console.log(`   Admin permissions: ${adminPerms.size}`);
   console.log(`   Tenant permissions: ${tenantPerms.size}`);
 
-  if (adminPerms.size >= managerPerms.size && managerPerms.size >= ownerPerms.size && ownerPerms.size >= tenantPerms.size) {
+  if (adminPerms.size >= managerPerms.size && managerPerms.size >= tenantPerms.size) {
     console.log('   ✅ Permission hierarchy looks correct');
   } else {
     console.log('   ⚠️  Permission hierarchy might need review');
@@ -58,7 +58,7 @@ async function testPermissions() {
   const testCases = [
     { role: 'admin', permission: 'delete:user', expected: true },
     { role: 'manager', permission: 'read:bill', expected: true },
-    { role: 'owner', permission: 'create:budget', expected: true },
+    { role: 'admin', permission: 'create:budget', expected: true },
     { role: 'tenant', permission: 'read:profile', expected: true },
     { role: 'tenant', permission: 'delete:user', expected: false }
   ];
@@ -84,7 +84,7 @@ async function testPermissions() {
   const criticalPermissions = [
     { role: 'admin', permissions: ['read:user', 'create:user', 'update:user', 'delete:user'] },
     { role: 'manager', permissions: ['read:building', 'create:maintenance_request', 'read:bill'] },
-    { role: 'owner', permissions: ['read:budget', 'create:budget', 'read:maintenance_request'] },
+    { role: 'admin', permissions: ['read:budget', 'create:budget', 'read:maintenance_request'] },
     { role: 'tenant', permissions: ['read:profile', 'update:profile', 'create:maintenance_request'] }
   ];
 

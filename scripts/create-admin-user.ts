@@ -121,9 +121,9 @@ async function createSampleUsers() {
         lastName: 'Québécois',
         phone: '+1-514-555-0300',
         language: 'fr',
-        role: 'owner',
+        role: 'admin',
       });
-      console.log('✅ Sample owner created: owner@koveo-gestion.com');
+      console.log('✅ Sample admin created: admin@koveo-gestion.com');
     }
 
     // Sample Tenant

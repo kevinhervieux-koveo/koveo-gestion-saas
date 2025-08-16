@@ -27,7 +27,7 @@ This permissions system provides granular access control for all features and da
 import { permissions, checkPermission } from '@/config';
 
 // Check if a user has a specific permission
-const canReadBills = checkPermission(permissions, 'owner', 'read:bill');
+const canReadBills = checkPermission(permissions, 'admin', 'read:bill');
 const canDeleteUsers = checkPermission(permissions, 'tenant', 'delete:user');
 
 console.log(canReadBills); // true
@@ -40,7 +40,7 @@ console.log(canDeleteUsers); // false
 import { getRolePermissions } from '@/config';
 
 // Get all permissions for a role
-const ownerPermissions = getRolePermissions(permissions, 'owner');
+const adminPermissions = getRolePermissions(permissions, 'admin');
 console.log(ownerPermissions); // ['read:user', 'update:profile', ...]
 ```
 
@@ -50,7 +50,7 @@ console.log(ownerPermissions); // ['read:user', 'update:profile', ...]
 import { hasRoleOrHigher } from '@/config';
 
 // Check if user role meets minimum requirement
-const canAccess = hasRoleOrHigher('manager', 'owner'); // true
+const canAccess = hasRoleOrHigher('admin', 'manager'); // true
 const cannotAccess = hasRoleOrHigher('tenant', 'admin'); // false
 ```
 

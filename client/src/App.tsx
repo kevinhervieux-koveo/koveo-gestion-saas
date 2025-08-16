@@ -31,28 +31,28 @@ export const useMobileMenu = () => {
   return context;
 };
 
-// Optimized lazy-loaded Owner pages
-const OwnerDashboard = optimizedPageLoaders.OwnerDashboard;
-const OwnerDocumentation = createOptimizedLoader(
-  () => import('@/pages/owner/documentation'),
-  'owner-documentation',
+// Optimized lazy-loaded Admin pages
+const AdminDashboard = optimizedPageLoaders.AdminDashboard;
+const AdminDocumentation = createOptimizedLoader(
+  () => import('@/pages/admin/documentation'),
+  'admin-documentation',
   { enableMemoryCleanup: true }
 );
-const OwnerPillars = createOptimizedLoader(
-  () => import('@/pages/owner/pillars'),
-  'owner-pillars',
+const AdminPillars = createOptimizedLoader(
+  () => import('@/pages/admin/pillars'),
+  'admin-pillars',
   { enableMemoryCleanup: true }
 );
-const OwnerRoadmap = optimizedPageLoaders.OwnerRoadmap;
-const OwnerQuality = optimizedPageLoaders.OwnerQuality;
-const OwnerSuggestions = createOptimizedLoader(
-  () => import('@/pages/owner/suggestions'),
-  'owner-suggestions',
+const AdminRoadmap = optimizedPageLoaders.AdminRoadmap;
+const AdminQuality = optimizedPageLoaders.AdminQuality;
+const AdminSuggestions = createOptimizedLoader(
+  () => import('@/pages/admin/suggestions'),
+  'admin-suggestions',
   { enableMemoryCleanup: true }
 );
-const OwnerPermissions = createOptimizedLoader(
-  () => import('@/pages/owner/permissions'),
-  'owner-permissions',
+const AdminPermissions = createOptimizedLoader(
+  () => import('@/pages/admin/permissions'),
+  'admin-permissions',
   { enableMemoryCleanup: true }
 );
 
@@ -226,14 +226,14 @@ function Router() {
               {/* Default route - redirect to dashboard */}
               <Route path='/' component={RootRedirect} />
 
-              {/* Owner routes */}
-              <Route path='/owner/dashboard' component={OwnerDashboard} />
-              <Route path='/owner/documentation' component={OwnerDocumentation} />
-              <Route path='/owner/pillars' component={OwnerPillars} />
-              <Route path='/owner/roadmap' component={OwnerRoadmap} />
-              <Route path='/owner/quality' component={OwnerQuality} />
-              <Route path='/owner/suggestions' component={OwnerSuggestions} />
-              <Route path='/owner/permissions' component={OwnerPermissions} />
+              {/* Admin routes */}
+              <Route path='/admin/dashboard' component={AdminDashboard} />
+              <Route path='/admin/documentation' component={AdminDocumentation} />
+              <Route path='/admin/pillars' component={AdminPillars} />
+              <Route path='/admin/roadmap' component={AdminRoadmap} />
+              <Route path='/admin/quality' component={AdminQuality} />
+              <Route path='/admin/suggestions' component={AdminSuggestions} />
+              <Route path='/admin/permissions' component={AdminPermissions} />
 
               {/* Admin routes */}
               <Route path='/manager/user-management' component={UserManagement} />

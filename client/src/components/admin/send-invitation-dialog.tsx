@@ -53,7 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 // Form validation schema
 const invitationSchema = z.object({
   email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'manager', 'owner', 'tenant']),
+  role: z.enum(['admin', 'manager', 'tenant']),
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   personalMessage: z.string().optional(),
@@ -64,7 +64,7 @@ const invitationSchema = z.object({
 
 const bulkInvitationSchema = z.object({
   emails: z.array(z.string().email()).min(1).max(20),
-  role: z.enum(['admin', 'manager', 'owner', 'tenant']),
+  role: z.enum(['admin', 'manager', 'tenant']),
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   personalMessage: z.string().optional(),
@@ -258,12 +258,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const canInviteRole = (role: string) => {
     if (hasRole(['admin'])) return true;
-    if (hasRole(['owner']) && !['admin'].includes(role)) return true;
-    if (hasRole(['manager']) && ['tenant', 'owner'].includes(role)) return true;
+    if (hasRole(['manager']) && ['tenant'].includes(role)) return true;
     return false;
   };
 
-  const availableRoles = ['admin', 'manager', 'owner', 'tenant'].filter(canInviteRole);
+  const availableRoles = ['admin', 'manager', 'tenant'].filter(canInviteRole);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

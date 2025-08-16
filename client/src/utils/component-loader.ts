@@ -145,20 +145,20 @@ export function getComponentCacheSize(): number {
  * Optimized lazy loading for heavy page components.
  */
 export const optimizedPageLoaders = {
-  // Owner pages
-  OwnerDashboard: createOptimizedLoader(
-    () => import('@/pages/owner/dashboard'),
-    'owner-dashboard',
+  // Admin pages
+  AdminDashboard: createOptimizedLoader(
+    () => import('@/pages/admin/dashboard'),
+    'admin-dashboard',
     { preloadDelay: 2000, enableMemoryCleanup: true }
   ),
-  OwnerRoadmap: createOptimizedLoader(
-    () => import('@/pages/owner/roadmap'),
-    'owner-roadmap',
+  AdminRoadmap: createOptimizedLoader(
+    () => import('@/pages/admin/roadmap'),
+    'admin-roadmap',
     { preloadDelay: 3000, enableMemoryCleanup: true }
   ),
-  OwnerQuality: createOptimizedLoader(
-    () => import('@/pages/owner/quality'),
-    'owner-quality',
+  AdminQuality: createOptimizedLoader(
+    () => import('@/pages/admin/quality'),
+    'admin-quality',
     { preloadDelay: 5000, enableMemoryCleanup: true }
   ),
   

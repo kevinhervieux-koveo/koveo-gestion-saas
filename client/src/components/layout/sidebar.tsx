@@ -41,7 +41,7 @@ interface SidebarProps {
 export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();
   const { t } = useLanguage();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['owner']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['admin']);
 
   // Close mobile menu when clicking on navigation items
   const handleNavItemClick = () => {
@@ -185,16 +185,16 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       ],
     },
     {
-      name: 'Owner',
-      key: 'owner',
+      name: 'Admin',
+      key: 'admin',
       icon: User,
       items: [
-        { name: 'Owner Dashboard', href: '/owner/dashboard', icon: Home },
-        { name: 'Documentation', href: '/owner/documentation', icon: FileText },
-        { name: 'Roadmap', href: '/owner/roadmap', icon: ShieldCheck },
-        { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
-        { name: 'Suggestions', href: '/owner/suggestions', icon: Lightbulb },
-        { name: 'RBAC Permissions', href: '/owner/permissions', icon: ShieldCheck },
+        { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
+        { name: 'Documentation', href: '/admin/documentation', icon: FileText },
+        { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
+        { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
+        { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
+        { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
       ],
     },
     {

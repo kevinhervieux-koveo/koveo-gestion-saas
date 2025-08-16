@@ -244,14 +244,14 @@ export class InvitationPermissionValidator {
       return { valid: false, reason: 'Insufficient role privileges to invite users' };
     }
 
-    // Manager restrictions: can only invite owner and tenant roles
+    // Manager restrictions: can only invite tenant roles
     if (inviterRole === 'manager') {
-      if (!['owner', 'tenant'].includes(targetRole)) {
-        return { valid: false, reason: 'Managers can only invite owners and tenants' };
+      if (!['tenant'].includes(targetRole)) {
+        return { valid: false, reason: 'Managers can only invite tenants' };
       }
     }
 
-    // Owner restrictions: can only invite tenants
+    // Admin restrictions: can invite managers and tenants
     if (inviterRole === 'owner') {
       if (targetRole !== 'tenant') {
         return { valid: false, reason: 'Owners can only invite tenants' };
