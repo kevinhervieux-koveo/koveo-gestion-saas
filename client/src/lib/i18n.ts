@@ -129,6 +129,31 @@ export interface Translations {
   bulkInvitationsResult: string;
   bulkInvitationsSuccess: string;
   error: string;
+  // Additional user management translations
+  bulkActionSuccess: string;
+  bulkActionSuccessDescription: string;
+  reminderSent: string;
+  reminderSentDescription: string;
+  errorLoadingData: string;
+  tryAgain: string;
+  noUsersSelected: string;
+  selectUsersForBulkAction: string;
+  totalUsers: string;
+  activeUsers: string;
+  pendingInvitations: string;
+  totalInvitations: string;
+  userManagement: string;
+  manageUsersInvitationsRoles: string;
+  searchUsersInvitations: string;
+  filterByRole: string;
+  allRoles: string;
+  filterByStatus: string;
+  allStatuses: string;
+  active: string;
+  inactive: string;
+  expired: string;
+  invitations: string;
+  invitationSentDescription: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -252,6 +277,31 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsResult: 'Bulk invitations processed successfully',
     bulkInvitationsSuccess: 'invitations sent successfully',
     error: 'Error',
+    // Additional user management translations
+    bulkActionSuccess: 'Bulk Action Completed',
+    bulkActionSuccessDescription: 'The bulk action has been completed successfully',
+    reminderSent: 'Reminder Sent',
+    reminderSentDescription: 'Reminder email has been sent successfully',
+    errorLoadingData: 'Error Loading Data',
+    tryAgain: 'Try Again',
+    noUsersSelected: 'No Users Selected',
+    selectUsersForBulkAction: 'Please select users to perform bulk action',
+    totalUsers: 'Total Users',
+    activeUsers: 'Active Users',
+    pendingInvitations: 'Pending Invitations',
+    totalInvitations: 'Total Invitations',
+    userManagement: 'User Management',
+    manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
+    searchUsersInvitations: 'Search users and invitations...',
+    filterByRole: 'Filter by role',
+    allRoles: 'All Roles',
+    filterByStatus: 'Filter by status',
+    allStatuses: 'All Statuses',
+    active: 'Active',
+    inactive: 'Inactive',
+    expired: 'Expired',
+    invitations: 'Invitations',
+    invitationSentDescription: 'Invitation has been sent successfully to the user',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -374,6 +424,31 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsResult: 'Invitations en lot traitées avec succès',
     bulkInvitationsSuccess: 'invitations envoyées avec succès',
     error: 'Erreur',
+    // Additional user management translations
+    bulkActionSuccess: 'Action en lot terminée',
+    bulkActionSuccessDescription: 'L\'action en lot a été terminée avec succès',
+    reminderSent: 'Rappel envoyé',
+    reminderSentDescription: 'Le courriel de rappel a été envoyé avec succès',
+    errorLoadingData: 'Erreur de chargement des données',
+    tryAgain: 'Réessayer',
+    noUsersSelected: 'Aucun utilisateur sélectionné',
+    selectUsersForBulkAction: 'Veuillez sélectionner des utilisateurs pour effectuer l\'action en lot',
+    totalUsers: 'Total des utilisateurs',
+    activeUsers: 'Utilisateurs actifs',
+    pendingInvitations: 'Invitations en attente',
+    totalInvitations: 'Total des invitations',
+    userManagement: 'Gestion des utilisateurs',
+    manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
+    searchUsersInvitations: 'Rechercher utilisateurs et invitations...',
+    filterByRole: 'Filtrer par rôle',
+    allRoles: 'Tous les rôles',
+    filterByStatus: 'Filtrer par statut',
+    allStatuses: 'Tous les statuts',
+    active: 'Actif',
+    inactive: 'Inactif',
+    expired: 'Expiré',
+    invitations: 'Invitations',
+    invitationSentDescription: 'L\'invitation a été envoyée avec succès à l\'utilisateur',
   },
 };
 

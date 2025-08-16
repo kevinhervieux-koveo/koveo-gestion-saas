@@ -86,7 +86,7 @@ export default function UserManagement() {
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
 
   // Check permissions
-  const canManageUsers = hasRole(['admin', 'manager', 'developer']);
+  const canManageUsers = hasRole(['admin', 'manager']);
 
   // Fetch user management data
   const { 

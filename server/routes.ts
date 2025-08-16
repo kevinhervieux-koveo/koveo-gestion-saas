@@ -3112,7 +3112,7 @@ function registerInvitationRoutes(app: any) {
 
   // User Management API endpoints
   // GET /api/user-management - Get comprehensive user management data
-  app.get('/api/user-management', requireAuth, authorize('read:user'), async (req, res) => {
+  app.get('/api/user-management', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: any) => {
     try {
       // Get all users
       const users = await db.select().from(schema.users).orderBy(desc(schema.users.createdAt));
