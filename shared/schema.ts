@@ -1876,10 +1876,22 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   requires2FA: true,
 }).extend({
   email: z.string().email('Invalid email address'),
-  expiresAt: z.date().refine(
+  // Make organizationId optional for flexibility
+  organizationId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional(),
+  // Accept both string and date for expiresAt to handle serialization
+  expiresAt: z.union([
+    z.date(),
+    z.string().transform((str) => new Date(str))
+  ]).refine(
     (date) => date > new Date(),
     { message: 'Expiry date must be in the future' }
   ),
+  // Make other optional fields truly optional
+  personalMessage: z.string().optional(),
+  invitationContext: z.record(z.unknown()).optional(),
+  securityLevel: z.string().default('standard'),
+  requires2FA: z.boolean().default(false),
 });
 
 export const insertInvitationAuditLogSchema = createInsertSchema(invitationAuditLog).pick({

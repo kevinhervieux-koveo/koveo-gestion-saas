@@ -151,6 +151,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     defaultValues: {
       email: '',
       role: 'tenant',
+      organizationId: '',
+      buildingId: '',
       expiryDays: 7,
       requires2FA: false,
       securityLevel: 'standard',
@@ -164,6 +166,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     defaultValues: {
       emails: [],
       role: 'tenant',
+      organizationId: '',
+      buildingId: '',
       expiryDays: 7,
       requires2FA: false,
       securityLevel: 'standard',
@@ -199,7 +203,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       
       const response = await apiRequest('POST', '/api/invitations', {
         ...data,
-        expiresAt,
+        expiresAt: expiresAt.toISOString(),
         invitedByUserId: currentUser?.id
       });
       return response.json();
@@ -234,7 +238,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         organizationId: data.organizationId,
         buildingId: data.buildingId,
         personalMessage: data.personalMessage,
-        expiresAt,
+        expiresAt: expiresAt.toISOString(),
         requires2FA: data.requires2FA,
         securityLevel: data.securityLevel,
         invitedByUserId: currentUser?.id
