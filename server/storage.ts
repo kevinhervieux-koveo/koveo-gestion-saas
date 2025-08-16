@@ -1106,10 +1106,9 @@ export class MemStorage implements IStorage {
 }
 
 // Use database storage if DATABASE_URL is set, otherwise use in-memory storage
-// import { DatabaseStorage } from './db-storage';
+import { DatabaseStorage } from './db-storage';
 
-// Temporarily using MemStorage until database tables are created
-export const storage = new MemStorage();
-// export const storage = process.env.DATABASE_URL
-//   ? new DatabaseStorage()
-//   : new MemStorage();
+// Use DatabaseStorage for persistent storage of suggestions
+export const storage = process.env.DATABASE_URL
+  ? new DatabaseStorage()
+  : new MemStorage();

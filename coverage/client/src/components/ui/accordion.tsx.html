@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/15</span>
             </div>
         
             
@@ -115,15 +115,11 @@
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a>
-<a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,10 +127,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -174,46 +166,42 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as React from "react"
-import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDown } from "lucide-react"
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import * as React from 'react';</span>
+<span class="cstat-no" title="statement not covered" >import * as AccordionPrimitive from '@radix-ui/react-accordion';</span>
+<span class="cstat-no" title="statement not covered" >import { ChevronDown } from 'lucide-react';</span>
 &nbsp;
-import { cn } from "@/lib/utils"
+<span class="cstat-no" title="statement not covered" >import { cn } from '@/lib/utils';</span>
 &nbsp;
-const Accordion = <span class="cstat-no" title="statement not covered" >AccordionPrimitive.Root</span>
+const Accordion = <span class="cstat-no" title="statement not covered" >AccordionPrimitive.Root;</span>
 &nbsp;
 const AccordionItem = <span class="cstat-no" title="statement not covered" >React.forwardRef&lt;</span>
   React.ElementRef&lt;typeof AccordionPrimitive.Item&gt;,
   React.ComponentPropsWithoutRef&lt;typeof AccordionPrimitive.Item&gt;
 &gt;(<span class="fstat-no" title="function not covered" >({</span> className<span class="cstat-no" title="statement not covered" >, ...p</span>rops<span class="cstat-no" title="statement not covered" > }, r</span>ef) =&gt; <span class="cstat-no" title="statement not covered" >(</span>
-  &lt;AccordionPrimitive.Item
-    ref={ref}
-    className={cn("border-b", className)}
-    {...props}
-  /&gt;
-))
-<span class="cstat-no" title="statement not covered" >AccordionItem.displayName = "AccordionItem"</span>
+  &lt;AccordionPrimitive.Item ref={ref} className={cn('border-b', className)} {...props} /&gt;
+));
+<span class="cstat-no" title="statement not covered" >AccordionItem.displayName = 'AccordionItem';</span>
 &nbsp;
 const AccordionTrigger = <span class="cstat-no" title="statement not covered" >React.forwardRef&lt;</span>
   React.ElementRef&lt;typeof AccordionPrimitive.Trigger&gt;,
   React.ComponentPropsWithoutRef&lt;typeof AccordionPrimitive.Trigger&gt;
 &gt;(<span class="fstat-no" title="function not covered" >({</span> className, children<span class="cstat-no" title="statement not covered" >, ...p</span>rops<span class="cstat-no" title="statement not covered" > }, r</span>ef) =&gt; <span class="cstat-no" title="statement not covered" >(</span>
-  &lt;AccordionPrimitive.Header className="flex"&gt;
+  &lt;AccordionPrimitive.Header className='flex'&gt;
     &lt;AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]&gt;svg]:rotate-180",
+        'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]&gt;svg]:rotate-180',
         className
       )}
       {...props}
     &gt;
       {children}
-      &lt;ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" /&gt;
+      &lt;ChevronDown className='h-4 w-4 shrink-0 transition-transform duration-200' /&gt;
     &lt;/AccordionPrimitive.Trigger&gt;
   &lt;/AccordionPrimitive.Header&gt;
-))
-<span class="cstat-no" title="statement not covered" >AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName</span>
+));
+<span class="cstat-no" title="statement not covered" >AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;</span>
 &nbsp;
 const AccordionContent = <span class="cstat-no" title="statement not covered" >React.forwardRef&lt;</span>
   React.ElementRef&lt;typeof AccordionPrimitive.Content&gt;,
@@ -221,16 +209,16 @@ const AccordionContent = <span class="cstat-no" title="statement not covered" >R
 &gt;(<span class="fstat-no" title="function not covered" >({</span> className, children<span class="cstat-no" title="statement not covered" >, ...p</span>rops<span class="cstat-no" title="statement not covered" > }, r</span>ef) =&gt; <span class="cstat-no" title="statement not covered" >(</span>
   &lt;AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    className='overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down'
     {...props}
   &gt;
-    &lt;div className={cn("pb-4 pt-0", className)}&gt;{children}&lt;/div&gt;
+    &lt;div className={cn('pb-4 pt-0', className)}&gt;{children}&lt;/div&gt;
   &lt;/AccordionPrimitive.Content&gt;
-))
+));
 &nbsp;
-<span class="cstat-no" title="statement not covered" >AccordionContent.displayName = AccordionPrimitive.Content.displayName</span>
+<span class="cstat-no" title="statement not covered" >AccordionContent.displayName = AccordionPrimitive.Content.displayName;</span>
 &nbsp;
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
+export { <span class="cstat-no" title="statement not covered" >Accordion,</span> <span class="cstat-no" title="statement not covered" >AccordionItem,</span> <span class="cstat-no" title="statement not covered" >AccordionTrigger,</span> <span class="cstat-no" title="statement not covered" >AccordionContent </span>};
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -238,7 +226,7 @@ export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:46:59.353Z
+                at 2025-08-16T00:02:23.411Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

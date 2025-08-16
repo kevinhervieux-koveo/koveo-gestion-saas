@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -145,11 +145,23 @@
 <a name='L80'></a><a href='#L80'>80</a>
 <a name='L81'></a><a href='#L81'>81</a>
 <a name='L82'></a><a href='#L82'>82</a>
-<a name='L83'></a><a href='#L83'>83</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -227,11 +239,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Card, CardContent } from '@/components/ui/card';
-import { Columns } from 'lucide-react';
-import { useLanguage } from '@/hooks/use-language';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Card, CardContent } from '@/components/ui/card';</span>
+<span class="cstat-no" title="statement not covered" >import { Columns } from 'lucide-react';</span>
+<span class="cstat-no" title="statement not covered" >import { useLanguage } from '@/hooks/use-language';</span>
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >PillarFramework(</span>) {
+/**
+ *
+ */
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >P</span>illarFramework(</span>) {
   const { t } = <span class="cstat-no" title="statement not covered" >useLanguage();</span>
 &nbsp;
   const pillars = <span class="cstat-no" title="statement not covered" >[</span>
@@ -272,13 +293,13 @@ export function <span class="fstat-no" title="function not covered" >PillarFrame
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;Card&gt;
-      &lt;CardContent className="p-6"&gt;
-        &lt;h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center"&gt;
-          &lt;Columns className="text-koveo-navy mr-3" size={20} /&gt;
+      &lt;CardContent className='p-6'&gt;
+        &lt;h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'&gt;
+          &lt;Columns className='text-koveo-navy mr-3' size={20} /&gt;
           {t('pillarMethodology')}
         &lt;/h3&gt;
-        
-        &lt;div className="space-y-3"&gt;
+&nbsp;
+        &lt;div className='space-y-3'&gt;
           {pillars.map(<span class="fstat-no" title="function not covered" >(p</span>illar) =&gt; (
 <span class="cstat-no" title="statement not covered" >            &lt;div</span>
               key={pillar.id}
@@ -286,15 +307,21 @@ export function <span class="fstat-no" title="function not covered" >PillarFrame
                 pillar.status === 'pending' ? 'opacity-50' : ''
               }`}
             &gt;
-              &lt;div className="flex items-center space-x-3"&gt;
-                &lt;div className={`w-8 h-8 ${pillar.numberBg} rounded-full flex items-center justify-center`}&gt;
-                  &lt;span className="text-white font-bold text-sm"&gt;{pillar.id}&lt;/span&gt;
+              &lt;div className='flex items-center space-x-3'&gt;
+                &lt;div
+                  className={`w-8 h-8 ${pillar.numberBg} rounded-full flex items-center justify-center`}
+                &gt;
+                  &lt;span className='text-white font-bold text-sm'&gt;{pillar.id}&lt;/span&gt;
                 &lt;/div&gt;
                 &lt;div&gt;
-                  &lt;p className={`font-medium ${pillar.status === 'pending' ? 'text-gray-600' : 'text-gray-900'}`}&gt;
+                  &lt;p
+                    className={`font-medium ${pillar.status === 'pending' ? 'text-gray-600' : 'text-gray-900'}`}
+                  &gt;
                     {pillar.title}
                   &lt;/p&gt;
-                  &lt;p className={`text-sm ${pillar.status === 'pending' ? 'text-gray-500' : 'text-gray-600'}`}&gt;
+                  &lt;p
+                    className={`text-sm ${pillar.status === 'pending' ? 'text-gray-500' : 'text-gray-600'}`}
+                  &gt;
                     {pillar.description}
                   &lt;/p&gt;
                 &lt;/div&gt;
@@ -316,7 +343,7 @@ export function <span class="fstat-no" title="function not covered" >PillarFrame
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:46:58.873Z
+                at 2025-08-16T00:02:22.799Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

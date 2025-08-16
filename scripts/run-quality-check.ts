@@ -472,9 +472,14 @@ async function main(): Promise<void> {
   console.log(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);
   
   try {
-    // Clear existing 'New' suggestions
-    console.log('🧹 Clearing previous suggestions...');
-    await storage.clearNewSuggestions();
+    // Get existing suggestions to avoid duplicates
+    console.log('📋 Checking existing suggestions...');
+    const existingSuggestions = await storage.getImprovementSuggestions();
+    const existingTitles = new Set(
+      existingSuggestions
+        .filter(s => s.status === 'New' || s.status === 'Acknowledged')
+        .map(s => s.title)
+    );
     
     // Run analysis in parallel for efficiency
     const [complexity, coverage, vulnerabilities] = await Promise.all([
@@ -484,13 +489,22 @@ async function main(): Promise<void> {
     ]);
     
     // Generate suggestions based on findings
-    const suggestions = await generateSuggestions(complexity, coverage, vulnerabilities);
+    const allSuggestions = await generateSuggestions(complexity, coverage, vulnerabilities);
     
-    // Save suggestions to database
-    console.log(`\n💾 Saving ${suggestions.length} improvement suggestions to database...`);
-    for (const suggestion of suggestions) {
-      await storage.createImprovementSuggestion(suggestion);
-      console.log(`   ✓ ${suggestion.title} (${suggestion.priority})`);
+    // Filter out suggestions that already exist (by title)
+    const newSuggestions = allSuggestions.filter(
+      suggestion => !existingTitles.has(suggestion.title)
+    );
+    
+    // Save only new suggestions to database
+    if (newSuggestions.length > 0) {
+      console.log(`\n💾 Saving ${newSuggestions.length} new improvement suggestions to database...`);
+      for (const suggestion of newSuggestions) {
+        await storage.createImprovementSuggestion(suggestion);
+        console.log(`   ✓ ${suggestion.title} (${suggestion.priority})`);
+      }
+    } else {
+      console.log(`\n✅ No new suggestions to add. ${existingSuggestions.length} existing suggestions remain.`);
     }
     
     // Validate against thresholds
@@ -498,15 +512,19 @@ async function main(): Promise<void> {
     
     console.log('\n' + '='.repeat(50));
     
+    const totalSuggestions = existingSuggestions.filter(
+      s => s.status === 'New' || s.status === 'Acknowledged'
+    ).length + newSuggestions.length;
+    
     if (isQualityValid) {
       console.log(`${COLORS.GREEN}🎉 ALL QUALITY GATES PASSED!${COLORS.RESET}`);
       console.log(`Code meets all quality and coverage requirements.`);
-      console.log(`${suggestions.length} suggestions saved for continuous improvement.`);
+      console.log(`${newSuggestions.length} new suggestions added (${totalSuggestions} total active).`);
       process.exit(0);
     } else {
       console.log(`${COLORS.RED}🚫 QUALITY GATE FAILURE!${COLORS.RESET}`);
       console.log(`Code does not meet quality requirements.`);
-      console.log(`${suggestions.length} critical issues require attention.`);
+      console.log(`${newSuggestions.length} new issues found (${totalSuggestions} total require attention).`);
       process.exit(1);
     }
     

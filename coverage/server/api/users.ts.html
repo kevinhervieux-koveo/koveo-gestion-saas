@@ -285,7 +285,8 @@
 <a name='L220'></a><a href='#L220'>220</a>
 <a name='L221'></a><a href='#L221'>221</a>
 <a name='L222'></a><a href='#L222'>222</a>
-<a name='L223'></a><a href='#L223'>223</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -507,52 +508,53 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { Express } from "express";
-import { storage } from "../storage";
-import { insertUserSchema, type User, type InsertUser } from "@shared/schema";
-import { z } from "zod";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { Express } from 'express';
+import { storage } from '../storage';
+import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
+import { z } from 'zod';
 &nbsp;
 /**
  * Registers all user-related API endpoints.
- * 
- * @param app - Express application instance
+ *
+ * @param app - Express application instance.
  */
 export function registerUserRoutes(app: Express): void {
   /**
-   * GET /api/users - Retrieves all users
+   * GET /api/users - Retrieves all users.
    */
-  app.get("/api/users", async (req, res) =&gt; {
+  app.get('/api/users', async (req, res) =&gt; {
     try {
       const users = await storage.getUsers();
       res.json(users);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to fetch users" 
+      console.error('Failed to fetch users:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch users',
       });
     }
   });
 &nbsp;
   /**
-   * GET /api/users/:id - Retrieves a specific user by ID
+   * GET /api/users/:id - Retrieves a specific user by ID.
    */
-  app.get("/api/users/:id", async (req, res) =&gt; {
+  app.get('/api/users/:id', async (req, res) =&gt; {
     try {
       const { id } = req.params;
-      
+&nbsp;
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!id) {
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "User ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'User ID is required',
         });
       }
 &nbsp;
       const user = await storage.getUser(id);
       if (!user) {
-        return res.status(404).json({ 
-          error: "Not found",
-          message: "User not found" 
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'User not found',
         });
       }
 &nbsp;
@@ -560,33 +562,33 @@ export function registerUserRoutes(app: Express): void {
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
-      console.error("Failed to fetch user:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to fetch user" 
+      console.error('Failed to fetch user:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch user',
       });
     }
   });
 &nbsp;
   /**
-   * GET /api/users/email/:email - Retrieves a user by email address
+   * GET /api/users/email/:email - Retrieves a user by email address.
    */
-  app.get("/api/users/email/:email", async (req, res) =&gt; {
+  app.get('/api/users/email/:email', async (req, res) =&gt; {
     try {
       const { email } = req.params;
-      
+&nbsp;
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!email) {
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "Email is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'Email is required',
         });
       }
 &nbsp;
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(404).json({ 
-          error: "Not found",
-          message: "User not found" 
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'User not found',
         });
       }
 &nbsp;
@@ -594,63 +596,63 @@ export function registerUserRoutes(app: Express): void {
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
-      console.error("Failed to fetch user by email:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to fetch user" 
+      console.error('Failed to fetch user by email:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch user',
       });
     }
   });
 &nbsp;
   /**
-   * POST /api/users - Creates a new user
+   * POST /api/users - Creates a new user.
    */
-  app.post("/api/users", async (req, res) =&gt; {
+  app.post('/api/users', async (req, res) =&gt; {
     try {
       const validatedData = insertUserSchema.parse(req.body);
-      
+&nbsp;
       // Check if user with email already exists
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
-        return res.status(409).json({ 
-          error: "Conflict",
-          message: "User with this email already exists" 
+        return res.status(409).json({
+          error: 'Conflict',
+          message: 'User with this email already exists',
         });
       }
 &nbsp;
       const user = await storage.createUser(validatedData);
-      
+&nbsp;
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error",
-          message: "Invalid user data",
-          details: error.errors 
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Invalid user data',
+          details: error.errors,
         });
       }
-      
-      console.error("Failed to create user:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to create user" 
+&nbsp;
+      console.error('Failed to create user:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to create user',
       });
     }
   });
 &nbsp;
   /**
-   * PUT /api/users/:id - Updates an existing user
+   * PUT /api/users/:id - Updates an existing user.
    */
-  app.put("/api/users/:id", async (req, res) =&gt; {
+  app.put('/api/users/:id', async (req, res) =&gt; {
     try {
       const { id } = req.params;
-      
+&nbsp;
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!id) {
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "User ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'User ID is required',
         });
       }
 &nbsp;
@@ -664,9 +666,9 @@ export function registerUserRoutes(app: Express): void {
       });
 &nbsp;
       if (!user) {
-        return res.status(404).json({ 
-          error: "Not found",
-          message: "User not found" 
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'User not found',
         });
       }
 &nbsp;
@@ -675,32 +677,32 @@ export function registerUserRoutes(app: Express): void {
       res.json(userWithoutPassword);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error",
-          message: "Invalid user data",
-          details: error.errors 
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Invalid user data',
+          details: error.errors,
         });
       }
-      
-      console.error("Failed to update user:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to update user" 
+&nbsp;
+      console.error('Failed to update user:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update user',
       });
     }
   });
 &nbsp;
   /**
-   * DELETE /api/users/:id - Deactivates a user (soft delete)
+   * DELETE /api/users/:id - Deactivates a user (soft delete).
    */
-  app.delete("/api/users/:id", async (req, res) =&gt; {
+  app.delete('/api/users/:id', async (req, res) =&gt; {
     try {
       const { id } = req.params;
-      
+&nbsp;
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!id) {
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "User ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'User ID is required',
         });
       }
 &nbsp;
@@ -711,32 +713,33 @@ export function registerUserRoutes(app: Express): void {
       });
 &nbsp;
       if (!user) {
-        return res.status(404).json({ 
-          error: "Not found",
-          message: "User not found" 
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'User not found',
         });
       }
 &nbsp;
-      res.json({ 
-        message: "User deactivated successfully",
-        id: user.id 
+      res.json({
+        message: 'User deactivated successfully',
+        id: user.id,
       });
     } catch (error) {
-      console.error("Failed to deactivate user:", error);
-      res.status(500).json({ 
-        error: "Internal server error",
-        message: "Failed to deactivate user" 
+      console.error('Failed to deactivate user:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to deactivate user',
       });
     }
   });
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:46:59.353Z
+                at 2025-08-16T00:02:23.411Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

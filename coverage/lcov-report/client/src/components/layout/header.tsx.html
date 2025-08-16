@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -90,7 +90,16 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -98,6 +107,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -117,26 +135,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useLanguage } from '@/hooks/use-language';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { useLanguage } from '@/hooks/use-language';</span>
 &nbsp;
+/**
+ *
+ */
 interface HeaderProps {
   title: string;
   subtitle: string;
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >Header(</span>{ title, subtitle }: HeaderProps) {
+/**
+ *
+ * @param root0
+ * @param root0.title
+ * @param root0.subtitle
+ */
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >H</span>eader(</span>{ title, subtitle }: HeaderProps) {
   const { t } = <span class="cstat-no" title="statement not covered" >useLanguage();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
-    &lt;header className="bg-white border-b border-gray-200 px-6 py-4"&gt;
-      &lt;div className="flex items-center justify-between"&gt;
+    &lt;header className='bg-white border-b border-gray-200 px-6 py-4'&gt;
+      &lt;div className='flex items-center justify-between'&gt;
         &lt;div&gt;
-          &lt;h2 className="text-2xl font-semibold text-gray-900"&gt;{title}&lt;/h2&gt;
-          &lt;p className="text-gray-600"&gt;{subtitle}&lt;/p&gt;
+          &lt;h2 className='text-2xl font-semibold text-gray-900'&gt;{title}&lt;/h2&gt;
+          &lt;p className='text-gray-600'&gt;{subtitle}&lt;/p&gt;
         &lt;/div&gt;
-        &lt;div className="flex items-center space-x-4"&gt;
-          &lt;div className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"&gt;
-            &lt;div className="w-2 h-2 bg-green-500 rounded-full"&gt;&lt;/div&gt;
+        &lt;div className='flex items-center space-x-4'&gt;
+          &lt;div className='flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm'&gt;
+            &lt;div className='w-2 h-2 bg-green-500 rounded-full'&gt;&lt;/div&gt;
             &lt;span&gt;{t('workspaceActive')}&lt;/span&gt;
           &lt;/div&gt;
         &lt;/div&gt;
@@ -151,7 +178,7 @@ export function <span class="fstat-no" title="function not covered" >Header(</sp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:46:58.873Z
+                at 2025-08-16T00:02:22.799Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

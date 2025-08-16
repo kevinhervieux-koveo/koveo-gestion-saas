@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/73</span>
+                <span class='fraction'>0/77</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/67</span>
+                <span class='fraction'>0/71</span>
             </div>
         
             
@@ -277,17 +277,26 @@
 <a name='L212'></a><a href='#L212'>212</a>
 <a name='L213'></a><a href='#L213'>213</a>
 <a name='L214'></a><a href='#L214'>214</a>
-<a name='L215'></a><a href='#L215'>215</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -486,83 +495,88 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { Express } from "express";
-import { storage } from "../storage";
-import { insertOrganizationSchema, type Organization, type InsertOrganization } from "@shared/schema";
-import { z } from "zod";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { Express } from 'express';
+<span class="cstat-no" title="statement not covered" >import { storage } from '../storage';</span>
+<span class="cstat-no" title="statement not covered" >import {</span>
+  insertOrganizationSchema,
+  type Organization,
+  type InsertOrganization,
+} from '@shared/schema';
+<span class="cstat-no" title="statement not covered" >import { z } from 'zod';</span>
 &nbsp;
 /**
  * Registers all organization-related API endpoints.
- * 
- * @param app - Express application instance
+ *
+ * @param app - Express application instance.
  */
-export function <span class="fstat-no" title="function not covered" >registerOrganizationRoutes(</span>app: Express): void {
+<span class="cstat-no" title="statement not covered" >export function <span class="fstat-no" title="function not covered" >r</span>egisterOrganizationRoutes(</span>app: Express): void {
   /**
-   * GET /api/organizations - Retrieves all organizations
+   * GET /api/organizations - Retrieves all organizations.
    */
-<span class="cstat-no" title="statement not covered" >  app.get("/api/organizations", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.get('/api/organizations', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const organizations = <span class="cstat-no" title="statement not covered" >await storage.getOrganizations();</span>
 <span class="cstat-no" title="statement not covered" >      res.json(organizations);</span>
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to fetch organizations:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to fetch organizations" 
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to fetch organizations:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to fetch organizations',
       });
     }
   });
 &nbsp;
   /**
-   * GET /api/organizations/:id - Retrieves a specific organization by ID
+   * GET /api/organizations/:id - Retrieves a specific organization by ID.
    */
-<span class="cstat-no" title="statement not covered" >  app.get("/api/organizations/:id", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.get('/api/organizations/:id', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!id) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "Organization ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'Organization ID is required',
         });
       }
 &nbsp;
       const organization = <span class="cstat-no" title="statement not covered" >await storage.getOrganization(id);</span>
 <span class="cstat-no" title="statement not covered" >      if (!organization) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(404).json({ </span>
-          error: "Not found",
-          message: "Organization not found" 
+<span class="cstat-no" title="statement not covered" >        return res.status(404).json({</span>
+          error: 'Not found',
+          message: 'Organization not found',
         });
       }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      res.json(organization);</span>
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to fetch organization:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to fetch organization" 
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to fetch organization:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to fetch organization',
       });
     }
   });
 &nbsp;
   /**
-   * POST /api/organizations - Creates a new organization
+   * POST /api/organizations - Creates a new organization.
    */
-<span class="cstat-no" title="statement not covered" >  app.post("/api/organizations", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.post('/api/organizations', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const validatedData = <span class="cstat-no" title="statement not covered" >insertOrganizationSchema.parse(req.body);</span>
-      
+&nbsp;
       // Check if organization with name already exists
       const existingOrganization = <span class="cstat-no" title="statement not covered" >await storage.getOrganizationByName(validatedData.name);</span>
 <span class="cstat-no" title="statement not covered" >      if (existingOrganization) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(409).json({ </span>
-          error: "Conflict",
-          message: "Organization with this name already exists" 
+<span class="cstat-no" title="statement not covered" >        return res.status(409).json({</span>
+          error: 'Conflict',
+          message: 'Organization with this name already exists',
         });
       }
 &nbsp;
@@ -570,32 +584,32 @@ export function <span class="fstat-no" title="function not covered" >registerOrg
 <span class="cstat-no" title="statement not covered" >      res.status(201).json(organization);</span>
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      if (error instanceof z.ZodError) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Validation error",
-          message: "Invalid organization data",
-          details: error.errors 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Validation error',
+          message: 'Invalid organization data',
+          details: error.errors,
         });
       }
-      
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to create organization:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to create organization" 
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to create organization:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to create organization',
       });
     }
   });
 &nbsp;
   /**
-   * PUT /api/organizations/:id - Updates an existing organization
+   * PUT /api/organizations/:id - Updates an existing organization.
    */
-<span class="cstat-no" title="statement not covered" >  app.put("/api/organizations/:id", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.put('/api/organizations/:id', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!id) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "Organization ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'Organization ID is required',
         });
       }
 &nbsp;
@@ -608,41 +622,41 @@ export function <span class="fstat-no" title="function not covered" >registerOrg
       });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!organization) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(404).json({ </span>
-          error: "Not found",
-          message: "Organization not found" 
+<span class="cstat-no" title="statement not covered" >        return res.status(404).json({</span>
+          error: 'Not found',
+          message: 'Organization not found',
         });
       }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      res.json(organization);</span>
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      if (error instanceof z.ZodError) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Validation error",
-          message: "Invalid organization data",
-          details: error.errors 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Validation error',
+          message: 'Invalid organization data',
+          details: error.errors,
         });
       }
-      
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to update organization:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to update organization" 
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to update organization:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to update organization',
       });
     }
   });
 &nbsp;
   /**
-   * DELETE /api/organizations/:id - Deactivates an organization (soft delete)
+   * DELETE /api/organizations/:id - Deactivates an organization (soft delete).
    */
-<span class="cstat-no" title="statement not covered" >  app.delete("/api/organizations/:id", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.delete('/api/organizations/:id', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!id) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "Organization ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'Organization ID is required',
         });
       }
 &nbsp;
@@ -653,66 +667,67 @@ export function <span class="fstat-no" title="function not covered" >registerOrg
       });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!organization) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(404).json({ </span>
-          error: "Not found",
-          message: "Organization not found" 
+<span class="cstat-no" title="statement not covered" >        return res.status(404).json({</span>
+          error: 'Not found',
+          message: 'Organization not found',
         });
       }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      res.json({ </span>
-        message: "Organization deactivated successfully",
-        id: organization.id 
+<span class="cstat-no" title="statement not covered" >      res.json({</span>
+        message: 'Organization deactivated successfully',
+        id: organization.id,
       });
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to deactivate organization:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to deactivate organization" 
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to deactivate organization:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to deactivate organization',
       });
     }
   });
 &nbsp;
   /**
-   * GET /api/organizations/:id/buildings - Retrieves all buildings for an organization
+   * GET /api/organizations/:id/buildings - Retrieves all buildings for an organization.
    */
-<span class="cstat-no" title="statement not covered" >  app.get("/api/organizations/:id/buildings", <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
+<span class="cstat-no" title="statement not covered" >  app.get('/api/organizations/:id/buildings', <span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!id) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ </span>
-          error: "Bad request",
-          message: "Organization ID is required" 
+<span class="cstat-no" title="statement not covered" >        return res.status(400).json({</span>
+          error: 'Bad request',
+          message: 'Organization ID is required',
         });
       }
 &nbsp;
       // Verify organization exists
       const organization = <span class="cstat-no" title="statement not covered" >await storage.getOrganization(id);</span>
 <span class="cstat-no" title="statement not covered" >      if (!organization) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(404).json({ </span>
-          error: "Not found",
-          message: "Organization not found" 
+<span class="cstat-no" title="statement not covered" >        return res.status(404).json({</span>
+          error: 'Not found',
+          message: 'Organization not found',
         });
       }
 &nbsp;
       const buildings = <span class="cstat-no" title="statement not covered" >await storage.getBuildingsByOrganization(id);</span>
 <span class="cstat-no" title="statement not covered" >      res.json(buildings);</span>
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error("Failed to fetch organization buildings:", error);</span>
-<span class="cstat-no" title="statement not covered" >      res.status(500).json({ </span>
-        error: "Internal server error",
-        message: "Failed to fetch organization buildings" 
+<span class="cstat-no" title="statement not covered" >      console.error('Failed to fetch organization buildings:', error);</span>
+<span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
+        error: 'Internal server error',
+        message: 'Failed to fetch organization buildings',
       });
     }
   });
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-15T22:46:58.873Z
+                at 2025-08-16T00:02:22.799Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
