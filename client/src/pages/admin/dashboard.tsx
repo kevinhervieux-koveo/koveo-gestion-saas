@@ -116,20 +116,20 @@ export default function Dashboard() {
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center justify-between'>
-                  <div className='flex items-center'>
+                <div className='flex items-center justify-between'>
+                  <CardTitle className='flex items-center'>
                     <Building className='text-koveo-navy mr-2' size={20} />
                     Organizations
-                  </div>
+                  </CardTitle>
                   <Button
                     size='sm'
                     onClick={() => setIsOrganizationDialogOpen(true)}
-                    className='ml-2'
+                    className='bg-blue-600 hover:bg-blue-700 text-white'
                   >
-                    <Plus className='h-4 w-4 mr-1' />
-                    Create
+                    <Plus className='h-4 w-4 mr-2' />
+                    Create Organization
                   </Button>
-                </CardTitle>
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
