@@ -274,9 +274,17 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // For now, store password as plain text until bcrypt is available
-      // TODO: Implement proper password hashing with bcrypt
-      if (user.password !== password) {
+      // Parse salt and hash from combined password field (format: salt:hash)
+      const passwordParts = user.password.split(':');
+      if (passwordParts.length !== 2) {
+        return res.status(401).json({ 
+          message: 'Invalid credentials',
+          code: 'INVALID_CREDENTIALS' 
+        });
+      }
+      
+      const [salt, hash] = passwordParts;
+      if (!verifyPassword(password, salt, hash)) {
         return res.status(401).json({ 
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS' 

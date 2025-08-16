@@ -763,8 +763,7 @@ export class MemStorage implements IStorage {
         email: 'admin@koveo-gestion.com',
         firstName: 'Admin',
         lastName: 'User',
-        password: adminPassword.hash,
-        passwordSalt: adminPassword.salt,
+        password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
         role: 'admin',
         language: 'en',
         phone: null,
@@ -778,8 +777,7 @@ export class MemStorage implements IStorage {
         email: 'kevin.hervieux@koveo-gestion.com',
         firstName: 'Kevin',
         lastName: 'Hervieux',
-        password: kevinPassword.hash,
-        passwordSalt: kevinPassword.salt,
+        password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
         role: 'manager',
         language: 'fr',
         phone: null,
@@ -793,8 +791,7 @@ export class MemStorage implements IStorage {
         email: 'francois-pierre.landry@koveo-gestion.com',
         firstName: 'François-Pierre',
         lastName: 'Landry',
-        password: adminPassword.hash,
-        passwordSalt: adminPassword.salt,
+        password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
         role: 'admin',
         language: 'fr',
         phone: null,
