@@ -72,7 +72,6 @@ export class MetricEffectivenessTracker {
    * @param data - The metric effectiveness data.
    */
   static recordMetricEffectiveness(data: Omit<MetricEffectivenessData, 'accuracy' | 'timestamp'>): void {
-    const totalReported = data.realIssuesFound + data.falsePositives;
     const totalActual = data.realIssuesFound + data.missedIssues;
     const accuracy = totalActual > 0 ? (data.realIssuesFound / totalActual) * 100 : 100;
 

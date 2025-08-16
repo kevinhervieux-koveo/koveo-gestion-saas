@@ -44,6 +44,7 @@ const db = drizzle({ client: pool, schema });
  */
 async function syncFeatureToProduction(feature: any) {
   if (!process.env.PRODUCTION_API_URL || !process.env.SYNC_API_KEY) {
+    // eslint-disable-next-line no-console
     console.log('Production sync not configured - skipping sync');
     return;
   }
@@ -60,8 +61,10 @@ async function syncFeatureToProduction(feature: any) {
     });
 
     if (!response.ok) {
+      // eslint-disable-next-line no-console
       console.error('Failed to sync feature to production:', await response.text());
     } else {
+      // eslint-disable-next-line no-console
       console.log(`Feature ${feature.id} synced to production successfully`);
     }
   } catch (error) {
@@ -343,6 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/features', async (req, res) => {
     try {
       const { status, category, roadmap } = req.query;
+      // eslint-disable-next-line no-console
       console.log('Features API called with query:', { status, category, roadmap });
 
       // Simple query to test connection
@@ -350,6 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         where: roadmap === 'true' ? eq(schema.features.isPublicRoadmap, true) : undefined,
       });
 
+      // eslint-disable-next-line no-console
       console.log('Found features:', features.length);
       res.json(features);
     } catch (error) {

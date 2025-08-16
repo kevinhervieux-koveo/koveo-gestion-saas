@@ -4,7 +4,6 @@ import {
   insertBuildingSchema,
   insertFeatureSchema,
 } from '../../shared/schema';
-import { z } from 'zod';
 
 describe('Schema Validation Tests', () => {
   describe('insertUserSchema', () => {

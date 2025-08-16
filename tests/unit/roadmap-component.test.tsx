@@ -1,6 +1,6 @@
 /**
- * @file Roadmap component tests
- * @description Test suite for the roadmap page and feature management UI
+ * @file Roadmap component tests.
+ * @description Test suite for the roadmap page and feature management UI.
  */
 
 import React from 'react';
@@ -289,7 +289,7 @@ describe('Roadmap Component Tests', () => {
   });
 
   it('should handle loading state', () => {
-    global.fetch = jest.fn().mockImplementation(() => new Promise(() => {}));
+    global.fetch = jest.fn().mockImplementation(() => new Promise(() => { /* Mock loading state */ }));
 
     render(<Roadmap />, { wrapper: createWrapper() });
 

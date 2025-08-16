@@ -111,7 +111,7 @@ describe('User API Routes', () => {
     });
 
     it('should return 400 when ID is missing', async () => {
-      const response = await request(app).get('/api/users/').expect(404); // Express returns 404 for empty parameter
+      await request(app).get('/api/users/').expect(404); // Express returns 404 for empty parameter
     });
 
     it('should handle storage errors', async () => {
@@ -156,7 +156,7 @@ describe('User API Routes', () => {
     it('should handle URL encoded emails', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(mockUser);
 
-      const response = await request(app).get('/api/users/email/marie%40koveo.ca').expect(200);
+      await request(app).get('/api/users/email/marie%40koveo.ca').expect(200);
 
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith('marie@koveo.ca');
     });
@@ -311,7 +311,7 @@ describe('User API Routes', () => {
       const updatedUser = { ...mockUser, ...updateData };
       mockStorage.updateUser.mockResolvedValue(updatedUser);
 
-      const response = await request(app)
+      await request(app)
         .put('/api/users/user-123')
         .send(dataWithPassword)
         .expect(200);
@@ -414,7 +414,7 @@ describe('User API Routes', () => {
       const quebecFirstName = 'Jean-François';
       const quebecLastName = 'Bélanger-Côté';
 
-      const response = await request(app)
+      await request(app)
         .post('/api/users')
         .send({
           ...mockUserData,
@@ -440,7 +440,7 @@ describe('User API Routes', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      const response = await request(app)
+      await request(app)
         .post('/api/users')
         .type('json')
         .send('{ invalid json }')

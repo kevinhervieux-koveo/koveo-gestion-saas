@@ -35,15 +35,17 @@ const db = drizzle(sql, { schema });
 export class DatabaseStorage implements IStorage {
   // User operations
   /**
-   *
+   * Retrieves all users from the database.
+   * @returns Promise that resolves to an array of users.
    */
   async getUsers(): Promise<User[]> {
     return await db.select().from(schema.users);
   }
 
   /**
-   *
-   * @param id
+   * Retrieves a specific user by ID.
+   * @param id - The unique identifier of the user.
+   * @returns Promise that resolves to the user or undefined if not found.
    */
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(schema.users).where(eq(schema.users.id, id));

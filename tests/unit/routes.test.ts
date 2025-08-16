@@ -49,7 +49,7 @@ describe('Routes Integration Tests', () => {
       const mockFeatures = [{ id: '1', name: 'Public Feature', isPublicRoadmap: true }];
       mockStorage.getFeatures.mockResolvedValue(mockFeatures as any);
 
-      const response = await request(app).get('/api/features?roadmap=true').expect(200);
+      await request(app).get('/api/features?roadmap=true').expect(200);
 
       expect(mockStorage.getFeatures).toHaveBeenCalledTimes(1);
     });
