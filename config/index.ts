@@ -82,8 +82,8 @@ export { permissionsData as permissions };
 export const ROLE_HIERARCHY = {
   admin: 4,
   manager: 3,
-  tenant: 2,
-  resident: 1
+  resident: 2,
+  tenant: 1
 } as const;
 
 /**

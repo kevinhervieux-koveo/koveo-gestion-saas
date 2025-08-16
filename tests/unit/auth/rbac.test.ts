@@ -27,8 +27,8 @@ describe('RBAC System Tests', () => {
       const residentPerms = permissions.resident;
 
       expect(adminPerms.length).toBeGreaterThan(managerPerms.length);
-      expect(managerPerms.length).toBeGreaterThan(tenantPerms.length);
-      expect(tenantPerms.length).toBeGreaterThanOrEqual(residentPerms.length);
+      expect(managerPerms.length).toBeGreaterThan(residentPerms.length);
+      expect(residentPerms.length).toBeGreaterThanOrEqual(tenantPerms.length);
     });
 
     test('should validate permission checking function', () => {

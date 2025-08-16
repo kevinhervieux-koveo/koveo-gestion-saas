@@ -54,27 +54,8 @@ The system supports exactly **four user roles**, each with specific responsibili
 - `create:document` - Upload documents
 - `create:notification` - Send notifications
 
-### 3. Tenant (Locataire)
+### 3. Resident (Résident)
 **Role Level:** 2
-**Purpose:** Active property tenant with payment responsibilities
-
-**Key Responsibilities:**
-- Bill payment and tracking
-- Maintenance request submission
-- Document access for their unit
-- Profile management
-- Communication with property management
-
-**Core Permissions:**
-- All permissions from Resident role
-- `pay:bill` - Make bill payments
-- `view:payment_history` - Access payment records
-- `create:payment_method` - Add payment methods
-- `submit:complaint` - File complaints
-- `view:lease` - Access lease documents
-
-### 4. Resident (Résident)
-**Role Level:** 1 (Base)
 **Purpose:** Basic resident access (non-tenant occupants)
 
 **Key Responsibilities:**
@@ -85,6 +66,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 - Update personal profile
 
 **Core Permissions:**
+- All permissions from Tenant role
 - `read:profile` - View own profile
 - `update:profile` - Update personal information
 - `read:residence` - View residence details
@@ -95,6 +77,24 @@ The system supports exactly **four user roles**, each with specific responsibili
 - `read:document` - Access shared documents
 - `read:notification` - View notifications
 
+### 4. Tenant (Locataire)
+**Role Level:** 1 (Base)
+**Purpose:** Active property tenant with payment responsibilities
+
+**Key Responsibilities:**
+- Bill payment and tracking
+- Maintenance request submission
+- Document access for their unit
+- Profile management
+- Communication with property management
+
+**Core Permissions:**
+- `pay:bill` - Make bill payments
+- `view:payment_history` - Access payment records
+- `create:payment_method` - Add payment methods
+- `submit:complaint` - File complaints
+- `view:lease` - Access lease documents
+
 ## Role Hierarchy
 
 The system implements a strict hierarchical structure:
@@ -102,14 +102,14 @@ The system implements a strict hierarchical structure:
 ```
 Admin (Level 4)
   └─> Manager (Level 3)
-      └─> Tenant (Level 2)
-          └─> Resident (Level 1)
+      └─> Resident (Level 2)
+          └─> Tenant (Level 1)
 ```
 
 Each role inherits all permissions from lower-level roles. For example:
-- Admins have all permissions from Manager, Tenant, and Resident roles
-- Managers have all permissions from Tenant and Resident roles
-- Tenants have all permissions from the Resident role
+- Admins have all permissions from Manager, Resident, and Tenant roles
+- Managers have all permissions from Resident and Tenant roles
+- Residents have all permissions from the Tenant role
 
 ## Implementation Details
 
@@ -125,8 +125,8 @@ export const UserRole = z.enum(['admin', 'manager', 'tenant', 'resident']);
 export const ROLE_HIERARCHY = {
   admin: 4,
   manager: 3,
-  tenant: 2,
-  resident: 1
+  resident: 2,
+  tenant: 1
 } as const;
 ```
 
