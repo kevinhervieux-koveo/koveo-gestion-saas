@@ -42,92 +42,456 @@ import { randomUUID } from 'crypto';
  */
 export interface IStorage {
   // User operations
+  /**
+   * Retrieves all users from storage.
+   *
+   * @returns {Promise<User[]>} Array of all user records.
+   */
   getUsers(): Promise<User[]>;
+  
+  /**
+   * Retrieves a specific user by their unique identifier.
+   *
+   * @param {string} _id - The unique user identifier.
+   * @returns {Promise<User | undefined>} User record or undefined if not found.
+   */
   getUser(_id: string): Promise<User | undefined>;
+  
+  /**
+   * Retrieves a user by their email address.
+   *
+   * @param {string} _email - The user's email address.
+   * @returns {Promise<User | undefined>} User record or undefined if not found.
+   */
   getUserByEmail(_email: string): Promise<User | undefined>;
+  
+  /**
+   * Creates a new user in the storage system.
+   *
+   * @param {InsertUser} _user - User data for creation (excluding auto-generated fields).
+   * @returns {Promise<User>} The created user record with generated ID and timestamps.
+   */
   createUser(_user: InsertUser): Promise<User>;
+  
+  /**
+   * Updates an existing user's information.
+   *
+   * @param {string} _id - The unique user identifier.
+   * @param {Partial<User>} _updates - Partial user data containing fields to update.
+   * @returns {Promise<User | undefined>} Updated user record or undefined if not found.
+   */
   updateUser(_id: string, _updates: Partial<User>): Promise<User | undefined>;
 
   // Organization operations
+  /**
+   * Retrieves all organizations from storage.
+   *
+   * @returns {Promise<Organization[]>} Array of all organization records.
+   */
   getOrganizations(): Promise<Organization[]>;
+  
+  /**
+   * Retrieves a specific organization by its unique identifier.
+   *
+   * @param {string} _id - The unique organization identifier.
+   * @returns {Promise<Organization | undefined>} Organization record or undefined if not found.
+   */
   getOrganization(_id: string): Promise<Organization | undefined>;
+  
+  /**
+   * Retrieves an organization by its name.
+   *
+   * @param {string} _name - The organization's name.
+   * @returns {Promise<Organization | undefined>} Organization record or undefined if not found.
+   */
   getOrganizationByName(_name: string): Promise<Organization | undefined>;
+  
+  /**
+   * Creates a new organization in the storage system.
+   *
+   * @param {InsertOrganization} _organization - Organization data for creation.
+   * @returns {Promise<Organization>} The created organization record with generated ID.
+   */
   createOrganization(_organization: InsertOrganization): Promise<Organization>;
+  
+  /**
+   * Updates an existing organization's information.
+   *
+   * @param {string} _id - The unique organization identifier.
+   * @param {Partial<Organization>} _updates - Partial organization data containing fields to update.
+   * @returns {Promise<Organization | undefined>} Updated organization record or undefined if not found.
+   */
   updateOrganization(
     _id: string,
     _updates: Partial<Organization>
   ): Promise<Organization | undefined>;
+  
+  /**
+   * Retrieves all buildings belonging to a specific organization.
+   *
+   * @param {string} _organizationId - The unique organization identifier.
+   * @returns {Promise<Building[]>} Array of buildings managed by the organization.
+   */
   getBuildingsByOrganization(_organizationId: string): Promise<Building[]>;
 
   // Building operations
+  /**
+   * Retrieves all buildings from storage.
+   *
+   * @returns {Promise<Building[]>} Array of all building records.
+   */
   getBuildings(): Promise<Building[]>;
+  
+  /**
+   * Retrieves a specific building by its unique identifier.
+   *
+   * @param {string} _id - The unique building identifier.
+   * @returns {Promise<Building | undefined>} Building record or undefined if not found.
+   */
   getBuilding(_id: string): Promise<Building | undefined>;
+  
+  /**
+   * Creates a new building in the storage system.
+   *
+   * @param {InsertBuilding} _building - Building data for creation.
+   * @returns {Promise<Building>} The created building record with generated ID.
+   */
   createBuilding(_building: InsertBuilding): Promise<Building>;
+  
+  /**
+   * Updates an existing building's information.
+   *
+   * @param {string} _id - The unique building identifier.
+   * @param {Partial<Building>} _updates - Partial building data containing fields to update.
+   * @returns {Promise<Building | undefined>} Updated building record or undefined if not found.
+   */
   updateBuilding(_id: string, _updates: Partial<Building>): Promise<Building | undefined>;
+  
+  /**
+   * Deletes a building from storage.
+   *
+   * @param {string} _id - The unique building identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
   deleteBuilding(_id: string): Promise<boolean>;
 
   // Residence operations
+  /**
+   * Retrieves all residences from storage.
+   *
+   * @returns {Promise<Residence[]>} Array of all residence records.
+   */
   getResidences(): Promise<Residence[]>;
+  
+  /**
+   * Retrieves a specific residence by its unique identifier.
+   *
+   * @param {string} _id - The unique residence identifier.
+   * @returns {Promise<Residence | undefined>} Residence record or undefined if not found.
+   */
   getResidence(_id: string): Promise<Residence | undefined>;
+  
+  /**
+   * Retrieves all residences within a specific building.
+   *
+   * @param {string} _buildingId - The unique building identifier.
+   * @returns {Promise<Residence[]>} Array of residences in the specified building.
+   */
   getResidencesByBuilding(_buildingId: string): Promise<Residence[]>;
+  
+  /**
+   * Creates a new residence in the storage system.
+   *
+   * @param {InsertResidence} _residence - Residence data for creation.
+   * @returns {Promise<Residence>} The created residence record with generated ID.
+   */
   createResidence(_residence: InsertResidence): Promise<Residence>;
+  
+  /**
+   * Updates an existing residence's information.
+   *
+   * @param {string} _id - The unique residence identifier.
+   * @param {Partial<Residence>} _updates - Partial residence data containing fields to update.
+   * @returns {Promise<Residence | undefined>} Updated residence record or undefined if not found.
+   */
   updateResidence(_id: string, _updates: Partial<Residence>): Promise<Residence | undefined>;
+  
+  /**
+   * Deletes a residence from storage.
+   *
+   * @param {string} _id - The unique residence identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
   deleteResidence(_id: string): Promise<boolean>;
 
   // Development Pillar operations
+  /**
+   * Retrieves all development pillars from storage.
+   *
+   * @returns {Promise<DevelopmentPillar[]>} Array of all development pillar records.
+   */
   getPillars(): Promise<DevelopmentPillar[]>;
+  
+  /**
+   * Retrieves a specific development pillar by its unique identifier.
+   *
+   * @param {string} _id - The unique pillar identifier.
+   * @returns {Promise<DevelopmentPillar | undefined>} Pillar record or undefined if not found.
+   */
   getPillar(_id: string): Promise<DevelopmentPillar | undefined>;
+  
+  /**
+   * Creates a new development pillar in the storage system.
+   *
+   * @param {InsertPillar} _pillar - Pillar data for creation.
+   * @returns {Promise<DevelopmentPillar>} The created pillar record with generated ID.
+   */
   createPillar(_pillar: InsertPillar): Promise<DevelopmentPillar>;
+  
+  /**
+   * Updates an existing development pillar's information.
+   *
+   * @param {string} _id - The unique pillar identifier.
+   * @param {Partial<DevelopmentPillar>} _pillar - Partial pillar data containing fields to update.
+   * @returns {Promise<DevelopmentPillar | undefined>} Updated pillar record or undefined if not found.
+   */
   updatePillar(
     _id: string,
     _pillar: Partial<DevelopmentPillar>
   ): Promise<DevelopmentPillar | undefined>;
 
   // Workspace Status operations
+  /**
+   * Retrieves all workspace component statuses from storage.
+   *
+   * @returns {Promise<WorkspaceStatus[]>} Array of all workspace status records.
+   */
   getWorkspaceStatuses(): Promise<WorkspaceStatus[]>;
+  
+  /**
+   * Retrieves the status of a specific workspace component.
+   *
+   * @param {string} _component - The name of the workspace component.
+   * @returns {Promise<WorkspaceStatus | undefined>} Status record or undefined if not found.
+   */
   getWorkspaceStatus(_component: string): Promise<WorkspaceStatus | undefined>;
+  
+  /**
+   * Creates a new workspace status record.
+   *
+   * @param {InsertWorkspaceStatus} _status - Status data for creation.
+   * @returns {Promise<WorkspaceStatus>} The created status record.
+   */
   createWorkspaceStatus(_status: InsertWorkspaceStatus): Promise<WorkspaceStatus>;
+  
+  /**
+   * Updates the status of a specific workspace component.
+   *
+   * @param {string} _component - The name of the workspace component.
+   * @param {string} _status - The new status value.
+   * @returns {Promise<WorkspaceStatus | undefined>} Updated status record or undefined if not found.
+   */
   updateWorkspaceStatus(_component: string, _status: string): Promise<WorkspaceStatus | undefined>;
 
   // Quality Metrics operations
+  /**
+   * Retrieves all quality metrics from storage.
+   *
+   * @returns {Promise<QualityMetric[]>} Array of all quality metric records.
+   */
   getQualityMetrics(): Promise<QualityMetric[]>;
+  
+  /**
+   * Creates a new quality metric record.
+   *
+   * @param {InsertQualityMetric} _metric - Metric data for creation.
+   * @returns {Promise<QualityMetric>} The created quality metric record.
+   */
   createQualityMetric(_metric: InsertQualityMetric): Promise<QualityMetric>;
 
   // Framework Configuration operations
+  /**
+   * Retrieves all framework configuration records from storage.
+   *
+   * @returns {Promise<FrameworkConfiguration[]>} Array of all configuration records.
+   */
   getFrameworkConfigs(): Promise<FrameworkConfiguration[]>;
+  
+  /**
+   * Retrieves a specific framework configuration by its key.
+   *
+   * @param {string} _key - The configuration key identifier.
+   * @returns {Promise<FrameworkConfiguration | undefined>} Configuration record or undefined if not found.
+   */
   getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined>;
+  
+  /**
+   * Sets or updates a framework configuration.
+   *
+   * @param {InsertFrameworkConfig} _config - Configuration data to set.
+   * @returns {Promise<FrameworkConfiguration>} The created or updated configuration record.
+   */
   setFrameworkConfig(_config: InsertFrameworkConfig): Promise<FrameworkConfiguration>;
 
   // Improvement Suggestions operations
+  /**
+   * Retrieves all improvement suggestions from storage.
+   *
+   * @returns {Promise<ImprovementSuggestion[]>} Array of all improvement suggestion records.
+   */
   getImprovementSuggestions(): Promise<ImprovementSuggestion[]>;
+  
+  /**
+   * Retrieves the top improvement suggestions by priority and creation date.
+   *
+   * @param {number} _limit - Maximum number of suggestions to return.
+   * @returns {Promise<ImprovementSuggestion[]>} Array of top improvement suggestions.
+   */
   getTopImprovementSuggestions(_limit: number): Promise<ImprovementSuggestion[]>;
+  
+  /**
+   * Creates a new improvement suggestion in the storage system.
+   *
+   * @param {InsertImprovementSuggestion} _suggestion - Suggestion data for creation.
+   * @returns {Promise<ImprovementSuggestion>} The created suggestion record with generated ID.
+   */
   createImprovementSuggestion(
     _suggestion: InsertImprovementSuggestion
   ): Promise<ImprovementSuggestion>;
+  
+  /**
+   * Clears all suggestions with 'New' status by marking them as acknowledged.
+   *
+   * @returns {Promise<void>} Promise that resolves when operation is complete.
+   */
   clearNewSuggestions(): Promise<void>;
+  
+  /**
+   * Updates the status of a specific improvement suggestion.
+   *
+   * @param {string} _id - The unique suggestion identifier.
+   * @param {'New' | 'Acknowledged' | 'Done'} _status - The new status to set.
+   * @returns {Promise<ImprovementSuggestion | undefined>} Updated suggestion record or undefined if not found.
+   */
   updateSuggestionStatus(
     _id: string,
     _status: 'New' | 'Acknowledged' | 'Done'
   ): Promise<ImprovementSuggestion | undefined>;
 
   // Features operations
+  /**
+   * Retrieves all features from storage.
+   *
+   * @returns {Promise<Feature[]>} Array of all feature records.
+   */
   getFeatures(): Promise<Feature[]>;
+  
+  /**
+   * Retrieves features filtered by their development status.
+   *
+   * @param {'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'} _status - The status to filter by.
+   * @returns {Promise<Feature[]>} Array of features with the specified status.
+   */
   getFeaturesByStatus(
     _status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'
   ): Promise<Feature[]>;
+  
+  /**
+   * Retrieves features filtered by their category.
+   *
+   * @param {string} _category - The category to filter by.
+   * @returns {Promise<Feature[]>} Array of features in the specified category.
+   */
   getFeaturesByCategory(_category: string): Promise<Feature[]>;
+  
+  /**
+   * Retrieves features that are visible on the public roadmap.
+   *
+   * @returns {Promise<Feature[]>} Array of public roadmap features.
+   */
   getPublicRoadmapFeatures(): Promise<Feature[]>;
+  
+  /**
+   * Creates a new feature in the storage system.
+   *
+   * @param {InsertFeature} _feature - Feature data for creation.
+   * @returns {Promise<Feature>} The created feature record with generated ID.
+   */
   createFeature(_feature: InsertFeature): Promise<Feature>;
+  
+  /**
+   * Updates an existing feature's information.
+   *
+   * @param {string} _id - The unique feature identifier.
+   * @param {Partial<InsertFeature>} _updates - Partial feature data containing fields to update.
+   * @returns {Promise<Feature | undefined>} Updated feature record or undefined if not found.
+   */
   updateFeature(_id: string, _updates: Partial<InsertFeature>): Promise<Feature | undefined>;
+  
+  /**
+   * Deletes a feature from storage.
+   *
+   * @param {string} _id - The unique feature identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
   deleteFeature(_id: string): Promise<boolean>;
 
   // Actionable Items operations
+  /**
+   * Retrieves all actionable items associated with a specific feature.
+   *
+   * @param {string} _featureId - The unique feature identifier.
+   * @returns {Promise<ActionableItem[]>} Array of actionable items for the feature.
+   */
   getActionableItemsByFeature(_featureId: string): Promise<ActionableItem[]>;
+  
+  /**
+   * Retrieves a specific actionable item by its unique identifier.
+   *
+   * @param {string} _id - The unique actionable item identifier.
+   * @returns {Promise<ActionableItem | undefined>} Actionable item record or undefined if not found.
+   */
   getActionableItem(_id: string): Promise<ActionableItem | undefined>;
+  
+  /**
+   * Creates a new actionable item in the storage system.
+   *
+   * @param {InsertActionableItem} _item - Actionable item data for creation.
+   * @returns {Promise<ActionableItem>} The created actionable item record with generated ID.
+   */
   createActionableItem(_item: InsertActionableItem): Promise<ActionableItem>;
+  
+  /**
+   * Creates multiple actionable items in a single operation.
+   *
+   * @param {InsertActionableItem[]} _items - Array of actionable item data for creation.
+   * @returns {Promise<ActionableItem[]>} Array of created actionable item records.
+   */
   createActionableItems(_items: InsertActionableItem[]): Promise<ActionableItem[]>;
+  
+  /**
+   * Updates an existing actionable item's information.
+   *
+   * @param {string} _id - The unique actionable item identifier.
+   * @param {Partial<ActionableItem>} _updates - Partial item data containing fields to update.
+   * @returns {Promise<ActionableItem | undefined>} Updated item record or undefined if not found.
+   */
   updateActionableItem(_id: string, _updates: Partial<ActionableItem>): Promise<ActionableItem | undefined>;
+  
+  /**
+   * Deletes an actionable item from storage.
+   *
+   * @param {string} _id - The unique actionable item identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
   deleteActionableItem(_id: string): Promise<boolean>;
+  
+  /**
+   * Deletes all actionable items associated with a specific feature.
+   *
+   * @param {string} _featureId - The unique feature identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
   deleteActionableItemsByFeature(_featureId: string): Promise<boolean>;
 }
 
@@ -359,14 +723,36 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Retrieves a specific organization by ID.
    *
+   * @param {string} id - The unique identifier of the organization.
+   * @returns {Promise<Organization | undefined>} The organization record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const org = await storage.getOrganization('org-456');
+   * if (org) {
+   *   console.log(`Organization: ${org.name} in ${org.city}`);
+   * }
+   * ```
    */
   async getOrganization(id: string): Promise<Organization | undefined> {
     return this.organizations.get(id);
   }
 
   /**
+   * Finds an organization by its name.
    *
+   * @param {string} name - The name of the organization to search for.
+   * @returns {Promise<Organization | undefined>} The organization record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const org = await storage.getOrganizationByName('ABC Property Management');
+   * if (org) {
+   *   console.log(`Found organization with ID: ${org.id}`);
+   * }
+   * ```
    */
   async getOrganizationByName(name: string): Promise<Organization | undefined> {
     return Array.from(this.organizations.values()).find((org) => org.name === name);
@@ -412,7 +798,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Updates an existing organization with partial data.
    *
+   * @param {string} id - The unique identifier of the organization to update.
+   * @param {Partial<Organization>} updates - Partial organization data to update.
+   * @returns {Promise<Organization | undefined>} The updated organization record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedOrg = await storage.updateOrganization('org-456', {
+   *   phone: '+1-514-555-9999',
+   *   website: 'https://newsite.ca'
+   * });
+   * ```
    */
   async updateOrganization(
     id: string,
@@ -433,7 +831,16 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Retrieves all buildings managed by a specific organization.
    *
+   * @param {string} organizationId - The unique identifier of the organization.
+   * @returns {Promise<Building[]>} Array of buildings managed by the organization.
+   *
+   * @example
+   * ```typescript
+   * const buildings = await storage.getBuildingsByOrganization('org-456');
+   * console.log(`Organization manages ${buildings.length} buildings`);
+   * ```
    */
   async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
     return Array.from(this.buildings.values()).filter(
@@ -458,7 +865,18 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Retrieves a specific building by ID.
    *
+   * @param {string} id - The unique identifier of the building.
+   * @returns {Promise<Building | undefined>} The building record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const building = await storage.getBuilding('bldg-789');
+   * if (building) {
+   *   console.log(`Building: ${building.name} has ${building.totalUnits} units`);
+   * }
+   * ```
    */
   async getBuilding(id: string): Promise<Building | undefined> {
     return this.buildings.get(id);
@@ -508,7 +926,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Updates an existing building with partial data.
    *
+   * @param {string} id - The unique identifier of the building to update.
+   * @param {Partial<Building>} updates - Partial building data to update.
+   * @returns {Promise<Building | undefined>} The updated building record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedBuilding = await storage.updateBuilding('bldg-789', {
+   *   totalUnits: 150,
+   *   amenities: ['pool', 'gym', 'parking']
+   * });
+   * ```
    */
   async updateBuilding(id: string, updates: Partial<Building>): Promise<Building | undefined> {
     const existingBuilding = this.buildings.get(id);
@@ -526,7 +956,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Performs a soft delete on a building by setting isActive to false.
+   * Maintains data integrity while marking the building as inactive.
    *
+   * @param {string} id - The unique identifier of the building to delete.
+   * @returns {Promise<boolean>} True if the building was successfully deleted, false if not found.
+   *
+   * @example
+   * ```typescript
+   * const deleted = await storage.deleteBuilding('bldg-789');
+   * if (deleted) {
+   *   console.log('Building successfully deactivated');
+   * }
+   * ```
    */
   async deleteBuilding(id: string): Promise<boolean> {
     const existing = this.buildings.get(id);
@@ -546,21 +988,51 @@ export class MemStorage implements IStorage {
 
   // Residence operations
   /**
+   * Retrieves all residences from storage.
    *
+   * @returns {Promise<Residence[]>} Array of all residence records.
+   *
+   * @example
+   * ```typescript
+   * const residences = await storage.getResidences();
+   * const activeResidences = residences.filter(r => r.isActive);
+   * console.log(`Found ${activeResidences.length} active residences`);
+   * ```
    */
   async getResidences(): Promise<Residence[]> {
     return Array.from(this.residences.values());
   }
 
   /**
+   * Retrieves a specific residence by ID.
    *
+   * @param {string} id - The unique identifier of the residence.
+   * @returns {Promise<Residence | undefined>} The residence record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const residence = await storage.getResidence('res-123');
+   * if (residence) {
+   *   console.log(`Unit ${residence.unitNumber}: ${residence.bedrooms} bed, ${residence.bathrooms} bath`);
+   * }
+   * ```
    */
   async getResidence(id: string): Promise<Residence | undefined> {
     return this.residences.get(id);
   }
 
   /**
+   * Retrieves all residences within a specific building.
    *
+   * @param {string} buildingId - The unique identifier of the building.
+   * @returns {Promise<Residence[]>} Array of residences in the building.
+   *
+   * @example
+   * ```typescript
+   * const residences = await storage.getResidencesByBuilding('bldg-789');
+   * console.log(`Building has ${residences.length} residential units`);
+   * const vacantUnits = residences.filter(r => !r.isOccupied);
+   * ```
    */
   async getResidencesByBuilding(buildingId: string): Promise<Residence[]> {
     return Array.from(this.residences.values()).filter(
@@ -569,7 +1041,23 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Creates a new residence with automatic ID generation and default values.
    *
+   * @param {InsertResidence} insertResidence - Residence data to create.
+   * @returns {Promise<Residence>} The newly created residence record.
+   *
+   * @example
+   * ```typescript
+   * const residence = await storage.createResidence({
+   *   buildingId: 'bldg-789',
+   *   unitNumber: '4B',
+   *   floor: 4,
+   *   bedrooms: 2,
+   *   bathrooms: 1.5,
+   *   squareFootage: '850.00',
+   *   monthlyFees: '450.00'
+   * });
+   * ```
    */
   async createResidence(insertResidence: InsertResidence): Promise<Residence> {
     const id = randomUUID();
@@ -595,7 +1083,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Updates an existing residence with partial data.
    *
+   * @param {string} id - The unique identifier of the residence to update.
+   * @param {Partial<Residence>} updates - Partial residence data to update.
+   * @returns {Promise<Residence | undefined>} The updated residence record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedResidence = await storage.updateResidence('res-123', {
+   *   monthlyFees: '475.00',
+   *   balcony: true
+   * });
+   * ```
    */
   async updateResidence(id: string, updates: Partial<Residence>): Promise<Residence | undefined> {
     const existingResidence = this.residences.get(id);
@@ -613,7 +1113,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Performs a soft delete on a residence by setting isActive to false.
+   * Maintains data integrity while marking the residence as inactive.
    *
+   * @param {string} id - The unique identifier of the residence to delete.
+   * @returns {Promise<boolean>} True if the residence was successfully deleted, false if not found.
+   *
+   * @example
+   * ```typescript
+   * const deleted = await storage.deleteResidence('res-123');
+   * if (deleted) {
+   *   console.log('Residence successfully deactivated');
+   * }
+   * ```
    */
   async deleteResidence(id: string): Promise<boolean> {
     const existing = this.residences.get(id);
@@ -682,7 +1194,18 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Retrieves a specific development pillar by ID.
    *
+   * @param {string} id - The unique identifier of the development pillar.
+   * @returns {Promise<DevelopmentPillar | undefined>} The pillar record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const pillar = await storage.getPillar('pillar-1');
+   * if (pillar) {
+   *   console.log(`Pillar: ${pillar.name} - Status: ${pillar.status}`);
+   * }
+   * ```
    */
   async getPillar(id: string): Promise<DevelopmentPillar | undefined> {
     return this.pillars.get(id);
@@ -719,7 +1242,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Updates an existing development pillar with partial data.
    *
+   * @param {string} id - The unique identifier of the pillar to update.
+   * @param {Partial<DevelopmentPillar>} updates - Partial pillar data to update.
+   * @returns {Promise<DevelopmentPillar | undefined>} The updated pillar record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedPillar = await storage.updatePillar('pillar-1', {
+   *   status: 'complete',
+   *   configuration: { completedAt: new Date() }
+   * });
+   * ```
    */
   async updatePillar(
     id: string,
@@ -741,21 +1276,52 @@ export class MemStorage implements IStorage {
 
   // Workspace Status operations
   /**
+   * Retrieves all workspace component statuses for development tracking.
    *
+   * @returns {Promise<WorkspaceStatus[]>} Array of all workspace status records.
+   *
+   * @example
+   * ```typescript
+   * const statuses = await storage.getWorkspaceStatuses();
+   * const completedComponents = statuses.filter(s => s.status === 'complete');
+   * console.log(`${completedComponents.length} components completed`);
+   * ```
    */
   async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> {
     return Array.from(this.workspaceStatuses.values());
   }
 
   /**
+   * Retrieves the status of a specific workspace component.
    *
+   * @param {string} component - The name of the workspace component.
+   * @returns {Promise<WorkspaceStatus | undefined>} The workspace status record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const status = await storage.getWorkspaceStatus('TypeScript Configuration');
+   * if (status) {
+   *   console.log(`Component status: ${status.status}`);
+   * }
+   * ```
    */
   async getWorkspaceStatus(component: string): Promise<WorkspaceStatus | undefined> {
     return this.workspaceStatuses.get(component);
   }
 
   /**
+   * Creates a new workspace status record for component tracking.
    *
+   * @param {InsertWorkspaceStatus} insertStatus - Workspace status data to create.
+   * @returns {Promise<WorkspaceStatus>} The newly created workspace status record.
+   *
+   * @example
+   * ```typescript
+   * const status = await storage.createWorkspaceStatus({
+   *   component: 'Database Setup',
+   *   status: 'in-progress'
+   * });
+   * ```
    */
   async createWorkspaceStatus(insertStatus: InsertWorkspaceStatus): Promise<WorkspaceStatus> {
     const id = randomUUID();
@@ -1020,7 +1586,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Updates an existing feature with partial data.
    *
+   * @param {string} id - The unique identifier of the feature to update.
+   * @param {Partial<InsertFeature>} updates - Partial feature data to update.
+   * @returns {Promise<Feature | undefined>} The updated feature record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedFeature = await storage.updateFeature('feat-456', {
+   *   status: 'in-progress',
+   *   assignedTo: 'dev-123'
+   * });
+   * ```
    */
   async updateFeature(id: string, updates: Partial<InsertFeature>): Promise<Feature | undefined> {
     const existingFeature = this.features.get(id);
@@ -1038,7 +1616,19 @@ export class MemStorage implements IStorage {
   }
 
   /**
+   * Deletes a feature and all associated actionable items.
+   * Performs a complete removal from storage.
    *
+   * @param {string} id - The unique identifier of the feature to delete.
+   * @returns {Promise<boolean>} True if the feature was successfully deleted.
+   *
+   * @example
+   * ```typescript
+   * const deleted = await storage.deleteFeature('feat-456');
+   * if (deleted) {
+   *   console.log('Feature and related items deleted successfully');
+   * }
+   * ```
    */
   async deleteFeature(id: string): Promise<boolean> {
     // Also delete associated actionable items
@@ -1047,16 +1637,58 @@ export class MemStorage implements IStorage {
   }
 
   // Actionable Items
+  /**
+   * Retrieves all actionable items for a specific feature, sorted by order index.
+   *
+   * @param {string} featureId - The unique identifier of the feature.
+   * @returns {Promise<ActionableItem[]>} Array of actionable items sorted by order index.
+   *
+   * @example
+   * ```typescript
+   * const items = await storage.getActionableItemsByFeature('feat-456');
+   * console.log(`Feature has ${items.length} actionable items`);
+   * ```
+   */
   async getActionableItemsByFeature(featureId: string): Promise<ActionableItem[]> {
     return Array.from(this.actionableItems.values())
       .filter(item => item.featureId === featureId)
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
+  /**
+   * Retrieves a specific actionable item by ID.
+   *
+   * @param {string} id - The unique identifier of the actionable item.
+   * @returns {Promise<ActionableItem | undefined>} The actionable item record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const item = await storage.getActionableItem('item-789');
+   * if (item) {
+   *   console.log(`Item: ${item.title} - Status: ${item.status}`);
+   * }
+   * ```
+   */
   async getActionableItem(id: string): Promise<ActionableItem | undefined> {
     return this.actionableItems.get(id);
   }
 
+  /**
+   * Creates a new actionable item with automatic ID generation.
+   *
+   * @param {InsertActionableItem} item - Actionable item data to create.
+   * @returns {Promise<ActionableItem>} The newly created actionable item record.
+   *
+   * @example
+   * ```typescript
+   * const item = await storage.createActionableItem({
+   *   featureId: 'feat-456',
+   *   title: 'Update user interface',
+   *   description: 'Modify UI for new feature',
+   *   orderIndex: 1
+   * });
+   * ```
+   */
   async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
     const id = randomUUID();
     const newItem: ActionableItem = {
@@ -1070,6 +1702,20 @@ export class MemStorage implements IStorage {
     return newItem;
   }
 
+  /**
+   * Creates multiple actionable items in batch.
+   *
+   * @param {InsertActionableItem[]} items - Array of actionable item data to create.
+   * @returns {Promise<ActionableItem[]>} Array of newly created actionable item records.
+   *
+   * @example
+   * ```typescript
+   * const items = await storage.createActionableItems([
+   *   { featureId: 'feat-456', title: 'Task 1', orderIndex: 1 },
+   *   { featureId: 'feat-456', title: 'Task 2', orderIndex: 2 }
+   * ]);
+   * ```
+   */
   async createActionableItems(items: InsertActionableItem[]): Promise<ActionableItem[]> {
     const created: ActionableItem[] = [];
     for (const item of items) {
@@ -1079,6 +1725,21 @@ export class MemStorage implements IStorage {
     return created;
   }
 
+  /**
+   * Updates an existing actionable item with partial data.
+   *
+   * @param {string} id - The unique identifier of the actionable item to update.
+   * @param {Partial<ActionableItem>} updates - Partial actionable item data to update.
+   * @returns {Promise<ActionableItem | undefined>} The updated actionable item record or undefined if not found.
+   *
+   * @example
+   * ```typescript
+   * const updatedItem = await storage.updateActionableItem('item-789', {
+   *   status: 'completed',
+   *   completedAt: new Date()
+   * });
+   * ```
+   */
   async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
     const existing = this.actionableItems.get(id);
     if (!existing) return undefined;
@@ -1092,10 +1753,38 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  /**
+   * Deletes a specific actionable item.
+   *
+   * @param {string} id - The unique identifier of the actionable item to delete.
+   * @returns {Promise<boolean>} True if the item was successfully deleted.
+   *
+   * @example
+   * ```typescript
+   * const deleted = await storage.deleteActionableItem('item-789');
+   * if (deleted) {
+   *   console.log('Actionable item deleted successfully');
+   * }
+   * ```
+   */
   async deleteActionableItem(id: string): Promise<boolean> {
     return this.actionableItems.delete(id);
   }
 
+  /**
+   * Deletes all actionable items associated with a feature.
+   *
+   * @param {string} featureId - The unique identifier of the feature.
+   * @returns {Promise<boolean>} True if all items were successfully deleted.
+   *
+   * @example
+   * ```typescript
+   * const deleted = await storage.deleteActionableItemsByFeature('feat-456');
+   * if (deleted) {
+   *   console.log('All feature actionable items deleted');
+   * }
+   * ```
+   */
   async deleteActionableItemsByFeature(featureId: string): Promise<boolean> {
     const items = await this.getActionableItemsByFeature(featureId);
     for (const item of items) {

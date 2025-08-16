@@ -1,9 +1,20 @@
 import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
 
 /**
- * Apply filter to a single item based on the filter value and operator.
- * @param item
- * @param filter
+ * Applies a filter condition to a single data item using the specified operator.
+ * Supports various filter operators including text matching, numerical comparisons,
+ * array membership tests, and empty value checks.
+ * 
+ * @param {any} item - The data item to test against the filter condition.
+ * @param {FilterValue} filter - Filter configuration containing field, operator, and value.
+ * @returns {boolean} True if the item matches the filter condition, false otherwise.
+ * 
+ * @example
+ * ```typescript
+ * const user = { name: 'John Doe', age: 30, active: true };
+ * const filter = { field: 'age', operator: 'greater_than', value: 25 };
+ * const matches = applyFilter(user, filter); // true
+ * ```
  */
 export function applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
@@ -67,9 +78,23 @@ export function applyFilter(item: any, filter: FilterValue): boolean {
 }
 
 /**
- * Apply all filters to a dataset.
- * @param data
- * @param filters
+ * Applies multiple filter conditions to a dataset, returning only items that match all filters.
+ * Uses logical AND operation - all filters must pass for an item to be included.
+ * 
+ * @template T - Type of items in the dataset.
+ * @param {T[]} data - Array of data items to filter.
+ * @param {FilterValue[]} filters - Array of filter conditions to apply.
+ * @returns {T[]} Filtered array containing only items that match all filter conditions.
+ * 
+ * @example
+ * ```typescript
+ * const users = [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }];
+ * const filters = [
+ *   { field: 'age', operator: 'greater_than', value: 20 },
+ *   { field: 'name', operator: 'contains', value: 'J' }
+ * ];
+ * const filtered = applyFilters(users, filters); // Both users match
+ * ```
  */
 export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {
   if (!filters || filters.length === 0) {
@@ -80,10 +105,20 @@ export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {
 }
 
 /**
- * Apply search to a dataset.
- * @param data
- * @param search
- * @param searchFields
+ * Applies text search across specified fields or all string fields in a dataset.
+ * Performs case-insensitive partial matching using the search term.
+ * 
+ * @template T - Type of items in the dataset.
+ * @param {T[]} data - Array of data items to search through.
+ * @param {string} search - Search term to look for (case-insensitive).
+ * @param {string[]} [searchFields] - Optional array of field names to search in. If not provided, searches all string fields.
+ * @returns {T[]} Array of items that contain the search term in at least one searchable field.
+ * 
+ * @example
+ * ```typescript
+ * const products = [{ name: 'iPhone', category: 'Electronics' }, { name: 'Book', category: 'Media' }];
+ * const results = applySearch(products, 'phone', ['name']); // [{ name: 'iPhone', ... }]
+ * ```
  */
 export function applySearch<T>(data: T[], search: string, searchFields?: string[]): T[] {
   if (!search || search.trim() === '') {
@@ -107,9 +142,21 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
 }
 
 /**
- * Apply sorting to a dataset.
- * @param data
- * @param sort
+ * Applies sorting to a dataset based on a specified field and direction.
+ * Handles various data types including strings, numbers, dates, and null values.
+ * Uses locale-aware string comparison and proper null value handling.
+ * 
+ * @template T - Type of items in the dataset.
+ * @param {T[]} data - Array of data items to sort.
+ * @param {SortValue | null} sort - Sort configuration with field and direction, or null for no sorting.
+ * @returns {T[]} New array with items sorted according to the sort configuration.
+ * 
+ * @example
+ * ```typescript
+ * const users = [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }];
+ * const sorted = applySort(users, { field: 'age', direction: 'desc' });
+ * // [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }]
+ * ```
  */
 export function applySort<T>(data: T[], sort: SortValue | null): T[] {
   if (!sort) {
@@ -149,12 +196,29 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {
 }
 
 /**
- * Apply filters, search, and sort to a dataset.
- * @param data
- * @param filters
- * @param search
- * @param sort
- * @param searchFields
+ * Applies filters, search, and sorting to a dataset in the correct order.
+ * Processing order: 1) Apply filters, 2) Apply search, 3) Apply sorting.
+ * This is the main function for comprehensive data processing.
+ * 
+ * @template T - Type of items in the dataset.
+ * @param {T[]} data - Array of data items to process.
+ * @param {FilterValue[]} filters - Array of filter conditions to apply first.
+ * @param {string} search - Search term for text search.
+ * @param {SortValue | null} sort - Sort configuration to apply last.
+ * @param {string[]} [searchFields] - Optional fields to restrict search to.
+ * @returns {T[]} Processed array with filters, search, and sorting applied.
+ * 
+ * @example
+ * ```typescript
+ * const users = [{ name: 'John Doe', age: 30, active: true }];
+ * const result = applyFilterSort(
+ *   users,
+ *   [{ field: 'active', operator: 'equals', value: true }],
+ *   'john',
+ *   { field: 'age', direction: 'asc' },
+ *   ['name']
+ * );
+ * ```
  */
 export function applyFilterSort<T>(
   data: T[],
@@ -178,18 +242,39 @@ export function applyFilterSort<T>(
 }
 
 /**
- * Get nested value from object using dot notation.
- * @param obj
- * @param path
+ * Retrieves a nested value from an object using dot notation path traversal.
+ * Safely handles undefined intermediate properties without throwing errors.
+ * 
+ * @param {any} obj - The object to retrieve the value from.
+ * @param {string} path - Dot-separated path to the desired property (e.g., 'user.profile.name').
+ * @returns {any} The value at the specified path, or undefined if path doesn't exist.
+ * 
+ * @example
+ * ```typescript
+ * const user = { profile: { name: 'John', address: { city: 'Montreal' } } };
+ * const name = getNestedValue(user, 'profile.name'); // 'John'
+ * const city = getNestedValue(user, 'profile.address.city'); // 'Montreal'
+ * const missing = getNestedValue(user, 'profile.phone'); // undefined
+ * ```
  */
 function getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
 /**
- * Search for a string in all values of an object.
- * @param obj
- * @param search
+ * Recursively searches for a string within all values of an object or array.
+ * Performs case-insensitive search across strings, numbers, booleans, arrays, and nested objects.
+ * 
+ * @param {any} obj - The object, array, or primitive value to search within.
+ * @param {string} search - The search term (case-insensitive).
+ * @returns {boolean} True if the search term is found anywhere in the object structure.
+ * 
+ * @example
+ * ```typescript
+ * const user = { name: 'John Doe', profile: { city: 'Montreal', age: 30 } };
+ * const found = searchInObject(user, 'montreal'); // true
+ * const notFound = searchInObject(user, 'toronto'); // false
+ * ```
  */
 function searchInObject(obj: any, search: string): boolean {
   if (obj === null || obj === undefined) {
@@ -216,8 +301,18 @@ function searchInObject(obj: any, search: string): boolean {
 }
 
 /**
- * Get default operators for a filter type.
- * @param type
+ * Returns the default filter operators available for a specific data type.
+ * Each data type has appropriate operators for effective filtering.
+ * 
+ * @param {string} type - The data type ('text', 'number', 'date', 'select', 'multi_select', 'boolean').
+ * @returns {FilterOperator[]} Array of available filter operators for the specified type.
+ * 
+ * @example
+ * ```typescript
+ * const textOps = getDefaultOperators('text'); // ['contains', 'not_contains', 'equals', ...]
+ * const numberOps = getDefaultOperators('number'); // ['equals', 'greater_than', 'less_than', ...]
+ * const booleanOps = getDefaultOperators('boolean'); // ['equals']
+ * ```
  */
 export function getDefaultOperators(type: string): FilterOperator[] {
   switch (type) {
@@ -262,8 +357,18 @@ export function getDefaultOperators(type: string): FilterOperator[] {
 }
 
 /**
- * Get operator label for display.
- * @param operator
+ * Converts a filter operator code to a human-readable display label.
+ * Provides user-friendly text for filter operator selection interfaces.
+ * 
+ * @param {FilterOperator} operator - The filter operator code.
+ * @returns {string} Human-readable label for the operator.
+ * 
+ * @example
+ * ```typescript
+ * const label1 = getOperatorLabel('contains'); // 'Contains'
+ * const label2 = getOperatorLabel('greater_than_or_equal'); // 'Greater than or equal'
+ * const label3 = getOperatorLabel('is_empty'); // 'Is empty'
+ * ```
  */
 export function getOperatorLabel(operator: FilterOperator): string {
   const labels: Record<FilterOperator, string> = {

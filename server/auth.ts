@@ -31,11 +31,19 @@ export const sessionConfig = session({
 });
 
 /**
- * Enhanced password hashing using PBKDF2 with salt.
- * Provides strong security until bcrypt can be installed.
+ * Enhanced password hashing using PBKDF2 with salt for Quebec Law 25 compliance.
+ * Provides strong security using industry-standard key derivation function
+ * with 10,000 iterations and SHA-512 hashing algorithm.
  * 
- * @param password - Plain text password to hash
- * @returns Object containing salt and hashed password
+ * @param {string} password - Plain text password to hash.
+ * @returns {{salt: string, hash: string}} Object containing hexadecimal salt and hashed password.
+ * 
+ * @example
+ * ```typescript
+ * const { salt, hash } = hashPassword('userPassword123');
+ * // Store salt and hash securely in database
+ * await storage.createUser({ ...userData, passwordSalt: salt, passwordHash: hash });
+ * ```
  */
 export function hashPassword(password: string): { salt: string; hash: string } {
   const salt = randomBytes(32).toString('hex');
@@ -44,12 +52,22 @@ export function hashPassword(password: string): { salt: string; hash: string } {
 }
 
 /**
- * Verifies a password against stored hash and salt.
+ * Verifies a password against stored hash and salt using constant-time comparison.
+ * Uses the same PBKDF2 parameters as hashPassword to ensure consistency.
  * 
- * @param password - Plain text password to verify
- * @param salt - Stored salt value
- * @param hash - Stored hash value
- * @returns True if password matches
+ * @param {string} password - Plain text password to verify.
+ * @param {string} salt - Stored hexadecimal salt value from user record.
+ * @param {string} hash - Stored hexadecimal hash value from user record.
+ * @returns {boolean} True if password matches, false otherwise.
+ * 
+ * @example
+ * ```typescript
+ * const user = await storage.getUserByEmail(email);
+ * const isValid = verifyPassword(inputPassword, user.passwordSalt, user.passwordHash);
+ * if (isValid) {
+ *   // Grant access
+ * }
+ * ```
  */
 export function verifyPassword(password: string, salt: string, hash: string): boolean {
   const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
@@ -57,8 +75,22 @@ export function verifyPassword(password: string, salt: string, hash: string): bo
 }
 
 /**
- * Authentication middleware to protect routes.
- * Ensures user is logged in before accessing protected resources.
+ * Authentication middleware to protect routes requiring user login.
+ * Validates session existence, retrieves user data, and ensures account is active.
+ * Automatically destroys invalid sessions for security.
+ * 
+ * @param {Request} req - Express request object with session data.
+ * @param {Response} res - Express response object for sending error responses.
+ * @param {NextFunction} next - Express next function to continue to protected route.
+ * @returns {Promise<void>} Promise that resolves when authentication is verified.
+ * 
+ * @example
+ * ```typescript
+ * app.get('/api/protected-route', requireAuth, async (req, res) => {
+ *   // req.user is now available and verified
+ *   res.json({ userId: req.user.id });
+ * });
+ * ```
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.userId) {
@@ -92,10 +124,21 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 /**
- * Role-based authorization middleware.
- * Restricts access based on user roles.
+ * Role-based authorization middleware factory for Quebec property management roles.
+ * Creates middleware that restricts access based on user roles such as admin, manager, owner, tenant.
+ * Must be used after requireAuth middleware.
  * 
- * @param allowedRoles - Array of roles that can access the route
+ * @param {string[]} allowedRoles - Array of roles that can access the route (e.g., ['admin', 'manager']).
+ * @returns {Function} Express middleware function for role validation.
+ * 
+ * @example
+ * ```typescript
+ * // Only admins can access user management
+ * app.get('/api/admin/users', requireAuth, requireRole(['admin']), getUserList);
+ * 
+ * // Managers and admins can access building data
+ * app.get('/api/buildings', requireAuth, requireRole(['admin', 'manager']), getBuildings);
+ * ```
  */
 export function requireRole(allowedRoles: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -120,8 +163,24 @@ export function requireRole(allowedRoles: string[]) {
 }
 
 /**
- * Authentication routes for login, logout, and user management.
- * Implements Quebec-compliant user authentication with session management.
+ * Sets up authentication routes for Quebec-compliant user management.
+ * Implements login, logout, registration, and current user endpoints
+ * with proper session management and Law 25 compliance considerations.
+ * 
+ * @param {any} app - Express application instance to register routes on.
+ * @returns {void} No return value - routes are registered directly on app.
+ * 
+ * @example
+ * ```typescript
+ * const app = express();
+ * app.use(sessionConfig);
+ * setupAuthRoutes(app);
+ * // Authentication routes are now available:
+ * // POST /api/auth/login
+ * // POST /api/auth/logout  
+ * // GET /api/auth/user
+ * // POST /api/auth/register
+ * ```
  */
 export function setupAuthRoutes(app: any) {
   // Login route

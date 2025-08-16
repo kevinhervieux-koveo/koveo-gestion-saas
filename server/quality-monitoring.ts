@@ -8,23 +8,57 @@
 import { registerQualityAnalyzer } from './routes';
 import type { InsertImprovementSuggestion } from '@shared/schema';
 
+/**
+ * Configuration interface for quality metric thresholds.
+ * Defines warning and critical levels for automated monitoring.
+ */
 interface MetricThresholds {
+  /** Warning threshold value for metric monitoring */
   warning?: number;
+  /** Critical threshold value for metric monitoring */
   critical?: number;
+  /** Additional custom threshold properties */
   [key: string]: number | undefined;
 }
 
+/**
+ * Configuration interface for quality metric monitoring integration.
+ * Used to set up automated analysis and improvement suggestion generation.
+ */
 interface QualityMetricConfig {
+  /** Name of the quality metric being monitored */
   metricName: string;
+  /** Threshold configuration for warning and critical levels */
   thresholds: MetricThresholds;
+  /** Function to generate improvement suggestions when thresholds are exceeded */
   generateSuggestion: (value: any, thresholdType: string, threshold: number) => InsertImprovementSuggestion;
 }
 
 /**
- * Adds monitoring for a new quality metric to the continuous improvement pillar.
- * The metric will be automatically analyzed whenever quality metrics are fetched.
+ * Registers a new quality metric for automated monitoring by the continuous improvement pillar.
+ * The metric will be automatically analyzed every 5 minutes and generate improvement
+ * suggestions when thresholds are exceeded.
  * 
- * @param config Configuration for the new quality metric monitoring
+ * @param {QualityMetricConfig} config - Configuration object for the quality metric monitoring.
+ * @param {string} config.metricName - Name of the metric to monitor.
+ * @param {MetricThresholds} config.thresholds - Warning and critical threshold values.
+ * @param {Function} config.generateSuggestion - Function to create improvement suggestions.
+ * @returns {void} No return value - metric monitoring is registered globally.
+ * 
+ * @example
+ * ```typescript
+ * addQualityMetricMonitoring({
+ *   metricName: 'memory_usage',
+ *   thresholds: { warning: 80, critical: 95 },
+ *   generateSuggestion: (value, type, threshold) => ({
+ *     category: 'Performance',
+ *     priority: type === 'critical' ? 'Critical' : 'High',
+ *     title: `High Memory Usage: ${value}%`,
+ *     description: `Memory usage exceeded ${type} threshold of ${threshold}%`,
+ *     recommendation: 'Optimize memory usage and investigate memory leaks'
+ *   })
+ * });
+ * ```
  */
 export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
   registerQualityAnalyzer({
