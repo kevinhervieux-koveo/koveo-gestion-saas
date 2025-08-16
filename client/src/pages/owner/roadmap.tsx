@@ -112,6 +112,34 @@ export default function OwnerRoadmap() {
       });
     },
   });
+
+  // Sync mutation for manual synchronization
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/features/trigger-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to sync features');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Sync Completed',
+        description: data.message || 'All features have been synchronized to production.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Sync Failed',
+        description: error.message || 'Failed to synchronize features to production.',
+        variant: 'destructive',
+      });
+    },
+  });
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -665,6 +693,29 @@ export default function OwnerRoadmap() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          {/* Sync Status Info */}
+          <Card className='bg-blue-50 border-blue-200'>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Database className='w-4 h-4 text-blue-600' />
+                  <span className='text-sm font-medium text-blue-800'>
+                    Automatic Synchronization
+                  </span>
+                </div>
+                <div className='text-xs text-blue-600'>
+                  {process.env.NODE_ENV === 'development' ? 'DEV → PROD Sync Enabled' : 'Production Environment'}
+                </div>
+              </div>
+              <p className='text-xs text-blue-700 mt-2'>
+                {process.env.NODE_ENV === 'development' 
+                  ? 'New feature requests automatically appear as "Submitted" status and sync to production. Updates to roadmap features are automatically synchronized.'
+                  : 'This is the production roadmap. Changes are synchronized from the development environment.'
+                }
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Create New Item Buttons */}
           <div className='flex justify-end gap-3 mb-6'>
             <Button 
@@ -674,6 +725,15 @@ export default function OwnerRoadmap() {
             >
               <MessageCircle className='w-4 h-4 mr-2' />
               LLM Help Form
+            </Button>
+            <Button 
+              onClick={() => syncMutation.mutate()}
+              variant='outline'
+              disabled={syncMutation.isPending}
+              className='border-blue-200 text-blue-700 hover:bg-blue-50'
+            >
+              <Database className='w-4 h-4 mr-2' />
+              {syncMutation.isPending ? 'Syncing...' : 'Sync to Production'}
             </Button>
             <Button onClick={handleCreateNewItem} className='bg-koveo-navy hover:bg-koveo-navy/90'>
               <Plus className='w-4 h-4 mr-2' />

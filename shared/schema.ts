@@ -819,6 +819,7 @@ export const features = pgTable('features', {
   isStrategicPath: boolean('is_strategic_path').notNull().default(false),
   tags: jsonb('tags'),
   metadata: jsonb('metadata'),
+  syncedAt: timestamp('synced_at'), // Tracks when feature was last synced between environments
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

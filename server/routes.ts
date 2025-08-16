@@ -39,6 +39,37 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
 /**
+ * Synchronizes a feature to production environment.
+ * This function handles automatic sync of roadmap changes from dev to prod.
+ */
+async function syncFeatureToProduction(feature: any) {
+  if (!process.env.PRODUCTION_API_URL || !process.env.SYNC_API_KEY) {
+    console.log('Production sync not configured - skipping sync');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${process.env.PRODUCTION_API_URL}/api/features/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SYNC_API_KEY}`,
+        'X-Sync-Source': 'development'
+      },
+      body: JSON.stringify(feature)
+    });
+
+    if (!response.ok) {
+      console.error('Failed to sync feature to production:', await response.text());
+    } else {
+      console.log(`Feature ${feature.id} synced to production successfully`);
+    }
+  } catch (error) {
+    console.error('Error syncing feature to production:', error);
+  }
+}
+
+/**
  * Registers all API routes for the Koveo Gestion property management system.
  * Sets up endpoints for quality metrics, pillars, workspace status, features, and more.
  *
@@ -351,7 +382,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/features', async (req, res) => {
     try {
-      const [feature] = await db.insert(schema.features).values(req.body).returning();
+      // Auto-assign default values for new feature requests
+      const featureData = {
+        ...req.body,
+        status: req.body.status || 'submitted', // Auto-assign "to review" status
+        isPublicRoadmap: req.body.isPublicRoadmap ?? true, // Show in roadmap by default
+        priority: req.body.priority || 'medium',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const [feature] = await db.insert(schema.features).values(featureData).returning();
+      
+      // Trigger sync to production if in dev environment
+      if (process.env.NODE_ENV === 'development') {
+        await syncFeatureToProduction(feature);
+      }
+      
       res.json(feature);
     } catch (error) {
       console.error('Error creating feature:', error);
@@ -370,6 +417,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!feature) {
         return res.status(404).json({ message: 'Feature not found' });
       }
+      
+      // Trigger sync to production if in dev environment
+      if (process.env.NODE_ENV === 'development') {
+        await syncFeatureToProduction(feature);
+      }
+      
       res.json(feature);
     } catch (error) {
       console.error('Error updating feature:', error);
@@ -413,6 +466,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!feature) {
         return res.status(404).json({ message: 'Feature not found' });
       }
+      
+      // Trigger sync to production if in dev environment
+      if (process.env.NODE_ENV === 'development') {
+        await syncFeatureToProduction(feature);
+      }
+      
       res.json(feature);
     } catch (error) {
       console.error('Error updating feature status:', error);
@@ -438,6 +497,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!feature) {
         return res.status(404).json({ message: 'Feature not found' });
       }
+      
+      // Trigger sync to production if in dev environment
+      if (process.env.NODE_ENV === 'development') {
+        await syncFeatureToProduction(feature);
+      }
+      
       res.json(feature);
     } catch (error) {
       console.error('Error updating strategic path:', error);
@@ -579,6 +644,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting actionable item:', error);
       res.status(500).json({ message: 'Failed to delete actionable item' });
+    }
+  });
+
+  // Sync endpoint - Receives feature updates from development environment
+  app.post('/api/features/sync', async (req, res) => {
+    try {
+      // Verify sync authorization
+      const authHeader = req.headers.authorization;
+      const syncSource = req.headers['x-sync-source'];
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== process.env.SYNC_API_KEY) {
+        return res.status(401).json({ message: 'Unauthorized sync request' });
+      }
+
+      const feature = req.body;
+      
+      // Check if feature exists - update or create
+      const [existingFeature] = await db
+        .select()
+        .from(schema.features)
+        .where(eq(schema.features.id, feature.id));
+
+      let syncedFeature;
+      if (existingFeature) {
+        // Update existing feature
+        [syncedFeature] = await db
+          .update(schema.features)
+          .set({ ...feature, updatedAt: new Date() })
+          .where(eq(schema.features.id, feature.id))
+          .returning();
+      } else {
+        // Create new feature
+        [syncedFeature] = await db
+          .insert(schema.features)
+          .values({ ...feature, syncedAt: new Date() })
+          .returning();
+      }
+
+      console.log(`Feature ${feature.id} synced from ${syncSource}`);
+      res.json({ success: true, feature: syncedFeature });
+    } catch (error) {
+      console.error('Error syncing feature:', error);
+      res.status(500).json({ message: 'Failed to sync feature' });
+    }
+  });
+
+  // Manual sync trigger endpoint - Allows manual synchronization from UI
+  app.post('/api/features/trigger-sync', async (req, res) => {
+    try {
+      if (!process.env.PRODUCTION_API_URL || !process.env.SYNC_API_KEY) {
+        return res.status(400).json({ 
+          message: 'Sync not configured. Set PRODUCTION_API_URL and SYNC_API_KEY environment variables.' 
+        });
+      }
+
+      // Get all features from current environment
+      const features = await db.query.features.findMany();
+      
+      let syncCount = 0;
+      let errorCount = 0;
+
+      for (const feature of features) {
+        try {
+          await syncFeatureToProduction(feature);
+          syncCount++;
+        } catch (error) {
+          console.error(`Failed to sync feature ${feature.id}:`, error);
+          errorCount++;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Sync completed: ${syncCount} synced, ${errorCount} errors`,
+        syncedCount: syncCount,
+        errorCount: errorCount
+      });
+    } catch (error) {
+      console.error('Error triggering sync:', error);
+      res.status(500).json({ message: 'Failed to trigger sync' });
+    }
+  });
+
+  // Bulk sync endpoint - Synchronizes all features from source environment
+  app.post('/api/features/bulk-sync', async (req, res) => {
+    try {
+      // Verify sync authorization
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== process.env.SYNC_API_KEY) {
+        return res.status(401).json({ message: 'Unauthorized sync request' });
+      }
+
+      const { sourceUrl } = req.body;
+      if (!sourceUrl) {
+        return res.status(400).json({ message: 'Source URL required for bulk sync' });
+      }
+
+      // Fetch all features from source environment
+      const sourceResponse = await fetch(`${sourceUrl}/api/features`, {
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+
+      if (!sourceResponse.ok) {
+        return res.status(400).json({ message: 'Failed to fetch features from source' });
+      }
+
+      const sourceFeatures = await sourceResponse.json();
+      const syncResults = [];
+
+      for (const feature of sourceFeatures) {
+        try {
+          // Check if feature exists
+          const [existingFeature] = await db
+            .select()
+            .from(schema.features)
+            .where(eq(schema.features.id, feature.id));
+
+          if (existingFeature) {
+            // Update existing feature
+            await db
+              .update(schema.features)
+              .set({ ...feature, updatedAt: new Date() })
+              .where(eq(schema.features.id, feature.id));
+            syncResults.push({ id: feature.id, action: 'updated' });
+          } else {
+            // Create new feature
+            await db
+              .insert(schema.features)
+              .values({ ...feature, syncedAt: new Date() });
+            syncResults.push({ id: feature.id, action: 'created' });
+          }
+        } catch (featureError) {
+          console.error(`Error syncing feature ${feature.id}:`, featureError);
+          syncResults.push({ id: feature.id, action: 'failed', error: featureError.message });
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        syncedCount: syncResults.length,
+        results: syncResults
+      });
+    } catch (error) {
+      console.error('Error in bulk sync:', error);
+      res.status(500).json({ message: 'Failed to perform bulk sync' });
     }
   });
 
