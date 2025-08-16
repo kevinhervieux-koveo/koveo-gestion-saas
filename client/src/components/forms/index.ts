@@ -10,6 +10,7 @@
  */
 
 export { FeatureForm } from './feature-form';
+export { OrganizationForm } from './organization-form';
 
 // Future forms can be added here:
 // export { UserForm } from './user-form';

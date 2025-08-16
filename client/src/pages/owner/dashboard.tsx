@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, DollarSign, Users, FileText, AlertCircle, Terminal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building, DollarSign, Users, FileText, AlertCircle, Terminal, Plus } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useQuery } from '@tanstack/react-query';
+import { OrganizationForm } from '@/components/forms';
 import type { Organization, User } from '@shared/schema';
 
 /**
@@ -11,6 +14,7 @@ import type { Organization, User } from '@shared/schema';
  */
 export default function Dashboard() {
   const { t } = useLanguage();
+  const [isOrganizationDialogOpen, setIsOrganizationDialogOpen] = useState(false);
 
   const { data: organizations, isLoading: organizationsLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
@@ -112,9 +116,19 @@ export default function Dashboard() {
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center'>
-                  <Building className='text-koveo-navy mr-2' size={20} />
-                  Organizations
+                <CardTitle className='flex items-center justify-between'>
+                  <div className='flex items-center'>
+                    <Building className='text-koveo-navy mr-2' size={20} />
+                    Organizations
+                  </div>
+                  <Button
+                    size='sm'
+                    onClick={() => setIsOrganizationDialogOpen(true)}
+                    className='ml-2'
+                  >
+                    <Plus className='h-4 w-4 mr-1' />
+                    Create
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -194,6 +208,11 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      <OrganizationForm
+        open={isOrganizationDialogOpen}
+        onOpenChange={setIsOrganizationDialogOpen}
+      />
     </div>
   );
 }
