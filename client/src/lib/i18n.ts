@@ -66,6 +66,35 @@ export interface Translations {
   developmentConsole: string;
   accessDenied: string;
   accessDeniedDescription: string;
+  // User management
+  activateUsers: string;
+  activateSelectedUsers: string;
+  deactivateUsers: string;
+  deactivateSelectedUsers: string;
+  changeRole: string;
+  changeRoleSelectedUsers: string;
+  sendPasswordReset: string;
+  sendPasswordResetSelectedUsers: string;
+  sendWelcomeEmail: string;
+  sendWelcomeEmailSelectedUsers: string;
+  exportUsers: string;
+  exportSelectedUsersData: string;
+  deleteUsers: string;
+  deleteSelectedUsers: string;
+  users: string;
+  usersSelected: string;
+  bulkActions: string;
+  moreActions: string;
+  newRole: string;
+  selectRole: string;
+  admin: string;
+  manager: string;
+  tenant: string;
+  applyRoleChange: string;
+  thisActionCannotBeUndone: string;
+  cancel: string;
+  processing: string;
+  confirm: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -126,6 +155,35 @@ const translations: Record<Language, Translations> = {
     developmentConsole: 'Development Console',
     accessDenied: 'Access Denied',
     accessDeniedDescription: 'You do not have sufficient permissions to access this resource. Please contact your administrator or property manager to request the necessary permissions.',
+    // User management
+    activateUsers: 'Activate Users',
+    activateSelectedUsers: 'Activate selected users',
+    deactivateUsers: 'Deactivate Users',
+    deactivateSelectedUsers: 'Deactivate selected users',
+    changeRole: 'Change Role',
+    changeRoleSelectedUsers: 'Change role for selected users',
+    sendPasswordReset: 'Send Password Reset',
+    sendPasswordResetSelectedUsers: 'Send password reset to selected users',
+    sendWelcomeEmail: 'Send Welcome Email',
+    sendWelcomeEmailSelectedUsers: 'Send welcome email to selected users',
+    exportUsers: 'Export Users',
+    exportSelectedUsersData: 'Export selected users data',
+    deleteUsers: 'Delete Users',
+    deleteSelectedUsers: 'Delete selected users',
+    users: 'users',
+    usersSelected: 'users selected',
+    bulkActions: 'Bulk Actions',
+    moreActions: 'More Actions',
+    newRole: 'New Role',
+    selectRole: 'Select role',
+    admin: 'Admin',
+    manager: 'Manager',
+    tenant: 'Tenant',
+    applyRoleChange: 'Apply Role Change',
+    thisActionCannotBeUndone: 'This action cannot be undone',
+    cancel: 'Cancel',
+    processing: 'Processing',
+    confirm: 'Confirm',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -185,6 +243,35 @@ const translations: Record<Language, Translations> = {
     developmentConsole: 'Console de développement',
     accessDenied: 'Accès refusé',
     accessDeniedDescription: 'Vous ne disposez pas des permissions suffisantes pour accéder à cette ressource. Veuillez contacter votre administrateur ou gestionnaire immobilier pour demander les permissions nécessaires.',
+    // User management
+    activateUsers: 'Activer les utilisateurs',
+    activateSelectedUsers: 'Activer les utilisateurs sélectionnés',
+    deactivateUsers: 'Désactiver les utilisateurs',
+    deactivateSelectedUsers: 'Désactiver les utilisateurs sélectionnés',
+    changeRole: 'Changer le rôle',
+    changeRoleSelectedUsers: 'Changer le rôle des utilisateurs sélectionnés',
+    sendPasswordReset: 'Envoyer réinitialisation mot de passe',
+    sendPasswordResetSelectedUsers: 'Envoyer réinitialisation de mot de passe aux utilisateurs sélectionnés',
+    sendWelcomeEmail: 'Envoyer courriel de bienvenue',
+    sendWelcomeEmailSelectedUsers: 'Envoyer courriel de bienvenue aux utilisateurs sélectionnés',
+    exportUsers: 'Exporter les utilisateurs',
+    exportSelectedUsersData: 'Exporter les données des utilisateurs sélectionnés',
+    deleteUsers: 'Supprimer les utilisateurs',
+    deleteSelectedUsers: 'Supprimer les utilisateurs sélectionnés',
+    users: 'utilisateurs',
+    usersSelected: 'utilisateurs sélectionnés',
+    bulkActions: 'Actions en lot',
+    moreActions: 'Plus d\'actions',
+    newRole: 'Nouveau rôle',
+    selectRole: 'Sélectionner le rôle',
+    admin: 'Administrateur',
+    manager: 'Gestionnaire',
+    tenant: 'Locataire',
+    applyRoleChange: 'Appliquer le changement de rôle',
+    thisActionCannotBeUndone: 'Cette action ne peut pas être annulée',
+    cancel: 'Annuler',
+    processing: 'Traitement en cours',
+    confirm: 'Confirmer',
   },
 };
 
