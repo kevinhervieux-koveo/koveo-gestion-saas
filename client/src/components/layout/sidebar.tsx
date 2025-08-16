@@ -14,19 +14,58 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 /**
- *
+ * Props for the Sidebar component.
  */
-export function Sidebar() {
+interface SidebarProps {
+  isMobileMenuOpen?: boolean;
+  onMobileMenuClose?: () => void;
+}
+
+/**
+ * Sidebar navigation component with responsive mobile menu functionality.
+ */
+export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();
   const { t } = useLanguage();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['owner']);
+
+  // Close mobile menu when clicking on navigation items
+  const handleNavItemClick = () => {
+    if (onMobileMenuClose) {
+      onMobileMenuClose();
+    }
+  };
+
+  // Close mobile menu on escape key press
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileMenuOpen && onMobileMenuClose) {
+        onMobileMenuClose();
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when mobile menu is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen, onMobileMenuClose]);
 
   const toggleMenu = (menuName: string) => {
     setExpandedMenus((prev) =>
@@ -64,6 +103,7 @@ export function Sidebar() {
               ? 'bg-koveo-light text-koveo-navy font-medium'
               : 'text-gray-600 hover:bg-gray-50'
           }`}
+          onClick={handleNavItemClick}
         >
           <ItemIcon className='w-4 h-4' />
           <span>{item.name}</span>
@@ -84,6 +124,7 @@ export function Sidebar() {
               ? 'bg-koveo-light text-koveo-navy'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
+          onClick={handleNavItemClick}
         >
           <ItemIcon className='w-5 h-5' />
           <span>{item.name}</span>
@@ -162,15 +203,43 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className='w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col'>
+    <>
+      {/* Mobile backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={onMobileMenuClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out
+        md:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
       {/* Logo Header */}
       <div className='p-6 border-b border-gray-200'>
-        <div className='flex items-center space-x-3'>
-          <img 
-            src="@assets/image_1755317306936.png" 
-            alt="Koveo Gestion Logo" 
-            className="h-12 w-auto"
-          />
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center space-x-3'>
+            <img 
+              src="@assets/image_1755317306936.png" 
+              alt="Koveo Gestion Logo" 
+              className="h-12 w-auto"
+            />
+          </div>
+          {/* Mobile close button */}
+          {onMobileMenuClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={onMobileMenuClose}
+              aria-label="Close navigation menu"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -214,5 +283,6 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

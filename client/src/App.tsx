@@ -6,10 +6,27 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
+
+// Mobile menu context
+interface MobileMenuContextType {
+  isMobileMenuOpen: boolean;
+  toggleMobileMenu: () => void;
+  closeMobileMenu: () => void;
+}
+
+const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undefined);
+
+export const useMobileMenu = () => {
+  const context = useContext(MobileMenuContext);
+  if (context === undefined) {
+    throw new Error('useMobileMenu must be used within a MobileMenuProvider');
+  }
+  return context;
+};
 
 // Optimized lazy-loaded Owner pages
 const OwnerDashboard = optimizedPageLoaders.OwnerDashboard;
@@ -131,6 +148,15 @@ function RootRedirect() {
  */
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -146,48 +172,69 @@ function Router() {
     );
   }
 
+  const mobileMenuContext = {
+    isMobileMenuOpen,
+    toggleMobileMenu,
+    closeMobileMenu,
+  };
+
   return (
-    <div className='h-full flex bg-gray-50 font-inter'>
-      <Sidebar />
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-        {/* Default route - redirect to dashboard */}
-        <Route path='/' component={RootRedirect} />
+    <MobileMenuContext.Provider value={mobileMenuContext}>
+      <div className='h-full flex bg-gray-50 font-inter'>
+        {/* Sidebar - hidden on mobile unless menu is open */}
+        <div className="hidden md:block">
+          <Sidebar />
+        </div>
+        
+        {/* Mobile sidebar overlay */}
+        <Sidebar 
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
+        
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Switch>
+              {/* Default route - redirect to dashboard */}
+              <Route path='/' component={RootRedirect} />
 
-        {/* Owner routes */}
-        <Route path='/owner/dashboard' component={OwnerDashboard} />
-        <Route path='/owner/documentation' component={OwnerDocumentation} />
-        <Route path='/owner/pillars' component={OwnerPillars} />
-        <Route path='/owner/roadmap' component={OwnerRoadmap} />
-        <Route path='/owner/quality' component={OwnerQuality} />
-        <Route path='/owner/suggestions' component={OwnerSuggestions} />
+              {/* Owner routes */}
+              <Route path='/owner/dashboard' component={OwnerDashboard} />
+              <Route path='/owner/documentation' component={OwnerDocumentation} />
+              <Route path='/owner/pillars' component={OwnerPillars} />
+              <Route path='/owner/roadmap' component={OwnerRoadmap} />
+              <Route path='/owner/quality' component={OwnerQuality} />
+              <Route path='/owner/suggestions' component={OwnerSuggestions} />
 
-        {/* Manager routes */}
-        <Route path='/manager/buildings' component={ManagerBuildings} />
-        <Route path='/manager/residences' component={ManagerResidences} />
-        <Route path='/manager/budget' component={ManagerBudget} />
-        <Route path='/manager/bills' component={ManagerBills} />
-        <Route path='/manager/demands' component={ManagerDemands} />
+              {/* Manager routes */}
+              <Route path='/manager/buildings' component={ManagerBuildings} />
+              <Route path='/manager/residences' component={ManagerResidences} />
+              <Route path='/manager/budget' component={ManagerBudget} />
+              <Route path='/manager/bills' component={ManagerBills} />
+              <Route path='/manager/demands' component={ManagerDemands} />
 
-        {/* Residents routes */}
-        <Route path='/dashboard' component={ResidentsDashboard} />
-        <Route path='/residents/residence' component={ResidentsResidence} />
-        <Route path='/residents/building' component={ResidentsBuilding} />
-        <Route path='/residents/demands' component={ResidentsDemands} />
+              {/* Residents routes */}
+              <Route path='/dashboard' component={ResidentsDashboard} />
+              <Route path='/residents/residence' component={ResidentsResidence} />
+              <Route path='/residents/building' component={ResidentsBuilding} />
+              <Route path='/residents/demands' component={ResidentsDemands} />
 
-        {/* Settings routes */}
-        <Route path='/settings/settings' component={SettingsSettings} />
-        <Route path='/settings/bug-reports' component={SettingsBugReports} />
-        <Route path='/settings/idea-box' component={SettingsIdeaBox} />
+              {/* Settings routes */}
+              <Route path='/settings/settings' component={SettingsSettings} />
+              <Route path='/settings/bug-reports' component={SettingsBugReports} />
+              <Route path='/settings/idea-box' component={SettingsIdeaBox} />
 
-        {/* Legacy routes */}
-        <Route path='/pillars' component={PillarsPage} />
+              {/* Legacy routes */}
+              <Route path='/pillars' component={PillarsPage} />
 
-          {/* 404 */}
-          <Route component={NotFound} />
-        </Switch>
-      </Suspense>
-    </div>
+              {/* 404 */}
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </div>
+      </div>
+    </MobileMenuContext.Provider>
   );
 }
 
