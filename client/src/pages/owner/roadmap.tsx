@@ -32,9 +32,12 @@ import {
   Globe,
   AlertTriangle,
   Copy,
+  ChevronDown,
+  ChevronRight,
+  ListTodo,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import type { Feature } from '@shared/schema';
+import type { Feature, ActionableItem } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
 
 /**
@@ -65,12 +68,47 @@ export default function OwnerRoadmap() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [expandedFeatures, setExpandedFeatures] = useState<string[]>([]);
+  const [actionableItems, setActionableItems] = useState<Record<string, ActionableItem[]>>({});
 
   // Fetch features from the database
   const { data: features = [], isLoading } = useQuery({
     queryKey: ['/api/features', { roadmap: true }],
     queryFn: () => fetch('/api/features?roadmap=true').then((res) => res.json()),
   });
+
+  /**
+   * Fetches actionable items for a specific feature
+   */
+  const fetchActionableItems = async (featureId: string) => {
+    if (actionableItems[featureId]) return; // Already fetched
+    
+    try {
+      const response = await fetch(`/api/features/${featureId}/actionable-items`);
+      if (response.ok) {
+        const items = await response.json();
+        setActionableItems(prev => ({ ...prev, [featureId]: items }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch actionable items:', error);
+    }
+  };
+
+  /**
+   * Toggles feature expansion and fetches actionable items if needed
+   */
+  const toggleFeatureExpansion = (featureId: string) => {
+    setExpandedFeatures(prev => {
+      const isExpanded = prev.includes(featureId);
+      if (isExpanded) {
+        return prev.filter(id => id !== featureId);
+      } else {
+        // Fetch actionable items when expanding
+        fetchActionableItems(featureId);
+        return [...prev, featureId];
+      }
+    });
+  };
 
   /**
    * Analyzes features for duplicates and similarities
@@ -334,6 +372,40 @@ export default function OwnerRoadmap() {
     }
   };
 
+  /**
+   * Gets status icon for actionable items
+   */
+  const getActionableItemStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className='w-3 h-3 text-green-600' />;
+      case 'in-progress':
+        return <Clock className='w-3 h-3 text-blue-600' />;
+      case 'blocked':
+        return <AlertTriangle className='w-3 h-3 text-red-600' />;
+      case 'pending':
+      default:
+        return <Circle className='w-3 h-3 text-gray-400' />;
+    }
+  };
+
+  /**
+   * Gets status badge for actionable items
+   */
+  const getActionableItemStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className='bg-green-100 text-green-800 hover:bg-green-100 text-xs'>Done</Badge>;
+      case 'in-progress':
+        return <Badge className='bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs'>Working</Badge>;
+      case 'blocked':
+        return <Badge className='bg-red-100 text-red-800 hover:bg-red-100 text-xs'>Blocked</Badge>;
+      case 'pending':
+      default:
+        return <Badge className='bg-gray-100 text-gray-800 hover:bg-gray-100 text-xs'>Todo</Badge>;
+    }
+  };
+
   const calculateProgress = (features: Feature[]) => {
     const completed = features.filter((f) => f.status === 'completed').length;
     const inProgress = features.filter((f) => f.status === 'in-progress').length;
@@ -512,32 +584,103 @@ export default function OwnerRoadmap() {
                             </Button>
                           </div>
                         ) : (
-                          section.features.map((feature) => (
-                            <div
-                              key={feature.id || feature.name}
-                              className='p-4 hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-transparent hover:border-blue-400'
-                              onClick={() => handleFeatureClick(feature)}
-                            >
-                              <div className='flex items-start space-x-3'>
-                                {getStatusIcon(feature.status)}
-                                <div className='flex-1'>
-                                  <div className='flex items-center flex-wrap'>
-                                    <span className='font-medium text-gray-900 hover:text-blue-600 transition-colors'>{feature.name}</span>
-                                    {getStatusBadge(feature.status)}
-                                    {feature.priority && getPriorityBadge(feature.priority)}
-                                    {getDuplicateBadge(feature.id || feature.name)}
-                                  </div>
-                                  <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
-                                  {getDuplicateNote(feature.id || feature.name) && (
-                                    <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800'>
-                                      {getDuplicateNote(feature.id || feature.name)}
+                          section.features.map((feature) => {
+                            const isExpanded = expandedFeatures.includes(feature.id || feature.name);
+                            const items = actionableItems[feature.id || feature.name] || [];
+                            
+                            return (
+                              <div key={feature.id || feature.name} className='border-l-4 border-transparent hover:border-blue-400'>
+                                {/* Feature Header */}
+                                <div className='p-4 hover:bg-blue-50 transition-colors'>
+                                  <div className='flex items-start space-x-3'>
+                                    <div className='flex items-center space-x-2'>
+                                      {getStatusIcon(feature.status)}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleFeatureExpansion(feature.id || feature.name);
+                                        }}
+                                        className='p-1 hover:bg-gray-200 rounded transition-colors'
+                                      >
+                                        {isExpanded ? (
+                                          <ChevronDown className='w-4 h-4 text-gray-500' />
+                                        ) : (
+                                          <ChevronRight className='w-4 h-4 text-gray-500' />
+                                        )}
+                                      </button>
                                     </div>
-                                  )}
-                                  <p className='text-xs text-blue-600 mt-2 font-medium'>Click to plan development →</p>
+                                    <div className='flex-1'>
+                                      <div className='flex items-center flex-wrap'>
+                                        <span 
+                                          className='font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer'
+                                          onClick={() => handleFeatureClick(feature)}
+                                        >
+                                          {feature.name}
+                                        </span>
+                                        {getStatusBadge(feature.status)}
+                                        {feature.priority && getPriorityBadge(feature.priority)}
+                                        {getDuplicateBadge(feature.id || feature.name)}
+                                        {items.length > 0 && (
+                                          <Badge className='bg-purple-100 text-purple-800 hover:bg-purple-100 ml-2 text-xs'>
+                                            <ListTodo className='w-3 h-3 mr-1' />
+                                            {items.length} {items.length === 1 ? 'task' : 'tasks'}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
+                                      {getDuplicateNote(feature.id || feature.name) && (
+                                        <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800'>
+                                          {getDuplicateNote(feature.id || feature.name)}
+                                        </div>
+                                      )}
+                                      <p className='text-xs text-blue-600 mt-2 font-medium'>Click name to plan development →</p>
+                                    </div>
+                                  </div>
                                 </div>
+
+                                {/* Actionable Items */}
+                                {isExpanded && (
+                                  <div className='bg-gray-50 border-t border-gray-200'>
+                                    {items.length === 0 ? (
+                                      <div className='p-4 text-center text-gray-500 text-sm'>
+                                        <ListTodo className='w-6 h-6 mx-auto mb-2 text-gray-400' />
+                                        No actionable items yet.
+                                        <br />
+                                        <span className='text-xs'>Generate a development prompt to create tasks.</span>
+                                      </div>
+                                    ) : (
+                                      <div className='divide-y divide-gray-200'>
+                                        {items.map((item, index) => (
+                                          <div key={item.id || index} className='p-3 pl-12 hover:bg-white transition-colors'>
+                                            <div className='flex items-start space-x-3'>
+                                              {getActionableItemStatusIcon(item.status)}
+                                              <div className='flex-1'>
+                                                <div className='flex items-center space-x-2'>
+                                                  <span className='text-sm font-medium text-gray-900'>{item.title}</span>
+                                                  {getActionableItemStatusBadge(item.status)}
+                                                  {item.estimatedEffort && (
+                                                    <Badge variant='outline' className='text-xs'>
+                                                      {item.estimatedEffort}
+                                                    </Badge>
+                                                  )}
+                                                </div>
+                                                <p className='text-xs text-gray-600 mt-1'>{item.description}</p>
+                                                {item.technicalDetails && (
+                                                  <p className='text-xs text-gray-500 mt-1'>
+                                                    <strong>Technical:</strong> {item.technicalDetails}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </CardContent>
