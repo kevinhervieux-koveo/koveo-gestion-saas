@@ -121,15 +121,29 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
     try {
       await navigator.clipboard.writeText(prompt);
       toast({
-        title: 'Prompt Copied',
-        description: 'The implementation prompt has been copied to your clipboard.',
+        title: '🤖 AI Prompt Copied!',
+        description: 'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
     } catch (error) {
-      toast({
-        title: 'Copy Failed',
-        description: 'Failed to copy prompt to clipboard.',
-        variant: 'destructive',
-      });
+      // Fallback to creating a text area and selecting the text
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = prompt;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast({
+          title: '📋 Prompt Copied!',
+          description: 'The implementation prompt has been copied using fallback method.',
+        });
+      } catch (fallbackError) {
+        toast({
+          title: 'Copy Failed',
+          description: 'Failed to copy prompt to clipboard. Please manually select and copy the text.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -245,25 +259,40 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                       </div>
                     )}
 
-                    {/* Implementation Prompt */}
-                    {item.implementationPrompt && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-semibold">Implementation Prompt</h4>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyImplementationPrompt(item.implementationPrompt!)}
-                          >
-                            <Copy className="w-4 h-4 mr-1" />
-                            Copy Prompt
-                          </Button>
-                        </div>
-                        <div className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
-                          <pre className="whitespace-pre-wrap">{item.implementationPrompt}</pre>
-                        </div>
+                    {/* Implementation Prompt - Always show, even if empty */}
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-blue-600 flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          AI Implementation Prompt
+                        </h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyImplementationPrompt(
+                            item.implementationPrompt || 
+                            `Implement: ${item.title}\n\nDescription: ${item.description}\n\nTechnical Details: ${item.technicalDetails || 'No specific technical details provided'}\n\nEstimated Effort: ${item.estimatedEffort || 'Unknown'}`
+                          )}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          <Copy className="w-4 h-4 mr-1" />
+                          Copy AI Prompt
+                        </Button>
                       </div>
-                    )}
+                      <div className="bg-slate-900 text-green-400 p-4 rounded-lg border border-slate-700 shadow-inner">
+                        <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+{item.implementationPrompt || `Implement: ${item.title}
+
+Description: ${item.description}
+
+Technical Details: ${item.technicalDetails || 'No specific technical details provided'}
+
+Estimated Effort: ${item.estimatedEffort || 'Unknown'}
+
+Please implement this feature following best practices and ensuring proper error handling, testing, and documentation.`}
+                        </pre>
+                      </div>
+                    </div>
 
                     {/* Dependencies */}
                     {item.dependencies && Array.isArray(item.dependencies) && (item.dependencies as string[]).length > 0 && (
