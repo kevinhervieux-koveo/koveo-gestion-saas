@@ -799,6 +799,20 @@ export class MemStorage implements IStorage {
         lastLoginAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+      },
+      {
+        id: randomUUID(),
+        email: 'kevhervieux@gmail.com',
+        firstName: 'Kevin',
+        lastName: 'Hervieux',
+        password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
+        role: 'admin',
+        language: 'fr',
+        phone: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }
     ];
 
