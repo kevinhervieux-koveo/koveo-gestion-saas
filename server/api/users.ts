@@ -2,6 +2,8 @@ import type { Express } from 'express';
 import { storage } from '../storage';
 import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
 import { z } from 'zod';
+import { requireAuth } from '../auth';
+import { permissions, getRolePermissions } from '../../config';
 
 /**
  * Registers all user-related API endpoints.
@@ -217,6 +219,67 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to deactivate user',
+      });
+    }
+  });
+
+  /**
+   * GET /api/user/permissions - Retrieves the current user's permissions based on their role.
+   * Protected endpoint that requires authentication.
+   */
+  app.get('/api/user/permissions', requireAuth, async (req: any, res) => {
+    try {
+      // Get user role from session
+      const userRole = req.user?.role;
+      
+      if (!userRole) {
+        return res.status(400).json({
+          error: 'Bad request',
+          message: 'User role not found in session',
+        });
+      }
+
+      // Validate the role exists in permissions
+      if (!permissions[userRole as keyof typeof permissions]) {
+        return res.status(400).json({
+          error: 'Bad request', 
+          message: 'Invalid user role',
+        });
+      }
+
+      // Get permissions for the user's role
+      const userPermissions = getRolePermissions(permissions, userRole as keyof typeof permissions);
+      
+      // Create response with Zod validation
+      const responseData = {
+        role: userRole,
+        permissions: userPermissions,
+        permissionCount: userPermissions.length,
+      };
+
+      // Validate response with Zod schema
+      const permissionsResponseSchema = z.object({
+        role: z.enum(['admin', 'manager', 'owner', 'tenant', 'board_member']),
+        permissions: z.array(z.string()),
+        permissionCount: z.number(),
+      });
+
+      const validatedResponse = permissionsResponseSchema.parse(responseData);
+      
+      res.json(validatedResponse);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(500).json({
+          error: 'Internal server error',
+          message: 'Failed to validate permissions response',
+          details: error.errors,
+        });
+      }
+
+      console.error('Failed to fetch user permissions:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch user permissions',
       });
     }
   });
