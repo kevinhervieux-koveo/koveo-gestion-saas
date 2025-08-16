@@ -3163,7 +3163,7 @@ function registerInvitationRoutes(app: any) {
   });
 
   // POST /api/users/bulk-action - Perform bulk operations on users
-  app.post('/api/users/bulk-action', requireAuth, authorize('update:user'), async (req, res) => {
+  app.post('/api/users/bulk-action', requireAuth, authorize('update:user'), async (req: any, res: any) => {
     try {
       const { userIds, action, data } = req.body;
 
@@ -3232,7 +3232,7 @@ function registerInvitationRoutes(app: any) {
   });
 
   // POST /api/invitations/bulk - Send bulk invitations
-  app.post('/api/invitations/bulk', requireAuth, authorize('create:user'), async (req, res) => {
+  app.post('/api/invitations/bulk', requireAuth, authorize('create:user'), async (req: any, res: any) => {
     try {
       const { invitations: invitationData } = req.body;
 
@@ -3357,7 +3357,7 @@ function registerInvitationRoutes(app: any) {
   });
 
   // POST /api/invitations/:id/resend - Resend an invitation
-  app.post('/api/invitations/:id/resend', requireAuth, authorize('create:user'), async (req, res) => {
+  app.post('/api/invitations/:id/resend', requireAuth, authorize('create:user'), async (req: any, res: any) => {
     try {
       const { id } = req.params;
       
@@ -3414,7 +3414,7 @@ function registerInvitationRoutes(app: any) {
   });
 
   // GET /api/buildings - Get buildings data
-  app.get('/api/buildings', requireAuth, authorize('read:building'), async (req, res) => {
+  app.get('/api/buildings', requireAuth, authorize('read:building'), async (req: any, res: any) => {
     try {
       const buildings = await db
         .select({

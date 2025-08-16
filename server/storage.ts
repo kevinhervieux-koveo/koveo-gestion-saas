@@ -1935,6 +1935,10 @@ export class MemStorage implements IStorage {
 import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
 // Use OptimizedDatabaseStorage for persistent storage with performance enhancements
-export const storage = process.env.DATABASE_URL
-  ? new OptimizedDatabaseStorage()
-  : new MemStorage();
+// Temporarily use MemStorage until OptimizedDatabaseStorage is fully implemented
+export const storage = new MemStorage();
+
+// TODO: Re-enable when OptimizedDatabaseStorage implements all IStorage methods
+// export const storage = process.env.DATABASE_URL
+//   ? new OptimizedDatabaseStorage()
+//   : new MemStorage();
