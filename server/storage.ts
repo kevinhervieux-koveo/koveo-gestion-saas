@@ -27,6 +27,7 @@ import {
   type InsertInvitationAuditLog,
 } from '@shared/schema';
 import { randomUUID } from 'crypto';
+import { hashPassword } from './auth';
 
 /**
  * Storage interface for the Koveo Gestion property management system.
@@ -752,6 +753,43 @@ export class MemStorage implements IStorage {
       };
       this.qualityMetrics.set(metric.metricType, metricRecord);
     });
+
+    // Initialize default users
+    const { salt, hash } = hashPassword('admin123');
+    const defaultUsers = [
+      {
+        id: randomUUID(),
+        email: 'admin@koveo-gestion.com',
+        firstName: 'Admin',
+        lastName: 'User',
+        password: hash,
+        passwordSalt: salt,
+        role: 'admin',
+        language: 'en',
+        phone: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: randomUUID(),
+        email: 'kevin.hervieux@koveo-gestion.com',
+        firstName: 'Kevin',
+        lastName: 'Hervieux',
+        password: hash,
+        passwordSalt: salt,
+        role: 'manager',
+        language: 'fr',
+        phone: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+
+    defaultUsers.forEach((user) => this.users.set(user.id, user));
   }
 
   // User operations
