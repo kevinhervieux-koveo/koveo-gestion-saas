@@ -94,10 +94,10 @@ export default function UserManagement() {
     isAdmin: currentUser?.role === 'admin'
   });
   
-  // Check permissions after auth is loaded
-  const canManageUsers = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+  // Check permissions after auth is loaded - use hasRole for better reliability
+  const canManageUsers = hasRole(['admin', 'manager']);
   
-  console.log('Permission check:', { canManageUsers });
+  console.log('Permission check:', { canManageUsers, hasRoleAdmin: hasRole('admin'), hasRoleManager: hasRole('manager') });
 
   // Fetch user management data
   const { 
@@ -182,7 +182,7 @@ export default function UserManagement() {
   }
 
   // Check permissions only after auth has loaded
-  if (!currentUser || !canManageUsers) {
+  if (!authLoading && (!currentUser || !canManageUsers)) {
     return (
       <div className="flex items-center justify-center h-96">
         <Card className="max-w-md mx-auto">
