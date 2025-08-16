@@ -14,6 +14,7 @@ import {
 } from '@shared/schema';
 import { registerUserRoutes } from './api/users';
 import { registerOrganizationRoutes } from './api/organizations';
+import { sessionConfig, setupAuthRoutes, requireAuth, requireRole } from './auth';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
@@ -44,6 +45,12 @@ const db = drizzle({ client: pool, schema });
  * ```
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup session middleware
+  app.use(sessionConfig);
+  
+  // Setup authentication routes
+  setupAuthRoutes(app);
+  
   // Register dedicated API routes
   registerUserRoutes(app);
   registerOrganizationRoutes(app);

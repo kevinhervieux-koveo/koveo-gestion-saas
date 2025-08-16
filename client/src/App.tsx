@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
+import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from './components/ui/loading-spinner';
@@ -38,13 +39,35 @@ const SettingsIdeaBox = lazy(() => import('@/pages/settings/idea-box'));
 const PillarsPage = lazy(() => import('@/pages/pillars'));
 const NotFound = lazy(() => import('@/pages/not-found'));
 
+// Authentication pages
+const LoginPage = lazy(() => import('@/pages/auth/login'));
+
 /**
- *
+ * Protected router component that handles authentication-based routing.
+ * Shows login page for unauthenticated users, main app for authenticated users.
  */
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route component={LoginPage} />
+        </Switch>
+      </Suspense>
+    );
+  }
+
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Switch>
+    <div className='h-full flex bg-gray-50 font-inter'>
+      <Sidebar />
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
         {/* Default route - redirect to dashboard */}
         <Route path='/' component={ResidentsDashboard} />
 
@@ -77,27 +100,28 @@ function Router() {
         {/* Legacy routes */}
         <Route path='/pillars' component={PillarsPage} />
 
-        {/* 404 */}
-        <Route component={NotFound} />
-      </Switch>
-    </Suspense>
+          {/* 404 */}
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
+    </div>
   );
 }
 
 /**
- *
+ * Main App component with authentication integration.
+ * Wraps the application with all necessary providers including authentication.
  */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <div className='h-full flex bg-gray-50 font-inter'>
-            <Sidebar />
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
             <Router />
-          </div>
-        </TooltipProvider>
+          </TooltipProvider>
+        </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
