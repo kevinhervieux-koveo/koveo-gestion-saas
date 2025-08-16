@@ -85,8 +85,19 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
   
+  // Debug: Log the current state
+  console.log('UserManagement render:', {
+    authLoading,
+    currentUser,
+    userRole: currentUser?.role,
+    isManager: currentUser?.role === 'manager',
+    isAdmin: currentUser?.role === 'admin'
+  });
+  
   // Check permissions after auth is loaded
   const canManageUsers = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+  
+  console.log('Permission check:', { canManageUsers });
 
   // Fetch user management data
   const { 
