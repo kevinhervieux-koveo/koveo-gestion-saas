@@ -7,6 +7,7 @@ import {
   User,
   Building,
   Users,
+  UserPlus,
   DollarSign,
   FileText,
   AlertCircle,
@@ -193,6 +194,14 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/owner/suggestions', icon: Lightbulb },
         { name: 'RBAC Permissions', href: '/owner/permissions', icon: ShieldCheck },
+      ],
+    },
+    {
+      name: 'Admin',
+      key: 'admin',
+      icon: ShieldCheck,
+      items: [
+        { name: 'User Management', href: '/admin/user-management', icon: UserPlus },
       ],
     },
     {

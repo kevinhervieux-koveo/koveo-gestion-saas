@@ -56,6 +56,13 @@ const OwnerPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+// Admin/User Management page
+const UserManagement = createOptimizedLoader(
+  () => import('@/pages/admin/user-management'),
+  'user-management',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
 const ManagerResidences = optimizedPageLoaders.ManagerResidences;
@@ -219,6 +226,9 @@ function Router() {
               <Route path='/owner/quality' component={OwnerQuality} />
               <Route path='/owner/suggestions' component={OwnerSuggestions} />
               <Route path='/owner/permissions' component={OwnerPermissions} />
+
+              {/* Admin routes */}
+              <Route path='/admin/user-management' component={UserManagement} />
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />

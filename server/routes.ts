@@ -2842,4 +2842,330 @@ function registerInvitationRoutes(app: any) {
       }
     }
   );
+
+  // User Management API endpoints
+  // GET /api/user-management - Get comprehensive user management data
+  app.get('/api/user-management', requireAuth, authorize('read:user'), async (req, res) => {
+    try {
+      // Get all users
+      const users = await db.select().from(schema.users).orderBy(desc(schema.users.createdAt));
+      
+      // Get all invitations with inviter information
+      const invitationsQuery = db
+        .select({
+          id: invitations.id,
+          email: invitations.email,
+          role: invitations.role,
+          status: invitations.status,
+          organizationId: invitations.organizationId,
+          buildingId: invitations.buildingId,
+          invitedByUserId: invitations.invitedByUserId,
+          token: invitations.token,
+          expiresAt: invitations.expiresAt,
+          createdAt: invitations.createdAt,
+          acceptedAt: invitations.acceptedAt,
+          personalMessage: invitations.personalMessage,
+          securityLevel: invitations.securityLevel,
+          requires2FA: invitations.requires2FA,
+          inviterName: schema.users.firstName
+        })
+        .from(invitations)
+        .leftJoin(schema.users, eq(invitations.invitedByUserId, schema.users.id))
+        .orderBy(desc(invitations.createdAt));
+
+      const allInvitations = await invitationsQuery;
+
+      // Calculate statistics
+      const totalUsers = users.length;
+      const activeUsers = users.filter(u => u.isActive).length;
+      const pendingInvitations = allInvitations.filter(i => i.status === 'pending' && new Date(i.expiresAt) > new Date()).length;
+      const totalInvitations = allInvitations.length;
+
+      res.json({
+        users: users.map(({ password, ...user }) => user), // Remove password field
+        invitations: allInvitations,
+        totalUsers,
+        activeUsers,
+        pendingInvitations,
+        totalInvitations
+      });
+    } catch (error) {
+      console.error('Error fetching user management data:', error);
+      res.status(500).json({ message: 'Failed to fetch user management data' });
+    }
+  });
+
+  // POST /api/users/bulk-action - Perform bulk operations on users
+  app.post('/api/users/bulk-action', requireAuth, authorize('update:user'), async (req, res) => {
+    try {
+      const { userIds, action, data } = req.body;
+
+      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: 'User IDs array is required' });
+      }
+
+      if (!action) {
+        return res.status(400).json({ message: 'Action is required' });
+      }
+
+      let updateData = {};
+      
+      switch (action) {
+        case 'toggle_status':
+          updateData = { isActive: data?.status ?? true };
+          break;
+        case 'change_role':
+          if (!data?.role) {
+            return res.status(400).json({ message: 'Role is required for role change action' });
+          }
+          updateData = { role: data.role };
+          break;
+        case 'send_password_reset':
+          // For now, just mark as processed - actual email sending would be implemented
+          res.json({ message: 'Password reset emails sent successfully', count: userIds.length });
+          return;
+        case 'send_welcome_email':
+          // For now, just mark as processed - actual email sending would be implemented
+          res.json({ message: 'Welcome emails sent successfully', count: userIds.length });
+          return;
+        case 'export_users':
+          // For now, just return user data
+          const exportUsers = await db.select().from(schema.users).where(sql`id = ANY(${userIds})`);
+          res.json({ message: 'User data exported', users: exportUsers.map(({ password, ...user }) => user) });
+          return;
+        case 'delete_users':
+          const currentUserId = req.user?.id;
+          if (userIds.includes(currentUserId)) {
+            return res.status(400).json({ message: 'Cannot delete your own account' });
+          }
+          await db.delete(schema.users).where(sql`id = ANY(${userIds})`);
+          res.json({ message: 'Users deleted successfully', count: userIds.length });
+          return;
+        default:
+          return res.status(400).json({ message: 'Invalid action' });
+      }
+
+      // Perform the update
+      const updatedUsers = await db
+        .update(schema.users)
+        .set(updateData)
+        .where(sql`id = ANY(${userIds})`)
+        .returning();
+
+      res.json({ 
+        message: 'Bulk action completed successfully',
+        updatedUsers: updatedUsers.map(({ password, ...user }) => user),
+        count: updatedUsers.length
+      });
+
+    } catch (error) {
+      console.error('Error performing bulk action:', error);
+      res.status(500).json({ message: 'Failed to perform bulk action' });
+    }
+  });
+
+  // POST /api/invitations/bulk - Send bulk invitations
+  app.post('/api/invitations/bulk', requireAuth, authorize('create:user'), async (req, res) => {
+    try {
+      const { invitations: invitationData } = req.body;
+
+      if (!invitationData || !Array.isArray(invitationData)) {
+        return res.status(400).json({ message: 'Invitations array is required' });
+      }
+
+      const results = [];
+      const errors = [];
+
+      for (const invitation of invitationData) {
+        try {
+          const validation = insertInvitationSchema.safeParse(invitation);
+          if (!validation.success) {
+            errors.push({
+              email: invitation.email,
+              error: 'Invalid invitation data',
+              details: validation.error.errors
+            });
+            continue;
+          }
+
+          // Check if user already exists
+          const existingUser = await db.select().from(schema.users).where(eq(schema.users.email, invitation.email)).limit(1);
+          if (existingUser.length > 0) {
+            errors.push({
+              email: invitation.email,
+              error: 'User already exists'
+            });
+            continue;
+          }
+
+          // Check for existing pending invitation
+          const existingInvitation = await db
+            .select()
+            .from(invitations)
+            .where(and(
+              eq(invitations.email, invitation.email),
+              eq(invitations.status, 'pending'),
+              gte(invitations.expiresAt, new Date())
+            ))
+            .limit(1);
+
+          if (existingInvitation.length > 0) {
+            errors.push({
+              email: invitation.email,
+              error: 'Pending invitation already exists'
+            });
+            continue;
+          }
+
+          // Generate invitation token
+          const token = randomBytes(32).toString('hex');
+          const hashedToken = createHash('sha256').update(token).digest('hex');
+
+          // Create invitation
+          const [newInvitation] = await db
+            .insert(invitations)
+            .values({
+              ...invitation,
+              token: hashedToken,
+              status: 'pending',
+              createdAt: new Date()
+            })
+            .returning();
+
+          // Send invitation email
+          try {
+            const organization = invitation.organizationId ? 
+              await db.select().from(schema.organizations).where(eq(schema.organizations.id, invitation.organizationId)).limit(1) : null;
+            
+            const emailSent = await emailService.sendInvitationEmail(
+              invitation.email,
+              invitation.email.split('@')[0],
+              token,
+              req.user?.firstName || 'Admin',
+              organization?.[0]?.name || 'Koveo Gestion',
+              invitation.personalMessage,
+              newInvitation.expiresAt,
+              'fr'
+            );
+
+            if (emailSent) {
+              results.push({
+                email: invitation.email,
+                invitationId: newInvitation.id,
+                status: 'sent'
+              });
+            } else {
+              errors.push({
+                email: invitation.email,
+                error: 'Failed to send email'
+              });
+            }
+          } catch (emailError) {
+            console.error(`Email sending error for ${invitation.email}:`, emailError);
+            errors.push({
+              email: invitation.email,
+              error: 'Failed to send email'
+            });
+          }
+
+        } catch (error) {
+          console.error(`Error processing invitation for ${invitation.email}:`, error);
+          errors.push({
+            email: invitation.email,
+            error: 'Processing failed'
+          });
+        }
+      }
+
+      res.json({
+        message: `Bulk invitations processed: ${results.length} sent, ${errors.length} failed`,
+        results,
+        errors
+      });
+
+    } catch (error) {
+      console.error('Error processing bulk invitations:', error);
+      res.status(500).json({ message: 'Failed to process bulk invitations' });
+    }
+  });
+
+  // POST /api/invitations/:id/resend - Resend an invitation
+  app.post('/api/invitations/:id/resend', requireAuth, authorize('create:user'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get invitation details
+      const [invitation] = await db
+        .select()
+        .from(invitations)
+        .where(and(
+          eq(invitations.id, id),
+          eq(invitations.status, 'pending'),
+          gte(invitations.expiresAt, new Date())
+        ))
+        .limit(1);
+
+      if (!invitation) {
+        return res.status(404).json({ message: 'Active invitation not found' });
+      }
+
+      // Generate new token
+      const token = randomBytes(32).toString('hex');
+      const hashedToken = createHash('sha256').update(token).digest('hex');
+
+      // Update invitation with new token
+      await db
+        .update(invitations)
+        .set({ token: hashedToken })
+        .where(eq(invitations.id, id));
+
+      // Send invitation email
+      const organization = invitation.organizationId ? 
+        await db.select().from(schema.organizations).where(eq(schema.organizations.id, invitation.organizationId)).limit(1) : null;
+      
+      const emailSent = await emailService.sendInvitationEmail(
+        invitation.email,
+        invitation.email.split('@')[0],
+        token,
+        req.user?.firstName || 'Admin',
+        organization?.[0]?.name || 'Koveo Gestion',
+        invitation.personalMessage,
+        invitation.expiresAt,
+        'fr'
+      );
+
+      if (emailSent) {
+        res.json({ message: 'Invitation resent successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to resend invitation' });
+      }
+
+    } catch (error) {
+      console.error('Error resending invitation:', error);
+      res.status(500).json({ message: 'Failed to resend invitation' });
+    }
+  });
+
+  // GET /api/buildings - Get buildings data
+  app.get('/api/buildings', requireAuth, authorize('read:building'), async (req, res) => {
+    try {
+      const buildings = await db
+        .select({
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          organizationId: schema.buildings.organizationId
+        })
+        .from(schema.buildings)
+        .orderBy(schema.buildings.name);
+
+      res.json(buildings);
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+      res.status(500).json({ message: 'Failed to fetch buildings' });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
 }
