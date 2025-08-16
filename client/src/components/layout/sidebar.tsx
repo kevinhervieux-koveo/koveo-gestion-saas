@@ -20,6 +20,7 @@ import {
 import { Link, useLocation } from 'wouter';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import koveoLogo from '@/assets/koveo-logo.jpg';
@@ -41,6 +42,7 @@ interface SidebarProps {
 export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();
   const { t } = useLanguage();
+  const { logout } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['admin']);
 
   // Close mobile menu when clicking on navigation items
@@ -151,9 +153,14 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     );
   };
 
-  const handleLogout = () => {
-    // Navigate to home page (external website)
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Fallback: still redirect to login page
+      window.location.href = '/login';
+    }
   };
 
   const topLevelItems = [
