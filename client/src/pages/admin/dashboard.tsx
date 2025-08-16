@@ -17,7 +17,7 @@ export default function Dashboard() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Admin Dashboard' subtitle='Property management overview and insights' />
+      <Header title='🔥 TEST MODE - ADMIN DASHBOARD 🔥' subtitle='🚨 IF YOU SEE THIS THE PAGE IS WORKING 🚨' />
       
       {/* SIMPLE TEST - Just text */}
       <div style={{background: 'red', color: 'white', padding: '20px', fontSize: '24px', textAlign: 'center'}}>
