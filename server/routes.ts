@@ -102,6 +102,26 @@ async function syncFeatureToProduction(feature: any) {
  * ```
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint - responds immediately without database operations
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'Koveo Gestion API is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  });
+
+  // Health check endpoint specifically for deployment health checks
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Setup session middleware
   app.use(sessionConfig);
   

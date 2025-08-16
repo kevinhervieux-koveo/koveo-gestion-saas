@@ -39,23 +39,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Initialize database optimizations to reduce 132ms average query time
-  try {
-    await initializeDatabaseOptimizations();
-    startPerformanceMonitoring();
-    log('🚀 Database optimizations initialized successfully');
-  } catch (error) {
-    log('⚠️ Database optimization initialization failed:', String(error));
-  }
-
-  // Initialize background jobs
-  try {
-    await startJobs();
-    log('🔄 Background jobs initialized successfully');
-  } catch (error) {
-    log('⚠️ Background job initialization failed:', String(error));
-  }
-
+  // Register routes and start server first to handle health checks immediately
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -88,6 +72,58 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      // Initialize database optimizations in background after server starts
+      // This prevents blocking the health check endpoints
+      initializeDatabaseOptimizationsInBackground();
+      
+      // Initialize background jobs after server starts
+      initializeBackgroundJobsInBackground();
     }
   );
+  
+  /**
+   * Runs database optimizations in background with timeout handling
+   */
+  async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
+    try {
+      log('🚀 Starting database optimizations in background...');
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database optimization timeout after 30 seconds')), 30000);
+      });
+      
+      const optimizationPromise = (async () => {
+        await initializeDatabaseOptimizations();
+        startPerformanceMonitoring();
+      })();
+      
+      await Promise.race([optimizationPromise, timeoutPromise]);
+      log('🚀 Database optimizations initialized successfully');
+    } catch (error) {
+      log('⚠️ Database optimization initialization failed:', String(error));
+      // Continue running - don't crash the server
+    }
+  }
+  
+  /**
+   * Runs background jobs initialization with timeout handling
+   */
+  async function initializeBackgroundJobsInBackground(): Promise<void> {
+    try {
+      log('🔄 Starting background jobs in background...');
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Background jobs timeout after 20 seconds')), 20000);
+      });
+      
+      await Promise.race([startJobs(), timeoutPromise]);
+      log('🔄 Background jobs initialized successfully');
+    } catch (error) {
+      log('⚠️ Background job initialization failed:', String(error));
+      // Continue running - don't crash the server
+    }
+  }
 })();
