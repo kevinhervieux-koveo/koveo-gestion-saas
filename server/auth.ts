@@ -5,6 +5,13 @@ import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
 import { checkPermission, permissions, getRolePermissions } from '../config';
+import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import * as schema from '../shared/schema';
+import { eq, and } from 'drizzle-orm';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool, schema });
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
@@ -120,7 +127,24 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       req.session.permissions = userPermissions;
     }
 
-    req.user = user;
+    // Add organization information to the user object
+    const userOrganizations = await db.query.userOrganizations.findMany({
+      where: and(
+        eq(schema.userOrganizations.userId, user.id),
+        eq(schema.userOrganizations.isActive, true)
+      ),
+      with: {
+        organization: true
+      }
+    });
+
+    // Enhanced user object with organization access information
+    req.user = {
+      ...user,
+      organizations: userOrganizations.map(uo => uo.organizationId),
+      canAccessAllOrganizations: userOrganizations.some(uo => uo.canAccessAllOrganizations)
+    } as any;
+    
     next();
   } catch (error) {
     console.error('Authentication error:', error);

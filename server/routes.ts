@@ -35,7 +35,7 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
-import { desc, eq, or, and, sql, gte, lte, like } from 'drizzle-orm';
+import { desc, eq, or, and, sql, gte, lte, like, inArray } from 'drizzle-orm';
 import { randomBytes, createHash } from 'crypto';
 import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
@@ -3413,23 +3413,258 @@ function registerInvitationRoutes(app: any) {
     }
   });
 
-  // GET /api/buildings - Get buildings data
-  app.get('/api/buildings', requireAuth, authorize('read:building'), async (req: any, res: any) => {
+  // Organizations API with RBAC
+  app.get('/api/organizations', requireAuth, async (req: any, res: any) => {
     try {
-      const buildings = await db
-        .select({
-          id: schema.buildings.id,
-          name: schema.buildings.name,
-          address: schema.buildings.address,
-          organizationId: schema.buildings.organizationId
-        })
-        .from(schema.buildings)
-        .orderBy(schema.buildings.name);
+      const { getUserAccessibleOrganizations } = await import('./rbac');
+      const accessibleOrgIds = await getUserAccessibleOrganizations(req.user!.id);
+      
+      const organizations = await db.query.organizations.findMany({
+        where: inArray(schema.organizations.id, accessibleOrgIds),
+        orderBy: [schema.organizations.name]
+      });
+
+      res.json(organizations);
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      res.status(500).json({ message: 'Failed to fetch organizations' });
+    }
+  });
+
+  app.get('/api/organizations/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      const { canUserAccessOrganization } = await import('./rbac');
+      const hasAccess = await canUserAccessOrganization(req.user!.id, req.params.id);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied to this organization' });
+      }
+
+      const organization = await db.query.organizations.findFirst({
+        where: eq(schema.organizations.id, req.params.id)
+      });
+
+      if (!organization) {
+        return res.status(404).json({ message: 'Organization not found' });
+      }
+
+      res.json(organization);
+    } catch (error) {
+      console.error('Error fetching organization:', error);
+      res.status(500).json({ message: 'Failed to fetch organization' });
+    }
+  });
+
+  // Buildings API with RBAC
+  app.get('/api/buildings', requireAuth, async (req: any, res: any) => {
+    try {
+      const { getBuildingFilter } = await import('./rbac');
+      const buildingFilter = await getBuildingFilter(req.user!.id);
+      
+      const buildings = await db.query.buildings.findMany({
+        where: buildingFilter,
+        with: {
+          organization: true
+        },
+        orderBy: [schema.buildings.name]
+      });
 
       res.json(buildings);
     } catch (error) {
       console.error('Error fetching buildings:', error);
       res.status(500).json({ message: 'Failed to fetch buildings' });
+    }
+  });
+
+  app.get('/api/buildings/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      const { canUserAccessBuilding } = await import('./rbac');
+      const hasAccess = await canUserAccessBuilding(req.user!.id, req.params.id);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied to this building' });
+      }
+
+      const building = await db.query.buildings.findFirst({
+        where: eq(schema.buildings.id, req.params.id),
+        with: {
+          organization: true,
+          residences: true
+        }
+      });
+
+      if (!building) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+
+      res.json(building);
+    } catch (error) {
+      console.error('Error fetching building:', error);
+      res.status(500).json({ message: 'Failed to fetch building' });
+    }
+  });
+
+  app.get('/api/organizations/:organizationId/buildings', requireAuth, async (req: any, res: any) => {
+    try {
+      const { canUserAccessOrganization } = await import('./rbac');
+      const hasAccess = await canUserAccessOrganization(req.user!.id, req.params.organizationId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied to this organization' });
+      }
+
+      const buildings = await db.query.buildings.findMany({
+        where: eq(schema.buildings.organizationId, req.params.organizationId),
+        with: {
+          organization: true
+        },
+        orderBy: [schema.buildings.name]
+      });
+
+      res.json(buildings);
+    } catch (error) {
+      console.error('Error fetching organization buildings:', error);
+      res.status(500).json({ message: 'Failed to fetch buildings' });
+    }
+  });
+
+  // Residences API with RBAC
+  app.get('/api/residences', requireAuth, async (req: any, res: any) => {
+    try {
+      const { getResidenceFilter } = await import('./rbac');
+      const residenceFilter = await getResidenceFilter(req.user!.id);
+      
+      const residences = await db.query.residences.findMany({
+        where: residenceFilter,
+        with: {
+          building: {
+            with: {
+              organization: true
+            }
+          }
+        },
+        orderBy: [schema.residences.unitNumber]
+      });
+
+      res.json(residences);
+    } catch (error) {
+      console.error('Error fetching residences:', error);
+      res.status(500).json({ message: 'Failed to fetch residences' });
+    }
+  });
+
+  app.get('/api/residences/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      const { canUserAccessResidence } = await import('./rbac');
+      const hasAccess = await canUserAccessResidence(req.user!.id, req.params.id);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied to this residence' });
+      }
+
+      const residence = await db.query.residences.findFirst({
+        where: eq(schema.residences.id, req.params.id),
+        with: {
+          building: {
+            with: {
+              organization: true
+            }
+          },
+          userResidences: {
+            with: {
+              user: true
+            }
+          }
+        }
+      });
+
+      if (!residence) {
+        return res.status(404).json({ message: 'Residence not found' });
+      }
+
+      res.json(residence);
+    } catch (error) {
+      console.error('Error fetching residence:', error);
+      res.status(500).json({ message: 'Failed to fetch residence' });
+    }
+  });
+
+  app.get('/api/buildings/:buildingId/residences', requireAuth, async (req: any, res: any) => {
+    try {
+      const { canUserAccessBuilding } = await import('./rbac');
+      const hasAccess = await canUserAccessBuilding(req.user!.id, req.params.buildingId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied to this building' });
+      }
+
+      const residences = await db.query.residences.findMany({
+        where: eq(schema.residences.buildingId, req.params.buildingId),
+        with: {
+          building: {
+            with: {
+              organization: true
+            }
+          },
+          userResidences: {
+            with: {
+              user: true
+            }
+          }
+        },
+        orderBy: [schema.residences.unitNumber]
+      });
+
+      res.json(residences);
+    } catch (error) {
+      console.error('Error fetching building residences:', error);
+      res.status(500).json({ message: 'Failed to fetch residences' });
+    }
+  });
+
+  // User access management API
+  app.get('/api/users/me/organizations', requireAuth, async (req: any, res: any) => {
+    try {
+      const { getUserAccessibleOrganizations } = await import('./rbac');
+      const accessibleOrgIds = await getUserAccessibleOrganizations(req.user!.id);
+      
+      const organizations = await db.query.organizations.findMany({
+        where: inArray(schema.organizations.id, accessibleOrgIds),
+        orderBy: [schema.organizations.name]
+      });
+
+      res.json(organizations);
+    } catch (error) {
+      console.error('Error fetching user organizations:', error);
+      res.status(500).json({ message: 'Failed to fetch user organizations' });
+    }
+  });
+
+  app.get('/api/users/me/residences', requireAuth, async (req: any, res: any) => {
+    try {
+      const { getUserAccessibleResidences } = await import('./rbac');
+      const accessibleResidenceIds = await getUserAccessibleResidences(req.user!.id);
+      
+      if (accessibleResidenceIds.length === 0) {
+        return res.json([]);
+      }
+
+      const residences = await db.query.residences.findMany({
+        where: inArray(schema.residences.id, accessibleResidenceIds),
+        with: {
+          building: {
+            with: {
+              organization: true
+            }
+          }
+        },
+        orderBy: [schema.residences.unitNumber]
+      });
+
+      res.json(residences);
+    } catch (error) {
+      console.error('Error fetching user residences:', error);
+      res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
 
