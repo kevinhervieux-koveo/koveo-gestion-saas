@@ -132,6 +132,13 @@ const LoginPage = createOptimizedLoader(
   { preloadDelay: 500, enableMemoryCleanup: true }
 );
 
+// Invitation acceptance page (public route)
+const InvitationAcceptancePage = createOptimizedLoader(
+  () => import('@/pages/auth/invitation-acceptance'),
+  'invitation-acceptance-page',
+  { preloadDelay: 500, enableMemoryCleanup: true }
+);
+
 // Redirect component for root route
 /**
  * Component that handles root route redirection based on authentication status.
@@ -183,6 +190,7 @@ function Router() {
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
+          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
           <Route component={LoginPage} />
         </Switch>
       </Suspense>

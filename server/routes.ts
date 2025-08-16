@@ -2843,6 +2843,71 @@ function registerInvitationRoutes(app: any) {
     }
   );
 
+  // POST /api/invitations/validate - Validate invitation token (public endpoint)
+  app.post('/api/invitations/validate',
+    rateLimitInvitations(10), // Rate limit for public endpoint
+    async (req: any, res: any) => {
+      try {
+        const { token } = req.body;
+        
+        if (!token) {
+          return res.status(400).json({
+            message: 'Token is required',
+            code: 'MISSING_TOKEN'
+          });
+        }
+        
+        // Find invitation by token
+        const [invitation] = await db.select()
+          .from(invitations)
+          .where(and(
+            eq(invitations.token, token),
+            eq(invitations.status, 'pending'),
+            gte(invitations.expiresAt, new Date())
+          ))
+          .limit(1);
+          
+        if (!invitation) {
+          return res.status(404).json({
+            message: 'Invalid or expired invitation token',
+            code: 'INVALID_TOKEN',
+            isValid: false
+          });
+        }
+        
+        // Get inviter information
+        const [inviterUser] = await db.select()
+          .from(schema.users)
+          .where(eq(schema.users.id, invitation.invitedByUserId))
+          .limit(1);
+          
+        // Get organization information
+        const organization = invitation.organizationId ? 
+          await db.select().from(schema.organizations)
+            .where(eq(schema.organizations.id, invitation.organizationId))
+            .limit(1) : null;
+        
+        // Return validation success with invitation details
+        const { token: _, tokenHash: __, ...safeInvitation } = invitation;
+        
+        res.json({
+          isValid: true,
+          invitation: safeInvitation,
+          inviterName: inviterUser ? `${inviterUser.firstName} ${inviterUser.lastName}` : 'System Administrator',
+          organizationName: organization?.[0]?.name || 'Koveo Gestion',
+          message: 'Invitation token is valid'
+        });
+        
+      } catch (error) {
+        console.error('Error validating invitation token:', error);
+        res.status(500).json({ 
+          message: 'Failed to validate invitation token',
+          isValid: false 
+        });
+      }
+    }
+  );
+
   // User Management API endpoints
   // GET /api/user-management - Get comprehensive user management data
   app.get('/api/user-management', requireAuth, authorize('read:user'), async (req, res) => {
