@@ -488,7 +488,8 @@ describe('Quebec Property Management Business Logic', () => {
           buildingId: '550e8400-e29b-41d4-a716-446655440100',
           unitNumber: `${bedrooms}BR-Test`,
           bedrooms,
-          squareFootage: (minSqFt + maxSqFt) / 2,
+          squareFootage: ((minSqFt + maxSqFt) / 2).toString(),
+          bathrooms: '1.0',
         };
 
         const result = insertResidenceSchema.safeParse(testUnit);
