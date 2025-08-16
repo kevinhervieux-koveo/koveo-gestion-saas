@@ -85,16 +85,17 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
 
-  // Check permissions - wait for user to be loaded first
-  const canManageUsers = currentUser && hasRole(['admin', 'manager']);
-  
   // Debug logging to see what's happening
   console.log('UserManagement Debug:', {
     currentUser,
     userRole: currentUser?.role,
-    canManageUsers,
-    hasRoleResult: hasRole(['admin', 'manager'])
+    hasRoleAdmin: hasRole(['admin']),
+    hasRoleManager: hasRole(['manager']),
+    hasRoleBoth: hasRole(['admin', 'manager'])
   });
+  
+  // Check permissions - simplified for debugging
+  const canManageUsers = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
 
   // Fetch user management data
   const { 
