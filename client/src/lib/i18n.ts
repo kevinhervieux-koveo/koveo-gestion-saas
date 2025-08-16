@@ -64,6 +64,8 @@ export interface Translations {
   configureTesting: string;
   availableAfterQACompletion: string;
   developmentConsole: string;
+  accessDenied: string;
+  accessDeniedDescription: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -122,6 +124,8 @@ const translations: Record<Language, Translations> = {
     configureTesting: 'Configure Testing',
     availableAfterQACompletion: 'Available after QA pillar completion',
     developmentConsole: 'Development Console',
+    accessDenied: 'Access Denied',
+    accessDeniedDescription: 'You do not have sufficient permissions to access this resource. Please contact your administrator or property manager to request the necessary permissions.',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -179,6 +183,8 @@ const translations: Record<Language, Translations> = {
     configureTesting: 'Configurer les tests',
     availableAfterQACompletion: "Disponible après l'achèvement du pilier AQ",
     developmentConsole: 'Console de développement',
+    accessDenied: 'Accès refusé',
+    accessDeniedDescription: 'Vous ne disposez pas des permissions suffisantes pour accéder à cette ressource. Veuillez contacter votre administrateur ou gestionnaire immobilier pour demander les permissions nécessaires.',
   },
 };
 
