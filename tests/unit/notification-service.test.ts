@@ -1,0 +1,324 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { NotificationService } from '../../server/services/notification_service';
+import { db } from '../../server/db';
+import { notifications, users } from '@shared/schema';
+
+// Mock database
+vi.mock('../../server/db', () => ({
+  db: {
+    select: vi.fn(),
+    insert: vi.fn()
+  }
+}));
+
+describe('Notification Service', () => {
+  let notificationService: NotificationService;
+  let mockDb: any;
+
+  beforeEach(() => {
+    notificationService = new NotificationService();
+    mockDb = db as any;
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('SSL Expiry Alerts', () => {
+    beforeEach(() => {
+      // Mock admin users query
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([
+            {
+              id: 'admin-1',
+              email: 'admin1@test.com',
+              firstName: 'Admin',
+              lastName: 'One',
+              role: 'admin'
+            },
+            {
+              id: 'owner-1',
+              email: 'owner1@test.com',
+              firstName: 'Owner',
+              lastName: 'One',
+              role: 'owner'
+            }
+          ])
+        })
+      });
+
+      // Mock notification insertion
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue([])
+      });
+    });
+
+    it('should send expiry alerts to admin and owner users', async () => {
+      const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 5 days from now
+      
+      await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
+      
+      expect(mockDb.select).toHaveBeenCalled();
+      expect(mockDb.insert).toHaveBeenCalledWith(notifications);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall).toHaveLength(2); // Two notifications (admin + owner)
+      expect(valuesCall[0]).toMatchObject({
+        userId: 'admin-1',
+        type: 'ssl_certificate',
+        title: 'SSL Certificate Expiring Soon: test.example.com',
+        relatedEntityType: 'ssl_certificate'
+      });
+      expect(valuesCall[0].message).toContain('expires in 5 days');
+    });
+
+    it('should send critical alerts for certificates expiring tomorrow', async () => {
+      const expiryDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 1 day from now
+      
+      await notificationService.sendSSLExpiryAlert('urgent.example.com', expiryDate, 1);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall[0].message).toContain('CRITICAL');
+      expect(valuesCall[0].message).toContain('expires tomorrow');
+    });
+
+    it('should send urgent alerts for expired certificates', async () => {
+      const expiryDate = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000); // 1 day ago
+      
+      await notificationService.sendSSLExpiryAlert('expired.example.com', expiryDate, -1);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall[0].message).toContain('URGENT');
+      expect(valuesCall[0].message).toContain('has expired');
+      expect(valuesCall[0].message).toContain('Immediate action required');
+    });
+
+    it('should handle case when no administrators found', async () => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]) // No admin users
+        })
+      });
+      
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      
+      const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
+      
+      expect(consoleSpy).toHaveBeenCalledWith('No administrators found to send SSL expiry notification');
+      expect(mockDb.insert).not.toHaveBeenCalled();
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('should use Quebec timezone for date formatting', async () => {
+      const expiryDate = new Date('2024-03-15T12:00:00Z');
+      
+      await notificationService.sendSSLExpiryAlert('quebec.example.com', expiryDate, 5);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      // Should format date according to Quebec/Montreal timezone
+      expect(valuesCall[0].message).toContain('March 15, 2024');
+    });
+  });
+
+  describe('SSL Renewal Failure Alerts', () => {
+    beforeEach(() => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([
+            {
+              id: 'admin-1',
+              email: 'admin1@test.com',
+              role: 'admin'
+            }
+          ])
+        })
+      });
+
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue([])
+      });
+    });
+
+    it('should send failure alerts for failed renewal attempts', async () => {
+      await notificationService.sendSSLRenewalFailureAlert(
+        'failing.example.com',
+        'ACME challenge failed',
+        2,
+        3
+      );
+      
+      expect(mockDb.insert).toHaveBeenCalledWith(notifications);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall[0]).toMatchObject({
+        type: 'ssl_certificate',
+        title: 'SSL Certificate Renewal Failed: failing.example.com'
+      });
+      expect(valuesCall[0].message).toContain('attempt 2/3 failed');
+      expect(valuesCall[0].message).toContain('ACME challenge failed');
+      expect(valuesCall[0].message).toContain('Automatic retry will be attempted');
+    });
+
+    it('should send critical alerts when max attempts reached', async () => {
+      await notificationService.sendSSLRenewalFailureAlert(
+        'maxed.example.com',
+        'DNS validation timeout',
+        3,
+        3
+      );
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall[0].message).toContain('CRITICAL');
+      expect(valuesCall[0].message).toContain('failed 3/3 times');
+      expect(valuesCall[0].message).toContain('Manual intervention required');
+    });
+  });
+
+  describe('SSL Renewal Success Alerts', () => {
+    beforeEach(() => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([
+            {
+              id: 'admin-1',
+              email: 'admin1@test.com',
+              role: 'admin'
+            }
+          ])
+        })
+      });
+
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue([])
+      });
+    });
+
+    it('should send success alerts for recovered certificates', async () => {
+      const newExpiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from now
+      
+      await notificationService.sendSSLRenewalSuccessAlert(
+        'recovered.example.com',
+        newExpiryDate,
+        2
+      );
+      
+      expect(mockDb.insert).toHaveBeenCalledWith(notifications);
+      
+      const insertCall = mockDb.insert.mock.calls[0];
+      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      
+      expect(valuesCall[0]).toMatchObject({
+        type: 'ssl_certificate',
+        title: 'SSL Certificate Renewed Successfully: recovered.example.com'
+      });
+      expect(valuesCall[0].message).toContain('successfully renewed after 2 previous attempts');
+    });
+
+    it('should not send success alerts for certificates without previous failures', async () => {
+      const newExpiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      
+      await notificationService.sendSSLRenewalSuccessAlert(
+        'normal.example.com',
+        newExpiryDate,
+        0 // No previous attempts
+      );
+      
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Unread Notification Count', () => {
+    it('should return count of unread SSL notifications for user', async () => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([
+            { id: '1' },
+            { id: '2' },
+            { id: '3' }
+          ])
+        })
+      });
+      
+      const count = await notificationService.getUnreadSSLNotificationCount('user-123');
+      
+      expect(count).toBe(3);
+    });
+
+    it('should return 0 when user has no unread SSL notifications', async () => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([])
+        })
+      });
+      
+      const count = await notificationService.getUnreadSSLNotificationCount('user-456');
+      
+      expect(count).toBe(0);
+    });
+
+    it('should handle errors gracefully', async () => {
+      mockDb.select.mockImplementation(() => {
+        throw new Error('Database error');
+      });
+      
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      const count = await notificationService.getUnreadSSLNotificationCount('user-789');
+      
+      expect(count).toBe(0);
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to get unread SSL notification count:', expect.any(Error));
+      
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle database errors in SSL expiry alerts', async () => {
+      mockDb.select.mockImplementation(() => {
+        throw new Error('Database connection failed');
+      });
+      
+      const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      
+      await expect(
+        notificationService.sendSSLExpiryAlert('error.example.com', expiryDate, 5)
+      ).rejects.toThrow('Failed to send SSL expiry notification');
+    });
+
+    it('should handle insertion errors gracefully', async () => {
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([
+            { id: 'admin-1', email: 'admin@test.com', role: 'admin' }
+          ])
+        })
+      });
+
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockRejectedValue(new Error('Insert failed'))
+      });
+      
+      const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      
+      await expect(
+        notificationService.sendSSLExpiryAlert('insert-error.example.com', expiryDate, 5)
+      ).rejects.toThrow('Failed to send SSL expiry notification');
+    });
+  });
+});
