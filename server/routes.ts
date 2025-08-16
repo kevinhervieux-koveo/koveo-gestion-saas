@@ -39,6 +39,8 @@ import { desc, eq, or, and, sql, gte, lte, like } from 'drizzle-orm';
 import { randomBytes, createHash } from 'crypto';
 import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
+import { emailService } from './services/email-service';
+import { registerEmailRoutes } from './services/email-routes';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -110,8 +112,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerOrganizationRoutes(app);
   registerSSLRoutes(app);
   
+  // Initialize email service
+  await emailService.initialize();
+  
   // User Invitation Management API routes
   registerInvitationRoutes(app);
+  
+  // Email management routes
+  registerEmailRoutes(app);
   
   // AI Monitoring API routes
   app.get('/api/ai/metrics', requireAuth, authorize('read:ai_analysis'), getAIMetrics);
@@ -2297,6 +2305,29 @@ function registerInvitationRoutes(app: any) {
           { email, role, organizationId, buildingId }
         );
         
+        // Send invitation email
+        try {
+          const inviterUser = await db.select().from(schema.users).where(eq(schema.users.id, currentUser.id)).limit(1);
+          const organization = organizationId ? await db.select().from(schema.organizations).where(eq(schema.organizations.id, organizationId)).limit(1) : null;
+          
+          const emailSent = await emailService.sendInvitationEmail(
+            email,
+            email.split('@')[0], // Use email prefix as name for now
+            token,
+            organization?.[0]?.name || 'Koveo Gestion',
+            `${inviterUser[0]?.firstName} ${inviterUser[0]?.lastName}` || 'System Administrator',
+            expiresAt,
+            currentUser.language || 'fr'
+          );
+          
+          if (!emailSent) {
+            console.warn(`Failed to send invitation email to ${email}`);
+          }
+        } catch (emailError) {
+          console.error('Email sending error:', emailError);
+          // Don't fail the invitation creation if email fails
+        }
+        
         // Return invitation without sensitive token data
         const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
         
@@ -2383,6 +2414,29 @@ function registerInvitationRoutes(app: any) {
               undefined,
               'pending'
             );
+            
+            // Send invitation email (bulk)
+            try {
+              const inviterUser = await db.select().from(schema.users).where(eq(schema.users.id, currentUser.id)).limit(1);
+              const organization = validation.data.organizationId ? await db.select().from(schema.organizations).where(eq(schema.organizations.id, validation.data.organizationId)).limit(1) : null;
+              
+              const emailSent = await emailService.sendInvitationEmail(
+                email,
+                email.split('@')[0], // Use email prefix as name for now
+                token,
+                organization?.[0]?.name || 'Koveo Gestion',
+                `${inviterUser[0]?.firstName} ${inviterUser[0]?.lastName}` || 'System Administrator',
+                expiresAt,
+                currentUser.language || 'fr'
+              );
+              
+              if (!emailSent) {
+                console.warn(`Failed to send bulk invitation email to ${email}`);
+              }
+            } catch (emailError) {
+              console.error('Bulk email sending error:', emailError);
+              // Don't fail the invitation creation if email fails
+            }
             
             const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
             results.push({
@@ -2754,6 +2808,25 @@ function registerInvitationRoutes(app: any) {
           'accepted',
           { userId: newUser.id }
         );
+        
+        // Send welcome email
+        try {
+          const organization = invitation.organizationId ? await db.select().from(schema.organizations).where(eq(schema.organizations.id, invitation.organizationId)).limit(1) : null;
+          
+          const emailSent = await emailService.sendWelcomeEmail(
+            newUser.email,
+            `${firstName} ${lastName}`,
+            organization?.[0]?.name || 'Koveo Gestion',
+            newUser.language || 'fr'
+          );
+          
+          if (!emailSent) {
+            console.warn(`Failed to send welcome email to ${newUser.email}`);
+          }
+        } catch (emailError) {
+          console.error('Welcome email sending error:', emailError);
+          // Don't fail the acceptance if email fails
+        }
         
         // Remove sensitive data
         const { password: _, ...safeUser } = newUser;
