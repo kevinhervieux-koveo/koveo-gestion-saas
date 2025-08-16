@@ -58,7 +58,7 @@ jest.mock('@/hooks/use-auth', () => ({
       language: 'fr'
     }
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children
 }));
 
 // Mock API calls
