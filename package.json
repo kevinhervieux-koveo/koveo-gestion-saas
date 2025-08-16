@@ -74,10 +74,7 @@
     "analyze:bundle": "vite build --mode analyze",
     "analyze:deps": "npx depcheck",
     "audit:security": "npm audit --audit-level=high",
-    "audit:licenses": "npx license-checker --summary",
-    "preinstall": "npx only-allow npm",
-    "postinstall": "npm run typecheck",
-    "prepare": "npm run build"
+    "audit:licenses": "npx license-checker --summary"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
