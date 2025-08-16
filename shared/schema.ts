@@ -30,6 +30,52 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', [
   'Continuous Improvement',
   'Replit AI Agent Monitoring',
 ]);
+
+// Enums for quality metrics effectiveness tracking
+/**
+ * Enum defining validation status for metric predictions.
+ * Used to track the outcome of metric predictions against real results.
+ */
+export const validationStatusEnum = pgEnum('validation_status', [
+  'pending',
+  'true_positive',  // Metric correctly predicted an issue
+  'false_positive', // Metric predicted issue but none found
+  'true_negative',  // Metric correctly predicted no issue
+  'false_negative', // Metric missed a real issue
+]);
+
+/**
+ * Enum defining severity levels for quality issues in Quebec property management context.
+ * Aligned with Quebec compliance requirements and property management standards.
+ */
+export const issueSeverityEnum = pgEnum('issue_severity', [
+  'info',       // Minor suggestions
+  'low',        // Non-critical improvements
+  'medium',     // Important but not urgent
+  'high',       // Significant issues affecting operations
+  'critical',   // Severe issues affecting compliance or safety
+  'quebec_compliance', // Issues affecting Quebec Law 25 or provincial regulations
+]);
+
+/**
+ * Enum defining metric types for effectiveness tracking.
+ * Covers all quality metrics used in property management development.
+ */
+export const metricTypeEnum = pgEnum('metric_type', [
+  'code_coverage',
+  'code_quality',
+  'security_vulnerabilities',
+  'build_time',
+  'translation_coverage',
+  'api_response_time',
+  'memory_usage',
+  'bundle_size',
+  'database_query_time',
+  'page_load_time',
+  'accessibility_score',
+  'seo_score',
+  'quebec_compliance_score',
+]);
 /**
  * Enum defining priority levels for improvement suggestions.
  * Used to rank suggestions by importance and urgency.
@@ -435,6 +481,138 @@ export const frameworkConfiguration = pgTable('framework_configuration', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Quality Metrics Effectiveness Tracking Tables
+
+/**
+ * Tracks the effectiveness of quality metrics over time.
+ * Records accuracy, precision, and calibration data for continuous improvement.
+ */
+export const metricEffectivenessTracking = pgTable('metric_effectiveness_tracking', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  metricType: metricTypeEnum('metric_type').notNull(),
+  calculatedValue: text('calculated_value').notNull(),
+  actualOutcome: text('actual_outcome'), // What actually happened
+  accuracy: decimal('accuracy', { precision: 5, scale: 2 }), // Percentage accuracy
+  precision: decimal('precision', { precision: 5, scale: 2 }), // Precision score
+  recall: decimal('recall', { precision: 5, scale: 2 }), // Recall score
+  f1Score: decimal('f1_score', { precision: 5, scale: 2 }), // F1 score
+  calibrationScore: decimal('calibration_score', { precision: 5, scale: 2 }), // ML calibration score
+  predictionConfidence: decimal('prediction_confidence', { precision: 5, scale: 2 }), // Confidence in prediction
+  validationDate: timestamp('validation_date'),
+  quebecComplianceImpact: boolean('quebec_compliance_impact').default(false),
+  propertyManagementContext: jsonb('property_management_context'), // Quebec property management specific context
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Stores predictions made by quality metrics for later validation.
+ * Essential for tracking prediction accuracy and improving calibration.
+ */
+export const metricPredictions = pgTable('metric_predictions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  metricType: metricTypeEnum('metric_type').notNull(),
+  predictedValue: text('predicted_value').notNull(),
+  confidenceLevel: decimal('confidence_level', { precision: 5, scale: 2 }).notNull(),
+  thresholdUsed: text('threshold_used'), // The threshold that triggered this prediction
+  contextData: jsonb('context_data'), // Additional context about the prediction
+  predictionReason: text('prediction_reason'), // Why this prediction was made
+  expectedSeverity: issueSeverityEnum('expected_severity'),
+  quebecComplianceRelevant: boolean('quebec_compliance_relevant').default(false),
+  propertyManagementCategory: text('property_management_category'), // e.g., 'tenant_management', 'compliance', 'financial'
+  filePath: text('file_path'), // File or component the prediction relates to
+  lineNumber: integer('line_number'), // Specific line if applicable
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Records validation results when predictions are checked against actual outcomes.
+ * Critical for machine learning calibration and accuracy improvement.
+ */
+export const predictionValidations = pgTable('prediction_validations', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  predictionId: uuid('prediction_id')
+    .notNull()
+    .references(() => metricPredictions.id, { onDelete: 'cascade' }),
+  validationStatus: validationStatusEnum('validation_status').notNull(),
+  actualOutcome: text('actual_outcome').notNull(),
+  validationMethod: text('validation_method'), // How the validation was performed
+  validatorId: varchar('validator_id'), // Who or what performed the validation
+  timeTaken: integer('time_taken'), // Minutes from prediction to validation
+  impactLevel: issueSeverityEnum('impact_level'), // Actual impact level of the issue
+  resolutionActions: jsonb('resolution_actions'), // Actions taken to resolve the issue
+  quebecComplianceNotes: text('quebec_compliance_notes'), // Quebec-specific compliance notes
+  costImpact: decimal('cost_impact', { precision: 10, scale: 2 }), // Financial impact in CAD
+  validatedAt: timestamp('validated_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Stores machine learning calibration data for improving metric accuracy.
+ * Enables continuous improvement of prediction models.
+ */
+export const metricCalibrationData = pgTable('metric_calibration_data', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  metricType: metricTypeEnum('metric_type').notNull(),
+  calibrationModel: jsonb('calibration_model').notNull(), // ML model parameters
+  trainingDataSize: integer('training_data_size').notNull(),
+  accuracy: decimal('accuracy', { precision: 5, scale: 2 }).notNull(),
+  precision: decimal('precision', { precision: 5, scale: 2 }).notNull(),
+  recall: decimal('recall', { precision: 5, scale: 2 }).notNull(),
+  f1Score: decimal('f1_score', { precision: 5, scale: 2 }).notNull(),
+  crossValidationScore: decimal('cross_validation_score', { precision: 5, scale: 2 }),
+  featureImportance: jsonb('feature_importance'), // Important features for this metric
+  hyperparameters: jsonb('hyperparameters'), // ML model hyperparameters
+  quebecSpecificFactors: jsonb('quebec_specific_factors'), // Quebec property management specific factors
+  lastTrainingDate: timestamp('last_training_date').notNull(),
+  modelVersion: text('model_version').notNull(),
+  isActive: boolean('is_active').default(true),
+  performanceMetrics: jsonb('performance_metrics'), // Additional performance data
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Tracks real quality issues found in the codebase.
+ * Used for validating metric predictions and improving accuracy.
+ */
+export const qualityIssues = pgTable('quality_issues', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  category: suggestionCategoryEnum('category').notNull(),
+  severity: issueSeverityEnum('severity').notNull(),
+  filePath: text('file_path'),
+  lineNumber: integer('line_number'),
+  detectionMethod: text('detection_method'), // How the issue was found
+  detectedBy: text('detected_by'), // Tool, person, or system that found it
+  relatedMetricType: metricTypeEnum('related_metric_type'), // Which metric should have caught this
+  wasPredicted: boolean('was_predicted').default(false),
+  predictionId: uuid('prediction_id')
+    .references(() => metricPredictions.id),
+  resolutionStatus: text('resolution_status').default('open'), // open, in_progress, resolved, closed
+  resolutionTime: integer('resolution_time'), // Hours to resolve
+  resolutionActions: jsonb('resolution_actions'),
+  quebecComplianceRelated: boolean('quebec_compliance_related').default(false),
+  propertyManagementImpact: text('property_management_impact'), // Impact on property management operations
+  costToFix: decimal('cost_to_fix', { precision: 10, scale: 2 }), // Estimated cost in CAD
+  actualCost: decimal('actual_cost', { precision: 10, scale: 2 }), // Actual resolution cost
+  detectedAt: timestamp('detected_at').defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas for core application
 export const insertUserSchema = createInsertSchema(users)
   .pick({
@@ -594,6 +772,91 @@ export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfigura
   description: true,
 });
 
+// Insert schemas for quality metrics effectiveness tracking
+export const insertMetricEffectivenessTrackingSchema = createInsertSchema(metricEffectivenessTracking).pick({
+  metricType: true,
+  calculatedValue: true,
+  actualOutcome: true,
+  accuracy: true,
+  precision: true,
+  recall: true,
+  f1Score: true,
+  calibrationScore: true,
+  predictionConfidence: true,
+  validationDate: true,
+  quebecComplianceImpact: true,
+  propertyManagementContext: true,
+});
+
+export const insertMetricPredictionSchema = createInsertSchema(metricPredictions).pick({
+  metricType: true,
+  predictedValue: true,
+  confidenceLevel: true,
+  thresholdUsed: true,
+  contextData: true,
+  predictionReason: true,
+  expectedSeverity: true,
+  quebecComplianceRelevant: true,
+  propertyManagementCategory: true,
+  filePath: true,
+  lineNumber: true,
+});
+
+export const insertPredictionValidationSchema = createInsertSchema(predictionValidations).pick({
+  predictionId: true,
+  validationStatus: true,
+  actualOutcome: true,
+  validationMethod: true,
+  validatorId: true,
+  timeTaken: true,
+  impactLevel: true,
+  resolutionActions: true,
+  quebecComplianceNotes: true,
+  costImpact: true,
+  validatedAt: true,
+});
+
+export const insertMetricCalibrationDataSchema = createInsertSchema(metricCalibrationData).pick({
+  metricType: true,
+  calibrationModel: true,
+  trainingDataSize: true,
+  accuracy: true,
+  precision: true,
+  recall: true,
+  f1Score: true,
+  crossValidationScore: true,
+  featureImportance: true,
+  hyperparameters: true,
+  quebecSpecificFactors: true,
+  lastTrainingDate: true,
+  modelVersion: true,
+  isActive: true,
+  performanceMetrics: true,
+});
+
+export const insertQualityIssueSchema = createInsertSchema(qualityIssues).pick({
+  title: true,
+  description: true,
+  category: true,
+  severity: true,
+  filePath: true,
+  lineNumber: true,
+  detectionMethod: true,
+  detectedBy: true,
+  relatedMetricType: true,
+  wasPredicted: true,
+  predictionId: true,
+  resolutionStatus: true,
+  resolutionTime: true,
+  resolutionActions: true,
+  quebecComplianceRelated: true,
+  propertyManagementImpact: true,
+  costToFix: true,
+  actualCost: true,
+  detectedAt: true,
+  resolvedAt: true,
+});
+
 // Types for core application
 /**
  * Type for creating new user records with validation.
@@ -749,6 +1012,62 @@ export type InsertFrameworkConfig = z.infer<typeof insertFrameworkConfigSchema>;
  * Inferred from the frameworkConfiguration table schema for type safety.
  */
 export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
+
+// Types for quality metrics effectiveness tracking
+/**
+ * Type for creating new metric effectiveness tracking records.
+ * Used to record the performance and accuracy of quality metrics over time.
+ */
+export type InsertMetricEffectivenessTracking = z.infer<typeof insertMetricEffectivenessTrackingSchema>;
+/**
+ * Type representing a complete metric effectiveness tracking record from the database.
+ * Contains all data about metric performance, accuracy, and calibration.
+ */
+export type MetricEffectivenessTracking = typeof metricEffectivenessTracking.$inferSelect;
+
+/**
+ * Type for creating new metric prediction records.
+ * Used to store predictions made by quality metrics for later validation.
+ */
+export type InsertMetricPrediction = z.infer<typeof insertMetricPredictionSchema>;
+/**
+ * Type representing a complete metric prediction record from the database.
+ * Contains prediction data and confidence levels for quality metrics.
+ */
+export type MetricPrediction = typeof metricPredictions.$inferSelect;
+
+/**
+ * Type for creating new prediction validation records.
+ * Used to record the outcome when predictions are validated against reality.
+ */
+export type InsertPredictionValidation = z.infer<typeof insertPredictionValidationSchema>;
+/**
+ * Type representing a complete prediction validation record from the database.
+ * Contains validation results and accuracy measurements.
+ */
+export type PredictionValidation = typeof predictionValidations.$inferSelect;
+
+/**
+ * Type for creating new metric calibration data records.
+ * Used to store machine learning calibration information for quality metrics.
+ */
+export type InsertMetricCalibrationData = z.infer<typeof insertMetricCalibrationDataSchema>;
+/**
+ * Type representing a complete metric calibration data record from the database.
+ * Contains ML model parameters and performance metrics.
+ */
+export type MetricCalibrationData = typeof metricCalibrationData.$inferSelect;
+
+/**
+ * Type for creating new quality issue records.
+ * Used to track real quality issues found in the codebase for metric validation.
+ */
+export type InsertQualityIssue = z.infer<typeof insertQualityIssueSchema>;
+/**
+ * Type representing a complete quality issue record from the database.
+ * Contains comprehensive information about detected quality issues and their resolution.
+ */
+export type QualityIssue = typeof qualityIssues.$inferSelect;
 
 // Improvement Suggestions table
 export const improvementSuggestions = pgTable('improvement_suggestions', {

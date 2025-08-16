@@ -28,6 +28,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
 import { desc, eq } from 'drizzle-orm';
 import ws from 'ws';
+import { metricValidationService } from './services/metric-validation';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -104,6 +105,255 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/analyze', requireAuth, triggerAIAnalysis);
   app.post('/api/ai/insights/:insightId/apply', requireAuth, applyAISuggestion);
   app.post('/api/ai/interactions', requireAuth, recordAIInteraction);
+
+  // Quality Metrics Effectiveness Tracking API routes
+  app.get('/api/metrics-effectiveness', requireAuth, async (req, res) => {
+    try {
+      const { metricType, timeRange } = req.query;
+      const timeRangeHours = timeRange ? parseInt(timeRange as string) : 168; // Default 1 week
+      
+      const effectiveness = await metricValidationService.getMetricEffectiveness(
+        metricType as string,
+        timeRangeHours
+      );
+      
+      res.json(effectiveness);
+    } catch (error) {
+      console.error('Error fetching metrics effectiveness:', error);
+      res.status(500).json({ message: 'Failed to fetch metrics effectiveness data' });
+    }
+  });
+
+  app.post('/api/metrics-effectiveness/validate', requireAuth, async (req, res) => {
+    try {
+      const { metricType, calculatedValue, contextData } = req.body;
+      
+      if (!metricType || calculatedValue === undefined) {
+        return res.status(400).json({ message: 'metricType and calculatedValue are required' });
+      }
+      
+      const validation = await metricValidationService.validateMetricCalculation(
+        metricType,
+        calculatedValue.toString(),
+        contextData
+      );
+      
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating metric calculation:', error);
+      res.status(500).json({ message: 'Failed to validate metric calculation' });
+    }
+  });
+
+  app.post('/api/metrics-effectiveness/predictions', requireAuth, async (req, res) => {
+    try {
+      const predictionData = req.body;
+      
+      if (!predictionData.metricType || !predictionData.predictedValue || predictionData.confidenceLevel === undefined) {
+        return res.status(400).json({ 
+          message: 'metricType, predictedValue, and confidenceLevel are required' 
+        });
+      }
+      
+      const predictionId = await metricValidationService.recordPrediction(predictionData);
+      
+      res.status(201).json({ 
+        id: predictionId, 
+        message: 'Prediction recorded successfully',
+        quebecComplianceNote: predictionData.quebecComplianceRelevant 
+          ? 'Prédiction enregistrée avec considération pour la conformité québécoise'
+          : undefined
+      });
+    } catch (error) {
+      console.error('Error recording prediction:', error);
+      res.status(500).json({ message: 'Failed to record prediction' });
+    }
+  });
+
+  app.post('/api/metrics-effectiveness/predictions/:id/validate', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { actualOutcome, validationMethod, validatorId } = req.body;
+      
+      if (!actualOutcome || !validationMethod) {
+        return res.status(400).json({ message: 'actualOutcome and validationMethod are required' });
+      }
+      
+      const validation = await metricValidationService.validatePrediction(
+        id,
+        actualOutcome,
+        validationMethod,
+        validatorId
+      );
+      
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating prediction:', error);
+      res.status(500).json({ message: 'Failed to validate prediction' });
+    }
+  });
+
+  app.post('/api/metrics-effectiveness/calibration/:metricType', requireAuth, async (req, res) => {
+    try {
+      const { metricType } = req.params;
+      
+      console.log(`🚀 Triggering calibration for ${metricType} metric...`);
+      
+      const calibrationResult = await metricValidationService.triggerCalibrationUpdate(metricType);
+      
+      res.json({
+        message: `Calibration ${calibrationResult.status} for ${metricType}`,
+        result: calibrationResult,
+        quebecNote: 'Calibration inclut les facteurs spécifiques au Québec pour la gestion immobilière'
+      });
+    } catch (error) {
+      console.error('Error triggering calibration:', error);
+      res.status(500).json({ message: 'Failed to trigger calibration' });
+    }
+  });
+
+  app.get('/api/metrics-effectiveness/calibration-status', requireAuth, async (req, res) => {
+    try {
+      const { metricType } = req.query;
+      
+      const effectiveness = await metricValidationService.getMetricEffectiveness(
+        metricType as string
+      );
+      
+      res.json({
+        calibrationStatus: effectiveness.calibrationStatus,
+        quebecComplianceAnalysis: effectiveness.quebecComplianceAnalysis,
+        recommendations: effectiveness.recommendations
+      });
+    } catch (error) {
+      console.error('Error fetching calibration status:', error);
+      res.status(500).json({ message: 'Failed to fetch calibration status' });
+    }
+  });
+
+  app.post('/api/quality-issues', requireAuth, async (req, res) => {
+    try {
+      const issueData = req.body;
+      
+      if (!issueData.title || !issueData.description || !issueData.category || !issueData.severity) {
+        return res.status(400).json({ 
+          message: 'title, description, category, and severity are required' 
+        });
+      }
+      
+      const issueId = await metricValidationService.recordQualityIssue(issueData);
+      
+      res.status(201).json({ 
+        id: issueId, 
+        message: 'Quality issue recorded successfully',
+        quebecNote: issueData.quebecComplianceRelated 
+          ? 'Problème de qualité enregistré avec impact sur la conformité québécoise'
+          : undefined
+      });
+    } catch (error) {
+      console.error('Error recording quality issue:', error);
+      res.status(500).json({ message: 'Failed to record quality issue' });
+    }
+  });
+
+  app.get('/api/quality-issues', requireAuth, async (req, res) => {
+    try {
+      const { status, severity, quebecCompliance, limit = 50 } = req.query;
+      
+      let query = db.select().from(schema.qualityIssues);
+      
+      // Apply filters
+      const filters = [];
+      if (status) filters.push(eq(schema.qualityIssues.resolutionStatus, status as string));
+      if (severity) filters.push(eq(schema.qualityIssues.severity, severity as any));
+      if (quebecCompliance === 'true') {
+        filters.push(eq(schema.qualityIssues.quebecComplianceRelated, true));
+      }
+      
+      if (filters.length > 0) {
+        // Use logical AND for multiple filters
+        query = query.where(filters.length === 1 ? filters[0] : filters.reduce((acc, filter) => acc && filter));
+      }
+      
+      const issues = await query
+        .orderBy(desc(schema.qualityIssues.createdAt))
+        .limit(parseInt(limit as string));
+      
+      res.json(issues);
+    } catch (error) {
+      console.error('Error fetching quality issues:', error);
+      res.status(500).json({ message: 'Failed to fetch quality issues' });
+    }
+  });
+
+  app.patch('/api/quality-issues/:id', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const [updatedIssue] = await db
+        .update(schema.qualityIssues)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+          resolvedAt: updateData.resolutionStatus === 'resolved' ? new Date() : undefined
+        })
+        .where(eq(schema.qualityIssues.id, id))
+        .returning();
+      
+      if (!updatedIssue) {
+        return res.status(404).json({ message: 'Quality issue not found' });
+      }
+      
+      res.json(updatedIssue);
+    } catch (error) {
+      console.error('Error updating quality issue:', error);
+      res.status(500).json({ message: 'Failed to update quality issue' });
+    }
+  });
+
+  app.get('/api/quebec-compliance-analytics', requireAuth, async (req, res) => {
+    try {
+      const { timeRange = 168 } = req.query; // Default 1 week
+      
+      const effectiveness = await metricValidationService.getMetricEffectiveness(
+        undefined,
+        parseInt(timeRange as string)
+      );
+      
+      // Get Quebec-specific metrics
+      const quebecMetrics = await db
+        .select()
+        .from(schema.metricEffectivenessTracking)
+        .where(eq(schema.metricEffectivenessTracking.quebecComplianceImpact, true))
+        .orderBy(desc(schema.metricEffectivenessTracking.createdAt))
+        .limit(100);
+      
+      // Get Quebec compliance issues
+      const quebecIssues = await db
+        .select()
+        .from(schema.qualityIssues)
+        .where(eq(schema.qualityIssues.quebecComplianceRelated, true))
+        .orderBy(desc(schema.qualityIssues.createdAt))
+        .limit(50);
+      
+      res.json({
+        quebecComplianceAnalysis: effectiveness.quebecComplianceAnalysis,
+        quebecSpecificMetrics: quebecMetrics,
+        quebecComplianceIssues: quebecIssues,
+        recommendations: [
+          'Maintenir la conformité à la Loi 25 du Québec',
+          'Assurer un support bilingue complet',
+          'Respecter les standards d\'accessibilité provinciaux',
+          'Surveiller les métriques de sécurité des données'
+        ],
+        complianceScore: effectiveness.quebecComplianceAnalysis?.overallComplianceScore || 85
+      });
+    } catch (error) {
+      console.error('Error fetching Quebec compliance analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch Quebec compliance analytics' });
+    }
+  });
 
   // Quality Metrics API
   app.get('/api/quality-metrics', async (req, res) => {
