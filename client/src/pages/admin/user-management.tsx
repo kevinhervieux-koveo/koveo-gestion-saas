@@ -72,10 +72,13 @@ interface UserManagementData {
  * roles, and permissions with real-time updates and accessibility compliance.
  */
 export default function UserManagement() {
+  console.log('🔍 UserManagement component loading...');
   const { user: currentUser, hasRole, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  console.log('🔍 UserManagement auth state:', { currentUser, authLoading, hasRole: typeof hasRole });
   
   // State management
   const [selectedTab, setSelectedTab] = useState('users');
