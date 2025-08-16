@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Quebec French Language Validation Script
+ * Quebec French Language Validation Script.
  * 
  * This script runs comprehensive language validation tests across the entire
  * Koveo Gestion application to ensure Quebec French compliance.
@@ -11,7 +11,7 @@
  *   npx tsx scripts/validate-language.ts
  *   npx tsx scripts/validate-language.ts --component=sidebar
  *   npx tsx scripts/validate-language.ts --page=dashboard
- *   npx tsx scripts/validate-language.ts --report
+ *   npx tsx scripts/validate-language.ts --report.
  */
 
 import { execSync } from 'child_process';
@@ -31,7 +31,7 @@ const colors = {
 };
 
 /**
- * Display help information
+ * Display help information.
  */
 function displayHelp() {
   console.log(`
@@ -69,7 +69,7 @@ ${colors.bright}Exemples:${colors.reset}
 }
 
 /**
- * Parse command line arguments
+ * Parse command line arguments.
  */
 function parseArguments(): {
   help: boolean;
@@ -93,7 +93,9 @@ function parseArguments(): {
 }
 
 /**
- * Run Jest tests and capture results
+ * Run Jest tests and capture results.
+ * @param pattern
+ * @param verbose
  */
 function runTests(pattern: string, verbose: boolean = false): {
   success: boolean;
@@ -139,7 +141,8 @@ function runTests(pattern: string, verbose: boolean = false): {
 }
 
 /**
- * Generate language validation report
+ * Generate language validation report.
+ * @param verbose
  */
 function generateReport(verbose: boolean = false): string {
   const timestamp = new Date().toLocaleString('fr-CA', {
@@ -320,7 +323,7 @@ ${pageTestResult.output}
 }
 
 /**
- * Main execution function
+ * Main execution function.
  */
 function main() {
   const args = parseArguments();

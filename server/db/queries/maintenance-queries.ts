@@ -7,8 +7,8 @@ import { scopeQuery, type UserContext } from './scope-query';
  * Get all maintenance requests accessible to the user based on their role and associations.
  * Tenants see only their own requests, managers/owners see requests for their properties.
  * 
- * @param userContext - User context containing role and entity associations
- * @returns Promise resolving to array of maintenance requests the user can access
+ * @param userContext - User context containing role and entity associations.
+ * @returns Promise resolving to array of maintenance requests the user can access.
  */
 export async function getMaintenanceRequestsForUser(userContext: UserContext) {
   const baseQuery = db
@@ -48,9 +48,9 @@ export async function getMaintenanceRequestsForUser(userContext: UserContext) {
 /**
  * Get maintenance requests for a specific residence with role-based access control.
  * 
- * @param residenceId - The residence ID to get maintenance requests for
- * @param userContext - User context for access control
- * @returns Promise resolving to array of maintenance requests for the residence
+ * @param residenceId - The residence ID to get maintenance requests for.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of maintenance requests for the residence.
  */
 export async function getMaintenanceRequestsForResidence(residenceId: string, userContext: UserContext) {
   const baseQuery = db
@@ -65,9 +65,9 @@ export async function getMaintenanceRequestsForResidence(residenceId: string, us
 /**
  * Get maintenance requests by status with role-based filtering.
  * 
- * @param status - Maintenance request status to filter by
- * @param userContext - User context for access control
- * @returns Promise resolving to array of maintenance requests with the specified status
+ * @param status - Maintenance request status to filter by.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of maintenance requests with the specified status.
  */
 export async function getMaintenanceRequestsByStatus(
   status: 'submitted' | 'acknowledged' | 'in_progress' | 'completed' | 'cancelled',
@@ -107,8 +107,8 @@ export async function getMaintenanceRequestsByStatus(
  * Get urgent maintenance requests with role-based filtering.
  * Returns requests with high, urgent, or emergency priority.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to array of urgent maintenance requests
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of urgent maintenance requests.
  */
 export async function getUrgentMaintenanceRequests(userContext: UserContext) {
   const baseQuery = db
@@ -154,9 +154,9 @@ export async function getUrgentMaintenanceRequests(userContext: UserContext) {
 /**
  * Get maintenance requests assigned to a specific user with role-based filtering.
  * 
- * @param assignedUserId - User ID of the assigned person
- * @param userContext - User context for access control
- * @returns Promise resolving to array of assigned maintenance requests
+ * @param assignedUserId - User ID of the assigned person.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of assigned maintenance requests.
  */
 export async function getMaintenanceRequestsAssignedTo(assignedUserId: string, userContext: UserContext) {
   const baseQuery = db
@@ -195,9 +195,9 @@ export async function getMaintenanceRequestsAssignedTo(assignedUserId: string, u
  * Search maintenance requests by keyword with role-based filtering.
  * Searches in title, description, and category fields.
  * 
- * @param searchTerm - Search term to look for
- * @param userContext - User context for access control
- * @returns Promise resolving to array of matching maintenance requests
+ * @param searchTerm - Search term to look for.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of matching maintenance requests.
  */
 export async function searchMaintenanceRequests(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
@@ -241,9 +241,9 @@ export async function searchMaintenanceRequests(searchTerm: string, userContext:
 /**
  * Get a single maintenance request by ID with role-based access control.
  * 
- * @param requestId - The maintenance request ID to retrieve
- * @param userContext - User context for access control
- * @returns Promise resolving to the maintenance request if accessible, undefined otherwise
+ * @param requestId - The maintenance request ID to retrieve.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to the maintenance request if accessible, undefined otherwise.
  */
 export async function getMaintenanceRequestById(requestId: string, userContext: UserContext) {
   const baseQuery = db
@@ -289,8 +289,8 @@ export async function getMaintenanceRequestById(requestId: string, userContext: 
  * Get maintenance request summary statistics for the user's accessible data.
  * Provides aggregated information scoped to user's permissions.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to maintenance request summary statistics
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to maintenance request summary statistics.
  */
 export async function getMaintenanceRequestSummary(userContext: UserContext) {
   // First get all accessible maintenance request IDs
@@ -342,12 +342,12 @@ export async function getMaintenanceRequestSummary(userContext: UserContext) {
     totalRequests++;
     
     // Count by status
-    if (row.status === 'submitted') submittedCount++;
-    else if (['acknowledged', 'in_progress'].includes(row.status)) inProgressCount++;
-    else if (row.status === 'completed') completedCount++;
+    if (row.status === 'submitted') {submittedCount++;}
+    else if (['acknowledged', 'in_progress'].includes(row.status)) {inProgressCount++;}
+    else if (row.status === 'completed') {completedCount++;}
     
     // Count urgent requests
-    if (['high', 'urgent', 'emergency'].includes(row.priority)) urgentCount++;
+    if (['high', 'urgent', 'emergency'].includes(row.priority)) {urgentCount++;}
     
     // Sum costs
     totalEstimatedCost += parseFloat(row.estimatedCost || '0');

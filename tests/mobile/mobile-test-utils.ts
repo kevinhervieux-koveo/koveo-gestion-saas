@@ -1,5 +1,5 @@
 /**
- * Mobile Testing Utilities for Koveo Gestion Property Management Platform
+ * Mobile Testing Utilities for Koveo Gestion Property Management Platform.
  * 
  * This module provides comprehensive utilities for testing mobile experiences,
  * including viewport management, touch simulation, and mobile-specific assertions.
@@ -25,7 +25,8 @@ export const BREAKPOINTS = {
 } as const;
 
 /**
- * Sets up mobile viewport for testing
+ * Sets up mobile viewport for testing.
+ * @param device
  */
 export const mockMobileViewport = (device: keyof typeof MOBILE_DEVICES) => {
   const { width, height, userAgent } = MOBILE_DEVICES[device];
@@ -52,11 +53,15 @@ export const mockMobileViewport = (device: keyof typeof MOBILE_DEVICES) => {
 };
 
 /**
- * Simulates touch events for mobile interaction testing
+ * Simulates touch events for mobile interaction testing.
  */
 export const touchEvents = {
   /**
-   * Simulates a tap gesture
+   * Simulates a tap gesture.
+   * @param element
+   * @param coordinates
+   * @param coordinates.x
+   * @param coordinates.y
    */
   tap: (element: Element, coordinates?: { x: number; y: number }) => {
     const { x = 0, y = 0 } = coordinates || {};
@@ -71,7 +76,9 @@ export const touchEvents = {
   },
   
   /**
-   * Simulates a long press gesture
+   * Simulates a long press gesture.
+   * @param element
+   * @param duration
    */
   longPress: async (element: Element, duration = 500) => {
     fireEvent.touchStart(element);
@@ -82,7 +89,10 @@ export const touchEvents = {
   },
   
   /**
-   * Simulates a swipe gesture
+   * Simulates a swipe gesture.
+   * @param element
+   * @param direction
+   * @param distance
    */
   swipe: (
     element: Element, 
@@ -121,7 +131,9 @@ export const touchEvents = {
   },
   
   /**
-   * Simulates pinch-to-zoom gesture
+   * Simulates pinch-to-zoom gesture.
+   * @param element
+   * @param scale
    */
   pinch: (element: Element, scale: number) => {
     const center = { x: 150, y: 150 };
@@ -151,11 +163,12 @@ export const touchEvents = {
 };
 
 /**
- * Orientation utilities for mobile testing
+ * Orientation utilities for mobile testing.
  */
 export const orientation = {
   /**
-   * Sets device to portrait mode
+   * Sets device to portrait mode.
+   * @param device
    */
   portrait: (device: keyof typeof MOBILE_DEVICES) => {
     const { width, height } = MOBILE_DEVICES[device];
@@ -182,7 +195,8 @@ export const orientation = {
   },
   
   /**
-   * Sets device to landscape mode
+   * Sets device to landscape mode.
+   * @param device
    */
   landscape: (device: keyof typeof MOBILE_DEVICES) => {
     const { width, height } = MOBILE_DEVICES[device];
@@ -210,11 +224,11 @@ export const orientation = {
 };
 
 /**
- * Network condition simulation for mobile testing
+ * Network condition simulation for mobile testing.
  */
 export const networkConditions = {
   /**
-   * Simulates slow 3G connection
+   * Simulates slow 3G connection.
    */
   slow3G: () => {
     Object.defineProperty(navigator, 'connection', {
@@ -230,7 +244,7 @@ export const networkConditions = {
   },
   
   /**
-   * Simulates offline condition
+   * Simulates offline condition.
    */
   offline: () => {
     Object.defineProperty(navigator, 'onLine', {
@@ -243,7 +257,7 @@ export const networkConditions = {
   },
   
   /**
-   * Simulates online condition
+   * Simulates online condition.
    */
   online: () => {
     Object.defineProperty(navigator, 'onLine', {
@@ -257,11 +271,12 @@ export const networkConditions = {
 };
 
 /**
- * Mobile-specific accessibility helpers
+ * Mobile-specific accessibility helpers.
  */
 export const accessibility = {
   /**
-   * Checks if touch targets meet minimum size requirements (44px)
+   * Checks if touch targets meet minimum size requirements (44px).
+   * @param element
    */
   hasAdequateTouchTarget: (element: Element): boolean => {
     const computedStyle = window.getComputedStyle(element);
@@ -272,7 +287,7 @@ export const accessibility = {
   },
   
   /**
-   * Simulates screen reader navigation
+   * Simulates screen reader navigation.
    */
   simulateScreenReader: {
     next: () => {
@@ -299,11 +314,11 @@ export const accessibility = {
 };
 
 /**
- * Performance testing utilities for mobile
+ * Performance testing utilities for mobile.
  */
 export const performance = {
   /**
-   * Simulates slow CPU performance
+   * Simulates slow CPU performance.
    */
   simulateSlowCPU: () => {
     const originalSetTimeout = window.setTimeout;
@@ -314,7 +329,8 @@ export const performance = {
   },
   
   /**
-   * Measures component render time
+   * Measures component render time.
+   * @param renderFn
    */
   measureRenderTime: async (renderFn: () => void): Promise<number> => {
     const start = performance.now();
@@ -327,11 +343,12 @@ export const performance = {
 };
 
 /**
- * Mobile form testing utilities
+ * Mobile form testing utilities.
  */
 export const forms = {
   /**
-   * Simulates mobile keyboard appearance
+   * Simulates mobile keyboard appearance.
+   * @param inputElement
    */
   showKeyboard: (inputElement: Element) => {
     const viewport = window.innerHeight;
@@ -349,7 +366,7 @@ export const forms = {
   },
   
   /**
-   * Simulates mobile keyboard hiding
+   * Simulates mobile keyboard hiding.
    */
   hideKeyboard: () => {
     const device = MOBILE_DEVICES.iphone_12; // Default device
@@ -370,11 +387,14 @@ export const forms = {
 };
 
 /**
- * Property management specific mobile test helpers
+ * Property management specific mobile test helpers.
  */
 export const propertyManagement = {
   /**
-   * Simulates maintenance request creation flow on mobile
+   * Simulates maintenance request creation flow on mobile.
+   * @param propertySelect
+   * @param descriptionInput
+   * @param submitButton
    */
   createMaintenanceRequest: async (
     propertySelect: Element,
@@ -395,7 +415,10 @@ export const propertyManagement = {
   },
   
   /**
-   * Simulates resident communication flow
+   * Simulates resident communication flow.
+   * @param recipientSelect
+   * @param messageInput
+   * @param sendButton
    */
   sendResidentMessage: async (
     recipientSelect: Element,

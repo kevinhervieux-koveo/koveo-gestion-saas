@@ -325,8 +325,8 @@ ${Object.entries(formData.rbacRoles)
   .filter(([_, permissions]) => permissions.read || permissions.write)
   .map(([role, permissions]) => {
     const accessTypes = [];
-    if (permissions.read) accessTypes.push('Read');
-    if (permissions.write) accessTypes.push('Write');
+    if (permissions.read) {accessTypes.push('Read');}
+    if (permissions.write) {accessTypes.push('Write');}
     const orgLimit = permissions.organizationalLimitation ? ` (${permissions.organizationalLimitation})` : '';
     return `- **${role.replace('_', ' ').toUpperCase()}**: ${accessTypes.join(', ')} access${orgLimit}`;
   }).join('\n')}

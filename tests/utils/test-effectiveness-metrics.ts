@@ -1,5 +1,5 @@
 /**
- * Test Effectiveness Metrics for Koveo Gestion Quebec Property Management
+ * Test Effectiveness Metrics for Koveo Gestion Quebec Property Management.
  * 
  * Tracks and analyzes test effectiveness, including prediction accuracy,
  * false positive/negative rates, and Quebec compliance validation effectiveness.
@@ -9,6 +9,9 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
+/**
+ *
+ */
 interface TestEffectivenessMetric {
   id: string;
   testSuite: string;
@@ -21,6 +24,9 @@ interface TestEffectivenessMetric {
   details: any;
 }
 
+/**
+ *
+ */
 interface EffectivenessAnalysis {
   accuracy: number;
   precision: number;
@@ -34,6 +40,9 @@ interface EffectivenessAnalysis {
   recommendations: string[];
 }
 
+/**
+ *
+ */
 interface TestSuiteEffectiveness {
   suiteName: string;
   totalTests: number;
@@ -53,6 +62,9 @@ export class TestEffectivenessTracker {
   private metricsPath: string;
   private metrics: TestEffectivenessMetric[] = [];
 
+  /**
+   *
+   */
   constructor() {
     this.projectRoot = process.cwd();
     this.metricsPath = join(this.projectRoot, 'coverage', 'test-effectiveness.json');
@@ -61,6 +73,13 @@ export class TestEffectivenessTracker {
 
   /**
    * Records a test effectiveness metric with Quebec context.
+   * @param testSuite
+   * @param metricType
+   * @param predicted
+   * @param actual
+   * @param confidence
+   * @param quebecSpecific
+   * @param details
    */
   recordMetric(
     testSuite: string,
@@ -91,6 +110,7 @@ export class TestEffectivenessTracker {
 
   /**
    * Analyzes overall test effectiveness with Quebec compliance focus.
+   * @param timeRangeHours
    */
   analyzeEffectiveness(timeRangeHours: number = 168): EffectivenessAnalysis {
     const cutoffTime = new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);
@@ -264,6 +284,12 @@ export class TestEffectivenessTracker {
 
   /**
    * Records a bug detection event for effectiveness tracking.
+   * @param testSuite
+   * @param bugType
+   * @param severity
+   * @param detectedByTest
+   * @param quebecRelated
+   * @param details
    */
   recordBugDetection(
     testSuite: string,
@@ -286,6 +312,11 @@ export class TestEffectivenessTracker {
 
   /**
    * Records a regression prevention event.
+   * @param testSuite
+   * @param featureArea
+   * @param preventedRegression
+   * @param quebecFeature
+   * @param details
    */
   recordRegressionPrevention(
     testSuite: string,
@@ -307,6 +338,11 @@ export class TestEffectivenessTracker {
 
   /**
    * Records Quebec compliance validation effectiveness.
+   * @param testSuite
+   * @param complianceType
+   * @param validationPassed
+   * @param actualCompliance
+   * @param details
    */
   recordQuebecComplianceValidation(
     testSuite: string,
@@ -328,6 +364,9 @@ export class TestEffectivenessTracker {
 
   // Private helper methods
 
+  /**
+   *
+   */
   private loadExistingMetrics(): void {
     if (existsSync(this.metricsPath)) {
       try {
@@ -340,14 +379,23 @@ export class TestEffectivenessTracker {
     }
   }
 
+  /**
+   *
+   */
   private saveMetrics(): void {
     writeFileSync(this.metricsPath, JSON.stringify(this.metrics, null, 2));
   }
 
+  /**
+   *
+   */
   private generateId(): string {
     return `metric_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  /**
+   *
+   */
   private getDefaultAnalysis(): EffectivenessAnalysis {
     return {
       accuracy: 0,
@@ -363,6 +411,9 @@ export class TestEffectivenessTracker {
     };
   }
 
+  /**
+   *
+   */
   private groupMetricsByTestSuite(): Record<string, TestEffectivenessMetric[]> {
     const groups: Record<string, TestEffectivenessMetric[]> = {};
     
@@ -376,6 +427,10 @@ export class TestEffectivenessTracker {
     return groups;
   }
 
+  /**
+   *
+   * @param metrics
+   */
   private calculateSuiteEffectiveness(metrics: TestEffectivenessMetric[]): EffectivenessAnalysis {
     if (metrics.length === 0) {
       return this.getDefaultAnalysis();
@@ -409,6 +464,10 @@ export class TestEffectivenessTracker {
     };
   }
 
+  /**
+   *
+   * @param suiteName
+   */
   private calculateSuiteTrends(suiteName: string): any[] {
     const suiteMetrics = this.metrics.filter(m => m.testSuite === suiteName);
     const trends = [];
@@ -437,6 +496,9 @@ export class TestEffectivenessTracker {
     return trends.sort((a, b) => a.week.localeCompare(b.week));
   }
 
+  /**
+   *
+   */
   private calculateEffectivenessTrends(): any[] {
     const trends = [];
     const monthlyGroups: Record<string, TestEffectivenessMetric[]> = {};
@@ -466,6 +528,13 @@ export class TestEffectivenessTracker {
     return trends.sort((a, b) => a.month.localeCompare(b.month));
   }
 
+  /**
+   *
+   * @param accuracy
+   * @param precision
+   * @param recall
+   * @param quebecAccuracy
+   */
   private generateRecommendations(
     accuracy: number,
     precision: number,
@@ -493,6 +562,11 @@ export class TestEffectivenessTracker {
     return recommendations;
   }
 
+  /**
+   *
+   * @param categoryAnalysis
+   * @param overallAccuracy
+   */
   private generateQuebecRecommendations(categoryAnalysis: any, overallAccuracy: number): string[] {
     const recommendations = [];
     
@@ -517,6 +591,11 @@ export class TestEffectivenessTracker {
     return recommendations;
   }
 
+  /**
+   *
+   * @param overall
+   * @param quebec
+   */
   private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: any): string[] {
     const recommendations = [...overall.recommendations];
     
@@ -536,12 +615,20 @@ export class TestEffectivenessTracker {
     return [...new Set(recommendations)]; // Remove duplicates
   }
 
+  /**
+   *
+   * @param date
+   */
   private getWeekKey(date: Date): string {
     const year = date.getFullYear();
     const week = Math.ceil((date.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
     return `${year}-W${week.toString().padStart(2, '0')}`;
   }
 
+  /**
+   *
+   * @param date
+   */
   private getMonthKey(date: Date): string {
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
   }

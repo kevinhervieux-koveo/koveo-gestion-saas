@@ -1,5 +1,5 @@
 /**
- * Continuous Test Coverage Monitoring for Koveo Gestion
+ * Continuous Test Coverage Monitoring for Koveo Gestion.
  * 
  * Provides real-time monitoring of test coverage, effectiveness tracking,
  * and automated alerts for Quebec property management compliance.
@@ -11,6 +11,9 @@ import { join } from 'path';
 import { coverageAutomation } from '../tests/utils/coverage-automation';
 import { TestQualityValidator } from './test-quality-validator';
 
+/**
+ *
+ */
 interface CoverageAlert {
   type: 'coverage_drop' | 'quality_decline' | 'quebec_compliance' | 'performance_issue';
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -20,6 +23,9 @@ interface CoverageAlert {
   resolved: boolean;
 }
 
+/**
+ *
+ */
 interface MonitoringMetrics {
   timestamp: string;
   coverage: {
@@ -43,6 +49,9 @@ interface MonitoringMetrics {
   alerts: CoverageAlert[];
 }
 
+/**
+ *
+ */
 interface MonitoringConfig {
   coverageThresholds: {
     critical: number;
@@ -68,6 +77,9 @@ class CoverageMonitoringService {
   private isMonitoring: boolean = false;
   private validator: TestQualityValidator;
 
+  /**
+   *
+   */
   constructor() {
     this.projectRoot = process.cwd();
     this.dataDir = join(this.projectRoot, 'coverage', 'monitoring');
@@ -225,6 +237,7 @@ class CoverageMonitoringService {
 
   /**
    * Analyzes metrics and generates alerts for issues.
+   * @param metrics
    */
   private async analyzeMetricsAndGenerateAlerts(metrics: MonitoringMetrics): Promise<CoverageAlert[]> {
     const alerts: CoverageAlert[] = [];
@@ -314,6 +327,8 @@ class CoverageMonitoringService {
 
   /**
    * Calculates trends from historical data.
+   * @param coverageData
+   * @param qualityReport
    */
   private async calculateTrends(coverageData: any, qualityReport: any): Promise<any> {
     const historicalPath = join(this.dataDir, 'historical.json');
@@ -345,6 +360,7 @@ class CoverageMonitoringService {
 
   /**
    * Processes and handles generated alerts.
+   * @param alerts
    */
   private async processAlerts(alerts: CoverageAlert[]): Promise<void> {
     for (const alert of alerts) {
@@ -370,6 +386,7 @@ class CoverageMonitoringService {
 
   /**
    * Saves alert to persistent storage.
+   * @param alert
    */
   private async saveAlert(alert: CoverageAlert): Promise<void> {
     const alertsPath = join(this.dataDir, 'alerts.json');
@@ -385,6 +402,7 @@ class CoverageMonitoringService {
 
   /**
    * Sends critical alert notifications.
+   * @param alert
    */
   private async sendCriticalAlert(alert: CoverageAlert): Promise<void> {
     console.log('🚨 CRITICAL ALERT DETECTED!');
@@ -397,6 +415,7 @@ class CoverageMonitoringService {
 
   /**
    * Saves metrics to persistent storage.
+   * @param metrics
    */
   private async saveMetrics(metrics: MonitoringMetrics): Promise<void> {
     // Save to historical data
@@ -471,9 +490,10 @@ class CoverageMonitoringService {
 
   /**
    * Generates report summary from historical data.
+   * @param data
    */
   private generateReportSummary(data: MonitoringMetrics[]): any {
-    if (data.length === 0) return {};
+    if (data.length === 0) {return {};}
     
     const latest = data[data.length - 1];
     const oldest = data[0];
@@ -497,6 +517,7 @@ class CoverageMonitoringService {
 
   /**
    * Generates HTML daily report.
+   * @param report
    */
   private generateDailyReportHTML(report: any): string {
     return `
@@ -590,6 +611,7 @@ class CoverageMonitoringService {
 
   /**
    * Utility function for async sleep.
+   * @param ms
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));

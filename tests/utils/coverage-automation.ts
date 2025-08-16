@@ -1,5 +1,5 @@
 /**
- * Automated Coverage Reporting and Quality Validation for Koveo Gestion
+ * Automated Coverage Reporting and Quality Validation for Koveo Gestion.
  * 
  * Provides comprehensive test coverage automation, quality validation,
  * and continuous monitoring for Quebec property management requirements.
@@ -9,6 +9,9 @@ import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
+/**
+ *
+ */
 interface CoverageMetrics {
   statements: number;
   branches: number;
@@ -16,6 +19,9 @@ interface CoverageMetrics {
   lines: number;
 }
 
+/**
+ *
+ */
 interface QualityMetrics {
   testCoverage: CoverageMetrics;
   testQuality: number;
@@ -24,6 +30,9 @@ interface QualityMetrics {
   accessibility: number;
 }
 
+/**
+ *
+ */
 interface TestEffectivenessData {
   testSuiteResults: any[];
   coverageData: any;
@@ -41,6 +50,9 @@ export class CoverageAutomationService {
   private coverageThreshold: CoverageMetrics;
   private quebecComplianceThreshold: number;
 
+  /**
+   *
+   */
   constructor() {
     this.projectRoot = process.cwd();
     this.coverageThreshold = {
@@ -54,7 +66,7 @@ export class CoverageAutomationService {
 
   /**
    * Runs comprehensive test coverage analysis with Quebec compliance validation.
-   * @returns Promise<TestEffectivenessData> Complete test effectiveness data
+   * @returns Promise<TestEffectivenessData> Complete test effectiveness data.
    */
   async runComprehensiveCoverage(): Promise<TestEffectivenessData> {
     console.log('🚀 Starting comprehensive test coverage analysis...');
@@ -100,7 +112,7 @@ export class CoverageAutomationService {
 
   /**
    * Runs all test suites in parallel for comprehensive coverage.
-   * @returns Promise<any[]> Test suite results
+   * @returns Promise<any[]> Test suite results.
    */
   private async runAllTestSuites(): Promise<any[]> {
     console.log('📋 Running all test suites...');
@@ -148,7 +160,7 @@ export class CoverageAutomationService {
 
   /**
    * Generates comprehensive coverage reports with Quebec compliance analysis.
-   * @returns Promise<any> Coverage data with Quebec metrics
+   * @returns Promise<any> Coverage data with Quebec metrics.
    */
   private async generateCoverageReports(): Promise<any> {
     console.log('📊 Generating coverage reports...');
@@ -188,7 +200,7 @@ export class CoverageAutomationService {
 
   /**
    * Analyzes test quality metrics including effectiveness and maintainability.
-   * @returns Promise<QualityMetrics> Quality analysis results
+   * @returns Promise<QualityMetrics> Quality analysis results.
    */
   private async analyzeTestQuality(): Promise<QualityMetrics> {
     console.log('🔍 Analyzing test quality...');
@@ -226,7 +238,7 @@ export class CoverageAutomationService {
 
   /**
    * Validates Quebec compliance requirements in test coverage.
-   * @returns Promise<any> Quebec compliance metrics
+   * @returns Promise<any> Quebec compliance metrics.
    */
   private async validateQuebecComplianceInTests(): Promise<any> {
     console.log('🇨🇦 Validating Quebec compliance in tests...');
@@ -301,7 +313,7 @@ export class CoverageAutomationService {
 
   /**
    * Tracks test effectiveness trends over time.
-   * @returns Promise<any[]> Trend analysis data
+   * @returns Promise<any[]> Trend analysis data.
    */
   private async trackEffectivenessTrends(): Promise<any[]> {
     console.log('📈 Tracking effectiveness trends...');
@@ -333,7 +345,7 @@ export class CoverageAutomationService {
 
   /**
    * Generates comprehensive effectiveness report with actionable insights.
-   * @param data Test effectiveness data
+   * @param data Test effectiveness data.
    */
   private async generateEffectivenessReport(data: TestEffectivenessData): Promise<void> {
     console.log('📝 Generating effectiveness report...');
@@ -368,6 +380,10 @@ export class CoverageAutomationService {
 
   // Helper methods for calculations and analysis
 
+  /**
+   *
+   * @param coverageData
+   */
   private calculateAggregateCoverage(coverageData: any): CoverageMetrics {
     if (!coverageData || typeof coverageData !== 'object') {
       return { statements: 0, branches: 0, functions: 0, lines: 0 };
@@ -428,6 +444,10 @@ export class CoverageAutomationService {
     };
   }
 
+  /**
+   *
+   * @param coverageData
+   */
   private analyzeQuebecFileCoverage(coverageData: any): any {
     // Implementation for Quebec-specific file coverage analysis
     return {
@@ -436,11 +456,18 @@ export class CoverageAutomationService {
     };
   }
 
+  /**
+   *
+   */
   private getAllTestFiles(): string[] {
     // Implementation to get all test files
     return [];
   }
 
+  /**
+   *
+   * @param coverageData
+   */
   private calculateOverallCoverage(coverageData: any): number {
     if (!coverageData || !coverageData.aggregate) {
       return 0;
@@ -450,6 +477,10 @@ export class CoverageAutomationService {
     return Math.round((statements + branches + functions + lines) / 4 * 100) / 100;
   }
 
+  /**
+   *
+   * @param qualityScores
+   */
   private calculateQualityScore(qualityScores: QualityMetrics): number {
     const weights = {
       testCoverage: 0.4,
@@ -473,6 +504,10 @@ export class CoverageAutomationService {
     ) * 100) / 100;
   }
 
+  /**
+   *
+   * @param data
+   */
   private generateRecommendations(data: TestEffectivenessData): string[] {
     const recommendations = [];
     
@@ -487,6 +522,10 @@ export class CoverageAutomationService {
     return recommendations;
   }
 
+  /**
+   *
+   * @param report
+   */
   private generateHTMLReport(report: any): string {
     return `
     <!DOCTYPE html>
@@ -524,6 +563,10 @@ export class CoverageAutomationService {
     `;
   }
 
+  /**
+   *
+   * @param summary
+   */
   private outputConsoleSummary(summary: any): void {
     console.log('\n📋 TEST COVERAGE SUMMARY');
     console.log('=' .repeat(50));
@@ -538,6 +581,9 @@ export class CoverageAutomationService {
   }
 
   // Real implementations for helper methods
+  /**
+   *
+   */
   private async analyzeTestCoverageDepth(): Promise<CoverageMetrics> {
     try {
       const coveragePath = join(this.projectRoot, 'coverage', 'coverage-final.json');
@@ -551,9 +597,12 @@ export class CoverageAutomationService {
     return { statements: 0, branches: 0, functions: 0, lines: 0 };
   }
 
+  /**
+   *
+   */
   private async evaluateTestQuality(): Promise<number> {
     const testFiles = this.getAllTestFiles();
-    if (testFiles.length === 0) return 0;
+    if (testFiles.length === 0) {return 0;}
 
     let totalScore = 0;
     let validFiles = 0;
@@ -567,8 +616,8 @@ export class CoverageAutomationService {
         
         if (testCount > 0) {
           let fileScore = 100;
-          if (assertionCount < testCount * 2) fileScore -= 20; // Less than 2 assertions per test
-          if (!hasDescribe) fileScore -= 10; // No describe blocks
+          if (assertionCount < testCount * 2) {fileScore -= 20;} // Less than 2 assertions per test
+          if (!hasDescribe) {fileScore -= 10;} // No describe blocks
           
           totalScore += fileScore;
           validFiles++;
@@ -581,9 +630,12 @@ export class CoverageAutomationService {
     return validFiles > 0 ? Math.round(totalScore / validFiles) : 0;
   }
 
+  /**
+   *
+   */
   private async checkQuebecComplianceTests(): Promise<number> {
     const testFiles = this.getAllTestFiles();
-    if (testFiles.length === 0) return 0;
+    if (testFiles.length === 0) {return 0;}
 
     const quebecKeywords = ['quebec', 'français', 'Loi 25', 'TPS', 'TVQ', 'québécois'];
     let quebecTestFiles = 0;
@@ -602,6 +654,9 @@ export class CoverageAutomationService {
     return Math.round((quebecTestFiles / testFiles.length) * 100);
   }
 
+  /**
+   *
+   */
   private async measureTestPerformance(): Promise<number> {
     try {
       const startTime = Date.now();
@@ -624,9 +679,12 @@ export class CoverageAutomationService {
     }
   }
 
+  /**
+   *
+   */
   private async validateAccessibilityTests(): Promise<number> {
     const testFiles = this.getAllTestFiles();
-    if (testFiles.length === 0) return 0;
+    if (testFiles.length === 0) {return 0;}
 
     const a11yKeywords = ['aria-label', 'aria-describedby', 'role=', 'screen reader', 'accessibility'];
     let a11yTestFiles = 0;
@@ -645,14 +703,23 @@ export class CoverageAutomationService {
     return Math.round((a11yTestFiles / testFiles.length) * 100);
   }
 
+  /**
+   *
+   */
   private async getCurrentCoverageMetrics(): Promise<any> {
     return await this.analyzeTestCoverageDepth();
   }
 
+  /**
+   *
+   */
   private async getCurrentQualityMetrics(): Promise<any> {
     return { overall: await this.evaluateTestQuality() };
   }
 
+  /**
+   *
+   */
   private async getCurrentQuebecMetrics(): Promise<any> {
     return { compliance: await this.checkQuebecComplianceTests() };
   }

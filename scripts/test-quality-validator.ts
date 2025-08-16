@@ -1,5 +1,5 @@
 /**
- * Test Quality Validation Script for Koveo Gestion
+ * Test Quality Validation Script for Koveo Gestion.
  * 
  * Validates test quality, effectiveness, and Quebec compliance standards.
  * Ensures all tests meet production-grade requirements for property management.
@@ -10,6 +10,9 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from '
 import { join, extname } from 'path';
 import { coverageAutomation } from '../tests/utils/coverage-automation';
 
+/**
+ *
+ */
 interface TestQualityReport {
   overallScore: number;
   testCoverage: number;
@@ -22,6 +25,9 @@ interface TestQualityReport {
   passedValidations: string[];
 }
 
+/**
+ *
+ */
 interface TestFileAnalysis {
   file: string;
   testCount: number;
@@ -43,6 +49,9 @@ class TestQualityValidator {
   private passedValidations: string[] = [];
   private failedValidations: string[] = [];
 
+  /**
+   *
+   */
   constructor() {
     this.projectRoot = process.cwd();
     this.qualityThresholds = {
@@ -70,7 +79,7 @@ class TestQualityValidator {
 
   /**
    * Runs comprehensive test quality validation with Quebec compliance checks.
-   * @returns Promise<TestQualityReport> Complete quality validation report
+   * @returns Promise<TestQualityReport> Complete quality validation report.
    */
   async validateTestQuality(): Promise<TestQualityReport> {
     console.log('🔍 Starting comprehensive test quality validation...');
@@ -395,6 +404,7 @@ class TestQualityValidator {
 
   /**
    * Analyzes individual test file for quality metrics.
+   * @param file
    */
   private async analyzeTestFile(file: string): Promise<TestFileAnalysis> {
     const content = readFileSync(file, 'utf8');
@@ -469,6 +479,8 @@ class TestQualityValidator {
 
   /**
    * Recursively gets files with specific extensions.
+   * @param dir
+   * @param extensions
    */
   private getFilesRecursively(dir: string, extensions: string[]): string[] {
     const files: string[] = [];
@@ -490,6 +502,7 @@ class TestQualityValidator {
 
   /**
    * Calculates overall quality score from individual metrics.
+   * @param report
    */
   private calculateOverallScore(report: TestQualityReport): number {
     const weights = {
@@ -511,6 +524,7 @@ class TestQualityValidator {
 
   /**
    * Generates actionable recommendations based on validation results.
+   * @param report
    */
   private generateRecommendations(report: TestQualityReport): string[] {
     const recommendations: string[] = [];
@@ -549,6 +563,7 @@ class TestQualityValidator {
 
   /**
    * Outputs validation results to console with color coding.
+   * @param report
    */
   private outputValidationResults(report: TestQualityReport): void {
     console.log('\n🏆 TEST QUALITY VALIDATION RESULTS');
@@ -592,6 +607,7 @@ class TestQualityValidator {
 
   /**
    * Saves detailed validation report to file.
+   * @param report
    */
   private async saveDetailedReport(report: TestQualityReport): Promise<void> {
     const reportPath = join(this.projectRoot, 'coverage', 'test-quality-report.json');
@@ -608,6 +624,7 @@ class TestQualityValidator {
 
   /**
    * Generates HTML report for test quality validation.
+   * @param report
    */
   private generateHTMLReport(report: TestQualityReport): string {
     return `

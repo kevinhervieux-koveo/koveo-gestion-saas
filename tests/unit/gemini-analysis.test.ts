@@ -1,6 +1,6 @@
 /**
- * @file Gemini Analysis service tests
- * @description Test suite for AI feature analysis functionality
+ * @file Gemini Analysis service tests.
+ * @description Test suite for AI feature analysis functionality.
  */
 
 import { 

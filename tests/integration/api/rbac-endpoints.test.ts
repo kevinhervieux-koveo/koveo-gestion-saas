@@ -140,23 +140,23 @@ describe('RBAC API Endpoints Integration Tests', () => {
       };
 
       (storage.getUserByEmail as jest.Mock).mockImplementation(async (email) => {
-        if (email === 'admin@example.com') return mockUsers.admin;
-        if (email === 'manager@example.com') return mockUsers.manager;
-        if (email === 'tenant@example.com') return mockUsers.tenant;
+        if (email === 'admin@example.com') {return mockUsers.admin;}
+        if (email === 'manager@example.com') {return mockUsers.manager;}
+        if (email === 'tenant@example.com') {return mockUsers.tenant;}
         return null;
       });
 
       (storage.getUser as jest.Mock).mockImplementation(async (id) => {
-        if (id === 'admin-123') return mockUsers.admin;
-        if (id === 'manager-123') return mockUsers.manager;
-        if (id === 'tenant-123') return mockUsers.tenant;
+        if (id === 'admin-123') {return mockUsers.admin;}
+        if (id === 'manager-123') {return mockUsers.manager;}
+        if (id === 'tenant-123') {return mockUsers.tenant;}
         return null;
       });
 
       (storage.updateUser as jest.Mock).mockImplementation(async (id) => {
-        if (id === 'admin-123') return mockUsers.admin;
-        if (id === 'manager-123') return mockUsers.manager;
-        if (id === 'tenant-123') return mockUsers.tenant;
+        if (id === 'admin-123') {return mockUsers.admin;}
+        if (id === 'manager-123') {return mockUsers.manager;}
+        if (id === 'tenant-123') {return mockUsers.tenant;}
         return null;
       });
     });

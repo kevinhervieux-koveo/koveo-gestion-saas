@@ -1,5 +1,5 @@
 /**
- * Expanded Mobile UI Test Coverage for Quebec Property Management
+ * Expanded Mobile UI Test Coverage for Quebec Property Management.
  * 
  * Comprehensive mobile testing covering responsiveness, touch interactions,
  * accessibility, and Quebec-specific mobile requirements.

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Enum of all possible permission actions in the Koveo Gestion system.
- * Each permission follows the pattern: {action}:{resource}
+ * Each permission follows the pattern: {action}:{resource}.
  */
 export const PermissionAction = z.enum([
   // User management permissions
@@ -165,15 +165,24 @@ export const PermissionsSchema = z.object({
  * Type definitions inferred from the Zod schemas.
  */
 export type Permission = z.infer<typeof PermissionAction>;
+/**
+ *
+ */
 export type Role = z.infer<typeof UserRole>;
+/**
+ *
+ */
 export type RolePermissions = z.infer<typeof RolePermissionsSchema>;
+/**
+ *
+ */
 export type PermissionsConfig = z.infer<typeof PermissionsSchema>;
 
 /**
  * Validates a permissions configuration object against the schema.
  * 
- * @param permissions - The permissions object to validate
- * @returns Validation result with success status and data or error details
+ * @param permissions - The permissions object to validate.
+ * @returns Validation result with success status and data or error details.
  * 
  * @example
  * ```typescript
@@ -194,10 +203,10 @@ export function validatePermissions(permissions: unknown) {
 /**
  * Checks if a specific role has a particular permission.
  * 
- * @param permissions - The complete permissions configuration
- * @param role - The user role to check
- * @param permission - The permission to verify
- * @returns Boolean indicating whether the role has the permission
+ * @param permissions - The complete permissions configuration.
+ * @param role - The user role to check.
+ * @param permission - The permission to verify.
+ * @returns Boolean indicating whether the role has the permission.
  * 
  * @example
  * ```typescript
@@ -216,9 +225,9 @@ export function checkPermission(
 /**
  * Gets all permissions for a specific role.
  * 
- * @param permissions - The complete permissions configuration
- * @param role - The user role to get permissions for
- * @returns Array of permissions for the specified role
+ * @param permissions - The complete permissions configuration.
+ * @param role - The user role to get permissions for.
+ * @returns Array of permissions for the specified role.
  * 
  * @example
  * ```typescript
@@ -235,10 +244,10 @@ export function getRolePermissions(
 
 /**
  * Validates that all permissions follow the correct naming pattern.
- * Pattern: {action}:{resource}
+ * Pattern: {action}:{resource}.
  * 
- * @param permissions - Array of permission strings to validate
- * @returns Validation result with any invalid permissions
+ * @param permissions - Array of permission strings to validate.
+ * @returns Validation result with any invalid permissions.
  */
 export function validatePermissionNaming(permissions: string[]): {
   valid: boolean;

@@ -15,6 +15,8 @@ class DatabasePerformanceMonitor {
 
   /**
    * Tracks execution time of a database operation.
+   * @param queryName
+   * @param operation
    */
   trackQuery<T>(queryName: string, operation: () => Promise<T>): Promise<T> {
     const startTime = performance.now();
@@ -32,6 +34,8 @@ class DatabasePerformanceMonitor {
 
   /**
    * Records query execution time.
+   * @param queryName
+   * @param duration
    */
   private recordQueryTime(queryName: string, duration: number): void {
     this.queryTimes.push(duration);
@@ -62,7 +66,7 @@ class DatabasePerformanceMonitor {
    * Gets average query time.
    */
   getAverageQueryTime(): number {
-    if (this.queryTimes.length === 0) return 0;
+    if (this.queryTimes.length === 0) {return 0;}
     return this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
   }
 
@@ -138,6 +142,7 @@ export const dbPerformanceMonitor = new DatabasePerformanceMonitor();
 
 /**
  * Decorator for tracking database operation performance.
+ * @param queryName
  */
 export function trackPerformance(queryName: string) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {

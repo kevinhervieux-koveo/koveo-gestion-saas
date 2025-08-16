@@ -37,7 +37,7 @@ export interface MemoryUsage {
 
 /**
  * Gets current memory usage information.
- * @returns Memory usage details in MB
+ * @returns Memory usage details in MB.
  */
 export function getMemoryUsage(): MemoryUsage | null {
   if ('memory' in performance && performance.memory) {
@@ -59,6 +59,10 @@ export class MemoryOptimizer {
   private config: MemoryConfig;
   private cleanupCallbacks: Array<() => void> = [];
 
+  /**
+   *
+   * @param config
+   */
   constructor(config: Partial<MemoryConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
@@ -67,7 +71,7 @@ export class MemoryOptimizer {
    * Starts automatic memory monitoring and cleanup.
    */
   start(): void {
-    if (this.cleanupInterval) return;
+    if (this.cleanupInterval) {return;}
 
     this.cleanupInterval = window.setInterval(() => {
       this.checkAndCleanup();
@@ -86,7 +90,7 @@ export class MemoryOptimizer {
 
   /**
    * Registers a cleanup callback to be called during memory cleanup.
-   * @param callback Function to call during cleanup
+   * @param callback Function to call during cleanup.
    */
   registerCleanup(callback: () => void): void {
     this.cleanupCallbacks.push(callback);
@@ -94,7 +98,7 @@ export class MemoryOptimizer {
 
   /**
    * Removes a cleanup callback.
-   * @param callback Function to remove from cleanup callbacks
+   * @param callback Function to remove from cleanup callbacks.
    */
   unregisterCleanup(callback: () => void): void {
     const index = this.cleanupCallbacks.indexOf(callback);
@@ -127,7 +131,7 @@ export class MemoryOptimizer {
    */
   private checkAndCleanup(): void {
     const usage = getMemoryUsage();
-    if (!usage) return;
+    if (!usage) {return;}
 
     if (usage.used >= this.config.warningThreshold) {
       console.warn(`Memory usage high: ${usage.used}MB (${usage.percentage}%)`);
@@ -147,7 +151,7 @@ export const memoryOptimizer = new MemoryOptimizer();
 
 /**
  * React hook for component-level memory cleanup.
- * @param cleanupFn Function to call when component unmounts
+ * @param cleanupFn Function to call when component unmounts.
  */
 export function useMemoryCleanup(cleanupFn: () => void): void {
   // Register cleanup on mount and unregister on unmount
@@ -162,9 +166,12 @@ export function useMemoryCleanup(cleanupFn: () => void): void {
 
 /**
  * Optimized image loading with memory management.
- * @param src Image source URL
- * @param options Loading options
- * @returns Promise that resolves when image is loaded
+ * @param src Image source URL.
+ * @param options Loading options.
+ * @param options.width
+ * @param options.height
+ * @param options.quality
+ * @returns Promise that resolves when image is loaded.
  */
 export function loadImageOptimized(
   src: string,
@@ -178,8 +185,8 @@ export function loadImageOptimized(
     img.decoding = 'async';
     
     // Apply size constraints if provided
-    if (options.width) img.width = options.width;
-    if (options.height) img.height = options.height;
+    if (options.width) {img.width = options.width;}
+    if (options.height) {img.height = options.height;}
     
     img.onload = () => resolve(img);
     img.onerror = reject;
@@ -189,9 +196,9 @@ export function loadImageOptimized(
 
 /**
  * Debounced function creator for reducing excessive function calls.
- * @param func Function to debounce
- * @param delay Delay in milliseconds
- * @returns Debounced function
+ * @param func Function to debounce.
+ * @param delay Delay in milliseconds.
+ * @returns Debounced function.
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -207,9 +214,9 @@ export function debounce<T extends (...args: any[]) => any>(
 
 /**
  * Throttled function creator for limiting function call frequency.
- * @param func Function to throttle
- * @param limit Time limit in milliseconds
- * @returns Throttled function
+ * @param func Function to throttle.
+ * @param limit Time limit in milliseconds.
+ * @returns Throttled function.
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,

@@ -1,6 +1,6 @@
 /**
- * @file AI Monitoring API tests
- * @description Test suite for AI monitoring endpoints and functionality
+ * @file AI Monitoring API tests.
+ * @description Test suite for AI monitoring endpoints and functionality.
  */
 
 import request from 'supertest';

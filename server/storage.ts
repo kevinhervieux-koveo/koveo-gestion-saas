@@ -1577,6 +1577,13 @@ export class MemStorage implements IStorage {
       completedDate: insertFeature.completedDate || null,
       tags: insertFeature.tags || null,
       metadata: insertFeature.metadata || null,
+      // AI analysis fields
+      aiAnalysisResult: null,
+      aiAnalyzedAt: null,
+      // Strategic path flag
+      isStrategicPath: false,
+      // Synchronization tracking
+      syncedAt: null,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),

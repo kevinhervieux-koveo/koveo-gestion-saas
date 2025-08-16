@@ -1,6 +1,6 @@
 /**
- * @file Authentication hooks tests
- * @description Test suite for useAuth hook and authentication functionality
+ * @file Authentication hooks tests.
+ * @description Test suite for useAuth hook and authentication functionality.
  */
 
 import React from 'react';

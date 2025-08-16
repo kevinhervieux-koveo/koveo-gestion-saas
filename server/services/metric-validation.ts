@@ -1,5 +1,5 @@
 /**
- * Automated Quality Metrics Validation Service for Koveo Gestion
+ * Automated Quality Metrics Validation Service for Koveo Gestion.
  * 
  * This service provides comprehensive validation of quality metric calculations,
  * tracks prediction accuracy, and implements machine learning-based calibration
@@ -85,6 +85,9 @@ export class MetricValidationService {
     'translation_coverage': 1.4,
   };
 
+  /**
+   *
+   */
   private constructor() {}
 
   /**
@@ -102,10 +105,10 @@ export class MetricValidationService {
    * Validates a quality metric calculation for accuracy and reliability.
    * Compares calculated values against expected ranges and historical data.
    * 
-   * @param metricType - The type of metric being validated
-   * @param calculatedValue - The calculated metric value
-   * @param contextData - Additional context for validation
-   * @returns Comprehensive validation results with recommendations
+   * @param metricType - The type of metric being validated.
+   * @param calculatedValue - The calculated metric value.
+   * @param contextData - Additional context for validation.
+   * @returns Comprehensive validation results with recommendations.
    */
   public async validateMetricCalculation(
     metricType: string,
@@ -162,8 +165,8 @@ export class MetricValidationService {
    * Records a prediction made by a quality metric for later validation.
    * Essential for tracking prediction accuracy and improving calibration.
    * 
-   * @param predictionData - The prediction data to record
-   * @returns The ID of the recorded prediction
+   * @param predictionData - The prediction data to record.
+   * @returns The ID of the recorded prediction.
    */
   public async recordPrediction(predictionData: PredictionData): Promise<string> {
     const prediction: InsertMetricPrediction = {
@@ -188,11 +191,11 @@ export class MetricValidationService {
    * Validates a recorded prediction against actual outcomes.
    * Updates effectiveness tracking and calibration data based on results.
    * 
-   * @param predictionId - ID of the prediction to validate
-   * @param actualOutcome - What actually happened
-   * @param validationMethod - How the validation was performed
-   * @param validatorId - Who performed the validation
-   * @returns Validation result details
+   * @param predictionId - ID of the prediction to validate.
+   * @param actualOutcome - What actually happened.
+   * @param validationMethod - How the validation was performed.
+   * @param validatorId - Who performed the validation.
+   * @returns Validation result details.
    */
   public async validatePrediction(
     predictionId: string,
@@ -254,9 +257,9 @@ export class MetricValidationService {
    * Gets comprehensive effectiveness statistics for quality metrics.
    * Provides insights into metric performance and calibration status.
    * 
-   * @param metricType - Optional filter by metric type
-   * @param timeRangeHours - Optional time range for analysis
-   * @returns Detailed effectiveness statistics
+   * @param metricType - Optional filter by metric type.
+   * @param timeRangeHours - Optional time range for analysis.
+   * @returns Detailed effectiveness statistics.
    */
   public async getMetricEffectiveness(
     metricType?: string,
@@ -303,8 +306,8 @@ export class MetricValidationService {
    * Triggers machine learning-based calibration for a specific metric type.
    * Improves prediction accuracy using historical validation data.
    * 
-   * @param metricType - The metric type to calibrate
-   * @returns Calibration results and updated model parameters
+   * @param metricType - The metric type to calibrate.
+   * @returns Calibration results and updated model parameters.
    */
   public async triggerCalibrationUpdate(metricType: string): Promise<any> {
     console.log(`🤖 Starting ML calibration for ${metricType}...`);
@@ -364,8 +367,8 @@ export class MetricValidationService {
    * Records a real quality issue found in the codebase.
    * Used for validating metric effectiveness and improving predictions.
    * 
-   * @param issueData - The quality issue details
-   * @returns The recorded issue ID
+   * @param issueData - The quality issue details.
+   * @returns The recorded issue ID.
    */
   public async recordQualityIssue(issueData: any): Promise<string> {
     const issue: InsertQualityIssue = {
@@ -396,6 +399,12 @@ export class MetricValidationService {
 
   // Private helper methods
 
+  /**
+   *
+   * @param value
+   * @param result
+   * @param historicalData
+   */
   private async validateCodeCoverage(
     value: string,
     result: MetricValidationResult,
@@ -428,6 +437,12 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param value
+   * @param result
+   * @param historicalData
+   */
   private async validateSecurityVulnerabilities(
     value: string,
     result: MetricValidationResult,
@@ -452,6 +467,12 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param value
+   * @param result
+   * @param historicalData
+   */
   private async validateTranslationCoverage(
     value: string,
     result: MetricValidationResult,
@@ -474,6 +495,12 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param value
+   * @param result
+   * @param historicalData
+   */
   private async validateQuebecCompliance(
     value: string,
     result: MetricValidationResult,
@@ -495,6 +522,13 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param metricType
+   * @param value
+   * @param result
+   * @param historicalData
+   */
   private async validateGenericMetric(
     metricType: string,
     value: string,
@@ -524,6 +558,12 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param metricType
+   * @param value
+   * @param result
+   */
   private applyQuebecSpecificValidation(
     metricType: string,
     value: string,
@@ -539,6 +579,10 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param metricType
+   */
   private async getHistoricalMetricData(metricType: string): Promise<any[]> {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
@@ -555,6 +599,12 @@ export class MetricValidationService {
       .limit(50);
   }
 
+  /**
+   *
+   * @param predicted
+   * @param actual
+   * @param metricType
+   */
   private determineValidationStatus(
     predicted: string,
     actual: string,
@@ -572,12 +622,16 @@ export class MetricValidationService {
     const predictedIssue = predictedNum < threshold;
     const actualIssue = actualNum < threshold;
     
-    if (predictedIssue && actualIssue) return 'true_positive';
-    if (predictedIssue && !actualIssue) return 'false_positive';
-    if (!predictedIssue && actualIssue) return 'false_negative';
+    if (predictedIssue && actualIssue) {return 'true_positive';}
+    if (predictedIssue && !actualIssue) {return 'false_positive';}
+    if (!predictedIssue && actualIssue) {return 'false_negative';}
     return 'true_negative';
   }
 
+  /**
+   *
+   * @param metricType
+   */
   private getThresholdForMetric(metricType: string): number {
     const thresholds: Record<string, number> = {
       'code_coverage': 80,
@@ -588,17 +642,26 @@ export class MetricValidationService {
     return thresholds[metricType] || 50;
   }
 
+  /**
+   *
+   * @param outcome
+   */
   private assessImpactLevel(outcome: string): any {
     // Simplified impact assessment
     const numericOutcome = parseFloat(outcome);
-    if (isNaN(numericOutcome)) return 'medium';
+    if (isNaN(numericOutcome)) {return 'medium';}
     
-    if (numericOutcome < 50) return 'critical';
-    if (numericOutcome < 70) return 'high';
-    if (numericOutcome < 85) return 'medium';
+    if (numericOutcome < 50) {return 'critical';}
+    if (numericOutcome < 70) {return 'high';}
+    if (numericOutcome < 85) {return 'medium';}
     return 'low';
   }
 
+  /**
+   *
+   * @param metricType
+   * @param validationStatus
+   */
   private async calculateAccuracyMetrics(metricType: string, validationStatus: string): Promise<any> {
     // Get recent validations for this metric type
     const recentValidations = await db
@@ -629,6 +692,12 @@ export class MetricValidationService {
     return { accuracy, precision, recall, f1Score };
   }
 
+  /**
+   *
+   * @param metricType
+   * @param calculatedValue
+   * @param result
+   */
   private async recordValidationForML(
     metricType: string,
     calculatedValue: string,
@@ -650,6 +719,12 @@ export class MetricValidationService {
     await db.insert(schema.metricEffectivenessTracking).values(tracking);
   }
 
+  /**
+   *
+   * @param prediction
+   * @param validation
+   * @param accuracyMetrics
+   */
   private async updateEffectivenessTracking(
     prediction: any,
     validation: any,
@@ -671,6 +746,10 @@ export class MetricValidationService {
     await db.insert(schema.metricEffectivenessTracking).values(tracking);
   }
 
+  /**
+   *
+   * @param metricType
+   */
   private async getCalibrationTrainingData(metricType: string): Promise<any[]> {
     return await db
       .select()
@@ -684,6 +763,11 @@ export class MetricValidationService {
       .limit(1000);
   }
 
+  /**
+   *
+   * @param trainingData
+   * @param metricType
+   */
   private selectOptimalAlgorithm(trainingData: any[], metricType: string): CalibrationModelConfig {
     // Simplified algorithm selection - would be more sophisticated in production
     const dataSize = trainingData.length;
@@ -712,6 +796,12 @@ export class MetricValidationService {
     }
   }
 
+  /**
+   *
+   * @param trainingData
+   * @param algorithm
+   * @param metricType
+   */
   private async trainCalibrationModel(
     trainingData: any[],
     algorithm: CalibrationModelConfig,
@@ -733,6 +823,11 @@ export class MetricValidationService {
     return model;
   }
 
+  /**
+   *
+   * @param model
+   * @param trainingData
+   */
   private async validateCalibrationModel(model: any, trainingData: any[]): Promise<any> {
     // Simplified validation - would use cross-validation in production
     return {
@@ -751,6 +846,10 @@ export class MetricValidationService {
     };
   }
 
+  /**
+   *
+   * @param metricType
+   */
   private getQuebecSpecificFactors(metricType: string): Record<string, number> {
     const factors: Record<string, Record<string, number>> = {
       'translation_coverage': {
@@ -773,10 +872,18 @@ export class MetricValidationService {
     return factors[metricType] || { quebec_general: 1.1 };
   }
 
+  /**
+   *
+   */
   private generateModelVersion(): string {
     return `v${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  /**
+   *
+   * @param metricType
+   * @param timeRangeHours
+   */
   private async analyzeQuebecComplianceEffectiveness(
     metricType?: string,
     timeRangeHours: number = 168
@@ -797,6 +904,10 @@ export class MetricValidationService {
     };
   }
 
+  /**
+   *
+   * @param results
+   */
   private async generateEffectivenessRecommendations(results: any[]): Promise<string[]> {
     const recommendations: string[] = [];
     
@@ -814,6 +925,10 @@ export class MetricValidationService {
     return recommendations;
   }
 
+  /**
+   *
+   * @param metricType
+   */
   private async getCalibrationStatus(metricType?: string): Promise<any> {
     let query = db
       .select()
@@ -837,6 +952,10 @@ export class MetricValidationService {
     };
   }
 
+  /**
+   *
+   * @param issue
+   */
   private async checkPredictionAccuracy(issue: any): Promise<void> {
     // Check if any predictions should have caught this issue
     const recentPredictions = await db

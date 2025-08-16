@@ -6,8 +6,8 @@ import { scopeQuery, type UserContext } from './scope-query';
 /**
  * Get all buildings accessible to the user based on their role and associations.
  * 
- * @param userContext - User context containing role and entity associations
- * @returns Promise resolving to array of buildings the user can access
+ * @param userContext - User context containing role and entity associations.
+ * @returns Promise resolving to array of buildings the user can access.
  */
 export async function getBuildingsForUser(userContext: UserContext) {
   const baseQuery = db
@@ -44,9 +44,9 @@ export async function getBuildingsForUser(userContext: UserContext) {
 /**
  * Get a single building by ID with role-based access control.
  * 
- * @param buildingId - The building ID to retrieve
- * @param userContext - User context for access control
- * @returns Promise resolving to the building if accessible, undefined otherwise
+ * @param buildingId - The building ID to retrieve.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to the building if accessible, undefined otherwise.
  */
 export async function getBuildingById(buildingId: string, userContext: UserContext) {
   const baseQuery = db
@@ -87,9 +87,9 @@ export async function getBuildingById(buildingId: string, userContext: UserConte
 /**
  * Get buildings by organization with role-based filtering.
  * 
- * @param organizationId - Organization ID to filter by
- * @param userContext - User context for access control
- * @returns Promise resolving to array of buildings in the organization
+ * @param organizationId - Organization ID to filter by.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of buildings in the organization.
  */
 export async function getBuildingsByOrganization(organizationId: string, userContext: UserContext) {
   const baseQuery = db
@@ -119,9 +119,9 @@ export async function getBuildingsByOrganization(organizationId: string, userCon
 /**
  * Search buildings by name or address with role-based filtering.
  * 
- * @param searchTerm - Search term to look for in name or address
- * @param userContext - User context for access control
- * @returns Promise resolving to array of matching buildings
+ * @param searchTerm - Search term to look for in name or address.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of matching buildings.
  */
 export async function searchBuildings(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
@@ -157,9 +157,9 @@ export async function searchBuildings(searchTerm: string, userContext: UserConte
  * Get building statistics with role-based filtering.
  * Includes residence count, maintenance request count, and budget information.
  * 
- * @param buildingId - Building ID to get statistics for
- * @param userContext - User context for access control
- * @returns Promise resolving to building statistics if accessible
+ * @param buildingId - Building ID to get statistics for.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to building statistics if accessible.
  */
 export async function getBuildingStatistics(buildingId: string, userContext: UserContext) {
   // First verify user has access to this building
@@ -235,8 +235,8 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
  * Get buildings with their occupancy rates and basic statistics.
  * Shows percentage of occupied units and key metrics.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to array of buildings with occupancy information
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of buildings with occupancy information.
  */
 export async function getBuildingsWithOccupancy(userContext: UserContext) {
   const baseQuery = db
@@ -290,9 +290,9 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
 /**
  * Get buildings by type with role-based filtering.
  * 
- * @param buildingType - Building type ('condo' or 'rental')
- * @param userContext - User context for access control
- * @returns Promise resolving to array of buildings of the specified type
+ * @param buildingType - Building type ('condo' or 'rental').
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of buildings of the specified type.
  */
 export async function getBuildingsByType(
   buildingType: 'condo' | 'rental', 
@@ -329,8 +329,8 @@ export async function getBuildingsByType(
  * Get building summary statistics for all accessible buildings.
  * Provides aggregated information about the user's building portfolio.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to building portfolio summary
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to building portfolio summary.
  */
 export async function getBuildingSummary(userContext: UserContext) {
   // Get all accessible buildings

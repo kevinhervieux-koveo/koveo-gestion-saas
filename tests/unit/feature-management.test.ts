@@ -1,6 +1,6 @@
 /**
- * @file Feature Management tests
- * @description Test suite for feature status and strategic path functionality
+ * @file Feature Management tests.
+ * @description Test suite for feature status and strategic path functionality.
  */
 
 import request from 'supertest';

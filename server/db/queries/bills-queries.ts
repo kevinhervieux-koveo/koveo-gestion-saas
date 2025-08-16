@@ -7,8 +7,8 @@ import { scopeQuery, type UserContext } from './scope-query';
  * Get all bills accessible to the user based on their role and associations.
  * This query automatically applies role-based filtering.
  * 
- * @param userContext - User context containing role and entity associations
- * @returns Promise resolving to array of bills the user can access
+ * @param userContext - User context containing role and entity associations.
+ * @returns Promise resolving to array of bills the user can access.
  */
 export async function getBillsForUser(userContext: UserContext) {
   const baseQuery = db
@@ -36,9 +36,9 @@ export async function getBillsForUser(userContext: UserContext) {
  * Get bills for a specific residence with role-based access control.
  * Users can only see bills for residences they have access to.
  * 
- * @param residenceId - The residence ID to get bills for
- * @param userContext - User context for access control
- * @returns Promise resolving to array of bills for the residence
+ * @param residenceId - The residence ID to get bills for.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of bills for the residence.
  */
 export async function getBillsForResidence(residenceId: string, userContext: UserContext) {
   const baseQuery = db
@@ -56,8 +56,8 @@ export async function getBillsForResidence(residenceId: string, userContext: Use
  * owners see overdue bills for their properties,
  * tenants see only their own overdue bills.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to array of overdue bills
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of overdue bills.
  */
 export async function getOverdueBills(userContext: UserContext) {
   const today = new Date().toISOString().split('T')[0];
@@ -95,9 +95,9 @@ export async function getOverdueBills(userContext: UserContext) {
 /**
  * Get bills by status with role-based filtering.
  * 
- * @param status - Bill status to filter by
- * @param userContext - User context for access control
- * @returns Promise resolving to array of bills with the specified status
+ * @param status - Bill status to filter by.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of bills with the specified status.
  */
 export async function getBillsByStatus(
   status: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled',
@@ -116,10 +116,10 @@ export async function getBillsByStatus(
  * Get bills within a date range with role-based filtering.
  * Useful for financial reporting and analysis.
  * 
- * @param startDate - Start date (YYYY-MM-DD format)
- * @param endDate - End date (YYYY-MM-DD format)
- * @param userContext - User context for access control
- * @returns Promise resolving to array of bills within the date range
+ * @param startDate - Start date (YYYY-MM-DD format).
+ * @param endDate - End date (YYYY-MM-DD format).
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to array of bills within the date range.
  */
 export async function getBillsByDateRange(
   startDate: string,
@@ -161,9 +161,9 @@ export async function getBillsByDateRange(
  * Get a single bill by ID with role-based access control.
  * Users can only access bills for residences they have access to.
  * 
- * @param billId - The bill ID to retrieve
- * @param userContext - User context for access control
- * @returns Promise resolving to the bill if accessible, undefined otherwise
+ * @param billId - The bill ID to retrieve.
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to the bill if accessible, undefined otherwise.
  */
 export async function getBillById(billId: string, userContext: UserContext) {
   const baseQuery = db
@@ -204,8 +204,8 @@ export async function getBillById(billId: string, userContext: UserContext) {
  * Get bill summary statistics for the user's accessible data.
  * Provides aggregated financial information scoped to user's permissions.
  * 
- * @param userContext - User context for access control
- * @returns Promise resolving to bill summary statistics
+ * @param userContext - User context for access control.
+ * @returns Promise resolving to bill summary statistics.
  */
 export async function getBillSummary(userContext: UserContext) {
   // First get all accessible bill IDs

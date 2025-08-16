@@ -1,5 +1,5 @@
 /**
- * Database Queries with Role-Based Access Control
+ * Database Queries with Role-Based Access Control.
  * 
  * This module provides a comprehensive set of database query functions that
  * automatically apply role-based data scoping for the Quebec property management system.
@@ -92,8 +92,8 @@ export const QUERY_CATEGORIES = {
 /**
  * Helper function to validate user context before running queries.
  * 
- * @param userContext - User context to validate
- * @returns Boolean indicating if the context is valid
+ * @param userContext - User context to validate.
+ * @returns Boolean indicating if the context is valid.
  */
 export function isValidUserContext(userContext: any): userContext is UserContext {
   return (

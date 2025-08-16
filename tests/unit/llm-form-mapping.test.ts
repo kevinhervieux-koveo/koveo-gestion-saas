@@ -2,7 +2,7 @@ import { analyzeFeatureWithGemini, getDocumentationContext } from '../../server/
 import type { Feature } from '@shared/schema';
 
 /**
- * LLM Form Mapping Validation Tests
+ * LLM Form Mapping Validation Tests.
  * 
  * This test suite validates that the AI/LLM help form returns responses 
  * that map exactly to the form fields available in the application.
@@ -34,7 +34,7 @@ describe('LLM Form Mapping Validation', () => {
   };
 
   /**
-   * Test that the LLM analysis service accepts all form fields
+   * Test that the LLM analysis service accepts all form fields.
    */
   it('should accept all feature form fields as input', async () => {
     const documentationContext = await getDocumentationContext();
@@ -64,7 +64,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that all required form fields are included in the AI prompt
+   * Test that all required form fields are included in the AI prompt.
    */
   it('should include all feature form fields in the AI analysis prompt', () => {
     const requiredFormFields = [
@@ -88,7 +88,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that the AI response structure matches expected actionable item fields
+   * Test that the AI response structure matches expected actionable item fields.
    */
   it('should return actionable items with all required fields', async () => {
     const expectedActionableItemFields = [
@@ -151,7 +151,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that the AI prompt includes form field validation requirements
+   * Test that the AI prompt includes form field validation requirements.
    */
   it('should validate that AI responses respect form field constraints', () => {
     const formFieldConstraints = {
@@ -181,7 +181,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that actionable items have numbered titles
+   * Test that actionable items have numbered titles.
    */
   it('should ensure actionable items have properly numbered titles', () => {
     const mockActionableItems = [
@@ -197,7 +197,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that implementation prompts are comprehensive and actionable
+   * Test that implementation prompts are comprehensive and actionable.
    */
   it('should validate implementation prompts are detailed and actionable', () => {
     const mockImplementationPrompts = [
@@ -221,7 +221,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that the AI analysis includes Quebec-specific considerations
+   * Test that the AI analysis includes Quebec-specific considerations.
    */
   it('should include Quebec-specific requirements when relevant', async () => {
     const quebecSpecificTerms = [
@@ -243,7 +243,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that effort estimations are realistic and consistent
+   * Test that effort estimations are realistic and consistent.
    */
   it('should provide realistic effort estimations', () => {
     const validEffortFormats = [
@@ -268,7 +268,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that the response includes proper testing requirements
+   * Test that the response includes proper testing requirements.
    */
   it('should specify comprehensive testing requirements', () => {
     const mockTestingRequirements = [
@@ -293,31 +293,31 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test form field completeness mapping
+   * Test form field completeness mapping.
    */
   it('should map all form fields to AI analysis input', () => {
     // All fields available in the feature form
     const allFormFields = [
-      'featureName',      // maps to: name
-      'featureCategory',  // maps to: category  
+      'featureName', // maps to: name
+      'featureCategory', // maps to: category  
       'featureDescription', // maps to: description
-      'isStrategicPath',  // maps to: strategic consideration
+      'isStrategicPath', // maps to: strategic consideration
       'businessObjective', // maps to: businessObjective
-      'targetUsers',      // maps to: targetUsers
-      'successMetrics',   // maps to: successMetrics
-      'priority',         // maps to: priority
-      'timeline',         // used in analysis context
-      'complexity',       // maps to: technicalComplexity
-      'dependencies',     // maps to: dependencies
+      'targetUsers', // maps to: targetUsers
+      'successMetrics', // maps to: successMetrics
+      'priority', // maps to: priority
+      'timeline', // used in analysis context
+      'complexity', // maps to: technicalComplexity
+      'dependencies', // maps to: dependencies
       'dataRequirements', // included in technical analysis
       'integrationNeeds', // included in technical analysis
       'securityConsiderations', // included in technical analysis
-      'userFlow',         // maps to: userFlow
-      'uiRequirements',   // included in technical analysis
+      'userFlow', // maps to: userFlow
+      'uiRequirements', // included in technical analysis
       'accessibilityNeeds', // included in technical analysis
       'performanceRequirements', // included in technical analysis
-      'testingStrategy',  // influences testing requirements output
-      'additionalNotes'   // included in analysis context
+      'testingStrategy', // influences testing requirements output
+      'additionalNotes' // included in analysis context
     ];
     
     // Verify that we have a mapping for each form field
@@ -336,7 +336,7 @@ describe('LLM Form Mapping Validation', () => {
   });
 
   /**
-   * Test that dependencies are properly formatted
+   * Test that dependencies are properly formatted.
    */
   it('should format dependencies as an array when present', () => {
     const mockActionableItemWithDependencies = {
@@ -361,7 +361,7 @@ describe('LLM Form Mapping Validation', () => {
 });
 
 /**
- * Integration test for the complete LLM form mapping workflow
+ * Integration test for the complete LLM form mapping workflow.
  */
 describe('LLM Form Mapping Integration', () => {
   

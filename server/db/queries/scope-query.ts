@@ -55,6 +55,7 @@ export const SCOPE_CONFIG = {
 /**
  * Helper function to get user's accessible residence IDs based on their role and associations.
  * This is used for scoping queries to residence-level data.
+ * @param userContext
  */
 export async function getUserAccessibleResidenceIds(userContext: UserContext): Promise<string[]> {
   const { userId, role } = userContext;
@@ -96,6 +97,7 @@ export async function getUserAccessibleResidenceIds(userContext: UserContext): P
 /**
  * Helper function to get user's accessible building IDs based on their role and associations.
  * This is used for scoping queries to building-level data.
+ * @param userContext
  */
 export async function getUserAccessibleBuildingIds(userContext: UserContext): Promise<string[]> {
   const { userId, role } = userContext;
@@ -130,10 +132,10 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
  * Main scope query function that applies role-based filtering to Drizzle queries.
  * This function adds appropriate WHERE clauses based on the user's role and associated entities.
  * 
- * @param query - The base Drizzle query to scope
- * @param userContext - User context containing role and entity associations
- * @param entityType - Type of entity being queried for appropriate scoping logic
- * @returns The scoped query with added WHERE clauses
+ * @param query - The base Drizzle query to scope.
+ * @param userContext - User context containing role and entity associations.
+ * @param entityType - Type of entity being queried for appropriate scoping logic.
+ * @returns The scoped query with added WHERE clauses.
  * 
  * @example
  * ```typescript
@@ -272,9 +274,9 @@ export async function scopeQuery<T extends PgSelect>(
  * Helper function to build user context from session data.
  * This should be called at the beginning of API routes to establish the user's scope.
  * 
- * @param userId - User ID from authentication
- * @param userRole - User role from session/database
- * @returns Promise resolving to UserContext with populated associations
+ * @param userId - User ID from authentication.
+ * @param userRole - User role from session/database.
+ * @returns Promise resolving to UserContext with populated associations.
  */
 export async function buildUserContext(userId: string, userRole: string): Promise<UserContext> {
   const role = userRole as UserContext['role'];

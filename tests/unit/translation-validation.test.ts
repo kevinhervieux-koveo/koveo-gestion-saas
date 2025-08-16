@@ -4,7 +4,7 @@ import { join } from 'path';
 import { glob } from 'glob';
 
 /**
- * Translation and Localization Files Language Validation
+ * Translation and Localization Files Language Validation.
  * 
  * This test suite specifically validates translation files, JSON localization content,
  * and other text-based configuration files for Quebec French compliance.
@@ -13,7 +13,7 @@ import { glob } from 'glob';
 describe('Translation Files Language Validation', () => {
   
   /**
-   * Test to find and validate all JSON translation files
+   * Test to find and validate all JSON translation files.
    */
   it('should validate all JSON translation files', async () => {
     const validator = new LanguageValidator();
@@ -70,14 +70,14 @@ describe('Translation Files Language Validation', () => {
   });
 
   /**
-   * Test to validate hardcoded strings in React components
+   * Test to validate hardcoded strings in React components.
    */
   it('should identify hardcoded strings in React components that need translation', async () => {
     const validator = new LanguageValidator();
     
     try {
       const componentFiles = await glob('client/src/**/*.{tsx,jsx}', { cwd: process.cwd() });
-      let hardcodedStrings: Array<{
+      const hardcodedStrings: Array<{
         file: string;
         line: number;
         text: string;
@@ -139,7 +139,7 @@ describe('Translation Files Language Validation', () => {
   });
 
   /**
-   * Test specific Quebec property management terminology
+   * Test specific Quebec property management terminology.
    */
   it('should validate Quebec-specific property management terms are used correctly', () => {
     const testCases = [
@@ -206,7 +206,7 @@ describe('Translation Files Language Validation', () => {
   });
 
   /**
-   * Test validation of form labels and UI text
+   * Test validation of form labels and UI text.
    */
   it('should validate common UI text and form labels', () => {
     const commonUIText = {
@@ -247,7 +247,7 @@ describe('Translation Files Language Validation', () => {
   });
 
   /**
-   * Test validation of Quebec address and location formats
+   * Test validation of Quebec address and location formats.
    */
   it('should validate Quebec address and geographic terms', () => {
     const locationTests = [
@@ -288,7 +288,7 @@ describe('Translation Files Language Validation', () => {
   });
 
   /**
-   * Comprehensive test for Quebec legal and regulatory terminology
+   * Comprehensive test for Quebec legal and regulatory terminology.
    */
   it('should enforce Quebec legal terminology for property management', () => {
     const legalTerminologyTests = [
@@ -339,7 +339,7 @@ describe('Translation Files Language Validation', () => {
 });
 
 /**
- * Export utility functions for use in other tests
+ * Export utility functions for use in other tests.
  */
 export {
   LanguageValidator,

@@ -1,6 +1,6 @@
 /**
- * @file Form validation tests
- * @description Test suite for Zod schema validation and form handling
+ * @file Form validation tests.
+ * @description Test suite for Zod schema validation and form handling.
  */
 
 import { z } from 'zod';

@@ -2,7 +2,7 @@ import { analyzeFeatureWithGemini, getDocumentationContext } from '../../server/
 import type { Feature } from '@shared/schema';
 
 /**
- * AI Form Response Validation Integration Tests
+ * AI Form Response Validation Integration Tests.
  * 
  * These integration tests validate that the actual AI service responses
  * from Gemini properly map to the form structure in the application.
@@ -42,10 +42,10 @@ describe('AI Form Response Validation (Integration)', () => {
   };
 
   /**
-   * Test that the real AI service returns properly structured responses
+   * Test that the real AI service returns properly structured responses.
    */
   it('should return properly structured analysis from real AI service', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     try {
       const documentationContext = await getDocumentationContext();
@@ -121,10 +121,10 @@ describe('AI Form Response Validation (Integration)', () => {
   }, 30000); // 30 second timeout for API call
 
   /**
-   * Test that AI responses include Quebec-specific considerations for compliance features
+   * Test that AI responses include Quebec-specific considerations for compliance features.
    */
   it('should include Quebec-specific considerations for compliance features', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     const complianceFeature: Feature = {
       ...sampleFeature,
@@ -160,10 +160,10 @@ describe('AI Form Response Validation (Integration)', () => {
   }, 30000);
 
   /**
-   * Test that AI responses reference the existing tech stack
+   * Test that AI responses reference the existing tech stack.
    */
   it('should reference the correct tech stack in implementation details', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     try {
       const documentationContext = await getDocumentationContext();
@@ -188,10 +188,10 @@ describe('AI Form Response Validation (Integration)', () => {
   }, 30000);
 
   /**
-   * Test that all feature form fields are considered in the analysis
+   * Test that all feature form fields are considered in the analysis.
    */
   it('should utilize all provided feature form fields in the analysis', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     const comprehensiveFeature: Feature = {
       ...sampleFeature,
@@ -236,10 +236,10 @@ describe('AI Form Response Validation (Integration)', () => {
   }, 30000);
 
   /**
-   * Test error handling for malformed feature data
+   * Test error handling for malformed feature data.
    */
   it('should handle edge cases gracefully', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     const minimalFeature: Feature = {
       id: 'minimal-test',
@@ -281,10 +281,10 @@ describe('AI Form Response Validation (Integration)', () => {
   }, 30000);
 
   /**
-   * Test that the analysis is deterministic for the same input
+   * Test that the analysis is deterministic for the same input.
    */
   it('should provide consistent analysis for the same feature', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     const testFeature = { ...sampleFeature, id: 'consistency-test' };
 
@@ -322,7 +322,7 @@ describe('AI Form Response Validation (Integration)', () => {
 });
 
 /**
- * Performance and reliability tests for AI integration
+ * Performance and reliability tests for AI integration.
  */
 describe('AI Service Performance and Reliability', () => {
   
@@ -335,7 +335,7 @@ describe('AI Service Performance and Reliability', () => {
   };
 
   it('should complete analysis within reasonable time', async () => {
-    if (skipIfNoApiKey()) return;
+    if (skipIfNoApiKey()) {return;}
 
     const startTime = Date.now();
     

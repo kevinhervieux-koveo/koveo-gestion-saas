@@ -1,5 +1,5 @@
 /**
- * Koveo Gestion Permissions Configuration
+ * Koveo Gestion Permissions Configuration.
  * 
  * This module provides a comprehensive role-based access control (RBAC) system
  * for the Quebec property management SaaS platform.
@@ -52,9 +52,9 @@ export const ROLE_HIERARCHY = {
 /**
  * Helper function to check if one role has higher or equal privileges than another.
  * 
- * @param userRole - The role to check
- * @param requiredRole - The minimum required role
- * @returns Boolean indicating if the user role meets the requirement
+ * @param userRole - The role to check.
+ * @param requiredRole - The minimum required role.
+ * @returns Boolean indicating if the user role meets the requirement.
  * 
  * @example
  * ```typescript

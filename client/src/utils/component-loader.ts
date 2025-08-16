@@ -27,10 +27,10 @@ const componentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>(
 
 /**
  * Creates an optimized lazy component with memory management.
- * @param importFn Dynamic import function
- * @param key Unique key for caching
- * @param options Loading options
- * @returns Lazy component with optimizations
+ * @param importFn Dynamic import function.
+ * @param key Unique key for caching.
+ * @param options Loading options.
+ * @returns Lazy component with optimizations.
  */
 export function createOptimizedLoader<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
@@ -96,8 +96,8 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
 
 /**
  * Preloads a component for faster subsequent loading.
- * @param importFn Dynamic import function
- * @param priority Loading priority (higher numbers load first)
+ * @param importFn Dynamic import function.
+ * @param priority Loading priority (higher numbers load first).
  */
 export function preloadComponent(
   importFn: () => Promise<{ default: ComponentType<any> }>,
@@ -124,7 +124,7 @@ export function preloadComponent(
 
 /**
  * Clears the component cache to free memory.
- * @param keys Specific keys to clear, or undefined to clear all
+ * @param keys Specific keys to clear, or undefined to clear all.
  */
 export function clearComponentCache(keys?: string[]): void {
   if (keys) {

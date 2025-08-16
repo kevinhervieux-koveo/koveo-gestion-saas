@@ -1,16 +1,16 @@
 /**
- * Comprehensive API Endpoint Integration Tests for Koveo Gestion
+ * Comprehensive API Endpoint Integration Tests for Koveo Gestion.
  * 
  * Tests all API endpoints to ensure 95% coverage for Quebec property management.
  * Includes authentication, authorization, data validation, and error handling.
  */
 
 import request from 'supertest';
-import express from 'express';
+import express, { type Express } from 'express';
 import { registerRoutes } from '../../server/routes';
 
 describe('Comprehensive API Integration Tests', () => {
-  let app: express.Application;
+  let app: Express;
   let server: any;
 
   beforeAll(async () => {

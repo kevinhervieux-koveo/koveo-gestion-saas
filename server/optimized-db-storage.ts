@@ -30,6 +30,9 @@ const db = drizzle(sql, { schema });
  */
 export class OptimizedDatabaseStorage implements IStorage {
   
+  /**
+   *
+   */
   constructor() {
     // Initialize optimizations on startup
     this.initializeOptimizations();
@@ -49,6 +52,10 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Wrapper for performance tracking and caching.
+   * @param operation
+   * @param cacheKey
+   * @param cacheType
+   * @param fn
    */
   private async withOptimizations<T>(
     operation: string,
@@ -91,6 +98,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves a specific user by ID with caching.
+   * @param id
    */
   async getUser(id: string): Promise<User | undefined> {
     return this.withOptimizations(
@@ -106,6 +114,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves a user by email with caching.
+   * @param email
    */
   async getUserByEmail(email: string): Promise<User | undefined> {
     return this.withOptimizations(
@@ -121,6 +130,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Creates a new user with cache invalidation.
+   * @param insertUser
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
@@ -136,6 +146,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Updates a user with cache invalidation.
+   * @param id
+   * @param updates
    */
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateUser', async () => {
@@ -168,6 +180,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves an organization by ID with caching.
+   * @param id
    */
   async getOrganization(id: string): Promise<Organization | undefined> {
     return this.withOptimizations(
@@ -186,6 +199,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Creates a new organization with cache invalidation.
+   * @param insertOrganization
    */
   async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
     const result = await dbPerformanceMonitor.trackQuery('createOrganization', async () => {
@@ -202,6 +216,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves buildings by organization with caching.
+   * @param organizationId
    */
   async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
     return this.withOptimizations(
@@ -222,6 +237,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves a building by ID with caching.
+   * @param id
    */
   async getBuilding(id: string): Promise<Building | undefined> {
     return this.withOptimizations(
@@ -240,6 +256,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Creates a new building with cache invalidation.
+   * @param insertBuilding
    */
   async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
     const result = await dbPerformanceMonitor.trackQuery('createBuilding', async () => {
@@ -256,6 +273,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves residences by building with caching.
+   * @param buildingId
    */
   async getResidencesByBuilding(buildingId: string): Promise<Residence[]> {
     return this.withOptimizations(
@@ -277,6 +295,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves a residence by ID with caching.
+   * @param id
    */
   async getResidence(id: string): Promise<Residence | undefined> {
     return this.withOptimizations(
@@ -295,6 +314,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Creates a new residence with cache invalidation.
+   * @param insertResidence
    */
   async createResidence(insertResidence: InsertResidence): Promise<Residence> {
     const result = await dbPerformanceMonitor.trackQuery('createResidence', async () => {
@@ -311,6 +331,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets user residences with caching - frequently accessed in property management.
+   * @param userId
    */
   async getUserResidences(userId: string): Promise<any[]> {
     return this.withOptimizations(
@@ -337,6 +358,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets active bills for a residence - frequently queried.
+   * @param residenceId
    */
   async getActiveBillsByResidence(residenceId: string): Promise<any[]> {
     return this.withOptimizations(
@@ -361,6 +383,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets maintenance requests for a residence - frequently accessed.
+   * @param residenceId
    */
   async getMaintenanceRequestsByResidence(residenceId: string): Promise<any[]> {
     return this.withOptimizations(

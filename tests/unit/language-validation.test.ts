@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { ReactWrapper } from 'enzyme';
 
 /**
- * Quebec French Language Validation Test Suite
+ * Quebec French Language Validation Test Suite.
  * 
  * This test suite validates that all client-visible text follows Quebec French
  * standards and avoids problematic terms commonly found in property management applications.
@@ -91,11 +91,16 @@ const QUEBEC_LEGAL_TERMS = {
 };
 
 /**
- * Extracts all visible text from a rendered React component
+ * Extracts all visible text from a rendered React component.
+ * @param container
  */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
   
+  /**
+   *
+   * @param node
+   */
   function traverse(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent?.trim();
@@ -130,7 +135,9 @@ function extractVisibleText(container: HTMLElement): string[] {
 }
 
 /**
- * Validates text against language rules
+ * Validates text against language rules.
+ * @param text
+ * @param context
  */
 function validateText(text: string, context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -205,13 +212,15 @@ function validateText(text: string, context: string = ''): Array<{
 }
 
 /**
- * Language validation utility class
+ * Language validation utility class.
  */
 export class LanguageValidator {
   private violations: Array<any> = [];
   
   /**
-   * Validates a React component for language compliance
+   * Validates a React component for language compliance.
+   * @param component
+   * @param componentName
    */
   validateComponent(component: React.ReactElement, componentName: string): void {
     const { container } = render(component);
@@ -225,7 +234,9 @@ export class LanguageValidator {
   }
   
   /**
-   * Validates raw HTML content
+   * Validates raw HTML content.
+   * @param html
+   * @param pageName
    */
   validateHTML(html: string, pageName: string): void {
     const dom = new JSDOM(html);
@@ -239,9 +250,16 @@ export class LanguageValidator {
   }
   
   /**
-   * Validates JSON content (for API responses, translations, etc.)
+   * Validates JSON content (for API responses, translations, etc.).
+   * @param jsonData
+   * @param dataName
    */
   validateJSON(jsonData: any, dataName: string): void {
+    /**
+     *
+     * @param obj
+     * @param path
+     */
     function extractStrings(obj: any, path: string = ''): string[] {
       const strings: string[] = [];
       
@@ -269,28 +287,29 @@ export class LanguageValidator {
   }
   
   /**
-   * Gets all validation violations
+   * Gets all validation violations.
    */
   getViolations(): Array<any> {
     return this.violations;
   }
   
   /**
-   * Gets violations by severity
+   * Gets violations by severity.
+   * @param severity
    */
   getViolationsBySeverity(severity: 'error' | 'warning'): Array<any> {
     return this.violations.filter(v => v.severity === severity);
   }
   
   /**
-   * Checks if validation passed (no errors)
+   * Checks if validation passed (no errors).
    */
   isValid(): boolean {
     return this.getViolationsBySeverity('error').length === 0;
   }
   
   /**
-   * Generates a validation report
+   * Generates a validation report.
    */
   generateReport(): string {
     const errors = this.getViolationsBySeverity('error');
@@ -329,7 +348,7 @@ export class LanguageValidator {
   }
   
   /**
-   * Resets the validator state
+   * Resets the validator state.
    */
   reset(): void {
     this.violations = [];

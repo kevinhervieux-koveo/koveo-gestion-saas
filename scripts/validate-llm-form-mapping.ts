@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * LLM Form Mapping Validation Script
+ * LLM Form Mapping Validation Script.
  * 
  * This script validates that the AI/LLM help form returns responses 
  * that map exactly to the form fields available in the application.
@@ -10,7 +10,7 @@
  *   npm run validate-llm-mapping
  *   npx tsx scripts/validate-llm-form-mapping.ts
  *   npx tsx scripts/validate-llm-form-mapping.ts --include-integration
- *   npx tsx scripts/validate-llm-form-mapping.ts --report
+ *   npx tsx scripts/validate-llm-form-mapping.ts --report.
  */
 
 import { execSync } from 'child_process';
@@ -29,7 +29,7 @@ const colors = {
 };
 
 /**
- * Display help information
+ * Display help information.
  */
 function displayHelp() {
   console.log(`
@@ -66,7 +66,7 @@ ${colors.bright}Examples:${colors.reset}
 }
 
 /**
- * Parse command line arguments
+ * Parse command line arguments.
  */
 function parseArguments(): {
   help: boolean;
@@ -90,7 +90,9 @@ function parseArguments(): {
 }
 
 /**
- * Run Jest tests and capture results
+ * Run Jest tests and capture results.
+ * @param testPattern
+ * @param verbose
  */
 function runTests(testPattern: string, verbose: boolean = false): {
   success: boolean;
@@ -150,7 +152,9 @@ function runTests(testPattern: string, verbose: boolean = false): {
 }
 
 /**
- * Generate comprehensive validation report
+ * Generate comprehensive validation report.
+ * @param includeIntegration
+ * @param verbose
  */
 function generateReport(includeIntegration: boolean, verbose: boolean): string {
   const timestamp = new Date().toLocaleString('en-CA', {
@@ -330,7 +334,7 @@ ${integrationTestResult?.output || ''}
 }
 
 /**
- * Main execution function
+ * Main execution function.
  */
 function main() {
   const args = parseArguments();

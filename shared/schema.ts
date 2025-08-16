@@ -39,9 +39,9 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', [
  */
 export const validationStatusEnum = pgEnum('validation_status', [
   'pending',
-  'true_positive',  // Metric correctly predicted an issue
+  'true_positive', // Metric correctly predicted an issue
   'false_positive', // Metric predicted issue but none found
-  'true_negative',  // Metric correctly predicted no issue
+  'true_negative', // Metric correctly predicted no issue
   'false_negative', // Metric missed a real issue
 ]);
 
@@ -50,11 +50,11 @@ export const validationStatusEnum = pgEnum('validation_status', [
  * Aligned with Quebec compliance requirements and property management standards.
  */
 export const issueSeverityEnum = pgEnum('issue_severity', [
-  'info',       // Minor suggestions
-  'low',        // Non-critical improvements
-  'medium',     // Important but not urgent
-  'high',       // Significant issues affecting operations
-  'critical',   // Severe issues affecting compliance or safety
+  'info', // Minor suggestions
+  'low', // Non-critical improvements
+  'medium', // Important but not urgent
+  'high', // Significant issues affecting operations
+  'critical', // Severe issues affecting compliance or safety
   'quebec_compliance', // Issues affecting Quebec Law 25 or provincial regulations
 ]);
 

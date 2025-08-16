@@ -56,6 +56,9 @@ class QueryCacheManager {
   private hitCounts: Map<string, number> = new Map();
   private missCounts: Map<string, number> = new Map();
 
+  /**
+   *
+   */
   constructor() {
     // Initialize caches for each data type
     Object.entries(CACHE_CONFIGS).forEach(([type, config]) => {
@@ -72,13 +75,13 @@ class QueryCacheManager {
 
   /**
    * Gets cached data if available.
-   * @param cacheType Type of cache (users, buildings, etc.)
-   * @param key Cache key
-   * @returns Cached data or undefined
+   * @param cacheType Type of cache (users, buildings, etc.).
+   * @param key Cache key.
+   * @returns Cached data or undefined.
    */
   get<T>(cacheType: string, key: string): T | undefined {
     const cache = this.caches.get(cacheType);
-    if (!cache) return undefined;
+    if (!cache) {return undefined;}
 
     const result = cache.get(key);
     if (result !== undefined) {
@@ -94,13 +97,13 @@ class QueryCacheManager {
 
   /**
    * Stores data in cache.
-   * @param cacheType Type of cache
-   * @param key Cache key
-   * @param data Data to cache
+   * @param cacheType Type of cache.
+   * @param key Cache key.
+   * @param data Data to cache.
    */
   set<T>(cacheType: string, key: string, data: T): void {
     const cache = this.caches.get(cacheType);
-    if (!cache) return;
+    if (!cache) {return;}
 
     cache.set(key, data);
     console.debug(`Cached: ${cacheType}:${key}`);
@@ -108,12 +111,12 @@ class QueryCacheManager {
 
   /**
    * Invalidates cache entries by pattern.
-   * @param cacheType Type of cache
-   * @param pattern Key pattern to invalidate (supports wildcards)
+   * @param cacheType Type of cache.
+   * @param pattern Key pattern to invalidate (supports wildcards).
    */
   invalidate(cacheType: string, pattern?: string): void {
     const cache = this.caches.get(cacheType);
-    if (!cache) return;
+    if (!cache) {return;}
 
     if (pattern) {
       // Remove entries matching pattern
@@ -169,6 +172,8 @@ class QueryCacheManager {
 
   /**
    * Pattern matching for cache key invalidation.
+   * @param key
+   * @param pattern
    */
   private matchesPattern(key: string, pattern: string): boolean {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
@@ -177,6 +182,7 @@ class QueryCacheManager {
 
   /**
    * Estimates memory usage of a cache.
+   * @param cache
    */
   private estimateMemoryUsage(cache: LRUCache<string, any>): string {
     let totalSize = 0;
@@ -195,6 +201,9 @@ export const queryCache = new QueryCacheManager();
 /**
  * Cached query helper function for database operations.
  * Replaces decorator approach for better compatibility.
+ * @param cacheType
+ * @param cacheKey
+ * @param operation
  */
 export function withCache<T>(
   cacheType: string,
@@ -230,6 +239,7 @@ export class CacheInvalidator {
   
   /**
    * Invalidates user-related caches when user data changes.
+   * @param userId
    */
   static invalidateUserCaches(userId: string): void {
     queryCache.invalidate('users', `user:${userId}*`);
@@ -239,6 +249,7 @@ export class CacheInvalidator {
 
   /**
    * Invalidates building-related caches when building data changes.
+   * @param buildingId
    */
   static invalidateBuildingCaches(buildingId: string): void {
     queryCache.invalidate('buildings', `building:${buildingId}*`);
@@ -248,6 +259,7 @@ export class CacheInvalidator {
 
   /**
    * Invalidates residence-related caches when residence data changes.
+   * @param residenceId
    */
   static invalidateResidenceCaches(residenceId: string): void {
     queryCache.invalidate('residences', `residence:${residenceId}*`);
