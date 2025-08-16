@@ -389,8 +389,17 @@ export default function OwnerRoadmap() {
     }
   };
 
-  // Group features by category
+  // Group features by category and strategic path
   const groupedFeatures = features.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
+    // Handle Strategic Path as a special case
+    if ((feature as any).isStrategicPath) {
+      if (!acc['Strategic Path']) {
+        acc['Strategic Path'] = [];
+      }
+      acc['Strategic Path'].push(feature);
+    }
+    
+    // Also group by category
     if (!acc[feature.category]) {
       acc[feature.category] = [];
     }
