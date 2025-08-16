@@ -29,6 +29,7 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', [
   'Performance',
   'Continuous Improvement',
   'Replit AI Agent Monitoring',
+  'Replit App',
 ]);
 
 // Enums for quality metrics effectiveness tracking
