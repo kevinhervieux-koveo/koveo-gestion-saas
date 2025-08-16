@@ -1994,6 +1994,208 @@ export class MemStorage implements IStorage {
     }
     return true;
   }
+
+  // Invitation operations
+  
+  /**
+   * Retrieves all invitations.
+   */
+  async getInvitations(): Promise<Invitation[]> {
+    return Array.from(this.invitations.values());
+  }
+
+  /**
+   * Retrieves a specific invitation by ID.
+   * @param id
+   */
+  async getInvitation(id: string): Promise<Invitation | undefined> {
+    return this.invitations.get(id);
+  }
+
+  /**
+   * Retrieves an invitation by its token.
+   * @param token
+   */
+  async getInvitationByToken(token: string): Promise<Invitation | undefined> {
+    return Array.from(this.invitations.values())
+      .find(invitation => invitation.token === token);
+  }
+
+  /**
+   * Retrieves invitations by email.
+   * @param email
+   */
+  async getInvitationsByEmail(email: string): Promise<Invitation[]> {
+    return Array.from(this.invitations.values())
+      .filter(invitation => invitation.email === email);
+  }
+
+  /**
+   * Retrieves invitations by inviter.
+   * @param userId
+   */
+  async getInvitationsByInviter(userId: string): Promise<Invitation[]> {
+    return Array.from(this.invitations.values())
+      .filter(invitation => invitation.invitedByUserId === userId);
+  }
+
+  /**
+   * Retrieves invitations by status.
+   * @param status
+   */
+  async getInvitationsByStatus(status: 'pending' | 'accepted' | 'expired' | 'cancelled'): Promise<Invitation[]> {
+    return Array.from(this.invitations.values())
+      .filter(invitation => invitation.status === status);
+  }
+
+  /**
+   * Creates a new invitation.
+   * @param invitation
+   */
+  async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
+    const id = randomUUID();
+    const token = randomUUID();
+    const newInvitation: Invitation = {
+      id,
+      ...invitation,
+      token,
+      tokenHash: 'temp-hash',
+      status: 'pending',
+      usageCount: 0,
+      maxUsageCount: 1,
+      acceptedAt: null,
+      acceptedByUserId: null,
+      lastAccessedAt: null,
+      ipAddress: null,
+      userAgent: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as Invitation;
+    this.invitations.set(id, newInvitation);
+    return newInvitation;
+  }
+
+  /**
+   * Updates an invitation.
+   * @param id
+   * @param updates
+   */
+  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
+    const existing = this.invitations.get(id);
+    if (!existing) return undefined;
+    
+    const updated = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.invitations.set(id, updated);
+    return updated;
+  }
+
+  /**
+   * Accepts an invitation.
+   * @param token
+   * @param userData
+   * @param ipAddress
+   * @param userAgent
+   */
+  async acceptInvitation(
+    token: string,
+    userData: { firstName: string; lastName: string; password: string },
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<{ user: User; invitation: Invitation } | null> {
+    const invitation = await this.getInvitationByToken(token);
+    if (!invitation || invitation.status !== 'pending') {
+      return null;
+    }
+
+    // Create user
+    const user = await this.createUser({
+      email: invitation.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      password: userData.password,
+      role: invitation.role,
+      organizationId: invitation.organizationId,
+    });
+
+    // Update invitation
+    const updatedInvitation = await this.updateInvitation(invitation.id, {
+      status: 'accepted',
+      acceptedAt: new Date(),
+      acceptedByUserId: user.id,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
+    });
+
+    return { user, invitation: updatedInvitation! };
+  }
+
+  /**
+   * Cancels an invitation.
+   * @param id
+   * @param cancelledBy
+   */
+  async cancelInvitation(id: string, cancelledBy: string): Promise<Invitation | undefined> {
+    return this.updateInvitation(id, {
+      status: 'cancelled',
+    });
+  }
+
+  /**
+   * Expires old invitations.
+   */
+  async expireInvitations(): Promise<number> {
+    const now = new Date();
+    const expiredInvitations = Array.from(this.invitations.values())
+      .filter(invitation => 
+        invitation.status === 'pending' && 
+        invitation.expiresAt <= now
+      );
+    
+    for (const invitation of expiredInvitations) {
+      await this.updateInvitation(invitation.id, { status: 'expired' });
+    }
+    
+    return expiredInvitations.length;
+  }
+
+  /**
+   * Deletes an invitation.
+   * @param id
+   */
+  async deleteInvitation(id: string): Promise<boolean> {
+    return this.invitations.delete(id);
+  }
+
+  // Invitation Audit Log operations
+  
+  /**
+   * Gets invitation audit logs.
+   * @param invitationId
+   */
+  async getInvitationAuditLogs(invitationId: string): Promise<InvitationAuditLog[]> {
+    return Array.from(this.invitationAuditLogs.values())
+      .filter(log => log.invitationId === invitationId)
+      .sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+  }
+
+  /**
+   * Creates invitation audit log.
+   * @param logEntry
+   */
+  async createInvitationAuditLog(logEntry: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
+    const id = randomUUID();
+    const newLog: InvitationAuditLog = {
+      id,
+      ...logEntry,
+      timestamp: new Date(),
+    } as InvitationAuditLog;
+    this.invitationAuditLogs.set(id, newLog);
+    return newLog;
+  }
 }
 
 // Use database storage if DATABASE_URL is set, otherwise use in-memory storage

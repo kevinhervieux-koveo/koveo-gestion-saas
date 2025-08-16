@@ -2379,7 +2379,7 @@ function validateEmailFormat(email: string): boolean {
  * @param newStatus
  * @param details
  */
-async function createInvitationAuditLog(
+export async function createInvitationAuditLog(
   invitationId: string,
   action: string,
   performedBy?: string,
