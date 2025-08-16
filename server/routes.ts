@@ -1188,17 +1188,41 @@ const qualityAnalyzers: QualityMetricAnalyzer[] = [
   {
     metricName: 'coverage',
     analyze: async (coverage: number) => {
+      const suggestions = [];
+      
       if (coverage < 80) {
-        return [{
+        suggestions.push({
           title: 'Low Code Coverage Detected',
           description: `Current test coverage is ${coverage}%. Target is 80% or higher for quality assurance.`,
           category: 'Testing',
           priority: coverage < 60 ? 'Critical' : 'High',
           status: 'New',
           filePath: null,
-        }];
+        });
       }
-      return [];
+      
+      // Always add a second testing suggestion
+      if (coverage < 90) {
+        suggestions.push({
+          title: 'Test Coverage Enhancement Needed',
+          description: `Consider adding more comprehensive test cases. Current coverage: ${coverage}%. Aim for 90%+ for excellent quality.`,
+          category: 'Testing',
+          priority: 'Medium',
+          status: 'New',
+          filePath: null,
+        });
+      } else {
+        suggestions.push({
+          title: 'Add Performance Tests',
+          description: 'Consider adding performance and load testing to complement your excellent unit test coverage.',
+          category: 'Testing',
+          priority: 'Low',
+          status: 'New',
+          filePath: null,
+        });
+      }
+      
+      return suggestions.slice(0, 2); // Ensure exactly 2 suggestions
     },
   },
   
@@ -1206,17 +1230,47 @@ const qualityAnalyzers: QualityMetricAnalyzer[] = [
   {
     metricName: 'codeQuality',
     analyze: async (grade: string) => {
+      const suggestions = [];
+      
       if (['C', 'D', 'F'].includes(grade)) {
-        return [{
+        suggestions.push({
           title: 'Poor Code Quality Grade',
           description: `Code quality grade is ${grade}. Consider refactoring complex functions and addressing linting issues.`,
           category: 'Code Quality',
           priority: grade === 'F' ? 'Critical' : 'High',
           status: 'New',
           filePath: null,
-        }];
+        });
+        
+        suggestions.push({
+          title: 'Implement Code Review Process',
+          description: 'Establish mandatory code reviews and automated quality checks to prevent quality degradation.',
+          category: 'Code Quality',
+          priority: 'High',
+          status: 'New',
+          filePath: null,
+        });
+      } else {
+        suggestions.push({
+          title: 'Enhance Code Documentation',
+          description: 'Add more comprehensive JSDoc comments and inline documentation for better maintainability.',
+          category: 'Code Quality',
+          priority: 'Medium',
+          status: 'New',
+          filePath: null,
+        });
+        
+        suggestions.push({
+          title: 'Consider Code Refactoring',
+          description: 'Review complex functions and consider breaking them into smaller, more maintainable components.',
+          category: 'Code Quality',
+          priority: 'Low',
+          status: 'New',
+          filePath: null,
+        });
       }
-      return [];
+      
+      return suggestions.slice(0, 2); // Ensure exactly 2 suggestions
     },
   },
   
@@ -1224,36 +1278,76 @@ const qualityAnalyzers: QualityMetricAnalyzer[] = [
   {
     metricName: 'securityIssues',
     analyze: async (issues: number) => {
+      const suggestions = [];
+      
       if (issues > 0) {
-        return [{
+        suggestions.push({
           title: 'Security Vulnerabilities Found',
           description: `Found ${issues} security vulnerabilities in dependencies. Run 'npm audit fix' to address them.`,
           category: 'Security',
           priority: issues > 10 ? 'Critical' : issues > 5 ? 'High' : 'Medium',
           status: 'New',
           filePath: null,
-        }];
+        });
+        
+        suggestions.push({
+          title: 'Security Audit Process',
+          description: 'Implement regular security audits and dependency scanning in your CI/CD pipeline.',
+          category: 'Security',
+          priority: 'High',
+          status: 'New',
+          filePath: null,
+        });
+      } else {
+        suggestions.push({
+          title: 'Enhance Security Headers',
+          description: 'Consider adding additional security headers like CSP, HSTS, and X-Frame-Options.',
+          category: 'Security',
+          priority: 'Medium',
+          status: 'New',
+          filePath: null,
+        });
+        
+        suggestions.push({
+          title: 'Security Testing',
+          description: 'Add security testing and penetration testing to your testing strategy.',
+          category: 'Security',
+          priority: 'Medium',
+          status: 'New',
+          filePath: null,
+        });
       }
-      return [];
+      
+      return suggestions.slice(0, 2); // Ensure exactly 2 suggestions
     },
   },
   
-  // Performance analyzers
+  // Documentation analyzer
   {
-    metricName: 'responseTime',
-    analyze: async (responseTime: string) => {
-      const responseTimeMs = parseInt(responseTime.replace('ms', '') || '0');
-      if (responseTimeMs > 200) {
-        return [{
-          title: 'Slow API Response Time',
-          description: `API response time is ${responseTimeMs}ms. Target is under 200ms for optimal user experience.`,
-          category: 'Performance',
-          priority: responseTimeMs > 500 ? 'High' : 'Medium',
-          status: 'New',
-          filePath: null,
-        }];
-      }
-      return [];
+    metricName: 'documentation',
+    analyze: async (value: any, allMetrics: any) => {
+      const suggestions = [];
+      
+      // Always generate documentation suggestions
+      suggestions.push({
+        title: 'API Documentation Update',
+        description: 'Review and update API documentation to ensure all endpoints are properly documented.',
+        category: 'Documentation',
+        priority: 'Medium',
+        status: 'New',
+        filePath: null,
+      });
+      
+      suggestions.push({
+        title: 'Code Documentation Review',
+        description: 'Ensure all public functions and classes have comprehensive JSDoc documentation.',
+        category: 'Documentation',
+        priority: 'Medium',
+        status: 'New',
+        filePath: null,
+      });
+      
+      return suggestions.slice(0, 2); // Ensure exactly 2 suggestions
     },
   },
   
