@@ -756,7 +756,6 @@ export class MemStorage implements IStorage {
 
     // Initialize default users
     const adminPassword = hashPassword('admin123');
-    const kevinPassword = hashPassword('demo12345');
     const defaultUsers = [
       {
         id: randomUUID(),
@@ -766,20 +765,6 @@ export class MemStorage implements IStorage {
         password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
         role: 'admin',
         language: 'en',
-        phone: null,
-        isActive: true,
-        lastLoginAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        email: 'kevin.hervieux@koveo-gestion.com',
-        firstName: 'Kevin',
-        lastName: 'Hervieux',
-        password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
-        role: 'manager',
-        language: 'fr',
         phone: null,
         isActive: true,
         lastLoginAt: null,
