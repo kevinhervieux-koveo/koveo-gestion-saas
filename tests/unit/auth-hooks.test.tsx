@@ -6,7 +6,7 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAuth } from '../../client/src/hooks/use-auth';
+import { useAuth, AuthProvider } from '../../client/src/hooks/use-auth';
 
 // Mock API client
 jest.mock('../../client/src/lib/queryClient', () => ({
@@ -30,6 +30,7 @@ jest.mock('wouter', () => ({
 
 describe('useAuth Hook Tests', () => {
   let queryClient: QueryClient;
+  let mockApiRequest: jest.Mock;
 
   const createWrapper = () => {
     queryClient = new QueryClient({
@@ -41,12 +42,18 @@ describe('useAuth Hook Tests', () => {
     });
 
     return ({ children }: { children: React.ReactNode }) => (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </QueryClientProvider>
     );
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApiRequest = require('../../client/src/lib/queryClient').apiRequest;
+    mockApiRequest.mockClear();
   });
 
   it('should return authenticated user when logged in', async () => {
@@ -58,10 +65,7 @@ describe('useAuth Hook Tests', () => {
     };
 
     // Mock successful user fetch
-    global.fetch = jest.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockUser,
-    } as Response);
+    mockApiRequest.mockResolvedValueOnce(mockUser);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -77,10 +81,7 @@ describe('useAuth Hook Tests', () => {
 
   it('should return unauthenticated when user fetch fails', async () => {
     // Mock failed user fetch
-    global.fetch = jest.fn().mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-    } as Response);
+    mockApiRequest.mockRejectedValueOnce(new Error('Unauthorized'));
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -91,12 +92,12 @@ describe('useAuth Hook Tests', () => {
     });
 
     expect(result.current.isAuthenticated).toBe(false);
-    expect(result.current.user).toBeUndefined();
+    expect(result.current.user).toBeNull();
   });
 
   it('should handle network errors gracefully', async () => {
     // Mock network error
-    global.fetch = jest.fn().mockRejectedValueOnce(new Error('Network error'));
+    mockApiRequest.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -110,7 +111,7 @@ describe('useAuth Hook Tests', () => {
   });
 
   it('should start with loading state', () => {
-    global.fetch = jest.fn().mockImplementation(() => new Promise(() => {}));
+    mockApiRequest.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -121,37 +122,43 @@ describe('useAuth Hook Tests', () => {
   });
 
   it('should handle logout successfully', async () => {
-    const mockApiRequest = require('../../client/src/lib/queryClient').apiRequest;
-    mockApiRequest.mockResolvedValueOnce({ success: true });
-
+    // First mock for the initial user fetch
+    mockApiRequest.mockResolvedValueOnce(null);
+    
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => {
-      expect(result.current.logout).toBeDefined();
+      expect(result.current.isLoading).toBe(false);
     });
 
+    // Mock logout success
+    mockApiRequest.mockResolvedValueOnce({ success: true });
+    
     // Test logout functionality
-    await result.current.logout.mutateAsync();
+    await result.current.logout();
 
     expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/auth/logout');
   });
 
   it('should handle logout errors', async () => {
-    const mockApiRequest = require('../../client/src/lib/queryClient').apiRequest;
-    mockApiRequest.mockRejectedValueOnce(new Error('Logout failed'));
-
+    // First mock for the initial user fetch
+    mockApiRequest.mockResolvedValueOnce(null);
+    
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => {
-      expect(result.current.logout).toBeDefined();
+      expect(result.current.isLoading).toBe(false);
     });
 
+    // Mock logout error
+    mockApiRequest.mockRejectedValueOnce(new Error('Logout failed'));
+
     try {
-      await result.current.logout.mutateAsync();
+      await result.current.logout();
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
     }
