@@ -51,7 +51,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { User } from '@shared/schema';
 
 /**
- *
+ * Props for the UserListComponent.
+ * Manages user display, selection, and bulk actions.
  */
 interface UserListComponentProps {
   users: User[];
@@ -62,7 +63,8 @@ interface UserListComponentProps {
 }
 
 /**
- *
+ * Props for the EditUserDialog component.
+ * Handles user role and status editing functionality.
  */
 interface EditUserDialogProps {
   user: User | null;
@@ -74,13 +76,14 @@ interface EditUserDialogProps {
 /**
  * Edit User Dialog Component
  * Allows editing user role and status.
- * @param root0
- * @param root0.user
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.onSuccess
+ * @param root0 - The props object.
+ * @param root0.user - The user to edit.
+ * @param root0.open - Whether the dialog is open.
+ * @param root0.onOpenChange - Callback when dialog open state changes.
+ * @param root0.onSuccess - Callback when user is successfully updated.
+ * @returns JSX element for the edit user dialog.
  */
-function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
+function EditUserDialog({ user, _open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [role, setRole] = useState(user?.role || '');
@@ -183,12 +186,13 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
 /**
  * User List Component
  * Displays users in a responsive table with selection and actions.
- * @param root0
- * @param root0.users
- * @param root0.selectedUsers
- * @param root0.onSelectionChange
- * @param root0.onBulkAction
- * @param root0.isLoading
+ * @param root0 - The props object.
+ * @param root0.users - Array of users to display.
+ * @param root0.selectedUsers - Set of selected user IDs.
+ * @param root0.onSelectionChange - Callback when selection changes.
+ * @param root0.onBulkAction - Callback for bulk actions on users.
+ * @param root0.isLoading - Whether the list is in loading state.
+ * @returns JSX element for the user list component.
  */
 export function UserListComponent({ 
   users, 

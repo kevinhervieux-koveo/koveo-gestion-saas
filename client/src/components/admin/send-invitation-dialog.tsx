@@ -72,16 +72,19 @@ const bulkInvitationSchema = z.object({
 });
 
 /**
- *
+ * Form data type for single invitation.
+ * Inferred from the invitation Zod schema.
  */
 type InvitationFormData = z.infer<typeof invitationSchema>;
 /**
- *
+ * Form data type for bulk invitations.
+ * Inferred from the bulk invitation Zod schema.
  */
 type BulkInvitationFormData = z.infer<typeof bulkInvitationSchema>;
 
 /**
- *
+ * Props for the SendInvitationDialog component.
+ * Controls dialog visibility and success handling.
  */
 interface SendInvitationDialogProps {
   open: boolean;
@@ -90,7 +93,8 @@ interface SendInvitationDialogProps {
 }
 
 /**
- *
+ * Organization interface for organization selection.
+ * Contains basic organization information.
  */
 interface Organization {
   id: string;
@@ -243,7 +247,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     onSuccess: (data) => {
       const successCount = data.results?.length || 0;
-      const _errorCount = data.errors?.length || 0;
+      const errorCount = data.errors?.length || 0;
       
       toast({
         title: t('bulkInvitationsSent'),

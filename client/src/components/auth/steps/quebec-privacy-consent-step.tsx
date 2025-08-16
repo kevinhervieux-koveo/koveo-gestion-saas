@@ -8,7 +8,8 @@ import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
 /**
- *
+ * Interface for Quebec privacy consent step data.
+ * Contains consent checkboxes and acknowledgment flags for Law 25 compliance.
  */
 interface QuebecPrivacyConsentData {
   dataCollectionConsent: boolean;
@@ -25,10 +26,11 @@ interface QuebecPrivacyConsentData {
  * 
  * Collects explicit consent for data processing activities
  * in compliance with Quebec's Law 25 (Bill 64) privacy requirements.
- * @param root0
- * @param root0.data
- * @param root0.onDataChange
- * @param root0.onValidationChange
+ * @param root0 - The wizard step props.
+ * @param root0.data - Current step data.
+ * @param root0.onDataChange - Callback when step data changes.
+ * @param root0.onValidationChange - Callback when validation status changes.
+ * @returns JSX element for the Quebec privacy consent step.
  */
 export function QuebecPrivacyConsentStep({ 
   data, 

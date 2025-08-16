@@ -560,7 +560,7 @@ ${formData.additionalNotes || 'No additional notes'}
             const draftData = JSON.parse(localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
               localStorage.removeItem(key);
-              console.log('Cleared invalid draft:', key);
+              console.warn('Cleared invalid draft:', key);
             }
           } catch (error) {
             // Invalid JSON, remove it

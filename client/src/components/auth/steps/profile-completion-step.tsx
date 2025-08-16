@@ -9,7 +9,8 @@ import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
 /**
- *
+ * Interface for profile completion step data.
+ * Contains user profile information for registration.
  */
 interface ProfileCompletionData {
   firstName: string;
@@ -30,10 +31,11 @@ interface ProfileCompletionData {
  * 
  * Collects user profile information required for Quebec property management.
  * Includes address validation and bilingual support.
- * @param root0
- * @param root0.data
- * @param root0.onDataChange
- * @param root0.onValidationChange
+ * @param root0 - The wizard step props.
+ * @param root0.data - Current step data.
+ * @param root0.onDataChange - Callback when step data changes.
+ * @param root0.onValidationChange - Callback when validation status changes.
+ * @returns JSX element for the profile completion step.
  */
 export function ProfileCompletionStep({ 
   data, 

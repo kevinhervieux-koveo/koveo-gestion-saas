@@ -7,7 +7,8 @@ import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
 /**
- *
+ * Interface for token validation step data.
+ * Contains invitation token details and validation status.
  */
 interface TokenValidationData {
   token: string;
@@ -25,10 +26,11 @@ interface TokenValidationData {
  * 
  * Validates invitation token and displays invitation details.
  * Handles expired, invalid, and malformed tokens with appropriate feedback.
- * @param root0
- * @param root0.data
- * @param root0.onDataChange
- * @param root0.onValidationChange
+ * @param root0 - The wizard step props.
+ * @param root0.data - Current step data.
+ * @param root0.onDataChange - Callback when step data changes.
+ * @param root0.onValidationChange - Callback when validation status changes.
+ * @returns JSX element for the token validation step.
  */
 export function TokenValidationStep({ 
   data, 

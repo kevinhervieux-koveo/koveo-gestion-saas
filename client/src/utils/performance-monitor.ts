@@ -3,7 +3,8 @@
  * Tracks performance metrics and provides optimization insights.
  */
 
-import { useEffect } from 'react';\nimport { memoryOptimizer, getMemoryUsage } from './memory-monitor';
+import { useEffect } from 'react';
+import { memoryOptimizer, getMemoryUsage } from './memory-monitor';
 
 /**
  * Performance metrics interface.
@@ -184,7 +185,7 @@ export const performanceMonitor = new PerformanceMonitor();
  * @param componentName Name of the component to track
  */
 export function usePerformanceTracking(componentName: string): void {
-  React.useEffect(() => {
+  useEffect(() => {
     performanceMonitor.markComponentLoadStart(componentName);
     
     return () => {
@@ -199,20 +200,17 @@ export function usePerformanceTracking(componentName: string): void {
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();
   
-  console.group('Performance Analysis');
-  console.log('Load Time:', metrics.loadTime ? `${metrics.loadTime}ms` : 'N/A');
-  console.log('DOM Content Loaded:', metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A');
-  console.log('First Contentful Paint:', metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A');
-  console.log('Memory Usage:', metrics.memoryUsage ? `${metrics.memoryUsage}MB` : 'N/A');
+  console.warn('Performance Analysis');
+  console.warn('Load Time:', metrics.loadTime ? `${metrics.loadTime}ms` : 'N/A');
+  console.warn('DOM Content Loaded:', metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A');
+  console.warn('First Contentful Paint:', metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A');
+  console.warn('Memory Usage:', metrics.memoryUsage ? `${metrics.memoryUsage}MB` : 'N/A');
   
   if (metrics.componentLoadTimes) {
-    console.log('Component Load Times:');
+    console.warn('Component Load Times:');
     Object.entries(metrics.componentLoadTimes).forEach(([name, time]) => {
-      console.log(`  ${name}: ${time.toFixed(2)}ms`);
+      console.warn(`  ${name}: ${time.toFixed(2)}ms`);
     });
-  }
-  
-  console.groupEnd();
   
   // Provide optimization suggestions
   const suggestions = [];
@@ -236,8 +234,7 @@ export function analyzePerformance(): void {
   }
   
   if (suggestions.length > 0) {
-    console.group('Optimization Suggestions');
-    suggestions.forEach(suggestion => console.log('•', suggestion));
-    console.groupEnd();
+    console.warn('Optimization Suggestions:');
+    suggestions.forEach(suggestion => console.warn('•', suggestion));
   }
 }

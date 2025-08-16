@@ -9,7 +9,8 @@ import {
 } from '@/utils/password-validation';
 
 /**
- *
+ * Props for the PasswordStrengthIndicator component.
+ * Displays real-time password strength validation and criteria.
  */
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -135,7 +136,8 @@ export function PasswordStrengthIndicator({
 }
 
 /**
- *
+ * Props for the CriteriaItem component.
+ * Displays individual password criteria with status indicator.
  */
 interface CriteriaItemProps {
   met: boolean;
@@ -143,10 +145,11 @@ interface CriteriaItemProps {
 }
 
 /**
- *
- * @param root0
- * @param root0.met
- * @param root0.text
+ * Displays an individual password criteria item with check/x icon.
+ * Shows whether the criterion is met with appropriate styling.
+ * @param root0 - The props object.
+ * @param root0.met - Whether the password criterion is satisfied.
+ * @param root0.text - The text description of the criterion.
  */
 function CriteriaItem({ met, text }: CriteriaItemProps) {
   return (

@@ -244,7 +244,7 @@ export default function OwnerDocumentation() {
         30 * 60 * 1000
       ); // 30 minutes
 
-      console.log('📄 Documentation auto-refresh enabled (every 30 minutes)');
+      console.warn('📄 Documentation auto-refresh enabled (every 30 minutes)');
     }
 
     return () => {

@@ -7,7 +7,8 @@ import { CheckCircle, Circle, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-
 import { useLanguage } from '@/hooks/use-language';
 
 /**
- *
+ * Represents a single step in the registration wizard process.
+ * Contains metadata and validation state for each step.
  */
 export interface WizardStep {
   id: string;
@@ -20,7 +21,8 @@ export interface WizardStep {
 }
 
 /**
- *
+ * Props passed to each wizard step component.
+ * Provides data handling and navigation callbacks.
  */
 export interface WizardStepProps {
   data: any;
@@ -32,7 +34,8 @@ export interface WizardStepProps {
 }
 
 /**
- *
+ * Props for the main RegistrationWizard component.
+ * Configures the wizard steps and completion handlers.
  */
 interface RegistrationWizardProps {
   steps: WizardStep[];
@@ -96,7 +99,7 @@ export function RegistrationWizard({
 
   // Handle data changes from step components
   const handleDataChange = (stepData: any) => {
-    setWizardData(prevData => ({
+    setWizardData((prevData: any) => ({
       ...prevData,
       [currentStep.id]: stepData
     }));

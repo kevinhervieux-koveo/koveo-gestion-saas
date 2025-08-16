@@ -10,7 +10,8 @@ import { validatePasswordStrength } from '@/utils/password-validation';
 import type { WizardStepProps } from '../registration-wizard';
 
 /**
- *
+ * Interface for password creation step data.
+ * Contains password validation and confirmation fields.
  */
 interface PasswordCreationData {
   password: string;
@@ -24,10 +25,11 @@ interface PasswordCreationData {
  * 
  * Secure password creation with strength validation and confirmation.
  * Implements Quebec-compliant security standards for property management.
- * @param root0
- * @param root0.data
- * @param root0.onDataChange
- * @param root0.onValidationChange
+ * @param root0 - The wizard step props.
+ * @param root0.data - Current step data.
+ * @param root0.onDataChange - Callback when step data changes.
+ * @param root0.onValidationChange - Callback when validation status changes.
+ * @returns JSX element for the password creation step.
  */
 export function PasswordCreationStep({ 
   data, 

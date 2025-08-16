@@ -24,7 +24,8 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 /**
- *
+ * Interface for AI interaction data.
+ * Tracks AI agent activities and performance metrics.
  */
 interface AIInteraction {
   id: string;
@@ -38,7 +39,8 @@ interface AIInteraction {
 }
 
 /**
- *
+ * Interface for AI metrics data.
+ * Contains performance statistics and improvement tracking.
  */
 interface AIMetrics {
   totalInteractions: number;
@@ -52,7 +54,8 @@ interface AIMetrics {
 }
 
 /**
- *
+ * Interface for AI-generated insights.
+ * Contains recommendations and improvement suggestions.
  */
 interface AIInsight {
   id: string;
@@ -66,14 +69,18 @@ interface AIInsight {
 }
 
 /**
- *
+ * Replit AI Monitoring Component.
+ * 
+ * Displays AI agent performance metrics, interactions, and generated insights.
+ * Provides interface for triggering AI analysis and applying suggestions.
+ * @returns JSX element for the AI monitoring dashboard.
  */
 export function ReplitAIMonitoring() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   
   // Fetch AI metrics
-  const { data: metrics, isLoading: _metricsLoading } = useQuery<AIMetrics>({
+  const { data: metrics, isLoading: metricsLoading } = useQuery<AIMetrics>({
     queryKey: ['/api/ai/metrics'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });

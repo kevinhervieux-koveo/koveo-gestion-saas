@@ -72,13 +72,11 @@ interface UserManagementData {
  * roles, and permissions with real-time updates and accessibility compliance.
  */
 export default function UserManagement() {
-  console.log('🔍 UserManagement component loading...');
   const { user: currentUser, hasRole, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  console.log('🔍 UserManagement auth state:', { currentUser, authLoading, hasRole: typeof hasRole });
   
   // State management
   const [selectedTab, setSelectedTab] = useState('users');
@@ -88,19 +86,11 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
   
-  // Debug: Log the current state
-  console.log('UserManagement render:', {
-    authLoading,
-    currentUser,
-    userRole: currentUser?.role,
-    isManager: currentUser?.role === 'manager',
-    isAdmin: currentUser?.role === 'admin'
-  });
+  // Track current state for debugging
   
   // Check permissions after auth is loaded - use hasRole for better reliability
   const canManageUsers = hasRole(['admin', 'manager']);
   
-  console.log('Permission check:', { canManageUsers, hasRoleAdmin: hasRole('admin'), hasRoleManager: hasRole('manager') });
 
   // Fetch user management data
   const { 
