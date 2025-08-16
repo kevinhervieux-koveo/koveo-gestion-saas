@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Copy, FileText, Zap, Save, Clock, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -140,6 +141,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
     featureName: '',
     featureCategory: 'Compliance & Security', // Default to a valid category
     featureDescription: '',
+    isStrategicPath: false,
     
     // General questions
     businessObjective: '',
@@ -250,7 +252,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * @param field
    * @param value
    */
-  const updateFormData = (field: string, value: string) => {
+  const updateFormData = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
@@ -440,6 +442,7 @@ ${formData.additionalNotes || 'No additional notes'}
         technicalComplexity: formData.complexity || undefined,
         dependencies: formData.dependencies || undefined,
         userFlow: formData.userFlow || undefined,
+        isStrategicPath: formData.isStrategicPath,
       };
       
       createFeatureMutation.mutate(featureData);
@@ -463,7 +466,8 @@ ${formData.additionalNotes || 'No additional notes'}
       featureName: '',
       featureCategory: 'Compliance & Security', // Default to a valid category
       featureDescription: '',
-      businessObjective: '',
+      isStrategicPath: false,
+      businessObjective: ''
       targetUsers: '',
       successMetrics: '',
       priority: '',
@@ -646,6 +650,18 @@ ${formData.additionalNotes || 'No additional notes'}
                     value={formData.featureDescription || ''}
                     onChange={(e) => updateFormData('featureDescription', e.target.value)}
                   />
+                </div>
+                
+                {/* Strategic Path Toggle */}
+                <div className='flex items-center gap-3 pt-2'>
+                  <Label htmlFor='strategic-path' className='text-sm font-medium'>Strategic Path:</Label>
+                  <Switch
+                    id='strategic-path'
+                    checked={formData.isStrategicPath}
+                    onCheckedChange={(checked) => updateFormData('isStrategicPath', checked)}
+                    className='scale-90'
+                  />
+                  <span className='text-xs text-gray-500'>Mark this feature as part of the strategic roadmap</span>
                 </div>
               </div>
             )}
