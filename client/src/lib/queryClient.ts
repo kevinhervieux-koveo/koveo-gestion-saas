@@ -1,4 +1,5 @@
-import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack/react-query';
+import { memoryOptimizer } from '@/utils/memory-monitor';
 
 /**
  * Throws an error if the HTTP response is not successful (status not ok).
@@ -73,7 +74,7 @@ export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryF
 /**
  * Global React Query client instance with configured defaults.
  * Provides centralized data fetching, caching, and synchronization for the application.
- * Configured with custom error handling and disabled automatic refetching.
+ * Configured with custom error handling and optimized memory management.
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,11 +82,35 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      // Allow data to become stale after 5 minutes to enable garbage collection
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Cache data for 10 minutes before removal
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       retry: false,
     },
     mutations: {
       retry: false,
+      // Don't cache mutation results indefinitely
+      gcTime: 2 * 60 * 1000, // 2 minutes
     },
   },
+  // Limit query cache size to prevent memory bloat
+  queryCache: new QueryCache({
+    onError: (error) => {
+      console.error('Query error:', error);
+    },
+    // Limit cache size to prevent memory accumulation
+    onRemove: (query) => {
+      console.debug('Query removed from cache:', query.queryKey);
+    },
+  }),
+  // Limit mutation cache size
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      console.error('Mutation error:', error);
+    },
+    onRemove: (mutation) => {
+      console.debug('Mutation removed from cache:', mutation.mutationId);
+    },
+  }),
 });

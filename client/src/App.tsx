@@ -7,40 +7,98 @@ import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import { lazy, Suspense, useEffect } from 'react';
+import { memoryOptimizer } from '@/utils/memory-monitor';
+import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 
-// Lazy-loaded Owner pages
-const OwnerDashboard = lazy(() => import('@/pages/owner/dashboard'));
-const OwnerDocumentation = lazy(() => import('@/pages/owner/documentation'));
-const OwnerPillars = lazy(() => import('@/pages/owner/pillars'));
-const OwnerRoadmap = lazy(() => import('@/pages/owner/roadmap'));
-const OwnerQuality = lazy(() => import('@/pages/owner/quality'));
-const OwnerSuggestions = lazy(() => import('@/pages/owner/suggestions'));
+// Optimized lazy-loaded Owner pages
+const OwnerDashboard = optimizedPageLoaders.OwnerDashboard;
+const OwnerDocumentation = createOptimizedLoader(
+  () => import('@/pages/owner/documentation'),
+  'owner-documentation',
+  { enableMemoryCleanup: true }
+);
+const OwnerPillars = createOptimizedLoader(
+  () => import('@/pages/owner/pillars'),
+  'owner-pillars',
+  { enableMemoryCleanup: true }
+);
+const OwnerRoadmap = optimizedPageLoaders.OwnerRoadmap;
+const OwnerQuality = optimizedPageLoaders.OwnerQuality;
+const OwnerSuggestions = createOptimizedLoader(
+  () => import('@/pages/owner/suggestions'),
+  'owner-suggestions',
+  { enableMemoryCleanup: true }
+);
 
-// Lazy-loaded Manager pages
-const ManagerBuildings = lazy(() => import('@/pages/manager/buildings'));
-const ManagerResidences = lazy(() => import('@/pages/manager/residences'));
-const ManagerBudget = lazy(() => import('@/pages/manager/budget'));
-const ManagerBills = lazy(() => import('@/pages/manager/bills'));
-const ManagerDemands = lazy(() => import('@/pages/manager/demands'));
+// Optimized lazy-loaded Manager pages
+const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
+const ManagerResidences = optimizedPageLoaders.ManagerResidences;
+const ManagerBudget = createOptimizedLoader(
+  () => import('@/pages/manager/budget'),
+  'manager-budget',
+  { enableMemoryCleanup: true }
+);
+const ManagerBills = createOptimizedLoader(
+  () => import('@/pages/manager/bills'),
+  'manager-bills',
+  { enableMemoryCleanup: true }
+);
+const ManagerDemands = createOptimizedLoader(
+  () => import('@/pages/manager/demands'),
+  'manager-demands',
+  { enableMemoryCleanup: true }
+);
 
-// Lazy-loaded Residents pages
-const ResidentsDashboard = lazy(() => import('@/pages/residents/dashboard'));
-const ResidentsResidence = lazy(() => import('@/pages/residents/residence'));
-const ResidentsBuilding = lazy(() => import('@/pages/residents/building'));
-const ResidentsDemands = lazy(() => import('@/pages/residents/demands'));
+// Optimized lazy-loaded Residents pages
+const ResidentsDashboard = optimizedPageLoaders.ResidentsDashboard;
+const ResidentsResidence = createOptimizedLoader(
+  () => import('@/pages/residents/residence'),
+  'residents-residence',
+  { enableMemoryCleanup: true }
+);
+const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
+const ResidentsDemands = createOptimizedLoader(
+  () => import('@/pages/residents/demands'),
+  'residents-demands',
+  { enableMemoryCleanup: true }
+);
 
-// Lazy-loaded Settings pages
-const SettingsSettings = lazy(() => import('@/pages/settings/settings'));
-const SettingsBugReports = lazy(() => import('@/pages/settings/bug-reports'));
-const SettingsIdeaBox = lazy(() => import('@/pages/settings/idea-box'));
+// Optimized lazy-loaded Settings pages
+const SettingsSettings = createOptimizedLoader(
+  () => import('@/pages/settings/settings'),
+  'settings-settings',
+  { enableMemoryCleanup: true }
+);
+const SettingsBugReports = createOptimizedLoader(
+  () => import('@/pages/settings/bug-reports'),
+  'settings-bug-reports',
+  { enableMemoryCleanup: true }
+);
+const SettingsIdeaBox = createOptimizedLoader(
+  () => import('@/pages/settings/idea-box'),
+  'settings-idea-box',
+  { enableMemoryCleanup: true }
+);
 
-// Lazy-loaded Legacy pages
-const PillarsPage = lazy(() => import('@/pages/pillars'));
-const NotFound = lazy(() => import('@/pages/not-found'));
+// Optimized lazy-loaded Legacy pages
+const PillarsPage = createOptimizedLoader(
+  () => import('@/pages/pillars'),
+  'pillars-page',
+  { enableMemoryCleanup: true }
+);
+const NotFound = createOptimizedLoader(
+  () => import('@/pages/not-found'),
+  'not-found',
+  { enableMemoryCleanup: true }
+);
 
-// Authentication pages
-const LoginPage = lazy(() => import('@/pages/auth/login'));
+// Authentication pages (high priority)
+const LoginPage = createOptimizedLoader(
+  () => import('@/pages/auth/login'),
+  'login-page',
+  { preloadDelay: 500, enableMemoryCleanup: true }
+);
 
 // Redirect component for root route
 /**
@@ -138,6 +196,16 @@ function Router() {
  * Wraps the application with all necessary providers including authentication.
  */
 function App() {
+  // Initialize memory monitoring on app start
+  useEffect(() => {
+    memoryOptimizer.start();
+    
+    // Cleanup on unmount
+    return () => {
+      memoryOptimizer.stop();
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
