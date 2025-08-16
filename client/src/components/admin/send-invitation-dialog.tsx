@@ -42,9 +42,6 @@ import {
   Users, 
   Mail, 
   Building, 
-  Shield,
-  Calendar,
-  MessageSquare,
   X,
   Plus
 } from 'lucide-react';
@@ -87,7 +84,7 @@ type BulkInvitationFormData = z.infer<typeof bulkInvitationSchema>;
  */
 interface SendInvitationDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   onSuccess: () => void;
 }
 
@@ -100,15 +97,6 @@ interface Organization {
   type: string;
 }
 
-/**
- *
- */
-interface Building {
-  id: string;
-  name: string;
-  address: string;
-  organizationId: string;
-}
 
 /**
  * Send Invitation Dialog Component.

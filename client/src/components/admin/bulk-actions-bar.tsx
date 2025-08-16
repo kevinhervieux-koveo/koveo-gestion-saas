@@ -69,9 +69,11 @@ interface BulkAction {
  * 
  * Provides bulk operations for selected users with confirmation dialogs
  * and appropriate permissions checking.
- * @param root0
- * @param root0.selectedCount
- * @param root0.onBulkAction
+ * @param root0 - The component props.
+ * @param root0.selectedCount - Number of selected items.
+ * @param root0.onBulkAction - Callback for bulk actions.
+ * @param root0.isLoading - Loading state indicator.
+ * @returns JSX element for the bulk actions bar.
  * @param root0.isLoading
  */
 export function BulkActionsBar({ 

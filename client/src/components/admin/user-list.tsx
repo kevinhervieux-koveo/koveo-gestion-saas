@@ -41,13 +41,11 @@ import {
 } from '@/components/ui/select';
 import { 
   MoreHorizontal, 
-  Shield, 
   UserX, 
   UserCheck, 
   Edit, 
   Trash2,
-  Mail,
-  Calendar
+  Mail
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@shared/schema';
@@ -58,8 +56,8 @@ import type { User } from '@shared/schema';
 interface UserListComponentProps {
   users: User[];
   selectedUsers: Set<string>;
-  onSelectionChange: (selection: Set<string>) => void;
-  onBulkAction: (action: string, data?: any) => Promise<void>;
+  onSelectionChange: (_selection: Set<string>) => void;
+  onBulkAction: (_action: string, _data?: any) => Promise<void>;
   isLoading?: boolean;
 }
 

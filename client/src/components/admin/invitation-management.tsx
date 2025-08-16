@@ -71,7 +71,7 @@ interface Invitation {
  */
 interface InvitationManagementProps {
   invitations: Invitation[];
-  onSendReminder: (invitationId: string) => void;
+  onSendReminder: (_invitationId: string) => void;
   onRefresh: () => void;
   isLoading?: boolean;
 }
@@ -79,11 +79,12 @@ interface InvitationManagementProps {
 /**
  * Invitation Management Component
  * Displays and manages user invitations with actions for reminders, cancellation, etc.
- * @param root0
- * @param root0.invitations
- * @param root0.onSendReminder
- * @param root0.onRefresh
- * @param root0.isLoading
+ * @param root0 - The component props.
+ * @param root0.invitations - Array of invitation objects.
+ * @param root0.onSendReminder - Callback for sending invitation reminders.
+ * @param root0.onRefresh - Callback to refresh the invitation list.
+ * @param root0.isLoading - Loading state indicator.
+ * @returns JSX element for the invitation management interface.
  */
 export function InvitationManagement({ 
   invitations, 

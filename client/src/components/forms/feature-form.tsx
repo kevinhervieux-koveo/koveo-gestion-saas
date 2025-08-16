@@ -30,7 +30,7 @@ import type { Feature } from '@shared/schema';
 interface FeatureFormProps {
   feature: Feature | null;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
 }
 
 /**

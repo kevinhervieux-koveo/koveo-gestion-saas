@@ -5,9 +5,7 @@ import {
   getPasswordCriteria,
   getPasswordStrengthLabel,
   getPasswordStrengthColor,
-  getPasswordStrengthBarColor,
-  type PasswordStrengthResult,
-  type PasswordCriteria
+  getPasswordStrengthBarColor
 } from '@/utils/password-validation';
 
 /**
