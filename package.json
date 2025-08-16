@@ -74,7 +74,15 @@
     "analyze:bundle": "vite build --mode analyze",
     "analyze:deps": "npx depcheck",
     "audit:security": "npm audit --audit-level=high",
-    "audit:licenses": "npx license-checker --summary"
+    "audit:licenses": "npx license-checker --summary",
+    "security:audit": "npm audit --json > security-audit.json && node -e 'const audit = require(\"./security-audit.json\"); console.log(JSON.stringify(audit.metadata, null, 2))'",
+    "security:scan": "npm audit --audit-level=info",
+    "security:fix": "npm audit fix --only=prod",
+    "security:quebec": "tsx scripts/quebec-security-check.ts",
+    "security:auth-test": "tsx scripts/test-auth-security.ts",
+    "security:report": "tsx scripts/generate-security-report.ts",
+    "deps:update-security": "npm audit fix && npm run security:audit",
+    "deps:check-outdated": "npm outdated --json > outdated-deps.json || echo 'No outdated packages found'"
   },
   "dependencies": {
     "@commitlint/cli": "^19.8.1",
