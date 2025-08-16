@@ -105,7 +105,7 @@ const translations: Record<Language, Translations> = {
     workflowSetup: 'Workflow Setup',
     configuration: 'Configuration',
     developer: 'Developer',
-    frameworkAdmin: 'Framework Admin',
+    frameworkAdmin: 'Admin',
     developmentFrameworkInitialization: 'Development Framework Initialization',
     settingUpPillarMethodology: 'Setting up Pillar Methodology for Koveo Gestion Platform',
     workspaceActive: 'Workspace Active',
@@ -192,7 +192,7 @@ const translations: Record<Language, Translations> = {
     workflowSetup: 'Configuration du flux de travail',
     configuration: 'Configuration',
     developer: 'Développeur',
-    frameworkAdmin: 'Administrateur du cadre',
+    frameworkAdmin: 'Admin',
     developmentFrameworkInitialization: 'Initialisation du cadre de développement',
     settingUpPillarMethodology:
       'Mise en place de la méthodologie des piliers pour la plateforme Koveo Gestion',
