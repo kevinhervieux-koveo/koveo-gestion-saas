@@ -167,11 +167,22 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     { name: t('dashboard'), href: '/dashboard', icon: Home },
   ];
 
-  const menuSections = [
+  // Helper function to check if user has role or higher
+  const hasRoleOrHigher = (requiredRole: string): boolean => {
+    if (!user?.role) return false;
+    const roleHierarchy = { tenant: 1, manager: 2, admin: 3 };
+    const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
+    const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
+    return userLevel >= requiredLevel;
+  };
+
+  // Filter menu sections based on user role
+  const getAllMenuSections = () => [
     {
       name: 'Residents',
       key: 'residents',
       icon: Users,
+      requiredRole: 'tenant',
       items: [
         { name: 'My Residence', href: '/residents/residence', icon: Home },
         { name: 'My Building', href: '/residents/building', icon: Building },
@@ -182,19 +193,21 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       name: 'Manager',
       key: 'manager',
       icon: Building,
+      requiredRole: 'manager',
       items: [
         { name: 'Buildings', href: '/manager/buildings', icon: Building },
         { name: 'Residences', href: '/manager/residences', icon: Home },
         { name: 'Budget', href: '/manager/budget', icon: DollarSign },
         { name: 'Bills', href: '/manager/bills', icon: FileText },
         { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
-        { name: 'User Management', href: '/manager/user-management', icon: UserPlus },
+        { name: 'User Management', href: '/manager/user-management', icon: UserPlus, requiredRole: 'manager' },
       ],
     },
     {
       name: 'Admin',
       key: 'admin',
       icon: User,
+      requiredRole: 'admin',
       items: [
         { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
         { name: 'Documentation', href: '/admin/documentation', icon: FileText },
@@ -202,12 +215,14 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
         { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
+        { name: 'User Management', href: '/admin/user-management', icon: UserPlus, requiredRole: 'admin' },
       ],
     },
     {
       name: 'Settings',
       key: 'settings',
       icon: Settings,
+      requiredRole: 'tenant',
       items: [
         { name: 'Settings', href: '/settings/settings', icon: Settings },
         { name: 'Bug Reports', href: '/settings/bug-reports', icon: AlertCircle },
@@ -215,6 +230,13 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       ],
     },
   ];
+
+  const menuSections = getAllMenuSections()
+    .filter(section => hasRoleOrHigher(section.requiredRole))
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => !item.requiredRole || hasRoleOrHigher(item.requiredRole))
+    }));
 
   return (
     <>
