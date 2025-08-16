@@ -723,7 +723,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor="targetUsers">Target Users *</Label>
                   <Input
                     id="targetUsers"
-                    placeholder="e.g., Property managers, Tenants, Board members"
+                    placeholder="e.g., Property managers, Tenants, Owners"
                     value={formData.targetUsers}
                     onChange={(e) => updateFormData('targetUsers', e.target.value)}
                   />

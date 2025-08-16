@@ -418,7 +418,6 @@ export default function Permissions() {
                         <li>• <strong>Admin</strong>: Full system access</li>
                         <li>• <strong>Manager</strong>: Building and resident management</li>
                         <li>• <strong>Owner</strong>: Property oversight and reports</li>
-                        <li>• <strong>Board Member</strong>: Meeting and document access</li>
                         <li>• <strong>Tenant</strong>: Personal data and maintenance requests</li>
                       </ul>
                     </div>

@@ -382,7 +382,7 @@ export default function OwnerRoadmap() {
 
 ## 👥 User Context
 **Who will use this feature?**
-[Target users: Property managers, Tenants, Board members, etc.]
+[Target users: Property managers, Tenants, Owners, etc.]
 
 **How will they use it?**
 [Describe the user's workflow and interaction]
