@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, DollarSign, Users, FileText, AlertCircle } from 'lucide-react';
+import { Building, DollarSign, Users, FileText, AlertCircle, Terminal } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useQuery } from '@tanstack/react-query';
 import type { Organization, User } from '@shared/schema';
@@ -35,6 +35,17 @@ export default function Dashboard() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='Owner Dashboard' subtitle='Property management overview and insights' />
+
+      {/* Refresh Command */}
+      <div className='border-b bg-gray-50 px-6 py-3'>
+        <div className='max-w-7xl mx-auto'>
+          <div className='flex items-center gap-2 text-sm text-gray-600'>
+            <Terminal className='h-4 w-4' />
+            <span className='font-medium'>Refresh Command:</span>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run validate:quick</code>
+          </div>
+        </div>
+      </div>
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>

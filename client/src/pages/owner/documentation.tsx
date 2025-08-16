@@ -16,6 +16,7 @@ import {
   AlertCircle,
   RefreshCw,
   Clock,
+  Terminal,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -619,6 +620,17 @@ This documentation provides a complete technical portrait of the Koveo Gestion p
         title='Documentation Center'
         subtitle='Generate and export comprehensive project documentation'
       />
+
+      {/* Refresh Command */}
+      <div className='border-b bg-gray-50 px-6 py-3'>
+        <div className='max-w-7xl mx-auto'>
+          <div className='flex items-center gap-2 text-sm text-gray-600'>
+            <Terminal className='h-4 w-4' />
+            <span className='font-medium'>Refresh Command:</span>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run docs:generate</code>
+          </div>
+        </div>
+      </div>
 
       {/* Auto-refresh status bar */}
       <div className='px-6 py-2 bg-gray-50 border-b'>
