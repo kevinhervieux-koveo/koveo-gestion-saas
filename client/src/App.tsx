@@ -208,16 +208,30 @@ function Router() {
 
   // Home page and public routes - always without sidebar
   const isHomePage = location === '/';
+  const isPublicRoute = isHomePage || location === '/login' || location === '/accept-invitation';
   
-  if (isHomePage || !isAuthenticated) {
+  if (!isAuthenticated) {
+    if (isPublicRoute) {
+      return (
+        <Suspense fallback={<LoadingSpinner />}>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/login" component={LoginPage} />
+            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
+      );
+    } else {
+      // Redirect unauthenticated users accessing protected routes to home page
+      return <HomeRedirect />;
+    }
+  }
+  
+  if (isHomePage) {
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-          <Route component={NotFound} />
-        </Switch>
+        <HomePage />
       </Suspense>
     );
   }
@@ -317,6 +331,21 @@ function LoginRedirect() {
   
   useEffect(() => {
     setLocation('/dashboard');
+  }, [setLocation]);
+  
+  return <LoadingSpinner />;
+}
+
+/**
+ * Home redirect component for unauthenticated users.
+ * Redirects unauthenticated users from protected routes to home page.
+ * @returns JSX element that shows loading while redirecting.
+ */
+function HomeRedirect() {
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    setLocation('/');
   }, [setLocation]);
   
   return <LoadingSpinner />;
