@@ -109,7 +109,7 @@ export default function UserManagement() {
       return response.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
-    enabled: canManageUsers
+    enabled: !!canManageUsers
   });
 
   // Bulk action mutations
@@ -220,11 +220,11 @@ export default function UserManagement() {
     );
   }
 
-  const users = managementData?.users || [];
-  const invitations = managementData?.invitations || [];
+  const users = (managementData as any)?.users || [];
+  const invitations = (managementData as any)?.invitations || [];
 
   // Filter functions
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter((user: any) => {
     const matchesSearch = user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -262,28 +262,28 @@ export default function UserManagement() {
   const stats = [
     {
       title: t('totalUsers'),
-      value: managementData?.totalUsers || 0,
+      value: (managementData as any)?.totalUsers || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
       title: t('activeUsers'),
-      value: managementData?.activeUsers || 0,
+      value: (managementData as any)?.activeUsers || 0,
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
       title: t('pendingInvitations'),
-      value: managementData?.pendingInvitations || 0,
+      value: (managementData as any)?.pendingInvitations || 0,
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50'
     },
     {
       title: t('totalInvitations'),
-      value: managementData?.totalInvitations || 0,
+      value: (managementData as any)?.totalInvitations || 0,
       icon: Mail,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
