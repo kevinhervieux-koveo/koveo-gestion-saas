@@ -3,7 +3,11 @@ import { createServer, type Server } from 'http';
 import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, lstatSync } from 'fs';
 import { join } from 'path';
+import LRU from 'lru-cache';
 import { storage } from './storage';
+
+// Quality metrics cache with 20-minute TTL to prevent expensive recomputation
+const qualityMetricsCache = new LRU<string, any>({ max: 100, ttl: 1000 * 60 * 20 }); // 20 minutes TTL
 import {
   insertPillarSchema,
   insertWorkspaceStatusSchema,
@@ -539,6 +543,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(metric);
     } catch (error) {
       res.status(400).json({ message: 'Invalid quality metric data' });
+    }
+  });
+
+  // Force refresh quality metrics cache
+  app.post('/api/quality-metrics/refresh', requireAuth, authorize('create:quality_metric'), async (req, res) => {
+    try {
+      console.log('🔄 Forcing quality metrics cache refresh...');
+      
+      // Clear the cache
+      qualityMetricsCache.clear();
+      
+      // Get fresh metrics (will recompute and cache)
+      const metrics = await getQualityMetrics();
+      
+      res.json({
+        message: 'Quality metrics cache refreshed successfully',
+        metrics,
+        refreshedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error refreshing quality metrics:', error);
+      res.status(500).json({ message: 'Failed to refresh quality metrics' });
     }
   });
 
@@ -1157,6 +1183,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
  * ```
  */
 /**
+ * Gets test coverage percentage from Jest coverage reports with caching.
+ * @returns {Promise<number>} Coverage percentage (0-100).
+ */
+async function getCoverageMetricCached(): Promise<number> {
+  const cacheKey = 'coverage_metric';
+  const cached = qualityMetricsCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+  
+  try {
+    const coveragePath = join(process.cwd(), 'coverage', 'coverage-summary.json');
+    
+    if (existsSync(coveragePath)) {
+      const coverageData = JSON.parse(readFileSync(coveragePath, 'utf-8'));
+      const coverage = coverageData.total?.statements?.pct || 0;
+      qualityMetricsCache.set(cacheKey, coverage);
+      return coverage;
+    }
+    
+    // Only generate coverage if really needed and cache wasn't hit
+    const coverage = await generateCoverageReport();
+    qualityMetricsCache.set(cacheKey, coverage);
+    return coverage;
+  } catch {
+    const fallback = 0;
+    qualityMetricsCache.set(cacheKey, fallback, { ttl: 1000 * 60 * 5 }); // Cache failure for 5 minutes
+    return fallback;
+  }
+}
+
+/**
  * Gets test coverage percentage from Jest coverage reports.
  * @returns {Promise<number>} Coverage percentage (0-100).
  */
@@ -1200,6 +1258,43 @@ async function generateCoverageReport(): Promise<number> {
 }
 
 /**
+ * Analyzes code quality based on linting results with caching.
+ * @returns {Promise<string>} Quality grade (A+, A, B+, B, C).
+ */
+async function getCodeQualityGradeCached(): Promise<string> {
+  const cacheKey = 'code_quality_grade';
+  const cached = qualityMetricsCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+  
+  try {
+    const lintResult = execSync('npm run lint:check 2>&1 || true', {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      timeout: 10000,
+    });
+    
+    const errorCount = (lintResult.match(/error/gi) || []).length;
+    const warningCount = (lintResult.match(/warning/gi) || []).length;
+
+    let grade: string;
+    if (errorCount === 0 && warningCount <= 5) {grade = 'A+';}
+    else if (errorCount === 0 && warningCount <= 15) {grade = 'A';}
+    else if (errorCount <= 3) {grade = 'B+';}
+    else if (errorCount <= 10) {grade = 'B';}
+    else {grade = 'C';}
+    
+    qualityMetricsCache.set(cacheKey, grade);
+    return grade;
+  } catch {
+    const fallback = 'B';
+    qualityMetricsCache.set(cacheKey, fallback, { ttl: 1000 * 60 * 5 });
+    return fallback;
+  }
+}
+
+/**
  * Analyzes code quality based on linting results.
  * @returns {Promise<string>} Quality grade (A+, A, B+, B, C).
  */
@@ -1225,6 +1320,35 @@ async function getCodeQualityGrade(): Promise<string> {
 }
 
 /**
+ * Gets security vulnerability count from npm audit with caching.
+ * @returns {Promise<number>} Number of security issues.
+ */
+async function getSecurityIssuesCountCached(): Promise<number> {
+  const cacheKey = 'security_issues_count';
+  const cached = qualityMetricsCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+  
+  try {
+    const auditResult = execSync('npm audit --json 2>/dev/null || echo "{}"', {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      timeout: 10000,
+    });
+    
+    const auditData = JSON.parse(auditResult);
+    const count = auditData.metadata?.vulnerabilities?.total || 0;
+    qualityMetricsCache.set(cacheKey, count);
+    return count;
+  } catch {
+    const fallback = 4; // Last known audit result
+    qualityMetricsCache.set(cacheKey, fallback, { ttl: 1000 * 60 * 5 });
+    return fallback;
+  }
+}
+
+/**
  * Gets security vulnerability count from npm audit.
  * @returns {Promise<number>} Number of security issues.
  */
@@ -1240,6 +1364,36 @@ async function getSecurityIssuesCount(): Promise<number> {
     return auditData.metadata?.vulnerabilities?.total || 0;
   } catch {
     return 4; // Last known audit result
+  }
+}
+
+/**
+ * Measures build performance time with caching.
+ * @returns {Promise<string>} Build time as formatted string.
+ */
+async function getBuildTimeCached(): Promise<string> {
+  const cacheKey = 'build_time';
+  const cached = qualityMetricsCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+  
+  try {
+    const startTime = Date.now();
+    execSync('npm run build --silent', {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      timeout: 30000,
+    });
+    
+    const buildTimeMs = Date.now() - startTime;
+    const buildTime = buildTimeMs > 1000 ? `${(buildTimeMs / 1000).toFixed(1)}s` : `${buildTimeMs}ms`;
+    qualityMetricsCache.set(cacheKey, buildTime);
+    return buildTime;
+  } catch {
+    const fallback = 'Error';
+    qualityMetricsCache.set(cacheKey, fallback, { ttl: 1000 * 60 * 5 });
+    return fallback;
   }
 }
 
@@ -1268,18 +1422,30 @@ async function getBuildTime(): Promise<string> {
  * @returns {Promise<object>} Quality metrics object.
  */
 async function getQualityMetrics() {
+  const cacheKey = 'quality_metrics_full';
+  
+  // Return cached metrics if available (fast response)
+  const cached = qualityMetricsCache.get(cacheKey);
+  if (cached) {
+    console.log('📊 Returning cached quality metrics (fast response)');
+    return cached;
+  }
+  
+  console.log('📊 Computing fresh quality metrics (this may take time)...');
+  
   try {
     // Run all metrics collection in parallel for better performance
     const [coverage, codeQuality, securityIssues, buildTime] = await Promise.all([
-      getCoverageMetric(),
-      getCodeQualityGrade(),
-      getSecurityIssuesCount(),
-      getBuildTime()
+      getCoverageMetricCached(),
+      getCodeQualityGradeCached(),
+      getSecurityIssuesCountCached(),
+      getBuildTimeCached()
     ]);
 
-    // Calculate translation coverage
+    // Calculate translation coverage (lightweight operation)
     const translationCoverage = await getTranslationCoverage();
-    return {
+    
+    const metrics = {
       coverage: `${Math.round(coverage)}%`,
       codeQuality,
       securityIssues,
@@ -1287,9 +1453,15 @@ async function getQualityMetrics() {
       translationCoverage,
       lastUpdated: new Date().toISOString()
     };
+    
+    // Cache the results
+    qualityMetricsCache.set(cacheKey, metrics);
+    console.log('📊 Quality metrics computed and cached');
+    
+    return metrics;
   } catch (error) {
     console.error('Error getting quality metrics:', error);
-    return {
+    const fallbackMetrics = {
       coverage: '0%',
       codeQuality: 'C',
       securityIssues: 'Unknown',
@@ -1297,6 +1469,10 @@ async function getQualityMetrics() {
       translationCoverage: '0%',
       lastUpdated: new Date().toISOString()
     };
+    
+    // Cache fallback for a shorter time (5 minutes)
+    qualityMetricsCache.set(cacheKey, fallbackMetrics, { ttl: 1000 * 60 * 5 });
+    return fallbackMetrics;
   }
 }
 
