@@ -102,37 +102,8 @@ async function syncFeatureToProduction(feature: any) {
  * ```
  */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check endpoint - responds immediately without database operations
-  app.get('/', (req, res) => {
-    res.status(200).json({ 
-      status: 'ok', 
-      message: 'Koveo Gestion API is running',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    });
-  });
-
-  // Health check endpoint specifically for deployment health checks
-  app.get('/health', (req, res) => {
-    try {
-      // Respond immediately with basic health info to pass deployment checks
-      res.status(200).json({ 
-        status: 'healthy', 
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        timestamp: new Date().toISOString(),
-        pid: process.pid,
-        nodeVersion: process.version
-      });
-    } catch (error) {
-      // Ensure health check never crashes the application
-      res.status(500).json({ 
-        status: 'error', 
-        message: 'Health check failed',
-        timestamp: new Date().toISOString()
-      });
-    }
-  });
+  // Health check endpoints are now handled in index.ts for immediate response
+  // This function now focuses on API routes and business logic
 
   // Setup session middleware
   app.use(sessionConfig);
@@ -3453,6 +3424,6 @@ function registerInvitationRoutes(app: any) {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Create and return HTTP server instance
+  return createServer(app);
 }
