@@ -3,6 +3,9 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -38,7 +41,8 @@ import {
   ListTodo,
   MessageCircle,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Feature, ActionableItem } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
 
@@ -68,6 +72,46 @@ interface Section {
  */
 export default function OwnerRoadmap() {
   const { toast } = useToast();
+
+  // Status change mutation
+  const statusMutation = useMutation({
+    mutationFn: ({ featureId, status }: { featureId: string; status: string }) =>
+      apiRequest('POST', `/api/features/${featureId}/update-status`, { status }),
+    onSuccess: () => {
+      toast({
+        title: 'Status Updated',
+        description: 'Feature status has been updated successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update feature status.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Strategic path toggle mutation
+  const strategicMutation = useMutation({
+    mutationFn: ({ featureId, isStrategicPath }: { featureId: string; isStrategicPath: boolean }) =>
+      apiRequest('POST', `/api/features/${featureId}/toggle-strategic`, { isStrategicPath }),
+    onSuccess: () => {
+      toast({
+        title: 'Strategic Path Updated',
+        description: 'Feature strategic path status has been updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update strategic path status.',
+        variant: 'destructive',
+      });
+    },
+  });
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -738,8 +782,51 @@ export default function OwnerRoadmap() {
                                             {items.length} {items.length === 1 ? 'task' : 'tasks'}
                                           </Badge>
                                         )}
+                                        {(feature as any).isStrategicPath && (
+                                          <Badge className='bg-orange-100 text-orange-800 hover:bg-orange-100 ml-2 text-xs'>
+                                            <Target className='w-3 h-3 mr-1' />
+                                            Strategic
+                                          </Badge>
+                                        )}
                                       </div>
                                       <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
+                                      
+                                      {/* Feature Controls */}
+                                      <div className='flex items-center gap-4 mt-3 pt-2 border-t border-gray-100'>
+                                        {/* Status Change */}
+                                        <div className='flex items-center gap-2'>
+                                          <Label htmlFor={`status-${feature.id}`} className='text-xs text-gray-600'>Status:</Label>
+                                          <Select
+                                            value={feature.status}
+                                            onValueChange={(value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
+                                            disabled={statusMutation.isPending}
+                                          >
+                                            <SelectTrigger id={`status-${feature.id}`} className='w-32 h-7 text-xs'>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value='submitted'>Submitted</SelectItem>
+                                              <SelectItem value='planned'>Planned</SelectItem>
+                                              <SelectItem value='in-progress'>In Progress</SelectItem>
+                                              <SelectItem value='ai-analyzed'>AI Analyzed</SelectItem>
+                                              <SelectItem value='completed'>Completed</SelectItem>
+                                              <SelectItem value='cancelled'>Cancelled</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        
+                                        {/* Strategic Path Toggle */}
+                                        <div className='flex items-center gap-2'>
+                                          <Label htmlFor={`strategic-${feature.id}`} className='text-xs text-gray-600'>Strategic Path:</Label>
+                                          <Switch
+                                            id={`strategic-${feature.id}`}
+                                            checked={(feature as any).isStrategicPath || false}
+                                            onCheckedChange={(checked) => strategicMutation.mutate({ featureId: feature.id!, isStrategicPath: checked })}
+                                            disabled={strategicMutation.isPending}
+                                            className='scale-75'
+                                          />
+                                        </div>
+                                      </div>
                                       {getDuplicateNote(feature.id || feature.name) && (
                                         <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800'>
                                           {getDuplicateNote(feature.id || feature.name)}

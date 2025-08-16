@@ -420,6 +420,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle strategic path for feature
+  app.post('/api/features/:id/toggle-strategic', async (req, res) => {
+    try {
+      const { isStrategicPath } = req.body;
+      
+      if (typeof isStrategicPath !== 'boolean') {
+        return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
+      }
+
+      const [feature] = await db
+        .update(schema.features)
+        .set({ isStrategicPath, updatedAt: new Date() })
+        .where(eq(schema.features.id, req.params.id))
+        .returning();
+
+      if (!feature) {
+        return res.status(404).json({ message: 'Feature not found' });
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error('Error updating strategic path:', error);
+      res.status(500).json({ message: 'Failed to update strategic path' });
+    }
+  });
+
   // AI analysis endpoint
   app.post('/api/features/:id/analyze', async (req, res) => {
     try {

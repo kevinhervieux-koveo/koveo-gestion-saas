@@ -816,6 +816,7 @@ export const features = pgTable('features', {
   startDate: date('start_date'),
   completedDate: date('completed_date'),
   isPublicRoadmap: boolean('is_public_roadmap').notNull().default(true),
+  isStrategicPath: boolean('is_strategic_path').notNull().default(false),
   tags: jsonb('tags'),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow(),
