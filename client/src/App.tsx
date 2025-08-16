@@ -119,7 +119,8 @@ const LoginPage = createOptimizedLoader(
 
 // Redirect component for root route
 /**
- *
+ * Component that handles root route redirection based on authentication status.
+ * @returns JSX element for root redirect logic
  */
 function RootRedirect() {
   const { isAuthenticated, isLoading } = useAuth();

@@ -115,7 +115,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     // Ensure session has role and permissions (for backwards compatibility)
     if (!req.session.role || !req.session.permissions) {
-      const userPermissions = getRolePermissions(permissions, user.role as keyof typeof permissions);
+      const userPermissions = getRolePermissions(permissions, user.role as any);
       req.session.role = user.role;
       req.session.permissions = userPermissions;
     }
@@ -287,7 +287,7 @@ export function setupAuthRoutes(app: any) {
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
       // Get user permissions based on role
-      const userPermissions = getRolePermissions(permissions, user.role as keyof typeof permissions);
+      const userPermissions = getRolePermissions(permissions, user.role as any);
 
       // Set session with user data and permissions
       req.session.userId = user.id;

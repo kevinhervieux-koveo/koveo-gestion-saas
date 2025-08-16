@@ -847,8 +847,9 @@ export class MetricValidationService {
   }
 
   /**
-   *
-   * @param metricType
+   * Retrieves Quebec-specific factors for metric validation.
+   * @param metricType - The type of metric to get factors for
+   * @returns Quebec-specific factors for the metric type.
    */
   private getQuebecSpecificFactors(metricType: string): Record<string, number> {
     const factors: Record<string, Record<string, number>> = {
@@ -873,22 +874,30 @@ export class MetricValidationService {
   }
 
   /**
-   *
+   * Generates a unique model version identifier.
+   * @returns A unique version string for the model.
    */
   private generateModelVersion(): string {
     return `v${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
-   *
-   * @param metricType
-   * @param timeRangeHours
+   * Analyzes Quebec compliance effectiveness for metrics.
+   * @param metricType - Optional metric type to analyze
+   * @param timeRangeHours - Time range in hours for analysis
+   * @returns Quebec compliance analysis results.
    */
   private async analyzeQuebecComplianceEffectiveness(
     metricType?: string,
     timeRangeHours: number = 168
-  ): Promise<any> {
-    const cutoffDate = new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);
+  ): Promise<{
+    overallComplianceScore: number;
+    law25Compliance: number;
+    bilingualism: number;
+    propertyManagementCompliance: number;
+    improvementAreas: string[];
+  }> {
+    const _cutoffDate = new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);
     
     // Analysis specific to Quebec compliance requirements
     return {
@@ -905,10 +914,15 @@ export class MetricValidationService {
   }
 
   /**
-   *
-   * @param results
+   * Generates effectiveness recommendations based on validation results.
+   * @param results - Array of validation results to analyze
+   * @returns Array of recommendation strings.
    */
-  private async generateEffectivenessRecommendations(results: any[]): Promise<string[]> {
+  private async generateEffectivenessRecommendations(results: Array<{
+    avgAccuracy: number;
+    avgPrecision: number;
+    metricType: string;
+  }>): Promise<string[]> {
     const recommendations: string[] = [];
     
     for (const result of results) {
@@ -926,10 +940,15 @@ export class MetricValidationService {
   }
 
   /**
-   *
-   * @param metricType
+   * Gets calibration status for a specific metric type.
+   * @param metricType - Optional metric type to get calibration status for
+   * @returns Calibration status information.
    */
-  private async getCalibrationStatus(metricType?: string): Promise<any> {
+  private async getCalibrationStatus(metricType?: string): Promise<{
+    status: string;
+    lastUpdate: Date;
+    accuracy: number;
+  }> {
     let query = db
       .select()
       .from(schema.metricCalibrationData)
