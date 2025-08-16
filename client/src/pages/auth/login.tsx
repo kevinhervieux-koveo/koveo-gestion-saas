@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Shield, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 
 /**
  * Login form validation schema with Quebec-specific requirements.
@@ -47,7 +46,9 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { login } = useAuth();
   const [loginError, setLoginError] = useState<string>('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -57,24 +58,13 @@ export default function LoginPage() {
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
-      }
-
-      return response.json();
-    },
-    onSuccess: (response) => {
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      setIsLoggingIn(true);
+      setLoginError('');
+      
+      const response = await login(data.email, data.password);
+      
       toast({
         title: language === 'fr' ? 'Connexion réussie' : 'Login successful',
         description: language === 'fr' 
@@ -98,8 +88,7 @@ export default function LoginPage() {
         default:
           navigate('/dashboard');
       }
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       const errorMessage = error.message || 'Login failed';
       setLoginError(errorMessage);
       
@@ -110,12 +99,13 @@ export default function LoginPage() {
           : 'Invalid credentials or inactive account',
         variant: 'destructive',
       });
-    },
-  });
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const onSubmit = (data: LoginFormData) => {
-    setLoginError('');
-    loginMutation.mutate(data);
+    handleLogin(data);
   };
 
   return (
@@ -175,7 +165,7 @@ export default function LoginPage() {
                           {...field}
                           type="email"
                           placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
-                          disabled={loginMutation.isPending}
+                          disabled={isLoggingIn}
                           className="h-11"
                         />
                       </FormControl>
@@ -197,7 +187,7 @@ export default function LoginPage() {
                           {...field}
                           type="password"
                           placeholder={language === 'fr' ? 'Votre mot de passe' : 'Your password'}
-                          disabled={loginMutation.isPending}
+                          disabled={isLoggingIn}
                           className="h-11"
                         />
                       </FormControl>
@@ -209,9 +199,9 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   className="w-full h-11"
-                  disabled={loginMutation.isPending}
+                  disabled={isLoggingIn}
                 >
-                  {loginMutation.isPending ? (
+                  {isLoggingIn ? (
                     language === 'fr' ? 'Connexion...' : 'Signing in...'
                   ) : (
                     language === 'fr' ? 'Se connecter' : 'Sign In'
