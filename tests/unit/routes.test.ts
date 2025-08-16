@@ -24,10 +24,10 @@ const mockStorage = storage as jest.Mocked<typeof storage>;
 describe('Routes Integration Tests', () => {
   let app: express.Express;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     app = express();
     app.use(express.json());
-    registerRoutes(app);
+    await registerRoutes(app);
     jest.clearAllMocks();
   });
 
