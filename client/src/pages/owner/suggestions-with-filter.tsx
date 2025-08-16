@@ -19,7 +19,8 @@ import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 
 /**
- *
+ * Represents an improvement suggestion for the Quebec property management system.
+ * Contains all necessary information for tracking and managing system improvements.
  */
 interface ImprovementSuggestion {
   id: string;
@@ -142,7 +143,11 @@ const filterSortConfig: FilterSortConfig = {
 };
 
 /**
- *
+ * Owner suggestions page with advanced filtering and sorting capabilities.
+ * Displays improvement suggestions for the property management system with comprehensive
+ * filter options, status management, and AI-generated prompts for implementation.
+ * 
+ * @returns {JSX.Element} Rendered suggestions page with filter/sort controls.
  */
 export default function OwnerSuggestionsWithFilter() {
   const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({

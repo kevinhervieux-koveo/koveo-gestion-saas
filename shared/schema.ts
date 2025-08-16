@@ -595,16 +595,10 @@ export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfigura
 
 // Types for core application
 /**
- *
- */
-/**
  * Type for creating new user records with validation.
  * Derived from the insertUserSchema for type-safe user creation.
  */
 export type InsertUser = z.infer<typeof insertUserSchema>;
-/**
- *
- */
 /**
  * Type representing a complete user record from the database.
  * Inferred from the users table schema for type safety.
@@ -612,16 +606,10 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 /**
- *
- */
-/**
  * Type for creating new organization records with validation.
  * Derived from the insertOrganizationSchema for type-safe organization creation.
  */
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
-/**
- *
- */
 /**
  * Type representing a complete organization record from the database.
  * Inferred from the organizations table schema for type safety.
@@ -629,111 +617,135 @@ export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type Organization = typeof organizations.$inferSelect;
 
 /**
- *
+ * Type for creating new building records with validation.
+ * Derived from the insertBuildingSchema for type-safe building creation.
  */
 export type InsertBuilding = z.infer<typeof insertBuildingSchema>;
 /**
- *
+ * Type representing a complete building record from the database.
+ * Inferred from the buildings table schema for type safety.
  */
 export type Building = typeof buildings.$inferSelect;
 
 /**
- *
+ * Type for creating new residence records with validation.
+ * Derived from the insertResidenceSchema for type-safe residence creation.
  */
 export type InsertResidence = z.infer<typeof insertResidenceSchema>;
 /**
- *
+ * Type representing a complete residence record from the database.
+ * Inferred from the residences table schema for type safety.
  */
 export type Residence = typeof residences.$inferSelect;
 
 /**
- *
+ * Type for creating new user-residence relationship records with validation.
+ * Derived from the insertUserResidenceSchema for type-safe relationship creation.
  */
 export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
 /**
- *
+ * Type representing a complete user-residence relationship record from the database.
+ * Inferred from the userResidences table schema for type safety.
  */
 export type UserResidence = typeof userResidences.$inferSelect;
 
 /**
- *
+ * Type for creating new bill records with validation.
+ * Derived from the insertBillSchema for type-safe bill creation.
  */
 export type InsertBill = z.infer<typeof insertBillSchema>;
 /**
- *
+ * Type representing a complete bill record from the database.
+ * Inferred from the bills table schema for type safety.
  */
 export type Bill = typeof bills.$inferSelect;
 
 /**
- *
+ * Type for creating new maintenance request records with validation.
+ * Derived from the insertMaintenanceRequestSchema for type-safe request creation.
  */
 export type InsertMaintenanceRequest = z.infer<typeof insertMaintenanceRequestSchema>;
 /**
- *
+ * Type representing a complete maintenance request record from the database.
+ * Inferred from the maintenanceRequests table schema for type safety.
  */
 export type MaintenanceRequest = typeof maintenanceRequests.$inferSelect;
 
 /**
- *
+ * Type for creating new budget records with validation.
+ * Derived from the insertBudgetSchema for type-safe budget creation.
  */
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 /**
- *
+ * Type representing a complete budget record from the database.
+ * Inferred from the budgets table schema for type safety.
  */
 export type Budget = typeof budgets.$inferSelect;
 
 /**
- *
+ * Type for creating new document records with validation.
+ * Derived from the insertDocumentSchema for type-safe document creation.
  */
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 /**
- *
+ * Type representing a complete document record from the database.
+ * Inferred from the documents table schema for type safety.
  */
 export type Document = typeof documents.$inferSelect;
 
 /**
- *
+ * Type for creating new notification records with validation.
+ * Derived from the insertNotificationSchema for type-safe notification creation.
  */
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 /**
- *
+ * Type representing a complete notification record from the database.
+ * Inferred from the notifications table schema for type safety.
  */
 export type Notification = typeof notifications.$inferSelect;
 
 // Framework types
 /**
- *
+ * Type for creating new development pillar records with validation.
+ * Derived from the insertPillarSchema for type-safe pillar creation.
  */
 export type InsertPillar = z.infer<typeof insertPillarSchema>;
 /**
- *
+ * Type representing a complete development pillar record from the database.
+ * Inferred from the developmentPillars table schema for type safety.
  */
 export type DevelopmentPillar = typeof developmentPillars.$inferSelect;
 
 /**
- *
+ * Type for creating new workspace status records with validation.
+ * Derived from the insertWorkspaceStatusSchema for type-safe status creation.
  */
 export type InsertWorkspaceStatus = z.infer<typeof insertWorkspaceStatusSchema>;
 /**
- *
+ * Type representing a complete workspace status record from the database.
+ * Inferred from the workspaceStatus table schema for type safety.
  */
 export type WorkspaceStatus = typeof workspaceStatus.$inferSelect;
 
 /**
- *
+ * Type for creating new quality metric records with validation.
+ * Derived from the insertQualityMetricSchema for type-safe metric creation.
  */
 export type InsertQualityMetric = z.infer<typeof insertQualityMetricSchema>;
 /**
- *
+ * Type representing a complete quality metric record from the database.
+ * Inferred from the qualityMetrics table schema for type safety.
  */
 export type QualityMetric = typeof qualityMetrics.$inferSelect;
 
 /**
- *
+ * Type for creating new framework configuration records with validation.
+ * Derived from the insertFrameworkConfigSchema for type-safe config creation.
  */
 export type InsertFrameworkConfig = z.infer<typeof insertFrameworkConfigSchema>;
 /**
- *
+ * Type representing a complete framework configuration record from the database.
+ * Inferred from the frameworkConfiguration table schema for type safety.
  */
 export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
 

@@ -9,7 +9,10 @@ import {
 import { applyFilterSort } from './utils';
 
 /**
- *
+ * Configuration options for the useFilterSort hook.
+ * Defines the data, configuration, and initial state for filter/sort functionality.
+ * 
+ * @template T - The type of data items being filtered and sorted.
  */
 interface UseFilterSortOptions<T> {
   data: T[];
@@ -18,7 +21,10 @@ interface UseFilterSortOptions<T> {
 }
 
 /**
- *
+ * Return type for the useFilterSort hook.
+ * Provides filtered data, state management, and control functions for filter/sort operations.
+ * 
+ * @template T - The type of data items being filtered and sorted.
  */
 interface UseFilterSortReturn<T> {
   // Filtered and sorted data
@@ -53,8 +59,35 @@ interface UseFilterSortReturn<T> {
 const STORAGE_PREFIX = 'filter-sort-state-';
 
 /**
- *
- * @param options
+ * React hook for managing advanced filter, sort, and search functionality.
+ * Provides comprehensive data filtering with persistence, preset management, and real-time updates.
+ * 
+ * Features:
+ * - Multiple filter types (text, select, date, number, etc.)
+ * - Configurable search across specified fields
+ * - Sorting with direction toggle
+ * - Preset filter configurations
+ * - Local storage persistence
+ * - Optimized performance with useMemo and useCallback
+ * 
+ * @template T - The type of data items being filtered and sorted.
+ * @param {UseFilterSortOptions<T>} options - Configuration object with data, config, and initial state.
+ * @returns {UseFilterSortReturn<T>} Object containing filtered data and control functions.
+ * 
+ * @example
+ * ```typescript
+ * const {
+ *   filteredData,
+ *   addFilter,
+ *   toggleSort,
+ *   setSearch,
+ *   clearFilters
+ * } = useFilterSort({
+ *   data: suggestions,
+ *   config: filterConfig,
+ *   initialState: { sort: { field: 'createdAt', direction: 'desc' } }
+ * });
+ * ```
  */
 export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;

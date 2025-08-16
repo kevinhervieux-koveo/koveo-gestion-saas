@@ -21,7 +21,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 /**
- *
+ * Comprehensive documentation data structure for the Quebec property management platform.
+ * Contains project overview, technical components, API specifications, database schema,
+ * and dependency information for complete system documentation.
  */
 interface DocumentationData {
   projectOverview: {
@@ -64,7 +66,18 @@ interface DocumentationData {
 }
 
 /**
- *
+ * Owner documentation center page for generating and managing project documentation.
+ * Provides comprehensive documentation generation, export capabilities for Google Suite,
+ * LLM-optimized documentation, and automatic refresh functionality for development environments.
+ * 
+ * Features:
+ * - Real-time documentation generation
+ * - Google Suite export (DOCX, XLSX formats)
+ * - LLM-optimized documentation for AI processing
+ * - Auto-refresh in Replit environment
+ * - Manual refresh capabilities
+ * 
+ * @returns {JSX.Element} Rendered documentation center with export and generation tools.
  */
 export default function OwnerDocumentation() {
   const [isExportingGoogleSuite, setIsExportingGoogleSuite] = useState(false);

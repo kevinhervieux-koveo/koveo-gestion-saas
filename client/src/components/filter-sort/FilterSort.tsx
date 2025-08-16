@@ -25,7 +25,8 @@ import { getDefaultOperators, getOperatorLabel } from '@/lib/filter-sort/utils';
 import { cn } from '@/lib/utils';
 
 /**
- *
+ * Props for the FilterSort component.
+ * Defines all callbacks and state values needed for advanced filtering and sorting functionality.
  */
 interface FilterSortProps {
   config: FilterSortConfig;

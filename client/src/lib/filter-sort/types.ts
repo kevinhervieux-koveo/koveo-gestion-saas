@@ -1,12 +1,14 @@
 // Filter and Sort type definitions for reusable component system
 
 /**
- *
+ * Sort direction options for data ordering.
+ * Used to specify ascending or descending sort order.
  */
 export type SortDirection = 'asc' | 'desc';
 
 /**
- *
+ * Filter operation types for data filtering.
+ * Defines all available comparison operators for filtering data.
  */
 export type FilterOperator =
   | 'equals'
@@ -25,12 +27,14 @@ export type FilterOperator =
   | 'is_not_empty';
 
 /**
- *
+ * Filter input types for different data types.
+ * Determines the UI component and validation for filter inputs.
  */
 export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi_select' | 'boolean';
 
 /**
- *
+ * Configuration for filter dropdown options.
+ * Defines selectable values for select and multi-select filters.
  */
 export interface FilterOption {
   label: string;
@@ -40,7 +44,8 @@ export interface FilterOption {
 }
 
 /**
- *
+ * Configuration for a single filter component.
+ * Defines the behavior, appearance, and options for filter controls.
  */
 export interface FilterConfig {
   id: string;
@@ -57,7 +62,8 @@ export interface FilterConfig {
 }
 
 /**
- *
+ * Active filter value applied to data.
+ * Represents a specific filter condition with field, operator, and value.
  */
 export interface FilterValue {
   field: string;
@@ -66,7 +72,8 @@ export interface FilterValue {
 }
 
 /**
- *
+ * Configuration for sortable columns.
+ * Defines how data can be sorted by specific fields.
  */
 export interface SortConfig {
   field: string;
@@ -76,7 +83,8 @@ export interface SortConfig {
 }
 
 /**
- *
+ * Active sort configuration.
+ * Represents the current sort field and direction applied to data.
  */
 export interface SortValue {
   field: string;
@@ -84,7 +92,8 @@ export interface SortValue {
 }
 
 /**
- *
+ * Complete filter and sort state.
+ * Represents the current state of all filters, sort, and search applied to data.
  */
 export interface FilterSortState {
   filters: FilterValue[];
@@ -93,7 +102,8 @@ export interface FilterSortState {
 }
 
 /**
- *
+ * Predefined filter and sort configuration.
+ * Allows users to quickly apply common filter combinations.
  */
 export interface FilterSortPreset {
   id: string;
@@ -105,7 +115,8 @@ export interface FilterSortPreset {
 }
 
 /**
- *
+ * Complete configuration for filter and sort functionality.
+ * Defines all available filters, sort options, presets, and behavior settings.
  */
 export interface FilterSortConfig {
   filters: FilterConfig[];

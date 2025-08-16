@@ -1,6 +1,25 @@
 import { useLanguage } from '@/hooks/use-language';
 import { Language } from '@/lib/i18n';
 
+/**
+ * Language toggle component for switching between English and French.
+ * Provides bilingual support as required by Quebec property management regulations.
+ * 
+ * @returns {JSX.Element} Toggle buttons for English/French language selection.
+ * @example
+ * ```typescript
+ * function AppHeader() {
+ *   return (
+ *     <header>
+ *       <div className="flex items-center gap-4">
+ *         <h1>Koveo Gestion</h1>
+ *         <LanguageSwitcher />
+ *       </div>
+ *     </header>
+ *   );
+ * }
+ * ```
+ */
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 

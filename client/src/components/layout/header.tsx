@@ -1,7 +1,8 @@
 import { useLanguage } from '@/hooks/use-language';
 
 /**
- *
+ * Props for the Header component.
+ * Defines the title and subtitle text to display in the page header.
  */
 interface HeaderProps {
   title: string;
@@ -9,10 +10,27 @@ interface HeaderProps {
 }
 
 /**
- *
- * @param root0
- * @param root0.title
- * @param root0.subtitle
+ * Page header component with title, subtitle, and workspace status indicator.
+ * Provides consistent branding and navigation across all application pages.
+ * 
+ * @param {HeaderProps} props - Component props.
+ * @param {string} props.title - Main page title to display.
+ * @param {string} props.subtitle - Descriptive subtitle text.
+ * @returns {JSX.Element} Header with title, subtitle, and active workspace indicator.
+ * @example
+ * ```typescript
+ * function DashboardPage() {
+ *   return (
+ *     <div>
+ *       <Header 
+ *         title="Dashboard" 
+ *         subtitle="Overview of your property management system"
+ *       />
+ *       <main>Dashboard content...</main>
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 export function Header({ title, subtitle }: HeaderProps) {
   const { t } = useLanguage();

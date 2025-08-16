@@ -6,7 +6,8 @@ const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
 /**
- *
+ * Extended toast properties that include additional UI state and actions.
+ * Combines base ToastProps with unique identifier and React node content.
  */
 type ToasterToast = ToastProps & {
   id: string;
@@ -25,7 +26,14 @@ const actionTypes = {
 let count = 0;
 
 /**
- *
+ * Generates a unique identifier for toast notifications.
+ * Uses an incrementing counter with overflow protection to ensure uniqueness.
+ * 
+ * @returns {string} Unique string identifier for the toast.
+ * @example
+ * ```typescript
+ * const id = genId(); // Returns '1', '2', '3', etc.
+ * ```
  */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
@@ -33,12 +41,14 @@ function genId() {
 }
 
 /**
- *
+ * Type definition for all possible toast action types.
+ * Derived from the actionTypes constant object.
  */
 type ActionType = typeof actionTypes;
 
 /**
- *
+ * Union type defining all possible actions that can be dispatched to the toast reducer.
+ * Each action type has specific payload requirements for managing toast state.
  */
 type Action =
   | {
@@ -59,7 +69,8 @@ type Action =
     };
 
 /**
- *
+ * Application state interface for the toast management system.
+ * Contains the array of active toasts being displayed.
  */
 interface State {
   toasts: ToasterToast[];
@@ -141,8 +152,15 @@ const listeners: Array<(state: State) => void> = [];
 let memoryState: State = { toasts: [] };
 
 /**
- *
- * @param action
+ * Dispatches an action to update the toast state and notifies all listeners.
+ * Central state management function for the toast system.
+ * 
+ * @param {Action} action - The action object containing type and payload data.
+ * @example
+ * ```typescript
+ * dispatch({ type: 'ADD_TOAST', toast: newToast });
+ * dispatch({ type: 'DISMISS_TOAST', toastId: 'toast-1' });
+ * ```
  */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
@@ -152,13 +170,30 @@ function dispatch(action: Action) {
 }
 
 /**
- *
+ * Toast configuration type without the auto-generated ID field.
+ * Used when creating new toasts where ID will be assigned automatically.
  */
 type Toast = Omit<ToasterToast, 'id'>;
 
 /**
- *
- * @param root0
+ * Creates and displays a new toast notification.
+ * Automatically generates a unique ID and provides update/dismiss functions.
+ * 
+ * @param {Toast} props - Toast configuration including title, description, and other display options.
+ * @returns {object} Object containing toast ID and control functions (dismiss, update).
+ * @example
+ * ```typescript
+ * const { dismiss, update } = toast({
+ *   title: 'Success',
+ *   description: 'Operation completed successfully'
+ * });
+ * 
+ * // Later dismiss the toast
+ * dismiss();
+ * 
+ * // Or update its content
+ * update({ title: 'Updated Title' });
+ * ```
  */
 function toast({ ...props }: Toast) {
   const id = genId();
@@ -192,7 +227,30 @@ function toast({ ...props }: Toast) {
 }
 
 /**
- *
+ * React hook for managing toast notifications in components.
+ * Provides access to toast state and functions for creating and dismissing toasts.
+ * 
+ * @returns {object} Toast state and control functions.
+ * @returns {ToasterToast[]} returns.toasts - Array of current active toasts.
+ * @returns {function} returns.toast - Function to create new toast notifications.
+ * @returns {function} returns.dismiss - Function to dismiss specific or all toasts.
+ * @example
+ * ```typescript
+ * function MyComponent() {
+ *   const { toast, dismiss, toasts } = useToast();
+ * 
+ *   const showSuccess = () => {
+ *     toast({
+ *       title: 'Success!',
+ *       description: 'Your changes have been saved.'
+ *     });
+ *   };
+ * 
+ *   return (
+ *     <button onClick={showSuccess}>Save Changes</button>
+ *   );
+ * }
+ * ```
  */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
