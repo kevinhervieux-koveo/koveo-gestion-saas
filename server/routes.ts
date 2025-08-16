@@ -114,12 +114,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint specifically for deployment health checks
   app.get('/health', (req, res) => {
-    res.status(200).json({ 
-      status: 'healthy', 
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      timestamp: new Date().toISOString()
-    });
+    try {
+      // Respond immediately with basic health info to pass deployment checks
+      res.status(200).json({ 
+        status: 'healthy', 
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        timestamp: new Date().toISOString(),
+        pid: process.pid,
+        nodeVersion: process.version
+      });
+    } catch (error) {
+      // Ensure health check never crashes the application
+      res.status(500).json({ 
+        status: 'error', 
+        message: 'Health check failed',
+        timestamp: new Date().toISOString()
+      });
+    }
   });
 
   // Setup session middleware

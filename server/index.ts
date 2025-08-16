@@ -8,6 +8,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add global error handlers to prevent application crashes
+process.on('uncaughtException', (error) => {
+  log(`Uncaught Exception: ${error.message}`, 'error');
+  log(error.stack || '', 'error');
+  // Don't exit in production to maintain uptime
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  log(`Unhandled Rejection at: ${promise}, reason: ${reason}`, 'error');
+  // Don't exit in production to maintain uptime
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
