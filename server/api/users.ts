@@ -259,7 +259,7 @@ export function registerUserRoutes(app: Express): void {
 
       // Validate response with Zod schema
       const permissionsResponseSchema = z.object({
-        role: z.enum(['admin', 'manager', 'tenant']),
+        role: z.enum(['admin', 'manager', 'tenant', 'resident']),
         permissions: z.array(z.string()),
         permissionCount: z.number(),
       });

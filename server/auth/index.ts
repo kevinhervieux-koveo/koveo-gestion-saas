@@ -14,7 +14,7 @@ export {
   requireRole,
   authorize,
   setupAuthRoutes
-} from './auth';
+} from '../auth';
 
 // Export enhanced invitation RBAC
 export {

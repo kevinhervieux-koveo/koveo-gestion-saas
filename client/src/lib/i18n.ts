@@ -90,6 +90,7 @@ export interface Translations {
   admin: string;
   manager: string;
   tenant: string;
+  resident: string;
   applyRoleChange: string;
   thisActionCannotBeUndone: string;
   cancel: string;
@@ -238,6 +239,7 @@ const translations: Record<Language, Translations> = {
     admin: 'Admin',
     manager: 'Manager',
     tenant: 'Tenant',
+    resident: 'Resident',
     applyRoleChange: 'Apply Role Change',
     thisActionCannotBeUndone: 'This action cannot be undone',
     cancel: 'Cancel',
@@ -385,6 +387,7 @@ const translations: Record<Language, Translations> = {
     admin: 'Administrateur',
     manager: 'Gestionnaire',
     tenant: 'Locataire',
+    resident: 'Résident',
     applyRoleChange: 'Appliquer le changement de rôle',
     thisActionCannotBeUndone: 'Cette action ne peut pas être annulée',
     cancel: 'Annuler',

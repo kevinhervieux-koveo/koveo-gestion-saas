@@ -147,7 +147,7 @@ export const PermissionAction = z.enum([
 /**
  * Enum of all user roles in the Koveo Gestion system.
  */
-export const UserRole = z.enum(['admin', 'manager', 'tenant']);
+export const UserRole = z.enum(['admin', 'manager', 'tenant', 'resident']);
 
 /**
  * Schema for validating a single role's permissions array.
@@ -163,9 +163,10 @@ export const RolePermissionsSchema = z.array(PermissionAction).min(1, {
 export const PermissionsSchema = z.object({
   admin: RolePermissionsSchema,
   manager: RolePermissionsSchema,
-  tenant: RolePermissionsSchema
+  tenant: RolePermissionsSchema,
+  resident: RolePermissionsSchema
 }).strict({
-  message: 'Permissions object must contain exactly the three required roles: admin, manager, tenant'
+  message: 'Permissions object must contain exactly the four required roles: admin, manager, tenant, resident'
 });
 
 /**

@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 // Form validation schema
 const invitationSchema = z.object({
   email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'manager', 'tenant']),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   personalMessage: z.string().optional(),
@@ -63,7 +63,7 @@ const invitationSchema = z.object({
 
 const bulkInvitationSchema = z.object({
   emails: z.array(z.string().email()).min(1).max(20),
-  role: z.enum(['admin', 'manager', 'tenant']),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   personalMessage: z.string().optional(),
@@ -291,11 +291,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const canInviteRole = (role: string) => {
     if (hasRole(['admin'])) {return true;}
-    if (hasRole(['manager']) && ['tenant'].includes(role)) {return true;}
+    if (hasRole(['manager']) && ['tenant', 'resident'].includes(role)) {return true;}
     return false;
   };
 
-  const availableRoles = ['admin', 'manager', 'tenant'].filter(canInviteRole);
+  const availableRoles = ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -361,7 +361,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             <SelectItem key={role} value={role}>
                               <div className="flex items-center gap-2">
                                 <Shield className="h-4 w-4" />
-                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : t('tenant')}
+                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : role === 'resident' ? t('resident') : t('tenant')}
                               </div>
                             </SelectItem>
                           ))}
@@ -579,7 +579,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <SelectContent>
                             {availableRoles.map((role) => (
                               <SelectItem key={role} value={role}>
-                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : t('tenant')}
+                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : role === 'resident' ? t('resident') : t('tenant')}
                               </SelectItem>
                             ))}
                           </SelectContent>

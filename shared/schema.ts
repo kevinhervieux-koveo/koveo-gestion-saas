@@ -144,8 +144,9 @@ export const featureCategoryEnum = pgEnum('feature_category', [
  */
 export const userRoleEnum = pgEnum('user_role', [
   'admin',
-  'manager',
+  'manager', 
   'tenant',
+  'resident',
 ]);
 /**
  * Enum defining invitation status values for user invitation system.

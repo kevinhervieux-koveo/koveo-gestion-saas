@@ -80,9 +80,10 @@ export { permissionsData as permissions };
  * Quick access to role hierarchies for common permission checks.
  */
 export const ROLE_HIERARCHY = {
-  admin: 3,
-  manager: 2,
-  tenant: 1
+  admin: 4,
+  manager: 3,
+  tenant: 2,
+  resident: 1
 } as const;
 
 /**

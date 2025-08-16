@@ -70,7 +70,7 @@ export async function getUserById(userId: string, userContext: UserContext) {
  * @returns Promise resolving to array of users with the specified role.
  */
 export async function getUsersByRole(
-  role: 'admin' | 'manager' | 'tenant',
+  role: 'admin' | 'manager' | 'tenant' | 'resident',
   userContext: UserContext
 ) {
   const baseQuery = db

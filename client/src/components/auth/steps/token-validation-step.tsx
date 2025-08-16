@@ -244,8 +244,8 @@ export function TokenValidationStep({
               <Badge className={getRoleBadgeColor(validationResult.role)}>
                 {validationResult.role === 'admin' && 'Administrateur'}
                 {validationResult.role === 'manager' && 'Gestionnaire'}
-                {validationResult.role === 'admin' && 'Propriétaire'}
                 {validationResult.role === 'tenant' && 'Locataire'}
+                {validationResult.role === 'resident' && 'Résident'}
               </Badge>
             </div>
 

@@ -160,7 +160,7 @@ export function registerPermissionsRoutes(app: Express) {
       const { role } = req.params;
       const { permissions } = req.body;
       
-      if (!['admin', 'manager', 'tenant'].includes(role)) {
+      if (!['admin', 'manager', 'tenant', 'resident'].includes(role)) {
         return res.status(400).json({ message: 'Invalid role' });
       }
 

@@ -22,7 +22,7 @@ export interface UserContext {
   /** User ID from authentication */
   userId: string;
   /** User role determining base permissions */
-  role: 'admin' | 'manager' | 'tenant';
+  role: 'admin' | 'manager' | 'tenant' | 'resident';
   /** Organization IDs the user is associated with (for managers) */
   organizationIds?: string[];
   /** Building IDs the user manages or has access to */
@@ -174,10 +174,10 @@ export async function scopeQuery<T extends PgSelect>(
   switch (entityType) {
     case 'users':
       // Users can typically only see their own user record, unless they're managers/admins
-      if (role === 'tenant') {
+      if (role === 'tenant' || role === 'resident') {
         return query.where(eq(users.id, userId)) as T;
       }
-      return query; // Managers and owners might see other users in their scope
+      return query; // Managers and admins might see other users in their scope
 
     case 'organizations':
       // Scope to user's associated organizations

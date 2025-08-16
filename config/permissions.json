@@ -162,5 +162,16 @@
     "read:ai_analysis",
     "access:ai_assistant",
     "read:invitation"
+  ],
+  "resident": [
+    "read:profile",
+    "update:profile",
+    "read:residence",
+    "read:bill",
+    "read:maintenance_request",
+    "create:maintenance_request",
+    "update:own_maintenance_request",
+    "read:document",
+    "read:notification"
   ]
 }
