@@ -18,6 +18,7 @@ import {
 } from '@shared/schema';
 import { registerUserRoutes } from './api/users';
 import { registerOrganizationRoutes } from './api/organizations';
+import { registerSSLRoutes } from './api/ssl';
 import {
   getAIMetrics,
   getAIInteractions,
@@ -102,6 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register dedicated API routes
   registerUserRoutes(app);
   registerOrganizationRoutes(app);
+  registerSSLRoutes(app);
   
   // AI Monitoring API routes
   app.get('/api/ai/metrics', requireAuth, authorize('read:ai_analysis'), getAIMetrics);
