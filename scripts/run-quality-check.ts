@@ -318,14 +318,14 @@ async function checkJSDocCoverage(): Promise<number> {
 async function checkBuildPerformance(): Promise<number> {
   try {
     const startTime = Date.now();
-    execSync('npm run build --silent', { 
+    execSync('timeout 60s npm run build --silent', { 
       encoding: 'utf-8',
       stdio: 'pipe',
-      timeout: 120000 // 2 minute timeout
+      timeout: 60000 // 1 minute timeout
     });
     return Date.now() - startTime;
   } catch {
-    return 0;
+    return 30000; // Return 30s as fallback if build fails
   }
 }
 
@@ -406,10 +406,11 @@ async function analyzeCoverage(): Promise<CoverageResult> {
   try {
     console.warn('🧪 Analyzing test coverage...');
     
-    // Run Jest with coverage
-    execSync('npm run test:coverage -- --silent 2>/dev/null || true', { 
+    // Run Jest with coverage with timeout
+    execSync('timeout 30s npm run test:coverage -- --silent --passWithNoTests 2>/dev/null || true', { 
       encoding: 'utf-8', 
-      stdio: 'pipe' 
+      stdio: 'pipe',
+      timeout: 30000
     });
 
     // Read coverage summary

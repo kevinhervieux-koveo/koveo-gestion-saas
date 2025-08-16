@@ -12,7 +12,7 @@
       "minorIssues": 1,
       "description": "Uncovered error handling in payment processing"
     },
-    "timestamp": "2025-08-16T19:16:09.562Z",
+    "timestamp": "2025-08-16T20:48:42.627Z",
     "accuracy": 80
   },
   {
@@ -28,7 +28,7 @@
       "minorIssues": 1,
       "description": "Missing test coverage for edge cases in validation"
     },
-    "timestamp": "2025-08-16T19:16:09.563Z",
+    "timestamp": "2025-08-16T20:48:42.629Z",
     "accuracy": 83.33333333333334
   },
   {
@@ -38,7 +38,7 @@
     "falsePositives": 8,
     "missedIssues": 5,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.582Z",
+    "timestamp": "2025-08-16T20:48:42.650Z",
     "accuracy": 16.666666666666664
   },
   {
@@ -48,7 +48,7 @@
     "falsePositives": 6,
     "missedIssues": 4,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.582Z",
+    "timestamp": "2025-08-16T20:48:42.651Z",
     "accuracy": 0
   },
   {
@@ -58,7 +58,7 @@
     "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.585Z",
+    "timestamp": "2025-08-16T20:48:42.655Z",
     "accuracy": 100
   },
   {
@@ -68,7 +68,7 @@
     "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.585Z",
+    "timestamp": "2025-08-16T20:48:42.656Z",
     "accuracy": 75
   },
   {
@@ -78,7 +78,7 @@
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.585Z",
+    "timestamp": "2025-08-16T20:48:42.656Z",
     "accuracy": 100
   },
   {
@@ -94,7 +94,7 @@
       "minorIssues": 1,
       "description": "Found uncovered error handling in user authentication, payment processing validation, and file upload edge cases"
     },
-    "timestamp": "2025-08-16T19:16:09.588Z",
+    "timestamp": "2025-08-16T20:48:42.661Z",
     "accuracy": 85.71428571428571
   },
   {
@@ -110,7 +110,7 @@
       "minorIssues": 1,
       "description": "Found complex authentication function, duplicated validation logic, and inconsistent naming in API endpoints"
     },
-    "timestamp": "2025-08-16T19:16:09.595Z",
+    "timestamp": "2025-08-16T20:48:42.668Z",
     "accuracy": 80
   },
   {
@@ -126,7 +126,7 @@
       "minorIssues": 1,
       "description": "Found SQL injection in user search, vulnerable lodash version, and weak password requirements"
     },
-    "timestamp": "2025-08-16T19:16:09.597Z",
+    "timestamp": "2025-08-16T20:48:42.671Z",
     "accuracy": 75
   },
   {
@@ -142,7 +142,7 @@
       "minorIssues": 2,
       "description": "Found missing translations for error messages, form validation, and help tooltips affecting French users"
     },
-    "timestamp": "2025-08-16T19:16:09.598Z",
+    "timestamp": "2025-08-16T20:48:42.673Z",
     "accuracy": 80
   },
   {
@@ -158,7 +158,7 @@
       "minorIssues": 0,
       "description": "Slow build time affecting development workflow and hot reload performance"
     },
-    "timestamp": "2025-08-16T19:16:09.602Z",
+    "timestamp": "2025-08-16T20:48:42.676Z",
     "accuracy": 100
   },
   {
@@ -168,7 +168,7 @@
     "falsePositives": 3,
     "missedIssues": 5,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.603Z",
+    "timestamp": "2025-08-16T20:48:42.678Z",
     "accuracy": 66.66666666666666
   },
   {
@@ -178,7 +178,7 @@
     "falsePositives": 2,
     "missedIssues": 3,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.607Z",
+    "timestamp": "2025-08-16T20:48:42.683Z",
     "accuracy": 72.72727272727273
   },
   {
@@ -188,7 +188,7 @@
     "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.610Z",
+    "timestamp": "2025-08-16T20:48:42.690Z",
     "accuracy": 83.33333333333334
   },
   {
@@ -198,7 +198,7 @@
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.618Z",
+    "timestamp": "2025-08-16T20:48:42.691Z",
     "accuracy": 100
   },
   {
@@ -208,7 +208,7 @@
     "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.620Z",
+    "timestamp": "2025-08-16T20:48:42.700Z",
     "accuracy": 100
   },
   {
@@ -218,7 +218,7 @@
     "falsePositives": 2,
     "missedIssues": 2,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.620Z",
+    "timestamp": "2025-08-16T20:48:42.702Z",
     "accuracy": 71.42857142857143
   },
   {
@@ -228,7 +228,7 @@
     "falsePositives": 4,
     "missedIssues": 4,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.621Z",
+    "timestamp": "2025-08-16T20:48:42.705Z",
     "accuracy": 42.857142857142854
   },
   {
@@ -238,7 +238,7 @@
     "falsePositives": 3,
     "missedIssues": 2,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.625Z",
+    "timestamp": "2025-08-16T20:48:42.707Z",
     "accuracy": 83.33333333333334
   },
   {
@@ -248,7 +248,7 @@
     "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.625Z",
+    "timestamp": "2025-08-16T20:48:42.708Z",
     "accuracy": 88.88888888888889
   },
   {
@@ -258,7 +258,7 @@
     "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.625Z",
+    "timestamp": "2025-08-16T20:48:42.709Z",
     "accuracy": 100
   },
   {
@@ -268,7 +268,7 @@
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.626Z",
+    "timestamp": "2025-08-16T20:48:42.709Z",
     "accuracy": 100
   },
   {
@@ -278,7 +278,7 @@
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.628Z",
+    "timestamp": "2025-08-16T20:48:42.710Z",
     "accuracy": 100
   },
   {
@@ -288,7 +288,7 @@
     "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "development",
-    "timestamp": "2025-08-16T19:16:09.631Z",
+    "timestamp": "2025-08-16T20:48:42.721Z",
     "accuracy": 83.33333333333334
   }
 ]
