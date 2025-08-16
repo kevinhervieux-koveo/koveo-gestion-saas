@@ -786,6 +786,21 @@ export class MemStorage implements IStorage {
         lastLoginAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+      },
+      {
+        id: randomUUID(),
+        email: 'francois-pierre.landry@koveo-gestion.com',
+        firstName: 'François-Pierre',
+        lastName: 'Landry',
+        password: hash,
+        passwordSalt: salt,
+        role: 'admin',
+        language: 'fr',
+        phone: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }
     ];
 
