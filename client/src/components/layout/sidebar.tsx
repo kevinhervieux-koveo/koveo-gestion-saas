@@ -209,7 +209,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       icon: User,
       requiredRole: 'admin',
       items: [
-        { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
+        { name: 'Organizations', href: '/admin/organizations', icon: Building },
         { name: 'Documentation', href: '/admin/documentation', icon: FileText },
         { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
         { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
