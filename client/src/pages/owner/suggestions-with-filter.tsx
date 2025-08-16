@@ -75,6 +75,7 @@ const filterSortConfig: FilterSortConfig = {
         { label: 'Security', value: 'Security', icon: Shield },
         { label: 'Performance', value: 'Performance', icon: Zap },
         { label: 'Continuous Improvement', value: 'Continuous Improvement', icon: Terminal },
+        { label: 'Replit AI Agent Monitoring', value: 'Replit AI Agent Monitoring', icon: MessageSquare },
       ],
       defaultOperator: 'equals',
     },

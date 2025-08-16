@@ -28,6 +28,7 @@ export const suggestionCategoryEnum = pgEnum('suggestion_category', [
   'Documentation',
   'Performance',
   'Continuous Improvement',
+  'Replit AI Agent Monitoring',
 ]);
 /**
  * Enum defining priority levels for improvement suggestions.

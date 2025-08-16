@@ -39,6 +39,7 @@ const categoryConfig = [
   { name: 'Security', icon: Shield, color: 'bg-red-50 text-red-700 border-red-200' },
   { name: 'Performance', icon: Zap, color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
   { name: 'Continuous Improvement', icon: Terminal, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Replit AI Agent Monitoring', icon: MessageSquare, color: 'bg-teal-50 text-teal-700 border-teal-200' },
 ];
 
 /**
