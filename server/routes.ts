@@ -899,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .update(schema.features)
           .set({ 
             status: 'completed',
-            completedDate: new Date().toISOString(),
+            completedDate: new Date(),
             updatedAt: new Date(),
           })
           .where(eq(schema.features.id, item.featureId));
