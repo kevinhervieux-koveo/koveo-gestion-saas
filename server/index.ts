@@ -3,6 +3,7 @@ import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
 import { startJobs } from './jobs';
+import { emailService } from './services/email-service';
 
 const app = express();
 app.use(express.json());
@@ -103,7 +104,7 @@ async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
     
-    // Register API routes - don't need to pass server here
+    // Register API routes immediately without database operations
     await registerRoutes(app);
 
     // Setup error handling
@@ -124,24 +125,45 @@ async function initializeApplication() {
     } else {
       serveStatic(app);
     }
-
-    // Initialize database optimizations in background after server starts
-    // This prevents blocking the health check endpoints
-    initializeDatabaseOptimizationsInBackground();
     
-    // Initialize background jobs after server starts
-    initializeBackgroundJobsInBackground();
+    log(`✅ Core application initialized on port ${port}`);
     
-    log(`🎯 Application fully initialized on port ${port}`);
+    // Start all database and background operations after core app is ready
+    setTimeout(() => {
+      initializeEmailServiceInBackground();
+      initializeDatabaseOptimizationsInBackground();
+      initializeBackgroundJobsInBackground();
+    }, 100);
+    
   } catch (error) {
     log(`⚠️ Application initialization failed: ${error}`, 'error');
     // Don't crash - health checks will still work
   }
 }
-  
-  /**
-   * Runs database optimizations in background with timeout handling
-   */
+
+/**
+ * Runs email service initialization in background with timeout handling
+ */
+async function initializeEmailServiceInBackground(): Promise<void> {
+  try {
+    log('📧 Starting email service initialization...');
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Email service timeout after 10 seconds')), 10000);
+    });
+    
+    await Promise.race([emailService.initialize(), timeoutPromise]);
+    log('📧 Email service initialized successfully');
+  } catch (error) {
+    log('⚠️ Email service initialization failed:', String(error));
+    // Continue running - don't crash the server
+  }
+}
+
+/**
+ * Runs database optimizations in background with timeout handling
+ */
   async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
     try {
       log('🚀 Starting database optimizations in background...');

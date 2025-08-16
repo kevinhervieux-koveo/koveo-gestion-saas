@@ -119,8 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RBAC Permissions Management API routes
   registerPermissionsRoutes(app);
   
-  // Initialize email service
-  await emailService.initialize();
+  // Email service will be initialized in background - don't block route registration
+  // emailService.initialize() moved to background initialization
   
   // User Invitation Management API routes
   registerInvitationRoutes(app);
