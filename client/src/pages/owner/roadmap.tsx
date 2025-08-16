@@ -35,6 +35,7 @@ import {
   ChevronDown,
   ChevronRight,
   ListTodo,
+  MessageCircle,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature, ActionableItem } from '@shared/schema';
@@ -188,6 +189,88 @@ export default function OwnerRoadmap() {
   const handleCreateNewItem = () => {
     setSelectedFeature(null);
     setDialogOpen(true);
+  };
+
+  /**
+   * Copies LLM help form to clipboard for feature discussion
+   */
+  const handleCopyLLMForm = async () => {
+    const llmHelpForm = `# Feature Development Discussion Form
+
+## 🎯 Feature Overview
+**What feature do you want to build?**
+[Describe the feature in one sentence]
+
+**What problem does this solve?**
+[Explain the user problem or business need]
+
+## 👥 User Context
+**Who will use this feature?**
+[Target users: Property managers, Tenants, Board members, etc.]
+
+**How will they use it?**
+[Describe the user's workflow and interaction]
+
+## 📋 Requirements
+**What should this feature do? (List 3-5 key capabilities)**
+1. 
+2. 
+3. 
+4. 
+5. 
+
+**What should this feature NOT do? (Any constraints or boundaries)**
+- 
+- 
+- 
+
+## 🔧 Technical Considerations
+**Does this feature need to:**
+- [ ] Store new data in the database?
+- [ ] Integrate with external APIs?
+- [ ] Work on mobile devices?
+- [ ] Support Quebec French language?
+- [ ] Meet accessibility requirements?
+- [ ] Handle file uploads/downloads?
+- [ ] Send notifications?
+
+**Any existing features this should connect to?**
+[List related features or integrations]
+
+## 📊 Success Criteria
+**How will we know this feature is successful?**
+[Measurable outcomes or user feedback]
+
+**What's the priority level?**
+[ ] Critical (must have immediately)
+[ ] High (needed soon)
+[ ] Medium (would be nice to have)
+[ ] Low (future consideration)
+
+## 💭 Additional Context
+**Any examples or references?**
+[Screenshots, competitor examples, or inspiration]
+
+**Special Quebec/Law 25 considerations?**
+[Privacy, language, or compliance requirements]
+
+---
+**Instructions for LLM:** Use this form to discuss and refine the feature requirements. Ask clarifying questions about unclear sections and help develop a comprehensive feature specification.`;
+
+    try {
+      await navigator.clipboard.writeText(llmHelpForm);
+      toast({
+        title: 'LLM Help Form Copied',
+        description: 'The feature discussion form has been copied to your clipboard. Use it with any LLM tool to refine your feature requirements.',
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Failed to copy the form to clipboard.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Group features by category
@@ -453,8 +536,16 @@ export default function OwnerRoadmap() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Create New Item Button */}
-          <div className='flex justify-end mb-6'>
+          {/* Create New Item Buttons */}
+          <div className='flex justify-end gap-3 mb-6'>
+            <Button 
+              onClick={handleCopyLLMForm} 
+              variant='outline'
+              className='border-purple-200 text-purple-700 hover:bg-purple-50'
+            >
+              <MessageCircle className='w-4 h-4 mr-2' />
+              LLM Help Form
+            </Button>
             <Button onClick={handleCreateNewItem} className='bg-koveo-navy hover:bg-koveo-navy/90'>
               <Plus className='w-4 h-4 mr-2' />
               Create New Item
