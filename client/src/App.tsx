@@ -56,9 +56,9 @@ const AdminPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Admin/User Management page
+// Shared User Management page (used by managers)
 const UserManagement = createOptimizedLoader(
-  () => import('@/pages/admin/user-management'),
+  () => import('@/pages/manager/user-management'),
   'user-management',
   { enableMemoryCleanup: true }
 );
@@ -280,8 +280,7 @@ function Router() {
               <Route path='/owner/suggestions' component={OwnerSuggestions} />
               <Route path='/owner/permissions' component={OwnerPermissions} />
 
-              {/* Admin/Manager User Management routes */}
-              <Route path='/admin/user-management' component={UserManagement} />
+              {/* Manager User Management route */}
               <Route path='/manager/user-management' component={() => {
                 console.warn('Loading /manager/user-management route');
                 return <UserManagement />;

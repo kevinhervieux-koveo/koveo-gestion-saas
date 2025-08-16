@@ -215,7 +215,6 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
         { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
-        { name: 'User Management', href: '/admin/user-management', icon: UserPlus, requiredRole: 'admin' },
       ],
     },
     {
