@@ -3,6 +3,7 @@ import { eq, lt, and, isNull, or } from 'drizzle-orm';
 import { db } from '../db';
 import { sslCertificates } from '@shared/schema';
 import { createSSLService, type SSLService, getCertificateStatus } from '../services/ssl_service';
+import { notificationService } from '../services/notification_service';
 
 interface SSLRenewalJobConfig {
   schedule: string;
@@ -12,6 +13,8 @@ interface SSLRenewalJobConfig {
   enabled: boolean;
   batchSize: number;
   logLevel: 'error' | 'warn' | 'info' | 'debug';
+  expiryNotificationThresholdDays: number;
+  enableExpiryNotifications: boolean;
 }
 
 class SSLRenewalJob {
@@ -28,7 +31,9 @@ class SSLRenewalJob {
       notificationEmail: process.env.SSL_NOTIFICATION_EMAIL || 'admin@example.com',
       enabled: process.env.SSL_RENEWAL_ENABLED !== 'false',
       batchSize: parseInt(process.env.SSL_RENEWAL_BATCH_SIZE || '5'),
-      logLevel: (process.env.SSL_RENEWAL_LOG_LEVEL as any) || 'info'
+      logLevel: (process.env.SSL_RENEWAL_LOG_LEVEL as any) || 'info',
+      expiryNotificationThresholdDays: parseInt(process.env.SSL_EXPIRY_NOTIFICATION_THRESHOLD_DAYS || '7'),
+      enableExpiryNotifications: process.env.SSL_EXPIRY_NOTIFICATIONS_ENABLED !== 'false'
     };
 
     this.log('info', 'SSL Renewal Job initialized', { config: this.config });
@@ -72,6 +77,11 @@ class SSLRenewalJob {
         await this.executeRenewalJob();
       }
 
+      // Also run expiry monitoring check
+      if (this.config.enableExpiryNotifications) {
+        await this.checkForExpiringCertificates();
+      }
+
     } catch (error) {
       this.log('error', 'Failed to start SSL renewal job', { error: error instanceof Error ? error.message : 'Unknown error' });
       throw error;
@@ -104,6 +114,11 @@ class SSLRenewalJob {
     this.log('info', 'Starting SSL renewal job execution');
 
     try {
+      // First, check for certificates that need expiry notifications
+      if (this.config.enableExpiryNotifications) {
+        await this.checkForExpiringCertificates();
+      }
+
       const expiringCertificates = await this.getExpiringCertificates();
       
       if (expiringCertificates.length === 0) {
@@ -137,6 +152,17 @@ class SSLRenewalJob {
             });
 
             await this.handleRenewalFailure(certificate, error instanceof Error ? error.message : 'Unknown error');
+            
+            // Send failure notification if configured
+            if (this.config.enableExpiryNotifications) {
+              const newAttempts = (certificate.renewalAttempts || 0) + 1;
+              await notificationService.sendSSLRenewalFailureAlert(
+                certificate.domain,
+                error instanceof Error ? error.message : 'Unknown error',
+                newAttempts,
+                certificate.maxRenewalAttempts || this.config.maxRetryAttempts
+              );
+            }
           }
         }
 
@@ -165,6 +191,118 @@ class SSLRenewalJob {
     } finally {
       this.isRunning = false;
     }
+  }
+
+  /**
+   * Check for certificates that are expiring soon and send notifications.
+   * This is separate from renewal logic to catch certificates that need attention
+   * even if auto-renewal is disabled.
+   */
+  private async checkForExpiringCertificates(): Promise<void> {
+    if (!this.config.enableExpiryNotifications) {
+      return;
+    }
+
+    try {
+      const notificationThresholdDate = new Date();
+      notificationThresholdDate.setDate(
+        notificationThresholdDate.getDate() + this.config.expiryNotificationThresholdDays
+      );
+
+      // Get all certificates that are expiring within the notification threshold
+      // This includes both auto-renewal enabled and disabled certificates
+      const expiringCertificates = await db.select()
+        .from(sslCertificates)
+        .where(
+          and(
+            or(
+              eq(sslCertificates.status, 'active'),
+              eq(sslCertificates.status, 'expiring')
+            ),
+            lt(sslCertificates.validTo, notificationThresholdDate)
+          )
+        );
+
+      if (expiringCertificates.length === 0) {
+        this.log('debug', 'No certificates require expiry notifications');
+        return;
+      }
+
+      this.log('info', `Found ${expiringCertificates.length} certificates expiring within ${this.config.expiryNotificationThresholdDays} days`);
+
+      // Send notifications for each expiring certificate
+      for (const certificate of expiringCertificates) {
+        try {
+          const expiryDate = new Date(certificate.validTo);
+          const now = new Date();
+          const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+          // Only send notification if we haven't sent one recently
+          // This prevents spam notifications for the same certificate
+          const shouldSendNotification = await this.shouldSendExpiryNotification(
+            certificate.domain,
+            daysUntilExpiry
+          );
+
+          if (shouldSendNotification) {
+            await notificationService.sendSSLExpiryAlert(
+              certificate.domain,
+              expiryDate,
+              daysUntilExpiry
+            );
+
+            // Update the certificate status to 'expiring' if it's currently 'active'
+            if (certificate.status === 'active') {
+              await db.update(sslCertificates)
+                .set({
+                  status: 'expiring',
+                  updatedAt: new Date()
+                })
+                .where(eq(sslCertificates.id, certificate.id));
+            }
+
+            this.log('info', `Sent expiry notification for ${certificate.domain} (expires in ${daysUntilExpiry} days)`);
+          }
+        } catch (error) {
+          this.log('error', `Failed to send expiry notification for ${certificate.domain}`, {
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
+    } catch (error) {
+      this.log('error', 'Failed to check for expiring certificates', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * Determine if we should send an expiry notification for a certificate.
+   * This helps prevent spam notifications by implementing smart notification logic.
+   */
+  private async shouldSendExpiryNotification(domain: string, daysUntilExpiry: number): Promise<boolean> {
+    // Always notify for expired certificates (daysUntilExpiry <= 0)
+    if (daysUntilExpiry <= 0) {
+      return true;
+    }
+
+    // Notify daily for certificates expiring within 3 days
+    if (daysUntilExpiry <= 3) {
+      return true;
+    }
+
+    // Notify when certificate first enters the notification threshold
+    // and then weekly thereafter until it enters the 3-day window
+    if (daysUntilExpiry <= this.config.expiryNotificationThresholdDays) {
+      // For certificates with more than 3 days, notify weekly
+      // This is a simplified logic - in a production environment,
+      // you might want to track the last notification date
+      const dayOfWeek = new Date().getDay();
+      return dayOfWeek === 1; // Monday notifications
+    }
+
+    return false;
   }
 
   /**
@@ -246,6 +384,15 @@ class SSLRenewalJob {
 
       // Send success notification if configured
       await this.sendSuccessNotification(certificate.domain, newCertificate);
+      
+      // Send notification service success alert
+      if (this.config.enableExpiryNotifications && (certificate.renewalAttempts || 0) > 0) {
+        await notificationService.sendSSLRenewalSuccessAlert(
+          certificate.domain,
+          new Date(newCertificate.validTo),
+          certificate.renewalAttempts || 0
+        );
+      }
 
     } catch (error) {
       throw new Error(`Certificate renewal failed for ${certificate.domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);

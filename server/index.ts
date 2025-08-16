@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
+import { startJobs } from './jobs';
 
 const app = express();
 app.use(express.json());
@@ -44,7 +45,15 @@ app.use((req, res, next) => {
     startPerformanceMonitoring();
     log('🚀 Database optimizations initialized successfully');
   } catch (error) {
-    log('⚠️ Database optimization initialization failed:', error);
+    log('⚠️ Database optimization initialization failed:', String(error));
+  }
+
+  // Initialize background jobs
+  try {
+    await startJobs();
+    log('🔄 Background jobs initialized successfully');
+  } catch (error) {
+    log('⚠️ Background job initialization failed:', String(error));
   }
 
   const server = await registerRoutes(app);

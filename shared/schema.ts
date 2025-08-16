@@ -193,6 +193,7 @@ export const notificationTypeEnum = pgEnum('notification_type', [
   'meeting',
   'announcement',
   'document',
+  'ssl_certificate',
 ]);
 /**
  * Enum defining building types common in Quebec residential properties.
