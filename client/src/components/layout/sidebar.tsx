@@ -166,13 +166,11 @@ export function Sidebar() {
       {/* Logo Header */}
       <div className='p-6 border-b border-gray-200'>
         <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 bg-koveo-navy rounded-lg flex items-center justify-center'>
-            <ArrowUp className='text-white text-lg' size={20} />
-          </div>
-          <div>
-            <h1 className='text-lg font-semibold text-koveo-navy'>Koveo Gestion</h1>
-            <p className='text-sm text-koveo-silver'>Development Framework</p>
-          </div>
+          <img 
+            src="@assets/image_1755317306936.png" 
+            alt="Koveo Gestion Logo" 
+            className="h-12 w-auto"
+          />
         </div>
       </div>
 

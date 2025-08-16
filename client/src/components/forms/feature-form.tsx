@@ -166,6 +166,16 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
     performanceRequirements: '',
     testingStrategy: '',
     additionalNotes: '',
+    
+    // RBAC requirements
+    rbacRequired: false,
+    rbacRoles: {
+      admin: { read: true, write: true, organizationalLimitation: '' },
+      manager: { read: true, write: true, organizationalLimitation: '' },
+      owner: { read: true, write: false, organizationalLimitation: '' },
+      tenant: { read: false, write: false, organizationalLimitation: '' },
+      board_member: { read: false, write: false, organizationalLimitation: '' }
+    },
   });
 
   const [step, setStep] = useState<'form' | 'prompt'>('form');
@@ -305,6 +315,28 @@ ${formData.integrationNeeds || 'Standard system integration'}
 
 ### Security Considerations
 ${formData.securityConsiderations || 'Follow standard security practices'}
+
+${formData.rbacRequired ? `
+### Role-Based Access Control (RBAC)
+**RBAC Required:** Yes
+
+**Role Permissions:**
+${Object.entries(formData.rbacRoles)
+  .filter(([_, permissions]) => permissions.read || permissions.write)
+  .map(([role, permissions]) => {
+    const accessTypes = [];
+    if (permissions.read) accessTypes.push('Read');
+    if (permissions.write) accessTypes.push('Write');
+    const orgLimit = permissions.organizationalLimitation ? ` (${permissions.organizationalLimitation})` : '';
+    return `- **${role.replace('_', ' ').toUpperCase()}**: ${accessTypes.join(', ')} access${orgLimit}`;
+  }).join('\n')}
+
+**Implementation Notes:**
+- Use the existing RBAC system in server/auth.ts with requireAuth and authorize middleware
+- Apply role-based query scoping using the functions in server/db/queries/scope-query.ts
+- Ensure all API endpoints check permissions using the authorize('permission:action') middleware
+- Follow the established patterns in config/permissions.json for permission naming
+` : ''}
 
 ## 👤 User Experience Requirements
 
@@ -483,6 +515,14 @@ ${formData.additionalNotes || 'No additional notes'}
       performanceRequirements: '',
       testingStrategy: '',
       additionalNotes: '',
+      rbacRequired: false,
+      rbacRoles: {
+        admin: { read: true, write: true, organizationalLimitation: '' },
+        manager: { read: true, write: true, organizationalLimitation: '' },
+        owner: { read: true, write: false, organizationalLimitation: '' },
+        tenant: { read: false, write: false, organizationalLimitation: '' },
+        board_member: { read: false, write: false, organizationalLimitation: '' }
+      },
     });
     setGeneratedPrompt('');
   };
@@ -848,6 +888,81 @@ ${formData.additionalNotes || 'No additional notes'}
                   />
                 </div>
               </div>
+            </div>
+
+            {/* RBAC Requirements Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Role-Based Access Control (RBAC)</h3>
+              
+              <div className="flex items-center gap-3">
+                <Label htmlFor="rbacRequired" className="text-sm font-medium">Does this feature require RBAC?</Label>
+                <Switch
+                  id="rbacRequired"
+                  checked={formData.rbacRequired}
+                  onCheckedChange={(checked) => updateFormData('rbacRequired', checked)}
+                />
+                <span className="text-xs text-gray-500">Enable role-based access control for this feature</span>
+              </div>
+
+              {formData.rbacRequired && (
+                <div className="bg-yellow-50 p-4 rounded-lg space-y-4">
+                  <h4 className="font-medium text-yellow-800">Configure Role Permissions</h4>
+                  <p className="text-sm text-yellow-700">For each role, specify read/write permissions and organizational limitations.</p>
+                  
+                  {Object.entries(formData.rbacRoles).map(([role, permissions]) => (
+                    <div key={role} className="bg-white p-3 rounded border">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium capitalize text-gray-900">{role.replace('_', ' ')}</h5>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`${role}-read`}
+                            checked={permissions.read}
+                            onChange={(e) => {
+                              const newRoles = { ...formData.rbacRoles };
+                              newRoles[role as keyof typeof formData.rbacRoles].read = e.target.checked;
+                              updateFormData('rbacRoles', newRoles);
+                            }}
+                            className="rounded"
+                          />
+                          <Label htmlFor={`${role}-read`} className="text-sm">Read Access</Label>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`${role}-write`}
+                            checked={permissions.write}
+                            onChange={(e) => {
+                              const newRoles = { ...formData.rbacRoles };
+                              newRoles[role as keyof typeof formData.rbacRoles].write = e.target.checked;
+                              updateFormData('rbacRoles', newRoles);
+                            }}
+                            className="rounded"
+                          />
+                          <Label htmlFor={`${role}-write`} className="text-sm">Write Access</Label>
+                        </div>
+                        
+                        <div>
+                          <Input
+                            placeholder="Organizational limitations"
+                            value={permissions.organizationalLimitation}
+                            onChange={(e) => {
+                              const newRoles = { ...formData.rbacRoles };
+                              newRoles[role as keyof typeof formData.rbacRoles].organizationalLimitation = e.target.value;
+                              updateFormData('rbacRoles', newRoles);
+                            }}
+                            className="text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Additional Notes */}
