@@ -678,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
  *   - codeQuality: Code quality grade (A+, A, B+, B, C)
  *   - securityIssues: Number of security vulnerabilities as string
  *   - buildTime: Build time in seconds or milliseconds
- *   - translationCoverage: Translation coverage percentage as string
+ *   - translationCoverage: Translation coverage percentage as string.
  *
  * @example
  * ```typescript
@@ -852,7 +852,7 @@ async function getQualityMetrics() {
  * Gets real-time performance metrics for automatic monitoring and issue detection.
  * 
  * @returns Performance metrics including response time, memory usage, bundle size, 
- * database query performance, and page load time with automatic issue detection
+ * database query performance, and page load time with automatic issue detection.
  */
 async function getPerformanceMetrics() {
   let responseTime = 'N/A';
@@ -1134,6 +1134,7 @@ const qualityAnalyzers: QualityMetricAnalyzer[] = [
  * Registers a new quality metric analyzer with the continuous improvement pillar.
  * Use this function to add new quality metrics that should be monitored for issues.
  * 
+ * @param analyzer
  * @example
  * ```typescript
  * registerQualityAnalyzer({
@@ -1162,6 +1163,7 @@ export function registerQualityAnalyzer(analyzer: QualityMetricAnalyzer): void {
  * 
  * This ensures all quality assurance metrics are monitored by the continuous improvement system.
  * New metrics can be added using registerQualityAnalyzer().
+ * @param metrics
  */
 async function analyzeMetricsForImprovements(metrics: any): Promise<void> {
   try {

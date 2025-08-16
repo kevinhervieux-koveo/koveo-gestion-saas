@@ -4,14 +4,14 @@ import express, { type Express } from 'express';
 import { registerRoutes } from '../../server/routes';
 
 /**
- * Complete Quality Metrics System Integration Test
+ * Complete Quality Metrics System Integration Test.
  * 
  * This test validates the entire quality metrics system working together:
  * 1. API endpoints return valid data
  * 2. Metrics calculations are accurate
  * 3. Effectiveness tracking works correctly
  * 4. Continuous improvement feedback loop functions
- * 5. System provides actionable insights
+ * 5. System provides actionable insights.
  */
 describe('Complete Quality Metrics System Integration', () => {
   let app: Express;
@@ -53,8 +53,8 @@ describe('Complete Quality Metrics System Integration', () => {
         metric: 'coverage',
         calculatedValue: metrics.coverage,
         realIssuesFound: 8, // Real uncovered critical paths found
-        falsePositives: 1,  // One minor uncovered code that wasn't critical
-        missedIssues: 2,    // Two critical paths not detected
+        falsePositives: 1, // One minor uncovered code that wasn't critical
+        missedIssues: 2, // Two critical paths not detected
         projectPhase: 'development',
         issueDetails: {
           criticalIssues: 4,
@@ -69,13 +69,13 @@ describe('Complete Quality Metrics System Integration', () => {
         metric: 'codeQuality',
         calculatedValue: metrics.codeQuality,
         realIssuesFound: 6, // Real maintainability issues
-        falsePositives: 1,  // Style issue that doesn't affect maintainability
-        missedIssues: 1,    // Complex function not caught by current rules
+        falsePositives: 1, // Style issue that doesn't affect maintainability
+        missedIssues: 1, // Complex function not caught by current rules
         projectPhase: 'development',
         issueDetails: {
           criticalIssues: 2, // High complexity functions
           moderateIssues: 3, // Duplicated code, inconsistent patterns
-          minorIssues: 1,    // Minor style inconsistencies
+          minorIssues: 1, // Minor style inconsistencies
           description: 'Found complex authentication logic, duplicated validation code, and inconsistent error handling patterns'
         }
       });
@@ -200,7 +200,7 @@ describe('Complete Quality Metrics System Integration', () => {
         calculatedValue: 'High Risk',
         realIssuesFound: 2,
         falsePositives: 15, // Many false positives
-        missedIssues: 8,    // Many missed real issues
+        missedIssues: 8, // Many missed real issues
         projectPhase: 'development',
         issueDetails: {
           criticalIssues: 0,

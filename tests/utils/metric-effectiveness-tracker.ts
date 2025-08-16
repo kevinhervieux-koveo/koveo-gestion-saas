@@ -69,7 +69,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Records the effectiveness of a quality metric calculation.
-   * @param data - The metric effectiveness data
+   * @param data - The metric effectiveness data.
    */
   static recordMetricEffectiveness(data: Omit<MetricEffectivenessData, 'accuracy' | 'timestamp'>): void {
     const totalReported = data.realIssuesFound + data.falsePositives;
@@ -93,9 +93,9 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets comprehensive effectiveness statistics for a specific metric.
-   * @param metric - The metric name to analyze
-   * @param timeRangeHours - Optional time range to analyze (default: all time)
-   * @returns Detailed effectiveness statistics
+   * @param metric - The metric name to analyze.
+   * @param timeRangeHours - Optional time range to analyze (default: all time).
+   * @returns Detailed effectiveness statistics.
    */
   static getMetricEffectiveness(metric: string, timeRangeHours?: number) {
     this.loadHistory();
@@ -107,7 +107,7 @@ export class MetricEffectivenessTracker {
       metricData = metricData.filter(m => new Date(m.timestamp) >= cutoffTime);
     }
 
-    if (metricData.length === 0) return null;
+    if (metricData.length === 0) {return null;}
 
     const avgAccuracy = metricData.reduce((sum, data) => sum + data.accuracy, 0) / metricData.length;
     const totalRealIssues = metricData.reduce((sum, data) => sum + data.realIssuesFound, 0);
@@ -151,10 +151,10 @@ export class MetricEffectivenessTracker {
 
   /**
    * Validates whether a metric meets quality standards.
-   * @param metric - The metric name
-   * @param minAccuracy - Minimum accuracy threshold (default: 80%)
-   * @param maxFalsePositiveRate - Maximum false positive rate (default: 20%)
-   * @returns Whether the metric meets quality standards
+   * @param metric - The metric name.
+   * @param minAccuracy - Minimum accuracy threshold (default: 80%).
+   * @param maxFalsePositiveRate - Maximum false positive rate (default: 20%).
+   * @returns Whether the metric meets quality standards.
    */
   static validateMetricQuality(
     metric: string, 
@@ -223,9 +223,9 @@ export class MetricEffectivenessTracker {
 
   /**
    * Generates improvement suggestions for a metric with low effectiveness.
-   * @param metric - The metric name
-   * @param currentAccuracy - Current accuracy percentage
-   * @returns Improvement suggestions
+   * @param metric - The metric name.
+   * @param currentAccuracy - Current accuracy percentage.
+   * @returns Improvement suggestions.
    */
   static generateImprovementSuggestion(
     metric: string, 
@@ -295,7 +295,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets overall quality metrics system health.
-   * @returns System health assessment
+   * @returns System health assessment.
    */
   static getSystemHealth() {
     this.loadHistory();
@@ -344,8 +344,8 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets system-wide recommendations for improving quality metrics.
-   * @param healthScores - Individual metric health scores
-   * @returns System recommendations
+   * @param healthScores - Individual metric health scores.
+   * @returns System recommendations.
    */
   private static getSystemRecommendations(healthScores: any[]): string[] {
     const recommendations: string[] = [];
@@ -379,8 +379,8 @@ export class MetricEffectivenessTracker {
 
   /**
    * Exports metric effectiveness data for analysis.
-   * @param format - Export format ('json' | 'csv')
-   * @returns Formatted data string
+   * @param format - Export format ('json' | 'csv').
+   * @returns Formatted data string.
    */
   static exportData(format: 'json' | 'csv' = 'json'): string {
     this.loadHistory();

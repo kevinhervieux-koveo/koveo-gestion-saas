@@ -19,6 +19,9 @@ const mockMatchMedia = (matches: boolean) => ({
 });
 
 // Test component for useIsMobile hook
+/**
+ *
+ */
 function MobileTestComponent() {
   const isMobile = useIsMobile();
   return (
@@ -29,6 +32,9 @@ function MobileTestComponent() {
 }
 
 // Test component for useLanguage hook
+/**
+ *
+ */
 function LanguageTestComponent() {
   const { language, setLanguage, t } = useLanguage();
   
@@ -53,6 +59,9 @@ function LanguageTestComponent() {
 }
 
 // Test component for useToast hook
+/**
+ *
+ */
 function ToastTestComponent() {
   const { toast: showToast, toasts, dismiss } = useToast();
   
@@ -175,6 +184,9 @@ describe('Quebec Property Management Hooks', () => {
     });
 
     it('should handle missing translation keys gracefully', () => {
+      /**
+       *
+       */
       function TestMissingKey() {
         const { t } = useLanguage();
         return <span data-testid="missing-key">{t('nonExistentKey' as any)}</span>;
@@ -190,6 +202,9 @@ describe('Quebec Property Management Hooks', () => {
     });
 
     it('should throw error when used outside provider', () => {
+      /**
+       *
+       */
       function ComponentWithoutProvider() {
         useLanguage();
         return <div>Test</div>;

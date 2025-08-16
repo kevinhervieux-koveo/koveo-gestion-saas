@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 
 /**
- * Script to test Jest configuration and resolve common issues
+ * Script to test Jest configuration and resolve common issues.
  */
 
 console.log('🧪 Testing Jest Configuration...\n');

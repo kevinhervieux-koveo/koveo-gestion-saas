@@ -24,11 +24,20 @@ import {
   Zap,
 } from 'lucide-react';
 
+/**
+ *
+ */
 interface ActionableItemsPanelProps {
   feature: Feature;
   onClose?: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.feature
+ * @param root0.onClose
+ */
 export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelProps) {
   const { toast } = useToast();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -47,7 +56,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!response.ok) throw new Error('Failed to update item');
+      if (!response.ok) {throw new Error('Failed to update item');}
       return response.json();
     },
     onSuccess: () => {

@@ -47,7 +47,7 @@ import type { Feature, ActionableItem } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
 
 /**
- * Duplicate analysis result for a feature
+ * Duplicate analysis result for a feature.
  */
 interface DuplicateInfo {
   isDuplicate: boolean;
@@ -57,7 +57,7 @@ interface DuplicateInfo {
 }
 
 /**
- * Section interface for roadmap organization
+ * Section interface for roadmap organization.
  */
 interface Section {
   title: string;
@@ -125,10 +125,11 @@ export default function OwnerRoadmap() {
   });
 
   /**
-   * Fetches actionable items for a specific feature
+   * Fetches actionable items for a specific feature.
+   * @param featureId
    */
   const fetchActionableItems = async (featureId: string) => {
-    if (actionableItems[featureId]) return; // Already fetched
+    if (actionableItems[featureId]) {return;} // Already fetched
     
     try {
       const response = await fetch(`/api/features/${featureId}/actionable-items`);
@@ -142,7 +143,8 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Copies the implementation prompt to clipboard
+   * Copies the implementation prompt to clipboard.
+   * @param prompt
    */
   const handleCopyPrompt = async (prompt: string) => {
     try {
@@ -161,7 +163,8 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Toggles feature expansion and fetches actionable items if needed
+   * Toggles feature expansion and fetches actionable items if needed.
+   * @param featureId
    */
   const toggleFeatureExpansion = (featureId: string) => {
     setExpandedFeatures(prev => {
@@ -177,10 +180,10 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Analyzes features for duplicates and similarities
+   * Analyzes features for duplicates and similarities.
    */
   const duplicateAnalysis = useMemo(() => {
-    if (!features.length) return new Map<string, DuplicateInfo>();
+    if (!features.length) {return new Map<string, DuplicateInfo>();}
     
     const analysis = new Map<string, DuplicateInfo>();
     
@@ -190,7 +193,7 @@ export default function OwnerRoadmap() {
       
       // Compare with all other features
       features.forEach((otherFeature, otherIndex) => {
-        if (index === otherIndex) return;
+        if (index === otherIndex) {return;}
         
         const nameMatch = feature.name.toLowerCase().trim() === otherFeature.name.toLowerCase().trim();
         const descMatch = feature.description?.toLowerCase().trim() === otherFeature.description?.toLowerCase().trim();
@@ -226,7 +229,7 @@ export default function OwnerRoadmap() {
   }, [features]);
 
   /**
-   * Gets total duplicate statistics
+   * Gets total duplicate statistics.
    */
   const duplicateStats = useMemo(() => {
     const exactDuplicates = Array.from(duplicateAnalysis.values()).filter(d => d.similarityType === 'exact');
@@ -249,7 +252,7 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Handles creating a new feature item
+   * Handles creating a new feature item.
    */
   const handleCreateNewItem = () => {
     setSelectedFeature(null);
@@ -257,7 +260,7 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Copies LLM help form to clipboard for feature discussion
+   * Copies LLM help form to clipboard for feature discussion.
    */
   const handleCopyLLMForm = async () => {
     const llmHelpForm = `# Feature Development Discussion Form
@@ -430,7 +433,7 @@ export default function OwnerRoadmap() {
       title: 'Website',
       icon: Globe,
       description: 'Website features, SEO, and automation tools',
-      features: groupedFeatures['Website'] || [],
+      features: groupedFeatures.Website || [],
     },
   ];
 
@@ -481,11 +484,12 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Gets duplicate badge for a feature
+   * Gets duplicate badge for a feature.
+   * @param featureId
    */
   const getDuplicateBadge = (featureId: string) => {
     const dupInfo = duplicateAnalysis.get(featureId);
-    if (!dupInfo || !dupInfo.isDuplicate) return null;
+    if (!dupInfo || !dupInfo.isDuplicate) {return null;}
     
     if (dupInfo.similarityType === 'exact') {
       return (
@@ -505,11 +509,12 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Gets duplicate note text for a feature
+   * Gets duplicate note text for a feature.
+   * @param featureId
    */
   const getDuplicateNote = (featureId: string) => {
     const dupInfo = duplicateAnalysis.get(featureId);
-    if (!dupInfo || !dupInfo.isDuplicate) return null;
+    if (!dupInfo || !dupInfo.isDuplicate) {return null;}
     
     const duplicateNames = dupInfo.duplicateFeatures.map(f => f.name).join(', ');
     
@@ -521,7 +526,8 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Gets status icon for actionable items
+   * Gets status icon for actionable items.
+   * @param status
    */
   const getActionableItemStatusIcon = (status: string) => {
     switch (status) {
@@ -538,7 +544,8 @@ export default function OwnerRoadmap() {
   };
 
   /**
-   * Gets status badge for actionable items
+   * Gets status badge for actionable items.
+   * @param status
    */
   const getActionableItemStatusBadge = (status: string) => {
     switch (status) {

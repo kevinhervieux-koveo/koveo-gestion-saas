@@ -29,6 +29,9 @@ const loginSchema = z.object({
     .min(8, 'Password must be at least 8 characters'),
 });
 
+/**
+ *
+ */
 type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
@@ -40,7 +43,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
  * - Error handling with user-friendly messages  
  * - Bilingual support (French/English)
  * - Quebec-compliant security messaging
- * - Role-based redirection after login
+ * - Role-based redirection after login.
  */
 export default function LoginPage() {
   const [, navigate] = useLocation();

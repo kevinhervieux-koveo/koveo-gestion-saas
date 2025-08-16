@@ -27,7 +27,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Authentication provider component that wraps the application.
  * Manages user authentication state and provides authentication actions.
  * 
- * @param children - Child components to wrap with authentication context
+ * @param children.children
+ * @param children - Child components to wrap with authentication context.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
@@ -109,9 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Login function that authenticates a user with email and password.
    * 
-   * @param email - User's email address
-   * @param password - User's password
-   * @returns Promise resolving to user data
+   * @param email - User's email address.
+   * @param password - User's password.
+   * @returns Promise resolving to user data.
    */
   const login = async (email: string, password: string): Promise<{ user: User }> => {
     const result = await loginMutation.mutateAsync({ email, password });
@@ -128,11 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Check if the current user has a specific role or any of the provided roles.
    * 
-   * @param role - Single role string or array of roles to check
-   * @returns True if user has the required role(s)
+   * @param role - Single role string or array of roles to check.
+   * @returns True if user has the required role(s).
    */
   const hasRole = (role: string | string[]): boolean => {
-    if (!user) return false;
+    if (!user) {return false;}
     if (Array.isArray(role)) {
       return role.includes(user.role);
     }
@@ -142,11 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Check if the current user has any of the provided roles.
    * 
-   * @param roles - Array of roles to check against
-   * @returns True if user has any of the specified roles
+   * @param roles - Array of roles to check against.
+   * @returns True if user has any of the specified roles.
    */
   const hasAnyRole = (roles: string[]): boolean => {
-    if (!user) return false;
+    if (!user) {return false;}
     return roles.includes(user.role);
   };
 
@@ -171,8 +172,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * Hook to access authentication context.
  * Must be used within an AuthProvider.
  * 
- * @returns Authentication context with user state and actions
- * @throws Error if used outside of AuthProvider
+ * @returns Authentication context with user state and actions.
+ * @throws Error if used outside of AuthProvider.
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);

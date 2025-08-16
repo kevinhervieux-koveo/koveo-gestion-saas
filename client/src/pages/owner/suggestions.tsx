@@ -203,7 +203,7 @@ export default function OwnerSuggestions() {
                 const categorySuggestions = categorizedSuggestions[category.name] || [];
                 const Icon = category.icon;
                 
-                if (categorySuggestions.length === 0) return null;
+                if (categorySuggestions.length === 0) {return null;}
                 
                 return (
                   <div key={category.name} className='space-y-4'>

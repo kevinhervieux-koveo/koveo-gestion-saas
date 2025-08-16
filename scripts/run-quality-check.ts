@@ -110,6 +110,9 @@ interface VulnerabilityResult {
  * @param complexity
  * @param coverage
  * @param vulnerabilities
+ * @param translationCoverage
+ * @param accessibility
+ * @param componentCoverage
  */
 async function generateSuggestions(
   complexity: ComplexityResult,
@@ -636,9 +639,9 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
       const componentName = fileName.replace(/\.(tsx?|jsx?)$/, '').toLowerCase();
       
       let componentType: 'ui' | 'layout' | 'form' | 'page' = 'ui';
-      if (file.includes('/pages/')) componentType = 'page';
-      else if (file.includes('/layout/') || componentName.includes('sidebar') || componentName.includes('header')) componentType = 'layout';
-      else if (file.includes('/forms/') || componentName.includes('form')) componentType = 'form';
+      if (file.includes('/pages/')) {componentType = 'page';}
+      else if (file.includes('/layout/') || componentName.includes('sidebar') || componentName.includes('header')) {componentType = 'layout';}
+      else if (file.includes('/forms/') || componentName.includes('form')) {componentType = 'form';}
       
       if (testedComponentNames.has(componentName) || testedComponentNames.has(componentName.replace(/[\W]/g, ''))) {
         testedComponents++;
@@ -727,6 +730,9 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
  * @param complexity - Complexity analysis results.
  * @param coverage - Coverage analysis results.
  * @param vulnerabilities - Vulnerability analysis results.
+ * @param translationCoverage
+ * @param accessibility
+ * @param componentCoverage
  * @returns Boolean indicating if all thresholds are met.
  */
 function validateQuality(

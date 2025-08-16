@@ -1,5 +1,8 @@
 import type { Feature, ActionableItem } from '@shared/schema';
 
+/**
+ *
+ */
 interface AnalysisResult {
   summary: string;
   actionableItems: Array<{
@@ -15,6 +18,11 @@ interface AnalysisResult {
   estimatedTotalEffort: string;
 }
 
+/**
+ *
+ * @param feature
+ * @param documentationContext
+ */
 export async function analyzeFeatureWithGemini(
   feature: Feature,
   documentationContext: string
@@ -166,6 +174,11 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
   }
 }
 
+/**
+ *
+ * @param featureId
+ * @param analysisResult
+ */
 export function formatActionableItemsForDatabase(
   featureId: string,
   analysisResult: AnalysisResult
@@ -184,6 +197,9 @@ export function formatActionableItemsForDatabase(
   }));
 }
 
+/**
+ *
+ */
 export async function getDocumentationContext(): Promise<string> {
   // For now, return a summary of the system architecture
   // In production, this could read from the actual documentation file

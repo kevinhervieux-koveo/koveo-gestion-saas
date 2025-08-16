@@ -4,7 +4,7 @@
  * This directory contains all form-related components to ensure:
  * - Easy reusability across the application
  * - Consistent form patterns and validation
- * - Better maintainability and organization
+ * - Better maintainability and organization.
  * 
  * Export all forms from this index file for clean imports.
  */

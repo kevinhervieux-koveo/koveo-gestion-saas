@@ -68,7 +68,7 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * - Sorting with direction toggle
  * - Preset filter configurations
  * - Local storage persistence
- * - Optimized performance with useMemo and useCallback
+ * - Optimized performance with useMemo and useCallback.
  * 
  * @template T - The type of data items being filtered and sorted.
  * @param {UseFilterSortOptions<T>} options - Configuration object with data, config, and initial state.

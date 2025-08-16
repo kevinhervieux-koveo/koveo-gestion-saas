@@ -1,5 +1,5 @@
 /**
- * Quality Monitoring Integration for Continuous Improvement Pillar
+ * Quality Monitoring Integration for Continuous Improvement Pillar.
  * 
  * This module provides utilities for integrating new quality metrics
  * with the continuous improvement pillar automatically.

@@ -231,9 +231,9 @@ function toast({ ...props }: Toast) {
  * Provides access to toast state and functions for creating and dismissing toasts.
  * 
  * @returns {object} Toast state and control functions.
- * @returns {ToasterToast[]} returns.toasts - Array of current active toasts.
- * @returns {function} returns.toast - Function to create new toast notifications.
- * @returns {function} returns.dismiss - Function to dismiss specific or all toasts.
+ * @returns {ToasterToast[]} Returns.toasts - Array of current active toasts.
+ * @returns {Function} Returns.toast - Function to create new toast notifications.
+ * @returns {Function} Returns.dismiss - Function to dismiss specific or all toasts.
  * @example
  * ```typescript
  * function MyComponent() {

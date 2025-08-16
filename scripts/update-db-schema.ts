@@ -4,6 +4,9 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 
+/**
+ *
+ */
 async function updateSchema() {
   console.log('🔄 Updating database schema...');
   

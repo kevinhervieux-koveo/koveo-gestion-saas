@@ -1742,7 +1742,7 @@ export class MemStorage implements IStorage {
    */
   async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
     const existing = this.actionableItems.get(id);
-    if (!existing) return undefined;
+    if (!existing) {return undefined;}
     
     const updated = {
       ...existing,

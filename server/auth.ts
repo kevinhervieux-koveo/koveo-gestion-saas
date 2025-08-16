@@ -104,7 +104,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
-        if (err) console.error('Session destruction error:', err);
+        if (err) {console.error('Session destruction error:', err);}
       });
       return res.status(401).json({ 
         message: 'User account not found or inactive',
@@ -321,6 +321,9 @@ export function setupAuthRoutes(app: any) {
 // Extend Express Request interface to include user
 declare global {
   namespace Express {
+    /**
+     *
+     */
     interface Request {
       user?: User;
     }
@@ -329,6 +332,9 @@ declare global {
 
 // Extend session interface
 declare module 'express-session' {
+  /**
+   *
+   */
   interface SessionData {
     userId?: string;
     userRole?: string;

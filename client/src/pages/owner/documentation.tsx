@@ -75,7 +75,7 @@ interface DocumentationData {
  * - Google Suite export (DOCX, XLSX formats)
  * - LLM-optimized documentation for AI processing
  * - Auto-refresh in Replit environment
- * - Manual refresh capabilities
+ * - Manual refresh capabilities.
  * 
  * @returns {JSX.Element} Rendered documentation center with export and generation tools.
  */

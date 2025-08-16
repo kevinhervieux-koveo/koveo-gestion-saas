@@ -13,6 +13,9 @@ const mockedReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSy
 
 // Import the quality metrics function (we'll need to extract it from routes.ts)
 // For now, let's recreate the function for testing
+/**
+ *
+ */
 async function getQualityMetrics() {
   try {
     // Get real test coverage
@@ -174,11 +177,11 @@ class QualityMetricValidator {
 
   /**
    * Records a quality metric calculation and its real-world effectiveness.
-   * @param metric - The metric name
-   * @param calculatedValue - The calculated metric value
-   * @param realIssuesFound - Number of real issues actually found by this metric
-   * @param falsePositives - Number of false positives reported
-   * @param missedIssues - Number of actual issues the metric missed
+   * @param metric - The metric name.
+   * @param calculatedValue - The calculated metric value.
+   * @param realIssuesFound - Number of real issues actually found by this metric.
+   * @param falsePositives - Number of false positives reported.
+   * @param missedIssues - Number of actual issues the metric missed.
    */
   static recordMetricEffectiveness(
     metric: string,
@@ -204,12 +207,12 @@ class QualityMetricValidator {
 
   /**
    * Gets the effectiveness statistics for a specific metric.
-   * @param metric - The metric name to analyze
-   * @returns Effectiveness statistics
+   * @param metric - The metric name to analyze.
+   * @returns Effectiveness statistics.
    */
   static getMetricEffectiveness(metric: string) {
     const metricData = this.metricsHistory.filter(m => m.metric === metric);
-    if (metricData.length === 0) return null;
+    if (metricData.length === 0) {return null;}
 
     const avgAccuracy = metricData.reduce((sum, data) => sum + data.accuracy, 0) / metricData.length;
     const totalRealIssues = metricData.reduce((sum, data) => sum + data.realIssuesFound, 0);
@@ -229,13 +232,13 @@ class QualityMetricValidator {
 
   /**
    * Validates that a metric is finding real problems, not just reporting numbers.
-   * @param metric - The metric name
-   * @param threshold - Minimum accuracy threshold (default: 80%)
-   * @returns Whether the metric meets quality standards
+   * @param metric - The metric name.
+   * @param threshold - Minimum accuracy threshold (default: 80%).
+   * @returns Whether the metric meets quality standards.
    */
   static validateMetricQuality(metric: string, threshold: number = 80): boolean {
     const effectiveness = this.getMetricEffectiveness(metric);
-    if (!effectiveness) return false;
+    if (!effectiveness) {return false;}
 
     return effectiveness.averageAccuracy >= threshold && 
            effectiveness.totalRealIssuesFound > effectiveness.totalFalsePositives;
@@ -269,8 +272,8 @@ describe('Quality Metrics Calculation Tests', () => {
         'coverage',
         metrics.coverage,
         12, // Real uncovered critical paths found
-        2,  // False positives (covered code reported as uncovered)
-        1   // Missed issues (uncovered critical code not reported)
+        2, // False positives (covered code reported as uncovered)
+        1 // Missed issues (uncovered critical code not reported)
       );
     });
 
@@ -327,7 +330,7 @@ describe('Quality Metrics Calculation Tests', () => {
         'A+',
         0, // No real quality issues in A+ code
         0, // No false positives
-        0  // No missed issues
+        0 // No missed issues
       );
     });
 
@@ -349,7 +352,7 @@ describe('Quality Metrics Calculation Tests', () => {
         'B',
         3, // 3 real issues that affect code quality
         1, // 1 false positive (warning that doesn't affect quality)
-        0  // No missed critical issues
+        0 // No missed critical issues
       );
     });
 
@@ -392,7 +395,7 @@ describe('Quality Metrics Calculation Tests', () => {
         '5',
         4, // 4 real security vulnerabilities that need fixing
         1, // 1 false positive (low-risk vulnerability in dev dependency)
-        1  // 1 missed issue (security issue not caught by audit)
+        1 // 1 missed issue (security issue not caught by audit)
       );
     });
 
@@ -407,7 +410,7 @@ describe('Quality Metrics Calculation Tests', () => {
         '0',
         0, // No security issues
         0, // No false positives
-        0  // No missed issues
+        0 // No missed issues
       );
     });
 
@@ -439,7 +442,7 @@ describe('Quality Metrics Calculation Tests', () => {
         metrics.buildTime,
         1, // Slow build times do impact developer productivity
         0, // No false positives for build time
-        0  // Build time is accurately measured
+        0 // Build time is accurately measured
       );
     });
 

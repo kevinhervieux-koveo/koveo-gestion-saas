@@ -23,6 +23,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ *
+ */
 interface AIInteraction {
   id: string;
   timestamp: string;
@@ -34,6 +37,9 @@ interface AIInteraction {
   impact?: 'high' | 'medium' | 'low';
 }
 
+/**
+ *
+ */
 interface AIMetrics {
   totalInteractions: number;
   successRate: number;
@@ -45,6 +51,9 @@ interface AIMetrics {
   aiEfficiency: number;
 }
 
+/**
+ *
+ */
 interface AIInsight {
   id: string;
   type: 'performance' | 'quality' | 'security' | 'ux' | 'efficiency';
@@ -56,6 +65,9 @@ interface AIInsight {
   createdAt: string;
 }
 
+/**
+ *
+ */
 export function ReplitAIMonitoring() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');

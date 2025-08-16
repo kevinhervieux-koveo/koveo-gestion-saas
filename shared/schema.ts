@@ -1003,11 +1003,29 @@ export const aiMetrics = pgTable('ai_metrics', {
 });
 
 // Export types for AI monitoring
+/**
+ *
+ */
 export type AIInteraction = typeof aiInteractions.$inferSelect;
+/**
+ *
+ */
 export type InsertAIInteraction = typeof aiInteractions.$inferInsert;
+/**
+ *
+ */
 export type AIInsight = typeof aiInsights.$inferSelect;
+/**
+ *
+ */
 export type InsertAIInsight = typeof aiInsights.$inferInsert;
+/**
+ *
+ */
 export type AIMetrics = typeof aiMetrics.$inferSelect;
+/**
+ *
+ */
 export type InsertAIMetrics = typeof aiMetrics.$inferInsert;
 
 // Relations

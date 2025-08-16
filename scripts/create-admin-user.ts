@@ -4,7 +4,7 @@
  * Script to create initial admin user for Koveo Gestion.
  * Creates a default admin account for Quebec property management system access.
  * 
- * Usage: tsx scripts/create-admin-user.ts
+ * Usage: tsx scripts/create-admin-user.ts.
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -156,6 +156,9 @@ async function createSampleUsers() {
 }
 
 // Execute the script
+/**
+ *
+ */
 async function main() {
   console.log('🏠 Koveo Gestion - Quebec Property Management System');
   console.log('👤 User Initialization Script');

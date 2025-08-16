@@ -43,6 +43,9 @@ const NotFound = lazy(() => import('@/pages/not-found'));
 const LoginPage = lazy(() => import('@/pages/auth/login'));
 
 // Redirect component for root route
+/**
+ *
+ */
 function RootRedirect() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();

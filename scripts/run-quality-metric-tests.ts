@@ -5,15 +5,18 @@ import { existsSync } from 'fs';
 import { MetricEffectivenessTracker } from '../tests/utils/metric-effectiveness-tracker';
 
 /**
- * Automated Quality Metrics Testing and Effectiveness Tracking Script
+ * Automated Quality Metrics Testing and Effectiveness Tracking Script.
  * 
  * This script runs comprehensive tests on all quality metrics to ensure they:
  * 1. Calculate correctly
  * 2. Find real problems (not just report numbers)
  * 3. Track effectiveness over time
- * 4. Provide actionable insights for improvement
+ * 4. Provide actionable insights for improvement.
  */
 
+/**
+ *
+ */
 interface QualityTestResult {
   success: boolean;
   testsPassed: number;

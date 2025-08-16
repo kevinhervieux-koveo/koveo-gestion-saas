@@ -2,7 +2,7 @@ import { MetricEffectivenessTracker } from '../utils/metric-effectiveness-tracke
 import { jest } from '@jest/globals';
 
 /**
- * Continuous Improvement System Tests
+ * Continuous Improvement System Tests.
  * 
  * These tests validate that our quality metrics system is actually improving
  * code quality and finding real problems, not just reporting numbers.
@@ -146,7 +146,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         issueDetails: {
           criticalIssues: 3, // Error handling, edge cases
           moderateIssues: 2, // Validation logic
-          minorIssues: 1,    // Logging code
+          minorIssues: 1, // Logging code
           description: 'Found uncovered error handling in user authentication, payment processing validation, and file upload edge cases'
         }
       });
@@ -165,12 +165,12 @@ describe('Quality Metrics Continuous Improvement System', () => {
         calculatedValue: 'B+',
         realIssuesFound: 4,
         falsePositives: 1, // One stylistic warning that doesn't affect quality
-        missedIssues: 1,   // One complex function not caught by cyclomatic complexity
+        missedIssues: 1, // One complex function not caught by cyclomatic complexity
         projectPhase: 'development',
         issueDetails: {
           criticalIssues: 1, // Complex function with high cognitive load
           moderateIssues: 2, // Duplicated code, missing error handling
-          minorIssues: 1,    // Naming inconsistency
+          minorIssues: 1, // Naming inconsistency
           description: 'Found complex authentication function, duplicated validation logic, and inconsistent naming in API endpoints'
         }
       });
@@ -193,7 +193,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         issueDetails: {
           criticalIssues: 1, // SQL injection vulnerability
           moderateIssues: 1, // Outdated dependency with known CVE
-          minorIssues: 1,    // Weak password policy
+          minorIssues: 1, // Weak password policy
           description: 'Found SQL injection in user search, vulnerable lodash version, and weak password requirements'
         }
       });
@@ -218,7 +218,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         issueDetails: {
           criticalIssues: 3, // Error messages not translated
           moderateIssues: 3, // Form labels missing French translations
-          minorIssues: 2,    // Help text not translated
+          minorIssues: 2, // Help text not translated
           description: 'Found missing translations for error messages, form validation, and help tooltips affecting French users'
         }
       });

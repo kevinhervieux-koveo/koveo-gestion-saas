@@ -122,7 +122,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const [isDirty, setIsDirty] = useState(false);
 
   /**
-   * Gets the localStorage key for drafts
+   * Gets the localStorage key for drafts.
    */
   const getDraftKey = () => {
     const baseKey = 'koveo-feature-draft';
@@ -130,7 +130,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   };
 
   /**
-   * Saves form data to localStorage
+   * Saves form data to localStorage.
    */
   const saveDraft = useCallback(() => {
     try {
@@ -154,7 +154,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   }, [formData, feature?.id, toast]);
 
   /**
-   * Loads draft from localStorage
+   * Loads draft from localStorage.
    */
   const loadDraft = useCallback(() => {
     try {
@@ -171,7 +171,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   }, [feature?.id]);
 
   /**
-   * Clears the saved draft
+   * Clears the saved draft.
    */
   const clearDraft = useCallback(() => {
     try {
@@ -407,7 +407,7 @@ ${formData.additionalNotes || 'No additional notes'}
 
   // Auto-save effect - saves after 3 seconds of inactivity
   useEffect(() => {
-    if (!isDirty) return;
+    if (!isDirty) {return;}
 
     const timer = setTimeout(() => {
       saveDraft();
