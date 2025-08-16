@@ -194,7 +194,7 @@
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "complexity-report": "^2.0.0-alpha",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.18.1",
     "esbuild": "^0.25.0",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
