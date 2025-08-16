@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import type { User } from '@shared/schema';
 
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
 
   // Query to get current user
@@ -74,6 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Redirect to dashboard after successful login
+      setLocation('/dashboard');
     },
   });
 

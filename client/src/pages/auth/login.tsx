@@ -72,22 +72,7 @@ export default function LoginPage() {
           : 'You are now logged into Koveo Gestion',
       });
 
-      // Redirect based on user role
-      const userRole = response?.user?.role;
-      switch (userRole) {
-        case 'admin':
-        case 'owner':
-          navigate('/owner/dashboard');
-          break;
-        case 'manager':
-          navigate('/manager/buildings');
-          break;
-        case 'board_member':
-          navigate('/dashboard');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+      // Note: Routing to /dashboard is handled by the auth hook
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed';
       setLoginError(errorMessage);
