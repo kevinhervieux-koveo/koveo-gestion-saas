@@ -1489,3 +1489,159 @@ export const aiInsightsRelations = relations(aiInsights, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// RBAC Permission System
+
+/**
+ * Enum defining resource types for RBAC permissions.
+ * Used to specify what type of resource a permission applies to.
+ */
+export const resourceTypeEnum = pgEnum('resource_type', [
+  'organizations',
+  'buildings', 
+  'residences',
+  'users',
+  'bills',
+  'maintenance_requests',
+  'budgets',
+  'documents',
+  'notifications',
+  'features',
+  'quality_metrics',
+  'reports',
+]);
+
+/**
+ * Enum defining action types for RBAC permissions.
+ * Used to specify what actions can be performed on resources.
+ */
+export const actionTypeEnum = pgEnum('action_type', [
+  'create',
+  'read',
+  'update',
+  'delete',
+  'approve',
+  'assign',
+  'manage_permissions',
+  'generate_reports',
+  'export_data',
+  'manage_users',
+]);
+
+/**
+ * Permissions table storing system-wide permissions.
+ * Defines granular permissions that can be assigned to roles or users.
+ */
+export const permissions = pgTable('permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  description: text('description'),
+  resourceType: resourceTypeEnum('resource_type').notNull(),
+  action: actionTypeEnum('action').notNull(),
+  conditions: jsonb('conditions'), // Optional conditions for conditional permissions
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Role permissions table linking roles to their permissions.
+ * Defines which permissions are granted to each role.
+ */
+export const rolePermissions = pgTable('role_permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  role: userRoleEnum('role').notNull(),
+  permissionId: uuid('permission_id')
+    .notNull()
+    .references(() => permissions.id, { onDelete: 'cascade' }),
+  grantedBy: uuid('granted_by')
+    .notNull()
+    .references(() => users.id),
+  grantedAt: timestamp('granted_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * User permissions table for granting specific permissions to individual users.
+ * Allows for user-specific permission overrides beyond their role.
+ */
+export const userPermissions = pgTable('user_permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  permissionId: uuid('permission_id')
+    .notNull()
+    .references(() => permissions.id, { onDelete: 'cascade' }),
+  granted: boolean('granted').notNull().default(true), // true = grant, false = revoke
+  grantedBy: uuid('granted_by')
+    .notNull()
+    .references(() => users.id),
+  reason: text('reason'), // Optional reason for granting/revoking
+  grantedAt: timestamp('granted_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// RBAC Relations
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  rolePermissions: many(rolePermissions),
+  userPermissions: many(userPermissions),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
+  }),
+  grantedBy: one(users, {
+    fields: [rolePermissions.grantedBy],
+    references: [users.id],
+  }),
+}));
+
+export const userPermissionsRelations = relations(userPermissions, ({ one }) => ({
+  user: one(users, {
+    fields: [userPermissions.userId],
+    references: [users.id],
+  }),
+  permission: one(permissions, {
+    fields: [userPermissions.permissionId],
+    references: [permissions.id],
+  }),
+  grantedBy: one(users, {
+    fields: [userPermissions.grantedBy],
+    references: [users.id],
+  }),
+}));
+
+// RBAC Insert and Select Schemas
+export const insertPermissionSchema = createInsertSchema(permissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type Permission = typeof permissions.$inferSelect;
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  grantedAt: true,
+  createdAt: true,
+});
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).omit({
+  id: true,
+  grantedAt: true,
+  createdAt: true,
+});
+export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+export type UserPermission = typeof userPermissions.$inferSelect;

@@ -189,6 +189,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Roadmap', href: '/owner/roadmap', icon: ShieldCheck },
         { name: 'Quality Assurance', href: '/owner/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/owner/suggestions', icon: Lightbulb },
+        { name: 'RBAC Permissions', href: '/owner/permissions', icon: ShieldCheck },
       ],
     },
     {
