@@ -174,11 +174,11 @@ interface Residence {
  * 
  * Allows sending single or bulk invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
- * @param root0 - Component props
- * @param root0.open - Whether dialog is open
- * @param root0.onOpenChange - Handler for dialog open state changes
- * @param root0.onSuccess - Handler called when invitation is sent successfully
- * @returns JSX element for the invitation dialog
+ * @param root0 - Component props.
+ * @param root0.open - Whether dialog is open.
+ * @param root0.onOpenChange - Handler for dialog open state changes.
+ * @param root0.onSuccess - Handler called when invitation is sent successfully.
+ * @returns JSX element for the invitation dialog.
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
@@ -249,7 +249,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
-    if (!organizations) return [];
+    if (!organizations) {return [];}
     // If user is admin, they can see all accessible organizations
     // If user is manager, they only see their organization
     if (currentUser?.role === 'manager') {
@@ -261,12 +261,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   };
 
   const getFilteredBuildings = (selectedOrgId: string) => {
-    if (!buildings || !selectedOrgId) return [];
+    if (!buildings || !selectedOrgId) {return [];}
     return buildings.filter(building => building.organizationId === selectedOrgId);
   };
 
   const getFilteredResidences = (selectedBuildingId: string) => {
-    if (!residences || !selectedBuildingId) return [];
+    if (!residences || !selectedBuildingId) {return [];}
     return residences.filter(residence => residence.buildingId === selectedBuildingId);
   };
 

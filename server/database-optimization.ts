@@ -31,6 +31,7 @@ export class PaginationHelper {
   
   /**
    * Generates LIMIT and OFFSET clause for pagination.
+   * @param options
    */
   static getPaginationClause(options: PaginationOptions): string {
     const offset = (options.page - 1) * options.pageSize;
@@ -39,14 +40,17 @@ export class PaginationHelper {
   
   /**
    * Generates ORDER BY clause for sorting.
+   * @param options
    */
   static getSortClause(options: PaginationOptions): string {
-    if (!options.sortBy) return '';
+    if (!options.sortBy) {return '';}
     return `ORDER BY ${options.sortBy} ${options.sortDirection || 'ASC'}`;
   }
   
   /**
    * Calculates total pages for pagination controls.
+   * @param totalRecords
+   * @param pageSize
    */
   static calculateTotalPages(totalRecords: number, pageSize: number): number {
     return Math.ceil(totalRecords / pageSize);
@@ -54,6 +58,7 @@ export class PaginationHelper {
   
   /**
    * Validates pagination parameters.
+   * @param options
    */
   static validatePagination(options: PaginationOptions): void {
     if (options.page < 1) {
@@ -446,6 +451,8 @@ export class QueryOptimizer {
   
   /**
    * Optimizes query structure for better performance.
+   * @param baseQuery
+   * @param options
    */
   static optimizeQuery(baseQuery: string, options: QueryOptimizationOptions = {}): string {
     let optimizedQuery = baseQuery;

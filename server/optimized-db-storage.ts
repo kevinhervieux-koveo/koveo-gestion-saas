@@ -120,6 +120,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets paginated users with optimized query structure.
+   * @param options
    */
   async getPaginatedUsers(options: PaginationOptions): Promise<{ users: User[], total: number }> {
     PaginationHelper.validatePagination(options);
@@ -159,6 +160,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets buildings with residents using EXISTS instead of IN subquery.
+   * @param organizationId
+   * @param limit
    */
   async getBuildingsWithResidents(organizationId: string, limit: number = 50): Promise<Building[]> {
     const cacheKey = `buildings_with_residents:${organizationId}:${limit}`;
@@ -192,6 +195,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Searches users with optimized covering index and LIMIT.
+   * @param query
+   * @param limit
    */
   async searchUsers(query: string, limit: number = 20): Promise<User[]> {
     const cacheKey = `search_users:${query}:${limit}`;
@@ -220,6 +225,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets financial summary using materialized view for complex aggregations.
+   * @param buildingId
    */
   async getFinancialSummary(buildingId: string): Promise<any[]> {
     const cacheKey = `financial_summary:${buildingId}`;
@@ -240,6 +246,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets building statistics using materialized view.
+   * @param buildingId
    */
   async getBuildingStats(buildingId: string): Promise<any> {
     const cacheKey = `building_stats:${buildingId}`;

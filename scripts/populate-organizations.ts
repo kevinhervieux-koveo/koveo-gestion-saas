@@ -14,6 +14,9 @@ if (!DATABASE_URL) {
 const pool = new Pool({ connectionString: DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
+/**
+ *
+ */
 async function populateOrganizations() {
   try {
     console.log('🚀 Starting to populate organizations, buildings, and residences...');
