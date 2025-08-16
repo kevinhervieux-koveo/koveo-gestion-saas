@@ -100,7 +100,17 @@
     "restore:system",
     "manage:database",
     "read:api_logs",
-    "manage:api_settings"
+    "manage:api_settings",
+    "read:invitation",
+    "create:invitation",
+    "update:invitation",
+    "delete:invitation",
+    "cancel:invitation",
+    "resend:invitation",
+    "bulk:invitation",
+    "audit:invitation",
+    "monitor:invitation_security",
+    "manage:invitation_settings"
   ],
   "manager": [
     "read:user",
@@ -164,7 +174,13 @@
     "access:ai_assistant",
     "read:analytics",
     "create:analytics",
-    "export:analytics"
+    "export:analytics",
+    "read:invitation",
+    "create:invitation",
+    "update:invitation",
+    "cancel:invitation",
+    "resend:invitation",
+    "audit:invitation"
   ],
   "owner": [
     "read:user",
@@ -206,7 +222,12 @@
     "create:notification",
     "read:ai_analysis",
     "access:ai_assistant",
-    "read:analytics"
+    "read:analytics",
+    "read:invitation",
+    "create:invitation",
+    "update:invitation",
+    "cancel:invitation",
+    "resend:invitation"
   ],
   "tenant": [
     "read:profile",
@@ -221,6 +242,7 @@
     "read:notification",
     "create:notification",
     "read:ai_analysis",
-    "access:ai_assistant"
+    "access:ai_assistant",
+    "read:invitation"
   ]
 }
