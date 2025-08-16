@@ -5,6 +5,10 @@ import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './i
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 
+// Configure port for Cloud Run compatibility
+// Cloud Run injects PORT environment variable
+const port = parseInt(process.env.PORT || '8080', 10);
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -19,9 +23,7 @@ app.get('/', (req, res) => {
     status: 'ok', 
     message: 'Koveo Gestion API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    port: port,
-    environment: process.env.NODE_ENV || 'development'
+    version: '1.0.0'
   });
 });
 
@@ -35,9 +37,7 @@ app.get('/health', (req, res) => {
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString(),
     pid: process.pid,
-    nodeVersion: process.version,
-    port: port,
-    environment: process.env.NODE_ENV || 'development'
+    nodeVersion: process.version
   });
 });
 
@@ -53,8 +53,7 @@ app.get('/ready', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     ready: true, 
-    timestamp: new Date().toISOString(),
-    port: port
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -62,12 +61,33 @@ app.get('/ready', (req, res) => {
 process.on('uncaughtException', (error) => {
   log(`Uncaught Exception: ${error.message}`, 'error');
   log(error.stack || '', 'error');
-  // Don't exit in production to maintain uptime
+  // Don't exit in production to maintain uptime for Cloud Run
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   log(`Unhandled Rejection at: ${promise}, reason: ${reason}`, 'error');
-  // Don't exit in production to maintain uptime
+  // Don't exit in production to maintain uptime for Cloud Run
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
+
+// Graceful shutdown for Cloud Run
+process.on('SIGTERM', () => {
+  log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    log('Server closed');
+    process.exit(0);
+  });
+
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    log('Forced shutdown');
+    process.exit(1);
+  }, 10000);
 });
 
 app.use((req, res, next) => {
@@ -101,21 +121,37 @@ app.use((req, res, next) => {
 });
 
 // Start the server immediately with health checks first
-// Use port 80 for Cloud Run compatibility, fallback to 5000 for development
-const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
-const server = app.listen(
-  {
-    port,
-    host: '0.0.0.0',
-    reusePort: true,
-  },
-  () => {
-    log(`server ready and health checks available on port ${port}`);
-    
-    // Initialize everything else in background after server is listening
-    setTimeout(() => initializeApplication(), 100);
-  }
-);
+// Cloud Run provides PORT environment variable, fallback to 8080
+let server: any;
+
+try {
+  server = app.listen(
+    {
+      port,
+      host: '0.0.0.0'
+    },
+    () => {
+      log(`server ready and health checks available on port ${port}`);
+      
+      // Initialize everything else in background after server is listening
+      setTimeout(() => initializeApplication(), 100);
+    }
+  );
+
+  // Handle server errors gracefully
+  server.on('error', (error: any) => {
+    log(`Server error: ${error.message}`, 'error');
+    if (error.code === 'EADDRINUSE') {
+      log(`Port ${port} is already in use`, 'error');
+      // In Cloud Run, this shouldn't happen, but exit gracefully
+      process.exit(1);
+    }
+  });
+
+} catch (error) {
+  log(`Failed to start server: ${error}`, 'error');
+  process.exit(1);
+}
 
 // Initialize application components after server starts
 /**
