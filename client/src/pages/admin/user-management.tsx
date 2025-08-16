@@ -72,7 +72,7 @@ interface UserManagementData {
  * roles, and permissions with real-time updates and accessibility compliance.
  */
 export default function UserManagement() {
-  const { user: currentUser, hasRole } = useAuth();
+  const { user: currentUser, hasRole, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -84,27 +84,9 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isInvitationDialogOpen, setIsInvitationDialogOpen] = useState(false);
-
-  // Debug logging to see what's happening
-  console.log('UserManagement Debug:', {
-    currentUser,
-    userRole: currentUser?.role,
-    hasRoleAdmin: hasRole(['admin']),
-    hasRoleManager: hasRole(['manager']),
-    hasRoleBoth: hasRole(['admin', 'manager']),
-    hasRoleFunction: hasRole,
-    arrayCheck: Array.isArray(['admin', 'manager']),
-    includesCheck: currentUser ? ['admin', 'manager'].includes(currentUser.role) : 'no user'
-  });
   
-  // Check permissions - simplified for debugging
+  // Check permissions after auth is loaded
   const canManageUsers = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
-  
-  console.log('Permission check result:', {
-    canManageUsers,
-    userExists: !!currentUser,
-    roleCheck: currentUser ? (currentUser.role === 'admin' || currentUser.role === 'manager') : false
-  });
 
   // Fetch user management data
   const { 
@@ -170,8 +152,8 @@ export default function UserManagement() {
     }
   });
 
-  // Show loading while checking permissions
-  if (!currentUser) {
+  // Show loading while checking authentication
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <LoadingSpinner />
@@ -179,7 +161,8 @@ export default function UserManagement() {
     );
   }
 
-  if (!canManageUsers) {
+  // Check permissions only after auth has loaded
+  if (!currentUser || !canManageUsers) {
     return (
       <div className="flex items-center justify-center h-96">
         <Card className="max-w-md mx-auto">
@@ -190,8 +173,12 @@ export default function UserManagement() {
             </CardTitle>
             <CardDescription>
               {t('accessDeniedDescription')}
-              <br /><br />
-              <small>User: {currentUser?.email}, Role: {currentUser?.role}</small>
+              {currentUser && (
+                <>
+                  <br /><br />
+                  <small>User: {currentUser.email}, Role: {currentUser.role}</small>
+                </>
+              )}
             </CardDescription>
           </CardHeader>
         </Card>
