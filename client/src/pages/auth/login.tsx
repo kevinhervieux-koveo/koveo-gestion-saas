@@ -112,12 +112,6 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Koveo Gestion
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {language === 'fr' 
-                  ? 'Système de gestion immobilière du Québec'
-                  : 'Quebec Property Management System'
-                }
-              </p>
             </div>
           </div>
         </div>

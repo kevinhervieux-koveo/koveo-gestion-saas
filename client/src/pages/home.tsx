@@ -28,7 +28,6 @@ export default function HomePage() {
             />
             <div>
               <h1 className="text-xl font-bold text-gray-900">Koveo Gestion</h1>
-              <p className="text-sm text-gray-600">Quebec Property Management System</p>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -254,7 +253,6 @@ export default function HomePage() {
               />
               <div>
                 <h3 className="font-semibold">Koveo Gestion</h3>
-                <p className="text-sm text-gray-400">Quebec Property Management System</p>
               </div>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-400">
