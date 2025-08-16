@@ -33,21 +33,21 @@ describe('RBAC System Tests', () => {
 
     test('should validate permission checking function', () => {
       // Admin should have delete:user permission
-      expect(checkPermission(permissions, 'admin', 'delete:user')).toBe(true);
+      expect(checkPermission(permissions as any, 'admin', 'delete:user')).toBe(true);
       
       // Tenant should not have delete:user permission
-      expect(checkPermission(permissions, 'tenant', 'delete:user')).toBe(false);
+      expect(checkPermission(permissions as any, 'tenant', 'delete:user')).toBe(false);
       
       // Manager should have read:bill permission
-      expect(checkPermission(permissions, 'manager', 'read:bill')).toBe(true);
+      expect(checkPermission(permissions as any, 'manager', 'read:bill')).toBe(true);
       
       // Tenant should have read:profile permission
-      expect(checkPermission(permissions, 'tenant', 'read:profile')).toBe(true);
+      expect(checkPermission(permissions as any, 'tenant', 'read:profile')).toBe(true);
     });
 
     test('should retrieve role permissions correctly', () => {
-      const adminPerms = getRolePermissions(permissions, 'admin');
-      const tenantPerms = getRolePermissions(permissions, 'tenant');
+      const adminPerms = getRolePermissions(permissions as any, 'admin');
+      const tenantPerms = getRolePermissions(permissions as any, 'tenant');
 
       expect(Array.isArray(adminPerms)).toBe(true);
       expect(Array.isArray(tenantPerms)).toBe(true);
@@ -64,7 +64,7 @@ describe('RBAC System Tests', () => {
 
     beforeEach(() => {
       mockReq = {
-        session: {},
+        session: {} as any,
         user: undefined,
       };
       mockRes = {
@@ -76,7 +76,7 @@ describe('RBAC System Tests', () => {
     });
 
     test('should reject request without session userId', async () => {
-      mockReq.session = {};
+      mockReq.session = {} as any;
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -89,7 +89,7 @@ describe('RBAC System Tests', () => {
     });
 
     test('should reject request for inactive user', async () => {
-      mockReq.session = { userId: 'user-123' };
+      mockReq.session = { userId: 'user-123' } as any;
       (storage.getUser as jest.Mock).mockResolvedValue({
         id: 'user-123',
         isActive: false,
@@ -116,7 +116,7 @@ describe('RBAC System Tests', () => {
         lastName: 'User'
       };
 
-      mockReq.session = { userId: 'user-123' };
+      mockReq.session = { userId: 'user-123' } as any;
       (storage.getUser as jest.Mock).mockResolvedValue(mockUser);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
