@@ -132,6 +132,13 @@ const LoginPage = createOptimizedLoader(
   { preloadDelay: 500, enableMemoryCleanup: true }
 );
 
+// Home page (public route)
+const HomePage = createOptimizedLoader(
+  () => import('@/pages/home'),
+  'home-page',
+  { preloadDelay: 100, enableMemoryCleanup: true }
+);
+
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
@@ -139,31 +146,6 @@ const InvitationAcceptancePage = createOptimizedLoader(
   { preloadDelay: 500, enableMemoryCleanup: true }
 );
 
-// Redirect component for root route
-/**
- * Component that handles root route redirection based on authentication status.
- * @returns JSX element for root redirect logic.
- */
-function RootRedirect() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
-  
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      setLocation('/dashboard');
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
-  
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-  
-  if (isAuthenticated) {
-    return null; // Will redirect via useEffect
-  }
-  
-  return <LoginPage />;
-}
 
 /**
  * Protected router component that handles authentication-based routing.
@@ -186,15 +168,20 @@ function Router() {
     return <LoadingSpinner />;
   }
 
+  // Public routes available to all users
+  const publicRoutes = (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
+  );
+
   if (!isAuthenticated) {
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-          <Route component={LoginPage} />
-        </Switch>
-      </Suspense>
-    );
+    return publicRoutes;
   }
 
   const mobileMenuContext = {
@@ -223,8 +210,17 @@ function Router() {
         <div className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
-              {/* Default route - redirect to dashboard */}
-              <Route path='/' component={RootRedirect} />
+              {/* Home page - accessible to authenticated users */}
+              <Route path='/' component={HomePage} />
+              
+              {/* Login page - redirect authenticated users to dashboard */}
+              <Route path='/login' component={() => {
+                const [, setLocation] = useLocation();
+                useEffect(() => {
+                  setLocation('/dashboard');
+                }, [setLocation]);
+                return <LoadingSpinner />;
+              }} />
 
               {/* Admin routes */}
               <Route path='/admin/dashboard' component={AdminDashboard} />

@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
       // Redirect to login page after logout
-      setLocation('/');
+      setLocation('/login');
     },
   });
 
