@@ -211,21 +211,18 @@ function Router() {
   const isPublicRoute = isHomePage || location === '/login' || location === '/accept-invitation';
   
   if (!isAuthenticated) {
-    if (isPublicRoute) {
-      return (
-        <Suspense fallback={<LoadingSpinner />}>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/login" component={LoginPage} />
-            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
-      );
-    } else {
-      // Redirect unauthenticated users accessing protected routes to home page
-      return <HomeRedirect />;
-    }
+    // For unauthenticated users, only show public routes and redirect everything else
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+          {/* Redirect all other routes to home for unauthenticated users */}
+          <Route component={HomeRedirect} />
+        </Switch>
+      </Suspense>
+    );
   }
   
   if (isHomePage) {
