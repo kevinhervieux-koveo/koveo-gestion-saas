@@ -1,6 +1,9 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
+import { QueryOptimizer } from './database-optimization';
+import { queryCache, cached, CacheInvalidator } from './query-cache';
+import { trackPerformance } from './performance-monitoring';
 import * as schema from '@shared/schema';
 import type {
   User,
@@ -29,73 +32,101 @@ import type { IStorage } from './storage';
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
+// Initialize database optimizations on startup
+QueryOptimizer.applyCoreOptimizations().catch(console.error);
+
 /**
  *
  */
 export class DatabaseStorage implements IStorage {
   // User operations
   /**
-   * Retrieves all users from the database.
+   * Retrieves all users from the database with caching and performance tracking.
    * @returns Promise that resolves to an array of users.
    */
+  @trackPerformance('getUsers')
+  @cached('users', () => 'all_users')
   async getUsers(): Promise<User[]> {
-    return await db.select().from(schema.users);
+    return await db.select().from(schema.users).where(eq(schema.users.isActive, true));
   }
 
   /**
-   * Retrieves a specific user by ID.
+   * Retrieves a specific user by ID with caching and performance tracking.
    * @param id - The unique identifier of the user.
    * @returns Promise that resolves to the user or undefined if not found.
    */
+  @trackPerformance('getUser')
+  @cached('users', (id: string) => `user:${id}`)
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
     return result[0];
   }
 
   /**
-   *
-   * @param email
+   * Retrieves a user by email with caching and performance tracking.
+   * @param email - The email address to search for.
+   * @returns Promise that resolves to the user or undefined if not found.
    */
+  @trackPerformance('getUserByEmail')
+  @cached('users', (email: string) => `user_email:${email}`)
   async getUserByEmail(email: string): Promise<User | undefined> {
     const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
     return result[0];
   }
 
   /**
-   *
-   * @param insertUser
+   * Creates a new user with cache invalidation and performance tracking.
+   * @param insertUser - The user data to insert.
+   * @returns Promise that resolves to the created user.
    */
+  @trackPerformance('createUser')
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(schema.users).values(insertUser).returning();
+    
+    // Invalidate related caches
+    CacheInvalidator.invalidateUserCaches('*');
+    
     return result[0];
   }
 
   /**
-   *
-   * @param id
-   * @param updates
+   * Updates a user with cache invalidation and performance tracking.
+   * @param id - The user ID to update.
+   * @param updates - The fields to update.
+   * @returns Promise that resolves to the updated user.
    */
+  @trackPerformance('updateUser')
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await db
       .update(schema.users)
-      .set(updates)
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(schema.users.id, id))
       .returning();
+    
+    // Invalidate specific user caches
+    CacheInvalidator.invalidateUserCaches(id);
+    
     return result[0];
   }
 
   // Organization operations
   /**
-   *
+   * Retrieves all organizations with caching and performance tracking.
+   * @returns Promise that resolves to an array of organizations.
    */
+  @trackPerformance('getOrganizations')
+  @cached('organizations', () => 'all_organizations')
   async getOrganizations(): Promise<Organization[]> {
-    return await db.select().from(schema.organizations);
+    return await db.select().from(schema.organizations).where(eq(schema.organizations.isActive, true));
   }
 
   /**
-   *
-   * @param id
+   * Retrieves an organization by ID with caching and performance tracking.
+   * @param id - The organization ID.
+   * @returns Promise that resolves to the organization or undefined.
    */
+  @trackPerformance('getOrganization')
+  @cached('organizations', (id: string) => `organization:${id}`)
   async getOrganization(id: string): Promise<Organization | undefined> {
     const result = await db
       .select()

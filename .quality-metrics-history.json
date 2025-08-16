@@ -12,7 +12,7 @@
       "minorIssues": 4,
       "description": "Iteration 1: Continuous improvement in test coverage"
     },
-    "timestamp": "2025-08-16T04:51:11.944Z",
+    "timestamp": "2025-08-16T04:56:22.088Z",
     "accuracy": 66.66666666666666
   },
   {
@@ -28,7 +28,7 @@
       "minorIssues": 3,
       "description": "Iteration 2: Continuous improvement in test coverage"
     },
-    "timestamp": "2025-08-16T04:51:11.944Z",
+    "timestamp": "2025-08-16T04:56:22.088Z",
     "accuracy": 69.23076923076923
   },
   {
@@ -44,7 +44,7 @@
       "minorIssues": 2,
       "description": "Iteration 3: Continuous improvement in test coverage"
     },
-    "timestamp": "2025-08-16T04:51:11.944Z",
+    "timestamp": "2025-08-16T04:56:22.088Z",
     "accuracy": 75
   },
   {
@@ -60,7 +60,7 @@
       "minorIssues": 1,
       "description": "Iteration 4: Continuous improvement in test coverage"
     },
-    "timestamp": "2025-08-16T04:51:11.944Z",
+    "timestamp": "2025-08-16T04:56:22.089Z",
     "accuracy": 75
   },
   {
@@ -76,7 +76,7 @@
       "minorIssues": -1,
       "description": "Iteration 5: Continuous improvement in test coverage"
     },
-    "timestamp": "2025-08-16T04:51:11.944Z",
+    "timestamp": "2025-08-16T04:56:22.089Z",
     "accuracy": 100
   },
   {
@@ -92,7 +92,7 @@
       "minorIssues": 1,
       "description": "Metric reporting many non-issues as problems"
     },
-    "timestamp": "2025-08-16T04:51:11.948Z",
+    "timestamp": "2025-08-16T04:56:22.092Z",
     "accuracy": 20
   },
   {
@@ -108,7 +108,7 @@
       "minorIssues": 2,
       "description": "Development phase: Finding and fixing issues as code evolves"
     },
-    "timestamp": "2025-08-16T04:51:11.957Z",
+    "timestamp": "2025-08-16T04:56:22.101Z",
     "accuracy": 76.92307692307693
   },
   {
@@ -124,551 +124,551 @@
       "minorIssues": 0,
       "description": "Production phase: Critical issues affecting live users"
     },
-    "timestamp": "2025-08-16T04:51:11.958Z",
+    "timestamp": "2025-08-16T04:56:22.102Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "60%",
-    "realIssuesFound": 8,
+    "realIssuesFound": 9,
     "falsePositives": 1,
-    "missedIssues": 0,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 0,
+      "moderateIssues": 0,
+      "minorIssues": 2,
       "description": "Scalability test iteration 0"
     },
-    "timestamp": "2025-08-16T04:51:11.959Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.103Z",
+    "accuracy": 90
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "61%",
-    "realIssuesFound": 8,
-    "falsePositives": 1,
+    "realIssuesFound": 4,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 2,
-      "minorIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 1,
       "description": "Scalability test iteration 1"
     },
-    "timestamp": "2025-08-16T04:51:11.959Z",
-    "accuracy": 88.88888888888889
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "62%",
-    "realIssuesFound": 8,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 2"
-    },
-    "timestamp": "2025-08-16T04:51:11.959Z",
-    "accuracy": 88.88888888888889
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "63%",
-    "realIssuesFound": 4,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 3"
-    },
-    "timestamp": "2025-08-16T04:51:11.960Z",
+    "timestamp": "2025-08-16T04:56:22.103Z",
     "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
-    "calculatedValue": "64%",
-    "realIssuesFound": 4,
+    "calculatedValue": "62%",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 2"
+    },
+    "timestamp": "2025-08-16T04:56:22.104Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "63%",
+    "realIssuesFound": 3,
     "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 3"
+    },
+    "timestamp": "2025-08-16T04:56:22.104Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "64%",
+    "realIssuesFound": 6,
+    "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 2,
-      "minorIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 0,
       "description": "Scalability test iteration 4"
     },
-    "timestamp": "2025-08-16T04:51:11.960Z",
+    "timestamp": "2025-08-16T04:56:22.105Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "65%",
     "realIssuesFound": 1,
-    "falsePositives": 0,
-    "missedIssues": 0,
+    "falsePositives": 1,
+    "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 0,
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 5"
     },
-    "timestamp": "2025-08-16T04:51:11.961Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.108Z",
+    "accuracy": 50
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "66%",
-    "realIssuesFound": 1,
-    "falsePositives": 2,
+    "realIssuesFound": 0,
+    "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 1,
+      "moderateIssues": 2,
       "minorIssues": 1,
       "description": "Scalability test iteration 6"
     },
-    "timestamp": "2025-08-16T04:51:11.962Z",
+    "timestamp": "2025-08-16T04:56:22.108Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "67%",
     "realIssuesFound": 4,
-    "falsePositives": 1,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 1,
-      "minorIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 0,
       "description": "Scalability test iteration 7"
     },
-    "timestamp": "2025-08-16T04:51:11.962Z",
+    "timestamp": "2025-08-16T04:56:22.109Z",
     "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "68%",
-    "realIssuesFound": 7,
+    "realIssuesFound": 0,
     "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 0,
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 8"
     },
-    "timestamp": "2025-08-16T04:51:11.962Z",
+    "timestamp": "2025-08-16T04:56:22.109Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "69%",
-    "realIssuesFound": 5,
-    "falsePositives": 1,
-    "missedIssues": 0,
+    "realIssuesFound": 1,
+    "falsePositives": 2,
+    "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
+      "criticalIssues": 1,
       "moderateIssues": 0,
-      "minorIssues": 1,
+      "minorIssues": 0,
       "description": "Scalability test iteration 9"
     },
-    "timestamp": "2025-08-16T04:51:11.963Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.110Z",
+    "accuracy": 50
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "70%",
-    "realIssuesFound": 3,
-    "falsePositives": 0,
-    "missedIssues": 1,
+    "realIssuesFound": 4,
+    "falsePositives": 1,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 0,
       "description": "Scalability test iteration 10"
     },
-    "timestamp": "2025-08-16T04:51:11.963Z",
-    "accuracy": 75
+    "timestamp": "2025-08-16T04:56:22.110Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "71%",
-    "realIssuesFound": 5,
-    "falsePositives": 1,
-    "missedIssues": 1,
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
     "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 11"
-    },
-    "timestamp": "2025-08-16T04:51:11.964Z",
-    "accuracy": 83.33333333333334
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "72%",
-    "realIssuesFound": 9,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 1,
       "moderateIssues": 3,
       "minorIssues": 0,
+      "description": "Scalability test iteration 11"
+    },
+    "timestamp": "2025-08-16T04:56:22.111Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "72%",
+    "realIssuesFound": 1,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 1,
       "description": "Scalability test iteration 12"
     },
-    "timestamp": "2025-08-16T04:51:11.965Z",
-    "accuracy": 90
+    "timestamp": "2025-08-16T04:56:22.111Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "73%",
-    "realIssuesFound": 3,
-    "falsePositives": 1,
+    "realIssuesFound": 9,
+    "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 1,
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 2,
       "description": "Scalability test iteration 13"
     },
-    "timestamp": "2025-08-16T04:51:11.965Z",
+    "timestamp": "2025-08-16T04:56:22.112Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "74%",
-    "realIssuesFound": 5,
-    "falsePositives": 1,
-    "missedIssues": 0,
+    "realIssuesFound": 0,
+    "falsePositives": 2,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 0,
+      "moderateIssues": 2,
       "minorIssues": 2,
       "description": "Scalability test iteration 14"
     },
-    "timestamp": "2025-08-16T04:51:11.966Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.113Z",
+    "accuracy": 0
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "75%",
-    "realIssuesFound": 2,
-    "falsePositives": 0,
-    "missedIssues": 1,
+    "realIssuesFound": 3,
+    "falsePositives": 1,
+    "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 1,
+      "moderateIssues": 2,
       "minorIssues": 2,
       "description": "Scalability test iteration 15"
     },
-    "timestamp": "2025-08-16T04:51:11.966Z",
-    "accuracy": 66.66666666666666
+    "timestamp": "2025-08-16T04:56:22.113Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "76%",
-    "realIssuesFound": 3,
+    "realIssuesFound": 8,
     "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 2,
+      "moderateIssues": 1,
       "minorIssues": 1,
       "description": "Scalability test iteration 16"
     },
-    "timestamp": "2025-08-16T04:51:11.967Z",
+    "timestamp": "2025-08-16T04:56:22.125Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "77%",
-    "realIssuesFound": 2,
+    "realIssuesFound": 7,
     "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 2,
+      "criticalIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 0,
       "description": "Scalability test iteration 17"
     },
-    "timestamp": "2025-08-16T04:51:11.968Z",
-    "accuracy": 66.66666666666666
+    "timestamp": "2025-08-16T04:56:22.126Z",
+    "accuracy": 87.5
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "78%",
-    "realIssuesFound": 4,
-    "falsePositives": 1,
+    "realIssuesFound": 5,
+    "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
       "moderateIssues": 3,
-      "minorIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 18"
     },
-    "timestamp": "2025-08-16T04:51:11.969Z",
-    "accuracy": 80
+    "timestamp": "2025-08-16T04:56:22.127Z",
+    "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "79%",
-    "realIssuesFound": 4,
+    "realIssuesFound": 7,
     "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 2,
+      "criticalIssues": 0,
+      "moderateIssues": 3,
       "minorIssues": 2,
       "description": "Scalability test iteration 19"
     },
-    "timestamp": "2025-08-16T04:51:11.969Z",
-    "accuracy": 80
+    "timestamp": "2025-08-16T04:56:22.129Z",
+    "accuracy": 87.5
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "80%",
-    "realIssuesFound": 1,
+    "realIssuesFound": 2,
     "falsePositives": 1,
-    "missedIssues": 1,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 1,
       "moderateIssues": 1,
-      "minorIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 20"
     },
-    "timestamp": "2025-08-16T04:51:11.972Z",
-    "accuracy": 50
+    "timestamp": "2025-08-16T04:56:22.130Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "81%",
     "realIssuesFound": 5,
-    "falsePositives": 1,
-    "missedIssues": 1,
+    "falsePositives": 0,
+    "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
+      "criticalIssues": 2,
       "moderateIssues": 3,
-      "minorIssues": 0,
+      "minorIssues": 2,
       "description": "Scalability test iteration 21"
     },
-    "timestamp": "2025-08-16T04:51:11.973Z",
-    "accuracy": 83.33333333333334
+    "timestamp": "2025-08-16T04:56:22.135Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "82%",
-    "realIssuesFound": 5,
-    "falsePositives": 0,
+    "realIssuesFound": 6,
+    "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 1,
+      "criticalIssues": 0,
+      "moderateIssues": 0,
+      "minorIssues": 2,
       "description": "Scalability test iteration 22"
     },
-    "timestamp": "2025-08-16T04:51:11.973Z",
+    "timestamp": "2025-08-16T04:56:22.135Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "83%",
-    "realIssuesFound": 3,
-    "falsePositives": 0,
+    "realIssuesFound": 1,
+    "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
+      "criticalIssues": 1,
       "moderateIssues": 0,
-      "minorIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 23"
     },
-    "timestamp": "2025-08-16T04:51:11.974Z",
+    "timestamp": "2025-08-16T04:56:22.136Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "84%",
-    "realIssuesFound": 2,
-    "falsePositives": 0,
-    "missedIssues": 0,
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 2,
+      "criticalIssues": 2,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 24"
     },
-    "timestamp": "2025-08-16T04:51:11.974Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.137Z",
+    "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "85%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
+    "realIssuesFound": 3,
+    "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 0,
       "description": "Scalability test iteration 25"
     },
-    "timestamp": "2025-08-16T04:51:11.975Z",
+    "timestamp": "2025-08-16T04:56:22.138Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "86%",
-    "realIssuesFound": 6,
-    "falsePositives": 2,
-    "missedIssues": 1,
+    "realIssuesFound": 0,
+    "falsePositives": 1,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 2,
       "description": "Scalability test iteration 26"
     },
-    "timestamp": "2025-08-16T04:51:11.975Z",
-    "accuracy": 85.71428571428571
+    "timestamp": "2025-08-16T04:56:22.139Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "87%",
-    "realIssuesFound": 6,
+    "realIssuesFound": 5,
     "falsePositives": 0,
-    "missedIssues": 1,
+    "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 2,
-      "minorIssues": 1,
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 0,
       "description": "Scalability test iteration 27"
     },
-    "timestamp": "2025-08-16T04:51:11.976Z",
-    "accuracy": 85.71428571428571
+    "timestamp": "2025-08-16T04:56:22.139Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "88%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 28"
+    },
+    "timestamp": "2025-08-16T04:56:22.142Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "89%",
+    "realIssuesFound": 9,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 0,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 29"
+    },
+    "timestamp": "2025-08-16T04:56:22.143Z",
+    "accuracy": 90
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "90%",
+    "realIssuesFound": 5,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
       "moderateIssues": 1,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 28"
+      "minorIssues": 1,
+      "description": "Scalability test iteration 30"
     },
-    "timestamp": "2025-08-16T04:51:11.978Z",
-    "accuracy": 80
+    "timestamp": "2025-08-16T04:56:22.143Z",
+    "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
-    "calculatedValue": "89%",
+    "calculatedValue": "91%",
+    "realIssuesFound": 0,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 31"
+    },
+    "timestamp": "2025-08-16T04:56:22.144Z",
+    "accuracy": 0
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "92%",
+    "realIssuesFound": 1,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 32"
+    },
+    "timestamp": "2025-08-16T04:56:22.145Z",
+    "accuracy": 50
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "93%",
     "realIssuesFound": 2,
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 29"
-    },
-    "timestamp": "2025-08-16T04:51:11.979Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "90%",
-    "realIssuesFound": 3,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 30"
-    },
-    "timestamp": "2025-08-16T04:51:11.980Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "91%",
-    "realIssuesFound": 9,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
       "moderateIssues": 3,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 31"
-    },
-    "timestamp": "2025-08-16T04:51:11.981Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "92%",
-    "realIssuesFound": 0,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 32"
-    },
-    "timestamp": "2025-08-16T04:51:11.981Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "93%",
-    "realIssuesFound": 0,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 1,
-      "minorIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 33"
     },
-    "timestamp": "2025-08-16T04:51:11.982Z",
+    "timestamp": "2025-08-16T04:56:22.147Z",
     "accuracy": 100
   },
   {
@@ -676,375 +676,375 @@
     "calculatedValue": "94%",
     "realIssuesFound": 4,
     "falsePositives": 0,
-    "missedIssues": 0,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 0,
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 34"
     },
-    "timestamp": "2025-08-16T04:51:11.983Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.148Z",
+    "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "95%",
+    "realIssuesFound": 0,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 35"
+    },
+    "timestamp": "2025-08-16T04:56:22.148Z",
+    "accuracy": 0
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "96%",
+    "realIssuesFound": 4,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 36"
+    },
+    "timestamp": "2025-08-16T04:56:22.149Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "97%",
+    "realIssuesFound": 6,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 37"
+    },
+    "timestamp": "2025-08-16T04:56:22.150Z",
+    "accuracy": 85.71428571428571
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "98%",
+    "realIssuesFound": 8,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 38"
+    },
+    "timestamp": "2025-08-16T04:56:22.150Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "99%",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 39"
+    },
+    "timestamp": "2025-08-16T04:56:22.151Z",
+    "accuracy": 66.66666666666666
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "60%",
+    "realIssuesFound": 9,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 40"
+    },
+    "timestamp": "2025-08-16T04:56:22.151Z",
+    "accuracy": 90
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "61%",
+    "realIssuesFound": 6,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 41"
+    },
+    "timestamp": "2025-08-16T04:56:22.152Z",
+    "accuracy": 85.71428571428571
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "62%",
+    "realIssuesFound": 3,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 42"
+    },
+    "timestamp": "2025-08-16T04:56:22.155Z",
+    "accuracy": 75
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "63%",
+    "realIssuesFound": 6,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 43"
+    },
+    "timestamp": "2025-08-16T04:56:22.156Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "64%",
+    "realIssuesFound": 4,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 44"
+    },
+    "timestamp": "2025-08-16T04:56:22.157Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "65%",
     "realIssuesFound": 9,
     "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 35"
-    },
-    "timestamp": "2025-08-16T04:51:11.983Z",
-    "accuracy": 90
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "96%",
-    "realIssuesFound": 1,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 36"
-    },
-    "timestamp": "2025-08-16T04:51:11.985Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "97%",
-    "realIssuesFound": 2,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 37"
-    },
-    "timestamp": "2025-08-16T04:51:11.986Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "98%",
-    "realIssuesFound": 0,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 38"
-    },
-    "timestamp": "2025-08-16T04:51:11.987Z",
-    "accuracy": 0
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "99%",
-    "realIssuesFound": 2,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 39"
-    },
-    "timestamp": "2025-08-16T04:51:11.987Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "60%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 40"
-    },
-    "timestamp": "2025-08-16T04:51:11.988Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "61%",
-    "realIssuesFound": 0,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
       "moderateIssues": 1,
       "minorIssues": 2,
-      "description": "Scalability test iteration 41"
-    },
-    "timestamp": "2025-08-16T04:51:11.988Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "62%",
-    "realIssuesFound": 8,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 42"
-    },
-    "timestamp": "2025-08-16T04:51:11.990Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "63%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 2,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 43"
-    },
-    "timestamp": "2025-08-16T04:51:11.991Z",
-    "accuracy": 80
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "64%",
-    "realIssuesFound": 1,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 44"
-    },
-    "timestamp": "2025-08-16T04:51:11.992Z",
-    "accuracy": 50
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "65%",
-    "realIssuesFound": 2,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 0,
       "description": "Scalability test iteration 45"
     },
-    "timestamp": "2025-08-16T04:51:11.993Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.159Z",
+    "accuracy": 90
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "66%",
     "realIssuesFound": 5,
-    "falsePositives": 0,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 0,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 46"
     },
-    "timestamp": "2025-08-16T04:51:11.995Z",
+    "timestamp": "2025-08-16T04:56:22.163Z",
     "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "67%",
-    "realIssuesFound": 2,
-    "falsePositives": 0,
+    "realIssuesFound": 7,
+    "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
+      "criticalIssues": 2,
+      "moderateIssues": 3,
       "minorIssues": 0,
       "description": "Scalability test iteration 47"
     },
-    "timestamp": "2025-08-16T04:51:11.996Z",
-    "accuracy": 66.66666666666666
+    "timestamp": "2025-08-16T04:56:22.163Z",
+    "accuracy": 87.5
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "68%",
-    "realIssuesFound": 1,
+    "realIssuesFound": 5,
     "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 2,
       "moderateIssues": 3,
-      "minorIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 48"
     },
-    "timestamp": "2025-08-16T04:51:11.997Z",
-    "accuracy": 50
+    "timestamp": "2025-08-16T04:56:22.164Z",
+    "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "69%",
-    "realIssuesFound": 3,
-    "falsePositives": 2,
+    "realIssuesFound": 2,
+    "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 1,
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 0,
       "description": "Scalability test iteration 49"
     },
-    "timestamp": "2025-08-16T04:51:11.997Z",
+    "timestamp": "2025-08-16T04:56:22.165Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "70%",
+    "realIssuesFound": 7,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 50"
+    },
+    "timestamp": "2025-08-16T04:56:22.166Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "71%",
+    "realIssuesFound": 8,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 51"
+    },
+    "timestamp": "2025-08-16T04:56:22.166Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "72%",
     "realIssuesFound": 2,
     "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 50"
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 52"
     },
-    "timestamp": "2025-08-16T04:51:11.998Z",
+    "timestamp": "2025-08-16T04:56:22.167Z",
     "accuracy": 66.66666666666666
   },
   {
     "metric": "scalabilityTest",
-    "calculatedValue": "71%",
-    "realIssuesFound": 3,
-    "falsePositives": 0,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 1,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 51"
-    },
-    "timestamp": "2025-08-16T04:51:12.000Z",
-    "accuracy": 75
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "72%",
-    "realIssuesFound": 3,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 52"
-    },
-    "timestamp": "2025-08-16T04:51:12.001Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
     "calculatedValue": "73%",
-    "realIssuesFound": 8,
-    "falsePositives": 0,
+    "realIssuesFound": 1,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
       "moderateIssues": 0,
-      "minorIssues": 2,
+      "minorIssues": 1,
       "description": "Scalability test iteration 53"
     },
-    "timestamp": "2025-08-16T04:51:12.002Z",
-    "accuracy": 88.88888888888889
+    "timestamp": "2025-08-16T04:56:22.168Z",
+    "accuracy": 50
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "74%",
     "realIssuesFound": 2,
-    "falsePositives": 0,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 2,
-      "minorIssues": 2,
+      "criticalIssues": 2,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 54"
     },
-    "timestamp": "2025-08-16T04:51:12.003Z",
+    "timestamp": "2025-08-16T04:56:22.168Z",
     "accuracy": 66.66666666666666
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "75%",
     "realIssuesFound": 9,
-    "falsePositives": 1,
+    "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 1,
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 2,
       "description": "Scalability test iteration 55"
     },
-    "timestamp": "2025-08-16T04:51:12.003Z",
+    "timestamp": "2025-08-16T04:56:22.171Z",
     "accuracy": 90
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "76%",
-    "realIssuesFound": 9,
-    "falsePositives": 1,
-    "missedIssues": 0,
+    "realIssuesFound": 5,
+    "falsePositives": 2,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
+      "criticalIssues": 2,
+      "moderateIssues": 1,
       "minorIssues": 1,
       "description": "Scalability test iteration 56"
     },
-    "timestamp": "2025-08-16T04:51:12.008Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.174Z",
+    "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "77%",
-    "realIssuesFound": 0,
+    "realIssuesFound": 8,
     "falsePositives": 1,
-    "missedIssues": 0,
+    "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
@@ -1052,104 +1052,104 @@
       "minorIssues": 0,
       "description": "Scalability test iteration 57"
     },
-    "timestamp": "2025-08-16T04:51:12.018Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.175Z",
+    "accuracy": 88.88888888888889
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "78%",
-    "realIssuesFound": 9,
+    "realIssuesFound": 4,
     "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 1,
+      "criticalIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 2,
       "description": "Scalability test iteration 58"
     },
-    "timestamp": "2025-08-16T04:51:12.019Z",
-    "accuracy": 90
+    "timestamp": "2025-08-16T04:56:22.176Z",
+    "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "79%",
-    "realIssuesFound": 9,
-    "falsePositives": 0,
+    "realIssuesFound": 1,
+    "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 2,
+      "moderateIssues": 3,
       "minorIssues": 2,
       "description": "Scalability test iteration 59"
     },
-    "timestamp": "2025-08-16T04:51:12.020Z",
-    "accuracy": 90
+    "timestamp": "2025-08-16T04:56:22.177Z",
+    "accuracy": 50
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "80%",
-    "realIssuesFound": 3,
-    "falsePositives": 1,
+    "realIssuesFound": 6,
+    "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
+      "criticalIssues": 1,
+      "moderateIssues": 1,
       "minorIssues": 1,
       "description": "Scalability test iteration 60"
     },
-    "timestamp": "2025-08-16T04:51:12.020Z",
-    "accuracy": 75
+    "timestamp": "2025-08-16T04:56:22.178Z",
+    "accuracy": 85.71428571428571
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "81%",
-    "realIssuesFound": 9,
-    "falsePositives": 1,
+    "realIssuesFound": 3,
+    "falsePositives": 2,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 0,
+      "moderateIssues": 1,
       "minorIssues": 1,
       "description": "Scalability test iteration 61"
     },
-    "timestamp": "2025-08-16T04:51:12.021Z",
-    "accuracy": 90
+    "timestamp": "2025-08-16T04:56:22.181Z",
+    "accuracy": 75
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "82%",
-    "realIssuesFound": 6,
-    "falsePositives": 0,
+    "realIssuesFound": 5,
+    "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 1,
       "description": "Scalability test iteration 62"
     },
-    "timestamp": "2025-08-16T04:51:12.022Z",
+    "timestamp": "2025-08-16T04:56:22.182Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "83%",
-    "realIssuesFound": 2,
-    "falsePositives": 2,
-    "missedIssues": 0,
+    "realIssuesFound": 6,
+    "falsePositives": 0,
+    "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 0,
+      "criticalIssues": 1,
+      "moderateIssues": 2,
+      "minorIssues": 2,
       "description": "Scalability test iteration 63"
     },
-    "timestamp": "2025-08-16T04:51:12.022Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.182Z",
+    "accuracy": 85.71428571428571
   },
   {
     "metric": "scalabilityTest",
@@ -1160,114 +1160,114 @@
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 3,
+      "moderateIssues": 0,
       "minorIssues": 1,
       "description": "Scalability test iteration 64"
     },
-    "timestamp": "2025-08-16T04:51:12.025Z",
+    "timestamp": "2025-08-16T04:56:22.185Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "85%",
-    "realIssuesFound": 3,
-    "falsePositives": 2,
+    "realIssuesFound": 4,
+    "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 1,
+      "criticalIssues": 0,
       "moderateIssues": 2,
       "minorIssues": 0,
       "description": "Scalability test iteration 65"
     },
-    "timestamp": "2025-08-16T04:51:12.028Z",
-    "accuracy": 75
+    "timestamp": "2025-08-16T04:56:22.197Z",
+    "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "86%",
-    "realIssuesFound": 8,
-    "falsePositives": 2,
-    "missedIssues": 0,
+    "realIssuesFound": 0,
+    "falsePositives": 0,
+    "missedIssues": 1,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 0,
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 2,
       "description": "Scalability test iteration 66"
     },
-    "timestamp": "2025-08-16T04:51:12.028Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.198Z",
+    "accuracy": 0
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "87%",
-    "realIssuesFound": 5,
+    "realIssuesFound": 6,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 67"
+    },
+    "timestamp": "2025-08-16T04:56:22.198Z",
+    "accuracy": 85.71428571428571
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "88%",
+    "realIssuesFound": 4,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 68"
+    },
+    "timestamp": "2025-08-16T04:56:22.199Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "89%",
+    "realIssuesFound": 0,
     "falsePositives": 0,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 67"
-    },
-    "timestamp": "2025-08-16T04:51:12.029Z",
-    "accuracy": 83.33333333333334
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "88%",
-    "realIssuesFound": 6,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
       "moderateIssues": 3,
       "minorIssues": 2,
-      "description": "Scalability test iteration 68"
-    },
-    "timestamp": "2025-08-16T04:51:12.030Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "89%",
-    "realIssuesFound": 8,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 0,
       "description": "Scalability test iteration 69"
     },
-    "timestamp": "2025-08-16T04:51:12.031Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.200Z",
+    "accuracy": 0
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "90%",
     "realIssuesFound": 8,
-    "falsePositives": 1,
-    "missedIssues": 1,
+    "falsePositives": 0,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
+      "criticalIssues": 2,
+      "moderateIssues": 1,
       "minorIssues": 2,
       "description": "Scalability test iteration 70"
     },
-    "timestamp": "2025-08-16T04:51:12.034Z",
-    "accuracy": 88.88888888888889
+    "timestamp": "2025-08-16T04:56:22.202Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "91%",
-    "realIssuesFound": 0,
-    "falsePositives": 0,
+    "realIssuesFound": 4,
+    "falsePositives": 1,
     "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
@@ -1276,28 +1276,284 @@
       "minorIssues": 2,
       "description": "Scalability test iteration 71"
     },
-    "timestamp": "2025-08-16T04:51:12.035Z",
-    "accuracy": 0
+    "timestamp": "2025-08-16T04:56:22.203Z",
+    "accuracy": 80
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "92%",
     "realIssuesFound": 7,
     "falsePositives": 1,
-    "missedIssues": 1,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
       "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 0,
       "description": "Scalability test iteration 72"
     },
-    "timestamp": "2025-08-16T04:51:12.035Z",
-    "accuracy": 87.5
+    "timestamp": "2025-08-16T04:56:22.204Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "93%",
+    "realIssuesFound": 9,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 73"
+    },
+    "timestamp": "2025-08-16T04:56:22.207Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "94%",
+    "realIssuesFound": 8,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 0,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 74"
+    },
+    "timestamp": "2025-08-16T04:56:22.212Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "95%",
+    "realIssuesFound": 2,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 75"
+    },
+    "timestamp": "2025-08-16T04:56:22.223Z",
+    "accuracy": 66.66666666666666
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "96%",
+    "realIssuesFound": 6,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 76"
+    },
+    "timestamp": "2025-08-16T04:56:22.224Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "97%",
+    "realIssuesFound": 4,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 77"
+    },
+    "timestamp": "2025-08-16T04:56:22.226Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "98%",
+    "realIssuesFound": 9,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 78"
+    },
+    "timestamp": "2025-08-16T04:56:22.229Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "99%",
+    "realIssuesFound": 2,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 79"
+    },
+    "timestamp": "2025-08-16T04:56:22.230Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "60%",
+    "realIssuesFound": 9,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 80"
+    },
+    "timestamp": "2025-08-16T04:56:22.231Z",
+    "accuracy": 90
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "61%",
+    "realIssuesFound": 3,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 2,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 81"
+    },
+    "timestamp": "2025-08-16T04:56:22.245Z",
+    "accuracy": 75
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "62%",
+    "realIssuesFound": 7,
+    "falsePositives": 0,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 82"
+    },
+    "timestamp": "2025-08-16T04:56:22.246Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "63%",
+    "realIssuesFound": 1,
+    "falsePositives": 1,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 83"
+    },
+    "timestamp": "2025-08-16T04:56:22.249Z",
+    "accuracy": 50
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "64%",
+    "realIssuesFound": 4,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 84"
+    },
+    "timestamp": "2025-08-16T04:56:22.260Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "65%",
+    "realIssuesFound": 8,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 3,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 85"
+    },
+    "timestamp": "2025-08-16T04:56:22.261Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "66%",
+    "realIssuesFound": 2,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 86"
+    },
+    "timestamp": "2025-08-16T04:56:22.263Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "67%",
+    "realIssuesFound": 3,
+    "falsePositives": 2,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 0,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 87"
+    },
+    "timestamp": "2025-08-16T04:56:22.264Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "68%",
+    "realIssuesFound": 8,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 1,
+      "description": "Scalability test iteration 88"
+    },
+    "timestamp": "2025-08-16T04:56:22.265Z",
+    "accuracy": 88.88888888888889
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "69%",
     "realIssuesFound": 5,
     "falsePositives": 2,
     "missedIssues": 1,
@@ -1306,425 +1562,169 @@
       "criticalIssues": 0,
       "moderateIssues": 0,
       "minorIssues": 1,
-      "description": "Scalability test iteration 73"
+      "description": "Scalability test iteration 89"
     },
-    "timestamp": "2025-08-16T04:51:12.038Z",
+    "timestamp": "2025-08-16T04:56:22.265Z",
     "accuracy": 83.33333333333334
   },
   {
     "metric": "scalabilityTest",
-    "calculatedValue": "94%",
-    "realIssuesFound": 6,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 74"
-    },
-    "timestamp": "2025-08-16T04:51:12.041Z",
-    "accuracy": 85.71428571428571
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "95%",
-    "realIssuesFound": 7,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 75"
-    },
-    "timestamp": "2025-08-16T04:51:12.042Z",
-    "accuracy": 87.5
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "96%",
-    "realIssuesFound": 6,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 76"
-    },
-    "timestamp": "2025-08-16T04:51:12.042Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "97%",
-    "realIssuesFound": 6,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 77"
-    },
-    "timestamp": "2025-08-16T04:51:12.043Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "98%",
-    "realIssuesFound": 1,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 3,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 78"
-    },
-    "timestamp": "2025-08-16T04:51:12.044Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "99%",
-    "realIssuesFound": 9,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 79"
-    },
-    "timestamp": "2025-08-16T04:51:12.050Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "60%",
-    "realIssuesFound": 3,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 80"
-    },
-    "timestamp": "2025-08-16T04:51:12.051Z",
-    "accuracy": 75
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "61%",
-    "realIssuesFound": 7,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 81"
-    },
-    "timestamp": "2025-08-16T04:51:12.053Z",
-    "accuracy": 87.5
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "62%",
-    "realIssuesFound": 0,
-    "falsePositives": 0,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 1,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 82"
-    },
-    "timestamp": "2025-08-16T04:51:12.056Z",
-    "accuracy": 0
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "63%",
-    "realIssuesFound": 0,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 83"
-    },
-    "timestamp": "2025-08-16T04:51:12.057Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "64%",
-    "realIssuesFound": 6,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 0,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 84"
-    },
-    "timestamp": "2025-08-16T04:51:12.057Z",
-    "accuracy": 85.71428571428571
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "65%",
-    "realIssuesFound": 6,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 3,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 85"
-    },
-    "timestamp": "2025-08-16T04:51:12.058Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "66%",
-    "realIssuesFound": 9,
-    "falsePositives": 2,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 2,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 86"
-    },
-    "timestamp": "2025-08-16T04:51:12.059Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "67%",
-    "realIssuesFound": 8,
-    "falsePositives": 1,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 87"
-    },
-    "timestamp": "2025-08-16T04:51:12.059Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "68%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 88"
-    },
-    "timestamp": "2025-08-16T04:51:12.062Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "69%",
-    "realIssuesFound": 4,
-    "falsePositives": 0,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 2,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 89"
-    },
-    "timestamp": "2025-08-16T04:51:12.074Z",
-    "accuracy": 80
-  },
-  {
-    "metric": "scalabilityTest",
     "calculatedValue": "70%",
-    "realIssuesFound": 8,
+    "realIssuesFound": 4,
     "falsePositives": 0,
-    "missedIssues": 1,
+    "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 0,
+      "criticalIssues": 0,
+      "moderateIssues": 1,
       "minorIssues": 1,
       "description": "Scalability test iteration 90"
     },
-    "timestamp": "2025-08-16T04:51:12.077Z",
-    "accuracy": 88.88888888888889
+    "timestamp": "2025-08-16T04:56:22.266Z",
+    "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "71%",
-    "realIssuesFound": 6,
-    "falsePositives": 1,
-    "missedIssues": 0,
+    "realIssuesFound": 0,
+    "falsePositives": 0,
+    "missedIssues": 1,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 0,
       "moderateIssues": 2,
-      "minorIssues": 0,
+      "minorIssues": 2,
       "description": "Scalability test iteration 91"
     },
-    "timestamp": "2025-08-16T04:51:12.077Z",
-    "accuracy": 100
+    "timestamp": "2025-08-16T04:56:22.267Z",
+    "accuracy": 0
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "72%",
-    "realIssuesFound": 3,
-    "falsePositives": 2,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 0,
-      "description": "Scalability test iteration 92"
-    },
-    "timestamp": "2025-08-16T04:51:12.078Z",
-    "accuracy": 75
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "73%",
-    "realIssuesFound": 7,
-    "falsePositives": 0,
-    "missedIssues": 0,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 1,
-      "moderateIssues": 2,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 93"
-    },
-    "timestamp": "2025-08-16T04:51:12.079Z",
-    "accuracy": 100
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "74%",
     "realIssuesFound": 1,
     "falsePositives": 0,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 0,
+      "criticalIssues": 2,
       "moderateIssues": 0,
-      "minorIssues": 2,
-      "description": "Scalability test iteration 94"
+      "minorIssues": 0,
+      "description": "Scalability test iteration 92"
     },
-    "timestamp": "2025-08-16T04:51:12.081Z",
+    "timestamp": "2025-08-16T04:56:22.280Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
-    "calculatedValue": "75%",
+    "calculatedValue": "73%",
     "realIssuesFound": 4,
-    "falsePositives": 2,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 93"
+    },
+    "timestamp": "2025-08-16T04:56:22.282Z",
+    "accuracy": 80
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "74%",
+    "realIssuesFound": 7,
+    "falsePositives": 0,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 0,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 94"
+    },
+    "timestamp": "2025-08-16T04:56:22.283Z",
+    "accuracy": 87.5
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "75%",
+    "realIssuesFound": 5,
+    "falsePositives": 1,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 3,
-      "minorIssues": 0,
+      "criticalIssues": 1,
+      "moderateIssues": 0,
+      "minorIssues": 1,
       "description": "Scalability test iteration 95"
     },
-    "timestamp": "2025-08-16T04:51:12.082Z",
+    "timestamp": "2025-08-16T04:56:22.284Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
     "calculatedValue": "76%",
-    "realIssuesFound": 1,
-    "falsePositives": 0,
-    "missedIssues": 1,
-    "projectPhase": "development",
-    "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 3,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 96"
-    },
-    "timestamp": "2025-08-16T04:51:12.083Z",
-    "accuracy": 50
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "77%",
-    "realIssuesFound": 0,
-    "falsePositives": 1,
-    "missedIssues": 1,
-    "projectPhase": "production",
-    "issueDetails": {
-      "criticalIssues": 0,
-      "moderateIssues": 2,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 97"
-    },
-    "timestamp": "2025-08-16T04:51:12.083Z",
-    "accuracy": 0
-  },
-  {
-    "metric": "scalabilityTest",
-    "calculatedValue": "78%",
-    "realIssuesFound": 6,
+    "realIssuesFound": 4,
     "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "development",
     "issueDetails": {
-      "criticalIssues": 2,
-      "moderateIssues": 1,
-      "minorIssues": 1,
-      "description": "Scalability test iteration 98"
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 96"
     },
-    "timestamp": "2025-08-16T04:51:12.086Z",
+    "timestamp": "2025-08-16T04:56:22.288Z",
     "accuracy": 100
   },
   {
     "metric": "scalabilityTest",
+    "calculatedValue": "77%",
+    "realIssuesFound": 5,
+    "falsePositives": 1,
+    "missedIssues": 0,
+    "projectPhase": "production",
+    "issueDetails": {
+      "criticalIssues": 2,
+      "moderateIssues": 1,
+      "minorIssues": 2,
+      "description": "Scalability test iteration 97"
+    },
+    "timestamp": "2025-08-16T04:56:22.289Z",
+    "accuracy": 100
+  },
+  {
+    "metric": "scalabilityTest",
+    "calculatedValue": "78%",
+    "realIssuesFound": 9,
+    "falsePositives": 2,
+    "missedIssues": 1,
+    "projectPhase": "development",
+    "issueDetails": {
+      "criticalIssues": 0,
+      "moderateIssues": 3,
+      "minorIssues": 0,
+      "description": "Scalability test iteration 98"
+    },
+    "timestamp": "2025-08-16T04:56:22.291Z",
+    "accuracy": 90
+  },
+  {
+    "metric": "scalabilityTest",
     "calculatedValue": "79%",
-    "realIssuesFound": 2,
+    "realIssuesFound": 3,
     "falsePositives": 2,
     "missedIssues": 0,
     "projectPhase": "production",
     "issueDetails": {
       "criticalIssues": 1,
-      "moderateIssues": 0,
-      "minorIssues": 1,
+      "moderateIssues": 1,
+      "minorIssues": 2,
       "description": "Scalability test iteration 99"
     },
-    "timestamp": "2025-08-16T04:51:12.089Z",
+    "timestamp": "2025-08-16T04:56:22.294Z",
     "accuracy": 100
   }
 ]

@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
+import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
 
 const app = express();
 app.use(express.json());
@@ -37,6 +38,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize database optimizations to reduce 132ms average query time
+  try {
+    await initializeDatabaseOptimizations();
+    startPerformanceMonitoring();
+    log('🚀 Database optimizations initialized successfully');
+  } catch (error) {
+    log('⚠️ Database optimization initialization failed:', error);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

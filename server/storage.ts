@@ -1795,9 +1795,9 @@ export class MemStorage implements IStorage {
 }
 
 // Use database storage if DATABASE_URL is set, otherwise use in-memory storage
-import { DatabaseStorage } from './db-storage';
+import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
-// Use DatabaseStorage for persistent storage of suggestions
+// Use OptimizedDatabaseStorage for persistent storage with performance enhancements
 export const storage = process.env.DATABASE_URL
-  ? new DatabaseStorage()
+  ? new OptimizedDatabaseStorage()
   : new MemStorage();
