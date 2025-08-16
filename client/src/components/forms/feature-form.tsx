@@ -427,11 +427,11 @@ ${formData.additionalNotes || 'No additional notes'}
    */
   const integrateToRoadmap = () => {
     if (isNewFeature) {
-      // For new features, create them in the roadmap
+      // For new features, create them in the roadmap with minimal required data
       const featureData = {
         name: formData.featureName,
-        description: formData.featureDescription,
-        category: formData.featureCategory,
+        description: formData.featureDescription || `Feature: ${formData.featureName}`, // Default description
+        category: formData.featureCategory || 'Compliance & Security', // Default category
         status: 'submitted' as const,
         priority: (formData.priority || 'medium') as any,
         businessObjective: formData.businessObjective || undefined,
@@ -615,7 +615,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="featureCategory">Category *</Label>
+                    <Label htmlFor="featureCategory">Category</Label>
                     <Select value={formData.featureCategory || ''} onValueChange={(value) => updateFormData('featureCategory', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
@@ -639,7 +639,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="featureDescription">Feature Description *</Label>
+                  <Label htmlFor="featureDescription">Feature Description</Label>
                   <Textarea
                     id="featureDescription"
                     placeholder="Describe what this feature will do"
@@ -890,7 +890,7 @@ ${formData.additionalNotes || 'No additional notes'}
               onClick={integrateToRoadmap}
               disabled={
                 createFeatureMutation.isPending ||
-                (isNewFeature && (!formData.featureName || !formData.featureCategory || !formData.featureDescription))
+                (isNewFeature && !formData.featureName.trim())
               }
               className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
@@ -935,7 +935,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 !formData.businessObjective || 
                 !formData.targetUsers || 
                 !formData.userFlow ||
-                (isNewFeature && (!formData.featureName || !formData.featureCategory || !formData.featureDescription))
+                (isNewFeature && !formData.featureName.trim())
               }
               className="flex items-center gap-2"
             >
