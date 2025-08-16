@@ -4,6 +4,7 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
+import { checkPermission, permissions } from '../config';
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
@@ -159,6 +160,62 @@ export function requireRole(allowedRoles: string[]) {
     }
 
     next();
+  };
+}
+
+/**
+ * Permission-based authorization middleware factory using the comprehensive RBAC system.
+ * Validates user permissions based on the permissions.json configuration.
+ * Must be used after requireAuth middleware.
+ * 
+ * @param {string} permission - Specific permission required to access the route (e.g., 'read:bill', 'create:maintenance_request').
+ * @returns {Function} Express middleware function for permission validation.
+ * 
+ * @example
+ * ```typescript
+ * // Only users with 'read:bill' permission can access
+ * app.get('/api/bills', requireAuth, authorize('read:bill'), getBills);
+ * 
+ * // Only users with 'delete:user' permission can delete users
+ * app.delete('/api/users/:id', requireAuth, authorize('delete:user'), deleteUser);
+ * 
+ * // Multiple route protection
+ * router.use(authorize('manage:building'));
+ * router.post('/buildings', createBuilding);
+ * router.patch('/buildings/:id', updateBuilding);
+ * ```
+ */
+export function authorize(permission: string) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ 
+        message: 'Authentication required',
+        code: 'AUTH_REQUIRED' 
+      });
+    }
+
+    try {
+      // Check if the user's role has the required permission
+      const hasPermission = checkPermission(permissions, req.user.role as any, permission as any);
+
+      if (!hasPermission) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'PERMISSION_DENIED',
+          required: permission,
+          userRole: req.user.role,
+          details: `User with role '${req.user.role}' does not have permission '${permission}'`
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Authorization error:', error);
+      return res.status(500).json({
+        message: 'Authorization check failed',
+        code: 'AUTHORIZATION_ERROR'
+      });
+    }
   };
 }
 

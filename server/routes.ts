@@ -22,7 +22,7 @@ import {
   applyAISuggestion,
   recordAIInteraction
 } from './api/ai-monitoring';
-import { sessionConfig, setupAuthRoutes, requireAuth, requireRole } from './auth';
+import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } from './auth';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
@@ -99,15 +99,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerOrganizationRoutes(app);
   
   // AI Monitoring API routes
-  app.get('/api/ai/metrics', requireAuth, getAIMetrics);
-  app.get('/api/ai/interactions', requireAuth, getAIInteractions);
-  app.get('/api/ai/insights', requireAuth, getAIInsights);
-  app.post('/api/ai/analyze', requireAuth, triggerAIAnalysis);
-  app.post('/api/ai/insights/:insightId/apply', requireAuth, applyAISuggestion);
-  app.post('/api/ai/interactions', requireAuth, recordAIInteraction);
+  app.get('/api/ai/metrics', requireAuth, authorize('read:ai_analysis'), getAIMetrics);
+  app.get('/api/ai/interactions', requireAuth, authorize('read:ai_analysis'), getAIInteractions);
+  app.get('/api/ai/insights', requireAuth, authorize('read:ai_analysis'), getAIInsights);
+  app.post('/api/ai/analyze', requireAuth, authorize('create:ai_analysis'), triggerAIAnalysis);
+  app.post('/api/ai/insights/:insightId/apply', requireAuth, authorize('update:ai_analysis'), applyAISuggestion);
+  app.post('/api/ai/interactions', requireAuth, authorize('create:ai_analysis'), recordAIInteraction);
 
   // Quality Metrics Effectiveness Tracking API routes
-  app.get('/api/metrics-effectiveness', requireAuth, async (req, res) => {
+  app.get('/api/metrics-effectiveness', requireAuth, authorize('read:quality_metric'), async (req, res) => {
     try {
       const { metricType, timeRange } = req.query;
       const timeRangeHours = timeRange ? parseInt(timeRange as string) : 168; // Default 1 week
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/metrics-effectiveness/validate', requireAuth, async (req, res) => {
+  app.post('/api/metrics-effectiveness/validate', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {
       const { metricType, calculatedValue, contextData } = req.body;
       
@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/metrics-effectiveness/predictions', requireAuth, async (req, res) => {
+  app.post('/api/metrics-effectiveness/predictions', requireAuth, authorize('create:quality_metric'), async (req, res) => {
     try {
       const predictionData = req.body;
       
@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/metrics-effectiveness/predictions/:id/validate', requireAuth, async (req, res) => {
+  app.post('/api/metrics-effectiveness/predictions/:id/validate', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {
       const { id } = req.params;
       const { actualOutcome, validationMethod, validatorId } = req.body;
@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/metrics-effectiveness/calibration/:metricType', requireAuth, async (req, res) => {
+  app.post('/api/metrics-effectiveness/calibration/:metricType', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {
       const { metricType } = req.params;
       
@@ -212,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/metrics-effectiveness/calibration-status', requireAuth, async (req, res) => {
+  app.get('/api/metrics-effectiveness/calibration-status', requireAuth, authorize('read:quality_metric'), async (req, res) => {
     try {
       const { metricType } = req.query;
       
@@ -231,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quality-issues', requireAuth, async (req, res) => {
+  app.post('/api/quality-issues', requireAuth, authorize('create:quality_metric'), async (req, res) => {
     try {
       const issueData = req.body;
       
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quality-issues', requireAuth, async (req, res) => {
+  app.get('/api/quality-issues', requireAuth, authorize('read:quality_metric'), async (req, res) => {
     try {
       const { status, severity, quebecCompliance, limit = 50 } = req.query;
       
@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/quality-issues/:id', requireAuth, async (req, res) => {
+  app.patch('/api/quality-issues/:id', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {
       const { id } = req.params;
       const updateData = req.body;
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quebec-compliance-analytics', requireAuth, async (req, res) => {
+  app.get('/api/quebec-compliance-analytics', requireAuth, authorize('read:analytics'), async (req, res) => {
     try {
       const { timeRange = 168 } = req.query; // Default 1 week
       
@@ -356,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quality Metrics API
-  app.get('/api/quality-metrics', async (req, res) => {
+  app.get('/api/quality-metrics', requireAuth, authorize('read:quality_metric'), async (req, res) => {
     try {
       const metrics = await getQualityMetrics();
       res.json(metrics);
@@ -365,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   // Improvement Suggestions API (MUST be defined before /api/pillars/:id)
-  app.get('/api/pillars/suggestions', async (req, res) => {
+  app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req, res) => {
     try {
       // Fetch directly from database since we're using in-memory storage for other data
       const suggestions = await db
@@ -380,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/pillars/suggestions/:id/acknowledge', async (req, res) => {
+  app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req, res) => {
     try {
       // Update directly in database
       const [suggestion] = await db
@@ -399,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/pillars/suggestions/:id/complete', async (req, res) => {
+  app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req, res) => {
     try {
       // Delete the suggestion from database
       const [deletedSuggestion] = await db
@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Development Pillars API
-  app.get('/api/pillars', async (req, res) => {
+  app.get('/api/pillars', requireAuth, authorize('read:development_pillar'), async (req, res) => {
     try {
       const pillars = await storage.getPillars();
       res.json(pillars);
@@ -442,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/pillars/:id', async (req, res) => {
+  app.get('/api/pillars/:id', requireAuth, authorize('read:development_pillar'), async (req, res) => {
     try {
       const pillar = await storage.getPillar(req.params.id);
       if (!pillar) {
@@ -454,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/pillars', async (req, res) => {
+  app.post('/api/pillars', requireAuth, authorize('create:development_pillar'), async (req, res) => {
     try {
       const validatedData = insertPillarSchema.parse(req.body);
       const pillar = await storage.createPillar(validatedData);
@@ -464,7 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/pillars/:id', async (req, res) => {
+  app.patch('/api/pillars/:id', requireAuth, authorize('update:development_pillar'), async (req, res) => {
     try {
       const pillar = await storage.updatePillar(req.params.id, req.body);
       if (!pillar) {
@@ -477,7 +477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Workspace Status API
-  app.get('/api/workspace-status', async (req, res) => {
+  app.get('/api/workspace-status', requireAuth, authorize('read:workspace_status'), async (req, res) => {
     try {
       const statuses = await storage.getWorkspaceStatuses();
       res.json(statuses);
@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/workspace-status/:component', async (req, res) => {
+  app.get('/api/workspace-status/:component', requireAuth, authorize('read:workspace_status'), async (req, res) => {
     try {
       const status = await storage.getWorkspaceStatus(req.params.component);
       if (!status) {
@@ -498,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/workspace-status', async (req, res) => {
+  app.post('/api/workspace-status', requireAuth, authorize('update:workspace_status'), async (req, res) => {
     try {
       const validatedData = insertWorkspaceStatusSchema.parse(req.body);
       const status = await storage.createWorkspaceStatus(validatedData);
@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/workspace-status/:component', async (req, res) => {
+  app.patch('/api/workspace-status/:component', requireAuth, authorize('update:workspace_status'), async (req, res) => {
     try {
       const { status } = req.body;
       const updatedStatus = await storage.updateWorkspaceStatus(req.params.component, status);
@@ -522,7 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quality Metrics API
-  app.get('/api/quality-metrics', async (req, res) => {
+  app.get('/api/quality-metrics', requireAuth, authorize('read:quality_metric'), async (req, res) => {
     try {
       const metrics = await storage.getQualityMetrics();
       res.json(metrics);
@@ -531,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quality-metrics', async (req, res) => {
+  app.post('/api/quality-metrics', requireAuth, authorize('create:quality_metric'), async (req, res) => {
     try {
       const validatedData = insertQualityMetricSchema.parse(req.body);
       const metric = await storage.createQualityMetric(validatedData);
@@ -542,7 +542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Framework Configuration API
-  app.get('/api/framework-config', async (req, res) => {
+  app.get('/api/framework-config', requireAuth, authorize('read:framework_config'), async (req, res) => {
     try {
       const configs = await storage.getFrameworkConfigs();
       res.json(configs);
@@ -551,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/framework-config/:key', async (req, res) => {
+  app.get('/api/framework-config/:key', requireAuth, authorize('read:framework_config'), async (req, res) => {
     try {
       const config = await storage.getFrameworkConfig(req.params.key);
       if (!config) {
@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/framework-config', async (req, res) => {
+  app.post('/api/framework-config', requireAuth, authorize('update:framework_config'), async (req, res) => {
     try {
       const validatedData = insertFrameworkConfigSchema.parse(req.body);
       const config = await storage.setFrameworkConfig(validatedData);
@@ -593,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Features API
-  app.get('/api/features', async (req, res) => {
+  app.get('/api/features', requireAuth, authorize('read:feature'), async (req, res) => {
     try {
       const { status, category, roadmap } = req.query;
       // eslint-disable-next-line no-console
@@ -618,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/features/:id', async (req, res) => {
+  app.get('/api/features/:id', requireAuth, authorize('read:feature'), async (req, res) => {
     try {
       const [feature] = await db
         .select()
@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/features', async (req, res) => {
+  app.post('/api/features', requireAuth, authorize('create:feature'), async (req, res) => {
     try {
       // Auto-assign default values for new feature requests
       const featureData = {
@@ -661,7 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/features/:id', async (req, res) => {
+  app.put('/api/features/:id', requireAuth, authorize('update:feature'), async (req, res) => {
     try {
       const [feature] = await db
         .update(schema.features)
@@ -685,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/features/:id', async (req, res) => {
+  app.delete('/api/features/:id', requireAuth, authorize('delete:feature'), async (req, res) => {
     try {
       const [deletedFeature] = await db
         .delete(schema.features)
@@ -703,7 +703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Feature status workflow endpoints
-  app.post('/api/features/:id/update-status', async (req, res) => {
+  app.post('/api/features/:id/update-status', requireAuth, authorize('update:feature'), async (req, res) => {
     try {
       const { status } = req.body;
       const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
@@ -735,7 +735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle strategic path for feature
-  app.post('/api/features/:id/toggle-strategic', async (req, res) => {
+  app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req, res) => {
     try {
       const { isStrategicPath } = req.body;
       
@@ -766,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI analysis endpoint
-  app.post('/api/features/:id/analyze', async (req, res) => {
+  app.post('/api/features/:id/analyze', requireAuth, authorize('analyze:feature'), async (req, res) => {
     try {
       const { analyzeFeatureWithGemini, formatActionableItemsForDatabase, getDocumentationContext } = await import('./services/gemini-analysis');
       
@@ -831,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Actionable items endpoints
-  app.get('/api/features/:id/actionable-items', async (req, res) => {
+  app.get('/api/features/:id/actionable-items', requireAuth, authorize('read:actionable_item'), async (req, res) => {
     try {
       const items = await db
         .select()
@@ -846,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/actionable-items/:id', async (req, res) => {
+  app.put('/api/actionable-items/:id', requireAuth, authorize('update:actionable_item'), async (req, res) => {
     try {
       const [item] = await db
         .update(schema.actionableItems)
@@ -885,7 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/actionable-items/:id', async (req, res) => {
+  app.delete('/api/actionable-items/:id', requireAuth, authorize('delete:actionable_item'), async (req, res) => {
     try {
       const [deletedItem] = await db
         .delete(schema.actionableItems)
@@ -1051,7 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create actionable item from generated prompt
-  app.post('/api/features/:featureId/actionable-items/from-prompt', async (req, res) => {
+  app.post('/api/features/:featureId/actionable-items/from-prompt', requireAuth, authorize('create:actionable_item'), async (req, res) => {
     try {
       const { featureId } = req.params;
       const { prompt, title, description } = req.body;
