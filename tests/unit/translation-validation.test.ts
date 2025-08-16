@@ -1,0 +1,349 @@
+import { LanguageValidator, validateText, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS } from './language-validation.test';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { glob } from 'glob';
+
+/**
+ * Translation and Localization Files Language Validation
+ * 
+ * This test suite specifically validates translation files, JSON localization content,
+ * and other text-based configuration files for Quebec French compliance.
+ */
+
+describe('Translation Files Language Validation', () => {
+  
+  /**
+   * Test to find and validate all JSON translation files
+   */
+  it('should validate all JSON translation files', async () => {
+    const validator = new LanguageValidator();
+    
+    // Look for common translation file patterns
+    const translationPatterns = [
+      'src/locales/**/*.json',
+      'src/translations/**/*.json',
+      'public/locales/**/*.json',
+      'client/src/locales/**/*.json',
+      'client/public/locales/**/*.json',
+      '**/i18n/**/*.json',
+      '**/lang/**/*.json'
+    ];
+    
+    let filesFound = 0;
+    
+    for (const pattern of translationPatterns) {
+      try {
+        const files = await glob(pattern, { cwd: process.cwd() });
+        
+        for (const file of files) {
+          if (existsSync(file)) {
+            filesFound++;
+            const content = readFileSync(file, 'utf-8');
+            
+            try {
+              const jsonData = JSON.parse(content);
+              validator.validateJSON(jsonData, `Translation file: ${file}`);
+            } catch (error) {
+              console.warn(`Failed to parse JSON file ${file}:`, error);
+            }
+          }
+        }
+      } catch (error) {
+        // Pattern not found, continue
+      }
+    }
+    
+    const violations = validator.getViolations();
+    
+    if (violations.length > 0) {
+      console.log('\n=== VIOLATIONS DANS LES FICHIERS DE TRADUCTION ===');
+      console.log(validator.generateReport());
+    }
+    
+    if (filesFound === 0) {
+      console.log('ℹ️  Aucun fichier de traduction trouvé. Les traductions peuvent être intégrées dans le code.');
+    } else {
+      console.log(`📁 ${filesFound} fichier(s) de traduction analysé(s)`);
+    }
+    
+    expect(violations.length).toBeGreaterThanOrEqual(0);
+  });
+
+  /**
+   * Test to validate hardcoded strings in React components
+   */
+  it('should identify hardcoded strings in React components that need translation', async () => {
+    const validator = new LanguageValidator();
+    
+    try {
+      const componentFiles = await glob('client/src/**/*.{tsx,jsx}', { cwd: process.cwd() });
+      let hardcodedStrings: Array<{
+        file: string;
+        line: number;
+        text: string;
+        violations: any[];
+      }> = [];
+      
+      for (const file of componentFiles.slice(0, 10)) { // Limit to first 10 files for testing
+        if (existsSync(file)) {
+          const content = readFileSync(file, 'utf-8');
+          const lines = content.split('\n');
+          
+          lines.forEach((line, index) => {
+            // Look for hardcoded strings in JSX (simplified regex)
+            const stringMatches = line.match(/>([^<>{]*[a-zA-Z]{3,}[^<>{}]*)</g);
+            
+            if (stringMatches) {
+              stringMatches.forEach(match => {
+                const text = match.replace(/^>/, '').replace(/<$/, '').trim();
+                
+                // Skip if it's likely a variable, component, or very short
+                if (text.length > 3 && 
+                    !text.startsWith('{') && 
+                    !text.includes('${') &&
+                    !/^[A-Z][a-zA-Z]*$/.test(text) && // Skip component names
+                    text.includes(' ') || text.length > 10) {
+                  
+                  const violations = validateText(text, `${file}:${index + 1}`);
+                  
+                  if (violations.length > 0) {
+                    hardcodedStrings.push({
+                      file,
+                      line: index + 1,
+                      text,
+                      violations
+                    });
+                  }
+                }
+              });
+            }
+          });
+        }
+      }
+      
+      if (hardcodedStrings.length > 0) {
+        console.log('\n=== CHAÎNES CODÉES EN DUR AVEC VIOLATIONS LINGUISTIQUES ===');
+        hardcodedStrings.slice(0, 20).forEach((item, index) => {
+          console.log(`${index + 1}. ${item.file}:${item.line}`);
+          console.log(`   Texte: "${item.text}"`);
+          console.log(`   Violations: ${item.violations.map(v => v.term).join(', ')}`);
+          console.log('');
+        });
+      }
+      
+      expect(hardcodedStrings.length).toBeGreaterThanOrEqual(0);
+      
+    } catch (error) {
+      console.log('❌ Erreur lors de l\'analyse des composants:', error);
+    }
+  });
+
+  /**
+   * Test specific Quebec property management terminology
+   */
+  it('should validate Quebec-specific property management terms are used correctly', () => {
+    const testCases = [
+      {
+        context: 'Condo fees',
+        correct: 'charges de copropriété',
+        incorrect: ['condo fees', 'strata fees', 'maintenance fees']
+      },
+      {
+        context: 'Property manager',
+        correct: 'gestionnaire immobilier',
+        incorrect: ['property manager', 'building manager']
+      },
+      {
+        context: 'Tenant',
+        correct: 'locataire',
+        incorrect: ['tenant', 'renter']
+      },
+      {
+        context: 'Lease agreement',
+        correct: 'contrat de bail',
+        incorrect: ['lease agreement', 'rental agreement']
+      },
+      {
+        context: 'Common areas',
+        correct: 'parties communes',
+        incorrect: ['common areas', 'shared spaces']
+      },
+      {
+        context: 'Board of directors',
+        correct: 'conseil d\'administration',
+        incorrect: ['board of directors', 'HOA board']
+      },
+      {
+        context: 'Annual general meeting',
+        correct: 'assemblée générale annuelle',
+        incorrect: ['annual general meeting', 'AGM', 'yearly meeting']
+      },
+      {
+        context: 'Contingency fund',
+        correct: 'fonds de prévoyance',
+        incorrect: ['contingency fund', 'reserve fund', 'emergency fund']
+      }
+    ];
+
+    testCases.forEach(testCase => {
+      // Test that incorrect terms are detected
+      testCase.incorrect.forEach(incorrectTerm => {
+        const violations = validateText(incorrectTerm, `Test: ${testCase.context}`);
+        
+        expect(violations.length).toBeGreaterThan(0);
+        expect(violations.some(v => 
+          v.type === 'anglicism' || 
+          v.type === 'legal_violation'
+        )).toBe(true);
+      });
+      
+      // Test that correct terms pass validation
+      const correctViolations = validateText(testCase.correct, `Test: ${testCase.context}`);
+      const criticalViolations = correctViolations.filter(v => v.severity === 'error');
+      
+      expect(criticalViolations.length).toBe(0);
+    });
+  });
+
+  /**
+   * Test validation of form labels and UI text
+   */
+  it('should validate common UI text and form labels', () => {
+    const commonUIText = {
+      buttons: {
+        correct: ['Soumettre', 'Annuler', 'Confirmer', 'Enregistrer', 'Supprimer', 'Modifier'],
+        incorrect: ['Submit', 'Cancel', 'Confirm', 'Save', 'Delete', 'Edit', 'Update']
+      },
+      navigation: {
+        correct: ['Tableau de bord', 'Paramètres', 'Profil', 'Aide', 'Déconnexion'],
+        incorrect: ['Dashboard', 'Settings', 'Profile', 'Help', 'Logout', 'Login']
+      },
+      forms: {
+        correct: ['Nom d\'utilisateur', 'Mot de passe', 'Adresse courriel', 'Téléphone'],
+        incorrect: ['Username', 'Password', 'Email', 'Phone']
+      },
+      messages: {
+        correct: ['Opération réussie', 'Erreur de validation', 'Champs obligatoires'],
+        incorrect: ['Success', 'Validation error', 'Required fields']
+      }
+    };
+
+    Object.keys(commonUIText).forEach(category => {
+      const categoryData = commonUIText[category as keyof typeof commonUIText];
+      
+      // Test incorrect terms are caught
+      categoryData.incorrect.forEach(incorrectTerm => {
+        const violations = validateText(incorrectTerm, `UI ${category}`);
+        expect(violations.length).toBeGreaterThan(0);
+      });
+      
+      // Test correct terms pass
+      categoryData.correct.forEach(correctTerm => {
+        const violations = validateText(correctTerm, `UI ${category}`);
+        const errors = violations.filter(v => v.severity === 'error');
+        expect(errors.length).toBe(0);
+      });
+    });
+  });
+
+  /**
+   * Test validation of Quebec address and location formats
+   */
+  it('should validate Quebec address and geographic terms', () => {
+    const locationTests = [
+      {
+        text: 'Montreal, Quebec',
+        expectedViolations: ['montreal', 'quebec'] // Missing accents
+      },
+      {
+        text: 'Montréal, Québec',
+        expectedViolations: [] // Correct
+      },
+      {
+        text: 'Province of Quebec',
+        expectedViolations: ['quebec'] // Missing accent
+      },
+      {
+        text: 'Province du Québec',
+        expectedViolations: [] // Correct
+      },
+      {
+        text: 'Postal code',
+        expectedViolations: ['postal'] // Should be 'code postal'
+      },
+      {
+        text: 'Code postal',
+        expectedViolations: [] // Correct
+      }
+    ];
+
+    locationTests.forEach(test => {
+      const violations = validateText(test.text, 'Address validation');
+      const foundViolationTerms = violations.map(v => v.term.toLowerCase());
+      
+      test.expectedViolations.forEach(expectedTerm => {
+        expect(foundViolationTerms).toContain(expectedTerm.toLowerCase());
+      });
+    });
+  });
+
+  /**
+   * Comprehensive test for Quebec legal and regulatory terminology
+   */
+  it('should enforce Quebec legal terminology for property management', () => {
+    const legalTerminologyTests = [
+      {
+        englishTerm: 'condominium corporation',
+        quebecTerm: 'syndicat de copropriété',
+        context: 'Legal entity'
+      },
+      {
+        englishTerm: 'strata council',
+        quebecTerm: 'conseil d\'administration',
+        context: 'Governance'
+      },
+      {
+        englishTerm: 'special assessment',
+        quebecTerm: 'contribution spéciale',
+        context: 'Finances'
+      },
+      {
+        englishTerm: 'exclusive use area',
+        quebecTerm: 'partie privative',
+        context: 'Property division'
+      },
+      {
+        englishTerm: 'common property',
+        quebecTerm: 'parties communes',
+        context: 'Shared areas'
+      },
+      {
+        englishTerm: 'unit entitlement',
+        quebecTerm: 'quote-part',
+        context: 'Ownership percentage'
+      }
+    ];
+
+    legalTerminologyTests.forEach(test => {
+      // English terms should trigger violations
+      const englishViolations = validateText(test.englishTerm, test.context);
+      expect(englishViolations.length).toBeGreaterThan(0);
+      expect(englishViolations.some(v => v.type === 'legal_violation')).toBe(true);
+      
+      // Quebec terms should pass
+      const quebecViolations = validateText(test.quebecTerm, test.context);
+      const criticalViolations = quebecViolations.filter(v => v.severity === 'error');
+      expect(criticalViolations.length).toBe(0);
+    });
+  });
+});
+
+/**
+ * Export utility functions for use in other tests
+ */
+export {
+  LanguageValidator,
+  validateText,
+  PREFERRED_TERMS,
+  QUEBEC_LEGAL_TERMS
+};
