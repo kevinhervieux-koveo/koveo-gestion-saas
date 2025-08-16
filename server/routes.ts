@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error analyzing feature:', error);
-      res.status(500).json({ message: 'Failed to analyze feature', error: error.toString() });
+      res.status(500).json({ message: 'Failed to analyze feature', error: String(error) });
     }
   });
 
@@ -531,6 +531,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting actionable item:', error);
       res.status(500).json({ message: 'Failed to delete actionable item' });
+    }
+  });
+
+  // Create actionable item from generated prompt
+  app.post('/api/features/:featureId/actionable-items/from-prompt', async (req, res) => {
+    try {
+      const { featureId } = req.params;
+      const { prompt, title, description } = req.body;
+
+      // Validate input
+      if (!prompt || !title) {
+        return res.status(400).json({ message: 'Prompt and title are required' });
+      }
+
+      // Verify feature exists
+      const [feature] = await db
+        .select()
+        .from(schema.features)
+        .where(eq(schema.features.id, featureId))
+        .limit(1);
+
+      if (!feature) {
+        return res.status(404).json({ message: 'Feature not found' });
+      }
+
+      // Create actionable item
+      const [newItem] = await db
+        .insert(schema.actionableItems)
+        .values({
+          featureId,
+          title,
+          description: description || 'AI-generated development prompt',
+          implementationPrompt: prompt,
+          status: 'pending',
+          orderIndex: 0,
+        })
+        .returning();
+
+      res.status(201).json(newItem);
+    } catch (error) {
+      console.error('Error creating actionable item from prompt:', error);
+      res.status(500).json({ message: 'Failed to create actionable item from prompt' });
     }
   });
 

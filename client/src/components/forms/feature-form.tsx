@@ -20,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Copy, FileText, Zap, Save, Clock, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
 
 /**
@@ -42,6 +43,48 @@ interface FeatureFormProps {
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Mutation to save generated prompt as actionable item
+  const savePromptMutation = useMutation({
+    mutationFn: async ({ featureId, prompt, title }: { featureId: string, prompt: string, title: string }) => {
+      const response = await fetch(`/api/features/${featureId}/actionable-items/from-prompt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          title,
+          description: 'AI-generated development prompt'
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save prompt as actionable item');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      if (feature?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/features/${feature.id}/actionable-items`] });
+      }
+      
+      toast({
+        title: 'Prompt Saved',
+        description: 'The development prompt has been saved as an actionable item.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Save Failed',
+        description: 'Failed to save the prompt as an actionable item.',
+        variant: 'destructive',
+      });
+    },
+  });
   const [formData, setFormData] = useState({
     // New feature fields
     featureName: '',
@@ -292,6 +335,15 @@ ${formData.additionalNotes || 'No additional notes'}
 
     setGeneratedPrompt(prompt);
     setStep('prompt');
+    
+    // Save prompt as actionable item if we have a feature ID
+    if (feature?.id) {
+      savePromptMutation.mutate({
+        featureId: feature.id,
+        prompt,
+        title: `Development Prompt: ${featureName}`,
+      });
+    }
   };
 
   /**
@@ -703,10 +755,29 @@ ${formData.additionalNotes || 'No additional notes'}
                 <p className="text-sm text-gray-600">
                   Generated development prompt for <strong>{feature?.name || formData.featureName || 'New Feature'}</strong>
                 </p>
-                <Button onClick={copyPrompt} size="sm" variant="outline">
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copy Prompt
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={copyPrompt} size="sm" variant="outline">
+                    <Copy className="h-4 w-4 mr-1" />
+                    Copy Prompt
+                  </Button>
+                  
+                  {feature?.id && (
+                    <Button 
+                      onClick={() => savePromptMutation.mutate({
+                        featureId: feature.id,
+                        prompt: generatedPrompt,
+                        title: `Development Prompt: ${feature.name}`,
+                      })}
+                      size="sm" 
+                      variant="outline"
+                      disabled={savePromptMutation.isPending}
+                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <Save className="h-4 w-4 mr-1" />
+                      {savePromptMutation.isPending ? 'Saving...' : 'Save as Task'}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
