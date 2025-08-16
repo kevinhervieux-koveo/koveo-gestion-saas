@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.07% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/226</span>
+                <span class='fraction'>0/210</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/176</span>
+                <span class='fraction'>0/178</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.72% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/207</span>
+                <span class='fraction'>0/191</span>
             </div>
         
             
@@ -1222,23 +1222,7 @@
 <a name='L1157'></a><a href='#L1157'>1157</a>
 <a name='L1158'></a><a href='#L1158'>1158</a>
 <a name='L1159'></a><a href='#L1159'>1159</a>
-<a name='L1160'></a><a href='#L1160'>1160</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L1160'></a><a href='#L1160'>1160</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1267,10 +1251,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1296,7 +1276,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2483,7 +2483,7 @@ export default function <span class="fstat-no" title="function not covered" >Own
     mutationFn: <span class="fstat-no" title="function not covered" >({</span> itemId, status }: { itemId: string; status: string }) =&gt;
 <span class="cstat-no" title="statement not covered" >      apiRequest('PUT', `/api/actionable-items/${itemId}`, { </span>
         status, 
-        completedAt: status === 'completed' ? new Date().toISOString() : null 
+        completedAt: status === 'completed' ? new Date() : null 
       }),
     onSuccess: <span class="fstat-no" title="function not covered" >() =</span>&gt; {
 <span class="cstat-no" title="statement not covered" >      toast({</span>
@@ -2646,12 +2646,12 @@ export default function <span class="fstat-no" title="function not covered" >Own
     
     const analysis = <span class="cstat-no" title="statement not covered" >new Map&lt;string, DuplicateInfo&gt;();</span>
     
-<span class="cstat-no" title="statement not covered" >    features.forEach(<span class="fstat-no" title="function not covered" >(f</span>eature, index) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    features.forEach(<span class="fstat-no" title="function not covered" >(f</span>eature: Feature, index: number) =&gt; {</span>
       const duplicates: Feature[] = <span class="cstat-no" title="statement not covered" >[];</span>
       let exactMatch = <span class="cstat-no" title="statement not covered" >false;</span>
       
       // Compare with all other features
-<span class="cstat-no" title="statement not covered" >      features.forEach(<span class="fstat-no" title="function not covered" >(o</span>therFeature, otherIndex) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      features.forEach(<span class="fstat-no" title="function not covered" >(o</span>therFeature: Feature, otherIndex: number) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        if (index === otherIndex) {<span class="cstat-no" title="statement not covered" >return;}</span></span>
         
         const nameMatch = <span class="cstat-no" title="statement not covered" >feature.name.toLowerCase().trim() === otherFeature.name.toLowerCase().trim();</span>
@@ -2664,10 +2664,10 @@ export default function <span class="fstat-no" title="function not covered" >Own
         }
         // Check for similar features (containing similar keywords)
         else {
-          const featureWords = <span class="cstat-no" title="statement not covered" >feature.name.toLowerCase().split(/\s+/).filter(<span class="fstat-no" title="function not covered" >w </span>=&gt; <span class="cstat-no" title="statement not covered" >w.length &gt; 3)</span>;</span>
-          const otherWords = <span class="cstat-no" title="statement not covered" >otherFeature.name.toLowerCase().split(/\s+/).filter(<span class="fstat-no" title="function not covered" >w </span>=&gt; <span class="cstat-no" title="statement not covered" >w.length &gt; 3)</span>;</span>
+          const featureWords = <span class="cstat-no" title="statement not covered" >feature.name.toLowerCase().split(/\s+/).filter(<span class="fstat-no" title="function not covered" >(w</span>: string) =&gt; <span class="cstat-no" title="statement not covered" >w.length &gt; 3)</span>;</span>
+          const otherWords = <span class="cstat-no" title="statement not covered" >otherFeature.name.toLowerCase().split(/\s+/).filter(<span class="fstat-no" title="function not covered" >(w</span>: string) =&gt; <span class="cstat-no" title="statement not covered" >w.length &gt; 3)</span>;</span>
           
-          const commonWords = <span class="cstat-no" title="statement not covered" >featureWords.filter(<span class="fstat-no" title="function not covered" >word </span>=&gt; <span class="cstat-no" title="statement not covered" >otherWords.includes(word))</span>;</span>
+          const commonWords = <span class="cstat-no" title="statement not covered" >featureWords.filter(<span class="fstat-no" title="function not covered" >(w</span>ord: string) =&gt; <span class="cstat-no" title="statement not covered" >otherWords.includes(word))</span>;</span>
           
           // If more than 50% of significant words match, consider it similar
 <span class="cstat-no" title="statement not covered" >          if (featureWords.length &gt; 0 &amp;&amp; commonWords.length / featureWords.length &gt; 0.5) {</span>
@@ -2740,7 +2740,7 @@ export default function <span class="fstat-no" title="function not covered" >Own
 - Type-safe database operations with Drizzle ORM
 - Comprehensive validation with Zod schemas
 - Internationalization supporting French and English
-- Role-based access control (admin, manager, owner, tenant, board_member)
+- Role-based access control (admin, manager, owner, tenant)
 &nbsp;
 ### Database Schema includes:
 - Users, Organizations, Buildings, Residences
@@ -2855,7 +2855,7 @@ export default function <span class="fstat-no" title="function not covered" >Own
     }
     
     const searchLower = <span class="cstat-no" title="statement not covered" >searchTerm.toLowerCase().trim();</span>
-<span class="cstat-no" title="statement not covered" >    return features.filter(<span class="fstat-no" title="function not covered" >feature </span>=&gt; </span>
+<span class="cstat-no" title="statement not covered" >    return features.filter(<span class="fstat-no" title="function not covered" >(f</span>eature: Feature) =&gt; </span>
 <span class="cstat-no" title="statement not covered" >      feature.name.toLowerCase().includes(searchLower) ||</span>
       feature.description?.toLowerCase().includes(searchLower) ||
       feature.category.toLowerCase().includes(searchLower)
@@ -3502,7 +3502,7 @@ export default function <span class="fstat-no" title="function not covered" >Own
                                                         variant='ghost'
                                                         size='sm'
                                                         className='ml-2 h-6 px-2'
-                                                        onClick={<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >handleCopyPrompt(item.implementationPrompt)}</span>
+                                                        onClick={<span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >handleCopyPrompt(item.implementationPrompt || '')}</span>
                                                       &gt;
                                                         &lt;Copy className='w-3 h-3 mr-1' /&gt;
                                                         Copy
@@ -3547,7 +3547,7 @@ export default function <span class="fstat-no" title="function not covered" >Own
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-16T06:28:30.725Z
+                at 2025-08-16T14:35:53.847Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

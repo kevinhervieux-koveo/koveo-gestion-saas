@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { NotificationService } from '../../server/services/notification_service';
 import { db } from '../../server/db';
 import { notifications, users } from '@shared/schema';
 
 // Mock database
-vi.mock('../../server/db', () => ({
+jest.mock('../../server/db', () => ({
   db: {
-    select: vi.fn(),
-    insert: vi.fn()
+    select: jest.fn(),
+    insert: jest.fn()
   }
 }));
 
@@ -18,19 +18,19 @@ describe('Notification Service', () => {
   beforeEach(() => {
     notificationService = new NotificationService();
     mockDb = db as any;
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('SSL Expiry Alerts', () => {
     beforeEach(() => {
       // Mock admin users query
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([
             {
               id: 'admin-1',
               email: 'admin1@test.com',
@@ -51,7 +51,7 @@ describe('Notification Service', () => {
 
       // Mock notification insertion
       mockDb.insert.mockReturnValue({
-        values: vi.fn().mockResolvedValue([])
+        values: jest.fn().mockResolvedValue([])
       });
     });
 
@@ -103,12 +103,12 @@ describe('Notification Service', () => {
 
     it('should handle case when no administrators found', async () => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([]) // No admin users
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([]) // No admin users
         })
       });
       
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       
       const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
       await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
@@ -135,8 +135,8 @@ describe('Notification Service', () => {
   describe('SSL Renewal Failure Alerts', () => {
     beforeEach(() => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([
             {
               id: 'admin-1',
               email: 'admin1@test.com',
@@ -147,7 +147,7 @@ describe('Notification Service', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: vi.fn().mockResolvedValue([])
+        values: jest.fn().mockResolvedValue([])
       });
     });
 
@@ -193,8 +193,8 @@ describe('Notification Service', () => {
   describe('SSL Renewal Success Alerts', () => {
     beforeEach(() => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([
             {
               id: 'admin-1',
               email: 'admin1@test.com',
@@ -205,7 +205,7 @@ describe('Notification Service', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: vi.fn().mockResolvedValue([])
+        values: jest.fn().mockResolvedValue([])
       });
     });
 
@@ -246,8 +246,8 @@ describe('Notification Service', () => {
   describe('Unread Notification Count', () => {
     it('should return count of unread SSL notifications for user', async () => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([
             { id: '1' },
             { id: '2' },
             { id: '3' }
@@ -262,8 +262,8 @@ describe('Notification Service', () => {
 
     it('should return 0 when user has no unread SSL notifications', async () => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([])
         })
       });
       
@@ -277,7 +277,7 @@ describe('Notification Service', () => {
         throw new Error('Database error');
       });
       
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       
       const count = await notificationService.getUnreadSSLNotificationCount('user-789');
       
@@ -303,15 +303,15 @@ describe('Notification Service', () => {
 
     it('should handle insertion errors gracefully', async () => {
       mockDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([
             { id: 'admin-1', email: 'admin@test.com', role: 'admin' }
           ])
         })
       });
 
       mockDb.insert.mockReturnValue({
-        values: vi.fn().mockRejectedValue(new Error('Insert failed'))
+        values: jest.fn().mockRejectedValue(new Error('Insert failed'))
       });
       
       const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);

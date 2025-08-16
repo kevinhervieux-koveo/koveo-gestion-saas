@@ -49,10 +49,11 @@ const config = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library))'
   ],
   testTimeout: 10000,
-  maxWorkers: 1
+  maxWorkers: 1,
+  verbose: true
 };
 
 export default config;

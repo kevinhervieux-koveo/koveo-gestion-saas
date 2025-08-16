@@ -1049,7 +1049,26 @@
 <a name='L984'></a><a href='#L984'>984</a>
 <a name='L985'></a><a href='#L985'>985</a>
 <a name='L986'></a><a href='#L986'>986</a>
-<a name='L987'></a><a href='#L987'>987</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L987'></a><a href='#L987'>987</a>
+<a name='L988'></a><a href='#L988'>988</a>
+<a name='L989'></a><a href='#L989'>989</a>
+<a name='L990'></a><a href='#L990'>990</a>
+<a name='L991'></a><a href='#L991'>991</a>
+<a name='L992'></a><a href='#L992'>992</a>
+<a name='L993'></a><a href='#L993'>993</a>
+<a name='L994'></a><a href='#L994'>994</a>
+<a name='L995'></a><a href='#L995'>995</a>
+<a name='L996'></a><a href='#L996'>996</a>
+<a name='L997'></a><a href='#L997'>997</a>
+<a name='L998'></a><a href='#L998'>998</a>
+<a name='L999'></a><a href='#L999'>999</a>
+<a name='L1000'></a><a href='#L1000'>1000</a>
+<a name='L1001'></a><a href='#L1001'>1001</a>
+<a name='L1002'></a><a href='#L1002'>1002</a>
+<a name='L1003'></a><a href='#L1003'>1003</a>
+<a name='L1004'></a><a href='#L1004'>1004</a>
+<a name='L1005'></a><a href='#L1005'>1005</a>
+<a name='L1006'></a><a href='#L1006'>1006</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1902,6 +1921,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1921,6 +1941,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1928,6 +1949,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1960,6 +1988,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1974,6 +2007,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2884,8 +2922,9 @@ export class MetricValidationService {
   }
 &nbsp;
   /**
-   *
-   * @param metricType
+   * Retrieves Quebec-specific factors for metric validation.
+   * @param metricType - The type of metric to get factors for.
+   * @returns Quebec-specific factors for the metric type.
    */
   private <span class="fstat-no" title="function not covered" >getQuebecSpecificFactors(</span>metricType: string): Record&lt;string, number&gt; {
     const factors: Record&lt;string, Record&lt;string, number&gt;&gt; = <span class="cstat-no" title="statement not covered" >{</span>
@@ -2910,22 +2949,30 @@ export class MetricValidationService {
   }
 &nbsp;
   /**
-   *
+   * Generates a unique model version identifier.
+   * @returns A unique version string for the model.
    */
   private <span class="fstat-no" title="function not covered" >generateModelVersion(</span>): string {
 <span class="cstat-no" title="statement not covered" >    return `v${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;</span>
   }
 &nbsp;
   /**
-   *
-   * @param metricType
-   * @param timeRangeHours
+   * Analyzes Quebec compliance effectiveness for metrics.
+   * @param metricType - Optional metric type to analyze.
+   * @param timeRangeHours - Time range in hours for analysis.
+   * @returns Quebec compliance analysis results.
    */
   private <span class="fstat-no" title="function not covered" >async </span>analyzeQuebecComplianceEffectiveness(
     metricType?: string,
     timeRangeHours: number = <span class="branch-0 cbranch-no" title="branch not covered" >168</span>
-  ): Promise&lt;any&gt; {
-    const cutoffDate = <span class="cstat-no" title="statement not covered" >new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);</span>
+  ): Promise&lt;{
+    overallComplianceScore: number;
+    law25Compliance: number;
+    bilingualism: number;
+    propertyManagementCompliance: number;
+    improvementAreas: string[];
+  }&gt; {
+    const _cutoffDate = <span class="cstat-no" title="statement not covered" >new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);</span>
     
     // Analysis specific to Quebec compliance requirements
 <span class="cstat-no" title="statement not covered" >    return {</span>
@@ -2942,10 +2989,15 @@ export class MetricValidationService {
   }
 &nbsp;
   /**
-   *
-   * @param results
+   * Generates effectiveness recommendations based on validation results.
+   * @param results - Array of validation results to analyze.
+   * @returns Array of recommendation strings.
    */
-  private <span class="fstat-no" title="function not covered" >async </span>generateEffectivenessRecommendations(results: any[]): Promise&lt;string[]&gt; {
+  private <span class="fstat-no" title="function not covered" >async </span>generateEffectivenessRecommendations(results: Array&lt;{
+    avgAccuracy: number;
+    avgPrecision: number;
+    metricType: string;
+  }&gt;): Promise&lt;string[]&gt; {
     const recommendations: string[] = <span class="cstat-no" title="statement not covered" >[];</span>
     
 <span class="cstat-no" title="statement not covered" >    for (const result of results) {</span>
@@ -2963,10 +3015,15 @@ export class MetricValidationService {
   }
 &nbsp;
   /**
-   *
-   * @param metricType
+   * Gets calibration status for a specific metric type.
+   * @param metricType - Optional metric type to get calibration status for.
+   * @returns Calibration status information.
    */
-  private <span class="fstat-no" title="function not covered" >async </span>getCalibrationStatus(metricType?: string): Promise&lt;any&gt; {
+  private <span class="fstat-no" title="function not covered" >async </span>getCalibrationStatus(metricType?: string): Promise&lt;{
+    status: string;
+    lastUpdate: Date;
+    accuracy: number;
+  }&gt; {
     let query = <span class="cstat-no" title="statement not covered" >db</span>
       .select()
       .from(schema.metricCalibrationData)
@@ -3028,7 +3085,7 @@ export const metricValidationService = <span class="cstat-no" title="statement n
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-16T06:28:29.967Z
+                at 2025-08-16T14:35:52.599Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
