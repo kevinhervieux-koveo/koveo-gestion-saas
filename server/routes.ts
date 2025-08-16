@@ -850,10 +850,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .delete(schema.actionableItems)
         .where(eq(schema.actionableItems.featureId, feature.id));
 
-      // Insert new actionable items
+      // Check for existing duplicates and sync their status
+      const itemsWithSyncedStatus = await Promise.all(
+        actionableItems.map(async (newItem) => {
+          // Find existing items with the same title
+          const existingDuplicates = await db
+            .select()
+            .from(schema.actionableItems)
+            .where(eq(schema.actionableItems.title, newItem.title))
+            .limit(1);
+          
+          // If a duplicate exists, use its status
+          if (existingDuplicates.length > 0) {
+            console.log(`📋 Found existing action item with title "${newItem.title}" - syncing status: ${existingDuplicates[0].status}`);
+            return {
+              ...newItem,
+              status: existingDuplicates[0].status,
+              completedAt: existingDuplicates[0].completedAt
+            };
+          }
+          
+          return newItem;
+        })
+      );
+
+      // Insert new actionable items with synced status
       const insertedItems = await db
         .insert(schema.actionableItems)
-        .values(actionableItems)
+        .values(itemsWithSyncedStatus)
         .returning();
 
       // Update feature with AI analysis results
@@ -897,6 +921,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/actionable-items/:id', requireAuth, authorize('update:actionable_item'), async (req, res) => {
     try {
+      // First, get the original item to find its title
+      const [originalItem] = await db
+        .select()
+        .from(schema.actionableItems)
+        .where(eq(schema.actionableItems.id, req.params.id));
+
+      if (!originalItem) {
+        return res.status(404).json({ message: 'Actionable item not found' });
+      }
+
+      // If status is being updated, synchronize all duplicates
+      if (req.body.status && req.body.status !== originalItem.status) {
+        console.log(`🔄 Synchronizing status for duplicate action items with title: "${originalItem.title}"`);
+        
+        // Find all action items with the same title
+        const duplicates = await db
+          .select()
+          .from(schema.actionableItems)
+          .where(eq(schema.actionableItems.title, originalItem.title));
+        
+        console.log(`   Found ${duplicates.length} action items with the same title`);
+        
+        // Update all duplicates with the new status
+        const updatedItems = await Promise.all(
+          duplicates.map(async (duplicate) => {
+            const [updated] = await db
+              .update(schema.actionableItems)
+              .set({ 
+                status: req.body.status,
+                completedAt: req.body.status === 'completed' ? new Date() : null,
+                updatedAt: new Date() 
+              })
+              .where(eq(schema.actionableItems.id, duplicate.id))
+              .returning();
+            return updated;
+          })
+        );
+        
+        // Check if features need status updates
+        const affectedFeatureIds = [...new Set(duplicates.map(d => d.featureId))];
+        
+        for (const featureId of affectedFeatureIds) {
+          // Check if all items are completed for each affected feature
+          const featureItems = await db
+            .select()
+            .from(schema.actionableItems)
+            .where(eq(schema.actionableItems.featureId, featureId));
+          
+          const allCompleted = featureItems.every(i => i.status === 'completed');
+          
+          // Update feature status if all items are completed
+          if (allCompleted) {
+            await db
+              .update(schema.features)
+              .set({ 
+                status: 'completed',
+                completedDate: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.features.id, featureId));
+            console.log(`   ✅ Feature ${featureId} marked as completed`);
+          }
+        }
+        
+        // Return the updated item that was requested
+        const requestedItem = updatedItems.find(i => i.id === req.params.id);
+        return res.json({
+          ...requestedItem,
+          syncedDuplicates: updatedItems.length - 1,
+          message: `Status synchronized across ${updatedItems.length} duplicate action items`
+        });
+      }
+      
+      // For non-status updates, only update the specific item
       const [item] = await db
         .update(schema.actionableItems)
         .set({ ...req.body, updatedAt: new Date() })
@@ -948,6 +1046,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting actionable item:', error);
       res.status(500).json({ message: 'Failed to delete actionable item' });
+    }
+  });
+
+  // Get duplicate action items endpoint
+  app.get('/api/actionable-items/duplicates', requireAuth, authorize('read:actionable_item'), async (req, res) => {
+    try {
+      // Get all action items
+      const allItems = await db
+        .select({
+          id: schema.actionableItems.id,
+          title: schema.actionableItems.title,
+          status: schema.actionableItems.status,
+          featureId: schema.actionableItems.featureId,
+          featureName: schema.features.name,
+          description: schema.actionableItems.description,
+          completedAt: schema.actionableItems.completedAt,
+          updatedAt: schema.actionableItems.updatedAt,
+        })
+        .from(schema.actionableItems)
+        .leftJoin(schema.features, eq(schema.actionableItems.featureId, schema.features.id))
+        .orderBy(schema.actionableItems.title, schema.actionableItems.updatedAt);
+
+      // Group by title to find duplicates
+      const groupedByTitle = allItems.reduce((acc, item) => {
+        if (!acc[item.title]) {
+          acc[item.title] = [];
+        }
+        acc[item.title].push(item);
+        return acc;
+      }, {} as Record<string, typeof allItems>);
+
+      // Filter out non-duplicates and format response
+      const duplicates = Object.entries(groupedByTitle)
+        .filter(([_, items]) => items.length > 1)
+        .map(([title, items]) => ({
+          title,
+          count: items.length,
+          status: items[0].status, // All should have same status due to sync
+          items: items.map(item => ({
+            id: item.id,
+            featureId: item.featureId,
+            featureName: item.featureName,
+            description: item.description,
+            completedAt: item.completedAt,
+            updatedAt: item.updatedAt,
+          }))
+        }));
+
+      res.json({
+        totalDuplicateGroups: duplicates.length,
+        totalDuplicateItems: duplicates.reduce((sum, group) => sum + group.count, 0),
+        duplicates
+      });
+    } catch (error) {
+      console.error('Error fetching duplicate actionable items:', error);
+      res.status(500).json({ message: 'Failed to fetch duplicate actionable items' });
     }
   });
 
@@ -1250,7 +1404,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      // Create actionable item
+      // Check for existing duplicate items with the same title
+      const existingDuplicates = await db
+        .select()
+        .from(schema.actionableItems)
+        .where(eq(schema.actionableItems.title, title))
+        .limit(1);
+      
+      let syncedStatus = 'pending';
+      let syncedCompletedAt = null;
+      
+      if (existingDuplicates.length > 0) {
+        console.log(`📋 Found existing action item with title "${title}" - syncing status: ${existingDuplicates[0].status}`);
+        syncedStatus = existingDuplicates[0].status;
+        syncedCompletedAt = existingDuplicates[0].completedAt;
+      }
+
+      // Create actionable item with synced status
       const [newItem] = await db
         .insert(schema.actionableItems)
         .values({
@@ -1258,12 +1428,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title,
           description: description || 'AI-generated development prompt',
           implementationPrompt: prompt,
-          status: 'pending',
+          status: syncedStatus,
+          completedAt: syncedCompletedAt,
           orderIndex: 0,
         })
         .returning();
 
-      res.status(201).json(newItem);
+      const response = existingDuplicates.length > 0 
+        ? {
+            ...newItem,
+            syncedFromExisting: true,
+            message: `Action item created with status synchronized from existing duplicate: ${syncedStatus}`
+          }
+        : newItem;
+
+      res.status(201).json(response);
     } catch (error) {
       console.error('Error creating actionable item from prompt:', error);
       res.status(500).json({ message: 'Failed to create actionable item from prompt' });
