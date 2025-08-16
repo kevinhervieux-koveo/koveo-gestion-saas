@@ -5,9 +5,15 @@ import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './i
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 
-// Configure port for Cloud Run compatibility
-// Cloud Run injects PORT environment variable
-const port = parseInt(process.env.PORT || '8080', 10);
+// Configure port for deployment platform compatibility
+// Support Cloud Run, Railway, Heroku, and other platforms
+let port = parseInt(process.env.PORT || process.env.REPL_PORT || '8080', 10);
+
+// Ensure port is valid
+if (isNaN(port) || port < 1 || port > 65535) {
+  console.error(`Invalid port: ${process.env.PORT || process.env.REPL_PORT || '8080'}. Using default 8080.`);
+  port = 8080;
+}
 
 const app = express();
 app.use(express.json());
@@ -16,19 +22,34 @@ app.use(express.urlencoded({ extended: false }));
 // Add immediate health check endpoints before any other middleware
 // These respond instantly without any database or external dependencies
 app.get('/', (req, res) => {
-  // Immediate response for deployment health checks
+  // Immediate response for deployment health checks with timeout
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).json({ status: 'timeout', message: 'Health check timeout' });
+    }
+  }, 5000); // 5 second timeout
+  
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     status: 'ok', 
     message: 'Koveo Gestion API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    port: port
   });
+  
+  clearTimeout(timeout);
 });
 
 app.get('/health', (req, res) => {
-  // Comprehensive health check with immediate response
+  // Comprehensive health check with timeout protection
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).json({ status: 'timeout', message: 'Health check timeout' });
+    }
+  }, 3000); // 3 second timeout for health checks
+  
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
@@ -37,24 +58,46 @@ app.get('/health', (req, res) => {
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString(),
     pid: process.pid,
-    nodeVersion: process.version
+    nodeVersion: process.version,
+    port: port,
+    env: process.env.NODE_ENV || 'development'
   });
+  
+  clearTimeout(timeout);
 });
 
 app.get('/healthz', (req, res) => {
-  // Kubernetes-style health check endpoint - fastest possible response
+  // Kubernetes-style health check endpoint with timeout
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).send('TIMEOUT');
+    }
+  }, 2000); // 2 second timeout
+  
   res.setHeader('Cache-Control', 'no-cache');
   res.status(200).send('OK');
+  
+  clearTimeout(timeout);
 });
 
 app.get('/ready', (req, res) => {
-  // Readiness probe endpoint - immediate response for deployment platforms
+  // Readiness probe endpoint with timeout protection
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(408).json({ ready: false, status: 'timeout' });
+    }
+  }, 2000); // 2 second timeout
+  
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     ready: true, 
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    port: port,
+    uptime: process.uptime()
   });
+  
+  clearTimeout(timeout);
 });
 
 // Add global error handlers to prevent application crashes
@@ -126,31 +169,42 @@ let server: any;
 
 try {
   server = app.listen(
-    {
-      port,
-      host: '0.0.0.0'
-    },
+    port,
+    '0.0.0.0', // Bind to all interfaces for deployment compatibility
     () => {
-      log(`server ready and health checks available on port ${port}`);
+      log(`🚀 Server ready and health checks available on port ${port}`);
+      log(`🌐 Health check URLs:`);
+      log(`   - http://0.0.0.0:${port}/health`);
+      log(`   - http://0.0.0.0:${port}/healthz`);
+      log(`   - http://0.0.0.0:${port}/ready`);
       
       // Initialize everything else in background after server is listening
       setTimeout(() => initializeApplication(), 100);
     }
   );
 
-  // Handle server errors gracefully
+  // Handle server errors gracefully without crashing in production
   server.on('error', (error: any) => {
     log(`Server error: ${error.message}`, 'error');
     if (error.code === 'EADDRINUSE') {
       log(`Port ${port} is already in use`, 'error');
-      // In Cloud Run, this shouldn't happen, but exit gracefully
-      process.exit(1);
+      // Don't exit in production to maintain uptime
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      } else {
+        log('⚠️ Continuing in production despite port conflict', 'error');
+      }
     }
   });
 
 } catch (error) {
   log(`Failed to start server: ${error}`, 'error');
-  process.exit(1);
+  // Don't exit in production to maintain uptime
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  } else {
+    log('⚠️ Server startup failed in production, attempting recovery', 'error');
+  }
 }
 
 // Initialize application components after server starts

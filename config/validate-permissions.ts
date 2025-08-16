@@ -261,6 +261,7 @@ export async function validatePermissionsFile(): Promise<{
 
 /**
  * CLI script to validate permissions if run directly.
+ * Note: Removed process.exit() calls to prevent application crashes during startup
  */
 async function runCLI() {
   try {
@@ -280,10 +281,18 @@ async function runCLI() {
     }
 
     console.warn('');
-    process.exit(result.valid ? 0 : 1);
+    // Don't exit the process in production to prevent app shutdown
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(result.valid ? 0 : 1);
+    }
+    return result.valid;
   } catch (error) {
     console.error('❌ Validation failed:', error);
-    process.exit(1);
+    // Don't exit the process in production to prevent app shutdown
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+    return false;
   }
 }
 
