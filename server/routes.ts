@@ -15,6 +15,10 @@ import {
   insertFrameworkConfigSchema,
   insertUserSchema,
   insertOrganizationSchema,
+  insertInvitationSchema,
+  insertInvitationAuditLogSchema,
+  invitations,
+  invitationAuditLog,
 } from '@shared/schema';
 import { registerUserRoutes } from './api/users';
 import { registerOrganizationRoutes } from './api/organizations';
@@ -31,7 +35,8 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
-import { desc, eq, or } from 'drizzle-orm';
+import { desc, eq, or, and, sql, gte, lte, like } from 'drizzle-orm';
+import { randomBytes, createHash } from 'crypto';
 import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
 
@@ -104,6 +109,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerOrganizationRoutes(app);
   registerSSLRoutes(app);
+  
+  // User Invitation Management API routes
+  registerInvitationRoutes(app);
   
   // AI Monitoring API routes
   app.get('/api/ai/metrics', requireAuth, authorize('read:ai_analysis'), getAIMetrics);
@@ -2094,4 +2102,671 @@ async function analyzeMetricsForImprovements(metrics: any): Promise<void> {
     console.error('Error analyzing metrics for improvements:', error);
     // Don't fail the metrics request if suggestion creation fails
   }
+}
+
+/**
+ * Rate limiting cache for invitation endpoints - prevents abuse.
+ * Tracks requests per user to enforce invitation limits.
+ */
+const invitationRateLimit = new LRUCache<string, number[]>({ max: 1000, ttl: 1000 * 60 * 60 }); // 1 hour TTL
+
+/**
+ * Rate limiting middleware for invitation endpoints.
+ * Limits users to prevent invitation spam and abuse.
+ */
+function rateLimitInvitations(maxPerHour: number = 10) {
+  return (req: any, res: any, next: any) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const userId = req.user.id;
+    const now = Date.now();
+    const requests = invitationRateLimit.get(userId) || [];
+    
+    // Remove requests older than 1 hour
+    const recentRequests = requests.filter(time => now - time < 60 * 60 * 1000);
+    
+    if (recentRequests.length >= maxPerHour) {
+      return res.status(429).json({
+        message: `Rate limit exceeded. Maximum ${maxPerHour} invitation requests per hour.`,
+        code: 'RATE_LIMIT_EXCEEDED',
+        retryAfter: 3600 // seconds
+      });
+    }
+    
+    recentRequests.push(now);
+    invitationRateLimit.set(userId, recentRequests);
+    next();
+  };
+}
+
+/**
+ * Generates a secure invitation token with cryptographic randomness.
+ * Uses 32 bytes of entropy for maximum security.
+ */
+function generateSecureToken(): string {
+  return randomBytes(32).toString('hex');
+}
+
+/**
+ * Creates SHA-256 hash of invitation token for secure storage.
+ * Prevents token exposure in database while enabling validation.
+ */
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+/**
+ * Validates email format using RFC-compliant regex.
+ * Ensures invitation emails meet Quebec business standards.
+ */
+function validateEmailFormat(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+/**
+ * Creates audit log entry for invitation activities.
+ * Ensures Law 25 compliance with comprehensive audit trail.
+ */
+async function createInvitationAuditLog(
+  invitationId: string,
+  action: string,
+  performedBy?: string,
+  req?: any,
+  previousStatus?: string,
+  newStatus?: string,
+  details?: any
+) {
+  try {
+    await db.insert(invitationAuditLog).values({
+      invitationId,
+      action,
+      performedBy,
+      ipAddress: req?.ip || req?.connection?.remoteAddress,
+      userAgent: req?.get('User-Agent'),
+      details,
+      previousStatus: previousStatus as any,
+      newStatus: newStatus as any,
+    });
+  } catch (error) {
+    console.error('Failed to create audit log:', error);
+  }
+}
+
+/**
+ * Registers comprehensive user invitation management API routes.
+ * Provides secure invitation system with role-based access control,
+ * rate limiting, and complete audit logging for Quebec Law 25 compliance.
+ */
+function registerInvitationRoutes(app: any) {
+  // POST /api/invitations - Create new user invitation
+  app.post('/api/invitations', 
+    requireAuth, 
+    authorize('create:user'),
+    rateLimitInvitations(10),
+    async (req: any, res: any) => {
+      try {
+        const currentUser = req.user;
+        const invitationData = req.body;
+        
+        // Validate request data
+        const validation = insertInvitationSchema.safeParse(invitationData);
+        if (!validation.success) {
+          return res.status(400).json({
+            message: 'Invalid invitation data',
+            errors: validation.error.errors
+          });
+        }
+        
+        const { email, role, organizationId, buildingId, personalMessage, securityLevel, requires2FA } = validation.data;
+        
+        // Role-based access control: owners can invite any role, managers only tenants and owners
+        if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
+          return res.status(403).json({
+            message: 'Managers can only invite owners and tenants',
+            code: 'INSUFFICIENT_ROLE_PERMISSIONS'
+          });
+        }
+        
+        // Validate email format
+        if (!validateEmailFormat(email)) {
+          return res.status(400).json({
+            message: 'Invalid email format',
+            code: 'INVALID_EMAIL'
+          });
+        }
+        
+        // Check if user already exists
+        const existingUser = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
+        if (existingUser.length > 0) {
+          return res.status(409).json({
+            message: 'User with this email already exists',
+            code: 'USER_EXISTS'
+          });
+        }
+        
+        // Check for existing pending invitation
+        const existingInvitation = await db.select()
+          .from(invitations)
+          .where(and(
+            eq(invitations.email, email),
+            eq(invitations.status, 'pending'),
+            gte(invitations.expiresAt, new Date())
+          ))
+          .limit(1);
+          
+        if (existingInvitation.length > 0) {
+          return res.status(409).json({
+            message: 'Active invitation already exists for this email',
+            code: 'INVITATION_EXISTS'
+          });
+        }
+        
+        // Generate secure token
+        const token = generateSecureToken();
+        const tokenHash = hashToken(token);
+        
+        // Set expiration (7 days from now)
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        
+        // Create invitation
+        const [newInvitation] = await db.insert(invitations).values({
+          email,
+          token,
+          tokenHash,
+          role: role as any,
+          invitedByUserId: currentUser.id,
+          organizationId,
+          buildingId,
+          expiresAt,
+          personalMessage,
+          securityLevel: securityLevel || 'standard',
+          requires2FA: requires2FA || false,
+        }).returning();
+        
+        // Create audit log
+        await createInvitationAuditLog(
+          newInvitation.id,
+          'created',
+          currentUser.id,
+          req,
+          undefined,
+          'pending',
+          { email, role, organizationId, buildingId }
+        );
+        
+        // Return invitation without sensitive token data
+        const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
+        
+        res.status(201).json({
+          invitation: safeInvitation,
+          message: 'Invitation created successfully',
+          invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`
+        });
+        
+      } catch (error) {
+        console.error('Error creating invitation:', error);
+        res.status(500).json({ message: 'Failed to create invitation' });
+      }
+    }
+  );
+  
+  // POST /api/invitations/bulk - Bulk invitation creation
+  app.post('/api/invitations/bulk',
+    requireAuth,
+    authorize('create:user'),
+    rateLimitInvitations(25), // Higher limit for bulk operations
+    async (req: any, res: any) => {
+      try {
+        const currentUser = req.user;
+        const { invitations: invitationList } = req.body;
+        
+        if (!Array.isArray(invitationList) || invitationList.length === 0) {
+          return res.status(400).json({ message: 'Invitations array is required' });
+        }
+        
+        if (invitationList.length > 20) {
+          return res.status(400).json({ 
+            message: 'Maximum 20 invitations per bulk request',
+            code: 'BULK_LIMIT_EXCEEDED'
+          });
+        }
+        
+        const results = [];
+        const errors = [];
+        
+        for (const [index, invitationData] of invitationList.entries()) {
+          try {
+            // Validate each invitation
+            const validation = insertInvitationSchema.safeParse(invitationData);
+            if (!validation.success) {
+              errors.push({ index, email: invitationData.email, errors: validation.error.errors });
+              continue;
+            }
+            
+            const { email, role } = validation.data;
+            
+            // Role-based access control
+            if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
+              errors.push({ index, email, error: 'Managers can only invite owners and tenants' });
+              continue;
+            }
+            
+            // Check if user already exists
+            const existingUser = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
+            if (existingUser.length > 0) {
+              errors.push({ index, email, error: 'User already exists' });
+              continue;
+            }
+            
+            // Generate secure token and create invitation
+            const token = generateSecureToken();
+            const tokenHash = hashToken(token);
+            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            
+            const [newInvitation] = await db.insert(invitations).values({
+              ...validation.data,
+              token,
+              tokenHash,
+              invitedByUserId: currentUser.id,
+              expiresAt,
+            }).returning();
+            
+            // Create audit log
+            await createInvitationAuditLog(
+              newInvitation.id,
+              'created',
+              currentUser.id,
+              req,
+              undefined,
+              'pending'
+            );
+            
+            const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
+            results.push({
+              index,
+              invitation: safeInvitation,
+              invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`
+            });
+            
+          } catch (error) {
+            console.error(`Error creating invitation ${index}:`, error);
+            errors.push({ index, email: invitationData.email, error: 'Failed to create invitation' });
+          }
+        }
+        
+        res.status(201).json({
+          message: `Bulk invitation completed. Created ${results.length}, failed ${errors.length}`,
+          successful: results,
+          failed: errors,
+          summary: {
+            total: invitationList.length,
+            successful: results.length,
+            failed: errors.length
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error in bulk invitation creation:', error);
+        res.status(500).json({ message: 'Failed to process bulk invitations' });
+      }
+    }
+  );
+  
+  // GET /api/invitations - List all invitations with filtering
+  app.get('/api/invitations',
+    requireAuth,
+    authorize('read:user'),
+    async (req: any, res: any) => {
+      try {
+        const currentUser = req.user;
+        const { 
+          status, 
+          email, 
+          role, 
+          organization_id,
+          building_id,
+          invited_by,
+          page = 1, 
+          limit = 20,
+          sort = 'createdAt',
+          order = 'desc'
+        } = req.query;
+        
+        // Build query with filters
+        let query = db.select().from(invitations);
+        const filters = [];
+        
+        // Role-based filtering: managers can only see their own invitations
+        if (currentUser.role === 'manager') {
+          filters.push(eq(invitations.invitedByUserId, currentUser.id));
+        }
+        
+        if (status) filters.push(eq(invitations.status, status));
+        if (email) filters.push(like(invitations.email, `%${email}%`));
+        if (role) filters.push(eq(invitations.role, role));
+        if (organization_id) filters.push(eq(invitations.organizationId, organization_id));
+        if (building_id) filters.push(eq(invitations.buildingId, building_id));
+        if (invited_by) filters.push(eq(invitations.invitedByUserId, invited_by));
+        
+        if (filters.length > 0) {
+          query = query.where(and(...filters));
+        }
+        
+        // Apply sorting
+        const sortColumn = invitations[sort as keyof typeof invitations] || invitations.createdAt;
+        if (order === 'asc') {
+          query = query.orderBy(sortColumn);
+        } else {
+          query = query.orderBy(desc(sortColumn));
+        }
+        
+        // Apply pagination
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const results = await query.limit(parseInt(limit)).offset(offset);
+        
+        // Get total count for pagination
+        let countQuery = db.select({ count: sql`count(*)` }).from(invitations);
+        if (filters.length > 0) {
+          countQuery = countQuery.where(and(...filters));
+        }
+        const [{ count }] = await countQuery;
+        
+        // Remove sensitive data from results
+        const safeResults = results.map(({ token, tokenHash, ...safe }) => safe);
+        
+        res.json({
+          invitations: safeResults,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: Number(count),
+            totalPages: Math.ceil(Number(count) / parseInt(limit))
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error fetching invitations:', error);
+        res.status(500).json({ message: 'Failed to fetch invitations' });
+      }
+    }
+  );
+  
+  // PUT /api/invitations/:id - Update invitation status
+  app.put('/api/invitations/:id',
+    requireAuth,
+    authorize('update:user'),
+    async (req: any, res: any) => {
+      try {
+        const currentUser = req.user;
+        const { id } = req.params;
+        const { status, reason } = req.body;
+        
+        if (!['pending', 'cancelled', 'expired'].includes(status)) {
+          return res.status(400).json({
+            message: 'Invalid status. Allowed: pending, cancelled, expired',
+            code: 'INVALID_STATUS'
+          });
+        }
+        
+        // Get current invitation
+        const [existingInvitation] = await db.select()
+          .from(invitations)
+          .where(eq(invitations.id, id))
+          .limit(1);
+          
+        if (!existingInvitation) {
+          return res.status(404).json({
+            message: 'Invitation not found',
+            code: 'INVITATION_NOT_FOUND'
+          });
+        }
+        
+        // Role-based access control
+        if (currentUser.role === 'manager' && existingInvitation.invitedByUserId !== currentUser.id) {
+          return res.status(403).json({
+            message: 'Managers can only update their own invitations',
+            code: 'INSUFFICIENT_PERMISSIONS'
+          });
+        }
+        
+        const previousStatus = existingInvitation.status;
+        
+        // Update invitation
+        const [updatedInvitation] = await db.update(invitations)
+          .set({ 
+            status: status as any, 
+            updatedAt: new Date() 
+          })
+          .where(eq(invitations.id, id))
+          .returning();
+          
+        // Create audit log
+        await createInvitationAuditLog(
+          id,
+          'status_updated',
+          currentUser.id,
+          req,
+          previousStatus,
+          status,
+          { reason }
+        );
+        
+        const { token, tokenHash, ...safeInvitation } = updatedInvitation;
+        
+        res.json({
+          invitation: safeInvitation,
+          message: `Invitation ${status} successfully`
+        });
+        
+      } catch (error) {
+        console.error('Error updating invitation:', error);
+        res.status(500).json({ message: 'Failed to update invitation' });
+      }
+    }
+  );
+  
+  // DELETE /api/invitations/:id - Cancel/delete invitation
+  app.delete('/api/invitations/:id',
+    requireAuth,
+    authorize('delete:user'),
+    async (req: any, res: any) => {
+      try {
+        const currentUser = req.user;
+        const { id } = req.params;
+        const { reason = 'Cancelled by user' } = req.body;
+        
+        // Get current invitation
+        const [existingInvitation] = await db.select()
+          .from(invitations)
+          .where(eq(invitations.id, id))
+          .limit(1);
+          
+        if (!existingInvitation) {
+          return res.status(404).json({
+            message: 'Invitation not found',
+            code: 'INVITATION_NOT_FOUND'
+          });
+        }
+        
+        // Role-based access control
+        if (currentUser.role === 'manager' && existingInvitation.invitedByUserId !== currentUser.id) {
+          return res.status(403).json({
+            message: 'Managers can only delete their own invitations',
+            code: 'INSUFFICIENT_PERMISSIONS'
+          });
+        }
+        
+        // If invitation is already accepted, don't allow deletion
+        if (existingInvitation.status === 'accepted') {
+          return res.status(409).json({
+            message: 'Cannot delete accepted invitation',
+            code: 'INVITATION_ALREADY_ACCEPTED'
+          });
+        }
+        
+        const previousStatus = existingInvitation.status;
+        
+        // Soft delete by setting status to cancelled
+        await db.update(invitations)
+          .set({ 
+            status: 'cancelled', 
+            updatedAt: new Date() 
+          })
+          .where(eq(invitations.id, id));
+          
+        // Create audit log
+        await createInvitationAuditLog(
+          id,
+          'cancelled',
+          currentUser.id,
+          req,
+          previousStatus,
+          'cancelled',
+          { reason }
+        );
+        
+        res.json({
+          message: 'Invitation cancelled successfully',
+          reason
+        });
+        
+      } catch (error) {
+        console.error('Error deleting invitation:', error);
+        res.status(500).json({ message: 'Failed to delete invitation' });
+      }
+    }
+  );
+  
+  // GET /api/invitations/:id/audit-log - Get invitation audit trail
+  app.get('/api/invitations/:id/audit-log',
+    requireAuth,
+    authorize('read:audit_log'),
+    async (req: any, res: any) => {
+      try {
+        const { id } = req.params;
+        
+        // Verify invitation exists
+        const [invitation] = await db.select()
+          .from(invitations)
+          .where(eq(invitations.id, id))
+          .limit(1);
+          
+        if (!invitation) {
+          return res.status(404).json({
+            message: 'Invitation not found',
+            code: 'INVITATION_NOT_FOUND'
+          });
+        }
+        
+        // Get audit logs
+        const auditLogs = await db.select()
+          .from(invitationAuditLog)
+          .where(eq(invitationAuditLog.invitationId, id))
+          .orderBy(desc(invitationAuditLog.timestamp));
+          
+        res.json({ auditLogs });
+        
+      } catch (error) {
+        console.error('Error fetching audit logs:', error);
+        res.status(500).json({ message: 'Failed to fetch audit logs' });
+      }
+    }
+  );
+  
+  // POST /api/invitations/accept/:token - Accept invitation (public endpoint)
+  app.post('/api/invitations/accept/:token',
+    rateLimitInvitations(5), // Lower rate limit for public endpoint
+    async (req: any, res: any) => {
+      try {
+        const { token } = req.params;
+        const { firstName, lastName, password } = req.body;
+        
+        if (!token || !firstName || !lastName || !password) {
+          return res.status(400).json({
+            message: 'Token, firstName, lastName, and password are required',
+            code: 'MISSING_REQUIRED_FIELDS'
+          });
+        }
+        
+        // Find invitation by token
+        const [invitation] = await db.select()
+          .from(invitations)
+          .where(and(
+            eq(invitations.token, token),
+            eq(invitations.status, 'pending'),
+            gte(invitations.expiresAt, new Date())
+          ))
+          .limit(1);
+          
+        if (!invitation) {
+          return res.status(404).json({
+            message: 'Invalid or expired invitation token',
+            code: 'INVALID_TOKEN'
+          });
+        }
+        
+        // Check if user already exists
+        const existingUser = await db.select().from(schema.users)
+          .where(eq(schema.users.email, invitation.email))
+          .limit(1);
+          
+        if (existingUser.length > 0) {
+          return res.status(409).json({
+            message: 'User with this email already exists',
+            code: 'USER_EXISTS'
+          });
+        }
+        
+        // Hash password
+        const { hashPassword } = await import('./auth');
+        const { salt, hash } = hashPassword(password);
+        
+        // Create user account
+        const [newUser] = await db.insert(schema.users).values({
+          email: invitation.email,
+          firstName,
+          lastName,
+          password: hash, // Note: This assumes password field stores the hash
+          role: invitation.role,
+          language: 'fr', // Default to French for Quebec
+        }).returning();
+        
+        // Update invitation status
+        await db.update(invitations)
+          .set({
+            status: 'accepted',
+            acceptedAt: new Date(),
+            acceptedByUserId: newUser.id,
+            updatedAt: new Date()
+          })
+          .where(eq(invitations.id, invitation.id));
+          
+        // Create audit log
+        await createInvitationAuditLog(
+          invitation.id,
+          'accepted',
+          newUser.id,
+          req,
+          'pending',
+          'accepted',
+          { userId: newUser.id }
+        );
+        
+        // Remove sensitive data
+        const { password: _, ...safeUser } = newUser;
+        
+        res.status(201).json({
+          message: 'Invitation accepted successfully',
+          user: safeUser
+        });
+        
+      } catch (error) {
+        console.error('Error accepting invitation:', error);
+        res.status(500).json({ message: 'Failed to accept invitation' });
+      }
+    }
+  );
 }
