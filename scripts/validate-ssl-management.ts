@@ -14,7 +14,7 @@
 import { sslRenewalJob } from '../server/jobs/ssl_renewal_job';
 import { notificationService } from '../server/services/notification_service';
 import { db } from '../server/db';
-import { sslCertificates, notifications, users } from '@shared/schema';
+import { sslCertificates, notifications, users } from '../shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**

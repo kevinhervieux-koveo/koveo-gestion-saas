@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import type { Translations } from '@/lib/i18n';
 import { 
   Dialog, 
   DialogContent, 
@@ -43,7 +44,8 @@ import {
   Mail, 
   Building, 
   X,
-  Plus
+  Plus,
+  Shield
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,6 +97,30 @@ interface Organization {
   id: string;
   name: string;
   type: string;
+}
+
+/**
+ * Building interface from schema.
+ */
+interface Building {
+  id: string;
+  organizationId: string;
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  buildingType: 'condo' | 'rental';
+  yearBuilt: number | null;
+  totalUnits: number;
+  totalFloors: number | null;
+  parkingSpaces: number | null;
+  storageSpaces: number | null;
+  amenities: unknown;
+  managementCompany: string | null;
+  isActive: boolean;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 
@@ -221,7 +247,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       
       toast({
         title: t('bulkInvitationsSent'),
-        description: t('bulkInvitationsResult', { success: successCount, errors: errorCount }),
+        description: `${successCount} ${t('bulkInvitationsSuccess')}`,
       });
       
       bulkForm.reset();
@@ -335,7 +361,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             <SelectItem key={role} value={role}>
                               <div className="flex items-center gap-2">
                                 <Shield className="h-4 w-4" />
-                                {t(role)}
+                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : t('tenant')}
                               </div>
                             </SelectItem>
                           ))}
@@ -553,7 +579,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <SelectContent>
                             {availableRoles.map((role) => (
                               <SelectItem key={role} value={role}>
-                                {t(role)}
+                                {role === 'admin' ? t('admin') : role === 'manager' ? t('manager') : t('tenant')}
                               </SelectItem>
                             ))}
                           </SelectContent>

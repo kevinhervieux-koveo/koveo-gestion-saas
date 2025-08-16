@@ -95,6 +95,40 @@ export interface Translations {
   cancel: string;
   processing: string;
   confirm: string;
+  // Invitation management
+  inviteUser: string;
+  inviteUserDescription: string;
+  singleInvitation: string;
+  bulkInvitations: string;
+  emailAddress: string;
+  enterEmailAddress: string;
+  role: string;
+  organization: string;
+  optional: string;
+  selectOrganization: string;
+  expiresIn: string;
+  day: string;
+  days: string;
+  securityLevel: string;
+  standard: string;
+  high: string;
+  require2FA: string;
+  require2FADescription: string;
+  personalMessage: string;
+  personalMessagePlaceholder: string;
+  personalMessageDescription: string;
+  bulkPersonalMessagePlaceholder: string;
+  sendInvitation: string;
+  sendInvitations: string;
+  sending: string;
+  emailAddresses: string;
+  addEmailAddress: string;
+  invitationSent: string;
+  invitationSentSuccessfully: string;
+  bulkInvitationsSent: string;
+  bulkInvitationsResult: string;
+  bulkInvitationsSuccess: string;
+  error: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -184,6 +218,40 @@ const translations: Record<Language, Translations> = {
     cancel: 'Cancel',
     processing: 'Processing',
     confirm: 'Confirm',
+    // Invitation management
+    inviteUser: 'Invite User',
+    inviteUserDescription: 'Send invitations to new users to join your property management system',
+    singleInvitation: 'Single Invitation',
+    bulkInvitations: 'Bulk Invitations',
+    emailAddress: 'Email Address',
+    enterEmailAddress: 'Enter email address',
+    role: 'Role',
+    organization: 'Organization',
+    optional: 'Optional',
+    selectOrganization: 'Select organization',
+    expiresIn: 'Expires In',
+    day: 'day',
+    days: 'days',
+    securityLevel: 'Security Level',
+    standard: 'Standard',
+    high: 'High',
+    require2FA: 'Require 2FA',
+    require2FADescription: 'Require two-factor authentication for this user',
+    personalMessage: 'Personal Message',
+    personalMessagePlaceholder: 'Add a personal welcome message...',
+    personalMessageDescription: 'This message will be included in the invitation email',
+    bulkPersonalMessagePlaceholder: 'Add a personal message for all invitations...',
+    sendInvitation: 'Send Invitation',
+    sendInvitations: 'Send Invitations',
+    sending: 'Sending...',
+    emailAddresses: 'Email Addresses',
+    addEmailAddress: 'Add Email Address',
+    invitationSent: 'Invitation Sent',
+    invitationSentSuccessfully: 'Invitation sent successfully',
+    bulkInvitationsSent: 'Bulk Invitations Sent',
+    bulkInvitationsResult: 'Bulk invitations processed successfully',
+    bulkInvitationsSuccess: 'invitations sent successfully',
+    error: 'Error',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -272,6 +340,40 @@ const translations: Record<Language, Translations> = {
     cancel: 'Annuler',
     processing: 'Traitement en cours',
     confirm: 'Confirmer',
+    // Invitation management
+    inviteUser: 'Inviter un utilisateur',
+    inviteUserDescription: 'Envoyer des invitations aux nouveaux utilisateurs pour rejoindre votre système de gestion immobilière',
+    singleInvitation: 'Invitation unique',
+    bulkInvitations: 'Invitations en lot',
+    emailAddress: 'Adresse courriel',
+    enterEmailAddress: 'Entrer l\'adresse courriel',
+    role: 'Rôle',
+    organization: 'Organisation',
+    optional: 'Optionnel',
+    selectOrganization: 'Sélectionner l\'organisation',
+    expiresIn: 'Expire dans',
+    day: 'jour',
+    days: 'jours',
+    securityLevel: 'Niveau de sécurité',
+    standard: 'Standard',
+    high: 'Élevé',
+    require2FA: 'Exiger 2FA',
+    require2FADescription: 'Exiger l\'authentification à deux facteurs pour cet utilisateur',
+    personalMessage: 'Message personnel',
+    personalMessagePlaceholder: 'Ajouter un message de bienvenue personnel...',
+    personalMessageDescription: 'Ce message sera inclus dans le courriel d\'invitation',
+    bulkPersonalMessagePlaceholder: 'Ajouter un message personnel pour toutes les invitations...',
+    sendInvitation: 'Envoyer l\'invitation',
+    sendInvitations: 'Envoyer les invitations',
+    sending: 'Envoi en cours...',
+    emailAddresses: 'Adresses courriel',
+    addEmailAddress: 'Ajouter une adresse courriel',
+    invitationSent: 'Invitation envoyée',
+    invitationSentSuccessfully: 'Invitation envoyée avec succès',
+    bulkInvitationsSent: 'Invitations en lot envoyées',
+    bulkInvitationsResult: 'Invitations en lot traitées avec succès',
+    bulkInvitationsSuccess: 'invitations envoyées avec succès',
+    error: 'Erreur',
   },
 };
 
