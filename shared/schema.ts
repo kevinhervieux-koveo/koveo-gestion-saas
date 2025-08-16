@@ -315,6 +315,27 @@ export const residences = pgTable('residences', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * User-Organization relationship table to manage users belonging to organizations.
+ * Users can belong to multiple organizations with different roles.
+ */
+export const userOrganizations = pgTable('user_organizations', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.id),
+  organizationRole: userRoleEnum('organization_role').notNull().default('tenant'),
+  isActive: boolean('is_active').notNull().default(true),
+  canAccessAllOrganizations: boolean('can_access_all_organizations').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const userResidences = pgTable('user_residences', {
   id: uuid('id')
     .primaryKey()
@@ -687,6 +708,13 @@ export const insertResidenceSchema = createInsertSchema(residences).pick({
   monthlyFees: true,
 });
 
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).pick({
+  userId: true,
+  organizationId: true,
+  organizationRole: true,
+  canAccessAllOrganizations: true,
+});
+
 export const insertUserResidenceSchema = createInsertSchema(userResidences).pick({
   userId: true,
   residenceId: true,
@@ -924,6 +952,17 @@ export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
  * Inferred from the userResidences table schema for type safety.
  */
 export type UserResidence = typeof userResidences.$inferSelect;
+
+/**
+ * Type for creating new user-organization relationship records with validation.
+ * Derived from the insertUserOrganizationSchema for type-safe relationship creation.
+ */
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+/**
+ * Type representing a complete user-organization relationship record from the database.
+ * Inferred from the userOrganizations table schema for type safety.
+ */
+export type UserOrganization = typeof userOrganizations.$inferSelect;
 
 /**
  * Type for creating new bill records with validation.
@@ -1364,6 +1403,7 @@ export type InsertAIMetrics = typeof aiMetrics.$inferInsert;
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   buildings: many(buildings),
   documents: many(documents),
+  userOrganizations: many(userOrganizations),
 }));
 
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
@@ -1388,6 +1428,7 @@ export const residencesRelations = relations(residences, ({ one, many }) => ({
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
+  userOrganizations: many(userOrganizations),
   userResidences: many(userResidences),
   createdBills: many(bills),
   submittedMaintenanceRequests: many(maintenanceRequests),
@@ -1398,6 +1439,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   sentInvitations: many(invitations),
   acceptedInvitations: many(invitations),
   auditLogActions: many(invitationAuditLog),
+}));
+
+export const userOrganizationsRelations = relations(userOrganizations, ({ one }) => ({
+  user: one(users, {
+    fields: [userOrganizations.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [userOrganizations.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 export const userResidencesRelations = relations(userResidences, ({ one }) => ({
