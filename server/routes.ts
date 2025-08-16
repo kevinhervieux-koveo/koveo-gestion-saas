@@ -41,6 +41,7 @@ import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
 import { emailService } from './services/email-service';
 import { registerEmailRoutes } from './services/email-routes';
+import { registerPermissionsRoutes } from './api/permissions';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -111,6 +112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
   registerOrganizationRoutes(app);
   registerSSLRoutes(app);
+  
+  // RBAC Permissions Management API routes
+  registerPermissionsRoutes(app);
   
   // Initialize email service
   await emailService.initialize();
