@@ -90,7 +90,7 @@ export default function Permissions() {
   }, {} as Record<string, RolePermission[]>) || {};
 
   // Available roles
-  const roles = ['admin', 'manager', 'owner', 'tenant', 'board_member'];
+  const roles = ['admin', 'manager', 'owner', 'tenant'];
 
   // Filter users based on search and role
   const filteredUsers = users?.filter(user => {

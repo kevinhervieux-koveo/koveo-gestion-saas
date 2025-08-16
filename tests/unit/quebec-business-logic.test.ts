@@ -76,7 +76,7 @@ describe('Quebec Property Management Business Logic', () => {
     });
 
     it('should validate Quebec property management roles', () => {
-      const roles = ['admin', 'manager', 'owner', 'tenant', 'board_member'];
+      const roles = ['admin', 'manager', 'owner', 'tenant'];
       
       roles.forEach(role => {
         const user = {

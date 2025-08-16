@@ -100,6 +100,6 @@ export function isValidUserContext(userContext: any): userContext is UserContext
     userContext &&
     typeof userContext.userId === 'string' &&
     typeof userContext.role === 'string' &&
-    ['admin', 'manager', 'owner', 'tenant', 'board_member'].includes(userContext.role)
+    ['admin', 'manager', 'owner', 'tenant'].includes(userContext.role)
   );
 }

@@ -146,7 +146,6 @@ export const userRoleEnum = pgEnum('user_role', [
   'manager',
   'owner',
   'tenant',
-  'board_member',
 ]);
 /**
  * Enum defining status values for feature actionable items.

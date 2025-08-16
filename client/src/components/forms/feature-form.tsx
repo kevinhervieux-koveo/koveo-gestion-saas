@@ -173,8 +173,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       admin: { read: true, write: true, organizationalLimitation: '' },
       manager: { read: true, write: true, organizationalLimitation: '' },
       owner: { read: true, write: false, organizationalLimitation: '' },
-      tenant: { read: false, write: false, organizationalLimitation: '' },
-      board_member: { read: false, write: false, organizationalLimitation: '' }
+      tenant: { read: false, write: false, organizationalLimitation: '' }
     },
   });
 
@@ -520,8 +519,7 @@ ${formData.additionalNotes || 'No additional notes'}
         admin: { read: true, write: true, organizationalLimitation: '' },
         manager: { read: true, write: true, organizationalLimitation: '' },
         owner: { read: true, write: false, organizationalLimitation: '' },
-        tenant: { read: false, write: false, organizationalLimitation: '' },
-        board_member: { read: false, write: false, organizationalLimitation: '' }
+        tenant: { read: false, write: false, organizationalLimitation: '' }
       },
     });
     setGeneratedPrompt('');

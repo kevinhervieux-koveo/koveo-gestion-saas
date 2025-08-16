@@ -473,7 +473,7 @@ describe('User API Routes', () => {
     it('should handle different user roles', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined);
 
-      const roles = ['admin', 'manager', 'owner', 'tenant', 'board_member'] as const;
+      const roles = ['admin', 'manager', 'owner', 'tenant'] as const;
 
       for (const role of roles) {
         const testUser = { ...mockUser, role };

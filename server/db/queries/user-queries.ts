@@ -70,7 +70,7 @@ export async function getUserById(userId: string, userContext: UserContext) {
  * @returns Promise resolving to array of users with the specified role.
  */
 export async function getUsersByRole(
-  role: 'admin' | 'manager' | 'owner' | 'tenant' | 'board_member',
+  role: 'admin' | 'manager' | 'owner' | 'tenant',
   userContext: UserContext
 ) {
   const baseQuery = db
@@ -332,7 +332,6 @@ export async function getUserSummary(userContext: UserContext) {
         manager: 0,
         owner: 0,
         tenant: 0,
-        board_member: 0,
       },
       recentlyActiveUsers: 0,
     };
@@ -348,7 +347,6 @@ export async function getUserSummary(userContext: UserContext) {
     manager: 0,
     owner: 0,
     tenant: 0,
-    board_member: 0,
   };
 
   // Consider "recently active" as login within last 30 days

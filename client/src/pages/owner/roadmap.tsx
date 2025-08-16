@@ -357,7 +357,7 @@ export default function OwnerRoadmap() {
 - Type-safe database operations with Drizzle ORM
 - Comprehensive validation with Zod schemas
 - Internationalization supporting French and English
-- Role-based access control (admin, manager, owner, tenant, board_member)
+- Role-based access control (admin, manager, owner, tenant)
 
 ### Database Schema includes:
 - Users, Organizations, Buildings, Residences
