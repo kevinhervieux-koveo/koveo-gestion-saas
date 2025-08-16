@@ -214,13 +214,7 @@ function Router() {
               <Route path='/' component={HomePage} />
               
               {/* Login page - redirect authenticated users to dashboard */}
-              <Route path='/login' component={() => {
-                const [, setLocation] = useLocation();
-                useEffect(() => {
-                  setLocation('/dashboard');
-                }, [setLocation]);
-                return <LoadingSpinner />;
-              }} />
+              <Route path='/login' component={LoginRedirect} />
 
               {/* Admin routes */}
               <Route path='/admin/dashboard' component={AdminDashboard} />
@@ -263,6 +257,21 @@ function Router() {
       </div>
     </MobileMenuContext.Provider>
   );
+}
+
+/**
+ * Login redirect component for authenticated users.
+ * Redirects authenticated users from login page to dashboard.
+ * @returns JSX element that shows loading while redirecting.
+ */
+function LoginRedirect() {
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    setLocation('/dashboard');
+  }, [setLocation]);
+  
+  return <LoadingSpinner />;
 }
 
 /**

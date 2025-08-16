@@ -261,7 +261,7 @@ export async function validatePermissionsFile(): Promise<{
 
 /**
  * CLI script to validate permissions if run directly.
- * Note: Removed process.exit() calls to prevent application crashes during startup
+ * Note: Removed process.exit() calls to prevent application crashes during startup.
  */
 async function runCLI() {
   try {

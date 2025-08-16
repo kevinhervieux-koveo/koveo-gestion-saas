@@ -296,7 +296,6 @@ export function UserListComponent({
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800 hover:bg-red-200';
       case 'manager': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'admin': return 'bg-red-100 text-red-800 hover:bg-red-200';
       case 'tenant': return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
       default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
