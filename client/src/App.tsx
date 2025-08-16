@@ -63,6 +63,43 @@ const UserManagement = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+// Optimized lazy-loaded Owner pages
+const OwnerDashboard = createOptimizedLoader(
+  () => import('@/pages/owner/dashboard'),
+  'owner-dashboard',
+  { enableMemoryCleanup: true }
+);
+const OwnerDocumentation = createOptimizedLoader(
+  () => import('@/pages/owner/documentation'),
+  'owner-documentation',
+  { enableMemoryCleanup: true }
+);
+const OwnerPillars = createOptimizedLoader(
+  () => import('@/pages/owner/pillars'),
+  'owner-pillars',
+  { enableMemoryCleanup: true }
+);
+const OwnerRoadmap = createOptimizedLoader(
+  () => import('@/pages/owner/roadmap'),
+  'owner-roadmap',
+  { enableMemoryCleanup: true }
+);
+const OwnerQuality = createOptimizedLoader(
+  () => import('@/pages/owner/quality'),
+  'owner-quality',
+  { enableMemoryCleanup: true }
+);
+const OwnerSuggestions = createOptimizedLoader(
+  () => import('@/pages/owner/suggestions'),
+  'owner-suggestions',
+  { enableMemoryCleanup: true }
+);
+const OwnerPermissions = createOptimizedLoader(
+  () => import('@/pages/owner/permissions'),
+  'owner-permissions',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
 const ManagerResidences = optimizedPageLoaders.ManagerResidences;
@@ -223,7 +260,17 @@ function Router() {
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
 
-              {/* Admin routes */}
+              {/* Owner routes */}
+              <Route path='/owner/dashboard' component={OwnerDashboard} />
+              <Route path='/owner/documentation' component={OwnerDocumentation} />
+              <Route path='/owner/pillars' component={OwnerPillars} />
+              <Route path='/owner/roadmap' component={OwnerRoadmap} />
+              <Route path='/owner/quality' component={OwnerQuality} />
+              <Route path='/owner/suggestions' component={OwnerSuggestions} />
+              <Route path='/owner/permissions' component={OwnerPermissions} />
+
+              {/* Admin/Manager User Management routes */}
+              <Route path='/admin/user-management' component={UserManagement} />
               <Route path='/manager/user-management' component={UserManagement} />
 
               {/* Manager routes */}
