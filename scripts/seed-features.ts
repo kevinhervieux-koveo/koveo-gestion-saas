@@ -161,20 +161,21 @@ const roadmapData = [
 ];
 
 /**
- *
+ * Seeds the database with roadmap features data.
+ * @returns Promise that resolves when seeding is complete.
  */
 async function seedFeatures() {
-  console.log('🌱 Starting to seed features...');
+  console.warn('🌱 Starting to seed features...');
 
   try {
     // Clear existing features
-    console.log('🗑️ Clearing existing features...');
+    console.warn('🗑️ Clearing existing features...');
     await db.delete(schema.features);
     
     let totalFeatures = 0;
 
     for (const section of roadmapData) {
-      console.log(`📁 Seeding ${section.category} features...`);
+      console.warn(`📁 Seeding ${section.category} features...`);
       
       for (const feature of section.features) {
         await db.insert(schema.features).values({
@@ -189,11 +190,11 @@ async function seedFeatures() {
       }
     }
 
-    console.log(`✅ Successfully seeded ${totalFeatures} features from roadmap!`);
+    console.warn(`✅ Successfully seeded ${totalFeatures} features from roadmap!`);
     
     // Verify the seeding
     const allFeatures = await db.select().from(schema.features);
-    console.log(`📊 Total features in database: ${allFeatures.length}`);
+    console.warn(`📊 Total features in database: ${allFeatures.length}`);
     
     // Show breakdown by status
     const statusCounts = allFeatures.reduce((acc, feature) => {
@@ -201,9 +202,9 @@ async function seedFeatures() {
       return acc;
     }, {} as Record<string, number>);
     
-    console.log('📈 Feature breakdown by status:');
+    console.warn('📈 Feature breakdown by status:');
     Object.entries(statusCounts).forEach(([status, count]) => {
-      console.log(`  ${status}: ${count}`);
+      console.warn(`  ${status}: ${count}`);
     });
 
   } catch (error) {

@@ -12,7 +12,7 @@ import { existsSync, readFileSync, readdirSync, lstatSync } from 'fs';
 import { join } from 'path';
 
 /**
- *
+ * Interface for compliance check results.
  */
 interface ComplianceResult {
   category: string;
@@ -22,7 +22,7 @@ interface ComplianceResult {
 }
 
 /**
- *
+ * Quebec Law 25 security compliance checker.
  */
 class QuebecSecurityChecker {
   private results: ComplianceResult[] = [];
@@ -33,8 +33,8 @@ class QuebecSecurityChecker {
    * Main entry point for Quebec Law 25 compliance checking.
    */
   async runCompliance(): Promise<void> {
-    console.log('🇨🇦 Quebec Law 25 Security Compliance Check');
-    console.log('============================================\n');
+    console.warn('🇨🇦 Quebec Law 25 Security Compliance Check');
+    console.warn('============================================\n');
 
     // Run all compliance checks
     await this.checkPersonalDataProtection();
@@ -51,14 +51,14 @@ class QuebecSecurityChecker {
     
     // Exit with appropriate code
     if (this.criticalIssues > 0) {
-      console.log(`\n❌ COMPLIANCE FAILURE: ${this.criticalIssues} critical issues found`);
+      console.warn(`\n❌ COMPLIANCE FAILURE: ${this.criticalIssues} critical issues found`);
       process.exit(1);
     }
     
     if (this.warnings > 0) {
-      console.log(`\n⚠️  COMPLIANCE WARNING: ${this.warnings} warnings found`);
+      console.warn(`\n⚠️  COMPLIANCE WARNING: ${this.warnings} warnings found`);
     } else {
-      console.log('\n✅ ALL QUEBEC LAW 25 COMPLIANCE CHECKS PASSED');
+      console.warn('\n✅ ALL QUEBEC LAW 25 COMPLIANCE CHECKS PASSED');
     }
   }
 
@@ -66,7 +66,7 @@ class QuebecSecurityChecker {
    * Check personal data protection mechanisms.
    */
   private async checkPersonalDataProtection(): Promise<void> {
-    console.log('🔐 Checking Personal Data Protection...');
+    console.warn('🔐 Checking Personal Data Protection...');
     
     // Check for proper data classification
     const sensitiveDataFiles = this.findFiles(['server', 'shared'], /\.(ts|js)$/);
@@ -106,7 +106,7 @@ class QuebecSecurityChecker {
    * Check data encryption compliance.
    */
   private async checkDataEncryption(): Promise<void> {
-    console.log('🔒 Checking Data Encryption Compliance...');
+    console.warn('🔒 Checking Data Encryption Compliance...');
     
     const encryptionIssues: string[] = [];
     
@@ -168,7 +168,7 @@ class QuebecSecurityChecker {
    * Check access control mechanisms.
    */
   private async checkAccessControls(): Promise<void> {
-    console.log('🔑 Checking Access Controls...');
+    console.warn('🔑 Checking Access Controls...');
     
     const accessControlIssues: string[] = [];
     const serverFiles = this.findFiles(['server'], /\.(ts|js)$/);
@@ -225,7 +225,7 @@ class QuebecSecurityChecker {
    * Check data storage compliance for Quebec Law 25.
    */
   private async checkDataStorageCompliance(): Promise<void> {
-    console.log('💾 Checking Data Storage Compliance...');
+    console.warn('💾 Checking Data Storage Compliance...');
     
     const storageIssues: string[] = [];
     const clientFiles = this.findFiles(['client/src'], /\.(ts|tsx)$/);
@@ -276,7 +276,7 @@ class QuebecSecurityChecker {
    * Check privacy by design implementation.
    */
   private async checkPrivacyByDesign(): Promise<void> {
-    console.log('🛡️ Checking Privacy by Design...');
+    console.warn('🛡️ Checking Privacy by Design...');
     
     const privacyIssues: string[] = [];
     
@@ -339,7 +339,7 @@ class QuebecSecurityChecker {
    * Check security incident prevention.
    */
   private async checkSecurityIncidentPrevention(): Promise<void> {
-    console.log('🚨 Checking Security Incident Prevention...');
+    console.warn('🚨 Checking Security Incident Prevention...');
     
     const securityIssues: string[] = [];
     
@@ -393,7 +393,7 @@ class QuebecSecurityChecker {
    * Check consent management compliance.
    */
   private async checkConsentManagement(): Promise<void> {
-    console.log('✋ Checking Consent Management...');
+    console.warn('✋ Checking Consent Management...');
     
     // This is a placeholder for consent management checks
     // In a real implementation, you would check for:
@@ -411,7 +411,7 @@ class QuebecSecurityChecker {
    * Check data retention policies.
    */
   private async checkDataRetention(): Promise<void> {
-    console.log('📅 Checking Data Retention Policies...');
+    console.warn('📅 Checking Data Retention Policies...');
     
     // This is a placeholder for data retention checks
     // In a real implementation, you would check for:
@@ -471,24 +471,24 @@ class QuebecSecurityChecker {
    * Generate compliance report.
    */
   private generateReport(): void {
-    console.log('\n📋 Quebec Law 25 Compliance Report');
-    console.log('=====================================\n');
+    console.warn('\n📋 Quebec Law 25 Compliance Report');
+    console.warn('=====================================\n');
     
     for (const result of this.results) {
       const icon = result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
-      console.log(`${icon} ${result.category}: ${result.message}`);
+      console.warn(`${icon} ${result.category}: ${result.message}`);
       
       if (result.details && result.details.length > 0) {
         result.details.forEach(detail => {
-          console.log(`   - ${detail}`);
+          console.warn(`   - ${detail}`);
         });
       }
     }
     
-    console.log(`\n📊 Summary:`);
-    console.log(`   Passed: ${this.results.filter(r => r.status === 'PASS').length}`);
-    console.log(`   Failed: ${this.results.filter(r => r.status === 'FAIL').length}`);
-    console.log(`   Warnings: ${this.results.filter(r => r.status === 'WARNING').length}`);
+    console.warn(`\n📊 Summary:`);
+    console.warn(`   Passed: ${this.results.filter(r => r.status === 'PASS').length}`);
+    console.warn(`   Failed: ${this.results.filter(r => r.status === 'FAIL').length}`);
+    console.warn(`   Warnings: ${this.results.filter(r => r.status === 'WARNING').length}`);
   }
 }
 

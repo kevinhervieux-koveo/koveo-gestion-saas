@@ -12,7 +12,7 @@ import { coverageAutomation } from '../tests/utils/coverage-automation';
 import { TestQualityValidator } from './test-quality-validator';
 
 /**
- *
+ * Interface for coverage monitoring alerts.
  */
 interface CoverageAlert {
   type: 'coverage_drop' | 'quality_decline' | 'quebec_compliance' | 'performance_issue';
@@ -24,7 +24,7 @@ interface CoverageAlert {
 }
 
 /**
- *
+ * Interface for monitoring metrics data.
  */
 interface MonitoringMetrics {
   timestamp: string;
@@ -50,7 +50,7 @@ interface MonitoringMetrics {
 }
 
 /**
- *
+ * Interface for monitoring configuration.
  */
 interface MonitoringConfig {
   coverageThresholds: {
@@ -78,7 +78,7 @@ class CoverageMonitoringService {
   private validator: TestQualityValidator;
 
   /**
-   *
+   * Creates a new coverage monitoring service instance.
    */
   constructor() {
     this.projectRoot = process.cwd();
@@ -107,12 +107,12 @@ class CoverageMonitoringService {
    */
   async startMonitoring(): Promise<void> {
     if (this.isMonitoring) {
-      console.log('⏰ Coverage monitoring is already running');
+      console.warn('⏰ Coverage monitoring is already running');
       return;
     }
 
-    console.log('🚀 Starting continuous coverage monitoring for Koveo Gestion...');
-    console.log('🇨🇦 Including Quebec property management compliance tracking\n');
+    console.warn('🚀 Starting continuous coverage monitoring for Koveo Gestion...');
+    console.warn('🇨🇦 Including Quebec property management compliance tracking\n');
     
     this.isMonitoring = true;
 
@@ -125,9 +125,9 @@ class CoverageMonitoringService {
     // Schedule daily reports
     this.scheduleDailyReports();
 
-    console.log('✅ Coverage monitoring started successfully');
-    console.log(`📊 Collecting metrics every ${this.config.monitoringInterval / 1000} seconds`);
-    console.log(`📧 Daily reports generated every ${this.config.reportFrequency / (60 * 60 * 1000)} hours\n`);
+    console.warn('✅ Coverage monitoring started successfully');
+    console.warn(`📊 Collecting metrics every ${this.config.monitoringInterval / 1000} seconds`);
+    console.warn(`📧 Daily reports generated every ${this.config.reportFrequency / (60 * 60 * 1000)} hours\n`);
   }
 
   /**
@@ -135,21 +135,21 @@ class CoverageMonitoringService {
    */
   stopMonitoring(): void {
     this.isMonitoring = false;
-    console.log('⏹️  Coverage monitoring stopped');
+    console.warn('⏹️  Coverage monitoring stopped');
   }
 
   /**
    * Collects baseline metrics for comparison.
    */
   private async collectBaseline(): Promise<void> {
-    console.log('📋 Collecting baseline metrics...');
+    console.warn('📋 Collecting baseline metrics...');
     
     try {
       const metrics = await this.collectCurrentMetrics();
       const baselinePath = join(this.dataDir, 'baseline.json');
       writeFileSync(baselinePath, JSON.stringify(metrics, null, 2));
       
-      console.log('✅ Baseline metrics collected and saved');
+      console.warn('✅ Baseline metrics collected and saved');
     } catch (error) {
       console.error('❌ Failed to collect baseline:', error);
     }
@@ -161,7 +161,7 @@ class CoverageMonitoringService {
   private async monitoringLoop(): Promise<void> {
     while (this.isMonitoring) {
       try {
-        console.log(`🔍 [${new Date().toLocaleTimeString()}] Collecting metrics...`);
+        console.warn(`🔍 [${new Date().toLocaleTimeString()}] Collecting metrics...`);
         
         // Collect current metrics
         const metrics = await this.collectCurrentMetrics();
@@ -181,10 +181,10 @@ class CoverageMonitoringService {
         // Clean up old data
         await this.cleanupOldData();
         
-        console.log(`✅ [${new Date().toLocaleTimeString()}] Metrics collected successfully`);
+        console.warn(`✅ [${new Date().toLocaleTimeString()}] Metrics collected successfully`);
         
         if (alerts.length > 0) {
-          console.log(`⚠️  ${alerts.length} alerts generated`);
+          console.warn(`⚠️  ${alerts.length} alerts generated`);
         }
         
       } catch (error) {
@@ -372,7 +372,7 @@ class CoverageMonitoringService {
         critical: '🔴'
       }[alert.severity];
       
-      console.log(`${severityIcon} [${alert.type.toUpperCase()}] ${alert.message}`);
+      console.warn(`${severityIcon} [${alert.type.toUpperCase()}] ${alert.message}`);
       
       // Save alert to file
       await this.saveAlert(alert);
@@ -405,10 +405,10 @@ class CoverageMonitoringService {
    * @param alert
    */
   private async sendCriticalAlert(alert: CoverageAlert): Promise<void> {
-    console.log('🚨 CRITICAL ALERT DETECTED!');
-    console.log('📧 Notification would be sent to development team');
-    console.log(`   Alert: ${alert.message}`);
-    console.log(`   Time: ${alert.timestamp}`);
+    console.warn('🚨 CRITICAL ALERT DETECTED!');
+    console.warn('📧 Notification would be sent to development team');
+    console.warn(`   Alert: ${alert.message}`);
+    console.warn(`   Time: ${alert.timestamp}`);
     
     // In a real implementation, this would send emails, Slack messages, etc.
   }
@@ -455,12 +455,12 @@ class CoverageMonitoringService {
    * Generates comprehensive daily report.
    */
   private async generateDailyReport(): Promise<void> {
-    console.log('📊 Generating daily coverage report...');
+    console.warn('📊 Generating daily coverage report...');
     
     try {
       const historicalPath = join(this.dataDir, 'historical.json');
       if (!existsSync(historicalPath)) {
-        console.log('⚠️  No historical data available for report');
+        console.warn('⚠️  No historical data available for report');
         return;
       }
       
@@ -472,7 +472,7 @@ class CoverageMonitoringService {
       });
       
       if (last24Hours.length === 0) {
-        console.log('⚠️  No data from last 24 hours');
+        console.warn('⚠️  No data from last 24 hours');
         return;
       }
       
@@ -481,7 +481,7 @@ class CoverageMonitoringService {
       
       writeFileSync(reportPath, this.generateDailyReportHTML(report));
       
-      console.log(`✅ Daily report generated: ${reportPath}`);
+      console.warn(`✅ Daily report generated: ${reportPath}`);
       
     } catch (error) {
       console.error('❌ Failed to generate daily report:', error);
@@ -654,11 +654,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   } else if (command === 'status') {
     coverageMonitor.getMonitoringStatus().then(status => {
-      console.log('📊 Monitoring Status:', JSON.stringify(status, null, 2));
+      console.warn('📊 Monitoring Status:', JSON.stringify(status, null, 2));
       process.exit(0);
     });
   } else {
-    console.log('Usage: npm run coverage:monitor [start|stop|status]');
+    console.warn('Usage: npm run coverage:monitor [start|stop|status]');
     process.exit(1);
   }
 }

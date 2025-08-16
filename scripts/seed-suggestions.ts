@@ -1,7 +1,8 @@
 import { DatabaseStorage } from '../server/db-storage';
 
 /**
- *
+ * Seeds the database with sample improvement suggestions for development.
+ * @returns Promise that resolves when seeding is complete.
  */
 async function seedSuggestions() {
   const storage = new DatabaseStorage();

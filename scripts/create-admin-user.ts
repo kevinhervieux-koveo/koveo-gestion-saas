@@ -28,7 +28,7 @@ const db = drizzle({ client: pool, schema });
  */
 async function createAdminUser() {
   try {
-    console.log('🔍 Checking for existing admin user...');
+    console.warn('🔍 Checking for existing admin user...');
     
     // Check if admin user already exists
     const existingAdmin = await db
@@ -38,13 +38,13 @@ async function createAdminUser() {
       .limit(1);
 
     if (existingAdmin.length > 0) {
-      console.log('✅ Admin user already exists');
-      console.log('📧 Email: admin@koveo-gestion.com');
-      console.log('🔑 Password: Admin123!');
+      console.warn('✅ Admin user already exists');
+      console.warn('📧 Email: admin@koveo-gestion.com');
+      console.warn('🔑 Password: Admin123!');
       return;
     }
 
-    console.log('👤 Creating default admin user...');
+    console.warn('👤 Creating default admin user...');
 
     // Create admin user
     const adminUser = await db
@@ -61,14 +61,14 @@ async function createAdminUser() {
       .returning();
 
     if (adminUser[0]) {
-      console.log('✅ Admin user created successfully!');
-      console.log('📧 Email: admin@koveo-gestion.com');
-      console.log('🔑 Password: Admin123!');
-      console.log('🌐 Language: Français (Quebec)');
-      console.log('👤 Role: Administrator');
-      console.log('');
-      console.log('🔐 Security Note: Please change the default password after first login');
-      console.log('🇨🇦 Law 25 Compliance: This account follows Quebec privacy regulations');
+      console.warn('✅ Admin user created successfully!');
+      console.warn('📧 Email: admin@koveo-gestion.com');
+      console.warn('🔑 Password: Admin123!');
+      console.warn('🌐 Language: Français (Quebec)');
+      console.warn('👤 Role: Administrator');
+      console.warn('');
+      console.warn('🔐 Security Note: Please change the default password after first login');
+      console.warn('🇨🇦 Law 25 Compliance: This account follows Quebec privacy regulations');
     }
 
   } catch (error) {
@@ -84,7 +84,7 @@ async function createAdminUser() {
  */
 async function createSampleUsers() {
   try {
-    console.log('👥 Creating sample users for testing...');
+    console.warn('👥 Creating sample users for testing...');
 
     // Sample Manager
     const existingManager = await db
@@ -103,7 +103,7 @@ async function createSampleUsers() {
         language: 'fr',
         role: 'manager',
       });
-      console.log('✅ Sample manager created: manager@koveo-gestion.com');
+      console.warn('✅ Sample manager created: manager@koveo-gestion.com');
     }
 
     // Sample Owner
@@ -123,7 +123,7 @@ async function createSampleUsers() {
         language: 'fr',
         role: 'admin',
       });
-      console.log('✅ Sample admin created: admin@koveo-gestion.com');
+      console.warn('✅ Sample admin created: admin@koveo-gestion.com');
     }
 
     // Sample Tenant
@@ -143,12 +143,12 @@ async function createSampleUsers() {
         language: 'fr',
         role: 'tenant',
       });
-      console.log('✅ Sample tenant created: tenant@koveo-gestion.com');
+      console.warn('✅ Sample tenant created: tenant@koveo-gestion.com');
     }
 
-    console.log('');
-    console.log('🎯 Test accounts ready for Quebec property management system');
-    console.log('🔐 All passwords follow the same pattern: [Role]123!');
+    console.warn('');
+    console.warn('🎯 Test accounts ready for Quebec property management system');
+    console.warn('🔐 All passwords follow the same pattern: [Role]123!');
 
   } catch (error) {
     console.error('❌ Error creating sample users:', error);
@@ -160,18 +160,18 @@ async function createSampleUsers() {
  *
  */
 async function main() {
-  console.log('🏠 Koveo Gestion - Quebec Property Management System');
-  console.log('👤 User Initialization Script');
-  console.log('=====================================');
-  console.log('');
+  console.warn('🏠 Koveo Gestion - Quebec Property Management System');
+  console.warn('👤 User Initialization Script');
+  console.warn('=====================================');
+  console.warn('');
 
   await createAdminUser();
   await createSampleUsers();
 
-  console.log('');
-  console.log('🎉 User initialization complete!');
-  console.log('🔗 Access the system at http://localhost:5000');
-  console.log('🇫🇷 Système de gestion immobilière du Québec prêt!');
+  console.warn('');
+  console.warn('🎉 User initialization complete!');
+  console.warn('🔗 Access the system at http://localhost:5000');
+  console.warn('🇫🇷 Système de gestion immobilière du Québec prêt!');
 }
 
 // Run the script if called directly

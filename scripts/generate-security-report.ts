@@ -12,7 +12,7 @@ import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 /**
- *
+ * Interface for security metrics data.
  */
 interface SecurityMetrics {
   vulnerabilities: {
@@ -54,8 +54,8 @@ class SecurityReportGenerator {
    *
    */
   async generateReport(): Promise<void> {
-    console.log('📋 Generating Comprehensive Security Report');
-    console.log('===========================================\n');
+    console.warn('📋 Generating Comprehensive Security Report');
+    console.warn('===========================================\n');
 
     // Collect security data
     await this.collectVulnerabilityData();
@@ -70,15 +70,15 @@ class SecurityReportGenerator {
     this.createTextReport();
     this.createJsonReport();
     
-    console.log('✅ Security report generated successfully');
-    console.log('📁 Reports saved: security-report.md, security-report.json');
+    console.warn('✅ Security report generated successfully');
+    console.warn('📁 Reports saved: security-report.md, security-report.json');
   }
 
   /**
    *
    */
   private async collectVulnerabilityData(): Promise<void> {
-    console.log('🔍 Collecting vulnerability data...');
+    console.warn('🔍 Collecting vulnerability data...');
 
     try {
       // Run npm audit and parse results
@@ -98,7 +98,7 @@ class SecurityReportGenerator {
         };
       }
 
-      console.log(`   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`);
+      console.warn(`   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`);
     } catch (error) {
       console.warn('   Warning: Could not collect vulnerability data');
     }
@@ -108,7 +108,7 @@ class SecurityReportGenerator {
    *
    */
   private async assessQuebecCompliance(): Promise<void> {
-    console.log('🇨🇦 Assessing Quebec Law 25 compliance...');
+    console.warn('🇨🇦 Assessing Quebec Law 25 compliance...');
 
     try {
       // Try to run Quebec compliance check
@@ -118,10 +118,10 @@ class SecurityReportGenerator {
       });
       
       this.metrics.compliance.quebec_law25 = 'COMPLIANT';
-      console.log('   ✅ Quebec Law 25: COMPLIANT');
+      console.warn('   ✅ Quebec Law 25: COMPLIANT');
     } catch (error) {
       this.metrics.compliance.quebec_law25 = 'NON_COMPLIANT';
-      console.log('   ❌ Quebec Law 25: NON_COMPLIANT');
+      console.warn('   ❌ Quebec Law 25: NON_COMPLIANT');
       this.metrics.recommendations.push('Address Quebec Law 25 compliance issues identified in security check');
     }
   }
@@ -130,7 +130,7 @@ class SecurityReportGenerator {
    *
    */
   private async assessAuthenticationSecurity(): Promise<void> {
-    console.log('🔑 Assessing authentication security...');
+    console.warn('🔑 Assessing authentication security...');
 
     try {
       // Check if authentication files exist
@@ -159,20 +159,20 @@ class SecurityReportGenerator {
         
         if (securePatterns >= 2) {
           this.metrics.compliance.authentication = 'SECURE';
-          console.log('   ✅ Authentication: SECURE');
+          console.warn('   ✅ Authentication: SECURE');
         } else {
           this.metrics.compliance.authentication = 'NEEDS_REVIEW';
-          console.log('   ⚠️  Authentication: NEEDS_REVIEW');
+          console.warn('   ⚠️  Authentication: NEEDS_REVIEW');
           this.metrics.recommendations.push('Review authentication implementation for security best practices');
         }
       } else {
         this.metrics.compliance.authentication = 'INSECURE';
-        console.log('   ❌ Authentication: NOT_FOUND');
+        console.warn('   ❌ Authentication: NOT_FOUND');
         this.metrics.recommendations.push('Implement proper authentication system');
       }
     } catch (error) {
       this.metrics.compliance.authentication = 'NEEDS_REVIEW';
-      console.log('   ⚠️  Authentication: ASSESSMENT_FAILED');
+      console.warn('   ⚠️  Authentication: ASSESSMENT_FAILED');
     }
   }
 
@@ -180,7 +180,7 @@ class SecurityReportGenerator {
    *
    */
   private async assessDataProtection(): Promise<void> {
-    console.log('🛡️ Assessing data protection...');
+    console.warn('🛡️ Assessing data protection...');
 
     try {
       let protectionScore = 0;
@@ -203,19 +203,19 @@ class SecurityReportGenerator {
       
       if (protectionScore >= 3) {
         this.metrics.compliance.data_protection = 'COMPLIANT';
-        console.log('   ✅ Data Protection: COMPLIANT');
+        console.warn('   ✅ Data Protection: COMPLIANT');
       } else if (protectionScore >= 2) {
         this.metrics.compliance.data_protection = 'NEEDS_REVIEW';
-        console.log('   ⚠️  Data Protection: NEEDS_REVIEW');
+        console.warn('   ⚠️  Data Protection: NEEDS_REVIEW');
         this.metrics.recommendations.push('Enhance data protection mechanisms');
       } else {
         this.metrics.compliance.data_protection = 'NON_COMPLIANT';
-        console.log('   ❌ Data Protection: NON_COMPLIANT');
+        console.warn('   ❌ Data Protection: NON_COMPLIANT');
         this.metrics.recommendations.push('Implement comprehensive data protection measures');
       }
     } catch (error) {
       this.metrics.compliance.data_protection = 'NEEDS_REVIEW';
-      console.log('   ⚠️  Data Protection: ASSESSMENT_FAILED');
+      console.warn('   ⚠️  Data Protection: ASSESSMENT_FAILED');
     }
   }
 

@@ -32,7 +32,7 @@ const colors = {
  * Display help information.
  */
 function displayHelp() {
-  console.log(`
+  console.warn(`
 ${colors.bright}${colors.blue}=== LLM FORM MAPPING VALIDATION ===${colors.reset}
 
 ${colors.bright}Description:${colors.reset}
@@ -179,7 +179,7 @@ Purpose: Validate AI/LLM responses map to application form structure
 `;
 
   // Run unit tests for LLM form mapping
-  console.log(`${colors.cyan}🧪 Running LLM form mapping unit tests...${colors.reset}`);
+  console.warn(`${colors.cyan}🧪 Running LLM form mapping unit tests...${colors.reset}`);
   const unitTestResult = runTests('tests/unit/llm-form-mapping.test.ts', verbose);
   
   report += `
@@ -208,7 +208,7 @@ Tests validating form field structure and AI response mapping
   // Run integration tests if requested and API key is available
   if (includeIntegration) {
     if (process.env.GEMINI_API_KEY) {
-      console.log(`${colors.cyan}🚀 Running AI integration tests...${colors.reset}`);
+      console.warn(`${colors.cyan}🚀 Running AI integration tests...${colors.reset}`);
       integrationTestResult = runTests('tests/integration/ai-form-response-validation.test.ts', verbose);
       
       report += `
@@ -344,32 +344,32 @@ function main() {
     return;
   }
   
-  console.log(`${colors.bright}${colors.blue}=== LLM FORM MAPPING VALIDATION ===${colors.reset}\n`);
+  console.warn(`${colors.bright}${colors.blue}=== LLM FORM MAPPING VALIDATION ===${colors.reset}\n`);
   
   if (args.integration) {
     if (process.env.GEMINI_API_KEY) {
-      console.log(`${colors.green}🔑 GEMINI_API_KEY detected - including integration tests${colors.reset}`);
+      console.warn(`${colors.green}🔑 GEMINI_API_KEY detected - including integration tests${colors.reset}`);
     } else {
-      console.log(`${colors.yellow}⚠️  GEMINI_API_KEY not set - integration tests will be skipped${colors.reset}`);
+      console.warn(`${colors.yellow}⚠️  GEMINI_API_KEY not set - integration tests will be skipped${colors.reset}`);
     }
   }
   
   try {
     const report = generateReport(args.integration, args.verbose);
     
-    console.log(report);
+    console.warn(report);
     
     if (args.output) {
       writeFileSync(args.output, report, 'utf-8');
-      console.log(`\n${colors.green}📄 Report saved to: ${args.output}${colors.reset}`);
+      console.warn(`\n${colors.green}📄 Report saved to: ${args.output}${colors.reset}`);
     }
     
     // Exit with error code if tests failed
     if (report.includes('❌ Status: FAILED')) {
-      console.log(`\n${colors.red}⚠️  Some validation tests failed. Review the report for details.${colors.reset}`);
+      console.warn(`\n${colors.red}⚠️  Some validation tests failed. Review the report for details.${colors.reset}`);
       process.exit(1);
     } else {
-      console.log(`\n${colors.green}✅ All LLM form mapping validations passed successfully!${colors.reset}`);
+      console.warn(`\n${colors.green}✅ All LLM form mapping validations passed successfully!${colors.reset}`);
       process.exit(0);
     }
     

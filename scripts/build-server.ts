@@ -10,14 +10,14 @@ import { mkdirSync, copyFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 /**
- *
+ * Builds the server using esbuild and copies configuration files.
  */
 function buildServer() {
-  console.log('🔨 Building server...');
+  console.warn('🔨 Building server...');
   
   try {
     // Run esbuild
-    console.log('Running esbuild...');
+    console.warn('Running esbuild...');
     execSync('esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { 
       stdio: 'inherit' 
     });
@@ -29,13 +29,13 @@ function buildServer() {
     }
     
     // Copy permissions.json
-    console.log('Copying permissions.json...');
+    console.warn('Copying permissions.json...');
     copyFileSync(
       join('config', 'permissions.json'),
       join('dist', 'config', 'permissions.json')
     );
     
-    console.log('✅ Server build completed successfully');
+    console.warn('✅ Server build completed successfully');
     
   } catch (error) {
     console.error('❌ Build failed:', error);

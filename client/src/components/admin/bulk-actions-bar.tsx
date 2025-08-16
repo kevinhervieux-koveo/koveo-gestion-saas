@@ -74,7 +74,6 @@ interface BulkAction {
  * @param root0.onBulkAction - Callback for bulk actions.
  * @param root0.isLoading - Loading state indicator.
  * @returns JSX element for the bulk actions bar.
- * @param root0.isLoading
  */
 export function BulkActionsBar({ 
   selectedCount, 

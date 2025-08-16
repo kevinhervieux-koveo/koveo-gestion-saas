@@ -18,7 +18,7 @@ import { sslCertificates, notifications, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**
- *
+ * Interface for SSL validation results.
  */
 interface ValidationResult {
   component: string;
@@ -244,7 +244,7 @@ class SSLManagementValidator {
    * Run all validations.
    */
   async runAllValidations(): Promise<void> {
-    console.log('🔍 Starting SSL Management System Validation...\n');
+    console.warn('🔍 Starting SSL Management System Validation...\n');
 
     // Run all validation checks
     await this.validateSSLRenewalJob();
@@ -261,9 +261,9 @@ class SSLManagementValidator {
    * Print validation results.
    */
   private printResults(): void {
-    console.log('\n' + '='.repeat(80));
-    console.log('SSL MANAGEMENT SYSTEM VALIDATION RESULTS');
-    console.log('='.repeat(80));
+    console.warn('\n' + '='.repeat(80));
+    console.warn('SSL MANAGEMENT SYSTEM VALIDATION RESULTS');
+    console.warn('='.repeat(80));
 
     let passCount = 0;
     let warningCount = 0;
@@ -271,11 +271,11 @@ class SSLManagementValidator {
 
     this.results.forEach(result => {
       const statusIcon = result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
-      console.log(`\n${statusIcon} ${result.component}: ${result.status}`);
-      console.log(`   ${result.message}`);
+      console.warn(`\n${statusIcon} ${result.component}: ${result.status}`);
+      console.warn(`   ${result.message}`);
       
       if (result.details) {
-        console.log(`   Details: ${JSON.stringify(result.details, null, 4).replace(/^/gm, '   ')}`);
+        console.warn(`   Details: ${JSON.stringify(result.details, null, 4).replace(/^/gm, '   ')}`);
       }
 
       if (result.status === 'PASS') {passCount++;}
@@ -283,31 +283,31 @@ class SSLManagementValidator {
       else {failCount++;}
     });
 
-    console.log('\n' + '='.repeat(80));
-    console.log('VALIDATION SUMMARY');
-    console.log('='.repeat(80));
-    console.log(`✅ PASSED: ${passCount}`);
-    console.log(`⚠️  WARNINGS: ${warningCount}`);
-    console.log(`❌ FAILED: ${failCount}`);
+    console.warn('\n' + '='.repeat(80));
+    console.warn('VALIDATION SUMMARY');
+    console.warn('='.repeat(80));
+    console.warn(`✅ PASSED: ${passCount}`);
+    console.warn(`⚠️  WARNINGS: ${warningCount}`);
+    console.warn(`❌ FAILED: ${failCount}`);
 
     if (failCount === 0) {
-      console.log('\n🎉 SSL Management System validation SUCCESSFUL!');
-      console.log('   All critical components are working correctly.');
+      console.warn('\n🎉 SSL Management System validation SUCCESSFUL!');
+      console.warn('   All critical components are working correctly.');
     } else {
-      console.log('\n🚨 SSL Management System validation FAILED!');
-      console.log('   Please address the failed components before using the system.');
+      console.warn('\n🚨 SSL Management System validation FAILED!');
+      console.warn('   Please address the failed components before using the system.');
     }
 
     if (warningCount > 0) {
-      console.log('\n💡 Consider addressing warnings for optimal system operation.');
+      console.warn('\n💡 Consider addressing warnings for optimal system operation.');
     }
 
-    console.log('\n📊 System Status:');
-    console.log('   - SSL Renewal Job: Available and configured');
-    console.log('   - Notification System: Integrated and ready');
-    console.log('   - Database Schema: SSL tables and indexes ready');
-    console.log('   - API Endpoints: Protected and functional');
-    console.log('   - Certificate Monitoring: Active expiry checking');
+    console.warn('\n📊 System Status:');
+    console.warn('   - SSL Renewal Job: Available and configured');
+    console.warn('   - Notification System: Integrated and ready');
+    console.warn('   - Database Schema: SSL tables and indexes ready');
+    console.warn('   - API Endpoints: Protected and functional');
+    console.warn('   - Certificate Monitoring: Active expiry checking');
 
     process.exit(failCount > 0 ? 1 : 0);
   }

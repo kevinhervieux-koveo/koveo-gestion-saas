@@ -15,7 +15,7 @@ import { MetricEffectivenessTracker } from '../tests/utils/metric-effectiveness-
  */
 
 /**
- *
+ * Interface for quality test results.
  */
 interface QualityTestResult {
   success: boolean;
@@ -36,35 +36,35 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
     errors: [],
   };
 
-  console.log('🔍 Running Quality Metrics Tests...\n');
+  console.warn('🔍 Running Quality Metrics Tests...\n');
 
   try {
     // Run unit tests for quality metrics
-    console.log('📊 Testing Quality Metrics Calculation Logic...');
+    console.warn('📊 Testing Quality Metrics Calculation Logic...');
     const unitTestResult = execSync(
       'npm test tests/unit/quality-metrics.test.ts -- --verbose',
       { encoding: 'utf-8', stdio: 'pipe' }
     );
     
-    console.log('✅ Unit tests passed');
+    console.warn('✅ Unit tests passed');
 
     // Run integration tests for quality metrics API
-    console.log('\n🌐 Testing Quality Metrics API Integration...');
+    console.warn('\n🌐 Testing Quality Metrics API Integration...');
     const integrationTestResult = execSync(
       'npm test tests/integration/quality-metrics-api.test.ts -- --verbose',
       { encoding: 'utf-8', stdio: 'pipe' }
     );
     
-    console.log('✅ Integration tests passed');
+    console.warn('✅ Integration tests passed');
 
     // Run continuous improvement tests
-    console.log('\n🔄 Testing Continuous Improvement System...');
+    console.warn('\n🔄 Testing Continuous Improvement System...');
     const improvementTestResult = execSync(
       'npm test tests/continuous-improvement/quality-system.test.ts -- --verbose',
       { encoding: 'utf-8', stdio: 'pipe' }
     );
     
-    console.log('✅ Continuous improvement tests passed');
+    console.warn('✅ Continuous improvement tests passed');
 
     // Parse test results (simplified parsing)
     const allResults = [unitTestResult, integrationTestResult, improvementTestResult].join('\n');
@@ -84,10 +84,10 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
     result.testsTotal = result.testsPassed + testsFailed;
     result.success = testsFailed === 0;
 
-    console.log(`\n📈 Quality Metrics Tests Summary:`);
-    console.log(`   Tests Passed: ${result.testsPassed}`);
-    console.log(`   Tests Total: ${result.testsTotal}`);
-    console.log(`   Success Rate: ${result.testsTotal > 0 ? Math.round((result.testsPassed / result.testsTotal) * 100) : 0}%`);
+    console.warn(`\n📈 Quality Metrics Tests Summary:`);
+    console.warn(`   Tests Passed: ${result.testsPassed}`);
+    console.warn(`   Tests Total: ${result.testsTotal}`);
+    console.warn(`   Success Rate: ${result.testsTotal > 0 ? Math.round((result.testsPassed / result.testsTotal) * 100) : 0}%`);
 
   } catch (error) {
     result.errors.push(`Test execution failed: ${error}`);
@@ -101,30 +101,30 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
  * Validates the effectiveness of the quality metrics system.
  */
 async function validateSystemEffectiveness(): Promise<void> {
-  console.log('\n🎯 Validating Quality Metrics System Effectiveness...\n');
+  console.warn('\n🎯 Validating Quality Metrics System Effectiveness...\n');
 
   // Load historical effectiveness data
   MetricEffectivenessTracker.loadHistory();
   
   const systemHealth = MetricEffectivenessTracker.getSystemHealth();
   
-  console.log(`System Health Status: ${systemHealth.healthStatus.toUpperCase()}`);
-  console.log(`Average Accuracy: ${systemHealth.averageAccuracy.toFixed(1)}%`);
-  console.log(`Valid Metrics: ${systemHealth.validMetricsCount}/${systemHealth.totalMetrics}`);
-  console.log(`Total Measurements: ${systemHealth.totalMeasurements}`);
+  console.warn(`System Health Status: ${systemHealth.healthStatus.toUpperCase()}`);
+  console.warn(`Average Accuracy: ${systemHealth.averageAccuracy.toFixed(1)}%`);
+  console.warn(`Valid Metrics: ${systemHealth.validMetricsCount}/${systemHealth.totalMetrics}`);
+  console.warn(`Total Measurements: ${systemHealth.totalMeasurements}`);
 
   if (systemHealth.metricScores.length > 0) {
-    console.log('\n📊 Individual Metric Performance:');
+    console.warn('\n📊 Individual Metric Performance:');
     systemHealth.metricScores.forEach(score => {
       const status = score.isValid ? '✅' : '❌';
-      console.log(`   ${status} ${score.metric}: ${score.accuracy.toFixed(1)}% accuracy (${score.measurementCount} measurements)`);
+      console.warn(`   ${status} ${score.metric}: ${score.accuracy.toFixed(1)}% accuracy (${score.measurementCount} measurements)`);
     });
   }
 
   if (systemHealth.recommendations.length > 0) {
-    console.log('\n💡 Recommendations:');
+    console.warn('\n💡 Recommendations:');
     systemHealth.recommendations.forEach(rec => {
-      console.log(`   • ${rec}`);
+      console.warn(`   • ${rec}`);
     });
   }
 
@@ -132,31 +132,31 @@ async function validateSystemEffectiveness(): Promise<void> {
   const criticalMetrics = ['coverage', 'codeQuality', 'securityIssues', 'translationCoverage'];
   let criticalIssues = 0;
 
-  console.log('\n🔍 Critical Metrics Validation:');
+  console.warn('\n🔍 Critical Metrics Validation:');
   criticalMetrics.forEach(metric => {
     const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness(metric);
     const validation = MetricEffectivenessTracker.validateMetricQuality(metric);
     
     if (effectiveness) {
       const status = validation.isValid ? '✅' : '❌';
-      console.log(`   ${status} ${metric}: ${effectiveness.averageAccuracy.toFixed(1)}% accuracy`);
+      console.warn(`   ${status} ${metric}: ${effectiveness.averageAccuracy.toFixed(1)}% accuracy`);
       
       if (!validation.isValid) {
         criticalIssues++;
-        console.log(`      Issues: ${validation.reasons.join(', ')}`);
+        console.warn(`      Issues: ${validation.reasons.join(', ')}`);
         if (validation.recommendations.length > 0) {
-          console.log(`      Recommendations: ${validation.recommendations[0]}`);
+          console.warn(`      Recommendations: ${validation.recommendations[0]}`);
         }
       }
     } else {
-      console.log(`   ⚠️  ${metric}: No effectiveness data available`);
+      console.warn(`   ⚠️  ${metric}: No effectiveness data available`);
     }
   });
 
   if (criticalIssues > 0) {
-    console.log(`\n⚠️  Found ${criticalIssues} critical metric issues that need attention`);
+    console.warn(`\n⚠️  Found ${criticalIssues} critical metric issues that need attention`);
   } else {
-    console.log('\n🎉 All critical metrics are performing well');
+    console.warn('\n🎉 All critical metrics are performing well');
   }
 }
 
@@ -164,7 +164,7 @@ async function validateSystemEffectiveness(): Promise<void> {
  * Records current quality metrics for effectiveness tracking.
  */
 async function recordCurrentMetrics(): Promise<void> {
-  console.log('\n📋 Recording Current Quality Metrics for Effectiveness Tracking...\n');
+  console.warn('\n📋 Recording Current Quality Metrics for Effectiveness Tracking...\n');
 
   try {
     // Fetch current quality metrics from the API (if running)
@@ -177,8 +177,8 @@ async function recordCurrentMetrics(): Promise<void> {
     // For now, simulate recording effectiveness data
     // In production, you would collect real data about issues found vs. false positives
     
-    console.log('📊 Simulating effectiveness tracking data...');
-    console.log('   (In production, this would track real issues found by each metric)');
+    console.warn('📊 Simulating effectiveness tracking data...');
+    console.warn('   (In production, this would track real issues found by each metric)');
     
     // Example: If you found that coverage metric identified 5 real uncovered critical paths
     // and had 1 false positive this iteration:
@@ -197,7 +197,7 @@ async function recordCurrentMetrics(): Promise<void> {
     //   }
     // });
 
-    console.log('✅ Effectiveness tracking setup ready');
+    console.warn('✅ Effectiveness tracking setup ready');
     
   } catch (error) {
     console.error('❌ Failed to record current metrics:', error);
@@ -208,8 +208,8 @@ async function recordCurrentMetrics(): Promise<void> {
  * Main execution function.
  */
 async function main(): Promise<void> {
-  console.log('🚀 Quality Metrics Testing & Effectiveness Validation\n');
-  console.log('This script validates that our quality metrics actually find real problems\n');
+  console.warn('🚀 Quality Metrics Testing & Effectiveness Validation\n');
+  console.warn('This script validates that our quality metrics actually find real problems\n');
 
   const startTime = Date.now();
 
@@ -230,16 +230,16 @@ async function main(): Promise<void> {
 
     // Step 4: Final summary
     const duration = Date.now() - startTime;
-    console.log(`\n🎯 Quality Metrics Validation Complete`);
-    console.log(`   Duration: ${(duration / 1000).toFixed(1)}s`);
-    console.log(`   Tests: ${testResult.testsPassed}/${testResult.testsTotal} passed`);
-    console.log(`   Status: ${testResult.success ? '✅ All systems operational' : '❌ Issues detected'}`);
+    console.warn(`\n🎯 Quality Metrics Validation Complete`);
+    console.warn(`   Duration: ${(duration / 1000).toFixed(1)}s`);
+    console.warn(`   Tests: ${testResult.testsPassed}/${testResult.testsTotal} passed`);
+    console.warn(`   Status: ${testResult.success ? '✅ All systems operational' : '❌ Issues detected'}`);
 
-    console.log('\n📚 Next Steps:');
-    console.log('   • Monitor metric effectiveness over time');
-    console.log('   • Address any low-performing metrics');
-    console.log('   • Continue tracking real issues vs false positives');
-    console.log('   • Run this validation regularly as part of CI/CD');
+    console.warn('\n📚 Next Steps:');
+    console.warn('   • Monitor metric effectiveness over time');
+    console.warn('   • Address any low-performing metrics');
+    console.warn('   • Continue tracking real issues vs false positives');
+    console.warn('   • Run this validation regularly as part of CI/CD');
 
   } catch (error) {
     console.error('\n💥 Quality metrics validation failed:', error);

@@ -10,7 +10,7 @@ import { spawn } from 'child_process';
 import { setTimeout } from 'timers/promises';
 
 /**
- *
+ * Interface for authentication test results.
  */
 interface AuthTestResult {
   test: string;
@@ -19,7 +19,7 @@ interface AuthTestResult {
 }
 
 /**
- *
+ * Authentication security testing class.
  */
 class AuthSecurityTester {
   private results: AuthTestResult[] = [];
@@ -29,8 +29,8 @@ class AuthSecurityTester {
    *
    */
   async runAuthTests(): Promise<void> {
-    console.log('🔑 Testing Authentication Security Systems');
-    console.log('==========================================\n');
+    console.warn('🔑 Testing Authentication Security Systems');
+    console.warn('==========================================\n');
 
     try {
       // Start server for testing
@@ -48,10 +48,10 @@ class AuthSecurityTester {
       // Check results
       const failures = this.results.filter(r => r.status === 'FAIL').length;
       if (failures > 0) {
-        console.log(`\n❌ ${failures} authentication security tests failed`);
+        console.warn(`\n❌ ${failures} authentication security tests failed`);
         process.exit(1);
       } else {
-        console.log('\n✅ All authentication security tests passed');
+        console.warn('\n✅ All authentication security tests passed');
       }
     } finally {
       await this.stopTestServer();
@@ -62,7 +62,7 @@ class AuthSecurityTester {
    *
    */
   private async startTestServer(): Promise<void> {
-    console.log('🚀 Starting test server...');
+    console.warn('🚀 Starting test server...');
     
     return new Promise((resolve, reject) => {
       this.serverProcess = spawn('npm', ['run', 'dev:server'], {
@@ -77,7 +77,7 @@ class AuthSecurityTester {
       });
 
       this.serverProcess.stderr.on('data', (data: Buffer) => {
-        console.log('Server output:', data.toString());
+        console.warn('Server output:', data.toString());
       });
 
       // Timeout after 30 seconds
@@ -99,7 +99,7 @@ class AuthSecurityTester {
    *
    */
   private async testAuthenticationEndpoints(): Promise<void> {
-    console.log('🔐 Testing authentication endpoints...');
+    console.warn('🔐 Testing authentication endpoints...');
 
     // Test login endpoint exists
     try {
@@ -130,7 +130,7 @@ class AuthSecurityTester {
    *
    */
   private async testProtectedRoutes(): Promise<void> {
-    console.log('🛡️ Testing protected routes...');
+    console.warn('🛡️ Testing protected routes...');
 
     // Test that protected routes require authentication
     const protectedEndpoints = [
@@ -160,7 +160,7 @@ class AuthSecurityTester {
    *
    */
   private async testSessionSecurity(): Promise<void> {
-    console.log('🍪 Testing session security...');
+    console.warn('🍪 Testing session security...');
 
     try {
       const response = await this.makeRequest('GET', '/api/health');
@@ -194,7 +194,7 @@ class AuthSecurityTester {
    *
    */
   private async testPasswordSecurity(): Promise<void> {
-    console.log('🔒 Testing password security...');
+    console.warn('🔒 Testing password security...');
 
     // Test password requirements by trying weak passwords
     const weakPasswords = ['123', 'password', 'test'];
@@ -264,18 +264,18 @@ class AuthSecurityTester {
    *
    */
   private generateReport(): void {
-    console.log('\n📋 Authentication Security Test Report');
-    console.log('======================================\n');
+    console.warn('\n📋 Authentication Security Test Report');
+    console.warn('======================================\n');
     
     for (const result of this.results) {
       const icon = result.status === 'PASS' ? '✅' : '❌';
-      console.log(`${icon} ${result.test}: ${result.message}`);
+      console.warn(`${icon} ${result.test}: ${result.message}`);
     }
     
     const passed = this.results.filter(r => r.status === 'PASS').length;
     const failed = this.results.filter(r => r.status === 'FAIL').length;
     
-    console.log(`\n📊 Summary: ${passed} passed, ${failed} failed`);
+    console.warn(`\n📊 Summary: ${passed} passed, ${failed} failed`);
   }
 }
 

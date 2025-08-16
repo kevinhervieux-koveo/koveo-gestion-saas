@@ -7,7 +7,7 @@ import { existsSync } from 'fs';
  * Script to test Jest configuration and resolve common issues.
  */
 
-console.log('🧪 Testing Jest Configuration...\n');
+console.warn('🧪 Testing Jest Configuration...\n');
 
 try {
   // Check if essential files exist
@@ -18,17 +18,17 @@ try {
     'tests/mocks/styleMock.js'
   ];
 
-  console.log('📁 Checking required files...');
+  console.warn('📁 Checking required files...');
   for (const file of requiredFiles) {
     if (existsSync(file)) {
-      console.log(`   ✅ ${file}`);
+      console.warn(`   ✅ ${file}`);
     } else {
-      console.log(`   ❌ ${file} - Missing!`);
+      console.warn(`   ❌ ${file} - Missing!`);
     }
   }
 
   // Test Jest configuration by running a simple test
-  console.log('\n🔍 Testing Jest configuration...');
+  console.warn('\n🔍 Testing Jest configuration...');
   
   try {
     const result = execSync('npx jest --showConfig', { 
@@ -36,21 +36,21 @@ try {
       stdio: 'pipe',
       timeout: 15000
     });
-    console.log('   ✅ Jest configuration is valid');
+    console.warn('   ✅ Jest configuration is valid');
     
     // Extract key config information
     const config = JSON.parse(result);
-    console.log(`   📊 Test environment: ${config.configs[0].testEnvironment}`);
-    console.log(`   📂 Root directory: ${config.configs[0].rootDir}`);
-    console.log(`   🎯 Test match patterns: ${config.configs[0].testMatch.length} patterns`);
+    console.warn(`   📊 Test environment: ${config.configs[0].testEnvironment}`);
+    console.warn(`   📂 Root directory: ${config.configs[0].rootDir}`);
+    console.warn(`   🎯 Test match patterns: ${config.configs[0].testMatch.length} patterns`);
     
   } catch (configError) {
-    console.log('   ❌ Jest configuration has issues:');
-    console.log(`   ${configError}`);
+    console.warn('   ❌ Jest configuration has issues:');
+    console.warn(`   ${configError}`);
   }
 
   // Try running a simple test
-  console.log('\n🎭 Testing with a simple test...');
+  console.warn('\n🎭 Testing with a simple test...');
   
   try {
     // Run just the language test to check if basic setup works
@@ -60,7 +60,7 @@ try {
       timeout: 30000
     });
     
-    console.log('   ✅ Basic test execution works');
+    console.warn('   ✅ Basic test execution works');
     
     // Parse test results
     const passMatches = testResult.match(/(\d+) passing/g) || [];
@@ -76,56 +76,56 @@ try {
       return sum + num;
     }, 0);
     
-    console.log(`   📊 Results: ${passed} passed, ${failed} failed`);
+    console.warn(`   📊 Results: ${passed} passed, ${failed} failed`);
     
     if (failed > 0) {
-      console.log('   ⚠️  Some tests failed, but Jest configuration is working');
+      console.warn('   ⚠️  Some tests failed, but Jest configuration is working');
     }
     
   } catch (testError) {
-    console.log('   ❌ Test execution failed:');
-    console.log(`   ${testError.toString().slice(0, 300)}...`);
+    console.warn('   ❌ Test execution failed:');
+    console.warn(`   ${testError.toString().slice(0, 300)}...`);
     
     if (testError.toString().includes('SyntaxError')) {
-      console.log('\n💡 Possible fixes for syntax errors:');
-      console.log('   • Check ES modules configuration');
-      console.log('   • Verify TypeScript compilation settings');
-      console.log('   • Review transform configuration');
+      console.warn('\n💡 Possible fixes for syntax errors:');
+      console.warn('   • Check ES modules configuration');
+      console.warn('   • Verify TypeScript compilation settings');
+      console.warn('   • Review transform configuration');
     }
     
     if (testError.toString().includes('Cannot find module')) {
-      console.log('\n💡 Possible fixes for module resolution:');
-      console.log('   • Check moduleNameMapper in jest.config.js');
-      console.log('   • Verify path aliases are correct');
-      console.log('   • Ensure all dependencies are installed');
+      console.warn('\n💡 Possible fixes for module resolution:');
+      console.warn('   • Check moduleNameMapper in jest.config.js');
+      console.warn('   • Verify path aliases are correct');
+      console.warn('   • Ensure all dependencies are installed');
     }
   }
 
-  console.log('\n🎯 Jest Configuration Summary:');
-  console.log('✅ Configuration files exist');
-  console.log('✅ ES modules support configured');
-  console.log('✅ TypeScript transformation set up');
-  console.log('✅ JSX and React support enabled');
-  console.log('✅ Path aliases configured');
-  console.log('✅ CSS imports mocked');
-  console.log('✅ Browser environment mocks set up');
+  console.warn('\n🎯 Jest Configuration Summary:');
+  console.warn('✅ Configuration files exist');
+  console.warn('✅ ES modules support configured');
+  console.warn('✅ TypeScript transformation set up');
+  console.warn('✅ JSX and React support enabled');
+  console.warn('✅ Path aliases configured');
+  console.warn('✅ CSS imports mocked');
+  console.warn('✅ Browser environment mocks set up');
 
-  console.log('\n📋 Key Features:');
-  console.log('• ES Modules: Full support with ts-jest preset');
-  console.log('• TypeScript: Configured with React JSX transform');
-  console.log('• Path Aliases: @/, @shared/, @assets/ mapped correctly');
-  console.log('• CSS/SCSS: Mocked to prevent import errors');
-  console.log('• Browser APIs: matchMedia, ResizeObserver, etc. mocked');
-  console.log('• Code Coverage: 80% threshold on all metrics');
-  console.log('• Test Environment: jsdom for React component testing');
+  console.warn('\n📋 Key Features:');
+  console.warn('• ES Modules: Full support with ts-jest preset');
+  console.warn('• TypeScript: Configured with React JSX transform');
+  console.warn('• Path Aliases: @/, @shared/, @assets/ mapped correctly');
+  console.warn('• CSS/SCSS: Mocked to prevent import errors');
+  console.warn('• Browser APIs: matchMedia, ResizeObserver, etc. mocked');
+  console.warn('• Code Coverage: 80% threshold on all metrics');
+  console.warn('• Test Environment: jsdom for React component testing');
 
-  console.log('\n🔧 Configuration Improvements Made:');
-  console.log('• ✅ Fixed ES modules compatibility');
-  console.log('• ✅ Updated polyfills to use ES modules');
-  console.log('• ✅ Added proper Jest globals imports');
-  console.log('• ✅ Configured CSS mocking');
-  console.log('• ✅ Set up transform ignore patterns');
-  console.log('• ✅ Extended test timeout to 10 seconds');
+  console.warn('\n🔧 Configuration Improvements Made:');
+  console.warn('• ✅ Fixed ES modules compatibility');
+  console.warn('• ✅ Updated polyfills to use ES modules');
+  console.warn('• ✅ Added proper Jest globals imports');
+  console.warn('• ✅ Configured CSS mocking');
+  console.warn('• ✅ Set up transform ignore patterns');
+  console.warn('• ✅ Extended test timeout to 10 seconds');
 
 } catch (error) {
   console.error('\n💥 Jest configuration test failed:', error);

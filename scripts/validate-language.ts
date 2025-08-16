@@ -34,7 +34,7 @@ const colors = {
  * Display help information.
  */
 function displayHelp() {
-  console.log(`
+  console.warn(`
 ${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}
 
 ${colors.bright}Description:${colors.reset}
@@ -167,7 +167,7 @@ Standard: Français québécois (Loi 96, Charte de la langue française)
 `;
 
   // Run unit tests for language validation
-  console.log(`${colors.cyan}🧪 Exécution des tests de validation linguistique...${colors.reset}`);
+  console.warn(`${colors.cyan}🧪 Exécution des tests de validation linguistique...${colors.reset}`);
   const unitTestResult = runTests('tests/unit/language-validation.test.ts', verbose);
   
   report += `
@@ -190,7 +190,7 @@ Tests de validation du français québécois
   }
 
   // Run translation validation tests
-  console.log(`${colors.cyan}📝 Validation des fichiers de traduction...${colors.reset}`);
+  console.warn(`${colors.cyan}📝 Validation des fichiers de traduction...${colors.reset}`);
   const translationTestResult = runTests('tests/unit/translation-validation.test.ts', verbose);
   
   report += `
@@ -213,7 +213,7 @@ Tests des fichiers de traduction et terminologie spécialisée
   }
 
   // Run page validation tests
-  console.log(`${colors.cyan}🌐 Validation des pages de l'application...${colors.reset}`);
+  console.warn(`${colors.cyan}🌐 Validation des pages de l'application...${colors.reset}`);
   const pageTestResult = runTests('tests/integration/page-language-validation.test.ts', verbose);
   
   report += `
@@ -333,28 +333,28 @@ function main() {
     return;
   }
   
-  console.log(`${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}\n`);
+  console.warn(`${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}\n`);
   
   if (args.quick) {
-    console.log(`${colors.yellow}🚀 Mode rapide activé${colors.reset}\n`);
+    console.warn(`${colors.yellow}🚀 Mode rapide activé${colors.reset}\n`);
   }
   
   try {
     const report = generateReport(args.verbose);
     
-    console.log(report);
+    console.warn(report);
     
     if (args.output) {
       writeFileSync(args.output, report, 'utf-8');
-      console.log(`\n${colors.green}📄 Rapport sauvegardé dans: ${args.output}${colors.reset}`);
+      console.warn(`\n${colors.green}📄 Rapport sauvegardé dans: ${args.output}${colors.reset}`);
     }
     
     // Exit with error code if tests failed
     if (report.includes('❌ Statut: ÉCHEC')) {
-      console.log(`\n${colors.red}⚠️  Certains tests ont échoué. Consultez le rapport pour les détails.${colors.reset}`);
+      console.warn(`\n${colors.red}⚠️  Certains tests ont échoué. Consultez le rapport pour les détails.${colors.reset}`);
       process.exit(1);
     } else {
-      console.log(`\n${colors.green}✅ Tous les tests de validation linguistique ont réussi!${colors.reset}`);
+      console.warn(`\n${colors.green}✅ Tous les tests de validation linguistique ont réussi!${colors.reset}`);
       process.exit(0);
     }
     

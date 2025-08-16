@@ -335,7 +335,7 @@ async function checkBuildPerformance(): Promise<number> {
  */
 async function analyzeComplexity(): Promise<ComplexityResult> {
   try {
-    console.log('📊 Analyzing code complexity...');
+    console.warn('📊 Analyzing code complexity...');
     
     // Run complexity analysis on TypeScript files
     const complexityOutput = execSync(
@@ -404,7 +404,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
  */
 async function analyzeCoverage(): Promise<CoverageResult> {
   try {
-    console.log('🧪 Analyzing test coverage...');
+    console.warn('🧪 Analyzing test coverage...');
     
     // Run Jest with coverage
     execSync('npm run test:coverage -- --silent 2>/dev/null || true', { 
@@ -460,7 +460,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
  */
 async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> {
   try {
-    console.log('🌐 Analyzing translation coverage...');
+    console.warn('🌐 Analyzing translation coverage...');
     
     const componentFiles = execSync(
       'find client/src -name "*.tsx" -o -name "*.ts" | grep -E "(components|pages|layout)" | head -100',
@@ -526,7 +526,7 @@ async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> 
  */
 async function analyzeAccessibility(): Promise<AccessibilityResult> {
   try {
-    console.log('♿ Analyzing accessibility compliance...');
+    console.warn('♿ Analyzing accessibility compliance...');
     
     const componentFiles = execSync(
       'find client/src -name "*.tsx" | grep -E "(components|pages)" | head -100',
@@ -601,7 +601,7 @@ async function analyzeAccessibility(): Promise<AccessibilityResult> {
  */
 async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
   try {
-    console.log('🧩 Analyzing component test coverage...');
+    console.warn('🧩 Analyzing component test coverage...');
     
     const componentFiles = execSync(
       'find client/src -name "*.tsx" | grep -E "(components|pages|layout)" | head -100',
@@ -677,7 +677,7 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
  */
 async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
   try {
-    console.log('🔒 Analyzing security vulnerabilities...');
+    console.warn('🔒 Analyzing security vulnerabilities...');
     
     const auditOutput = execSync('npm audit --json 2>/dev/null || true', {
       encoding: 'utf-8',
@@ -745,100 +745,100 @@ function validateQuality(
 ): boolean {
   let isValid = true;
   
-  console.log('\n🎯 Quality Gate Results:');
-  console.log('=' .repeat(50));
+  console.warn('\n🎯 Quality Gate Results:');
+  console.warn('=' .repeat(50));
   
   // Complexity validation
-  console.log(`📊 Code Complexity:`);
-  console.log(`   Average: ${complexity.averageComplexity} (threshold: ≤${THRESHOLDS.MAX_COMPLEXITY})`);
-  console.log(`   Maximum: ${complexity.maxComplexity}`);
-  console.log(`   Functions: ${complexity.totalFunctions}`);
+  console.warn(`📊 Code Complexity:`);
+  console.warn(`   Average: ${complexity.averageComplexity} (threshold: ≤${THRESHOLDS.MAX_COMPLEXITY})`);
+  console.warn(`   Maximum: ${complexity.maxComplexity}`);
+  console.warn(`   Functions: ${complexity.totalFunctions}`);
   
   if (complexity.averageComplexity > THRESHOLDS.MAX_COMPLEXITY) {
-    console.log(`${COLORS.RED}❌ COMPLEXITY THRESHOLD EXCEEDED!${COLORS.RESET}`);
-    console.log(`   Average complexity (${complexity.averageComplexity}) exceeds maximum allowed (${THRESHOLDS.MAX_COMPLEXITY})`);
+    console.warn(`${COLORS.RED}❌ COMPLEXITY THRESHOLD EXCEEDED!${COLORS.RESET}`);
+    console.warn(`   Average complexity (${complexity.averageComplexity}) exceeds maximum allowed (${THRESHOLDS.MAX_COMPLEXITY})`);
     isValid = false;
   } else {
-    console.log(`${COLORS.GREEN}✅ Complexity within acceptable range${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ Complexity within acceptable range${COLORS.RESET}`);
   }
   
   // Coverage validation
-  console.log(`\n🧪 Test Coverage:`);
-  console.log(`   Overall: ${coverage.totalCoverage}% (threshold: ≥${THRESHOLDS.MIN_COVERAGE}%)`);
-  console.log(`   Branches: ${coverage.branchCoverage}%`);
-  console.log(`   Functions: ${coverage.functionCoverage}%`);
-  console.log(`   Lines: ${coverage.lineCoverage}%`);
+  console.warn(`\n🧪 Test Coverage:`);
+  console.warn(`   Overall: ${coverage.totalCoverage}% (threshold: ≥${THRESHOLDS.MIN_COVERAGE}%)`);
+  console.warn(`   Branches: ${coverage.branchCoverage}%`);
+  console.warn(`   Functions: ${coverage.functionCoverage}%`);
+  console.warn(`   Lines: ${coverage.lineCoverage}%`);
   
   if (coverage.totalCoverage < THRESHOLDS.MIN_COVERAGE) {
-    console.log(`${COLORS.RED}❌ COVERAGE THRESHOLD NOT MET!${COLORS.RESET}`);
-    console.log(`   Coverage (${coverage.totalCoverage}%) below minimum required (${THRESHOLDS.MIN_COVERAGE}%)`);
+    console.warn(`${COLORS.RED}❌ COVERAGE THRESHOLD NOT MET!${COLORS.RESET}`);
+    console.warn(`   Coverage (${coverage.totalCoverage}%) below minimum required (${THRESHOLDS.MIN_COVERAGE}%)`);
     isValid = false;
   } else {
-    console.log(`${COLORS.GREEN}✅ Coverage meets requirements${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ Coverage meets requirements${COLORS.RESET}`);
   }
   
   // Vulnerability validation
-  console.log(`\n🔒 Security Vulnerabilities:`);
+  console.warn(`\n🔒 Security Vulnerabilities:`);
   const criticalCount = vulnerabilities.vulnerabilities.filter(v => v.severity === 'critical').length;
   const highCount = vulnerabilities.vulnerabilities.filter(v => v.severity === 'high').length;
   
-  console.log(`   Critical: ${criticalCount}`);
-  console.log(`   High: ${highCount}`);
-  console.log(`   Total: ${vulnerabilities.totalVulnerabilities}`);
+  console.warn(`   Critical: ${criticalCount}`);
+  console.warn(`   High: ${highCount}`);
+  console.warn(`   Total: ${vulnerabilities.totalVulnerabilities}`);
   
   if (criticalCount > 0) {
-    console.log(`${COLORS.RED}❌ CRITICAL VULNERABILITIES FOUND!${COLORS.RESET}`);
+    console.warn(`${COLORS.RED}❌ CRITICAL VULNERABILITIES FOUND!${COLORS.RESET}`);
     isValid = false;
   } else if (highCount > 0) {
-    console.log(`${COLORS.YELLOW}⚠️  High vulnerabilities detected${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  High vulnerabilities detected${COLORS.RESET}`);
   } else {
-    console.log(`${COLORS.GREEN}✅ No critical security issues${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ No critical security issues${COLORS.RESET}`);
   }
   
   // Translation coverage validation
-  console.log(`\n🌐 Translation Coverage:`);
-  console.log(`   Components: ${translationCoverage.translatedComponents}/${translationCoverage.totalComponents} (${translationCoverage.coveragePercentage}%)`);
-  console.log(`   Missing translations: ${translationCoverage.missingTranslations.length}`);
+  console.warn(`\n🌐 Translation Coverage:`);
+  console.warn(`   Components: ${translationCoverage.translatedComponents}/${translationCoverage.totalComponents} (${translationCoverage.coveragePercentage}%)`);
+  console.warn(`   Missing translations: ${translationCoverage.missingTranslations.length}`);
   
   if (translationCoverage.coveragePercentage < 100) {
-    console.log(`${COLORS.YELLOW}⚠️  Translation gaps detected (including sidebar/navigation)${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Translation gaps detected (including sidebar/navigation)${COLORS.RESET}`);
     if (translationCoverage.missingTranslations.some(m => m.component.includes('sidebar') || m.component.includes('navigation'))) {
-      console.log(`${COLORS.RED}❌ Critical navigation components lack translation support${COLORS.RESET}`);
+      console.warn(`${COLORS.RED}❌ Critical navigation components lack translation support${COLORS.RESET}`);
       isValid = false;
     }
   } else {
-    console.log(`${COLORS.GREEN}✅ Full translation coverage achieved${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ Full translation coverage achieved${COLORS.RESET}`);
   }
   
   // Accessibility validation
-  console.log(`\n♿ Accessibility Compliance:`);
-  console.log(`   Accessible components: ${accessibility.accessibleComponents}/${accessibility.totalComponents} (${accessibility.coveragePercentage}%)`);
-  console.log(`   Accessibility issues: ${accessibility.missingAccessibility.length}`);
+  console.warn(`\n♿ Accessibility Compliance:`);
+  console.warn(`   Accessible components: ${accessibility.accessibleComponents}/${accessibility.totalComponents} (${accessibility.coveragePercentage}%)`);
+  console.warn(`   Accessibility issues: ${accessibility.missingAccessibility.length}`);
   
   if (accessibility.coveragePercentage < 95) {
-    console.log(`${COLORS.RED}❌ ACCESSIBILITY COMPLIANCE ISSUES!${COLORS.RESET}`);
-    console.log(`   Quebec Law 25 requires full accessibility compliance`);
+    console.warn(`${COLORS.RED}❌ ACCESSIBILITY COMPLIANCE ISSUES!${COLORS.RESET}`);
+    console.warn(`   Quebec Law 25 requires full accessibility compliance`);
     isValid = false;
   } else {
-    console.log(`${COLORS.GREEN}✅ Accessibility requirements met${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ Accessibility requirements met${COLORS.RESET}`);
   }
   
   // Component testing validation
-  console.log(`\n🧩 Component Test Coverage:`);
-  console.log(`   Tested components: ${componentCoverage.testedComponents}/${componentCoverage.totalComponents} (${componentCoverage.coveragePercentage}%)`);
-  console.log(`   Untested components: ${componentCoverage.untestedComponents.length}`);
+  console.warn(`\n🧩 Component Test Coverage:`);
+  console.warn(`   Tested components: ${componentCoverage.testedComponents}/${componentCoverage.totalComponents} (${componentCoverage.coveragePercentage}%)`);
+  console.warn(`   Untested components: ${componentCoverage.untestedComponents.length}`);
   
   if (componentCoverage.coveragePercentage < 85) {
-    console.log(`${COLORS.YELLOW}⚠️  Component test coverage below recommended threshold${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Component test coverage below recommended threshold${COLORS.RESET}`);
     const criticalUntested = componentCoverage.untestedComponents.filter(c => 
       c.type === 'layout' || c.component.includes('sidebar') || c.component.includes('navigation')
     );
     if (criticalUntested.length > 0) {
-      console.log(`${COLORS.RED}❌ Critical UI components lack test coverage${COLORS.RESET}`);
+      console.warn(`${COLORS.RED}❌ Critical UI components lack test coverage${COLORS.RESET}`);
       isValid = false;
     }
   } else {
-    console.log(`${COLORS.GREEN}✅ Component testing coverage adequate${COLORS.RESET}`);
+    console.warn(`${COLORS.GREEN}✅ Component testing coverage adequate${COLORS.RESET}`);
   }
   
   return isValid;
@@ -862,7 +862,7 @@ async function verifyQualityMetricsAPI(
   componentCoverage: ComponentCoverageResult
 ): Promise<boolean> {
   try {
-    console.log('\n🔍 Verifying quality metrics are correctly updated in /owner/quality...');
+    console.warn('\n🔍 Verifying quality metrics are correctly updated in /owner/quality...');
     
     // Make a request to the quality metrics API
     const response = await fetch('http://localhost:5000/api/quality-metrics', {
@@ -873,12 +873,12 @@ async function verifyQualityMetricsAPI(
     });
     
     if (!response.ok) {
-      console.log(`${COLORS.RED}❌ Failed to fetch quality metrics from API (status: ${response.status})${COLORS.RESET}`);
+      console.warn(`${COLORS.RED}❌ Failed to fetch quality metrics from API (status: ${response.status})${COLORS.RESET}`);
       return false;
     }
     
     const apiMetrics = await response.json();
-    console.log('📊 API Metrics retrieved:', apiMetrics);
+    console.warn('📊 API Metrics retrieved:', apiMetrics);
     
     // Parse and compare metrics
     const apiCoverage = parseFloat(apiMetrics.coverage?.replace('%', '') || '0');
@@ -888,30 +888,30 @@ async function verifyQualityMetricsAPI(
     const analysisTranslationCoverage = translationCoverage.coveragePercentage;
     
     // Check if metrics are reasonable and updated
-    console.log('\n📈 Metric Verification Results:');
-    console.log('=' .repeat(40));
+    console.warn('\n📈 Metric Verification Results:');
+    console.warn('=' .repeat(40));
     
-    console.log(`🧪 Coverage Comparison:`);
-    console.log(`   API reports: ${apiCoverage}%`);
-    console.log(`   Analysis calculated: ${analysisCoverage}%`);
+    console.warn(`🧪 Coverage Comparison:`);
+    console.warn(`   API reports: ${apiCoverage}%`);
+    console.warn(`   Analysis calculated: ${analysisCoverage}%`);
     
-    console.log(`\n🌐 Translation Coverage Comparison:`);
-    console.log(`   API reports: ${apiTranslationCoverage}%`);
-    console.log(`   Analysis calculated: ${analysisTranslationCoverage}%`);
+    console.warn(`\n🌐 Translation Coverage Comparison:`);
+    console.warn(`   API reports: ${apiTranslationCoverage}%`);
+    console.warn(`   Analysis calculated: ${analysisTranslationCoverage}%`);
     
-    console.log(`\n🔒 Security Issues:`);
-    console.log(`   API reports: ${apiMetrics.securityIssues}`);
-    console.log(`   Analysis found: ${vulnerabilities.totalVulnerabilities} vulnerabilities`);
+    console.warn(`\n🔒 Security Issues:`);
+    console.warn(`   API reports: ${apiMetrics.securityIssues}`);
+    console.warn(`   Analysis found: ${vulnerabilities.totalVulnerabilities} vulnerabilities`);
     
-    console.log(`\n📊 Code Quality:`);
-    console.log(`   API reports: ${apiMetrics.codeQuality}`);
-    console.log(`   Analysis complexity: ${complexity.averageComplexity} (max: ${complexity.maxComplexity})`);
+    console.warn(`\n📊 Code Quality:`);
+    console.warn(`   API reports: ${apiMetrics.codeQuality}`);
+    console.warn(`   Analysis complexity: ${complexity.averageComplexity} (max: ${complexity.maxComplexity})`);
     
-    console.log(`\n🧩 Component Test Coverage:`);
-    console.log(`   Analysis calculated: ${componentCoverage.coveragePercentage}%`);
+    console.warn(`\n🧩 Component Test Coverage:`);
+    console.warn(`   Analysis calculated: ${componentCoverage.coveragePercentage}%`);
     
-    console.log(`\n♿ Accessibility Compliance:`);
-    console.log(`   Analysis calculated: ${accessibility.coveragePercentage}%`);
+    console.warn(`\n♿ Accessibility Compliance:`);
+    console.warn(`   Analysis calculated: ${accessibility.coveragePercentage}%`);
     
     // Determine if metrics look reasonable
     const metricsUpdated = (
@@ -922,20 +922,20 @@ async function verifyQualityMetricsAPI(
     );
     
     if (metricsUpdated) {
-      console.log(`\n${COLORS.GREEN}✅ Quality metrics appear to be updated and accessible${COLORS.RESET}`);
-      console.log(`   The /owner/quality page should now show current metrics.`);
+      console.warn(`\n${COLORS.GREEN}✅ Quality metrics appear to be updated and accessible${COLORS.RESET}`);
+      console.warn(`   The /owner/quality page should now show current metrics.`);
       return true;
     } else {
-      console.log(`\n${COLORS.YELLOW}⚠️  Metrics may not be fully updated${COLORS.RESET}`);
-      console.log(`   Some metrics still show default/empty values.`);
-      console.log(`   This could be due to API caching or analysis limitations.`);
+      console.warn(`\n${COLORS.YELLOW}⚠️  Metrics may not be fully updated${COLORS.RESET}`);
+      console.warn(`   Some metrics still show default/empty values.`);
+      console.warn(`   This could be due to API caching or analysis limitations.`);
       return false;
     }
     
   } catch (error) {
-    console.log(`${COLORS.RED}❌ Error verifying quality metrics API: ${error}${COLORS.RESET}`);
-    console.log(`   The analysis completed but API verification failed.`);
-    console.log(`   This could be due to server connectivity or authentication issues.`);
+    console.warn(`${COLORS.RED}❌ Error verifying quality metrics API: ${error}${COLORS.RESET}`);
+    console.warn(`   The analysis completed but API verification failed.`);
+    console.warn(`   This could be due to server connectivity or authentication issues.`);
     return false;
   }
 }
@@ -944,11 +944,11 @@ async function verifyQualityMetricsAPI(
  * Main function to execute quality checks and save to database.
  */
 async function main(): Promise<void> {
-  console.log(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);
+  console.warn(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);
   
   try {
     // Get existing suggestions to avoid duplicates
-    console.log('📋 Checking existing suggestions...');
+    console.warn('📋 Checking existing suggestions...');
     const existingSuggestions = 'getImprovementSuggestions' in storage ? 
       await storage.getImprovementSuggestions() : [];
     const existingTitles = new Set(
@@ -977,15 +977,15 @@ async function main(): Promise<void> {
     
     // Save only new suggestions to database
     if (newSuggestions.length > 0) {
-      console.log(`\n💾 Saving ${newSuggestions.length} new improvement suggestions to database...`);
+      console.warn(`\n💾 Saving ${newSuggestions.length} new improvement suggestions to database...`);
       for (const suggestion of newSuggestions) {
         if ('createImprovementSuggestion' in storage) {
           await storage.createImprovementSuggestion(suggestion);
         }
-        console.log(`   ✓ ${suggestion.title} (${suggestion.priority})`);
+        console.warn(`   ✓ ${suggestion.title} (${suggestion.priority})`);
       }
     } else {
-      console.log(`\n✅ No new suggestions to add. ${existingSuggestions.length} existing suggestions remain.`);
+      console.warn(`\n✅ No new suggestions to add. ${existingSuggestions.length} existing suggestions remain.`);
     }
     
     // Validate against thresholds
@@ -994,33 +994,33 @@ async function main(): Promise<void> {
     // Verify that quality metrics are correctly updated in the API/UI
     const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
     
-    console.log('\n' + '='.repeat(50));
+    console.warn('\n' + '='.repeat(50));
     
     const totalSuggestions = existingSuggestions.filter(
       s => s.status === 'New' || s.status === 'Acknowledged'
     ).length + newSuggestions.length;
     
     if (isQualityValid) {
-      console.log(`${COLORS.GREEN}🎉 ALL QUALITY GATES PASSED!${COLORS.RESET}`);
-      console.log(`Code meets all quality and coverage requirements.`);
-      console.log(`${newSuggestions.length} new suggestions added (${totalSuggestions} total active).`);
+      console.warn(`${COLORS.GREEN}🎉 ALL QUALITY GATES PASSED!${COLORS.RESET}`);
+      console.warn(`Code meets all quality and coverage requirements.`);
+      console.warn(`${newSuggestions.length} new suggestions added (${totalSuggestions} total active).`);
       
       if (metricsVerified) {
-        console.log(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
+        console.warn(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
       } else {
-        console.log(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
+        console.warn(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
       }
       
       process.exit(0);
     } else {
-      console.log(`${COLORS.RED}🚫 QUALITY GATE FAILURE!${COLORS.RESET}`);
-      console.log(`Code does not meet quality requirements.`);
-      console.log(`${newSuggestions.length} new issues found (${totalSuggestions} total require attention).`);
+      console.warn(`${COLORS.RED}🚫 QUALITY GATE FAILURE!${COLORS.RESET}`);
+      console.warn(`Code does not meet quality requirements.`);
+      console.warn(`${newSuggestions.length} new issues found (${totalSuggestions} total require attention).`);
       
       if (metricsVerified) {
-        console.log(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
+        console.warn(`${COLORS.GREEN}✅ Quality metrics successfully updated in /owner/quality${COLORS.RESET}`);
       } else {
-        console.log(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
+        console.warn(`${COLORS.YELLOW}⚠️  Quality metrics verification had issues - check /owner/quality page manually${COLORS.RESET}`);
       }
       
       process.exit(1);

@@ -5,10 +5,11 @@ import { neon } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 
 /**
- *
+ * Updates the database schema with new tables and indexes.
+ * @returns Promise that resolves when schema update is complete.
  */
 async function updateSchema() {
-  console.log('🔄 Updating database schema...');
+  console.warn('🔄 Updating database schema...');
   
   const sql = neon(process.env.DATABASE_URL!);
   const db = drizzle(sql, { schema });
@@ -33,7 +34,7 @@ async function updateSchema() {
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `;
-    console.log('✅ Created actionable_items table');
+    console.warn('✅ Created actionable_items table');
 
     // Add new columns to features table if they don't exist
     const columnsToAdd = [
@@ -50,10 +51,10 @@ async function updateSchema() {
     for (const column of columnsToAdd) {
       try {
         await sql(`ALTER TABLE features ADD COLUMN IF NOT EXISTS ${column.name} ${column.type}`);
-        console.log(`✅ Added column ${column.name} to features table`);
+        console.warn(`✅ Added column ${column.name} to features table`);
       } catch (error: any) {
         if (error.code === '42701') {
-          console.log(`⏭️  Column ${column.name} already exists`);
+          console.warn(`⏭️  Column ${column.name} already exists`);
         } else {
           throw error;
         }
@@ -62,9 +63,9 @@ async function updateSchema() {
 
     // Update default status for features if needed
     await sql`ALTER TABLE features ALTER COLUMN status SET DEFAULT 'submitted'`;
-    console.log('✅ Updated default status for features');
+    console.warn('✅ Updated default status for features');
 
-    console.log('\n✨ Database schema updated successfully!');
+    console.warn('\n✨ Database schema updated successfully!');
   } catch (error) {
     console.error('❌ Error updating schema:', error);
     process.exit(1);

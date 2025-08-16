@@ -11,7 +11,7 @@ import { join, extname } from 'path';
 import { coverageAutomation } from '../tests/utils/coverage-automation';
 
 /**
- *
+ * Interface for test quality report data.
  */
 interface TestQualityReport {
   overallScore: number;
@@ -82,8 +82,8 @@ class TestQualityValidator {
    * @returns Promise<TestQualityReport> Complete quality validation report.
    */
   async validateTestQuality(): Promise<TestQualityReport> {
-    console.log('🔍 Starting comprehensive test quality validation...');
-    console.log('🇨🇦 Including Quebec property management compliance checks...\n');
+    console.warn('🔍 Starting comprehensive test quality validation...');
+    console.warn('🇨🇦 Including Quebec property management compliance checks...\n');
 
     const report: TestQualityReport = {
       overallScore: 0,
@@ -103,23 +103,23 @@ class TestQualityValidator {
       this.failedValidations = [];
       
       // 1. Validate test coverage
-      console.log('📊 Validating test coverage...');
+      console.warn('📊 Validating test coverage...');
       report.testCoverage = await this.validateTestCoverage();
       
       // 2. Analyze test quality
-      console.log('🎯 Analyzing test quality...');
+      console.warn('🎯 Analyzing test quality...');
       report.testQuality = await this.analyzeTestQuality();
       
       // 3. Check Quebec compliance
-      console.log('🇨🇦 Checking Quebec compliance in tests...');
+      console.warn('🇨🇦 Checking Quebec compliance in tests...');
       report.quebecCompliance = await this.validateQuebecCompliance();
       
       // 4. Measure performance
-      console.log('⚡ Measuring test performance...');
+      console.warn('⚡ Measuring test performance...');
       report.performance = await this.measureTestPerformance();
       
       // 5. Validate accessibility tests
-      console.log('♿ Validating accessibility test coverage...');
+      console.warn('♿ Validating accessibility test coverage...');
       report.accessibility = await this.validateAccessibilityTests();
       
       // 6. Set validation results
@@ -566,42 +566,42 @@ class TestQualityValidator {
    * @param report
    */
   private outputValidationResults(report: TestQualityReport): void {
-    console.log('\n🏆 TEST QUALITY VALIDATION RESULTS');
-    console.log('=' .repeat(60));
+    console.warn('\n🏆 TEST QUALITY VALIDATION RESULTS');
+    console.warn('=' .repeat(60));
     
     // Overall score
     const scoreColor = report.overallScore >= 90 ? '🟢' : 
                       report.overallScore >= 80 ? '🟡' : '🔴';
-    console.log(`${scoreColor} Overall Score: ${report.overallScore.toFixed(1)}%`);
+    console.warn(`${scoreColor} Overall Score: ${report.overallScore.toFixed(1)}%`);
     
-    console.log('\n📊 DETAILED METRICS:');
-    console.log(`   Test Coverage: ${report.testCoverage.toFixed(1)}%`);
-    console.log(`   Test Quality: ${report.testQuality.toFixed(1)}%`);
-    console.log(`   Quebec Compliance: ${report.quebecCompliance.toFixed(1)}%`);
-    console.log(`   Performance: ${report.performance.toFixed(1)}%`);
-    console.log(`   Accessibility: ${report.accessibility.toFixed(1)}%`);
+    console.warn('\n📊 DETAILED METRICS:');
+    console.warn(`   Test Coverage: ${report.testCoverage.toFixed(1)}%`);
+    console.warn(`   Test Quality: ${report.testQuality.toFixed(1)}%`);
+    console.warn(`   Quebec Compliance: ${report.quebecCompliance.toFixed(1)}%`);
+    console.warn(`   Performance: ${report.performance.toFixed(1)}%`);
+    console.warn(`   Accessibility: ${report.accessibility.toFixed(1)}%`);
 
-    console.log('\n✅ PASSED VALIDATIONS:');
-    report.passedValidations.forEach(validation => console.log(`   ${validation}`));
+    console.warn('\n✅ PASSED VALIDATIONS:');
+    report.passedValidations.forEach(validation => console.warn(`   ${validation}`));
 
     if (report.failedValidations.length > 0) {
-      console.log('\n❌ FAILED VALIDATIONS:');
-      report.failedValidations.forEach(validation => console.log(`   ${validation}`));
+      console.warn('\n❌ FAILED VALIDATIONS:');
+      report.failedValidations.forEach(validation => console.warn(`   ${validation}`));
     }
 
     if (report.recommendations.length > 0) {
-      console.log('\n💡 RECOMMENDATIONS:');
-      report.recommendations.forEach((rec, i) => console.log(`   ${i + 1}. ${rec}`));
+      console.warn('\n💡 RECOMMENDATIONS:');
+      report.recommendations.forEach((rec, i) => console.warn(`   ${i + 1}. ${rec}`));
     }
 
-    console.log('\n' + '=' .repeat(60));
+    console.warn('\n' + '=' .repeat(60));
     
     if (report.overallScore >= 95) {
-      console.log('🎉 EXCELLENT! Tests meet Quebec property management standards.');
+      console.warn('🎉 EXCELLENT! Tests meet Quebec property management standards.');
     } else if (report.overallScore >= 85) {
-      console.log('👍 GOOD! Minor improvements needed for optimal quality.');
+      console.warn('👍 GOOD! Minor improvements needed for optimal quality.');
     } else {
-      console.log('⚠️  NEEDS IMPROVEMENT! Focus on recommendations above.');
+      console.warn('⚠️  NEEDS IMPROVEMENT! Focus on recommendations above.');
     }
   }
 
@@ -617,9 +617,9 @@ class TestQualityValidator {
     const htmlContent = this.generateHTMLReport(report);
     writeFileSync(htmlReportPath, htmlContent);
     
-    console.log(`\n📄 Detailed reports saved:`);
-    console.log(`   JSON: ${reportPath}`);
-    console.log(`   HTML: ${htmlReportPath}`);
+    console.warn(`\n📄 Detailed reports saved:`);
+    console.warn(`   JSON: ${reportPath}`);
+    console.warn(`   HTML: ${htmlReportPath}`);
   }
 
   /**
@@ -722,7 +722,7 @@ export const testQualityValidator = new TestQualityValidator();
 if (import.meta.url === `file://${process.argv[1]}`) {
   testQualityValidator.validateTestQuality()
     .then(report => {
-      console.log(`\n🏆 Test quality validation completed with score: ${report.overallScore}%`);
+      console.warn(`\n🏆 Test quality validation completed with score: ${report.overallScore}%`);
       process.exit(report.overallScore >= 90 ? 0 : 1);
     })
     .catch(error => {

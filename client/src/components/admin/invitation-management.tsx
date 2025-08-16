@@ -46,7 +46,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 /**
- *
+ * Interface for invitation data structure.
  */
 interface Invitation {
   id: string;
@@ -67,7 +67,7 @@ interface Invitation {
 }
 
 /**
- *
+ * Props interface for the InvitationManagement component.
  */
 interface InvitationManagementProps {
   invitations: Invitation[];
@@ -115,7 +115,7 @@ export function InvitationManagement({
       });
       setCancellingInvitation(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -136,7 +136,7 @@ export function InvitationManagement({
         description: t('invitationResentSuccessfully'),
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
