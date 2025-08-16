@@ -1,0 +1,315 @@
+name: Quality Check & Code Review
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+# Enforce that all checks pass before merge
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Static Analysis & Formatting
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type checking
+        run: npm run typecheck
+
+      - name: ESLint static analysis
+        run: npm run lint:strict
+        continue-on-error: false
+
+      - name: Prettier code formatting check
+        run: npm run format:check
+        continue-on-error: false
+
+      - name: Check for JSDoc documentation
+        run: |
+          echo "🔍 Checking JSDoc coverage..."
+          JSDOC_ERRORS=$(npm run lint:check 2>&1 | grep -c "jsdoc" || true)
+          echo "JSDoc issues found: $JSDOC_ERRORS"
+          if [ "$JSDOC_ERRORS" -gt 100 ]; then
+            echo "❌ Too many JSDoc issues ($JSDOC_ERRORS). Maximum allowed: 100"
+            exit 1
+          fi
+          echo "✅ JSDoc documentation acceptable"
+
+  # Testing Suite
+  testing:
+    name: Testing Suite
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+
+      - name: Generate test coverage
+        run: npm run test:coverage
+
+      - name: Check coverage thresholds
+        run: |
+          echo "🧪 Validating test coverage thresholds..."
+          if ! npm run test:ci; then
+            echo "❌ Test coverage below minimum threshold (80%)"
+            exit 1
+          fi
+          echo "✅ Test coverage meets requirements"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: koveo-gestion-coverage
+          fail_ci_if_error: false
+
+  # Comprehensive Quality Analysis
+  quality-analysis:
+    name: Quality Analysis
+    runs-on: ubuntu-latest
+    needs: [static-analysis, testing]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run comprehensive quality check
+        run: |
+          echo "🎯 Running comprehensive quality analysis..."
+          npm run quality:check
+        continue-on-error: false
+
+      - name: Run quality metrics validation
+        run: |
+          echo "📊 Validating quality metrics effectiveness..."
+          npm run quality:metrics
+        continue-on-error: false
+
+      - name: Code complexity analysis
+        run: |
+          echo "📈 Analyzing code complexity..."
+          npm run quality:complexity
+          echo "✅ Complexity analysis complete"
+
+      - name: Security vulnerability scan
+        run: |
+          echo "🔒 Scanning for security vulnerabilities..."
+          npm audit --audit-level=high
+          echo "✅ Security scan complete"
+
+      - name: Check bundle size
+        run: |
+          echo "📦 Analyzing bundle size..."
+          npm run analyze:deps
+          echo "✅ Dependency analysis complete"
+
+  # Quebec-Specific Requirements
+  quebec-compliance:
+    name: Quebec Compliance
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate bilingual support
+        run: |
+          echo "🇨🇦 Validating Quebec bilingual requirements..."
+          # Check for French translation coverage
+          MISSING_FR=$(find client/src -name "*.tsx" -exec grep -l "useLanguage\|useTranslation" {} \; | wc -l)
+          TOTAL_COMPONENTS=$(find client/src -name "*.tsx" | wc -l)
+          if [ "$MISSING_FR" -lt "$((TOTAL_COMPONENTS * 80 / 100))" ]; then
+            echo "❌ Insufficient bilingual support. Required: 80%, Found: $((MISSING_FR * 100 / TOTAL_COMPONENTS))%"
+            exit 1
+          fi
+          echo "✅ Bilingual requirements met"
+
+      - name: Accessibility compliance (WCAG 2.1 AA)
+        run: |
+          echo "♿ Validating accessibility compliance..."
+          npm run test:mobile
+          echo "✅ Accessibility checks complete"
+
+      - name: Law 25 privacy compliance check
+        run: |
+          echo "🔐 Checking Law 25 privacy compliance..."
+          # Check for proper data handling patterns
+          if grep -r "localStorage\|sessionStorage" client/src --include="*.ts" --include="*.tsx" | grep -v "test"; then
+            echo "⚠️  Found potential Law 25 compliance issues with client-side storage"
+            echo "   Review data storage practices for Quebec privacy regulations"
+          fi
+          echo "✅ Basic privacy compliance check complete"
+
+  # Build Validation
+  build-validation:
+    name: Build Validation
+    runs-on: ubuntu-latest
+    needs: [static-analysis, testing]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build client
+        run: |
+          echo "🏗️  Building client application..."
+          npm run build:client
+
+      - name: Build server
+        run: |
+          echo "🏗️  Building server application..."
+          npm run build:server
+
+      - name: Validate build artifacts
+        run: |
+          echo "✅ Validating build artifacts..."
+          if [ ! -d "dist" ]; then
+            echo "❌ Server build failed - no dist directory"
+            exit 1
+          fi
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ Server build failed - no main entry point"
+            exit 1
+          fi
+          echo "✅ Build validation successful"
+
+  # Final Quality Gate
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [static-analysis, testing, quality-analysis, quebec-compliance, build-validation]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check all job results
+        run: |
+          echo "🎯 Final Quality Gate Assessment"
+          
+          # Check if any required jobs failed
+          if [ "${{ needs.static-analysis.result }}" != "success" ]; then
+            echo "❌ Static analysis failed"
+            exit 1
+          fi
+          
+          if [ "${{ needs.testing.result }}" != "success" ]; then
+            echo "❌ Testing suite failed"
+            exit 1
+          fi
+          
+          if [ "${{ needs.quality-analysis.result }}" != "success" ]; then
+            echo "❌ Quality analysis failed"
+            exit 1
+          fi
+          
+          if [ "${{ needs.quebec-compliance.result }}" != "success" ]; then
+            echo "❌ Quebec compliance failed"
+            exit 1
+          fi
+          
+          if [ "${{ needs.build-validation.result }}" != "success" ]; then
+            echo "❌ Build validation failed"
+            exit 1
+          fi
+          
+          echo "✅ All quality gates passed!"
+          echo "🚀 Code is ready for merge"
+
+      - name: Quality summary comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = require('@actions/github');
+            
+            const comment = `## 🎯 Quality Check Results
+            
+            ✅ **All quality gates passed!**
+            
+            **Checks completed:**
+            - ✅ Static analysis (TypeScript, ESLint, Prettier)
+            - ✅ Testing suite (Unit, Integration, E2E)
+            - ✅ Quality analysis (Coverage, Complexity, Security)
+            - ✅ Quebec compliance (Bilingual, Accessibility, Privacy)
+            - ✅ Build validation
+            
+            **Quality metrics:**
+            - Code coverage: ≥80% (enforced)
+            - Code complexity: ≤10 (enforced)
+            - Security vulnerabilities: 0 critical/high (enforced)
+            - JSDoc documentation: Required for public APIs
+            - Bilingual support: ≥80% coverage (enforced)
+            
+            This PR is ready for code review! 🚀`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

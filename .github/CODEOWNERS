@@ -1,0 +1,54 @@
+# Global codeowners for Koveo Gestion
+# Every PR requires approval from at least one codeowner
+
+# Default owners for all files
+* @koveogestion/tech-leads
+
+# Security and authentication related files
+/server/auth/ @koveogestion/security-team
+/lib/auth/ @koveogestion/security-team
+**/auth*.ts @koveogestion/security-team
+**/security*.ts @koveogestion/security-team
+
+# Database and schema changes
+/shared/schema.ts @koveogestion/database-admins @koveogestion/tech-leads
+/migrations/ @koveogestion/database-admins
+**/storage.ts @koveogestion/database-admins
+drizzle.config.ts @koveogestion/database-admins
+
+# Critical infrastructure files
+package.json @koveogestion/tech-leads
+package-lock.json @koveogestion/tech-leads
+tsconfig.json @koveogestion/tech-leads
+vite.config.ts @koveogestion/tech-leads
+tailwind.config.ts @koveogestion/tech-leads
+
+# CI/CD and quality assurance
+/.github/ @koveogestion/devops-team @koveogestion/tech-leads
+/scripts/ @koveogestion/quality-team @koveogestion/tech-leads
+eslint.config.js @koveogestion/quality-team
+jest.config.js @koveogestion/quality-team
+.husky/ @koveogestion/quality-team
+
+# Quebec compliance and legal requirements
+**/quebec*.ts @koveogestion/quebec-compliance @koveogestion/legal-team
+**/compliance*.ts @koveogestion/quebec-compliance @koveogestion/legal-team
+**/privacy*.ts @koveogestion/quebec-compliance @koveogestion/legal-team
+
+# Internationalization and accessibility
+**/language*.ts @koveogestion/i18n-team
+**/translation*.ts @koveogestion/i18n-team
+**/accessibility*.ts @koveogestion/accessibility-team
+
+# Mobile and responsive design
+**/mobile/ @koveogestion/mobile-team
+**/responsive/ @koveogestion/mobile-team
+
+# API and backend critical paths
+/server/routes.ts @koveogestion/api-team @koveogestion/tech-leads
+/server/index.ts @koveogestion/api-team @koveogestion/tech-leads
+
+# Property management business logic
+**/property*.ts @koveogestion/business-team @koveogestion/quebec-compliance
+**/maintenance*.ts @koveogestion/business-team
+**/billing*.ts @koveogestion/business-team @koveogestion/security-team

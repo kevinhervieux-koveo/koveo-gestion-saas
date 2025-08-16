@@ -1,0 +1,160 @@
+name: Enforce Code Review Requirements
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize]
+    branches: [ main, develop ]
+
+jobs:
+  enforce-review-requirements:
+    name: Enforce Review Requirements
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR requirements
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { context, github } = require('@actions/github');
+            const pr = context.payload.pull_request;
+            
+            console.log('🔍 Checking PR requirements...');
+            
+            let failures = [];
+            let warnings = [];
+            
+            // Check PR title format
+            const titlePattern = /^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?: .+/;
+            if (!titlePattern.test(pr.title)) {
+              failures.push('❌ PR title must follow conventional commit format: `type(scope): description`');
+            }
+            
+            // Check PR description
+            if (!pr.body || pr.body.trim().length < 50) {
+              failures.push('❌ PR description must be at least 50 characters');
+            }
+            
+            // Check for breaking changes
+            if (pr.body && pr.body.includes('BREAKING CHANGE')) {
+              warnings.push('⚠️  This PR contains breaking changes - ensure proper communication');
+            }
+            
+            // Check PR size (number of changed files)
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            
+            if (files.data.length > 20) {
+              warnings.push(`⚠️  Large PR with ${files.data.length} files - consider breaking into smaller PRs`);
+            }
+            
+            // Check for tests in code changes
+            const hasCodeChanges = files.data.some(file => 
+              file.filename.match(/\.(ts|tsx)$/) && 
+              !file.filename.includes('test') && 
+              !file.filename.includes('.d.ts') &&
+              file.status !== 'removed'
+            );
+            
+            const hasTestChanges = files.data.some(file => 
+              file.filename.includes('test') || 
+              file.filename.includes('spec')
+            );
+            
+            if (hasCodeChanges && !hasTestChanges) {
+              warnings.push('⚠️  Code changes detected but no test files modified - ensure adequate test coverage');
+            }
+            
+            // Check for database schema changes
+            const hasSchemaChanges = files.data.some(file => 
+              file.filename.includes('schema.ts') || 
+              file.filename.includes('migration')
+            );
+            
+            if (hasSchemaChanges) {
+              warnings.push('🔄 Database schema changes detected - ensure backward compatibility and migration safety');
+            }
+            
+            // Check for security-sensitive files
+            const securityFiles = files.data.filter(file =>
+              file.filename.includes('auth') ||
+              file.filename.includes('security') ||
+              file.filename.includes('password') ||
+              file.filename.includes('token')
+            );
+            
+            if (securityFiles.length > 0) {
+              warnings.push('🔒 Security-related changes detected - mandatory security review required');
+            }
+            
+            // Create status comment
+            let commentBody = '## 🔍 Code Review Requirements Check\n\n';
+            
+            if (failures.length === 0) {
+              commentBody += '✅ **All mandatory requirements met**\n\n';
+            } else {
+              commentBody += '❌ **Mandatory requirements not met:**\n';
+              failures.forEach(failure => {
+                commentBody += `- ${failure}\n`;
+              });
+              commentBody += '\n';
+            }
+            
+            if (warnings.length > 0) {
+              commentBody += '⚠️  **Warnings and recommendations:**\n';
+              warnings.forEach(warning => {
+                commentBody += `- ${warning}\n`;
+              });
+              commentBody += '\n';
+            }
+            
+            commentBody += '### Review Checklist for Reviewers\n\n';
+            commentBody += '**Mandatory checks:**\n';
+            commentBody += '- [ ] Code follows TypeScript and project conventions\n';
+            commentBody += '- [ ] All tests pass and coverage is adequate\n';
+            commentBody += '- [ ] Changes are well-documented (JSDoc for public APIs)\n';
+            commentBody += '- [ ] No security vulnerabilities introduced\n';
+            commentBody += '- [ ] Quebec compliance maintained (bilingual, accessibility)\n';
+            commentBody += '- [ ] Database changes are safe and backward-compatible\n\n';
+            
+            commentBody += '**Additional checks:**\n';
+            commentBody += '- [ ] Performance impact considered\n';
+            commentBody += '- [ ] Error handling is comprehensive\n';
+            commentBody += '- [ ] Code is maintainable and follows SOLID principles\n';
+            commentBody += '- [ ] Changes align with project architecture\n\n';
+            
+            if (hasSchemaChanges) {
+              commentBody += '**Database Review Required:**\n';
+              commentBody += '- [ ] Migration is safe and tested\n';
+              commentBody += '- [ ] Backward compatibility maintained\n';
+              commentBody += '- [ ] Data integrity preserved\n\n';
+            }
+            
+            if (securityFiles.length > 0) {
+              commentBody += '**Security Review Required:**\n';
+              commentBody += '- [ ] Authentication changes are secure\n';
+              commentBody += '- [ ] No sensitive data exposed\n';
+              commentBody += '- [ ] Proper authorization checks\n';
+              commentBody += '- [ ] Quebec Law 25 compliance maintained\n\n';
+            }
+            
+            commentBody += '---\n';
+            commentBody += '*This check is automated. All mandatory requirements must be met before merge.*';
+            
+            // Post comment
+            await github.rest.issues.createComment({
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
+            
+            // Set status check
+            if (failures.length > 0) {
+              console.log('❌ PR requirements check failed');
+              process.exit(1);
+            } else {
+              console.log('✅ PR requirements check passed');
+            }

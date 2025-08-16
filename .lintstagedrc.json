@@ -1,0 +1,12 @@
+{
+  "*.{ts,tsx,js,jsx}": [
+    "eslint --fix --max-warnings 0",
+    "prettier --write"
+  ],
+  "*.{json,css,md,yml,yaml}": [
+    "prettier --write"
+  ],
+  "*.{ts,tsx}": [
+    "bash -c 'npm run typecheck'"
+  ]
+}

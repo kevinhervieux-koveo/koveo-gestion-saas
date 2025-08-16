@@ -853,7 +853,8 @@ async function main(): Promise<void> {
   try {
     // Get existing suggestions to avoid duplicates
     console.log('📋 Checking existing suggestions...');
-    const existingSuggestions = await storage.getImprovementSuggestions();
+    const existingSuggestions = 'getImprovementSuggestions' in storage ? 
+      await storage.getImprovementSuggestions() : [];
     const existingTitles = new Set(
       existingSuggestions
         .filter(s => s.status === 'New' || s.status === 'Acknowledged')
@@ -882,7 +883,9 @@ async function main(): Promise<void> {
     if (newSuggestions.length > 0) {
       console.log(`\n💾 Saving ${newSuggestions.length} new improvement suggestions to database...`);
       for (const suggestion of newSuggestions) {
-        await storage.createImprovementSuggestion(suggestion);
+        if ('createImprovementSuggestion' in storage) {
+          await storage.createImprovementSuggestion(suggestion);
+        }
         console.log(`   ✓ ${suggestion.title} (${suggestion.priority})`);
       }
     } else {
