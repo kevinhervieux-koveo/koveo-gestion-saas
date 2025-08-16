@@ -53,6 +53,17 @@ export default function Dashboard() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* TEST BUTTON - Should be visible */}
+          <div className="w-full bg-red-500 p-4 text-center">
+            <Button
+              onClick={() => setIsOrganizationDialogOpen(true)}
+              className='bg-green-600 hover:bg-green-700 text-white text-xl p-6'
+              size="lg"
+            >
+              🏢 CREATE ORGANIZATION - TEST BUTTON 🏢
+            </Button>
+          </div>
           {/* Key Metrics */}
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
             <Card>
