@@ -39,8 +39,9 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Express sessions with PostgreSQL session store
 - **User Management**: Custom user system with username/password authentication
 - **RBAC System**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions
+- **Access Control**: Organization-based access rules with Demo (public), Koveo (full access), normal orgs (limited), tenant/resident (residence-only)
 - **Security**: Law 25 compliance framework for Quebec privacy regulations
-- **Invitation System**: Role-based user invitation with audit logging and 2FA support
+- **Invitation System**: Enhanced role-based user invitation with organization assignment control, residence requirements for tenants/residents, and audit logging
 
 ### Development Framework (Pillar Methodology)
 - **Core Pillars**: Modular development components for quality assurance, testing, and security

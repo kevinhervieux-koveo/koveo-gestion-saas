@@ -1924,13 +1924,13 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   expiresAt: true,
   personalMessage: true,
   invitationContext: true,
-  securityLevel: true,
   requires2FA: true,
 }).extend({
   email: z.string().email('Invalid email address'),
-  // Make organizationId optional for flexibility
-  organizationId: z.string().uuid().optional(),
+  // Make organizationId required
+  organizationId: z.string().uuid('Organization is required'),
   buildingId: z.string().uuid().optional(),
+  residenceId: z.string().uuid().optional(),
   // Accept both string and date for expiresAt to handle serialization
   expiresAt: z.union([
     z.date(),
@@ -1942,8 +1942,16 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   // Make other optional fields truly optional
   personalMessage: z.string().optional(),
   invitationContext: z.record(z.unknown()).optional(),
-  securityLevel: z.string().default('standard'),
   requires2FA: z.boolean().default(false),
+}).refine((data) => {
+  // If role is tenant or resident, residence must be assigned
+  if (['tenant', 'resident'].includes(data.role)) {
+    return !!data.residenceId;
+  }
+  return true;
+}, {
+  message: 'Residence must be assigned for tenants and residents',
+  path: ['residenceId']
 });
 
 export const insertInvitationAuditLogSchema = createInsertSchema(invitationAuditLog).pick({

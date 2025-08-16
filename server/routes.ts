@@ -2430,14 +2430,82 @@ function registerInvitationRoutes(app: any) {
           });
         }
         
-        const { email, role, organizationId, buildingId, personalMessage, securityLevel, requires2FA } = validation.data;
+        const { email, role, organizationId, buildingId, residenceId, personalMessage, requires2FA } = validation.data;
         
-        // Role-based access control: admins can invite any role, managers only tenants
+        // Role-based access control for roles
         if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
           return res.status(403).json({
-            message: 'Managers can only invite tenants',
+            message: 'Managers can only invite tenants and residents',
             code: 'INSUFFICIENT_ROLE_PERMISSIONS'
           });
+        }
+
+        // Role-based access control for organization assignment
+        if (currentUser.role === 'manager') {
+          // Managers can only invite to their own organization
+          const userOrganizations = currentUser.organizations || [];
+          if (!userOrganizations.includes(organizationId)) {
+            return res.status(403).json({
+              message: 'Managers can only invite users to their own organization',
+              code: 'ORGANIZATION_ACCESS_DENIED'
+            });
+          }
+        } else if (currentUser.role === 'admin') {
+          // Admins can invite to any organization they have access to
+          const { canUserAccessOrganization } = await import('./rbac.js');
+          const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
+          if (!hasAccess) {
+            return res.status(403).json({
+              message: 'You do not have access to this organization',
+              code: 'ORGANIZATION_ACCESS_DENIED'
+            });
+          }
+        }
+
+        // Validate residence assignment for tenants and residents
+        if (['tenant', 'resident'].includes(role)) {
+          if (!residenceId) {
+            return res.status(400).json({
+              message: 'Residence must be assigned for tenants and residents',
+              code: 'RESIDENCE_REQUIRED'
+            });
+          }
+
+          // Verify residence belongs to the specified building/organization
+          const residenceQuery = await db.select({
+            id: residences.id,
+            buildingId: residences.buildingId,
+            building: {
+              id: buildings.id,
+              organizationId: buildings.organizationId
+            }
+          })
+          .from(residences)
+          .leftJoin(buildings, eq(residences.buildingId, buildings.id))
+          .where(eq(residences.id, residenceId))
+          .limit(1);
+
+          if (residenceQuery.length === 0) {
+            return res.status(400).json({
+              message: 'Invalid residence selected',
+              code: 'INVALID_RESIDENCE'
+            });
+          }
+
+          const residence = residenceQuery[0];
+          if (residence.building?.organizationId !== organizationId) {
+            return res.status(400).json({
+              message: 'Residence does not belong to the selected organization',
+              code: 'RESIDENCE_ORGANIZATION_MISMATCH'
+            });
+          }
+
+          if (buildingId && residence.buildingId !== buildingId) {
+            return res.status(400).json({
+              message: 'Residence does not belong to the selected building',
+              code: 'RESIDENCE_BUILDING_MISMATCH'
+            });
+          }
         }
         
         // Validate email format
@@ -2482,6 +2550,12 @@ function registerInvitationRoutes(app: any) {
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         
         // Create invitation
+        const invitationContext = {
+          organizationId,
+          buildingId,
+          residenceId: ['tenant', 'resident'].includes(role) ? residenceId : null
+        };
+
         const [newInvitation] = await db.insert(invitations).values({
           email,
           token,
@@ -2492,7 +2566,7 @@ function registerInvitationRoutes(app: any) {
           buildingId,
           expiresAt,
           personalMessage,
-          securityLevel: securityLevel || 'standard',
+          invitationContext,
           requires2FA: requires2FA || false,
         }).returning();
         
@@ -2504,7 +2578,7 @@ function registerInvitationRoutes(app: any) {
           req,
           undefined,
           'pending',
-          { email, role, organizationId, buildingId }
+          { email, role, organizationId, buildingId, residenceId }
         );
         
         // Send invitation email
@@ -2579,12 +2653,66 @@ function registerInvitationRoutes(app: any) {
               continue;
             }
             
-            const { email, role } = validation.data;
+            const { email, role, organizationId, buildingId, residenceId } = validation.data;
             
-            // Role-based access control
+            // Role-based access control for roles
             if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
-              errors.push({ index, email, error: 'Managers can only invite tenants' });
+              errors.push({ index, email, error: 'Managers can only invite tenants and residents' });
               continue;
+            }
+
+            // Role-based access control for organization assignment
+            if (currentUser.role === 'manager') {
+              const userOrganizations = currentUser.organizations || [];
+              if (!userOrganizations.includes(organizationId)) {
+                errors.push({ index, email, error: 'Managers can only invite users to their own organization' });
+                continue;
+              }
+            } else if (currentUser.role === 'admin') {
+              const { canUserAccessOrganization } = await import('./rbac.js');
+              const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
+              if (!hasAccess) {
+                errors.push({ index, email, error: 'You do not have access to this organization' });
+                continue;
+              }
+            }
+
+            // Validate residence assignment for tenants and residents
+            if (['tenant', 'resident'].includes(role)) {
+              if (!residenceId) {
+                errors.push({ index, email, error: 'Residence must be assigned for tenants and residents' });
+                continue;
+              }
+
+              // Verify residence belongs to the specified building/organization
+              const residenceQuery = await db.select({
+                id: residences.id,
+                buildingId: residences.buildingId,
+                building: {
+                  id: buildings.id,
+                  organizationId: buildings.organizationId
+                }
+              })
+              .from(residences)
+              .leftJoin(buildings, eq(residences.buildingId, buildings.id))
+              .where(eq(residences.id, residenceId))
+              .limit(1);
+
+              if (residenceQuery.length === 0) {
+                errors.push({ index, email, error: 'Invalid residence selected' });
+                continue;
+              }
+
+              const residence = residenceQuery[0];
+              if (residence.building?.organizationId !== organizationId) {
+                errors.push({ index, email, error: 'Residence does not belong to the selected organization' });
+                continue;
+              }
+
+              if (buildingId && residence.buildingId !== buildingId) {
+                errors.push({ index, email, error: 'Residence does not belong to the selected building' });
+                continue;
+              }
             }
             
             // Check if user already exists
@@ -2599,12 +2727,24 @@ function registerInvitationRoutes(app: any) {
             const tokenHash = hashToken(token);
             const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
             
+            const invitationContext = {
+              organizationId,
+              buildingId,
+              residenceId: ['tenant', 'resident'].includes(role) ? residenceId : null
+            };
+            
             const [newInvitation] = await db.insert(invitations).values({
-              ...validation.data,
+              email,
               token,
               tokenHash,
+              role: role as any,
               invitedByUserId: currentUser.id,
+              organizationId,
+              buildingId,
               expiresAt,
+              personalMessage: validation.data.personalMessage,
+              invitationContext,
+              requires2FA: validation.data.requires2FA || false,
             }).returning();
             
             // Create audit log
@@ -2614,7 +2754,8 @@ function registerInvitationRoutes(app: any) {
               currentUser.id,
               req,
               undefined,
-              'pending'
+              'pending',
+              { email, role, organizationId, buildingId, residenceId }
             );
             
             // Send invitation email (bulk)
