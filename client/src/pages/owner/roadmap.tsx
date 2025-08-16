@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,13 +30,25 @@ import {
   Target,
   Terminal,
   Globe,
+  AlertTriangle,
+  Copy,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
 
 /**
- *
+ * Duplicate analysis result for a feature
+ */
+interface DuplicateInfo {
+  isDuplicate: boolean;
+  duplicateCount: number;
+  duplicateFeatures: Feature[];
+  similarityType: 'exact' | 'similar' | 'none';
+}
+
+/**
+ * Section interface for roadmap organization
  */
 interface Section {
   title: string;
@@ -59,6 +71,69 @@ export default function OwnerRoadmap() {
     queryKey: ['/api/features', { roadmap: true }],
     queryFn: () => fetch('/api/features?roadmap=true').then((res) => res.json()),
   });
+
+  /**
+   * Analyzes features for duplicates and similarities
+   */
+  const duplicateAnalysis = useMemo(() => {
+    if (!features.length) return new Map<string, DuplicateInfo>();
+    
+    const analysis = new Map<string, DuplicateInfo>();
+    
+    features.forEach((feature, index) => {
+      const duplicates: Feature[] = [];
+      let exactMatch = false;
+      
+      // Compare with all other features
+      features.forEach((otherFeature, otherIndex) => {
+        if (index === otherIndex) return;
+        
+        const nameMatch = feature.name.toLowerCase().trim() === otherFeature.name.toLowerCase().trim();
+        const descMatch = feature.description?.toLowerCase().trim() === otherFeature.description?.toLowerCase().trim();
+        
+        // Check for exact duplicates (same name OR same description)
+        if (nameMatch || (descMatch && feature.description && otherFeature.description)) {
+          duplicates.push(otherFeature);
+          exactMatch = true;
+        }
+        // Check for similar features (containing similar keywords)
+        else {
+          const featureWords = feature.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+          const otherWords = otherFeature.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+          
+          const commonWords = featureWords.filter(word => otherWords.includes(word));
+          
+          // If more than 50% of significant words match, consider it similar
+          if (featureWords.length > 0 && commonWords.length / featureWords.length > 0.5) {
+            duplicates.push(otherFeature);
+          }
+        }
+      });
+      
+      analysis.set(feature.id, {
+        isDuplicate: duplicates.length > 0,
+        duplicateCount: duplicates.length,
+        duplicateFeatures: duplicates,
+        similarityType: exactMatch ? 'exact' : duplicates.length > 0 ? 'similar' : 'none'
+      });
+    });
+    
+    return analysis;
+  }, [features]);
+
+  /**
+   * Gets total duplicate statistics
+   */
+  const duplicateStats = useMemo(() => {
+    const exactDuplicates = Array.from(duplicateAnalysis.values()).filter(d => d.similarityType === 'exact');
+    const similarFeatures = Array.from(duplicateAnalysis.values()).filter(d => d.similarityType === 'similar');
+    
+    return {
+      totalExact: exactDuplicates.length,
+      totalSimilar: similarFeatures.length,
+      totalWithDuplicates: Array.from(duplicateAnalysis.values()).filter(d => d.isDuplicate).length
+    };
+  }, [duplicateAnalysis]);
 
   /**
    * Handles clicking on a feature item to open the planning dialog.
@@ -219,6 +294,46 @@ export default function OwnerRoadmap() {
     }
   };
 
+  /**
+   * Gets duplicate badge for a feature
+   */
+  const getDuplicateBadge = (featureId: string) => {
+    const dupInfo = duplicateAnalysis.get(featureId);
+    if (!dupInfo || !dupInfo.isDuplicate) return null;
+    
+    if (dupInfo.similarityType === 'exact') {
+      return (
+        <Badge className='bg-red-100 text-red-800 hover:bg-red-100 ml-2 flex items-center gap-1'>
+          <AlertTriangle className='h-3 w-3' />
+          Exact Duplicate ({dupInfo.duplicateCount})
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className='bg-orange-100 text-orange-800 hover:bg-orange-100 ml-2 flex items-center gap-1'>
+          <Copy className='h-3 w-3' />
+          Similar ({dupInfo.duplicateCount})
+        </Badge>
+      );
+    }
+  };
+
+  /**
+   * Gets duplicate note text for a feature
+   */
+  const getDuplicateNote = (featureId: string) => {
+    const dupInfo = duplicateAnalysis.get(featureId);
+    if (!dupInfo || !dupInfo.isDuplicate) return null;
+    
+    const duplicateNames = dupInfo.duplicateFeatures.map(f => f.name).join(', ');
+    
+    if (dupInfo.similarityType === 'exact') {
+      return `⚠️ This feature has ${dupInfo.duplicateCount} exact ${dupInfo.duplicateCount === 1 ? 'duplicate' : 'duplicates'}: ${duplicateNames}`;
+    } else {
+      return `📋 This feature is similar to ${dupInfo.duplicateCount} other ${dupInfo.duplicateCount === 1 ? 'feature' : 'features'}: ${duplicateNames}`;
+    }
+  };
+
   const calculateProgress = (features: Feature[]) => {
     const completed = features.filter((f) => f.status === 'completed').length;
     const inProgress = features.filter((f) => f.status === 'in-progress').length;
@@ -274,7 +389,7 @@ export default function OwnerRoadmap() {
             </Button>
           </div>
           {/* Overview Stats */}
-          <div className='grid grid-cols-4 gap-4 mb-6'>
+          <div className='grid grid-cols-6 gap-4 mb-6'>
             <Card>
               <CardContent className='p-4'>
                 <div className='text-2xl font-bold text-green-600'>
@@ -314,6 +429,22 @@ export default function OwnerRoadmap() {
                   {sections.reduce((acc, s) => acc + s.features.length, 0)}
                 </div>
                 <div className='text-sm text-gray-600'>Total Features</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className='p-4'>
+                <div className='text-2xl font-bold text-red-600'>
+                  {duplicateStats.totalExact}
+                </div>
+                <div className='text-sm text-gray-600'>Exact Duplicates</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className='p-4'>
+                <div className='text-2xl font-bold text-orange-600'>
+                  {duplicateStats.totalSimilar}
+                </div>
+                <div className='text-sm text-gray-600'>Similar Features</div>
               </CardContent>
             </Card>
           </div>
@@ -390,12 +521,18 @@ export default function OwnerRoadmap() {
                               <div className='flex items-start space-x-3'>
                                 {getStatusIcon(feature.status)}
                                 <div className='flex-1'>
-                                  <div className='flex items-center'>
+                                  <div className='flex items-center flex-wrap'>
                                     <span className='font-medium text-gray-900 hover:text-blue-600 transition-colors'>{feature.name}</span>
                                     {getStatusBadge(feature.status)}
                                     {feature.priority && getPriorityBadge(feature.priority)}
+                                    {getDuplicateBadge(feature.id || feature.name)}
                                   </div>
                                   <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
+                                  {getDuplicateNote(feature.id || feature.name) && (
+                                    <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800'>
+                                      {getDuplicateNote(feature.id || feature.name)}
+                                    </div>
+                                  )}
                                   <p className='text-xs text-blue-600 mt-2 font-medium'>Click to plan development →</p>
                                 </div>
                               </div>
