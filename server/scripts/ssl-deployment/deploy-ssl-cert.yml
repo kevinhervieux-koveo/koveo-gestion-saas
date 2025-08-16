@@ -1,0 +1,237 @@
+---
+# Ansible Playbook for SSL Certificate Deployment to Nginx
+# Securely deploys SSL certificates and updates Nginx configuration
+# Usage: ansible-playbook -i inventory deploy-ssl-cert.yml -e domain=example.com
+
+- name: Deploy SSL Certificate to Nginx
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    # Default configuration - override with -e or group_vars
+    nginx_sites_available: "{{ ansible_nginx_sites_available | default('/etc/nginx/sites-available') }}"
+    nginx_sites_enabled: "{{ ansible_nginx_sites_enabled | default('/etc/nginx/sites-enabled') }}"
+    nginx_config_file: "{{ ansible_nginx_config_file | default('default') }}"
+    nginx_service_name: "{{ ansible_nginx_service_name | default('nginx') }}"
+    
+    ssl_cert_dir: "{{ ansible_ssl_cert_dir | default('/etc/ssl/certs') }}"
+    ssl_key_dir: "{{ ansible_ssl_key_dir | default('/etc/ssl/private') }}"
+    ssl_backup_dir: "{{ ansible_ssl_backup_dir | default('/etc/ssl/backups') }}"
+    
+    ssl_cert_permissions: "{{ ansible_ssl_cert_permissions | default('0644') }}"
+    ssl_key_permissions: "{{ ansible_ssl_key_permissions | default('0600') }}"
+    ssl_owner: "{{ ansible_ssl_owner | default('root') }}"
+    ssl_group: "{{ ansible_ssl_group | default('root') }}"
+    
+    backup_enabled: "{{ ansible_backup_enabled | default(true) }}"
+    
+    # Security: Ensure no sensitive data is logged
+    no_log_sensitive: true
+
+  pre_tasks:
+    - name: Validate required variables
+      fail:
+        msg: "Required variable '{{ item }}' is not defined"
+      when: vars[item] is not defined
+      with_items:
+        - domain
+        - certificate_content
+        - private_key_content
+      tags: [validation]
+
+    - name: Check if Nginx is installed
+      command: nginx -v
+      register: nginx_version
+      changed_when: false
+      failed_when: nginx_version.rc != 0
+      tags: [validation]
+
+  tasks:
+    - name: Create SSL directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ssl_owner }}"
+        group: "{{ ssl_group }}"
+      with_items:
+        - "{{ ssl_cert_dir }}"
+        - "{{ ssl_key_dir }}"
+        - "{{ ssl_backup_dir }}"
+      tags: [directories]
+
+    - name: Create domain-specific backup directory
+      file:
+        path: "{{ ssl_backup_dir }}/{{ domain }}/{{ ansible_date_time.epoch }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ ssl_owner }}"
+        group: "{{ ssl_group }}"
+      when: backup_enabled
+      register: backup_dir
+      tags: [backup]
+
+    - name: Backup existing certificate
+      copy:
+        src: "{{ ssl_cert_dir }}/{{ domain }}.crt"
+        dest: "{{ backup_dir.path }}/{{ domain }}.crt"
+        remote_src: yes
+        backup: no
+      when: 
+        - backup_enabled
+        - backup_dir is defined
+      ignore_errors: yes
+      tags: [backup]
+
+    - name: Backup existing private key
+      copy:
+        src: "{{ ssl_key_dir }}/{{ domain }}.key"
+        dest: "{{ backup_dir.path }}/{{ domain }}.key"
+        mode: '0600'
+        owner: "{{ ssl_owner }}"
+        group: "{{ ssl_group }}"
+        remote_src: yes
+        backup: no
+      when: 
+        - backup_enabled
+        - backup_dir is defined
+      ignore_errors: yes
+      no_log: "{{ no_log_sensitive }}"
+      tags: [backup]
+
+    - name: Create temporary certificate file
+      tempfile:
+        state: file
+        suffix: .crt
+      register: temp_cert_file
+      tags: [certificate]
+
+    - name: Create temporary private key file
+      tempfile:
+        state: file
+        suffix: .key
+      register: temp_key_file
+      no_log: "{{ no_log_sensitive }}"
+      tags: [certificate]
+
+    - name: Write certificate content to temporary file
+      copy:
+        content: "{{ certificate_content }}"
+        dest: "{{ temp_cert_file.path }}"
+        mode: '0644'
+      tags: [certificate]
+
+    - name: Write private key content to temporary file
+      copy:
+        content: "{{ private_key_content }}"
+        dest: "{{ temp_key_file.path }}"
+        mode: '0600'
+      no_log: "{{ no_log_sensitive }}"
+      tags: [certificate]
+
+    - name: Validate certificate
+      command: openssl x509 -in {{ temp_cert_file.path }} -noout -checkend 86400
+      changed_when: false
+      tags: [validation]
+
+    - name: Validate private key
+      command: openssl rsa -in {{ temp_key_file.path }} -check -noout
+      changed_when: false
+      no_log: "{{ no_log_sensitive }}"
+      tags: [validation]
+
+    - name: Verify certificate and key match
+      shell: |
+        CERT_MODULUS=$(openssl x509 -noout -modulus -in {{ temp_cert_file.path }} | openssl md5)
+        KEY_MODULUS=$(openssl rsa -noout -modulus -in {{ temp_key_file.path }} | openssl md5)
+        if [ "$CERT_MODULUS" != "$KEY_MODULUS" ]; then
+          echo "Certificate and private key do not match"
+          exit 1
+        fi
+      changed_when: false
+      no_log: "{{ no_log_sensitive }}"
+      tags: [validation]
+
+    - name: Deploy certificate
+      copy:
+        src: "{{ temp_cert_file.path }}"
+        dest: "{{ ssl_cert_dir }}/{{ domain }}.crt"
+        mode: "{{ ssl_cert_permissions }}"
+        owner: "{{ ssl_owner }}"
+        group: "{{ ssl_group }}"
+        remote_src: yes
+        backup: no
+      notify: restart nginx
+      tags: [deploy]
+
+    - name: Deploy private key
+      copy:
+        src: "{{ temp_key_file.path }}"
+        dest: "{{ ssl_key_dir }}/{{ domain }}.key"
+        mode: "{{ ssl_key_permissions }}"
+        owner: "{{ ssl_owner }}"
+        group: "{{ ssl_group }}"
+        remote_src: yes
+        backup: no
+      no_log: "{{ no_log_sensitive }}"
+      notify: restart nginx
+      tags: [deploy]
+
+    - name: Backup existing Nginx configuration
+      copy:
+        src: "{{ nginx_sites_available }}/{{ nginx_config_file }}"
+        dest: "{{ nginx_sites_available }}/{{ nginx_config_file }}.backup.{{ ansible_date_time.epoch }}"
+        remote_src: yes
+        backup: no
+      ignore_errors: yes
+      tags: [nginx-config]
+
+    - name: Generate Nginx SSL configuration
+      template:
+        src: nginx-ssl.conf.j2
+        dest: "{{ nginx_sites_available }}/{{ nginx_config_file }}"
+        mode: '0644'
+        owner: root
+        group: root
+        backup: no
+      notify: 
+        - test nginx configuration
+        - restart nginx
+      tags: [nginx-config]
+
+    - name: Enable site if not already enabled
+      file:
+        src: "{{ nginx_sites_available }}/{{ nginx_config_file }}"
+        dest: "{{ nginx_sites_enabled }}/{{ nginx_config_file }}"
+        state: link
+      notify: restart nginx
+      tags: [nginx-config]
+
+  post_tasks:
+    - name: Clean up temporary certificate file
+      file:
+        path: "{{ temp_cert_file.path }}"
+        state: absent
+      when: temp_cert_file is defined
+      tags: [cleanup]
+
+    - name: Securely clean up temporary private key file
+      shell: |
+        if [ -f "{{ temp_key_file.path }}" ]; then
+          shred -u "{{ temp_key_file.path }}" 2>/dev/null || rm -f "{{ temp_key_file.path }}"
+        fi
+      when: temp_key_file is defined
+      no_log: "{{ no_log_sensitive }}"
+      tags: [cleanup]
+
+  handlers:
+    - name: test nginx configuration
+      command: nginx -t
+      listen: "test nginx configuration"
+
+    - name: restart nginx
+      service:
+        name: "{{ nginx_service_name }}"
+        state: restarted
+      listen: "restart nginx"
