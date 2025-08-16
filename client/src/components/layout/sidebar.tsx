@@ -201,7 +201,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       key: 'admin',
       icon: ShieldCheck,
       items: [
-        { name: 'User Management', href: '/admin/user-management', icon: UserPlus },
+        { name: 'User Management', href: '/manager/user-management', icon: UserPlus },
       ],
     },
     {

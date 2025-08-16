@@ -236,7 +236,7 @@ function Router() {
               <Route path='/owner/permissions' component={OwnerPermissions} />
 
               {/* Admin routes */}
-              <Route path='/admin/user-management' component={UserManagement} />
+              <Route path='/manager/user-management' component={UserManagement} />
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />
