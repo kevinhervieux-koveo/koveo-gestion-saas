@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,11 @@ import type { Organization, User } from '@shared/schema';
  */
 export default function Dashboard() {
   const [isOrganizationDialogOpen, setIsOrganizationDialogOpen] = useState(false);
+
+  // Force show that this component is loading
+  React.useEffect(() => {
+    console.log('🔥 NEW ADMIN DASHBOARD COMPONENT LOADED! 🔥');
+  }, []);
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
