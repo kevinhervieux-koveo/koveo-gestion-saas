@@ -593,7 +593,6 @@ ${formData.additionalNotes || 'No additional notes'}
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Strategic Path">Strategic Path</SelectItem>
                         <SelectItem value="Dashboard & Home">Dashboard & Home</SelectItem>
                         <SelectItem value="Property Management">Property Management</SelectItem>
                         <SelectItem value="Resident Management">Resident Management</SelectItem>
