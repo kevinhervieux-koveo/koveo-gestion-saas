@@ -1000,7 +1000,6 @@ export default function OwnerRoadmap() {
                                           {getDuplicateNote(feature.id || feature.name)}
                                         </div>
                                       )}
-                                      <p className='text-xs text-blue-600 mt-2 font-medium'>Click name to plan development →</p>
                                     </div>
                                   </div>
                                 </div>
