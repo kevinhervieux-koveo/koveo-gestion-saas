@@ -241,7 +241,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                     {item.testingRequirements && (
                       <div>
                         <h4 className="font-semibold mb-1">Testing Requirements</h4>
-                        <p className="text-sm text-gray-700">{item.testingRequirements}</p>
+                        <p className="text-sm text-gray-700">{String(item.testingRequirements)}</p>
                       </div>
                     )}
 
@@ -322,21 +322,21 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h4 className="font-semibold mb-2">AI Analysis Summary</h4>
             <p className="text-sm text-gray-700">
-              {(feature.aiAnalysisResult as any).summary}
+              {String((feature.aiAnalysisResult as any)?.summary || '')}
             </p>
-            {(feature.aiAnalysisResult as any).recommendations && (
+            {(feature.aiAnalysisResult as any)?.recommendations && (
               <div className="mt-3">
                 <h5 className="font-medium text-sm mb-1">Recommendations:</h5>
                 <ul className="text-sm text-gray-600 list-disc list-inside">
-                  {(feature.aiAnalysisResult as any).recommendations.map((rec: string, i: number) => (
-                    <li key={i}>{rec}</li>
+                  {Array.isArray((feature.aiAnalysisResult as any).recommendations) && (feature.aiAnalysisResult as any).recommendations.map((rec: string, i: number) => (
+                    <li key={i}>{String(rec)}</li>
                   ))}
                 </ul>
               </div>
             )}
             <div className="mt-3 text-sm text-gray-600">
               <strong>Total Estimated Effort:</strong>{' '}
-              {(feature.aiAnalysisResult as any).estimatedTotalEffort}
+              {String((feature.aiAnalysisResult as any)?.estimatedTotalEffort || '')}
             </div>
           </div>
         )}
