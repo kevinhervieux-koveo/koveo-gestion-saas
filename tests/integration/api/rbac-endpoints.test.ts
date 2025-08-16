@@ -17,15 +17,15 @@ jest.mock('../../../server/storage', () => ({
 
 describe('RBAC API Endpoints Integration Tests', () => {
   let app: express.Application;
-  let agent: request.SuperAgentTest;
+  let agent: any;
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
     app.use(sessionConfig);
     
-    setupAuthRoutes(app);
-    registerUserRoutes(app);
+    setupAuthRoutes(app as any);
+    registerUserRoutes(app as any);
     
     agent = request.agent(app);
     jest.clearAllMocks();

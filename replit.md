@@ -38,7 +38,9 @@ Preferred communication style: Simple, everyday language.
 ### Authentication and Authorization
 - **Session Management**: Express sessions with PostgreSQL session store
 - **User Management**: Custom user system with username/password authentication
-- **Security**: Planned Law 25 compliance framework for Quebec privacy regulations
+- **RBAC System**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions
+- **Security**: Law 25 compliance framework for Quebec privacy regulations
+- **Invitation System**: Role-based user invitation with audit logging and 2FA support
 
 ### Development Framework (Pillar Methodology)
 - **Core Pillars**: Modular development components for quality assurance, testing, and security

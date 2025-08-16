@@ -1193,8 +1193,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Accepts invitation.
    * @param token
    * @param userData
+   * @param userData.firstName
    * @param ipAddress
+   * @param userData.lastName
    * @param userAgent
+   * @param userData.password
    */
   async acceptInvitation(
     token: string,

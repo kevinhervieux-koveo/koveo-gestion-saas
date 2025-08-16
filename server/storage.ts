@@ -2082,7 +2082,7 @@ export class MemStorage implements IStorage {
    */
   async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
     const existing = this.invitations.get(id);
-    if (!existing) return undefined;
+    if (!existing) {return undefined;}
     
     const updated = {
       ...existing,

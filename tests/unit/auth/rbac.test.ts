@@ -16,19 +16,19 @@ describe('RBAC System Tests', () => {
     test('should have all required roles defined', () => {
       expect(permissions).toHaveProperty('admin');
       expect(permissions).toHaveProperty('manager');
-      expect(permissions).toHaveProperty('owner');
       expect(permissions).toHaveProperty('tenant');
+      expect(permissions).toHaveProperty('resident');
     });
 
     test('should have admin with most permissions', () => {
       const adminPerms = permissions.admin;
       const managerPerms = permissions.manager;
-      const ownerPerms = permissions.owner;
       const tenantPerms = permissions.tenant;
+      const residentPerms = permissions.resident;
 
       expect(adminPerms.length).toBeGreaterThan(managerPerms.length);
-      expect(managerPerms.length).toBeGreaterThan(ownerPerms.length);
-      expect(ownerPerms.length).toBeGreaterThan(tenantPerms.length);
+      expect(managerPerms.length).toBeGreaterThan(tenantPerms.length);
+      expect(tenantPerms.length).toBeGreaterThanOrEqual(residentPerms.length);
     });
 
     test('should validate permission checking function', () => {
@@ -314,21 +314,21 @@ describe('RBAC System Tests', () => {
     test('should validate admin has all permissions others have', () => {
       const adminPerms = new Set(permissions.admin);
       const managerPerms = permissions.manager;
-      const ownerPerms = permissions.owner;
       const tenantPerms = permissions.tenant;
+      const residentPerms = permissions.resident;
 
       // Admin should have all manager permissions
       managerPerms.forEach(permission => {
         expect(adminPerms.has(permission)).toBe(true);
       });
 
-      // Admin should have all owner permissions
-      ownerPerms.forEach(permission => {
+      // Admin should have all tenant permissions
+      tenantPerms.forEach(permission => {
         expect(adminPerms.has(permission)).toBe(true);
       });
 
-      // Admin should have all tenant permissions
-      tenantPerms.forEach(permission => {
+      // Admin should have all resident permissions
+      residentPerms.forEach(permission => {
         expect(adminPerms.has(permission)).toBe(true);
       });
     });
@@ -344,10 +344,10 @@ describe('RBAC System Tests', () => {
       expect(permissions.manager).toContain('create:bill');
       expect(permissions.manager).toContain('read:maintenance_request');
 
-      // Critical owner permissions
-      expect(permissions.owner).toContain('read:budget');
-      expect(permissions.owner).toContain('create:budget');
-      expect(permissions.owner).toContain('read:bill');
+      // Critical resident permissions
+      expect(permissions.resident).toContain('read:profile');
+      expect(permissions.resident).toContain('read:residence');
+      expect(permissions.resident).toContain('read:bill');
 
       // Critical tenant permissions
       expect(permissions.tenant).toContain('read:profile');
@@ -361,9 +361,9 @@ describe('RBAC System Tests', () => {
       expect(permissions.tenant).not.toContain('create:organization');
       expect(permissions.tenant).not.toContain('delete:building');
 
-      // Owner should not have user management permissions
-      expect(permissions.owner).not.toContain('delete:user');
-      expect(permissions.owner).not.toContain('manage:user_roles');
+      // Resident should not have user management permissions
+      expect(permissions.resident).not.toContain('delete:user');
+      expect(permissions.resident).not.toContain('manage:user_roles');
 
       // Manager should not have system-level permissions
       expect(permissions.manager).not.toContain('backup:system');
