@@ -290,26 +290,16 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       <div className='p-6 border-t border-gray-200'>
         <div className='flex items-center space-x-3'>
           <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
-            {user?.profileImage ? (
-              <img 
-                src={user.profileImage} 
-                alt={`${user.firstName} ${user.lastName}`}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
-                <span className="text-white text-sm font-medium">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                </span>
-              </div>
-            )}
+            <span className="text-white text-sm font-medium">
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </span>
           </div>
           <div>
             <p className='text-sm font-medium text-gray-900'>
-              {user ? `${user.firstName} ${user.lastName}` : t('guest')}
+              {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
             </p>
             <p className='text-xs text-gray-500'>
-              {user?.role ? t(user.role) : t('user')}
+              {user?.role || 'User'}
             </p>
           </div>
         </div>
