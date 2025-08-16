@@ -12,6 +12,7 @@ import { AlertCircle, Shield, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Login form validation schema with Quebec-specific requirements.
@@ -101,19 +102,23 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <Building className="w-8 h-8 text-white" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Koveo Gestion
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              {language === 'fr' 
-                ? 'Système de gestion immobilière du Québec'
-                : 'Quebec Property Management System'
-              }
-            </p>
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <img 
+              src={koveoLogo} 
+              alt="Koveo Gestion Logo" 
+              className="h-16 w-auto rounded-lg shadow-sm"
+            />
+            <div className="text-left">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Koveo Gestion
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                {language === 'fr' 
+                  ? 'Système de gestion immobilière du Québec'
+                  : 'Quebec Property Management System'
+                }
+              </p>
+            </div>
           </div>
         </div>
 
