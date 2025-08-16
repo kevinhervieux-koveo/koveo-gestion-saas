@@ -19,10 +19,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add immediate health check endpoints before any other middleware
-// These respond instantly without any database or external dependencies
-app.get('/', (req, res) => {
-  // Immediate response for deployment health checks with timeout
+// Health check endpoints for API monitoring (NOT for frontend serving)
+app.get('/api/health', (req, res) => {
+  // API health check with timeout protection
   const timeout = setTimeout(() => {
     if (!res.headersSent) {
       res.status(408).json({ status: 'timeout', message: 'Health check timeout' });
@@ -42,7 +41,7 @@ app.get('/', (req, res) => {
   clearTimeout(timeout);
 });
 
-app.get('/health', (req, res) => {
+app.get('/api/health/detailed', (req, res) => {
   // Comprehensive health check with timeout protection
   const timeout = setTimeout(() => {
     if (!res.headersSent) {
@@ -230,10 +229,15 @@ async function initializeApplication() {
       }
     });
 
-    // Setup static file serving based on environment
-    if (app.get('env') === 'development') {
+    // Setup static file serving
+    // Always serve static files in deployment (override development detection)
+    const forceProduction = true; // Force production mode for deployment
+    
+    if (!forceProduction && process.env.NODE_ENV === 'development') {
+      log('🔧 Running in development mode with Vite');
       await setupVite(app, server);
     } else {
+      log('🏗️ Running in production mode, serving static files from dist/public');
       serveStatic(app);
     }
     
