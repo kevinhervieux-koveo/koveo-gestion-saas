@@ -14,6 +14,14 @@ import {
 } from '@shared/schema';
 import { registerUserRoutes } from './api/users';
 import { registerOrganizationRoutes } from './api/organizations';
+import {
+  getAIMetrics,
+  getAIInteractions,
+  getAIInsights,
+  triggerAIAnalysis,
+  applyAISuggestion,
+  recordAIInteraction
+} from './api/ai-monitoring';
 import { sessionConfig, setupAuthRoutes, requireAuth, requireRole } from './auth';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
@@ -54,6 +62,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register dedicated API routes
   registerUserRoutes(app);
   registerOrganizationRoutes(app);
+  
+  // AI Monitoring API routes
+  app.get('/api/ai/metrics', requireAuth, getAIMetrics);
+  app.get('/api/ai/interactions', requireAuth, getAIInteractions);
+  app.get('/api/ai/insights', requireAuth, getAIInsights);
+  app.post('/api/ai/analyze', requireAuth, triggerAIAnalysis);
+  app.post('/api/ai/insights/:insightId/apply', requireAuth, applyAISuggestion);
+  app.post('/api/ai/interactions', requireAuth, recordAIInteraction);
 
   // Quality Metrics API
   app.get('/api/quality-metrics', async (req, res) => {
