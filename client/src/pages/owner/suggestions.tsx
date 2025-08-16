@@ -15,9 +15,8 @@ import {
   Terminal,
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { FilterSort } from '@/components/filter-sort/FilterSort';
-import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 
 /**
  *
@@ -32,116 +31,14 @@ interface ImprovementSuggestion {
   createdAt: string;
 }
 
-// Filter and sort configuration for suggestions
-const filterSortConfig: FilterSortConfig = {
-  filters: [
-    {
-      id: 'priority',
-      field: 'priority',
-      label: 'Priority',
-      type: 'select',
-      icon: AlertCircle,
-      options: [
-        { label: 'Critical', value: 'Critical', color: 'purple' },
-        { label: 'High', value: 'High', color: 'red' },
-        { label: 'Medium', value: 'Medium', color: 'yellow' },
-        { label: 'Low', value: 'Low', color: 'blue' },
-      ],
-      defaultOperator: 'equals',
-    },
-    {
-      id: 'status',
-      field: 'status',
-      label: 'Status',
-      type: 'select',
-      icon: Clock,
-      options: [
-        { label: 'New', value: 'New' },
-        { label: 'Acknowledged', value: 'Acknowledged' },
-        { label: 'Done', value: 'Done' },
-      ],
-      defaultOperator: 'equals',
-    },
-    {
-      id: 'category',
-      field: 'category',
-      label: 'Category',
-      type: 'select',
-      icon: MessageSquare,
-      options: [
-        { label: 'Code Quality', value: 'Code Quality', icon: Code },
-        { label: 'Testing', value: 'Testing' },
-        { label: 'Documentation', value: 'Documentation', icon: FileText },
-        { label: 'Security', value: 'Security', icon: Shield },
-        { label: 'Performance', value: 'Performance', icon: Zap },
-      ],
-      defaultOperator: 'equals',
-    },
-    {
-      id: 'title',
-      field: 'title',
-      label: 'Title',
-      type: 'text',
-      placeholder: 'Search in title...',
-      defaultOperator: 'contains',
-    },
-    {
-      id: 'description',
-      field: 'description',
-      label: 'Description',
-      type: 'text',
-      placeholder: 'Search in description...',
-      defaultOperator: 'contains',
-    },
-  ],
-  sortOptions: [
-    { field: 'createdAt', label: 'Date Created (Newest)', defaultDirection: 'desc' },
-    { field: 'createdAt', label: 'Date Created (Oldest)', defaultDirection: 'asc' },
-    { field: 'priority', label: 'Priority' },
-    { field: 'status', label: 'Status' },
-    { field: 'category', label: 'Category' },
-    { field: 'title', label: 'Title' },
-  ],
-  presets: [
-    {
-      id: 'critical-new',
-      name: 'Critical & New',
-      description: 'Show critical priority items that are new',
-      icon: AlertCircle,
-      filters: [
-        { field: 'priority', operator: 'equals', value: 'Critical' },
-        { field: 'status', operator: 'equals', value: 'New' },
-      ],
-    },
-    {
-      id: 'high-priority',
-      name: 'High Priority',
-      description: 'Show high and critical priority items',
-      filters: [{ field: 'priority', operator: 'in', value: ['Critical', 'High'] }],
-      sort: { field: 'createdAt', direction: 'desc' },
-    },
-    {
-      id: 'pending-work',
-      name: 'Pending Work',
-      description: 'Show items that are not done',
-      filters: [{ field: 'status', operator: 'not_equals', value: 'Done' }],
-      sort: { field: 'priority', direction: 'asc' },
-    },
-    {
-      id: 'security-issues',
-      name: 'Security Issues',
-      description: 'Show all security-related suggestions',
-      icon: Shield,
-      filters: [{ field: 'category', operator: 'equals', value: 'Security' }],
-    },
-  ],
-  searchable: true,
-  searchPlaceholder: 'Search suggestions...',
-  searchFields: ['title', 'description', 'category'],
-  allowMultipleFilters: false,
-  persistState: true,
-  storageKey: 'suggestions-filters',
-};
+// Category configuration with icons and colors
+const categoryConfig = [
+  { name: 'Code Quality', icon: Code, color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  { name: 'Testing', icon: CheckCircle, color: 'bg-green-50 text-green-700 border-green-200' },
+  { name: 'Documentation', icon: FileText, color: 'bg-purple-50 text-purple-700 border-purple-200' },
+  { name: 'Security', icon: Shield, color: 'bg-red-50 text-red-700 border-red-200' },
+  { name: 'Performance', icon: Zap, color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+];
 
 /**
  *
@@ -152,28 +49,29 @@ export default function OwnerSuggestions() {
     queryKey: ['/api/pillars/suggestions'],
   });
 
-  // Use the filter and sort hook
-  const {
-    filteredData,
-    filters,
-    sort,
-    search,
-    addFilter,
-    removeFilter,
-    clearFilters,
-    toggleSort,
-    setSearch,
-    applyPreset,
-    hasActiveFilters,
-    activeFilterCount,
-    resultCount,
-  } = useFilterSort({
-    data: suggestions,
-    config: filterSortConfig,
-    initialState: {
-      sort: { field: 'createdAt', direction: 'desc' },
-    },
-  });
+  // Group suggestions by category and take 2 from each
+  const categorizedSuggestions = useMemo(() => {
+    const grouped = suggestions.reduce((acc, suggestion) => {
+      if (!acc[suggestion.category]) {
+        acc[suggestion.category] = [];
+      }
+      // Only add if not done and we have less than 2 in this category
+      if (suggestion.status !== 'Done' && acc[suggestion.category].length < 2) {
+        acc[suggestion.category].push(suggestion);
+      }
+      return acc;
+    }, {} as Record<string, ImprovementSuggestion[]>);
+
+    // Sort suggestions within each category by priority
+    const priorityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+    Object.keys(grouped).forEach(category => {
+      grouped[category].sort((a, b) => 
+        priorityOrder[a.priority] - priorityOrder[b.priority]
+      );
+    });
+
+    return grouped;
+  }, [suggestions]);
 
   const acknowledgeMutation = useMutation({
     mutationFn: (id: string) => apiRequest('POST', `/api/pillars/suggestions/${id}/acknowledge`),
@@ -248,11 +146,14 @@ export default function OwnerSuggestions() {
     }
   };
 
-  const handleApplyPreset = (presetId: string) => {
-    const preset = filterSortConfig.presets?.find((p) => p.id === presetId);
-    if (preset) {
-      applyPreset(preset);
-    }
+  const getCategoryIcon = (categoryName: string) => {
+    const config = categoryConfig.find(c => c.name === categoryName);
+    return config?.icon || MessageSquare;
+  };
+
+  const getCategoryColor = (categoryName: string) => {
+    const config = categoryConfig.find(c => c.name === categoryName);
+    return config?.color || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   return (
@@ -275,34 +176,50 @@ export default function OwnerSuggestions() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto'>
-          {/* Filter and Sort Component */}
-          <FilterSort
-            config={filterSortConfig}
-            filters={filters}
-            sort={sort}
-            search={search}
-            onAddFilter={addFilter}
-            onRemoveFilter={removeFilter}
-            onUpdateFilter={() => {}}
-            onClearFilters={clearFilters}
-            onSetSort={() => {}}
-            onToggleSort={toggleSort}
-            onSetSearch={setSearch}
-            onApplyPreset={handleApplyPreset}
-            activeFilterCount={activeFilterCount}
-            resultCount={resultCount}
-            totalCount={suggestions.length}
-            className='mb-6'
-          />
+          {/* Category Summary */}
+          <Card className='mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'>
+            <CardContent className='pt-6'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <h3 className='text-lg font-semibold text-blue-900'>Continuous Improvement Overview</h3>
+                  <p className='text-sm text-blue-700 mt-1'>
+                    Displaying 2 priority suggestions per category for focused improvements
+                  </p>
+                </div>
+                <Badge className='bg-blue-100 text-blue-800'>
+                  {Object.values(categorizedSuggestions).flat().length} Active Suggestions
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
           {isLoading ? (
             <div className='flex items-center justify-center h-64'>
               <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-koveo-navy'></div>
             </div>
           ) : (
-            <div className='space-y-4'>
-              {filteredData && filteredData.length > 0 ? (
-                filteredData.map((suggestion) => (
-                  <Card key={suggestion.id} className='hover:shadow-md transition-shadow'>
+            <div className='space-y-8'>
+              {categoryConfig.map((category) => {
+                const categorySuggestions = categorizedSuggestions[category.name] || [];
+                const Icon = category.icon;
+                
+                if (categorySuggestions.length === 0) return null;
+                
+                return (
+                  <div key={category.name} className='space-y-4'>
+                    {/* Category Header */}
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border ${category.color}`}>
+                      <Icon className='h-5 w-5' />
+                      <h2 className='text-lg font-semibold'>{category.name}</h2>
+                      <Badge variant='outline' className='ml-auto'>
+                        {categorySuggestions.length} {categorySuggestions.length === 1 ? 'suggestion' : 'suggestions'}
+                      </Badge>
+                    </div>
+                    
+                    {/* Category Suggestions */}
+                    <div className='grid gap-4 md:grid-cols-2'>
+                      {categorySuggestions.map((suggestion) => (
+                        <Card key={suggestion.id} className='hover:shadow-lg transition-all hover:scale-[1.02]'>
                     <CardHeader>
                       <div className='flex items-start justify-between'>
                         <div className='flex-1'>
@@ -382,25 +299,25 @@ export default function OwnerSuggestions() {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))
-              ) : (
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Empty State */}
+              {Object.values(categorizedSuggestions).flat().length === 0 && (
                 <Card>
                   <CardContent className='flex flex-col items-center justify-center py-16'>
                     <MessageSquare size={48} className='text-gray-400 mb-4' />
                     <h3 className='text-lg font-semibold text-gray-600 mb-2'>
-                      {hasActiveFilters ? 'No Matching Suggestions' : 'No Suggestions Available'}
+                      No Active Suggestions
                     </h3>
-                    <p className='text-gray-500 text-center'>
-                      {hasActiveFilters
-                        ? 'Try adjusting your filters to see more results.'
-                        : 'No improvement suggestions have been generated yet. Run the quality check to generate recommendations.'}
+                    <p className='text-gray-500 text-center max-w-md'>
+                      All suggestions have been completed or no improvement suggestions have been generated yet. 
+                      Run the quality check to generate new recommendations.
                     </p>
-                    {hasActiveFilters && (
-                      <Button onClick={clearFilters} variant='outline' size='sm' className='mt-4'>
-                        Clear Filters
-                      </Button>
-                    )}
                   </CardContent>
                 </Card>
               )}

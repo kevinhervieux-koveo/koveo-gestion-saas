@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   // Query to get current user
-  const { data: userData, isLoading } = useQuery({
+  const { data: userData, isLoading } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
     queryFn: () => apiRequest('GET', '/api/auth/user'),
     retry: false,
