@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Copy, FileText, Zap, Save, Clock, Trash2 } from 'lucide-react';
+import { Copy, FileText, Zap, Save, Clock, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
@@ -44,6 +44,56 @@ interface FeatureFormProps {
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mutation to create feature in roadmap
+  const createFeatureMutation = useMutation({
+    mutationFn: async (featureData: {
+      name: string;
+      description: string;
+      category: string;
+      status?: string;
+      priority?: string;
+      businessObjective?: string;
+      targetUsers?: string;
+      successMetrics?: string;
+      technicalComplexity?: string;
+      dependencies?: string;
+      userFlow?: string;
+    }) => {
+      const response = await fetch('/api/features', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(featureData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create feature');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (newFeature) => {
+      // Invalidate queries to refresh roadmap data
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+      
+      toast({
+        title: 'Feature Integrated',
+        description: `"${newFeature.name}" has been successfully added to the roadmap.`,
+      });
+      
+      // Close the dialog
+      handleClose(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Integration Failed',
+        description: 'Failed to add the feature to the roadmap. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Mutation to save generated prompt as actionable item
   const savePromptMutation = useMutation({
@@ -362,6 +412,38 @@ ${formData.additionalNotes || 'No additional notes'}
         description: 'Failed to copy prompt to clipboard.',
         variant: 'destructive',
       });
+    }
+  };
+
+  /**
+   * Handles integrating the feature into the roadmap.
+   */
+  const integrateToRoadmap = () => {
+    if (isNewFeature) {
+      // For new features, create them in the roadmap
+      const featureData = {
+        name: formData.featureName,
+        description: formData.featureDescription,
+        category: formData.featureCategory,
+        status: 'submitted' as const,
+        priority: (formData.priority || 'medium') as any,
+        businessObjective: formData.businessObjective || undefined,
+        targetUsers: formData.targetUsers || undefined,
+        successMetrics: formData.successMetrics || undefined,
+        technicalComplexity: formData.complexity || undefined,
+        dependencies: formData.dependencies || undefined,
+        userFlow: formData.userFlow || undefined,
+      };
+      
+      createFeatureMutation.mutate(featureData);
+    } else {
+      // For existing features, just close the dialog
+      // (they're already in the roadmap)
+      toast({
+        title: 'Feature Already in Roadmap',
+        description: 'This feature is already part of the roadmap.',
+      });
+      handleClose(false);
     }
   };
 
@@ -776,8 +858,17 @@ ${formData.additionalNotes || 'No additional notes'}
 
         <DialogFooter className="flex justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => handleClose(false)}>
-              Cancel
+            <Button 
+              variant="outline" 
+              onClick={integrateToRoadmap}
+              disabled={
+                createFeatureMutation.isPending ||
+                (isNewFeature && (!formData.featureName || !formData.featureCategory || !formData.featureDescription))
+              }
+              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {createFeatureMutation.isPending ? 'Integrating...' : 'Integrate to Roadmap'}
             </Button>
             
             {lastSaved && step === 'form' && (
