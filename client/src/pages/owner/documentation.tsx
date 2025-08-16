@@ -82,7 +82,6 @@ interface DocumentationData {
 export default function OwnerDocumentation() {
   const [isExportingGoogleSuite, setIsExportingGoogleSuite] = useState(false);
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false);
-  const [llmDocumentation, setLlmDocumentation] = useState('');
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
   const { toast } = useToast();
@@ -333,17 +332,21 @@ export default function OwnerDocumentation() {
     try {
       // Generate comprehensive LLM documentation
       const llmDoc = generateComprehensiveLLMDocumentation(docData);
-      setLlmDocumentation(llmDoc);
+      
+      // Create and download the text file
+      const blob = new Blob([llmDoc], { type: 'text/plain;charset=utf-8' });
+      const filename = `koveo-gestion-llm-documentation-${new Date().toISOString().split('T')[0]}.txt`;
+      downloadFile(blob, filename);
 
       toast({
-        title: 'LLM Documentation Generated',
-        description: 'Comprehensive documentation for AI processing has been generated.',
+        title: 'LLM Documentation Exported',
+        description: 'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Generation Failed',
-        description: 'Failed to generate LLM documentation. Please try again.',
+        title: 'Export Failed',
+        description: 'Failed to export LLM documentation. Please try again.',
       });
     } finally {
       setIsGeneratingLLM(false);
@@ -611,21 +614,6 @@ This documentation provides a complete technical portrait of the Koveo Gestion p
     URL.revokeObjectURL(url);
   };
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(llmDocumentation);
-      toast({
-        title: 'Copied to Clipboard',
-        description: 'LLM documentation has been copied to your clipboard.',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Copy Failed',
-        description: 'Failed to copy documentation to clipboard.',
-      });
-    }
-  };
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
@@ -843,30 +831,6 @@ This documentation provides a complete technical portrait of the Koveo Gestion p
             </Card>
           </div>
 
-          {/* LLM Documentation Output */}
-          {llmDocumentation && (
-            <Card>
-              <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Cpu className='h-5 w-5' />
-                    Generated LLM Documentation
-                  </CardTitle>
-                  <Button onClick={copyToClipboard} variant='outline' size='sm'>
-                    Copy to Clipboard
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <textarea
-                  value={llmDocumentation}
-                  readOnly
-                  className='w-full min-h-[400px] font-mono text-xs p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-koveo-navy focus:border-transparent'
-                  placeholder='LLM documentation will appear here...'
-                />
-              </CardContent>
-            </Card>
-          )}
 
           {isLoading && (
             <Card>
