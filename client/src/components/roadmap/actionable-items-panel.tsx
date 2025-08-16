@@ -69,16 +69,22 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
     },
   });
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string, onClick?: () => void) => {
+    const iconClass = "w-5 h-5 cursor-pointer hover:scale-110 transition-transform";
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent accordion toggle
+      onClick?.();
+    };
+
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+        return <CheckCircle2 className={`${iconClass} text-green-600`} onClick={handleClick} />;
       case 'in-progress':
-        return <Clock className="w-5 h-5 text-blue-600" />;
+        return <Clock className={`${iconClass} text-blue-600`} onClick={handleClick} />;
       case 'blocked':
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
+        return <AlertCircle className={`${iconClass} text-red-600`} onClick={handleClick} />;
       default:
-        return <Circle className="w-5 h-5 text-gray-400" />;
+        return <Circle className={`${iconClass} text-gray-400 hover:text-green-600`} onClick={handleClick} />;
     }
   };
 
@@ -103,6 +109,12 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         ...(newStatus === 'completed' ? { completedAt: new Date() } : {}),
       },
     });
+  };
+
+  const handleCircleClick = async (item: ActionableItem) => {
+    // Toggle between pending and completed when clicking the circle
+    const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+    await handleStatusChange(item.id, newStatus);
   };
 
   const copyImplementationPrompt = async (prompt: string) => {
@@ -194,7 +206,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                 <AccordionTrigger className="px-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-3">
-                      {getStatusIcon(item.status)}
+                      {getStatusIcon(item.status, () => handleCircleClick(item))}
                       <div className="text-left">
                         <div className="font-medium">{item.title}</div>
                         <div className="text-sm text-gray-600">
