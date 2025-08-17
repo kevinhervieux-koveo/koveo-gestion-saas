@@ -211,6 +211,7 @@ export function analyzePerformance(): void {
     Object.entries(metrics.componentLoadTimes).forEach(([name, time]) => {
       console.warn(`  ${name}: ${time.toFixed(2)}ms`);
     });
+  }
   
   // Provide optimization suggestions
   const suggestions = [];
