@@ -35,7 +35,7 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
-import { desc, eq, or, and, sql, gte, lte, like, inArray } from 'drizzle-orm';
+import { desc, eq, or, and, sql, gte, lte, like, inArray, count, countDistinct, asc, ne, ilike } from 'drizzle-orm';
 import { randomBytes, createHash } from 'crypto';
 import ws from 'ws';
 import { metricValidationService } from './services/metric-validation';
@@ -2440,15 +2440,59 @@ function registerInvitationRoutes(app: any) {
           });
         }
 
+        // Get organization details for access control
+        const targetOrganization = await db.select({
+          id: organizations.id,
+          name: organizations.name,
+          type: organizations.type
+        })
+        .from(organizations)
+        .where(eq(organizations.id, organizationId))
+        .limit(1);
+
+        if (!targetOrganization.length) {
+          return res.status(404).json({
+            message: 'Organization not found',
+            code: 'ORGANIZATION_NOT_FOUND'
+          });
+        }
+
+        const targetOrg = targetOrganization[0];
+        
+        // Get current user's organization info
+        const currentUserOrganizations = await db.select({
+          id: organizations.id,
+          name: organizations.name,
+          type: organizations.type
+        })
+        .from(organizations)
+        .where(inArray(organizations.id, currentUser.organizations || []))
+        .limit(1);
+
+        const currentUserOrg = currentUserOrganizations[0];
+
+        // Only admins can add users to demo organization
+        if (targetOrg.name?.toLowerCase() === 'demo' && currentUser.role !== 'admin') {
+          return res.status(403).json({
+            message: 'Only administrators can invite users to the demo organization',
+            code: 'DEMO_ORGANIZATION_ADMIN_ONLY'
+          });
+        }
+
         // Role-based access control for organization assignment
         if (currentUser.role === 'manager') {
-          // Managers can only invite to their own organization
-          const userOrganizations = currentUser.organizations || [];
-          if (!userOrganizations.includes(organizationId)) {
-            return res.status(403).json({
-              message: 'Managers can only invite users to their own organization',
-              code: 'ORGANIZATION_ACCESS_DENIED'
-            });
+          // Koveo organization can add to any organization
+          if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
+            // Koveo managers can invite to any organization
+          } else {
+            // Other managers can only invite to their own organization
+            const userOrganizations = currentUser.organizations || [];
+            if (!userOrganizations.includes(organizationId)) {
+              return res.status(403).json({
+                message: 'Managers can only invite users to their own organization',
+                code: 'ORGANIZATION_ACCESS_DENIED'
+              });
+            }
           }
         } else if (currentUser.role === 'admin') {
           // Admins can invite to any organization they have access to

@@ -131,7 +131,7 @@
 
 @layer base {
   * {
-    @apply border-slate-200;
+    @apply border-gray-200;
   }
 
   body {

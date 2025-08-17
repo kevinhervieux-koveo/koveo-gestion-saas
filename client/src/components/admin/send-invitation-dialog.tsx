@@ -250,14 +250,60 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
     if (!organizations) return [];
-    // If user is admin, they can see all accessible organizations
-    // If user is manager, they only see their organization
-    if (currentUser?.role === 'manager') {
-      return organizations.filter(org => 
-        currentUser?.organizations?.includes(org.id)
-      );
+    
+    // Get current user's organization info
+    const currentUserOrg = organizations.find(org => 
+      currentUser?.organizations?.includes(org.id)
+    );
+    
+    if (currentUser?.role === 'admin') {
+      // Admins can add users to any organization they have access to
+      return organizations;
+    } else if (currentUser?.role === 'manager') {
+      // Managers have different rules based on their organization
+      if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
+        // Koveo organization can add to any organization
+        return organizations;
+      } else {
+        // Other organizations can only add users to their own organization
+        return organizations.filter(org => 
+          currentUser?.organizations?.includes(org.id)
+        );
+      }
     }
-    return organizations;
+    
+    // Default: only show user's organizations
+    return organizations.filter(org => 
+      currentUser?.organizations?.includes(org.id)
+    );
+  };
+
+  // Check if user can access a specific organization for invitations
+  const canInviteToOrganization = (orgId: string) => {
+    if (!orgId || !organizations) return false;
+    
+    const targetOrg = organizations.find(org => org.id === orgId);
+    const currentUserOrg = organizations.find(org => 
+      currentUser?.organizations?.includes(org.id)
+    );
+    
+    // Only admins can add users to demo organization
+    if (targetOrg?.name?.toLowerCase() === 'demo') {
+      return currentUser?.role === 'admin';
+    }
+    
+    // Koveo organization can add to any organization
+    if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
+      return true;
+    }
+    
+    // Admins can add to organizations they have access to
+    if (currentUser?.role === 'admin') {
+      return true;
+    }
+    
+    // Others can only add to their own organization
+    return currentUser?.organizations?.includes(orgId);
   };
 
   const getFilteredBuildings = (selectedOrgId: string) => {
@@ -477,14 +523,27 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations().map((org) => (
-                            <SelectItem key={org.id} value={org.id}>
-                              <div className="flex items-center gap-2">
-                                <Building className="h-4 w-4" />
-                                {org.name}
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {getFilteredOrganizations().map((org) => {
+                            const isDemo = org.name?.toLowerCase() === 'demo';
+                            const canInvite = canInviteToOrganization(org.id);
+                            return (
+                              <SelectItem 
+                                key={org.id} 
+                                value={org.id}
+                                disabled={!canInvite}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  {org.name}
+                                  {isDemo && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Admin Only
+                                    </Badge>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormDescription>
