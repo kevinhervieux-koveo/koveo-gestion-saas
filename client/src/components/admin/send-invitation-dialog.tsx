@@ -342,7 +342,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -388,7 +388,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,

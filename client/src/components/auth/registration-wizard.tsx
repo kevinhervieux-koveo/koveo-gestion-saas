@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
@@ -25,9 +25,9 @@ export interface WizardStep {
  * Provides data handling and navigation callbacks.
  */
 export interface WizardStepProps {
-  data: any;
-  onDataChange: (data: any) => void;
-  onValidationChange: (isValid: boolean) => void;
+  data: Record<string, unknown>;
+  onDataChange: (_data: Record<string, unknown>) => void;
+  onValidationChange: (_isValid: boolean) => void;
   onNext: () => void;
   onPrevious: () => void;
   isActive: boolean;
@@ -39,8 +39,8 @@ export interface WizardStepProps {
  */
 interface RegistrationWizardProps {
   steps: WizardStep[];
-  initialData?: any;
-  onComplete: (data: any) => void;
+  initialData?: Record<string, unknown>;
+  onComplete: (_data: Record<string, unknown>) => void;
   onCancel: () => void;
   title?: string;
   className?: string;
@@ -51,13 +51,14 @@ interface RegistrationWizardProps {
  * 
  * Provides a guided registration flow with step validation,
  * progress tracking, and Quebec compliance features.
- * @param root0
- * @param root0.steps
- * @param root0.initialData
- * @param root0.onComplete
- * @param root0.onCancel
- * @param root0.title
- * @param root0.className
+ * @param root0 - Component props object.
+ * @param root0.steps - Array of wizard steps to render.
+ * @param root0.initialData - Initial data for the wizard.
+ * @param root0.onComplete - Function called when wizard is completed.
+ * @param root0.onCancel - Function called when wizard is cancelled.
+ * @param root0.title - Optional title for the wizard.
+ * @param root0.className - Optional CSS class name.
+ * @returns JSX element for the registration wizard.
  */
 export function RegistrationWizard({
   steps: initialSteps,
@@ -67,7 +68,7 @@ export function RegistrationWizard({
   title = 'Inscription',
   className = ''
 }: RegistrationWizardProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<WizardStep[]>(initialSteps);
   const [wizardData, setWizardData] = useState(initialData);

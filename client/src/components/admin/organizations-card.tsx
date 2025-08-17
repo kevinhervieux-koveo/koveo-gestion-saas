@@ -37,16 +37,17 @@ import { OrganizationFormDialog } from './organization-form-dialog';
 import type { Organization } from '@shared/schema';
 
 /**
- *
+ * Props interface for OrganizationsCard component.
  */
 interface OrganizationsCardProps {
   className?: string;
 }
 
 /**
- *
- * @param root0
- * @param root0.className
+ * Organizations Card component displays and manages organization data.
+ * @param root0 - Component props.
+ * @param root0.className - Optional CSS class name for styling.
+ * @returns JSX element for the organizations card component.
  */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();
@@ -79,7 +80,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       });
       setDeletingOrganization(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete organization',

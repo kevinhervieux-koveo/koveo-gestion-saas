@@ -372,7 +372,7 @@ export class CoverageAutomationService {
         timestamp: new Date().toISOString(),
         overallCoverage: this.calculateOverallCoverage(data.coverageData),
         qualityScore: this.calculateQualityScore(data.qualityScores),
-        quebecComplianceScore: data.quebecSpecificMetrics.overallScore,
+        quebecComplianceScore: (data.quebecSpecificMetrics as any).complianceScore,
         recommendations: this.generateRecommendations(data)
       },
       detailed: {
@@ -528,7 +528,7 @@ export class CoverageAutomationService {
   private generateRecommendations(data: TestEffectivenessData): string[] {
     const recommendations = [];
     
-    if (data.quebecSpecificMetrics.overallScore < this.quebecComplianceThreshold) {
+    if ((data.quebecSpecificMetrics as any).complianceScore < this.quebecComplianceThreshold) {
       recommendations.push('Augmenter la couverture des tests de conformité québécoise');
     }
     

@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Shield, ShieldCheck, ShieldAlert, ShieldX, Clock, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldAlert, ShieldX, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Types based on the SSL API response
@@ -362,7 +362,7 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
               {/* Validity & Status */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                  <Clock className="h-5 w-5" />
                   Validity & Status
                 </h3>
                 

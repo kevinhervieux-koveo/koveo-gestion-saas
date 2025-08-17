@@ -24,11 +24,12 @@ interface PasswordStrengthIndicatorProps {
  * 
  * Provides real-time password strength feedback with Quebec French labels
  * and visual indicators for security compliance.
- * @param root0
- * @param root0.password
- * @param root0.showPassword
- * @param root0.onToggleVisibility
- * @param root0.className
+ * @param root0 - Component props object.
+ * @param root0.password - Current password value to validate.
+ * @param root0.showPassword - Whether password is visible.
+ * @param root0.onToggleVisibility - Function to toggle password visibility.
+ * @param root0.className - Optional CSS class name.
+ * @returns JSX element for password strength indicator.
  */
 export function PasswordStrengthIndicator({ 
   password, 
@@ -150,6 +151,7 @@ interface CriteriaItemProps {
  * @param root0 - The props object.
  * @param root0.met - Whether the password criterion is satisfied.
  * @param root0.text - The text description of the criterion.
+ * @returns JSX element for the criteria item.
  */
 function CriteriaItem({ met, text }: CriteriaItemProps) {
   return (

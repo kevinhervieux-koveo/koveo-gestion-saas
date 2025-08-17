@@ -46,29 +46,29 @@ const organizationSchema = z.object({
 });
 
 /**
- * Form data type for organization creation and editing
+ * Form data type for organization creation and editing.
  */
 type OrganizationFormData = z.infer<typeof organizationSchema>;
 
 /**
- * Props for the OrganizationFormDialog component
+ * Props for the OrganizationFormDialog component.
  */
 interface OrganizationFormDialogProps {
-  open: boolean;
+  open?: boolean;
   onOpenChange: (open: boolean) => void;
   organization?: Organization | null;
   onSuccess?: () => void;
 }
 
 /**
- * Dialog component for creating and editing organizations with form validation
+ * Dialog component for creating and editing organizations with form validation.
  * 
- * @param props - Component properties
- * @param props.open - Whether the dialog is open
- * @param props.onOpenChange - Callback to handle dialog open state changes
- * @param props.organization - Organization data for editing, null for creating new
- * @param props.onSuccess - Callback called after successful form submission
- * @returns JSX element for the organization form dialog
+ * @param props - Component properties.
+ * @param props.open - Whether the dialog is open.
+ * @param props.onOpenChange - Callback to handle dialog open state changes.
+ * @param props.organization - Organization data for editing, null for creating new.
+ * @param props.onSuccess - Callback called after successful form submission.
+ * @returns JSX element for the organization form dialog.
  */
 export function OrganizationFormDialog({
   open: _open,
@@ -145,7 +145,7 @@ export function OrganizationFormDialog({
       form.reset();
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Something went wrong',
@@ -159,7 +159,7 @@ export function OrganizationFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={_open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>

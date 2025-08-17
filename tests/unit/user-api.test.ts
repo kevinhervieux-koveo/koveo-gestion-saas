@@ -36,8 +36,9 @@ describe('User API Routes', () => {
     role: 'tenant',
     language: 'fr',
     phone: '+1-514-555-0123',
+    profileImage: '',
     isActive: true,
-    lastLoginAt: null,
+    lastLoginAt: new Date('2024-01-15T10:00:00Z'),
     createdAt: new Date('2024-01-15T10:00:00Z'),
     updatedAt: new Date('2024-01-15T10:00:00Z'),
   };
@@ -176,11 +177,22 @@ describe('User API Routes', () => {
   describe('POST /api/users', () => {
     it('should create user successfully', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined); // No existing user
-      mockStorage.createUser.mockResolvedValue({
-        ...mockUser,
-        ...mockUserData,
+      const newUser = {
         id: 'new-user-123',
-      });
+        firstName: mockUserData.firstName,
+        lastName: mockUserData.lastName,
+        email: mockUserData.email,
+        password: mockUserData.password,
+        role: mockUserData.role as 'admin' | 'manager' | 'tenant' | 'resident',
+        language: mockUserData.language,
+        phone: mockUser.phone,
+        profileImage: '',
+        isActive: true,
+        lastLoginAt: new Date('2024-01-15T10:00:00Z'),
+        createdAt: new Date('2024-01-15T10:00:00Z'),
+        updatedAt: new Date('2024-01-15T10:00:00Z'),
+      };
+      mockStorage.createUser.mockResolvedValue(newUser);
 
       const response = await request(app).post('/api/users').send(mockUserData).expect(201);
 
@@ -473,7 +485,7 @@ describe('User API Routes', () => {
     it('should handle different user roles', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined);
 
-      const roles = ['admin', 'manager', 'owner', 'tenant'] as const;
+      const roles = ['admin', 'manager', 'tenant', 'resident'] as const;
 
       for (const role of roles) {
         const testUser = { ...mockUser, role };

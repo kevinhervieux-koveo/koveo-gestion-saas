@@ -58,7 +58,7 @@ interface UserListComponentProps {
   users: User[];
   selectedUsers: Set<string>;
   onSelectionChange: (_selection: Set<string>) => void;
-  onBulkAction: (_action: string, _data?: any) => Promise<void>;
+  onBulkAction: (_action: string, _data?: Record<string, unknown>) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -81,10 +81,9 @@ interface EditUserDialogProps {
  * @param root0.open - Whether the dialog is open.
  * @param root0.onOpenChange - Callback when dialog open state changes.
  * @param root0.onSuccess - Callback when user is successfully updated.
- * @param root0._open
  * @returns JSX element for the edit user dialog.
  */
-function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
+function EditUserDialog({ user, open: _open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [role, setRole] = useState(user?.role || '');
@@ -107,7 +106,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       onOpenChange(false);
       onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -123,7 +122,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   if (!user) {return null;}
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={_open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('editUser')}</DialogTitle>
@@ -222,7 +221,7 @@ export function UserListComponent({
         description: t('userDeletedSuccessfully'),
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -243,7 +242,7 @@ export function UserListComponent({
         description: t('passwordResetEmailSent'),
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
