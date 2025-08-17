@@ -220,12 +220,41 @@ async function initializeApplication() {
     await registerRoutes(app);
 
     // Setup static file serving AFTER API routes to avoid conflicts
-    // Always serve static files in deployment (override development detection)
-    const forceProduction = true; // Force production mode for deployment
+    // Use NODE_ENV to determine serving mode
     
-    if (!forceProduction && process.env.NODE_ENV === 'development') {
-      log('🔧 Running in development mode with Vite');
-      await setupVite(app, server);
+    if (process.env.NODE_ENV === 'development') {
+      log('🔧 Running in development mode, serving static files for testing');
+      // Temporarily serve static files instead of Vite to avoid path-to-regexp error
+      const distPath = path.resolve(import.meta.dirname, 'public');
+      
+      if (fs.existsSync(distPath)) {
+        app.use(express.static(distPath));
+        
+        // Handle SPA routing by serving index.html for non-API routes
+        app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
+          const indexPath = path.resolve(distPath, 'index.html');
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send('Application not found');
+          }
+        });
+      } else {
+        log('⚠️ Build directory not found, serving a basic placeholder');
+        app.get('*', (_req: Request, res: Response) => {
+          res.send(`
+            <!DOCTYPE html>
+            <html>
+              <head><title>Koveo Gestion</title></head>
+              <body>
+                <h1>Koveo Gestion</h1>
+                <p>Application is starting up...</p>
+                <p><a href="/api/health">API Health Check</a></p>
+              </body>
+            </html>
+          `);
+        });
+      }
     } else {
       log('🏗️ Running in production mode, serving static files from dist/public');
       // Use custom static file serving to avoid the routing parameter issue
