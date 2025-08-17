@@ -1,0 +1,616 @@
+/**
+ * @file Intelligent Workflow Assistant
+ * @description Advanced workflow automation and intelligent assistance for AI agent
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
+import { glob } from 'glob';
+
+export interface WorkflowPattern {
+  name: string;
+  description: string;
+  triggers: string[];
+  actions: WorkflowAction[];
+  conditions?: string[];
+  frequency: 'once' | 'periodic' | 'onchange';
+}
+
+export interface WorkflowAction {
+  type: 'command' | 'file_operation' | 'validation' | 'notification' | 'analysis';
+  description: string;
+  payload: any;
+  priority: number;
+}
+
+export interface WorkflowSuggestion {
+  pattern: string;
+  confidence: number;
+  description: string;
+  estimatedTime: number;
+  benefits: string[];
+  risks: string[];
+}
+
+export interface ProjectInsight {
+  category: 'architecture' | 'quality' | 'performance' | 'security' | 'maintenance';
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  title: string;
+  description: string;
+  evidence: string[];
+  recommendations: string[];
+  impact: number;
+}
+
+/**
+ * Intelligent Workflow Assistant for AI agent optimization
+ */
+export class IntelligentWorkflowAssistant {
+  private projectRoot: string;
+  private workflowHistory: Map<string, Date> = new Map();
+  private patterns: WorkflowPattern[] = [];
+
+  constructor(projectRoot: string = process.cwd()) {
+    this.projectRoot = projectRoot;
+    this.initializePatterns();
+  }
+
+  /**
+   * Initialize common workflow patterns
+   */
+  private initializePatterns(): void {
+    this.patterns = [
+      {
+        name: 'pre-commit-validation',
+        description: 'Run validation checks before committing code',
+        triggers: ['git add', 'commit preparation'],
+        frequency: 'onchange',
+        actions: [
+          {
+            type: 'validation',
+            description: 'Run TypeScript check',
+            payload: { command: 'npx tsc --noEmit' },
+            priority: 1
+          },
+          {
+            type: 'validation',
+            description: 'Run linting',
+            payload: { command: 'npx eslint . --max-warnings 0' },
+            priority: 1
+          },
+          {
+            type: 'validation',
+            description: 'Run organization tests',
+            payload: { command: 'npx jest tests/organization --passWithNoTests' },
+            priority: 2
+          }
+        ]
+      },
+      {
+        name: 'dependency-audit',
+        description: 'Regular security and dependency auditing',
+        triggers: ['weekly', 'package.json change'],
+        frequency: 'periodic',
+        actions: [
+          {
+            type: 'command',
+            description: 'Security audit',
+            payload: { command: 'npm audit --audit-level=moderate' },
+            priority: 1
+          },
+          {
+            type: 'command',
+            description: 'Check for outdated packages',
+            payload: { command: 'npm outdated' },
+            priority: 2
+          },
+          {
+            type: 'analysis',
+            description: 'Analyze bundle size',
+            payload: { target: 'dist/' },
+            priority: 3
+          }
+        ]
+      },
+      {
+        name: 'documentation-sync',
+        description: 'Keep documentation in sync with code changes',
+        triggers: ['api changes', 'new features', 'schema updates'],
+        frequency: 'onchange',
+        actions: [
+          {
+            type: 'validation',
+            description: 'Check documentation coverage',
+            payload: { command: 'npx jest tests/organization/documentation-validation.test.ts' },
+            priority: 1
+          },
+          {
+            type: 'file_operation',
+            description: 'Update API documentation',
+            payload: { pattern: 'docs/**/*.md' },
+            priority: 2
+          }
+        ]
+      },
+      {
+        name: 'performance-monitoring',
+        description: 'Monitor and optimize application performance',
+        triggers: ['build changes', 'weekly'],
+        frequency: 'periodic',
+        actions: [
+          {
+            type: 'analysis',
+            description: 'Analyze bundle size',
+            payload: { target: 'dist/public' },
+            priority: 1
+          },
+          {
+            type: 'validation',
+            description: 'Check for performance anti-patterns',
+            payload: { pattern: '**/*.{ts,tsx}' },
+            priority: 2
+          }
+        ]
+      },
+      {
+        name: 'code-quality-enhancement',
+        description: 'Continuous code quality improvement',
+        triggers: ['daily', 'code changes'],
+        frequency: 'periodic',
+        actions: [
+          {
+            type: 'analysis',
+            description: 'Analyze code complexity',
+            payload: { tools: ['complexity-report'] },
+            priority: 1
+          },
+          {
+            type: 'validation',
+            description: 'Check for unused code',
+            payload: { command: 'npx ts-unused-exports tsconfig.json' },
+            priority: 2
+          }
+        ]
+      }
+    ];
+  }
+
+  /**
+   * Detect workflow patterns from current context
+   */
+  public detectWorkflowPatterns(currentFiles: string[], recentChanges: string[]): WorkflowSuggestion[] {
+    const suggestions: WorkflowSuggestion[] = [];
+
+    // Analyze file patterns
+    const hasTestFiles = currentFiles.some(f => f.includes('.test.'));
+    const hasComponentFiles = currentFiles.some(f => f.includes('components/'));
+    const hasSchemaChanges = recentChanges.some(f => f.includes('schema'));
+    const hasAPIChanges = recentChanges.some(f => f.includes('routes') || f.includes('api'));
+
+    // Test-related workflow
+    if (hasComponentFiles && !hasTestFiles) {
+      suggestions.push({
+        pattern: 'create-missing-tests',
+        confidence: 85,
+        description: 'Create tests for components without test coverage',
+        estimatedTime: 15,
+        benefits: ['Improved test coverage', 'Better code reliability'],
+        risks: ['Time investment', 'False positives in test detection']
+      });
+    }
+
+    // Documentation workflow
+    if (hasAPIChanges || hasSchemaChanges) {
+      suggestions.push({
+        pattern: 'update-api-documentation',
+        confidence: 90,
+        description: 'Update API documentation for schema/route changes',
+        estimatedTime: 10,
+        benefits: ['Accurate documentation', 'Better developer experience'],
+        risks: ['Documentation might become outdated quickly']
+      });
+    }
+
+    // Performance workflow
+    const largeFiles = currentFiles.filter(f => {
+      try {
+        const stats = fs.statSync(path.join(this.projectRoot, f));
+        return stats.size > 50000; // Files larger than 50KB
+      } catch {
+        return false;
+      }
+    });
+
+    if (largeFiles.length > 0) {
+      suggestions.push({
+        pattern: 'optimize-large-files',
+        confidence: 70,
+        description: 'Optimize or refactor large files for better maintainability',
+        estimatedTime: 30,
+        benefits: ['Better code organization', 'Improved performance'],
+        risks: ['Potential breaking changes', 'Refactoring complexity']
+      });
+    }
+
+    // Security workflow
+    if (recentChanges.some(f => f.includes('auth') || f.includes('security'))) {
+      suggestions.push({
+        pattern: 'security-review',
+        confidence: 95,
+        description: 'Conduct security review for authentication/security changes',
+        estimatedTime: 20,
+        benefits: ['Enhanced security', 'Compliance assurance'],
+        risks: ['False security alerts', 'Over-engineering']
+      });
+    }
+
+    return suggestions.sort((a, b) => b.confidence - a.confidence);
+  }
+
+  /**
+   * Execute workflow pattern
+   */
+  public async executeWorkflow(patternName: string, dryRun: boolean = false): Promise<{
+    success: boolean;
+    results: Array<{ action: string; success: boolean; output: string; }>;
+    summary: string;
+  }> {
+    const pattern = this.patterns.find(p => p.name === patternName);
+    if (!pattern) {
+      return {
+        success: false,
+        results: [],
+        summary: `Workflow pattern '${patternName}' not found`
+      };
+    }
+
+    const results: Array<{ action: string; success: boolean; output: string; }> = [];
+    let overallSuccess = true;
+
+    console.log(`${dryRun ? '[DRY RUN] ' : ''}Executing workflow: ${pattern.description}`);
+
+    for (const action of pattern.actions.sort((a, b) => a.priority - b.priority)) {
+      try {
+        console.log(`${dryRun ? '[DRY RUN] ' : ''}Running: ${action.description}`);
+        
+        if (dryRun) {
+          results.push({
+            action: action.description,
+            success: true,
+            output: `[DRY RUN] Would execute: ${JSON.stringify(action.payload)}`
+          });
+          continue;
+        }
+
+        let output = '';
+        let success = true;
+
+        switch (action.type) {
+          case 'command':
+            try {
+              output = execSync(action.payload.command, {
+                cwd: this.projectRoot,
+                encoding: 'utf-8',
+                stdio: 'pipe'
+              });
+            } catch (error: any) {
+              success = false;
+              output = error.message;
+            }
+            break;
+
+          case 'validation':
+            try {
+              output = execSync(action.payload.command, {
+                cwd: this.projectRoot,
+                encoding: 'utf-8',
+                stdio: 'pipe'
+              });
+            } catch (error: any) {
+              success = false;
+              output = error.stdout || error.message;
+            }
+            break;
+
+          case 'analysis':
+            output = await this.performAnalysis(action.payload);
+            break;
+
+          case 'file_operation':
+            output = await this.performFileOperation(action.payload);
+            break;
+
+          default:
+            output = `Unknown action type: ${action.type}`;
+            success = false;
+        }
+
+        results.push({
+          action: action.description,
+          success,
+          output: output.substring(0, 500) // Limit output length
+        });
+
+        if (!success) {
+          overallSuccess = false;
+        }
+
+      } catch (error: any) {
+        results.push({
+          action: action.description,
+          success: false,
+          output: error.message
+        });
+        overallSuccess = false;
+      }
+    }
+
+    // Record execution
+    this.workflowHistory.set(patternName, new Date());
+
+    const summary = `Workflow '${patternName}' ${overallSuccess ? 'completed successfully' : 'completed with errors'}. ${results.filter(r => r.success).length}/${results.length} actions succeeded.`;
+
+    return {
+      success: overallSuccess,
+      results,
+      summary
+    };
+  }
+
+  /**
+   * Perform analysis action
+   */
+  private async performAnalysis(payload: any): Promise<string> {
+    if (payload.target) {
+      // Analyze target directory/file
+      const targetPath = path.join(this.projectRoot, payload.target);
+      if (!fs.existsSync(targetPath)) {
+        return `Target not found: ${payload.target}`;
+      }
+
+      const stats = fs.statSync(targetPath);
+      if (stats.isDirectory()) {
+        const files = fs.readdirSync(targetPath, { recursive: true });
+        const totalSize = files.reduce((size, file) => {
+          try {
+            const filePath = path.join(targetPath, file as string);
+            return size + fs.statSync(filePath).size;
+          } catch {
+            return size;
+          }
+        }, 0);
+        
+        return `Directory analysis: ${files.length} files, ${Math.round(totalSize / 1024)}KB total`;
+      } else {
+        return `File analysis: ${Math.round(stats.size / 1024)}KB`;
+      }
+    }
+
+    if (payload.tools) {
+      // Run analysis tools
+      const results: string[] = [];
+      for (const tool of payload.tools) {
+        try {
+          const output = execSync(`npx ${tool}`, {
+            cwd: this.projectRoot,
+            encoding: 'utf-8',
+            stdio: 'pipe'
+          });
+          results.push(`${tool}: Success`);
+        } catch (error: any) {
+          results.push(`${tool}: ${error.message.substring(0, 100)}`);
+        }
+      }
+      return results.join('; ');
+    }
+
+    return 'Analysis completed';
+  }
+
+  /**
+   * Perform file operation
+   */
+  private async performFileOperation(payload: any): Promise<string> {
+    if (payload.pattern) {
+      const files = glob.sync(payload.pattern, {
+        cwd: this.projectRoot,
+        ignore: ['node_modules/**', 'dist/**']
+      });
+      
+      return `Found ${files.length} files matching pattern: ${payload.pattern}`;
+    }
+
+    return 'File operation completed';
+  }
+
+  /**
+   * Generate project insights using AI-powered analysis
+   */
+  public async generateProjectInsights(): Promise<ProjectInsight[]> {
+    const insights: ProjectInsight[] = [];
+
+    // Architecture insights
+    const componentFiles = glob.sync('client/src/components/**/*.tsx', {
+      cwd: this.projectRoot
+    });
+
+    const pageFiles = glob.sync('client/src/pages/**/*.tsx', {
+      cwd: this.projectRoot
+    });
+
+    if (componentFiles.length > pageFiles.length * 3) {
+      insights.push({
+        category: 'architecture',
+        severity: 'info',
+        title: 'Component-Heavy Architecture',
+        description: 'High component-to-page ratio suggests good code reusability',
+        evidence: [`${componentFiles.length} components vs ${pageFiles.length} pages`],
+        recommendations: ['Continue componentization approach', 'Consider component library documentation'],
+        impact: 20
+      });
+    }
+
+    // Quality insights
+    try {
+      const tscOutput = execSync('npx tsc --noEmit --skipLibCheck', {
+        cwd: this.projectRoot,
+        encoding: 'utf-8',
+        stdio: 'pipe'
+      });
+    } catch (error: any) {
+      const errors = (error.stdout || '').match(/error TS\d+:/g) || [];
+      if (errors.length > 0) {
+        insights.push({
+          category: 'quality',
+          severity: errors.length > 10 ? 'error' : 'warning',
+          title: 'TypeScript Errors Detected',
+          description: `${errors.length} TypeScript errors found in codebase`,
+          evidence: [`${errors.length} TypeScript compilation errors`],
+          recommendations: ['Fix TypeScript errors for better type safety', 'Consider stricter TypeScript configuration'],
+          impact: errors.length * 5
+        });
+      }
+    }
+
+    // Performance insights
+    const distPath = path.join(this.projectRoot, 'dist');
+    if (fs.existsSync(distPath)) {
+      try {
+        const files = fs.readdirSync(distPath, { recursive: true });
+        let totalSize = 0;
+        files.forEach(file => {
+          try {
+            const filePath = path.join(distPath, file as string);
+            totalSize += fs.statSync(filePath).size;
+          } catch {}
+        });
+
+        const sizeMB = totalSize / (1024 * 1024);
+        if (sizeMB > 5) {
+          insights.push({
+            category: 'performance',
+            severity: sizeMB > 10 ? 'warning' : 'info',
+            title: 'Large Bundle Size',
+            description: `Build output is ${sizeMB.toFixed(1)}MB`,
+            evidence: [`Total bundle size: ${sizeMB.toFixed(1)}MB`],
+            recommendations: ['Analyze bundle composition', 'Consider code splitting', 'Optimize large dependencies'],
+            impact: Math.round(sizeMB * 10)
+          });
+        }
+      } catch {}
+    }
+
+    // Security insights
+    try {
+      const auditOutput = execSync('npm audit --json', {
+        cwd: this.projectRoot,
+        encoding: 'utf-8',
+        stdio: 'pipe'
+      });
+      const auditResult = JSON.parse(auditOutput);
+      const highSeverity = auditResult.metadata?.vulnerabilities?.high || 0;
+      const critical = auditResult.metadata?.vulnerabilities?.critical || 0;
+
+      if (highSeverity > 0 || critical > 0) {
+        insights.push({
+          category: 'security',
+          severity: critical > 0 ? 'critical' : 'error',
+          title: 'Security Vulnerabilities Found',
+          description: `${critical} critical and ${highSeverity} high severity vulnerabilities`,
+          evidence: [`npm audit found ${critical + highSeverity} high-risk vulnerabilities`],
+          recommendations: ['Run npm audit fix', 'Update vulnerable dependencies', 'Review security policies'],
+          impact: critical * 50 + highSeverity * 20
+        });
+      }
+    } catch {}
+
+    // Maintenance insights
+    const packageJson = JSON.parse(fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8'));
+    const depCount = Object.keys(packageJson.dependencies || {}).length + Object.keys(packageJson.devDependencies || {}).length;
+
+    if (depCount > 100) {
+      insights.push({
+        category: 'maintenance',
+        severity: 'warning',
+        title: 'High Dependency Count',
+        description: `Project has ${depCount} dependencies`,
+        evidence: [`${depCount} total dependencies in package.json`],
+        recommendations: ['Audit unused dependencies', 'Consider dependency consolidation', 'Regular dependency updates'],
+        impact: Math.round(depCount / 10)
+      });
+    }
+
+    return insights.sort((a, b) => b.impact - a.impact);
+  }
+
+  /**
+   * Smart workflow recommendation engine
+   */
+  public async recommendWorkflows(context: {
+    recentFiles?: string[];
+    userIntent?: string;
+    projectPhase?: string;
+  } = {}): Promise<{
+    immediate: WorkflowSuggestion[];
+    scheduled: WorkflowSuggestion[];
+    optional: WorkflowSuggestion[];
+  }> {
+    const allSuggestions = this.detectWorkflowPatterns(
+      context.recentFiles || [],
+      context.recentFiles || []
+    );
+
+    // Add context-aware suggestions
+    if (context.userIntent?.toLowerCase().includes('deploy')) {
+      allSuggestions.push({
+        pattern: 'pre-deployment-checklist',
+        confidence: 95,
+        description: 'Run comprehensive pre-deployment validation',
+        estimatedTime: 25,
+        benefits: ['Reduced deployment issues', 'Better reliability'],
+        risks: ['Deployment delays', 'False positives']
+      });
+    }
+
+    if (context.projectPhase === 'development') {
+      allSuggestions.push({
+        pattern: 'development-quality-check',
+        confidence: 80,
+        description: 'Regular development quality validation',
+        estimatedTime: 10,
+        benefits: ['Early issue detection', 'Better code quality'],
+        risks: ['Development slowdown']
+      });
+    }
+
+    return {
+      immediate: allSuggestions.filter(s => s.confidence >= 90),
+      scheduled: allSuggestions.filter(s => s.confidence >= 70 && s.confidence < 90),
+      optional: allSuggestions.filter(s => s.confidence < 70)
+    };
+  }
+
+  /**
+   * Generate workflow execution report
+   */
+  public generateWorkflowReport(): string {
+    const report = {
+      executedWorkflows: Array.from(this.workflowHistory.entries()).map(([name, date]) => ({
+        name,
+        lastExecuted: date.toISOString(),
+        daysSince: Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+      })),
+      availablePatterns: this.patterns.map(p => ({
+        name: p.name,
+        description: p.description,
+        frequency: p.frequency
+      }))
+    };
+
+    return JSON.stringify(report, null, 2);
+  }
+}
+
+// Export singleton instance
+export const workflowAssistant = new IntelligentWorkflowAssistant();

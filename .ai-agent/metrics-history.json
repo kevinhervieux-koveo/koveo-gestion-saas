@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2025-08-17T00:45:38.506Z",
+    "projectHealth": {
+      "overallScore": 58,
+      "codeQuality": 95,
+      "documentation": 82.32323232323233,
+      "testing": 96.15,
+      "security": 15,
+      "performance": 0
+    },
+    "codeAnalysis": {
+      "complexity": 100,
+      "maintainability": 99,
+      "testCoverage": 96.15,
+      "typeScriptErrors": 1,
+      "lintWarnings": 0
+    },
+    "workspaceContext": {
+      "workingFiles": 3,
+      "focusArea": "demo",
+      "recentActivity": [
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts"
+      ]
+    },
+    "recommendations": {
+      "priority": 1,
+      "exploratory": 1,
+      "maintenance": 0
+    },
+    "insights": [
+      {
+        "category": "quality",
+        "severity": "warning",
+        "title": "TypeScript Errors Detected",
+        "impact": 5
+      }
+    ]
+  }
+]
