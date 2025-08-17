@@ -1,0 +1,87 @@
+{
+  "version": "2.0.0",
+  "monitoring": {
+    "websocketPort": 8080,
+    "performanceInterval": 5000,
+    "fileWatchDebounce": 2000,
+    "enableRealTimeMonitoring": true,
+    "enableFileWatching": true
+  },
+  "optimization": {
+    "memoryLimit": 512,
+    "buildOptimization": true,
+    "autoDeployment": false,
+    "enableCaching": true,
+    "compressionLevel": 6
+  },
+  "reporting": {
+    "defaultFormat": "text",
+    "includeMetrics": true,
+    "historyRetention": 30,
+    "generateDashboard": true,
+    "enableTrends": true
+  },
+  "workflows": {
+    "preCommitValidation": {
+      "enabled": true,
+      "steps": [
+        "typescript-check",
+        "linting",
+        "organization-tests"
+      ]
+    },
+    "securityAudit": {
+      "enabled": true,
+      "steps": [
+        "npm-audit",
+        "dependency-check",
+        "secret-scan"
+      ]
+    },
+    "qualityAssurance": {
+      "enabled": true,
+      "steps": [
+        "lint-check",
+        "format-check",
+        "test-coverage",
+        "complexity-analysis"
+      ]
+    },
+    "deploymentPipeline": {
+      "enabled": true,
+      "steps": [
+        "build-verification",
+        "test-suite",
+        "security-scan",
+        "performance-check"
+      ]
+    }
+  },
+  "integrations": {
+    "replit": {
+      "enableEnvironmentDetection": true,
+      "enableOptimization": true,
+      "enableDeploymentChecks": true
+    },
+    "database": {
+      "enableHealthChecks": true,
+      "enablePerformanceMonitoring": true
+    },
+    "storage": {
+      "enableObjectStorage": false,
+      "cacheDirectory": ".ai-agent"
+    }
+  },
+  "thresholds": {
+    "memoryUsage": 400,
+    "buildTime": 30000,
+    "testCoverage": 80,
+    "lintErrors": 0,
+    "complexityScore": 10
+  },
+  "notifications": {
+    "enableConsoleOutput": true,
+    "enableWebSocketAlerts": true,
+    "criticalIssuesOnly": false
+  }
+}
