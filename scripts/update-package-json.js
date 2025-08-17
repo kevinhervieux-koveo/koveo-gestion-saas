@@ -1,4 +1,11 @@
-{
+#!/usr/bin/env node
+
+/**
+ * Enhanced Package.json Configuration
+ * Use this to manually update your package.json with AI agent scripts
+ */
+
+const enhancedPackageJson = {
   "name": "koveo-gestion",
   "version": "1.0.0",
   "description": "Professional property management platform for Quebec with bilingual support, tenant portals, and automated communications",
@@ -75,6 +82,7 @@
     "analyze:deps": "npx depcheck",
     "audit:security": "npm audit --audit-level=high",
     "audit:licenses": "npx license-checker --summary",
+    // AI Agent Enhanced Scripts
     "ai-agent": "npx tsx scripts/enhanced-ai-agent-cli.ts",
     "ai-agent:start": "npx tsx scripts/enhanced-ai-agent-cli.ts start --watch --dashboard",
     "ai-agent:optimize": "npx tsx scripts/enhanced-ai-agent-cli.ts optimize",
@@ -83,14 +91,16 @@
     "ai-agent:context": "npx tsx scripts/enhanced-ai-agent-cli.ts context --analyze",
     "ai-agent:workflow": "npx tsx scripts/enhanced-ai-agent-cli.ts workflow --type quality",
     "ai-agent:demo": "npx tsx scripts/ai-agent-demo.ts",
-    "preinstall": "npx only-allow npm",
-    "postinstall": "npm run typecheck",
-    "prepare": "npm run build",
+    // Replit Integration Scripts
     "repl:health": "node -e \"console.log('Health check passed')\"",
     "repl:setup": "npm install && npm run db:push",
     "repl:deploy": "npm run build && npm run db:migrate:deploy",
     "repl:logs": "tail -f ~/.local/share/replit/logs/*",
-    "repl:monitor": "node tools/replit-monitor.js"
+    "repl:monitor": "node tools/replit-monitor.js",
+    // Build Lifecycle
+    "preinstall": "npx only-allow npm",
+    "postinstall": "npm run typecheck",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -178,4 +188,21 @@
     "ws": "^8.18.3",
     "zod": "^4.0.17"
   }
-}
+};
+
+console.log('Enhanced Package.json Configuration:');
+console.log('=====================================');
+console.log(JSON.stringify(enhancedPackageJson, null, 2));
+console.log('\n\nNew AI Agent Scripts Added:');
+console.log('- ai-agent: Main CLI interface');
+console.log('- ai-agent:start: Real-time monitoring with WebSocket server');
+console.log('- ai-agent:optimize: Environment optimization for Replit');
+console.log('- ai-agent:report: Generate comprehensive reports');
+console.log('- ai-agent:task: Interactive task execution');
+console.log('- ai-agent:context: Smart context management');
+console.log('- ai-agent:workflow: Automated development workflows');
+console.log('- ai-agent:demo: Interactive demonstration');
+console.log('\nUsage Examples:');
+console.log('  npx tsx scripts/enhanced-ai-agent-cli.ts start --watch');
+console.log('  npx tsx scripts/enhanced-ai-agent-cli.ts optimize');
+console.log('  npx tsx scripts/ai-agent-demo.ts');
