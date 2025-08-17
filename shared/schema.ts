@@ -1941,7 +1941,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   ),
   // Make other optional fields truly optional
   personalMessage: z.string().optional(),
-  invitationContext: z.record(z.unknown()).optional(),
+  invitationContext: z.record(z.string(), z.unknown()).optional(),
   requires2FA: z.boolean().default(false),
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
