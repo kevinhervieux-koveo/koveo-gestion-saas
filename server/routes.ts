@@ -19,6 +19,9 @@ import {
   insertInvitationAuditLogSchema,
   invitations,
   invitationAuditLog,
+  organizations,
+  buildings,
+  residences,
 } from '@shared/schema';
 import { registerUserRoutes } from './api/users';
 import { registerOrganizationRoutes } from './api/organizations';
@@ -970,7 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         // Check if features need status updates
-        const affectedFeatureIds = [...new Set(duplicates.map(d => d.featureId))];
+        const affectedFeatureIds = Array.from(new Set(duplicates.map(d => d.featureId)));
         
         for (const featureId of affectedFeatureIds) {
           // Check if all items are completed for each affected feature
@@ -987,7 +990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .update(schema.features)
               .set({ 
                 status: 'completed',
-                completedDate: new Date(),
+                completedDate: new Date().toISOString(),
                 updatedAt: new Date(),
               })
               .where(eq(schema.features.id, featureId));
@@ -1198,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if any features should be marked as completed
       const completedFeatures = [];
       if (updatedItems.length > 0) {
-        const featureIds = [...new Set(updatedItems.map(item => item.featureId))];
+        const featureIds = Array.from(new Set(updatedItems.map(item => item.featureId)));
         
         for (const featureId of featureIds) {
           const allItems = await db
@@ -2426,14 +2429,14 @@ function registerInvitationRoutes(app: any) {
         if (!validation.success) {
           return res.status(400).json({
             message: 'Invalid invitation data',
-            errors: validation.error.errors
+            errors: validation.error.issues
           });
         }
         
         const { email, role, organizationId, buildingId, residenceId, personalMessage, requires2FA } = validation.data;
         
         // Role-based access control for roles
-        if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
+        if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
           return res.status(403).json({
             message: 'Managers can only invite tenants and residents',
             code: 'INSUFFICIENT_ROLE_PERMISSIONS'
@@ -2523,7 +2526,7 @@ function registerInvitationRoutes(app: any) {
         }
 
         // Validate residence assignment for tenants and residents
-        if (['tenant', 'resident'].includes(role)) {
+        if (['tenant', 'resident'].includes(role as string)) {
           if (!residenceId) {
             return res.status(400).json({
               message: 'Residence must be assigned for tenants and residents',
@@ -2613,7 +2616,7 @@ function registerInvitationRoutes(app: any) {
         const invitationContext = {
           organizationId,
           buildingId,
-          residenceId: ['tenant', 'resident'].includes(role) ? residenceId : null
+          residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
         };
 
         const [newInvitation] = await db.insert(invitations).values({
@@ -2704,19 +2707,20 @@ function registerInvitationRoutes(app: any) {
         const results = [];
         const errors = [];
         
-        for (const [index, invitationData] of invitationList.entries()) {
+        for (let index = 0; index < invitationList.length; index++) {
+          const invitationData = invitationList[index];
           try {
             // Validate each invitation
             const validation = insertInvitationSchema.safeParse(invitationData);
             if (!validation.success) {
-              errors.push({ index, email: invitationData.email, errors: validation.error.errors });
+              errors.push({ index, email: invitationData.email, errors: validation.error.issues });
               continue;
             }
             
             const { email, role, organizationId, buildingId, residenceId } = validation.data;
             
             // Role-based access control for roles
-            if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role)) {
+            if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
               errors.push({ index, email, error: 'Managers can only invite tenants and residents' });
               continue;
             }
@@ -2738,7 +2742,7 @@ function registerInvitationRoutes(app: any) {
             }
 
             // Validate residence assignment for tenants and residents
-            if (['tenant', 'resident'].includes(role)) {
+            if (['tenant', 'resident'].includes(role as string)) {
               if (!residenceId) {
                 errors.push({ index, email, error: 'Residence must be assigned for tenants and residents' });
                 continue;
@@ -2747,14 +2751,9 @@ function registerInvitationRoutes(app: any) {
               // Verify residence belongs to the specified building/organization
               const residenceQuery = await db.select({
                 id: residences.id,
-                buildingId: residences.buildingId,
-                building: {
-                  id: buildings.id,
-                  organizationId: buildings.organizationId
-                }
+                buildingId: residences.buildingId
               })
               .from(residences)
-              .leftJoin(buildings, eq(residences.buildingId, buildings.id))
               .where(eq(residences.id, residenceId))
               .limit(1);
 
@@ -2764,7 +2763,17 @@ function registerInvitationRoutes(app: any) {
               }
 
               const residence = residenceQuery[0];
-              if (residence.building?.organizationId !== organizationId) {
+              
+              // Get building info separately to check organization
+              const buildingQuery = await db.select({
+                id: buildings.id,
+                organizationId: buildings.organizationId
+              })
+              .from(buildings)
+              .where(eq(buildings.id, residence.buildingId))
+              .limit(1);
+
+              if (buildingQuery.length === 0 || buildingQuery[0].organizationId !== organizationId) {
                 errors.push({ index, email, error: 'Residence does not belong to the selected organization' });
                 continue;
               }
@@ -2790,14 +2799,14 @@ function registerInvitationRoutes(app: any) {
             const invitationContext = {
               organizationId,
               buildingId,
-              residenceId: ['tenant', 'resident'].includes(role) ? residenceId : null
+              residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
             };
             
             const [newInvitation] = await db.insert(invitations).values({
               email,
               token,
               tokenHash,
-              role: role as any,
+              role: role as 'admin' | 'manager' | 'tenant' | 'resident',
               invitedByUserId: currentUser.id,
               organizationId,
               buildingId,
@@ -2892,8 +2901,7 @@ function registerInvitationRoutes(app: any) {
           order = 'desc'
         } = req.query;
         
-        // Build query with filters
-        let query = db.select().from(invitations);
+        // Build basic query
         const filters = [];
         
         // Role-based filtering: managers can only see their own invitations
@@ -2908,28 +2916,28 @@ function registerInvitationRoutes(app: any) {
         if (building_id) {filters.push(eq(invitations.buildingId, building_id));}
         if (invited_by) {filters.push(eq(invitations.invitedByUserId, invited_by));}
         
+        // Apply filters and pagination
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        let query = db.select().from(invitations);
+        
         if (filters.length > 0) {
           query = query.where(and(...filters));
         }
         
-        // Apply sorting
-        const sortColumn = invitations[sort as keyof typeof invitations] || invitations.createdAt;
+        // Apply ordering
         if (order === 'asc') {
-          query = query.orderBy(sortColumn);
+          query = query.orderBy(asc(invitations.createdAt));
         } else {
-          query = query.orderBy(desc(sortColumn));
+          query = query.orderBy(desc(invitations.createdAt));
         }
         
-        // Apply pagination
-        const offset = (parseInt(page) - 1) * parseInt(limit);
         const results = await query.limit(parseInt(limit)).offset(offset);
         
-        // Get total count for pagination
-        let countQuery = db.select({ count: sql`count(*)` }).from(invitations);
-        if (filters.length > 0) {
-          countQuery = countQuery.where(and(...filters));
-        }
-        const [{ count }] = await countQuery;
+        // Get total count separately
+        const countResult = await db.select({ count: count() }).from(invitations).where(
+          filters.length > 0 ? and(...filters) : undefined
+        );
+        const totalCount = countResult[0]?.count || 0;
         
         // Remove sensitive data from results
         const safeResults = results.map(({ token, tokenHash, ...safe }) => safe);
@@ -2939,8 +2947,8 @@ function registerInvitationRoutes(app: any) {
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
-            total: Number(count),
-            totalPages: Math.ceil(Number(count) / parseInt(limit))
+            total: Number(totalCount),
+            totalPages: Math.ceil(Number(totalCount) / parseInt(limit))
           }
         });
         
@@ -3451,7 +3459,7 @@ function registerInvitationRoutes(app: any) {
             errors.push({
               email: invitation.email,
               error: 'Invalid invitation data',
-              details: validation.error.errors
+              details: validation.error.issues
             });
             continue;
           }
@@ -3496,7 +3504,7 @@ function registerInvitationRoutes(app: any) {
               ...invitation,
               token: hashedToken,
               status: 'pending',
-              createdAt: new Date()
+              createdAt: new Date().toISOString()
             })
             .returning();
 
@@ -3513,7 +3521,7 @@ function registerInvitationRoutes(app: any) {
               organization?.[0]?.name || 'Koveo Gestion',
               invitation.personalMessage,
               newInvitation.expiresAt,
-              'fr'
+              'fr' as 'fr' | 'en'
             );
 
             if (emailSent) {
