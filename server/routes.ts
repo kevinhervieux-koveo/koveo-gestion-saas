@@ -306,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (filters.length > 0) {
         // Use logical AND for multiple filters
-        query = query.where(filters.length === 1 ? filters[0] : filters.reduce((acc, filter) => acc && filter));
+        query = query.where(filters.length === 1 ? filters[0] : and(...filters));
       }
       
       const issues = await query
@@ -1033,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .update(schema.features)
           .set({ 
             status: 'completed',
-            completedDate: new Date(),
+            completedDate: new Date().toISOString(),
             updatedAt: new Date(),
           })
           .where(eq(schema.features.id, item.featureId));
@@ -1381,7 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (featureError) {
           console.error(`Error syncing feature ${feature.id}:`, featureError);
-          syncResults.push({ id: feature.id, action: 'failed', error: featureError.message });
+          syncResults.push({ id: feature.id, action: 'failed', error: featureError instanceof Error ? featureError.message : 'Unknown error' });
         }
       }
 
@@ -3228,7 +3228,7 @@ function registerInvitationRoutes(app: any) {
             newUser.email,
             `${firstName} ${lastName}`,
             organization?.[0]?.name || 'Koveo Gestion',
-            newUser.language || 'fr'
+            (newUser.language as 'fr' | 'en') || 'fr'
           );
           
           if (!emailSent) {
@@ -3467,8 +3467,6 @@ function registerInvitationRoutes(app: any) {
               token,
               req.user?.firstName || 'Admin',
               organization?.[0]?.name || 'Koveo Gestion',
-              invitation.personalMessage,
-              newInvitation.expiresAt,
               'fr' as 'fr' | 'en'
             );
 
@@ -3553,8 +3551,6 @@ function registerInvitationRoutes(app: any) {
         token,
         req.user?.firstName || 'Admin',
         organization?.[0]?.name || 'Koveo Gestion',
-        invitation.personalMessage,
-        invitation.expiresAt,
         'fr'
       );
 
@@ -3833,7 +3829,7 @@ function registerInvitationRoutes(app: any) {
    * Sync Demo organization data from development to production
    * Used during deployment to ensure production has latest Demo data
    */
-  app.post('/api/demo-organization/sync', async (req, res) => {
+  app.post('/api/demo-organization/sync', async (req: any, res: any) => {
     try {
       // Verify sync authorization
       const authHeader = req.headers.authorization;
@@ -3867,12 +3863,12 @@ function registerInvitationRoutes(app: any) {
       const syncModule = await import('../scripts/sync-demo-organization.js');
       
       // Delete existing Demo data
-      if (syncModule.deleteDemoData) {
+      if (typeof syncModule.deleteDemoData === 'function') {
         await syncModule.deleteDemoData(db);
       }
       
-      // Import new Demo data
-      if (syncModule.importDemoData) {
+      // Import new Demo data  
+      if (typeof syncModule.importDemoData === 'function') {
         await syncModule.importDemoData(db, demoData);
       }
 
@@ -3906,7 +3902,7 @@ function registerInvitationRoutes(app: any) {
    * Export Demo organization data from current environment
    * Returns complete Demo organization data structure
    */
-  app.get('/api/demo-organization/export', async (req, res) => {
+  app.get('/api/demo-organization/export', async (req: any, res: any) => {
     try {
       // Check authorization for data export
       const authHeader = req.headers.authorization;
@@ -3922,7 +3918,7 @@ function registerInvitationRoutes(app: any) {
 
       // Export Demo data
       const syncModule = await import('../scripts/sync-demo-organization.js');
-      const demoData = await syncModule.exportDemoData();
+      const demoData = typeof syncModule.exportDemoData === 'function' ? await syncModule.exportDemoData() : null;
 
       console.log('✅ Demo organization export completed via API');
 
@@ -3953,7 +3949,7 @@ function registerInvitationRoutes(app: any) {
    * Get Demo organization sync status
    * Returns information about current Demo organization
    */
-  app.get('/api/demo-organization/status', async (req, res) => {
+  app.get('/api/demo-organization/status', async (req: any, res: any) => {
     try {
       // Find Demo organization
       const demoOrg = await db.query.organizations.findFirst({
