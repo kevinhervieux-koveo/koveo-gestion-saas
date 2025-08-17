@@ -224,8 +224,9 @@ export default function ResidentsDashboard() {
                     <CardTitle>Recent Bills & Payments</CardTitle>
                     <CardDescription>Your billing history and upcoming payments</CardDescription>
                   </div>
-                  <Button variant='outline' size='sm'>
+                  <Button variant='outline' size='sm' disabled>
                     View All Bills
+                    <Badge variant='secondary' className='ml-2 text-xs'>Future</Badge>
                   </Button>
                 </div>
               </CardHeader>
@@ -263,9 +264,10 @@ export default function ResidentsDashboard() {
                     <CardTitle>Maintenance Requests</CardTitle>
                     <CardDescription>Your submitted maintenance requests</CardDescription>
                   </div>
-                  <Button variant='outline' size='sm'>
+                  <Button variant='outline' size='sm' disabled>
                     <Plus className='w-4 h-4 mr-2' />
                     New Request
+                    <Badge variant='secondary' className='ml-2 text-xs'>Future</Badge>
                   </Button>
                 </div>
               </CardHeader>
@@ -349,21 +351,25 @@ export default function ResidentsDashboard() {
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2'>
+                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
                   <Wrench className='w-6 h-6 text-blue-600' />
                   <span className='text-sm'>Submit Request</span>
+                  <Badge variant='secondary' className='text-xs'>Future</Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2'>
+                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
                   <DollarSign className='w-6 h-6 text-green-600' />
                   <span className='text-sm'>Pay Bills</span>
+                  <Badge variant='secondary' className='text-xs'>Future</Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2'>
+                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
                   <FileText className='w-6 h-6 text-purple-600' />
                   <span className='text-sm'>View Documents</span>
+                  <Badge variant='secondary' className='text-xs'>Future</Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2'>
+                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
                   <Users className='w-6 h-6 text-orange-600' />
                   <span className='text-sm'>Building Info</span>
+                  <Badge variant='secondary' className='text-xs'>Future</Badge>
                 </Button>
               </div>
             </CardContent>
