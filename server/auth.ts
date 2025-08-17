@@ -404,10 +404,13 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Create user
+      // Create user with hashed password
+      const { salt, hash } = hashPassword(password);
+      const hashedPassword = `${salt}:${hash}`;
+      
       const newUser = await storage.createUser({
         email: email.toLowerCase(),
-        password, // TODO: Hash with bcrypt
+        password: hashedPassword,
         firstName,
         lastName,
         role,

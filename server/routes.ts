@@ -112,51 +112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(sessionConfig);
   
-  // Setup authentication routes
-  // setupAuthRoutes(app);
-  
-  // Register dedicated API routes
-  // registerUserRoutes(app);
-  // registerOrganizationRoutes(app);
-  // registerSSLRoutes(app);
-  
-  // RBAC Permissions Management API routes
-  // registerPermissionsRoutes(app);
-  
-  // Email service will be initialized in background - don't block route registration
-  // emailService.initialize() moved to background initialization
-  
-  // User Invitation Management API routes
-  // registerInvitationRoutes(app);
-  
-  // Email management routes
-  // registerEmailRoutes(app);
-  
-  // AI Monitoring API routes
-  // app.get('/api/ai/metrics', requireAuth, authorize('read:ai_analysis'), getAIMetrics);
-  // app.get('/api/ai/interactions', requireAuth, authorize('read:ai_analysis'), getAIInteractions);
-  // app.get('/api/ai/insights', requireAuth, authorize('read:ai_analysis'), getAIInsights);
-  // app.post('/api/ai/analyze', requireAuth, authorize('create:ai_analysis'), triggerAIAnalysis);
-  // app.post('/api/ai/insights/:insightId/apply', requireAuth, authorize('update:ai_analysis'), applyAISuggestion);
-  // app.post('/api/ai/interactions', requireAuth, authorize('create:ai_analysis'), recordAIInteraction);
-
-  // Quality Metrics Effectiveness Tracking API routes
-  // app.get('/api/metrics-effectiveness', requireAuth, authorize('read:quality_metric'), async (req, res) => {
-  //   try {
-  //     const { metricType, timeRange } = req.query;
-  //     const timeRangeHours = timeRange ? parseInt(timeRange as string) : 168; // Default 1 week
-  //     
-  //     const effectiveness = await metricValidationService.getMetricEffectiveness(
-  //       metricType as string,
-  //       timeRangeHours
-  //     );
-  //     
-  //     res.json(effectiveness);
-  //   } catch (error) {
-  //     console.error('Error fetching metrics effectiveness:', error);
-  //     res.status(500).json({ message: 'Failed to fetch metrics effectiveness data' });
-  //   }
-  // });
+  // Authentication routes are set up in auth.ts
+  // Email service initialization handled in background jobs
 
   app.post('/api/metrics-effectiveness/validate', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {
@@ -306,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (filters.length > 0) {
         // Use logical AND for multiple filters
-        query = query.where(filters.length === 1 ? filters[0] : and(...filters));
+        query = query.where(filters.length === 1 ? filters[0] : and(...filters)) as typeof query;
       }
       
       const issues = await query
@@ -3452,7 +3409,7 @@ function registerInvitationRoutes(app: any) {
               ...invitation,
               token: hashedToken,
               status: 'pending',
-              createdAt: new Date().toISOString()
+              createdAt: new Date()
             })
             .returning();
 
@@ -3465,9 +3422,10 @@ function registerInvitationRoutes(app: any) {
               invitation.email,
               invitation.email.split('@')[0],
               token,
-              req.user?.firstName || 'Admin',
               organization?.[0]?.name || 'Koveo Gestion',
-              'fr' as 'fr' | 'en'
+              req.user?.firstName || 'Admin',
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+              'fr' as ('fr' | 'en')
             );
 
             if (emailSent) {
@@ -3549,9 +3507,10 @@ function registerInvitationRoutes(app: any) {
         invitation.email,
         invitation.email.split('@')[0],
         token,
-        req.user?.firstName || 'Admin',
         organization?.[0]?.name || 'Koveo Gestion',
-        'fr'
+        req.user?.firstName || 'Admin',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        'fr' as ('fr' | 'en')
       );
 
       if (emailSent) {
@@ -3860,17 +3819,13 @@ function registerInvitationRoutes(app: any) {
       console.log('🔄 Starting Demo organization sync from API...');
 
       // Use import syntax compatible with the module structure
-      const syncModule = await import('../scripts/sync-demo-organization.js');
+      const { deleteDemoData, importDemoData } = await import('../scripts/sync-demo-organization.js');
       
       // Delete existing Demo data
-      if (typeof syncModule.deleteDemoData === 'function') {
-        await syncModule.deleteDemoData(db);
-      }
+      await deleteDemoData(db);
       
       // Import new Demo data  
-      if (typeof syncModule.importDemoData === 'function') {
-        await syncModule.importDemoData(db, demoData);
-      }
+      await importDemoData(db, demoData);
 
       console.log('✅ Demo organization sync completed via API');
 
@@ -3917,8 +3872,8 @@ function registerInvitationRoutes(app: any) {
       console.log('📤 Exporting Demo organization data via API...');
 
       // Export Demo data
-      const syncModule = await import('../scripts/sync-demo-organization.js');
-      const demoData = typeof syncModule.exportDemoData === 'function' ? await syncModule.exportDemoData() : null;
+      const { exportDemoData } = await import('../scripts/sync-demo-organization.js');
+      const demoData = await exportDemoData();
 
       console.log('✅ Demo organization export completed via API');
 

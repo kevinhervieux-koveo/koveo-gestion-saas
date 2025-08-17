@@ -518,6 +518,9 @@ async function main() {
   }
 }
 
+// Export functions for use in API routes
+export { exportDemoData, deleteDemoData, importDemoData };
+
 // Run the script
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
