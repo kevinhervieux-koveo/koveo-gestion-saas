@@ -125,6 +125,13 @@ const HomePage = createOptimizedLoader(
   { preloadDelay: 100, enableMemoryCleanup: true }
 );
 
+// Main Dashboard page
+const DashboardPage = createOptimizedLoader(
+  () => import('@/pages/dashboard'),
+  'dashboard-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
@@ -210,6 +217,9 @@ function Router() {
             <Switch>
               {/* Login page - redirect authenticated users to dashboard */}
               <Route path='/login' component={LoginRedirect} />
+
+              {/* Main Dashboard */}
+              <Route path='/dashboard' component={DashboardPage} />
 
               {/* Admin routes */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
