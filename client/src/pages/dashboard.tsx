@@ -112,7 +112,7 @@ export default function Dashboard() {
         <div className='max-w-7xl mx-auto space-y-6'>
           
           {/* Welcome Card with User Info */}
-          <Card className="bg-gradient-to-r from-koveo-navy to-blue-600 text-white">
+          <Card className="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
