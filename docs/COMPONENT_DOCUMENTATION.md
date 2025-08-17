@@ -33,11 +33,88 @@ interface AppLayoutProps {
 - Query client configuration for TanStack Query
 - Global toast notifications setup
 
-**Usage**:
+**Complete Implementation Example**:
 ```typescript
-<AppLayout>
-  <YourPageContent />
-</AppLayout>
+// App.tsx - Main application setup
+import { AppLayout } from '@/components/layout/AppLayout';
+import { BrowserRouter } from 'wouter';
+
+function App() {
+  return (
+    <AppLayout>
+      <BrowserRouter>
+        <Routes />
+      </BrowserRouter>
+    </AppLayout>
+  );
+}
+
+// Routes.tsx - Route configuration
+import { Route, Switch } from 'wouter';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { UsersPage } from '@/pages/UsersPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
+
+export function Routes() {
+  return (
+    <Switch>
+      <Route path="/login" component={LoginPage} />
+      <Route path="/dashboard" component={DashboardPage} />
+      <Route path="/users" component={UsersPage} />
+      <Route path="/" component={DashboardPage} />
+    </Switch>
+  );
+}
+
+// Protected route example
+import { useAuth } from '@/hooks/use-auth';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  return <>{children}</>;
+}
+```
+
+**Advanced Usage with Context**:
+```typescript
+// Custom layout for specific sections
+import { AppLayout } from '@/components/layout/AppLayout';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AppLayout>
+      <div className="flex h-screen">
+        <AdminSidebar />
+        <main className="flex-1 overflow-auto p-6">
+          {children}
+        </main>
+      </div>
+    </AppLayout>
+  );
+}
+
+// Page implementation with layout
+export function AdminUsersPage() {
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <UsersTable />
+      </div>
+    </AdminLayout>
+  );
+}
 ```
 
 ### Sidebar (`client/src/components/layout/sidebar.tsx`)

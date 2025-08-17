@@ -23,16 +23,48 @@
 
 **Request Body**:
 ```typescript
-{
+interface LoginRequest {
   username: string;
   password: string;
 }
 ```
 
-**Response**:
+**Example Request**:
 ```typescript
-{
-  success: boolean;
+// Frontend implementation
+const loginUser = async (credentials: LoginRequest) => {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(credentials),
+    credentials: 'include', // Important for session cookies
+  });
+  
+  if (!response.ok) {
+    throw new Error('Login failed');
+  }
+  
+  return response.json();
+};
+
+// Usage in React component
+const handleLogin = async (formData: LoginRequest) => {
+  try {
+    const result = await loginUser(formData);
+    // Handle successful login
+    router.push('/dashboard');
+  } catch (error) {
+    setError('Invalid username or password');
+  }
+};
+```
+
+**Success Response**:
+```typescript
+interface LoginResponse {
+  success: true;
   user: {
     id: string;
     username: string;
@@ -41,7 +73,17 @@
     lastName: string;
     role: 'admin' | 'manager' | 'tenant' | 'resident';
     organizationId: string;
-  }
+    isActive: boolean;
+  };
+}
+```
+
+**Error Response** (401 Unauthorized):
+```typescript
+{
+  success: false;
+  message: "Invalid username or password";
+  code: "AUTH_INVALID_CREDENTIALS";
 }
 ```
 
@@ -92,18 +134,138 @@
 ```
 
 ### POST /api/users
-**Purpose**: Create new user
+**Purpose**: Create new user with role-based permissions
 
 **Request Body**:
 ```typescript
-{
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+interface CreateUserRequest {
+  username: string;        // Unique username (3-50 characters)
+  email: string;          // Valid email address
+  firstName: string;      // First name (1-100 characters)
+  lastName: string;       // Last name (1-100 characters)
   role: 'admin' | 'manager' | 'tenant' | 'resident';
-  organizationId: string;
-  password: string;
+  organizationId: string; // Must be valid organization ID
+  password: string;       // Min 8 characters, complexity requirements
+  residenceId?: string;   // Required for tenant/resident roles
+}
+```
+
+**Complete Implementation Example**:
+```typescript
+// Frontend: User creation with validation
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const createUserSchema = z.object({
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must be less than 50 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  organizationId: z.string().uuid('Invalid organization ID'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+  residenceId: z.string().uuid().optional(),
+});
+
+type CreateUserFormData = z.infer<typeof createUserSchema>;
+
+// React Hook for user creation
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (userData: CreateUserFormData) => {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create user');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch users list
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+  });
+}
+
+// Form component usage
+export function CreateUserForm() {
+  const form = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      role: 'resident',
+      organizationId: '',
+      password: '',
+    },
+  });
+  
+  const createUser = useCreateUser();
+  
+  const onSubmit = (data: CreateUserFormData) => {
+    createUser.mutate(data);
+  };
+  
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Form fields implementation */}
+      </form>
+    </Form>
+  );
+}
+```
+
+**Success Response**:
+```typescript
+{
+  success: true;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    organizationId: string;
+    isActive: boolean;
+    createdAt: string;
+  };
+  message: "User created successfully";
+}
+```
+
+**Validation Error Response** (400 Bad Request):
+```typescript
+{
+  success: false;
+  message: "Validation failed";
+  errors: {
+    username?: string[];
+    email?: string[];
+    password?: string[];
+    // ... other field errors
+  };
 }
 ```
 
@@ -116,16 +278,236 @@
 **Purpose**: Deactivate user account
 
 ### POST /api/users/invite
-**Purpose**: Send invitation to new user
+**Purpose**: Send invitation to new user with role and residence assignment
 
 **Request Body**:
 ```typescript
+interface InviteUserRequest {
+  email: string;           // Valid email address
+  role: 'admin' | 'manager' | 'tenant' | 'resident';
+  organizationId: string;  // Organization to invite user to
+  residenceId?: string;    // Required for tenant/resident roles
+  invitedBy: string;       // ID of user sending invitation
+  message?: string;        // Optional personal message
+  expiresAt?: string;      // Optional expiration date (ISO string)
+}
+```
+
+**Advanced Implementation Example**:
+```typescript
+// Custom hook for invitation management
+export function useInviteUser() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth(); // Get current user
+  
+  return useMutation({
+    mutationFn: async (inviteData: Omit<InviteUserRequest, 'invitedBy'>) => {
+      // Automatically add invitedBy from current user
+      const payload: InviteUserRequest = {
+        ...inviteData,
+        invitedBy: user.id,
+        expiresAt: inviteData.expiresAt || 
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days default
+      };
+      
+      const response = await fetch('/api/users/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send invitation');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+  });
+}
+
+// Invitation form with residence selection
+export function InvitationForm() {
+  const inviteUser = useInviteUser();
+  const { data: residences } = useQuery({
+    queryKey: ['/api/residences'],
+    queryFn: () => fetch('/api/residences').then(res => res.json()),
+  });
+  
+  const form = useForm<InviteUserRequest>({
+    resolver: zodResolver(inviteUserSchema),
+    defaultValues: {
+      email: '',
+      role: 'resident',
+      organizationId: user.organizationId,
+      message: '',
+    },
+  });
+  
+  const selectedRole = form.watch('role');
+  const needsResidence = selectedRole === 'tenant' || selectedRole === 'resident';
+  
+  const onSubmit = (data: InviteUserRequest) => {
+    inviteUser.mutate(data, {
+      onSuccess: () => {
+        toast({
+          title: 'Invitation sent',
+          description: `Invitation sent to ${data.email}`,
+        });
+        form.reset();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Failed to send invitation',
+          description: error.message,
+          variant: 'destructive',
+        });
+      },
+    });
+  };
+  
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" placeholder="user@example.com" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Role</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="resident">Resident</SelectItem>
+                  <SelectItem value="tenant">Tenant</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {needsResidence && (
+          <FormField
+            control={form.control}
+            name="residenceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Residence Assignment</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select residence" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {residences?.map((residence: any) => (
+                      <SelectItem key={residence.id} value={residence.id}>
+                        {residence.building.name} - Unit {residence.unitNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
+        <FormField
+          control={form.control}
+          name="message"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Personal Message (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field} 
+                  placeholder="Add a personal message to the invitation..."
+                  rows={3}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" disabled={inviteUser.isPending}>
+          {inviteUser.isPending ? 'Sending...' : 'Send Invitation'}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+**Success Response**:
+```typescript
 {
-  email: string;
-  role: string;
-  organizationId: string;
-  residenceId?: string;
-  invitedBy: string;
+  success: true;
+  invitation: {
+    id: string;
+    email: string;
+    role: string;
+    organizationId: string;
+    residenceId?: string;
+    invitedBy: string;
+    expiresAt: string;
+    status: 'pending';
+    createdAt: string;
+  };
+  message: "Invitation sent successfully";
+}
+```
+
+**Error Responses**:
+```typescript
+// 409 Conflict - User already exists
+{
+  success: false;
+  message: "User with this email already exists";
+  code: "USER_EXISTS";
+}
+
+// 403 Forbidden - Insufficient permissions
+{
+  success: false;
+  message: "Insufficient permissions to invite users with this role";
+  code: "INSUFFICIENT_PERMISSIONS";
+}
+
+// 400 Bad Request - Invalid residence
+{
+  success: false;
+  message: "Selected residence is not available or doesn't exist";
+  code: "INVALID_RESIDENCE";
 }
 ```
 

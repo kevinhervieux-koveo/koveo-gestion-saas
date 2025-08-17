@@ -16,15 +16,149 @@ This directory contains all form components for the Koveo Gestion application. F
 - Draft saving and auto-recovery
 - Multi-tab interface for detailed planning
 
-**Usage**:
+**Complete Implementation Example**:
 ```typescript
+// Parent component usage with state management
+import { useState } from 'react';
 import { FeatureForm } from '@/components/forms/FeatureForm';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
-<FeatureForm
-  feature={existingFeature} // Optional for editing
-  open={isDialogOpen}
-  onOpenChange={setIsDialogOpen}
-/>
+export function FeaturesPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
+  
+  const handleCreateFeature = () => {
+    setEditingFeature(null);
+    setIsCreateDialogOpen(true);
+  };
+  
+  const handleEditFeature = (feature: Feature) => {
+    setEditingFeature(feature);
+    setIsCreateDialogOpen(true);
+  };
+  
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false);
+    setEditingFeature(null);
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Feature Management</h1>
+        <Button onClick={handleCreateFeature}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Feature
+        </Button>
+      </div>
+      
+      <FeaturesList onEdit={handleEditFeature} />
+      
+      <FeatureForm
+        feature={editingFeature}
+        open={isCreateDialogOpen}
+        onOpenChange={handleCloseDialog}
+      />
+    </div>
+  );
+}
+
+// Advanced usage with query integration
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useFeatureManagement() {
+  const queryClient = useQueryClient();
+  
+  // Fetch features with filtering
+  const {
+    data: features = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['/api/features'],
+    queryFn: async () => {
+      const response = await fetch('/api/features', {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch features');
+      }
+      
+      return response.json();
+    },
+  });
+  
+  // Create feature mutation
+  const createFeature = useMutation({
+    mutationFn: async (featureData: CreateFeatureRequest) => {
+      const response = await fetch('/api/features', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(featureData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create feature');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+      toast({
+        title: 'Feature created',
+        description: 'The feature has been successfully created.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Update feature mutation
+  const updateFeature = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateFeatureRequest }) => {
+      const response = await fetch(`/api/features/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update feature');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+      toast({
+        title: 'Feature updated',
+        description: 'The feature has been successfully updated.',
+      });
+    },
+  });
+  
+  return {
+    features,
+    isLoading,
+    error,
+    createFeature: createFeature.mutate,
+    updateFeature: updateFeature.mutate,
+    isCreating: createFeature.isPending,
+    isUpdating: updateFeature.isPending,
+  };
+}
 ```
 
 **Props**:
@@ -41,14 +175,131 @@ import { FeatureForm } from '@/components/forms/FeatureForm';
 - Comprehensive contact information management
 - Registration number tracking
 
-**Usage**:
+**Complete Implementation with Quebec Validation**:
 ```typescript
+// Advanced Quebec-compliant organization form usage
+import { useState } from 'react';
 import { OrganizationForm } from '@/components/forms/OrganizationForm';
+import { useQuery } from '@tanstack/react-query';
 
-<OrganizationForm
-  open={isDialogOpen}
-  onOpenChange={setIsDialogOpen}
-/>
+export function OrganizationManagement() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
+  
+  // Fetch organizations with Quebec filtering
+  const { data: organizations = [] } = useQuery({
+    queryKey: ['/api/organizations'],
+    queryFn: async () => {
+      const response = await fetch('/api/organizations?province=QC', {
+        credentials: 'include',
+      });
+      return response.json();
+    },
+  });
+  
+  const handleCreateOrganization = () => {
+    setEditingOrg(null);
+    setIsFormOpen(true);
+  };
+  
+  const handleEditOrganization = (org: Organization) => {
+    setEditingOrg(org);
+    setIsFormOpen(true);
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">
+          Gestion des Organisations
+        </h1>
+        <Button onClick={handleCreateOrganization}>
+          Nouvelle Organisation
+        </Button>
+      </div>
+      
+      {/* Organizations list with Quebec indicators */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {organizations.map((org) => (
+          <OrganizationCard
+            key={org.id}
+            organization={org}
+            onEdit={() => handleEditOrganization(org)}
+            showQuebecBadge={org.province === 'QC'}
+          />
+        ))}
+      </div>
+      
+      <OrganizationForm
+        organization={editingOrg}
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+      />
+    </div>
+  );
+}
+
+// Quebec-specific organization card component
+function OrganizationCard({ 
+  organization, 
+  onEdit, 
+  showQuebecBadge 
+}: {
+  organization: Organization;
+  onEdit: () => void;
+  showQuebecBadge: boolean;
+}) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{organization.name}</CardTitle>
+          {showQuebecBadge && (
+            <Badge variant="secondary" className="text-xs">
+              QC
+            </Badge>
+          )}
+        </div>
+        <CardDescription>{organization.type}</CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-2">
+        <div className="text-sm text-gray-600">
+          <div>{organization.address}</div>
+          <div>
+            {organization.city}, {organization.province} {organization.postalCode}
+          </div>
+        </div>
+        
+        {organization.phone && (
+          <div className="text-sm">
+            <Phone className="w-3 h-3 inline mr-1" />
+            {organization.phone}
+          </div>
+        )}
+        
+        {organization.email && (
+          <div className="text-sm">
+            <Mail className="w-3 h-3 inline mr-1" />
+            {organization.email}
+          </div>
+        )}
+        
+        {organization.registrationNumber && (
+          <div className="text-xs text-gray-500">
+            NEQ: {organization.registrationNumber}
+          </div>
+        )}
+      </CardContent>
+      
+      <CardFooter>
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          Modifier
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 ```
 
 ### UserForm (`user-form.tsx`)
