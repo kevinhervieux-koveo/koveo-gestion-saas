@@ -8,6 +8,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth, AuthProvider } from '../../client/src/hooks/use-auth';
 
+// Mock fetch globally
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+global.fetch = mockFetch;
+
 // Mock API client
 jest.mock('../../client/src/lib/queryClient', () => ({
   apiRequest: jest.fn(),
@@ -52,6 +56,7 @@ describe('useAuth Hook Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetch.mockClear();
     mockApiRequest = require('../../client/src/lib/queryClient').apiRequest;
     mockApiRequest.mockClear();
   });
@@ -62,6 +67,9 @@ describe('useAuth Hook Tests', () => {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
+      role: 'admin',
+      organizationId: 'org-123',
+      isActive: true
     };
 
     // Mock successful user fetch
@@ -135,13 +143,21 @@ describe('useAuth Hook Tests', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Mock logout success
-    mockApiRequest.mockResolvedValueOnce({ success: true });
+    // Mock logout success via fetch (since logout uses fetch directly)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true })
+    } as Response);
     
     // Test logout functionality
     await result.current.logout();
 
-    expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/auth/logout');
+    expect(mockFetch).toHaveBeenCalledWith('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   });
 
   it('should handle logout errors', async () => {
@@ -156,8 +172,11 @@ describe('useAuth Hook Tests', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Mock logout error
-    mockApiRequest.mockRejectedValueOnce(new Error('Logout failed'));
+    // Mock logout error via fetch
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ message: 'Logout failed' })
+    } as Response);
 
     try {
       await result.current.logout();

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'wouter';
+import { Router } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const _renderWithProviders = (component: React.ReactElement) => {
@@ -14,9 +14,9 @@ const _renderWithProviders = (component: React.ReactElement) => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         {component}
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   );
 };
