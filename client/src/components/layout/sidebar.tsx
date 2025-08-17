@@ -156,11 +156,9 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-3'>
             <Link href="/residents/residence" onClick={handleNavItemClick}>
-              <img 
-                src={koveoLogo} 
-                alt="Koveo Gestion Logo" 
-                className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity"
-              />
+              <div className="h-12 w-12 bg-koveo-navy rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                K
+              </div>
             </Link>
           </div>
           {/* Mobile close button */}
