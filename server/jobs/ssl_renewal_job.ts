@@ -37,7 +37,7 @@ class SSLRenewalJob {
       schedule: process.env.SSL_RENEWAL_SCHEDULE || '0 2 * * *', // Daily at 2 AM by default
       renewalThresholdDays: parseInt(process.env.SSL_RENEWAL_THRESHOLD_DAYS || '30'),
       maxRetryAttempts: parseInt(process.env.SSL_MAX_RETRY_ATTEMPTS || '3'),
-      notificationEmail: process.env.SSL_NOTIFICATION_EMAIL || 'admin@example.com',
+      notificationEmail: process.env.SSL_NOTIFICATION_EMAIL || 'admin@koveo-gestion.com',
       enabled: process.env.SSL_RENEWAL_ENABLED !== 'false',
       batchSize: parseInt(process.env.SSL_RENEWAL_BATCH_SIZE || '5'),
       logLevel: (process.env.SSL_RENEWAL_LOG_LEVEL as any) || 'info',

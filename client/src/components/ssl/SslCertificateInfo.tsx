@@ -205,7 +205,7 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
                     <FormLabel>Domain</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Enter domain (e.g., example.com)" 
+                        placeholder="Enter domain" 
                         {...field}
                         className="max-w-md"
                       />

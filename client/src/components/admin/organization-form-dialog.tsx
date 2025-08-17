@@ -241,7 +241,7 @@ export function OrganizationFormDialog({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="contact@example.com" type="email" {...field} />
+                      <Input placeholder="Contact email" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -256,7 +256,7 @@ export function OrganizationFormDialog({
                 <FormItem>
                   <FormLabel>Website</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com" {...field} />
+                    <Input placeholder="Website URL" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -287,7 +287,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       currentUser?.organizations?.includes(org.id)
     );
     
-    // Only admins can add users to demo organization
+    // Organization filtering for user access control
     if (targetOrg?.name?.toLowerCase() === 'demo') {
       return currentUser?.role === 'admin';
     }

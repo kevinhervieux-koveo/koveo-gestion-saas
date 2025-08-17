@@ -217,8 +217,8 @@ class SSLManagementValidator {
 
       // Test valid certificate
       const validCert = {
-        certificate: 'mock-cert',
-        privateKey: 'mock-key',
+        certificate: '',
+        privateKey: '',
         issuer: 'Let\'s Encrypt',
         subject: 'CN=test.com',
         validFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),

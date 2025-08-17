@@ -95,63 +95,11 @@ async function populateOrganizations() {
       console.log('✅ Found existing admin user');
     }
 
-    // Create mock users for demo organization
-    const mockUsers = [];
-    const mockUserData = [
-      { email: 'john.doe@example.com', firstName: 'John', lastName: 'Doe', role: 'tenant' as const },
-      { email: 'jane.smith@example.com', firstName: 'Jane', lastName: 'Smith', role: 'tenant' as const },
-      { email: 'bob.johnson@example.com', firstName: 'Bob', lastName: 'Johnson', role: 'tenant' as const },
-      { email: 'alice.williams@example.com', firstName: 'Alice', lastName: 'Williams', role: 'tenant' as const },
-      { email: 'charlie.brown@example.com', firstName: 'Charlie', lastName: 'Brown', role: 'tenant' as const },
-      { email: 'emma.davis@example.com', firstName: 'Emma', lastName: 'Davis', role: 'tenant' as const },
-      { email: 'frank.miller@example.com', firstName: 'Frank', lastName: 'Miller', role: 'tenant' as const },
-      { email: 'grace.wilson@example.com', firstName: 'Grace', lastName: 'Wilson', role: 'tenant' as const },
-      { email: 'henry.moore@example.com', firstName: 'Henry', lastName: 'Moore', role: 'tenant' as const },
-      { email: 'demo.manager@example.com', firstName: 'Demo', lastName: 'Manager', role: 'manager' as const },
-    ];
+    // Users will be created through the application interface
+    console.log('✅ User creation available through invitation system');
 
-    for (const userData of mockUserData) {
-      // Check if user already exists
-      let user = await db.query.users.findFirst({
-        where: eq(schema.users.email, userData.email)
-      });
-
-      if (!user) {
-        const hashedPassword = await bcrypt.hash('Demo@123456', 10);
-        [user] = await db.insert(schema.users).values({
-          ...userData,
-          password: hashedPassword,
-          phone: '514-555-' + Math.floor(1000 + Math.random() * 9000),
-          language: 'fr',
-          isActive: true,
-        }).returning();
-      }
-      mockUsers.push(user);
-    }
-    console.log(`✅ Created/found ${mockUsers.length} mock users`);
-
-    // Step 3: Create user-organization relationships
-    console.log('\n🔗 Creating user-organization relationships...');
-    
-    // Add all mock users to Demo organization
-    for (const user of mockUsers) {
-      const exists = await db.query.userOrganizations.findFirst({
-        where: (userOrg, { and, eq }) => and(
-          eq(userOrg.userId, user.id),
-          eq(userOrg.organizationId, demoOrg.id)
-        )
-      });
-
-      if (!exists) {
-        await db.insert(schema.userOrganizations).values({
-          userId: user.id,
-          organizationId: demoOrg.id,
-          organizationRole: user.role,
-          canAccessAllOrganizations: user.role === 'manager',
-        });
-      }
-    }
-    console.log('✅ Added mock users to Demo organization');
+    // Step 3: Create admin user organization relationships
+    console.log('\n🔗 Creating admin user organization relationships...');
 
     // Add admin user to Koveo and 563 montée des pionniers organizations
     // Koveo organization with access to all

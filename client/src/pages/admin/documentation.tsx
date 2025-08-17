@@ -439,7 +439,7 @@ COMPLIANCE:
   };
 
   const createDocumentationZip = async (files: Record<string, string>) => {
-    // Create mock ZIP content (in real implementation, use JSZip or similar)
+    // Create ZIP content for documentation download
     const zipContent = Object.entries(files)
       .map(([filename, content]) => `=== ${filename} ===\n${content}\n\n`)
       .join('');

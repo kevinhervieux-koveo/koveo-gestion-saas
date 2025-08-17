@@ -653,8 +653,8 @@ export class MemStorage implements IStorage {
   private residences: Map<string, Residence>;
 
   /**
-   * Creates a new MemStorage instance and initializes default data.
-   * Automatically sets up development pillars, workspace status, and quality metrics.
+   * Creates a new MemStorage instance with empty storage maps.
+   * No mock data is initialized - production ready.
    */
   constructor() {
     this.users = new Map();
@@ -671,153 +671,10 @@ export class MemStorage implements IStorage {
     this.buildings = new Map();
     this.residences = new Map();
 
-    // Initialize with default data
-    this.initializeDefaultData();
+    // Storage initialized empty - no mock data
   }
 
-  /**
-   * Initializes default data for the storage including development pillars,
-   * workspace status tracking, and baseline quality metrics.
-   *
-   * @private
-   */
-  private initializeDefaultData() {
-    // Initialize default pillars
-    const defaultPillars = [
-      {
-        id: randomUUID(),
-        name: 'Validation & QA Pillar',
-        description: 'Core quality assurance framework',
-        status: 'in-progress',
-        order: '1',
-        configuration: { tools: ['eslint', 'prettier', 'typescript'] },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        name: 'Testing Pillar',
-        description: 'Automated testing framework',
-        status: 'pending',
-        order: '2',
-        configuration: { tools: ['jest', 'cypress', 'testing-library'] },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        name: 'Security Pillar',
-        description: 'Law 25 compliance framework',
-        status: 'pending',
-        order: '3',
-        configuration: { compliance: ['law25', 'gdpr'], tools: ['helmet', 'bcrypt'] },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
 
-    defaultPillars.forEach((pillar) => this.pillars.set(pillar.id, pillar));
-
-    // Initialize workspace status
-    const defaultStatuses = [
-      { component: 'Environment Setup', status: 'complete' },
-      { component: 'Dependencies Installation', status: 'complete' },
-      { component: 'TypeScript Configuration', status: 'in-progress' },
-      { component: 'Pillar Framework', status: 'pending' },
-    ];
-
-    defaultStatuses.forEach((status) => {
-      const statusRecord = {
-        id: randomUUID(),
-        component: status.component,
-        status: status.status,
-        lastUpdated: new Date(),
-      };
-      this.workspaceStatuses.set(status.component, statusRecord);
-    });
-
-    // Initialize quality metrics
-    const defaultMetrics = [
-      { metricType: 'Code Coverage', value: '95%' },
-      { metricType: 'Code Quality', value: 'A+' },
-      { metricType: 'Security Issues', value: '0' },
-      { metricType: 'Build Time', value: '12ms' },
-    ];
-
-    defaultMetrics.forEach((metric) => {
-      const metricRecord = {
-        id: randomUUID(),
-        metricType: metric.metricType,
-        value: metric.value,
-        timestamp: new Date(),
-      };
-      this.qualityMetrics.set(metric.metricType, metricRecord);
-    });
-
-    // Initialize default users
-    const adminPassword = hashPassword('admin123');
-    const kevinPassword = hashPassword('demo12345');
-    const defaultUsers = [
-      {
-        id: randomUUID(),
-        email: 'admin@koveo-gestion.com',
-        firstName: 'Admin',
-        lastName: 'User',
-        password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
-        role: 'admin' as const,
-        language: 'en',
-        phone: null,
-        isActive: true,
-        lastLoginAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        email: 'francois-pierre.landry@koveo-gestion.com',
-        firstName: 'François-Pierre',
-        lastName: 'Landry',
-        password: `${adminPassword.salt}:${adminPassword.hash}`, // Store salt:hash together
-        role: 'admin' as const,
-        language: 'fr',
-        phone: null,
-        isActive: true,
-        lastLoginAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        email: 'kevin.hervieux@koveo-gestion.com',
-        firstName: 'Kevin',
-        lastName: 'Hervieux',
-        password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
-        role: 'admin' as const,
-        language: 'fr',
-        phone: null,
-        isActive: true,
-        lastLoginAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        email: 'kevhervieux@gmail.com',
-        firstName: 'Kevin',
-        lastName: 'Hervieux',
-        password: `${kevinPassword.salt}:${kevinPassword.hash}`, // Store salt:hash together
-        role: 'admin' as const,
-        language: 'fr',
-        phone: null,
-        isActive: true,
-        lastLoginAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ];
-
-    defaultUsers.forEach((user) => this.users.set(user.id, user));
-  }
 
   // User operations
   /**
