@@ -19,12 +19,28 @@ try {
 
 // BroadcastChannel polyfill for MSW
 global.BroadcastChannel = class BroadcastChannel {
+  /**
+   *
+   * @param name
+   */
   constructor(name) {
     this.name = name;
   }
+  /**
+   *
+   */
   postMessage() {}
+  /**
+   *
+   */
   addEventListener() {}
+  /**
+   *
+   */
   removeEventListener() {}
+  /**
+   *
+   */
   close() {}
 };
 

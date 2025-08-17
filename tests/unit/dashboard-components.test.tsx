@@ -210,7 +210,7 @@ describe('Dashboard Components Tests', () => {
 
   describe('Dashboard Performance', () => {
     it('should render components without performance issues', () => {
-      const startTime = performance.now();
+      const startTime = window.performance.now();
       
       renderWithProviders(
         <div>
@@ -219,7 +219,7 @@ describe('Dashboard Components Tests', () => {
         </div>
       );
       
-      const endTime = performance.now();
+      const endTime = window.performance.now();
       const renderTime = endTime - startTime;
       
       // Render should be reasonably fast (under 100ms)

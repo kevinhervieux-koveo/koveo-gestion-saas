@@ -44,7 +44,7 @@ describe('Comprehensive System Validation', () => {
       const pagesDir = join(process.cwd(), 'client/src/pages');
       
       // Root pages should only contain approved files
-      const allowedRootPages = ['home.tsx', 'not-found.tsx'];
+      const _allowedRootPages = ['home.tsx', 'not-found.tsx'];
       
       // Check that orphaned pillars.tsx is removed
       expect(existsSync(join(pagesDir, 'pillars.tsx'))).toBe(false);
@@ -82,11 +82,11 @@ describe('Comprehensive System Validation', () => {
       it(`should have ${pkg} available`, () => {
         try {
           require(pkg);
-        } catch (error) {
+        } catch (_error) {
           // Try node_modules path
           try {
             require(`${process.cwd()}/node_modules/${pkg}`);
-          } catch (nodeError) {
+          } catch (_nodeError) {
             throw new Error(`Critical package ${pkg} is not available`);
           }
         }
@@ -142,7 +142,7 @@ describe('Comprehensive System Validation', () => {
         documentationPresent: true
       };
 
-      Object.entries(healthIndicators).forEach(([indicator, status]) => {
+      Object.entries(healthIndicators).forEach(([_indicator, status]) => {
         expect(status).toBe(true);
       });
     });

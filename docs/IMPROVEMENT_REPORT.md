@@ -24,5 +24,3 @@ This report tracks documentation quality and suggests improvements.
 
 ## Progress Tracking
 Track improvements over time here.
-
-

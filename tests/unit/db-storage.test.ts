@@ -71,11 +71,11 @@ jest.mock('@shared/schema', () => ({
 
 describe('DatabaseStorage', () => {
   let dbStorage: DatabaseStorage;
-  let mockDb: any;
+  let _mockDb: unknown;
 
   beforeEach(() => {
     const { drizzle } = require('drizzle-orm/neon-http');
-    mockDb = drizzle();
+    _mockDb = drizzle();
     dbStorage = new DatabaseStorage();
     jest.clearAllMocks();
   });
@@ -138,7 +138,7 @@ describe('DatabaseStorage', () => {
         returning: jest.fn().mockResolvedValue([mockCreatedUser]),
       });
 
-      const result = await dbStorage.createUser(userData as any);
+      const result = await dbStorage.createUser(userData as Parameters<typeof dbStorage.createUser>[0]);
       expect(result).toEqual(mockCreatedUser);
     });
 

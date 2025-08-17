@@ -111,7 +111,9 @@ describe('useAuth Hook Tests', () => {
   });
 
   it('should start with loading state', () => {
-    mockApiRequest.mockImplementation(() => new Promise(() => {}));
+    mockApiRequest.mockImplementation(() => new Promise(() => {
+      // Intentionally empty promise for testing loading state
+    }));
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),

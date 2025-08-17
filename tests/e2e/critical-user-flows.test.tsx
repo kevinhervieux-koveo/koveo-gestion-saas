@@ -1,5 +1,5 @@
 /**
- * End-to-End Tests for Critical Quebec Property Management User Flows
+ * End-to-End Tests for Critical Quebec Property Management User Flows.
  * 
  * Tests complete user journeys through the Koveo Gestion platform,
  * ensuring Quebec compliance and property management requirements.
