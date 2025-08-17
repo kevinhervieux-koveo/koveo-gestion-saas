@@ -56,6 +56,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'Budget', href: '/manager/budget', icon: DollarSign },
       { name: 'Bills', href: '/manager/bills', icon: FileText },
       { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
+      { name: 'User Management', href: '/manager/user-management', icon: Users },
     ],
   },
   {
