@@ -156,6 +156,8 @@ function Router() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  console.log('Router: isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'location:', location);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -165,6 +167,7 @@ function Router() {
   };
 
   if (isLoading) {
+    console.log('Router: showing loading spinner due to isLoading');
     return <LoadingSpinner />;
   }
 
@@ -341,17 +344,21 @@ function App() {
     };
   }, []);
 
+  console.log('App component rendering...');
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 
