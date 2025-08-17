@@ -70,6 +70,15 @@ Preferred communication style: Simple, everyday language.
 - **CLI Operations**: Command-line interface for health checks, context management, and workflow execution.
 
 ## Recent Changes
+
+### December 2024
+- **Demo Organization Synchronization System**: Implemented comprehensive deployment synchronization where Demo organization data is automatically pushed from development to production during deployment
+  - Created sync-demo-organization.ts script for export/import operations
+  - Added API endpoints for remote synchronization (/api/demo-organization/sync, /api/demo-organization/export, /api/demo-organization/status)
+  - Configured deployment hooks for automated sync during deployment process
+  - Environment variables: SYNC_DEMO_ON_DEPLOY, PRODUCTION_DATABASE_URL, SYNC_API_KEY
+
+### August 2025
 - **2025-08-17**: Fixed deployment issues including missing gray-200 Tailwind color palette, created missing dashboard file for residents, and resolved CSS border utility class conflicts for successful build process.
 
 ## External Dependencies

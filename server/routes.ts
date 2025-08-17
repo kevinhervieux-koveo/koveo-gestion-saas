@@ -3825,6 +3825,218 @@ function registerInvitationRoutes(app: any) {
     }
   });
 
+  // ============================================================================
+  // DEMO ORGANIZATION SYNC ENDPOINTS
+  // ============================================================================
+
+  /**
+   * Sync Demo organization data from development to production
+   * Used during deployment to ensure production has latest Demo data
+   */
+  app.post('/api/demo-organization/sync', async (req, res) => {
+    try {
+      // Verify sync authorization
+      const authHeader = req.headers.authorization;
+      const syncApiKey = process.env.SYNC_API_KEY;
+      
+      if (!syncApiKey || authHeader !== `Bearer ${syncApiKey}`) {
+        return res.status(401).json({ 
+          message: 'Unauthorized: Invalid or missing sync API key' 
+        });
+      }
+
+      // Verify source is development
+      const syncSource = req.headers['x-sync-source'];
+      if (syncSource !== 'development') {
+        return res.status(400).json({ 
+          message: 'Invalid sync source. Only development to production sync is allowed.' 
+        });
+      }
+
+      const demoData = req.body;
+      
+      if (!demoData || !demoData.organization) {
+        return res.status(400).json({ 
+          message: 'Invalid Demo organization data provided' 
+        });
+      }
+
+      console.log('🔄 Starting Demo organization sync from API...');
+
+      // Use import syntax compatible with the module structure
+      const syncModule = await import('../scripts/sync-demo-organization.js');
+      
+      // Delete existing Demo data
+      if (syncModule.deleteDemoData) {
+        await syncModule.deleteDemoData(db);
+      }
+      
+      // Import new Demo data
+      if (syncModule.importDemoData) {
+        await syncModule.importDemoData(db, demoData);
+      }
+
+      console.log('✅ Demo organization sync completed via API');
+
+      res.json({ 
+        success: true, 
+        message: 'Demo organization synced successfully',
+        syncedAt: new Date().toISOString(),
+        organization: demoData.organization.name,
+        stats: {
+          buildings: demoData.buildings?.length || 0,
+          residences: demoData.residences?.length || 0,
+          users: demoData.users?.length || 0,
+          bills: demoData.bills?.length || 0,
+          maintenanceRequests: demoData.maintenanceRequests?.length || 0,
+          notifications: demoData.notifications?.length || 0
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error syncing Demo organization via API:', error);
+      res.status(500).json({ 
+        message: 'Failed to sync Demo organization',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * Export Demo organization data from current environment
+   * Returns complete Demo organization data structure
+   */
+  app.get('/api/demo-organization/export', async (req, res) => {
+    try {
+      // Check authorization for data export
+      const authHeader = req.headers.authorization;
+      const syncApiKey = process.env.SYNC_API_KEY;
+      
+      if (!syncApiKey || authHeader !== `Bearer ${syncApiKey}`) {
+        return res.status(401).json({ 
+          message: 'Unauthorized: Invalid or missing sync API key' 
+        });
+      }
+
+      console.log('📤 Exporting Demo organization data via API...');
+
+      // Export Demo data
+      const syncModule = await import('../scripts/sync-demo-organization.js');
+      const demoData = await syncModule.exportDemoData();
+
+      console.log('✅ Demo organization export completed via API');
+
+      res.json({
+        success: true,
+        exportedAt: new Date().toISOString(),
+        data: demoData,
+        stats: {
+          buildings: demoData.buildings?.length || 0,
+          residences: demoData.residences?.length || 0,
+          users: demoData.users?.length || 0,
+          bills: demoData.bills?.length || 0,
+          maintenanceRequests: demoData.maintenanceRequests?.length || 0,
+          notifications: demoData.notifications?.length || 0
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error exporting Demo organization via API:', error);
+      res.status(500).json({ 
+        message: 'Failed to export Demo organization',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * Get Demo organization sync status
+   * Returns information about current Demo organization
+   */
+  app.get('/api/demo-organization/status', async (req, res) => {
+    try {
+      // Find Demo organization
+      const demoOrg = await db.query.organizations.findFirst({
+        where: eq(schema.organizations.name, 'Demo')
+      });
+
+      if (!demoOrg) {
+        return res.json({
+          exists: false,
+          message: 'Demo organization not found'
+        });
+      }
+
+      // Get counts of related data
+      const [buildings, userOrganizations] = await Promise.all([
+        db.query.buildings.findMany({
+          where: eq(schema.buildings.organizationId, demoOrg.id)
+        }),
+        db.query.userOrganizations.findMany({
+          where: eq(schema.userOrganizations.organizationId, demoOrg.id)
+        })
+      ]);
+
+      const buildingIds = buildings.map(b => b.id);
+      
+      const [residences, bills, maintenanceRequests] = await Promise.all([
+        buildingIds.length > 0 ? 
+          db.query.residences.findMany({
+            where: (residences, { inArray }) => inArray(residences.buildingId, buildingIds)
+          }) : [],
+        buildingIds.length > 0 ?
+          db.query.bills.findMany({
+            where: (bills, { inArray, exists }) => 
+              exists(
+                db.select().from(schema.residences)
+                  .where(and(
+                    eq(schema.residences.id, bills.residenceId),
+                    inArray(schema.residences.buildingId, buildingIds)
+                  ))
+              )
+          }) : [],
+        buildingIds.length > 0 ?
+          db.query.maintenanceRequests.findMany({
+            where: (requests, { inArray, exists }) =>
+              exists(
+                db.select().from(schema.residences)
+                  .where(and(
+                    eq(schema.residences.id, requests.residenceId),
+                    inArray(schema.residences.buildingId, buildingIds)
+                  ))
+              )
+          }) : []
+      ]);
+
+      res.json({
+        exists: true,
+        organization: {
+          id: demoOrg.id,
+          name: demoOrg.name,
+          type: demoOrg.type,
+          createdAt: demoOrg.createdAt,
+          updatedAt: demoOrg.updatedAt
+        },
+        stats: {
+          buildings: buildings.length,
+          residences: residences.length,
+          users: userOrganizations.length,
+          bills: bills.length,
+          maintenanceRequests: maintenanceRequests.length
+        },
+        lastSync: demoOrg.updatedAt,
+        environment: process.env.NODE_ENV || 'development'
+      });
+
+    } catch (error) {
+      console.error('❌ Error getting Demo organization status via API:', error);
+      res.status(500).json({ 
+        message: 'Failed to get Demo organization status',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Create and return HTTP server instance
   return createServer(app);
 }
