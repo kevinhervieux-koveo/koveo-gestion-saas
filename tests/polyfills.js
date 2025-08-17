@@ -1,11 +1,32 @@
 // Polyfills for Jest environment
-const { TextEncoder, TextDecoder, ReadableStream } = require('stream/web');
+const util = require('util');
 require('whatwg-fetch');
 
-// Node.js polyfills for web APIs
-global.ReadableStream = ReadableStream;
-global.TransformStream = require('stream/web').TransformStream;
-global.WritableStream = require('stream/web').WritableStream;
+// Node.js polyfills for web APIs - Use constructor versions
+global.TextEncoder = util.TextEncoder;
+global.TextDecoder = util.TextDecoder;
+
+// Stream polyfills with fallback for older Node versions
+try {
+  const { ReadableStream, TransformStream, WritableStream } = require('stream/web');
+  global.ReadableStream = ReadableStream;
+  global.TransformStream = TransformStream;
+  global.WritableStream = WritableStream;
+} catch (error) {
+  // Fallback for older Node versions
+  console.warn('Web streams not available, some MSW features may not work');
+}
+
+// BroadcastChannel polyfill for MSW
+global.BroadcastChannel = class BroadcastChannel {
+  constructor(name) {
+    this.name = name;
+  }
+  postMessage() {}
+  addEventListener() {}
+  removeEventListener() {}
+  close() {}
+};
 
 // Text Encoder/Decoder polyfills for Node.js environment
 global.TextEncoder = TextEncoder;

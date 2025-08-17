@@ -10,8 +10,9 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js',
-    '\\.(jpg|jpeg|png|gif|svg|webp)$': '<rootDir>/tests/mocks/fileMock.js',
-    '@/assets/koveo-logo.jpg': '<rootDir>/tests/mocks/fileMock.js'
+    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
+    'wouter/memory': '<rootDir>/tests/mocks/wouter-memory-mock.js',
+    '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
@@ -51,7 +52,7 @@ const config = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|msw))'
   ],
   testTimeout: 10000,
   maxWorkers: 1,
