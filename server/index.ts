@@ -216,10 +216,7 @@ async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
     
-    // Register API routes FIRST to ensure they take precedence over static serving
-    await registerRoutes(app);
-
-    // Setup static file serving AFTER API routes to avoid conflicts
+    // Setup static file serving FIRST to prevent auth middleware from blocking assets
     // Use NODE_ENV to determine serving mode
     
     if (process.env.NODE_ENV === 'development') {
@@ -233,12 +230,15 @@ async function initializeApplication() {
         
         // Fallback to serving built files if Vite setup fails
         const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
+        log(`📁 Looking for built files at: ${distPath}`);
         
         if (fs.existsSync(distPath)) {
+          log('✅ Found built files, serving static content');
           app.use(express.static(distPath));
           app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
             const indexPath = path.resolve(distPath, 'index.html');
             if (fs.existsSync(indexPath)) {
+              log(`📄 Serving React app: ${indexPath}`);
               res.sendFile(indexPath);
             } else {
               res.status(404).send('Built application not found');
@@ -284,6 +284,9 @@ async function initializeApplication() {
         log(`⚠️ Build directory not found: ${distPath}`, 'error');
       }
     }
+
+    // Register API routes AFTER static serving to ensure assets are not blocked by auth
+    await registerRoutes(app);
 
     // Setup error handling
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

@@ -12,7 +12,7 @@ import { AlertCircle, Shield, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogo from '@assets/Koveo_logo (1)_1755288554223.jpg';
 
 /**
  * Login form validation schema with Quebec-specific requirements.

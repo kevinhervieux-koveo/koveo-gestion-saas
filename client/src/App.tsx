@@ -169,6 +169,7 @@ function Router() {
   
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
+    console.log('Rendering unauthenticated routes, current location:', location);
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
