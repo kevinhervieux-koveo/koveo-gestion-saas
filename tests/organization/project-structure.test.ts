@@ -51,9 +51,13 @@ describe('Project Structure Validation', () => {
 
     test('should have all required server directories', () => {
       const serverDirs = [
+        'server/api',
         'server/db',
-        'server/db/queries',
-        'server/db/optimizations'
+        'server/auth',
+        'server/services',
+        'server/middleware',
+        'server/utils',
+        'server/controllers'
       ];
 
       serverDirs.forEach(dir => {

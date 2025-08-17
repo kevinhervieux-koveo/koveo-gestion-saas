@@ -3,7 +3,14 @@ import { NotificationService } from '../../server/services/notification_service'
 import { db } from '../../server/db';
 import { notifications, users } from '@shared/schema';
 
-// Mock database
+// Mock database functions
+const mockSelect = jest.fn();
+const mockInsert = jest.fn();
+const mockValues = jest.fn();
+const mockFrom = jest.fn();
+const mockWhere = jest.fn();
+
+// Mock the database module
 jest.mock('../../server/db', () => ({
   db: {
     select: jest.fn(),
@@ -17,7 +24,12 @@ describe('Notification Service', () => {
 
   beforeEach(() => {
     notificationService = new NotificationService();
-    mockDb = db as typeof db;
+    mockDb = db as any;
+    
+    // Setup the mock functions
+    mockDb.select = mockSelect;
+    mockDb.insert = mockInsert;
+    
     jest.clearAllMocks();
   });
 
@@ -27,32 +39,33 @@ describe('Notification Service', () => {
 
   describe('SSL Expiry Alerts', () => {
     beforeEach(() => {
-      // Mock admin users query
-      mockDb.select.mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([
-            {
-              id: 'admin-1',
-              email: 'admin1@test.com',
-              firstName: 'Admin',
-              lastName: 'One',
-              role: 'admin'
-            },
-            {
-              id: 'owner-1',
-              email: 'owner1@test.com',
-              firstName: 'Owner',
-              lastName: 'One',
-              role: 'owner'
-            }
-          ])
-        })
-      });
-
+      // Reset all mocks
+      jest.clearAllMocks();
+      
+      // Setup proper Drizzle ORM mock chain
+      mockWhere.mockResolvedValue([
+        {
+          id: 'admin-1',
+          email: 'admin1@test.com',
+          firstName: 'Admin',
+          lastName: 'One',
+          role: 'admin'
+        },
+        {
+          id: 'owner-1',
+          email: 'owner1@test.com',
+          firstName: 'Owner',
+          lastName: 'One',
+          role: 'owner'
+        }
+      ]);
+      
+      mockFrom.mockReturnValue({ where: mockWhere });
+      mockSelect.mockReturnValue({ from: mockFrom });
+      
       // Mock notification insertion
-      mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue([])
-      });
+      mockValues.mockResolvedValue([]);
+      mockInsert.mockReturnValue({ values: mockValues });
     });
 
     it('should send expiry alerts to admin and owner users', async () => {
@@ -60,20 +73,22 @@ describe('Notification Service', () => {
       
       await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
       
-      expect(mockDb.select).toHaveBeenCalled();
-      expect(mockDb.insert).toHaveBeenCalledWith(notifications);
+      expect(mockSelect).toHaveBeenCalled();
+      expect(mockInsert).toHaveBeenCalledWith(notifications);
+      expect(mockValues).toHaveBeenCalled();
       
-      const insertCall = mockDb.insert.mock.calls[0];
-      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      // Check that values was called with notification data
+      const valuesCallArgs = mockValues.mock.calls[0][0];
+      expect(Array.isArray(valuesCallArgs)).toBe(true);
+      expect(valuesCallArgs).toHaveLength(2); // Two notifications (admin + owner)
       
-      expect(valuesCall).toHaveLength(2); // Two notifications (admin + owner)
-      expect(valuesCall[0]).toMatchObject({
+      expect(valuesCallArgs[0]).toMatchObject({
         userId: 'admin-1',
         type: 'ssl_certificate',
         title: 'SSL Certificate Expiring Soon: test.example.com',
         relatedEntityType: 'ssl_certificate'
       });
-      expect(valuesCall[0].message).toContain('expires in 5 days');
+      expect(valuesCallArgs[0].message).toContain('expires in 5 days');
     });
 
     it('should send critical alerts for certificates expiring tomorrow', async () => {
@@ -81,11 +96,9 @@ describe('Notification Service', () => {
       
       await notificationService.sendSSLExpiryAlert('urgent.example.com', expiryDate, 1);
       
-      const insertCall = mockDb.insert.mock.calls[0];
-      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
-      
-      expect(valuesCall[0].message).toContain('CRITICAL');
-      expect(valuesCall[0].message).toContain('expires tomorrow');
+      const valuesCallArgs = mockValues.mock.calls[0][0];
+      expect(valuesCallArgs[0].message).toContain('CRITICAL');
+      expect(valuesCallArgs[0].message).toContain('expires tomorrow');
     });
 
     it('should send urgent alerts for expired certificates', async () => {
@@ -93,20 +106,15 @@ describe('Notification Service', () => {
       
       await notificationService.sendSSLExpiryAlert('expired.example.com', expiryDate, -1);
       
-      const insertCall = mockDb.insert.mock.calls[0];
-      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
-      
-      expect(valuesCall[0].message).toContain('URGENT');
-      expect(valuesCall[0].message).toContain('has expired');
-      expect(valuesCall[0].message).toContain('Immediate action required');
+      const valuesCallArgs = mockValues.mock.calls[0][0];
+      expect(valuesCallArgs[0].message).toContain('URGENT');
+      expect(valuesCallArgs[0].message).toContain('has expired');
+      expect(valuesCallArgs[0].message).toContain('Immediate action required');
     });
 
     it('should handle case when no administrators found', async () => {
-      mockDb.select.mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]) // No admin users
-        })
-      });
+      // Override the mock to return empty array
+      mockWhere.mockResolvedValue([]);
       
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       
@@ -114,7 +122,7 @@ describe('Notification Service', () => {
       await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
       
       expect(consoleSpy).toHaveBeenCalledWith('No administrators found to send SSL expiry notification');
-      expect(mockDb.insert).not.toHaveBeenCalled();
+      expect(mockInsert).not.toHaveBeenCalled();
       
       consoleSpy.mockRestore();
     });
@@ -124,11 +132,10 @@ describe('Notification Service', () => {
       
       await notificationService.sendSSLExpiryAlert('quebec.example.com', expiryDate, 5);
       
-      const insertCall = mockDb.insert.mock.calls[0];
-      const valuesCall = insertCall[0](notifications).values.mock.calls[0][0];
+      const valuesCallArgs = mockValues.mock.calls[0][0];
       
       // Should format date according to Quebec/Montreal timezone
-      expect(valuesCall[0].message).toContain('March 15, 2024');
+      expect(valuesCallArgs[0].message).toContain('March 15, 2024');
     });
   });
 

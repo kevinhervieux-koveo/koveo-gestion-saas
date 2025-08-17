@@ -36,7 +36,6 @@ const config = {
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
-      isolatedModules: true,
       tsconfig: {
         jsx: 'react-jsx',
         module: 'ESNext',
@@ -44,7 +43,8 @@ const config = {
         allowSyntheticDefaultImports: true,
         esModuleInterop: true,
         target: 'es2020',
-        lib: ['es2020', 'dom', 'dom.iterable']
+        lib: ['es2020', 'dom', 'dom.iterable'],
+        isolatedModules: true
       }
     }]
   },
