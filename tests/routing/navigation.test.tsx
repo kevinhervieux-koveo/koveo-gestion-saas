@@ -170,7 +170,7 @@ describe('Navigation Integration Tests', () => {
           { label: 'Documentation', path: '/admin/documentation' },
           { label: 'Roadmap', path: '/admin/roadmap' },
           { label: 'Quality Assurance', path: '/admin/quality' },
-          { label: 'User Management', path: '/admin/user-management' }
+          { label: 'Permissions', path: '/admin/permissions' }
         ],
         owner: [
           { label: 'Owner Dashboard', path: '/owner/dashboard' },

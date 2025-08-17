@@ -26,7 +26,6 @@ const VALID_ROUTES = [
   '/admin/quality',
   '/admin/suggestions',
   '/admin/permissions',
-  '/admin/user-management',
   
   // Owner routes
   '/owner/dashboard',

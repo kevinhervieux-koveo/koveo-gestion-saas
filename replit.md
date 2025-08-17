@@ -92,6 +92,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### August 16, 2025 - RBAC Permissions System Enhancement & Route Cleanup
+- ✅ **RBAC Permission Matrix**: Updated tenant role permissions to match resident role permissions exactly
+- ✅ **Admin Permissions Interface**: Replaced "All Permissions" tab with comprehensive role-based permissions matrix table
+- ✅ **Navigation Cleanup**: Removed "Role Permissions" tab completely from admin interface
+- ✅ **User Management**: Updated "User Permissions" tab to display all users with proper role filtering
+- ✅ **Route Validation**: Removed all remaining `/admin/user-management` references from codebase
+- ✅ **Test Coverage**: Created comprehensive test suite `tests/routing/removed-routes.test.tsx` to prevent future route regressions
+- ✅ **File Cleanup**: Updated navigation tests, route validation scripts, and sidebar components
+- ✅ **Permission Statistics**: Added visual permission count cards showing Admin (148), Manager (70), Tenant (9), Resident (9) permissions
+
 ### August 16, 2025 - Page Routing Management Documentation & Testing
 - ✅ **Comprehensive Routing Documentation**: Created `docs/PAGE_ROUTING_GUIDE.md` with complete page management guidelines
 - ✅ **Route Validation Tests**: Created `tests/routing/route-validation.test.tsx` for comprehensive route testing
