@@ -142,21 +142,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Quality Metrics Effectiveness Tracking API routes
   // app.get('/api/metrics-effectiveness', requireAuth, authorize('read:quality_metric'), async (req, res) => {
-    try {
-      const { metricType, timeRange } = req.query;
-      const timeRangeHours = timeRange ? parseInt(timeRange as string) : 168; // Default 1 week
-      
-      const effectiveness = await metricValidationService.getMetricEffectiveness(
-        metricType as string,
-        timeRangeHours
-      );
-      
-      res.json(effectiveness);
-    } catch (error) {
-      console.error('Error fetching metrics effectiveness:', error);
-      res.status(500).json({ message: 'Failed to fetch metrics effectiveness data' });
-    }
-  });
+  //   try {
+  //     const { metricType, timeRange } = req.query;
+  //     const timeRangeHours = timeRange ? parseInt(timeRange as string) : 168; // Default 1 week
+  //     
+  //     const effectiveness = await metricValidationService.getMetricEffectiveness(
+  //       metricType as string,
+  //       timeRangeHours
+  //     );
+  //     
+  //     res.json(effectiveness);
+  //   } catch (error) {
+  //     console.error('Error fetching metrics effectiveness:', error);
+  //     res.status(500).json({ message: 'Failed to fetch metrics effectiveness data' });
+  //   }
+  // });
 
   app.post('/api/metrics-effectiveness/validate', requireAuth, authorize('update:quality_metric'), async (req, res) => {
     try {

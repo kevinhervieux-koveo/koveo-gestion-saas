@@ -7,7 +7,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Roadmap } from '../../client/src/pages/owner/roadmap';
+import { Roadmap } from '../../client/src/pages/admin/roadmap';
 
 // Mock dependencies
 jest.mock('../../client/src/hooks/use-auth', () => ({

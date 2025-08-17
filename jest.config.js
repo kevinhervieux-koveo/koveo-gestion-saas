@@ -9,7 +9,8 @@ const config = {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/attached_assets/$1',
-    '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js'
+    '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js',
+    '\\.(jpg|jpeg|png|gif|svg)$': 'identity-obj-proxy'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
