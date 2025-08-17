@@ -2,12 +2,12 @@
 
 ## Overview
 
-This directory contains components specifically designed for administrators with full system access. These components handle user management, organizational oversight, and system-wide administrative functions with comprehensive RBAC integration.
+This directory contains components specifically designed for administrators with full system access. These components handle User Management, organizational oversight, and system-wide administrative functions with comprehensive RBAC integration.
 
 ## Components
 
 ### UserListComponent (`user-list.tsx`)
-**Purpose**: Comprehensive user management with bulk operations and role assignments
+**Purpose**: Comprehensive User Management with bulk operations and role assignments
 
 **Key Features**:
 - Bulk user selection and actions (activate, deactivate, delete)

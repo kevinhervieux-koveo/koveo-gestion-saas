@@ -10,12 +10,12 @@
 ### Basic Usage
 ```typescript
 // Example code
-```
+```bash
 
 ### Advanced Usage
 ```typescript
 // Advanced example
-```
+```bash
 
 ## API Reference
 ### Methods
@@ -31,7 +31,7 @@
 ### Example 1: [Use Case]
 ```typescript
 // Complete example
-```
+```bash
 
 ## Troubleshooting
 ### Common Issues

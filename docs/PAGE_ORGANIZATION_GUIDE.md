@@ -24,7 +24,7 @@ client/src/pages/
 
 ### Admin Pages (`admin/`)
 - **Access**: Admin users only
-- **Purpose**: System-wide administration, user management, global settings
+- **Purpose**: System-wide administration, User Management, global settings
 - **Examples**: `organizations.tsx`, `permissions.tsx`, `quality.tsx`
 
 ### Manager Pages (`manager/`)

@@ -23,7 +23,7 @@ components/
 
 ### Admin Components (`admin/`)
 - **invitation-management.tsx** - User invitation lifecycle management
-- **user-list.tsx** - Comprehensive user management with bulk operations
+- **user-list.tsx** - Comprehensive User Management with bulk operations
 - **permission-matrix.tsx** - Role-based permission visualization
 
 ### Authentication (`auth/`)

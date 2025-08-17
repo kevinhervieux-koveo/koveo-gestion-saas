@@ -98,7 +98,7 @@ Koveo Gestion is a comprehensive property management solution designed specifica
 ```
 
 ### Directory Structure
-```
+```bash
 koveo-gestion/
 ├── app/                      # Next.js App Router pages
 │   ├── api/                 # API routes

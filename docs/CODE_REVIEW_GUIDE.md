@@ -220,10 +220,10 @@ protection_rules:
 - Accessibility testing tools
 
 ### Reference Materials
-- [Quebec Law 25 Compliance Guide](./QUEBEC_COMPLIANCE.md)
+- [Branch Protection Setup Guide](./BRANCH_PROTECTION_SETUP.md)
+- [Quality System Overview](./QUALITY_SYSTEM_OVERVIEW.md)
+- [RBAC System Documentation](./RBAC_SYSTEM.md)
 - [Accessibility Standards (WCAG 2.1)](https://www.w3.org/WAI/WCAG21/quickref/)
-- [TypeScript Best Practices](./TYPESCRIPT_GUIDELINES.md)
-- [Security Guidelines](./SECURITY_GUIDELINES.md)
 
 ---
 

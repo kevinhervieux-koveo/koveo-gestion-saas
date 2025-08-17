@@ -1,5 +1,19 @@
 # Server Directory
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Core Components](#core-components)
+- [Database Integration](#database-integration)
+- [API Design Patterns](#api-design-patterns)
+- [Email System](#email-system)
+- [SSL Certificate Management](#ssl-certificate-management)
+- [Performance Optimization](#performance-optimization)
+- [Security Measures](#security-measures)
+- [Development Guidelines](#development-guidelines)
+- [Testing Strategy](#testing-strategy)
+
 ## Overview
 
 This directory contains the backend Express.js server for the Koveo Gestion application, providing API endpoints, authentication, data persistence, and business logic for the property management platform.

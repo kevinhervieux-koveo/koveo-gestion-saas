@@ -14,7 +14,7 @@ This directory contains comprehensive documentation for the Koveo Gestion projec
 
 ### Quality System
 - [**Quality System Overview**](QUALITY_SYSTEM_OVERVIEW.md) - Complete overview of quality checks and processes
-- [**Deployment Fixes**](DEPLOYMENT_FIXES.md) - Deployment issue resolution documentation
+- [**Deployment Fixes**](../DEPLOYMENT_FIXES.md) - Deployment issue resolution documentation
 
 ### Component Documentation
 All component-specific documentation is located within the respective component directories:

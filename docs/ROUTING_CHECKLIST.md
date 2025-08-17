@@ -13,7 +13,7 @@
 # 4. Update sidebar navigation
 # 5. Test the route
 ./validate-routes.sh
-```
+```typescript
 
 ### ❌ Removing a Page (CRITICAL)
 
@@ -29,7 +29,7 @@ npm run build
 
 # 6. Validate removal
 ./validate-routes.sh
-```
+```typescript
 
 ### 🔄 Moving/Renaming a Route
 
@@ -40,7 +40,7 @@ npm run build
 # 4. Test both routes work
 # 5. Remove old route (follow removal steps)
 # 6. Clear caches and rebuild
-```
+```typescript
 
 ## Command Reference
 
@@ -57,7 +57,7 @@ grep -r "Route path=" client/src/App.tsx
 
 # Find navigation items
 grep -r "path:" client/src/components/layout/sidebar.tsx
-```
+```typescript
 
 ### Cache Management
 ```bash
@@ -69,7 +69,7 @@ npm run build
 
 # Force clean build
 rm -rf client/dist .vite node_modules/.vite && npm run build
-```
+```typescript
 
 ### Testing Routes
 ```bash
@@ -82,7 +82,7 @@ npm run test:routing
 3. Test navigation from sidebar
 4. Check browser console for errors
 5. Verify correct component loads
-```
+```typescript
 
 ## Common Issues & Solutions
 
@@ -92,7 +92,7 @@ npm run test:routing
 rm -rf client/dist .vite node_modules/.vite
 npm run build
 ./validate-routes.sh
-```
+```typescript
 
 ### Issue: New route shows 404
 ```bash
@@ -101,7 +101,7 @@ npm run build
 2. Component has default export
 3. Path spelling matches exactly
 4. Build completed successfully
-```
+```typescript
 
 ### Issue: Navigation doesn't work
 ```bash
@@ -110,7 +110,7 @@ npm run build
 2. User role has permission
 3. Authentication state is correct
 4. No JavaScript errors in console
-```
+```typescript
 
 ## File Locations
 
@@ -130,7 +130,7 @@ When you can modify package.json, add these scripts:
 "test:routing": "jest --testPathPattern=tests/routing",
 "clean:cache": "rm -rf client/dist .vite node_modules/.vite",
 "rebuild:clean": "npm run clean:cache && npm run build"
-```
+```typescript
 
 ## Emergency Procedures
 
