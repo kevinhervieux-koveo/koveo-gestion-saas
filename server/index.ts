@@ -214,8 +214,20 @@ async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
     
-    // Register API routes immediately without database operations
+    // Register API routes FIRST to ensure they take precedence over static serving
     await registerRoutes(app);
+
+    // Setup static file serving AFTER API routes to avoid conflicts
+    // Always serve static files in deployment (override development detection)
+    const forceProduction = true; // Force production mode for deployment
+    
+    if (!forceProduction && process.env.NODE_ENV === 'development') {
+      log('🔧 Running in development mode with Vite');
+      await setupVite(app, server);
+    } else {
+      log('🏗️ Running in production mode, serving static files from dist/public');
+      serveStatic(app);
+    }
 
     // Setup error handling
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -228,18 +240,6 @@ async function initializeApplication() {
         throw err;
       }
     });
-
-    // Setup static file serving
-    // Always serve static files in deployment (override development detection)
-    const forceProduction = true; // Force production mode for deployment
-    
-    if (!forceProduction && process.env.NODE_ENV === 'development') {
-      log('🔧 Running in development mode with Vite');
-      await setupVite(app, server);
-    } else {
-      log('🏗️ Running in production mode, serving static files from dist/public');
-      serveStatic(app);
-    }
     
     log(`✅ Core application initialized on port ${port}`);
     
