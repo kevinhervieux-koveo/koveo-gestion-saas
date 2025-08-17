@@ -152,16 +152,11 @@
     "update:profile",
     "read:residence",
     "read:bill",
-    "read:budget",
     "read:maintenance_request",
     "create:maintenance_request",
     "update:own_maintenance_request",
     "read:document",
-    "read:notification",
-    "create:notification",
-    "read:ai_analysis",
-    "access:ai_assistant",
-    "read:invitation"
+    "read:notification"
   ],
   "resident": [
     "read:profile",

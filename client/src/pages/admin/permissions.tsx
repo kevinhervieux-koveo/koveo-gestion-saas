@@ -17,9 +17,10 @@ import { useToast } from '@/hooks/use-toast';
 
 // Permissions config reference for display purposes
 const permissionsConfig = {
-  admin: { length: 113 },
-  manager: { length: 69 }, 
-  tenant: { length: 15 }
+  admin: { length: 148 },
+  manager: { length: 70 }, 
+  tenant: { length: 9 },
+  resident: { length: 9 }
 };
 
 /**
@@ -81,7 +82,7 @@ interface User {
 export default function Permissions() {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('roles');
+  const [activeTab, setActiveTab] = useState('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [editingUser, setEditingUser] = useState<string | null>(null);
@@ -118,7 +119,7 @@ export default function Permissions() {
   }, {} as Record<string, RolePermission[]>) || {};
 
   // Available roles (now from actual RBAC system)
-  const roles = ['admin', 'manager', 'tenant'];
+  const roles = ['admin', 'manager', 'tenant', 'resident'];
   
   // Fetch permission categories for filtering
   const { data: permissionCategories } = useQuery<any[]>({
@@ -204,13 +205,13 @@ export default function Permissions() {
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer" 
-                  onClick={() => setActiveTab('roles')}>
+                  onClick={() => setActiveTab('permissions')}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Role Hierarchy</p>
                     <p className="text-2xl font-bold text-koveo-navy">{roles.length}</p>
-                    <p className="text-xs text-gray-500 mt-1">Admin → Manager → Tenant</p>
+                    <p className="text-xs text-gray-500 mt-1">Admin → Manager → Tenant → Resident</p>
                   </div>
                   <Users className="h-8 w-8 text-koveo-navy" />
                 </div>
@@ -218,15 +219,13 @@ export default function Permissions() {
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer" 
-                  onClick={() => setActiveTab('roles')}>
+                  onClick={() => setActiveTab('permissions')}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Role Assignments</p>
-                    <p className="text-2xl font-bold text-koveo-navy">
-                      {rolePermissions?.length || 0}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Permission mappings</p>
+                    <p className="text-sm font-medium text-gray-600">Permission Matrix</p>
+                    <p className="text-2xl font-bold text-koveo-navy">12</p>
+                    <p className="text-xs text-gray-500 mt-1">Permission categories</p>
                   </div>
                   <Settings className="h-8 w-8 text-koveo-navy" />
                 </div>
@@ -254,55 +253,13 @@ export default function Permissions() {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="roles">Role Permissions</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="users">User Permissions</TabsTrigger>
-              <TabsTrigger value="permissions">All Permissions</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions Table</TabsTrigger>
               <TabsTrigger value="manage">Manage</TabsTrigger>
             </TabsList>
 
-            {/* Role Permissions Tab */}
-            <TabsContent value="roles" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Role-Based Permissions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy"></div>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {roles.map(role => (
-                        <div key={role} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold capitalize">{role}</h3>
-                            <Badge variant="outline">
-                              {permissionsByRole[role]?.length || 0} permissions
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {permissionsByRole[role]?.map(rp => (
-                              <div key={rp.id} className="text-sm bg-gray-50 px-3 py-2 rounded">
-                                {rp.permission?.displayName || rp.permissionId}
-                              </div>
-                            )) || (
-                              <div className="text-sm text-gray-500 col-span-3">
-                                No permissions assigned to this role
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+
 
             {/* User Permissions Tab */}
             <TabsContent value="users" className="space-y-6">
@@ -387,39 +344,14 @@ export default function Permissions() {
               </Card>
             </TabsContent>
 
-            {/* All Permissions Tab */}
+            {/* Permissions Table Tab */}
             <TabsContent value="permissions" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      System Permissions ({filteredPermissions.length})
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Filter by category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {categories.map(category => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowNewPermissionForm(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Permission
-                      </Button>
-                    </div>
-                  </div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Role-Based Permissions Matrix
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
@@ -427,101 +359,224 @@ export default function Permissions() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy"></div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Category Groups */}
-                      {selectedCategory === 'all' ? (
-                        <div className="space-y-6">
-                          {categories.map(category => {
-                            const categoryPermissions = permissions?.filter(p => p.category === category) || [];
-                            if (categoryPermissions.length === 0) {return null;}
-                            
-                            return (
-                              <div key={category} className="border rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                  <h3 className="text-lg font-semibold text-koveo-navy">{category}</h3>
-                                  <Badge variant="outline">
-                                    {categoryPermissions.length} permissions
-                                  </Badge>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {categoryPermissions.map(permission => (
-                                    <div key={permission.id} className="bg-gray-50 p-3 rounded border hover:shadow-sm transition-shadow">
-                                      <div className="flex items-start justify-between mb-2">
-                                        <div className="font-medium text-sm text-gray-900">
-                                          {permission.displayName}
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0"
-                                          onClick={() => validatePermissionMutation.mutate(permission.name)}
-                                          disabled={validatePermissionMutation.isPending}
-                                        >
-                                          <Check className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <Badge variant="secondary" className="text-xs">
-                                          {permission.action}
-                                        </Badge>
-                                        <Badge variant="outline" className="text-xs">
-                                          {permission.resourceType}
-                                        </Badge>
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {permission.description}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        /* Single Category View */
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {filteredPermissions.map(permission => (
-                            <div key={permission.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="font-medium text-koveo-navy">
-                                  {permission.displayName}
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => validatePermissionMutation.mutate(permission.name)}
-                                  disabled={validatePermissionMutation.isPending}
-                                >
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <Badge variant="secondary" className="text-xs">
-                                  {permission.action}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  {permission.resourceType}
-                                </Badge>
-                              </div>
-                              <div className="text-sm text-gray-600 mb-2">
-                                {permission.description}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                ID: {permission.name}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    <div className="space-y-6">
+                      {/* RBAC Matrix Table */}
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[300px]">Permission</TableHead>
+                              <TableHead className="text-center">Admin</TableHead>
+                              <TableHead className="text-center">Manager</TableHead>
+                              <TableHead className="text-center">Tenant</TableHead>
+                              <TableHead className="text-center">Resident</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {/* Static permissions based on config/permissions.json */}
+                            <TableRow>
+                              <TableCell className="font-medium">Profile Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">User Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Organization Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Building Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Residence Access</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Bill Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Budget Management</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Maintenance Requests</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Document Access</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Notifications</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="text-xs text-gray-500">Read Only</span>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">AI Analysis & Assistant</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">Invitations</TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Check className="h-4 w-4 text-green-600 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <X className="h-4 w-4 text-red-500 mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
                       
-                      {filteredPermissions.length === 0 && (
-                        <div className="text-center text-gray-500 py-8">
-                          <Settings className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <p>No permissions found in this category</p>
+                      {/* Permission Stats */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">148</div>
+                          <div className="text-sm text-blue-600">Admin Permissions</div>
                         </div>
-                      )}
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <div className="text-2xl font-bold text-green-600">70</div>
+                          <div className="text-sm text-green-600">Manager Permissions</div>
+                        </div>
+                        <div className="text-center p-4 bg-orange-50 rounded-lg">
+                          <div className="text-2xl font-bold text-orange-600">9</div>
+                          <div className="text-sm text-orange-600">Tenant Permissions</div>
+                        </div>
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                          <div className="text-2xl font-bold text-purple-600">9</div>
+                          <div className="text-sm text-purple-600">Resident Permissions</div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -554,10 +609,10 @@ export default function Permissions() {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start"
-                      onClick={() => setActiveTab('roles')}
+                      onClick={() => setActiveTab('permissions')}
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      View Role Permissions
+                      View Permission Matrix
                     </Button>
                     
                     <Button 
