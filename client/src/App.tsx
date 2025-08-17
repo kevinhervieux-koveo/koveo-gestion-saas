@@ -56,17 +56,7 @@ const AdminPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Optimized lazy-loaded Owner pages
-const OwnerDocumentation = AdminDocumentation; // Reuse admin documentation
-const OwnerPillars = AdminPillars; // Reuse admin pillars
-const OwnerRoadmap = createOptimizedLoader(
-  () => import('@/pages/owner/roadmap'),
-  'owner-roadmap',
-  { enableMemoryCleanup: true }
-);
-const OwnerQuality = AdminQuality; // Reuse admin quality
-const OwnerSuggestions = AdminSuggestions; // Reuse admin suggestions
-const OwnerPermissions = AdminPermissions; // Reuse admin permissions
+// Owner routes removed - consolidating all documentation under admin section
 
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
@@ -230,13 +220,7 @@ function Router() {
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
 
-              {/* Owner routes */}
-              <Route path='/owner/documentation' component={OwnerDocumentation} />
-              <Route path='/owner/pillars' component={OwnerPillars} />
-              <Route path='/owner/roadmap' component={OwnerRoadmap} />
-              <Route path='/owner/quality' component={OwnerQuality} />
-              <Route path='/owner/suggestions' component={OwnerSuggestions} />
-              <Route path='/owner/permissions' component={OwnerPermissions} />
+              {/* Owner routes removed - documentation consolidated under admin section */}
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />

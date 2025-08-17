@@ -167,7 +167,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
   // Helper function to check if user has role or higher
   const hasRoleOrHigher = (requiredRole: string): boolean => {
     if (!user?.role) {return false;}
-    const roleHierarchy = { tenant: 1, manager: 2, admin: 3 };
+    const roleHierarchy = { tenant: 1, resident: 1, manager: 2, admin: 3 };
     const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
     const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
     return userLevel >= requiredLevel;
@@ -208,6 +208,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       items: [
         { name: 'Organizations', href: '/admin/organizations', icon: Building },
         { name: 'Documentation', href: '/admin/documentation', icon: FileText },
+        { name: 'Pillars', href: '/admin/pillars', icon: Building },
         { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
         { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
         { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
