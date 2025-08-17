@@ -1,14 +1,19 @@
 # Koveo Gestion Component Documentation
 
+This comprehensive guide documents all 73 React components in the Koveo Gestion application, providing detailed descriptions, TypeScript interfaces, usage examples, and implementation patterns.
+
 ## Table of Contents
 
 - [Layout Components](#layout-components)
-- [Form Components](#form-components)
+- [Form Components](#form-components) 
 - [UI Components](#ui-components)
 - [Admin Components](#admin-components)
 - [Dashboard Components](#dashboard-components)
-- [Page Components](#page-components)
-- [Utility Components](#utility-components)
+- [Authentication Components](#authentication-components)
+- [Specialized Components](#specialized-components)
+- [Component Integration Patterns](#component-integration-patterns)
+- [Testing Strategy](#testing-strategy)
+- [Accessibility Standards](#accessibility-standards)
 
 ## Layout Components
 
@@ -38,11 +43,12 @@ interface AppLayoutProps {
 ### Sidebar (`client/src/components/layout/sidebar.tsx`)
 **Purpose**: Navigation sidebar with role-based menu items
 
-**Features**:
-- Role-based navigation (Admin, Manager, Tenant, Resident)
-- Organization-aware menu filtering
-- Collapsible menu sections
-- Active route highlighting
+**Key Features**:
+- **Role-Based Navigation**: Customized menu items based on user permissions
+- **Organization-Aware Filtering**: Context-sensitive menu options
+- **Collapsible Sections**: Space-efficient navigation with expandable categories
+- **Active Route Highlighting**: Visual indication of current page location
+- **Quebec Compliance**: Bilingual menu labels and accessibility standards
 
 **Navigation Structure**:
 - **Admin**: Full access to all features
@@ -61,12 +67,18 @@ interface AppLayoutProps {
 
 ## Form Components
 
-### All form components are located in `client/src/components/forms/`
+This section documents all form components located in `client/src/components/forms/`. These components handle user input, validation, and data submission throughout the application.
+
+### Key Form Features
+- **Zod Validation**: Type-safe runtime validation for all form inputs
+- **React Hook Form**: Performant form state management with minimal re-renders
+- **Quebec Compliance**: Bilingual error messages and Canadian address formats
+- **Accessibility**: WCAG 2.1 AA compliant form controls and error handling
 
 ### OrganizationForm (`client/src/components/forms/organization-form.tsx`)
-**Purpose**: Organization creation form with Quebec-specific validation
+**Purpose**: Comprehensive organization creation and management form optimized for Quebec property management companies
 
-**Props**:
+**Props Interface**:
 ```typescript
 interface OrganizationFormProps {
   open: boolean;
@@ -74,29 +86,34 @@ interface OrganizationFormProps {
 }
 ```
 
-**Features**:
-- Quebec-specific postal code validation
-- Organization type selection (Normal, Demo, Koveo)
-- Canadian address format support
-- Contact information (phone, email, website)
-- Registration number handling
-- Province defaults to Quebec (QC)
+**Core Features**:
+- **Quebec Address Validation**: Automatic postal code format validation (H0H 0H0 pattern)
+- **Organization Types**: Support for Normal, Demo, and Koveo organization classifications
+- **Canadian Standards**: Province defaults to Quebec (QC) with full Canadian address support
+- **Contact Management**: Phone, email, and website validation with optional fields
+- **Registration Tracking**: Support for Quebec business registration numbers
 
-**Validation Schema**:
+**Advanced Validation Schema**:
 ```typescript
 const formSchema = insertOrganizationSchema.extend({
-  name: z.string().min(1).max(200),
-  type: z.string().min(1),
-  address: z.string().min(1).max(300),
-  city: z.string().min(1).max(100),
-  province: z.string().default('QC'),
+  name: z.string().min(1, "Organization name is required").max(200),
+  type: z.string().min(1, "Organization type must be selected"),
+  address: z.string().min(1, "Address is required").max(300),
+  city: z.string().min(1, "City is required").max(100),
+  province: z.string().default('QC'), // Defaults to Quebec
   postalCode: z.string()
-    .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/, 'Invalid Canadian postal code'),
+    .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/, 'Invalid Canadian postal code format (e.g., H1A 1A1)'),
   phone: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  website: z.string().url().optional().or(z.literal(''))
+  email: z.string().email("Invalid email format").optional().or(z.literal('')),
+  website: z.string().url("Invalid website URL").optional().or(z.literal(''))
 });
 ```
+
+**User Experience Enhancements**:
+- Real-time validation feedback with bilingual error messages
+- Auto-formatting for postal codes and phone numbers
+- Smart defaults for Quebec-based organizations
+- Accessibility-compliant form controls with proper labeling
 
 ### FeatureForm (`client/src/components/forms/feature-form.tsx`)
 **Purpose**: Feature creation and management form for roadmap system
