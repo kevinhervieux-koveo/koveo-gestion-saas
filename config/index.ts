@@ -40,9 +40,9 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-// Get the current directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Get the current directory  
+const configFilename = fileURLToPath(import.meta.url);
+const configDirname = dirname(configFilename);
 
 /**
  * Load permissions data with fallback for production and development environments.
@@ -51,9 +51,9 @@ function loadPermissionsData() {
   // Try multiple possible locations for the permissions.json file
   const possiblePaths = [
     // Development path (relative to config directory)
-    join(__dirname, 'permissions.json'),
+    join(configDirname, 'permissions.json'),
     // Production path (in dist/config)
-    join(__dirname, '../config/permissions.json'),
+    join(configDirname, '../config/permissions.json'),
     // Alternative production path
     join(process.cwd(), 'config/permissions.json'),
     // Dist path
