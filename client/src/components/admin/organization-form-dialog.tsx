@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -67,18 +67,49 @@ export function OrganizationFormDialog({
   const form = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
-      name: organization?.name || '',
-      type: organization?.type || 'management_company',
-      address: organization?.address || '',
-      city: organization?.city || '',
-      province: organization?.province || 'QC',
-      postalCode: organization?.postalCode || '',
-      phone: organization?.phone || '',
-      email: organization?.email || '',
-      website: organization?.website || '',
-      registrationNumber: organization?.registrationNumber || '',
+      name: '',
+      type: 'management_company',
+      address: '',
+      city: '',
+      province: 'QC',
+      postalCode: '',
+      phone: '',
+      email: '',
+      website: '',
+      registrationNumber: '',
     },
   });
+
+  // Reset form when organization data changes
+  useEffect(() => {
+    if (organization) {
+      form.reset({
+        name: organization.name || '',
+        type: organization.type || 'management_company',
+        address: organization.address || '',
+        city: organization.city || '',
+        province: organization.province || 'QC',
+        postalCode: organization.postalCode || '',
+        phone: organization.phone || '',
+        email: organization.email || '',
+        website: organization.website || '',
+        registrationNumber: organization.registrationNumber || '',
+      });
+    } else {
+      form.reset({
+        name: '',
+        type: 'management_company',
+        address: '',
+        city: '',
+        province: 'QC',
+        postalCode: '',
+        phone: '',
+        email: '',
+        website: '',
+        registrationNumber: '',
+      });
+    }
+  }, [organization, form]);
 
   const mutation = useMutation({
     mutationFn: async (data: OrganizationFormData) => {
@@ -143,7 +174,7 @@ export function OrganizationFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -153,6 +184,7 @@ export function OrganizationFormDialog({
                         <SelectItem value="management_company">Management Company</SelectItem>
                         <SelectItem value="syndicate">Syndicate</SelectItem>
                         <SelectItem value="cooperative">Cooperative</SelectItem>
+                        <SelectItem value="condo_association">Condo Association</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
