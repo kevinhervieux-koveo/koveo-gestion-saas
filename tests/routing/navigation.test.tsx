@@ -69,7 +69,17 @@ describe('Navigation Integration Tests', () => {
         expect(screen.getByText('Roadmap')).toBeInTheDocument();
         expect(screen.getByText('Quality Assurance')).toBeInTheDocument();
         expect(screen.getByText('RBAC Permissions')).toBeInTheDocument();
-        expect(screen.getByText('User Management')).toBeInTheDocument();
+        expect(screen.getByText('Suggestions')).toBeInTheDocument();
+        expect(screen.getByText('Pillars')).toBeInTheDocument();
+      });
+    });
+
+    test('should NOT show User Management in Admin menu', async () => {
+      renderSidebar('admin');
+      
+      await waitFor(() => {
+        // User Management should NOT be in Admin section
+        expect(screen.queryByText('User Management')).not.toBeInTheDocument();
       });
     });
 

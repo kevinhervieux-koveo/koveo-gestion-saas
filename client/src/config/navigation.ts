@@ -64,15 +64,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
     ],
   },
-  {
-    name: 'Management',
-    key: 'management',
-    icon: Users,
-    requiredRole: 'manager',
-    items: [
-      { name: 'User Management', href: '/management/user-management', icon: Users },
-    ],
-  },
+
   {
     name: 'Admin',
     key: 'admin',
