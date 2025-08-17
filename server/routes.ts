@@ -1441,7 +1441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title,
           description: description || 'AI-generated development prompt',
           implementationPrompt: prompt,
-          status: syncedStatus,
+          status: syncedStatus as 'pending' | 'in-progress' | 'completed' | 'blocked',
           completedAt: syncedCompletedAt,
           orderIndex: 0,
         })
@@ -2920,18 +2920,17 @@ function registerInvitationRoutes(app: any) {
         const offset = (parseInt(page) - 1) * parseInt(limit);
         let query = db.select().from(invitations);
         
-        if (filters.length > 0) {
-          query = query.where(and(...filters));
-        }
+        // Apply filters and ordering
+        const whereClause = filters.length > 0 ? and(...filters) : undefined;
         
-        // Apply ordering
-        if (order === 'asc') {
-          query = query.orderBy(asc(invitations.createdAt));
-        } else {
-          query = query.orderBy(desc(invitations.createdAt));
-        }
+        const results = await db.select()
+          .from(invitations)
+          .where(whereClause)
+          .orderBy(order === 'asc' ? asc(invitations.createdAt) : desc(invitations.createdAt))
+          .limit(parseInt(limit))
+          .offset(offset);
         
-        const results = await query.limit(parseInt(limit)).offset(offset);
+
         
         // Get total count separately
         const countResult = await db.select({ count: count() }).from(invitations).where(
