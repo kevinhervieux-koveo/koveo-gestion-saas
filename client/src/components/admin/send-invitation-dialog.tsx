@@ -292,8 +292,13 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       return currentUser?.role === 'admin';
     }
     
-    // Koveo organization can add to any organization
+    // Koveo organization users can add to any organization (override all restrictions)
     if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
+      return true;
+    }
+    
+    // Users with canAccessAllOrganizations flag can add to any organization
+    if (currentUser?.canAccessAllOrganizations) {
       return true;
     }
     

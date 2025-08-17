@@ -58,8 +58,8 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 
     // Check each user organization membership
     for (const userOrg of userOrgs) {
-      if (userOrg.canAccessAllOrganizations) {
-        // User can access all organizations (Koveo admin case)
+      if (userOrg.canAccessAllOrganizations || userOrg.organization?.name?.toLowerCase() === 'koveo') {
+        // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true)
         });

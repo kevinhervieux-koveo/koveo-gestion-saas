@@ -2481,9 +2481,25 @@ function registerInvitationRoutes(app: any) {
 
         // Role-based access control for organization assignment
         if (currentUser.role === 'manager') {
-          // Koveo organization can add to any organization
-          if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
-            // Koveo managers can invite to any organization
+          // Check if user has access to all organizations (Koveo users or explicit flag)
+          const userOrgMemberships = await db.select({
+            canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+            organizationName: organizations.name
+          })
+          .from(schema.userOrganizations)
+          .leftJoin(organizations, eq(schema.userOrganizations.organizationId, organizations.id))
+          .where(and(
+            eq(schema.userOrganizations.userId, currentUser.id),
+            eq(schema.userOrganizations.isActive, true)
+          ));
+
+          const hasFullAccess = userOrgMemberships.some(membership => 
+            membership.canAccessAllOrganizations || 
+            membership.organizationName?.toLowerCase() === 'koveo'
+          );
+
+          if (hasFullAccess) {
+            // Koveo managers or users with full access can invite to any organization
           } else {
             // Other managers can only invite to their own organization
             const userOrganizations = currentUser.organizations || [];
