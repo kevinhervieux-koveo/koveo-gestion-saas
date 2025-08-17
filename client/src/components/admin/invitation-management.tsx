@@ -44,6 +44,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { translations } from '@/lib/i18n';
 
 /**
  * Interface for invitation data structure.
@@ -238,9 +239,9 @@ export function InvitationManagement({
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     
     if (days > 0) {
-      return t('daysRemaining', { count: days });
+      return `${days} ${t('daysRemaining')}`;
     } else if (hours > 0) {
-      return t('hoursRemaining', { count: hours });
+      return `${hours} ${t('hoursRemaining')}`;
     } else {
       return t('expiringsSoon');
     }
@@ -306,7 +307,7 @@ export function InvitationManagement({
                           variant="secondary" 
                           className={getRoleBadgeColor(invitation.role)}
                         >
-                          {t(invitation.role)}
+                          {t(invitation.role as keyof typeof translations.en) || invitation.role}
                         </Badge>
                       </TableCell>
                       <TableCell>

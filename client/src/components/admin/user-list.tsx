@@ -200,7 +200,7 @@ export function UserListComponent({
   selectedUsers, 
   onSelectionChange,
   onBulkAction,
-  isLoading = false 
+  isLoading: _isLoading = false 
 }: UserListComponentProps) {
   const { t } = useLanguage();
   const { user: currentUser, hasRole } = useAuth();

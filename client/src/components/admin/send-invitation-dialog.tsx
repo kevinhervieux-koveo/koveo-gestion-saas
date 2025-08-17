@@ -376,7 +376,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     onSuccess: (data) => {
       const successCount = data.results?.length || 0;
-      const errorCount = data.errors?.length || 0;
+      const _errorCount = data.errors?.length || 0;
       
       toast({
         title: t('bulkInvitationsSent'),

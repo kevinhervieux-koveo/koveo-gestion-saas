@@ -185,6 +185,34 @@ export interface Translations {
   confirmDeleteUser: string;
   selectedUsers: string;
   selectUser: string;
+  // Additional invitation management translations
+  invitationCancelled: string;
+  invitationCancelledSuccessfully: string;
+  invitationResent: string;
+  invitationResentSuccessfully: string;
+  linkCopied: string;
+  invitationLinkCopied: string;
+  accepted: string;
+  cancelled: string;
+  expiringsSoon: string;
+  invitationsList: string;
+  refresh: string;
+  recipient: string;
+  invited: string;
+  expires: string;
+  invitedBy: string;
+  system: string;
+  invitationActions: string;
+  copyLink: string;
+  openLink: string;
+  sendReminder: string;
+  resendInvitation: string;
+  cancelInvitation: string;
+  noInvitationsFound: string;
+  cancelInvitationConfirmation: string;
+  cancelling: string;
+  daysRemaining: string;
+  hoursRemaining: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -364,6 +392,34 @@ const translations: Record<Language, Translations> = {
     confirmDeleteUser: 'Are you sure you want to delete {name}?',
     selectedUsers: '{count} users selected',
     selectUser: 'Select user {name}',
+    // Additional invitation management translations
+    invitationCancelled: 'Invitation Cancelled',
+    invitationCancelledSuccessfully: 'Invitation cancelled successfully',
+    invitationResent: 'Invitation Resent',
+    invitationResentSuccessfully: 'Invitation resent successfully',
+    linkCopied: 'Link Copied',
+    invitationLinkCopied: 'Invitation link copied to clipboard',
+    accepted: 'Accepted',
+    cancelled: 'Cancelled',
+    expiringsSoon: 'Expiring Soon',
+    invitationsList: 'Invitations List',
+    refresh: 'Refresh',
+    recipient: 'Recipient',
+    invited: 'Invited',
+    expires: 'Expires',
+    invitedBy: 'Invited By',
+    system: 'System',
+    invitationActions: 'Invitation Actions',
+    copyLink: 'Copy Link',
+    openLink: 'Open Link',
+    sendReminder: 'Send Reminder',
+    resendInvitation: 'Resend Invitation',
+    cancelInvitation: 'Cancel Invitation',
+    noInvitationsFound: 'No invitations found',
+    cancelInvitationConfirmation: 'Are you sure you want to cancel this invitation?',
+    cancelling: 'Cancelling',
+    daysRemaining: 'days remaining',
+    hoursRemaining: 'hours remaining',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -542,6 +598,34 @@ const translations: Record<Language, Translations> = {
     confirmDeleteUser: 'Êtes-vous sûr de vouloir supprimer {name}?',
     selectedUsers: '{count} utilisateurs sélectionnés',
     selectUser: 'Sélectionner l\'utilisateur {name}',
+    // Additional invitation management translations
+    invitationCancelled: 'Invitation annulée',
+    invitationCancelledSuccessfully: 'Invitation annulée avec succès',
+    invitationResent: 'Invitation renvoyée',
+    invitationResentSuccessfully: 'Invitation renvoyée avec succès',
+    linkCopied: 'Lien copié',
+    invitationLinkCopied: 'Lien d\'invitation copié dans le presse-papiers',
+    accepted: 'Accepté',
+    cancelled: 'Annulé',
+    expiringsSoon: 'Expire bientôt',
+    invitationsList: 'Liste des invitations',
+    refresh: 'Actualiser',
+    recipient: 'Destinataire',
+    invited: 'Invité',
+    expires: 'Expire',
+    invitedBy: 'Invité par',
+    system: 'Système',
+    invitationActions: 'Actions d\'invitation',
+    copyLink: 'Copier le lien',
+    openLink: 'Ouvrir le lien',
+    sendReminder: 'Envoyer un rappel',
+    resendInvitation: 'Renvoyer l\'invitation',
+    cancelInvitation: 'Annuler l\'invitation',
+    noInvitationsFound: 'Aucune invitation trouvée',
+    cancelInvitationConfirmation: 'Êtes-vous sûr de vouloir annuler cette invitation?',
+    cancelling: 'Annulation',
+    daysRemaining: 'jours restants',
+    hoursRemaining: 'heures restantes',
   },
 };
 

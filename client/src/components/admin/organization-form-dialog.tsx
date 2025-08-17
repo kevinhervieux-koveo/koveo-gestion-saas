@@ -71,7 +71,7 @@ interface OrganizationFormDialogProps {
  * @returns JSX element for the organization form dialog
  */
 export function OrganizationFormDialog({
-  open,
+  open: _open,
   onOpenChange,
   organization,
   onSuccess,

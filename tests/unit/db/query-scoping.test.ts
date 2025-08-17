@@ -1,6 +1,6 @@
 import { scopeQuery, buildUserContext, getUserAccessibleResidenceIds, getUserAccessibleBuildingIds, type UserContext } from '../../../server/db/queries/scope-query';
 import { db } from '../../../server/db';
-import { users, buildings, residences, userResidences, bills, maintenanceRequests } from '../../../shared/schema';
+import { users, buildings } from '../../../shared/schema';
 import { eq, inArray } from 'drizzle-orm';
 
 // Mock the database
@@ -29,12 +29,12 @@ describe('Database Query Scoping Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Setup default mock chain
-    mockDb.select.mockReturnValue(mockDb);
-    mockDb.from.mockReturnValue(mockDb);
-    mockDb.where.mockReturnValue(mockDb);
-    mockDb.innerJoin.mockReturnValue(mockDb);
-    mockDb.orderBy.mockReturnValue(mockDb);
+    // Setup default mock chain - use any to bypass TypeScript restrictions
+    (mockDb as any).select.mockReturnValue(mockDb);
+    (mockDb as any).from.mockReturnValue(mockDb);
+    (mockDb as any).where.mockReturnValue(mockDb);
+    (mockDb as any).innerJoin.mockReturnValue(mockDb);
+    (mockDb as any).orderBy.mockReturnValue(mockDb);
   });
 
   describe('UserContext Building', () => {
@@ -170,7 +170,7 @@ describe('Database Query Scoping Tests', () => {
         })
       }) as any);
 
-      const scopedQuery = await scopeQuery(mockQuery, tenantContext, 'bills');
+      const _scopedQuery = await scopeQuery(mockQuery, tenantContext, 'bills');
       
       expect(mockQuery.where).toHaveBeenCalled();
     });
@@ -190,7 +190,7 @@ describe('Database Query Scoping Tests', () => {
         })
       }) as any);
 
-      const scopedQuery = await scopeQuery(mockQuery, tenantContext, 'maintenanceRequests');
+      const _scopedQuery = await scopeQuery(mockQuery, tenantContext, 'maintenanceRequests');
       
       expect(mockQuery.where).toHaveBeenCalled();
     });
@@ -201,7 +201,7 @@ describe('Database Query Scoping Tests', () => {
         role: 'tenant'
       };
 
-      const scopedQuery = await scopeQuery(mockQuery, tenantContext, 'users');
+      const _scopedQuery = await scopeQuery(mockQuery, tenantContext, 'users');
       
       expect(mockQuery.where).toHaveBeenCalledWith(eq(users.id, 'tenant-123'));
     });
@@ -213,7 +213,7 @@ describe('Database Query Scoping Tests', () => {
         buildingIds: ['building-1', 'building-2']
       };
 
-      const scopedQuery = await scopeQuery(mockQuery, managerContext, 'buildings');
+      const _scopedQuery = await scopeQuery(mockQuery, managerContext, 'buildings');
       
       expect(mockQuery.where).toHaveBeenCalledWith(inArray(buildings.id, ['building-1', 'building-2']));
     });
@@ -232,7 +232,7 @@ describe('Database Query Scoping Tests', () => {
         })
       }) as any);
 
-      const scopedQuery = await scopeQuery(mockQuery, isolatedUserContext, 'bills');
+      const _scopedQuery = await scopeQuery(mockQuery, isolatedUserContext, 'bills');
       
       // Should add a where clause that returns no results
       expect(mockQuery.where).toHaveBeenCalled();
@@ -251,7 +251,7 @@ describe('Database Query Scoping Tests', () => {
     test('should scope documents at multiple levels for owner', async () => {
       const ownerContext: UserContext = {
         userId: 'owner-123',
-        role: 'owner',
+        role: 'admin',
         organizationIds: ['org-1'],
         buildingIds: ['building-1'],
         residenceIds: ['residence-1', 'residence-2']
@@ -267,7 +267,7 @@ describe('Database Query Scoping Tests', () => {
         })
       }) as any);
 
-      const scopedQuery = await scopeQuery(mockQuery, ownerContext, 'documents');
+      const _scopedQuery = await scopeQuery(mockQuery, ownerContext, 'documents');
       
       // Should include conditions for organization, building, residence, and uploaded by user
       expect(mockQuery.where).toHaveBeenCalled();
@@ -279,7 +279,7 @@ describe('Database Query Scoping Tests', () => {
         role: 'manager'
       };
 
-      const scopedQuery = await scopeQuery(mockQuery, userContext, 'notifications');
+      const _scopedQuery = await scopeQuery(mockQuery, userContext, 'notifications');
       
       expect(mockQuery.where).toHaveBeenCalledWith(eq(expect.anything(), 'user-123'));
     });

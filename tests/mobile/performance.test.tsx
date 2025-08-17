@@ -1,5 +1,6 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'wouter';
+import { Router } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -12,9 +13,9 @@ const renderWithProviders = (component: React.ReactElement) => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         {component}
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   );
 };
@@ -279,7 +280,7 @@ describe('Mobile Performance Tests', () => {
         signal: { aborted: false }
       };
       
-      global.AbortController = jest.fn(() => mockAbortController);
+      global.AbortController = jest.fn(() => mockAbortController) as any;
       
       const ComponentWithAPICall = () => {
         React.useEffect(() => {
