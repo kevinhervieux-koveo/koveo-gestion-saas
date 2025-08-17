@@ -259,10 +259,9 @@ export default function Permissions() {
 
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="users">User Permissions</TabsTrigger>
-              <TabsTrigger value="permissions">Permissions Table</TabsTrigger>
-              <TabsTrigger value="manage">Manage</TabsTrigger>
+              <TabsTrigger value="permissions">All Permissions</TabsTrigger>
             </TabsList>
 
 
@@ -313,37 +312,169 @@ export default function Permissions() {
                     <div className="space-y-4">
                       {filteredUsers.map(user => {
                         const userSpecificPermissions = userPermissions?.filter(up => up.userId === user.id) || [];
+                        const rolePermissionsCount = permissionsByRole[user.role]?.length || 0;
+                        const totalPermissions = rolePermissionsCount + userSpecificPermissions.filter(up => up.granted).length;
+                        
                         return (
-                          <div key={user.id} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <div>
-                                <h4 className="font-medium">{user.firstName} {user.lastName}</h4>
-                                <p className="text-sm text-gray-600">{user.email}</p>
+                          <div key={user.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-koveo-navy rounded-full flex items-center justify-center">
+                                  <span className="text-white text-sm font-medium">
+                                    {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">{user.firstName} {user.lastName}</h4>
+                                  <p className="text-sm text-gray-600">{user.email}</p>
+                                </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="capitalize">{user.role}</Badge>
-                                <Badge variant="secondary">
-                                  {userSpecificPermissions.length} overrides
+                                <Badge variant="outline" className="capitalize font-medium">
+                                  {user.role}
+                                </Badge>
+                                <Badge variant={user.isActive ? "default" : "secondary"}>
+                                  {user.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                               </div>
                             </div>
-                            {userSpecificPermissions.length > 0 && (
-                              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {userSpecificPermissions.map(up => (
-                                  <div key={up.id} className={`text-sm px-3 py-2 rounded flex items-center justify-between ${
-                                    up.granted ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                                  }`}>
-                                    <span>{up.permission?.displayName || up.permissionId}</span>
-                                    <Badge variant={up.granted ? "default" : "destructive"}>
-                                      {up.granted ? 'Granted' : 'Revoked'}
-                                    </Badge>
+                            
+                            {/* Permission Summary */}
+                            <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-koveo-navy">{rolePermissionsCount}</p>
+                                <p className="text-xs text-gray-600">Role Permissions</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-blue-600">{userSpecificPermissions.length}</p>
+                                <p className="text-xs text-gray-600">User Overrides</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-green-600">{totalPermissions}</p>
+                                <p className="text-xs text-gray-600">Total Permissions</p>
+                              </div>
+                            </div>
+
+                            {/* User-specific permissions */}
+                            {userSpecificPermissions.length > 0 ? (
+                              <div className="space-y-2">
+                                <h5 className="font-medium text-gray-900 flex items-center gap-2">
+                                  <Settings className="h-4 w-4" />
+                                  User-Specific Permissions ({userSpecificPermissions.length})
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  {userSpecificPermissions.map(up => (
+                                    <div key={up.id} className={`text-sm px-3 py-2 rounded-lg border flex items-center justify-between ${
+                                      up.granted 
+                                        ? 'bg-green-50 border-green-200 text-green-800' 
+                                        : 'bg-red-50 border-red-200 text-red-800'
+                                    }`}>
+                                      <div className="flex-1">
+                                        <p className="font-medium">{up.permission?.displayName || up.permissionId}</p>
+                                        {up.reason && (
+                                          <p className="text-xs opacity-75 mt-1">{up.reason}</p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant={up.granted ? "default" : "destructive"} className="text-xs">
+                                          {up.granted ? 'Granted' : 'Revoked'}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-2">
+                                  Last modified: {new Date(userSpecificPermissions[0]?.grantedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-gray-500">
+                                <Shield className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No user-specific permission overrides</p>
+                                <p className="text-xs text-gray-400">User inherits all permissions from {user.role} role</p>
+                              </div>
+                            )}
+
+                            {/* Action buttons */}
+                            <div className="flex gap-2 mt-4 pt-4 border-t">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setEditingUser(editingUser === user.id ? null : user.id)}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                {editingUser === user.id ? 'Cancel' : 'Manage Permissions'}
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  // View detailed permissions for this user
+                                  toast({
+                                    title: 'User Details',
+                                    description: `${user.firstName} ${user.lastName} has ${totalPermissions} total permissions`,
+                                  });
+                                }}
+                              >
+                                <Users className="h-4 w-4 mr-2" />
+                                View Details
+                              </Button>
+                            </div>
+
+                            {/* Expandable permission management form */}
+                            {editingUser === user.id && (
+                              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <h6 className="font-medium text-blue-900 mb-3">Manage User Permissions</h6>
+                                <div className="space-y-3">
+                                  <Select onValueChange={(permissionId) => {
+                                    grantUserPermissionMutation.mutate({
+                                      userId: user.id,
+                                      permissionId,
+                                      reason: 'Admin granted via permissions page'
+                                    });
+                                  }}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Grant a new permission..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {permissions
+                                        .filter(p => !userSpecificPermissions.some(up => up.permissionId === p.id))
+                                        .map(permission => (
+                                          <SelectItem key={permission.id} value={permission.id}>
+                                            {permission.displayName} ({permission.resourceType})
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => setEditingUser(null)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      disabled
+                                    >
+                                      <Badge variant="secondary">Future: Bulk Actions</Badge>
+                                    </Button>
                                   </div>
-                                ))}
+                                </div>
                               </div>
                             )}
                           </div>
                         );
                       })}
+                      
+                      {filteredUsers.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p>No users found matching your search criteria.</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -359,10 +490,38 @@ export default function Permissions() {
                     All Permissions
                   </CardTitle>
                   <p className="text-sm text-gray-600">
-                    Comprehensive view of permissions by resource and role. This matrix shows which actions each role can perform.
+                    Complete system permissions table with detailed information about each permission.
                   </p>
                 </CardHeader>
                 <CardContent>
+                  {/* Search and Filter for permissions */}
+                  <div className="flex gap-4 mb-6">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search permissions..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {Object.keys(permissionsByResource).map(category => (
+                          <SelectItem key={category} value={category}>
+                            {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {isLoading ? (
                     <div className="flex justify-center items-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy"></div>
@@ -372,225 +531,76 @@ export default function Permissions() {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-gray-50">
-                            <TableHead className="font-semibold text-gray-900">Resource</TableHead>
-                            <TableHead className="font-semibold text-gray-900">Permission</TableHead>
-                            <TableHead className="text-center font-semibold text-gray-900">ADMIN</TableHead>
-                            <TableHead className="text-center font-semibold text-gray-900">MANAGER</TableHead>
-                            <TableHead className="text-center font-semibold text-gray-900">RESIDENT</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Permission ID</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Display Name</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Resource Type</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Action</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">Status</TableHead>
                             <TableHead className="font-semibold text-gray-900">Description</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">Roles</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {Object.entries(permissionsByResource).map(([resourceType, resourcePermissions]) => 
-                            resourcePermissions.map((permission, index) => (
+                          {filteredPermissions.map((permission) => {
+                            const rolesWithPermission = roles.filter(role => 
+                              roleMatrix[role]?.includes(permission.id)
+                            );
+                            
+                            return (
                               <TableRow key={permission.id} className="hover:bg-gray-50">
-                                {index === 0 && (
-                                  <TableCell 
-                                    rowSpan={resourcePermissions.length} 
-                                    className="font-medium text-gray-900 border-r border-gray-200 align-top capitalize"
-                                  >
-                                    {resourceType.replace('_', ' ')}
-                                  </TableCell>
-                                )}
+                                <TableCell className="font-mono text-xs text-gray-600">
+                                  {permission.id}
+                                </TableCell>
+                                <TableCell className="font-medium text-gray-900">
+                                  {permission.displayName}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                  <Badge variant="outline">
+                                    {permission.resourceType.replace('_', ' ')}
+                                  </Badge>
+                                </TableCell>
                                 <TableCell className="text-blue-600 font-medium uppercase">
                                   {permission.action}
                                 </TableCell>
-                                {['admin', 'manager', 'resident'].map(role => (
-                                  <TableCell key={role} className="text-center">
-                                    {roleMatrix[role]?.includes(permission.id) ? (
-                                      <Check className="h-4 w-4 text-green-600 mx-auto" />
-                                    ) : (
-                                      <X className="h-4 w-4 text-red-500 mx-auto" />
-                                    )}
-                                  </TableCell>
-                                ))}
-                                <TableCell className="text-sm text-gray-600">
+                                <TableCell className="text-center">
+                                  <Badge variant={permission.isActive ? "default" : "secondary"}>
+                                    {permission.isActive ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm text-gray-600 max-w-md">
                                   {permission.description}
                                 </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-wrap gap-1 justify-center">
+                                    {rolesWithPermission.map(role => (
+                                      <Badge key={role} variant="secondary" className="text-xs">
+                                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                                      </Badge>
+                                    ))}
+                                    {rolesWithPermission.length === 0 && (
+                                      <span className="text-xs text-gray-400">None</span>
+                                    )}
+                                  </div>
+                                </TableCell>
                               </TableRow>
-                            ))
-                          )}
+                            );
+                          })}
                         </TableBody>
                       </Table>
+                      
+                      {filteredPermissions.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <Shield className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p>No permissions found matching your search criteria.</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Manage Tab */}
-            <TabsContent value="manage" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Quick Actions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      className="w-full justify-start" 
-                      onClick={() => setShowNewPermissionForm(true)}
-                      disabled
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add New Permission
-                      <Badge variant="secondary" className="ml-2">Future</Badge>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => setActiveTab('permissions')}
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      View Permission Matrix
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => setActiveTab('users')}
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Manage User Permissions
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-left"
-                      disabled
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Bulk Permissions Update
-                      <Badge variant="secondary" className="ml-2">Future</Badge>
-                    </Button>
-                  </CardContent>
-                </Card>
 
-                {/* Permission Guidelines */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5" />
-                      Guidelines
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 text-sm text-gray-600">
-                    <div>
-                      <p className="font-medium text-gray-900 mb-2">Role Hierarchy:</p>
-                      <ul className="space-y-1 ml-4">
-                        <li>• <strong className="text-red-600">Admin</strong>: Full system access ({permissionsConfig?.admin?.length || 0} permissions)</li>
-                        <li>• <strong className="text-blue-600">Manager</strong>: Building management ({permissionsConfig?.manager?.length || 0} permissions)</li>
-                        <li>• <strong className="text-green-600">Resident</strong>: Property oversight ({permissionsConfig?.resident?.length || 0} permissions)</li>
-                        <li>• <strong className="text-yellow-600">Tenant</strong>: Personal data only ({permissionsConfig?.tenant?.length || 0} permissions)</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 mb-2">Quebec Law 25 Compliance:</p>
-                      <ul className="space-y-1 ml-4">
-                        <li>• All permission changes are logged</li>
-                        <li>• Minimal access principle enforced</li>
-                        <li>• Regular audit trails maintained</li>
-                        <li>• Data processing permissions tracked</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* System Statistics */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5" />
-                      System Status
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Active Permissions:</span>
-                        <Badge variant="default">{permissions?.length || 0}</Badge>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Role Mappings:</span>
-                        <Badge variant="secondary">{rolePermissions?.length || 0}</Badge>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">User Overrides:</span>
-                        <Badge variant={userPermissions?.length === 0 ? "default" : "destructive"}>
-                          {userPermissions?.length || 0}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Categories:</span>
-                        <Badge variant="outline">{categories.length || 0}</Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-3 border-t">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => {
-                          queryClient.invalidateQueries({ queryKey: ['/api/permissions'] });
-                          queryClient.invalidateQueries({ queryKey: ['/api/role-permissions'] });
-                          queryClient.invalidateQueries({ queryKey: ['/api/user-permissions'] });
-                          toast({ title: 'Refreshed', description: 'Permission data has been refreshed' });
-                        }}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Refresh Data
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Permission Categories Overview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Permission Categories Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {permissionCategories?.map(category => (
-                      <div key={category.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-koveo-navy">{category.name}</h4>
-                          <Badge variant="outline">{category.count}</Badge>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-3">
-                          {category.permissions?.slice(0, 3).map((p: any) => p.displayName).join(', ')}
-                          {category.count > 3 && ` + ${category.count - 3} more`}
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => {
-                            setSelectedCategory(category.name);
-                            setActiveTab('permissions');
-                          }}
-                        >
-                          View Category
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       </div>
