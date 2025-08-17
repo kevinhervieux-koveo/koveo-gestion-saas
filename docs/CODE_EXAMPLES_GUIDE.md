@@ -115,10 +115,10 @@ export function useAuth() {
 }
 
 // Protected route component
-export function ProtectedRoute({ 
-  children, 
-  requiredRole 
-}: { 
+export function ProtectedRoute({
+  children,
+  requiredRole
+}: {
   children: React.ReactNode;
   requiredRole?: string;
 }) {
@@ -192,7 +192,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 export function requireRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const userRole = req.session?.userRole;
-    
+
     if (!userRole || !roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
@@ -200,7 +200,7 @@ export function requireRole(roles: string[]) {
         code: 'INSUFFICIENT_PERMISSIONS',
       });
     }
-    
+
     next();
   };
 }
@@ -260,10 +260,10 @@ const organizationSchema = z.object({
 
 type OrganizationFormData = z.infer<typeof organizationSchema>;
 
-export function OrganizationForm({ 
-  organization, 
-  open, 
-  onOpenChange 
+export function OrganizationForm({
+  organization,
+  open,
+  onOpenChange
 }: {
   organization?: Organization;
   open: boolean;
@@ -271,7 +271,7 @@ export function OrganizationForm({
 }) {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  
+
   const form = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -292,7 +292,7 @@ export function OrganizationForm({
     mutationFn: async (data: OrganizationFormData) => {
       const url = organization ? `/api/organizations/${organization.id}` : '/api/organizations';
       const method = organization ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -311,7 +311,7 @@ export function OrganizationForm({
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' 
+        description: language === 'fr'
           ? 'Organisation sauvegardée avec succès'
           : 'Organization saved successfully',
       });
@@ -355,10 +355,10 @@ export function OrganizationForm({
                       {language === 'fr' ? 'Nom de l\'organisation' : 'Organization Name'} *
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder={language === 'fr' 
-                          ? 'Syndicat de copropriété...' 
+                      <Input
+                        {...field}
+                        placeholder={language === 'fr'
+                          ? 'Syndicat de copropriété...'
                           : 'Condominium Association...'
                         }
                       />
@@ -406,13 +406,13 @@ export function OrganizationForm({
                       {language === 'fr' ? 'Numéro d\'enregistrement' : 'Registration Number'}
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         placeholder={language === 'fr' ? 'NEQ ou autre...' : 'NEQ or other...'}
                       />
                     </FormControl>
                     <FormDescription>
-                      {language === 'fr' 
+                      {language === 'fr'
                         ? 'Numéro d\'entreprise du Québec (NEQ) ou autre numéro d\'enregistrement'
                         : 'Quebec Business Number (NEQ) or other registration number'
                       }
@@ -428,7 +428,7 @@ export function OrganizationForm({
               <h3 className="text-lg font-medium">
                 {language === 'fr' ? 'Adresse' : 'Address'}
               </h3>
-              
+
               <FormField
                 control={form.control}
                 name="address"
@@ -438,10 +438,10 @@ export function OrganizationForm({
                       {language === 'fr' ? 'Adresse complète' : 'Street Address'} *
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder={language === 'fr' 
-                          ? '123 Rue de la Paix, Apt 4B' 
+                      <Input
+                        {...field}
+                        placeholder={language === 'fr'
+                          ? '123 Rue de la Paix, Apt 4B'
                           : '123 Peace Street, Apt 4B'
                         }
                       />
@@ -461,8 +461,8 @@ export function OrganizationForm({
                         {language === 'fr' ? 'Ville' : 'City'} *
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           placeholder={language === 'fr' ? 'Montréal' : 'Montreal'}
                         />
                       </FormControl>
@@ -505,7 +505,7 @@ export function OrganizationForm({
                         {language === 'fr' ? 'Code postal' : 'Postal Code'} *
                       </FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           {...field}
                           placeholder="H1A 1A1"
                           onChange={(e) => {
@@ -527,7 +527,7 @@ export function OrganizationForm({
               <h3 className="text-lg font-medium">
                 {language === 'fr' ? 'Coordonnées' : 'Contact Information'}
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -538,8 +538,8 @@ export function OrganizationForm({
                         {language === 'fr' ? 'Téléphone' : 'Phone'}
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           type="tel"
                           placeholder="(514) 555-0123"
                         />
@@ -556,8 +556,8 @@ export function OrganizationForm({
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           type="email"
                           placeholder="contact@organization.ca"
                         />
@@ -577,8 +577,8 @@ export function OrganizationForm({
                       {language === 'fr' ? 'Site web' : 'Website'}
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="url"
                         placeholder="https://www.organization.ca"
                       />
@@ -590,16 +590,16 @@ export function OrganizationForm({
             </div>
 
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={mutation.isPending}
               >
                 {language === 'fr' ? 'Annuler' : 'Cancel'}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending 
+                {mutation.isPending
                   ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...')
                   : (language === 'fr' ? 'Sauvegarder' : 'Save')
                 }
@@ -652,7 +652,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       credentials: 'include',
       headers: {
@@ -680,7 +680,7 @@ class ApiClient {
       if (error instanceof ApiError) {
         throw error;
       }
-      
+
       // Network or other errors
       throw new ApiError(
         'Network error occurred',
@@ -752,7 +752,7 @@ class ApiClient {
     limit?: number;
   }) {
     const params = new URLSearchParams();
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -849,7 +849,7 @@ export function useApiMutation<TData, TVariables>(
 // Usage examples
 export function useCreateOrganization() {
   const queryClient = useQueryClient();
-  
+
   return useApiMutation(
     (data: CreateOrganizationRequest) => apiClient.createOrganization(data),
     {
@@ -863,7 +863,7 @@ export function useCreateOrganization() {
 
 export function useInviteUser() {
   const queryClient = useQueryClient();
-  
+
   return useApiMutation(
     (data: InviteUserRequest) => apiClient.inviteUser(data),
     {
@@ -878,3 +878,4 @@ export function useInviteUser() {
 ```
 
 This comprehensive guide provides practical examples for building robust, Quebec-compliant applications with proper error handling, validation, and user experience considerations.
+

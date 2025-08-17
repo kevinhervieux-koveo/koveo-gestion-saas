@@ -41,11 +41,11 @@ const loginUser = async (credentials: LoginRequest) => {
     body: JSON.stringify(credentials),
     credentials: 'include', // Important for session cookies
   });
-  
+
   if (!response.ok) {
     throw new Error('Login failed');
   }
-  
+
   return response.json();
 };
 
@@ -179,7 +179,7 @@ type CreateUserFormData = z.infer<typeof createUserSchema>;
 // React Hook for user creation
 export function useCreateUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (userData: CreateUserFormData) => {
       const response = await fetch('/api/users', {
@@ -190,12 +190,12 @@ export function useCreateUser() {
         body: JSON.stringify(userData),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create user');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -219,13 +219,13 @@ export function CreateUserForm() {
       password: '',
     },
   });
-  
+
   const createUser = useCreateUser();
-  
+
   const onSubmit = (data: CreateUserFormData) => {
     createUser.mutate(data);
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -299,17 +299,17 @@ interface InviteUserRequest {
 export function useInviteUser() {
   const queryClient = useQueryClient();
   const { user } = useAuth(); // Get current user
-  
+
   return useMutation({
     mutationFn: async (inviteData: Omit<InviteUserRequest, 'invitedBy'>) => {
       // Automatically add invitedBy from current user
       const payload: InviteUserRequest = {
         ...inviteData,
         invitedBy: user.id,
-        expiresAt: inviteData.expiresAt || 
+        expiresAt: inviteData.expiresAt ||
           new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days default
       };
-      
+
       const response = await fetch('/api/users/invite', {
         method: 'POST',
         headers: {
@@ -318,12 +318,12 @@ export function useInviteUser() {
         body: JSON.stringify(payload),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to send invitation');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -340,7 +340,7 @@ export function InvitationForm() {
     queryKey: ['/api/residences'],
     queryFn: () => fetch('/api/residences').then(res => res.json()),
   });
-  
+
   const form = useForm<InviteUserRequest>({
     resolver: zodResolver(inviteUserSchema),
     defaultValues: {
@@ -350,10 +350,10 @@ export function InvitationForm() {
       message: '',
     },
   });
-  
+
   const selectedRole = form.watch('role');
   const needsResidence = selectedRole === 'tenant' || selectedRole === 'resident';
-  
+
   const onSubmit = (data: InviteUserRequest) => {
     inviteUser.mutate(data, {
       onSuccess: () => {
@@ -372,7 +372,7 @@ export function InvitationForm() {
       },
     });
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -389,7 +389,7 @@ export function InvitationForm() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="role"
@@ -413,7 +413,7 @@ export function InvitationForm() {
             </FormItem>
           )}
         />
-        
+
         {needsResidence && (
           <FormField
             control={form.control}
@@ -440,7 +440,7 @@ export function InvitationForm() {
             )}
           />
         )}
-        
+
         <FormField
           control={form.control}
           name="message"
@@ -448,8 +448,8 @@ export function InvitationForm() {
             <FormItem>
               <FormLabel>Personal Message (Optional)</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
+                <Textarea
+                  {...field}
                   placeholder="Add a personal message to the invitation..."
                   rows={3}
                 />
@@ -458,7 +458,7 @@ export function InvitationForm() {
             </FormItem>
           )}
         />
-        
+
         <Button type="submit" disabled={inviteUser.isPending}>
           {inviteUser.isPending ? 'Sending...' : 'Send Invitation'}
         </Button>
@@ -881,3 +881,4 @@ Most endpoints require authentication via session cookies. Admin-only endpoints 
 ## Rate Limiting
 
 API requests are limited to 1000 requests per hour per user to prevent abuse.
+

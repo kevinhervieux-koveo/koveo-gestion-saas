@@ -36,7 +36,7 @@ Configure the following settings for the `main` branch:
 **Required status checks:**
 ```yaml
 Static Analysis
-Testing Suite  
+Testing Suite
 Quality Analysis
 Quebec Compliance
 Build Validation
@@ -129,7 +129,7 @@ Create the following teams with appropriate permissions:
 - **Responsibilities:** Security and authentication reviews
 
 #### @koveogestion/database-admins
-- **Permission Level:** Write  
+- **Permission Level:** Write
 - **Members:** Database specialists, backend developers
 - **Responsibilities:** Schema changes, migration reviews
 
@@ -166,7 +166,7 @@ Navigate to **Settings > Secrets and variables > Actions**:
 # Database (if needed for CI)
 DATABASE_URL
 
-# Code coverage (if using external service)  
+# Code coverage (if using external service)
 CODECOV_TOKEN
 
 # Package registry (if using private packages)
@@ -183,7 +183,7 @@ SLACK_WEBHOOK_URL
 - **Deployment branches:** `main` only
 - **Environment secrets:** Production database, API keys
 
-#### Staging Environment  
+#### Staging Environment
 - **Protection rules:** Require reviewers (any team member)
 - **Deployment branches:** `main`, `develop`
 - **Environment secrets:** Staging database, test API keys
@@ -208,7 +208,7 @@ curl -X PUT \
   https://api.github.com/repos/$REPO/branches/main/protection \
   -d @branch-protection-main.json
 
-# Develop branch protection  
+# Develop branch protection
 curl -X PUT \
   -H "Authorization: token $GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.v3+json" \
@@ -230,7 +230,7 @@ PROTECTION=$(curl -H "Authorization: token $GITHUB_TOKEN" \
 
 if echo "$PROTECTION" | grep -q "required_status_checks"; then
   echo "✅ Main branch protection active"
-else  
+else
   echo "❌ Main branch protection missing"
   exit 1
 fi
@@ -262,7 +262,7 @@ For critical production fixes:
 
 1. Create hotfix branch from `main`
 2. Make minimal necessary changes
-3. Request emergency review from 2 tech leads  
+3. Request emergency review from 2 tech leads
 4. Use "Emergency bypass" if configured
 5. Deploy immediately
 6. Create post-incident review task
@@ -276,7 +276,7 @@ Emergency bypass is only allowed for:
 
 **Required for bypass:**
 - 2 tech lead approvals
-- Incident documentation  
+- Incident documentation
 - Post-fix review commitment
 - Rollback plan documented
 
@@ -295,7 +295,7 @@ Emergency bypass is only allowed for:
 
 - [ ] Protection rules are still appropriate
 - [ ] Required checks are catching relevant issues
-- [ ] Team structure aligns with project needs  
+- [ ] Team structure aligns with project needs
 - [ ] Emergency procedures are documented
 - [ ] Compliance requirements are met
 
@@ -327,3 +327,4 @@ Emergency bypass is only allowed for:
 ---
 
 *Review and update these settings quarterly or when team structure changes.*
+

@@ -52,7 +52,7 @@ export const canadianPhoneSchema = z.string()
   .optional()
   .refine((value) => {
     if (!value) return true;
-    
+
     // Support various Canadian phone formats
     const phoneRegex = /^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}$/;
     return phoneRegex.test(value);
@@ -61,7 +61,7 @@ export const canadianPhoneSchema = z.string()
   })
   .transform((value) => {
     if (!value) return value;
-    
+
     // Normalize to Canadian format: +1 (XXX) XXX-XXXX
     const digits = value.replace(/\D/g, '');
     if (digits.length === 10) {
@@ -218,14 +218,14 @@ const translations = {
     'form.postalCode': 'Code postal',
     'form.organization': 'Organisation',
     'form.role': 'Rôle',
-    
+
     // Validation messages
     'validation.required': 'Ce champ est requis',
     'validation.email.invalid': 'Adresse courriel invalide',
     'validation.phone.invalid': 'Numéro de téléphone invalide',
     'validation.postalCode.invalid': 'Code postal invalide (format: H1A 1A1)',
     'validation.password.weak': 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre',
-    
+
     // Buttons and actions
     'button.save': 'Sauvegarder',
     'button.cancel': 'Annuler',
@@ -234,33 +234,33 @@ const translations = {
     'button.create': 'Créer',
     'button.submit': 'Soumettre',
     'button.send': 'Envoyer',
-    
+
     // Success messages
     'success.saved': 'Sauvegardé avec succès',
     'success.created': 'Créé avec succès',
     'success.updated': 'Mis à jour avec succès',
     'success.deleted': 'Supprimé avec succès',
     'success.sent': 'Envoyé avec succès',
-    
+
     // Error messages
     'error.generic': 'Une erreur est survenue',
     'error.network': 'Erreur de connexion réseau',
     'error.unauthorized': 'Accès non autorisé',
     'error.forbidden': 'Permissions insuffisantes',
     'error.notFound': 'Ressource non trouvée',
-    
+
     // Roles
     'role.admin': 'Administrateur',
     'role.manager': 'Gestionnaire',
     'role.tenant': 'Locataire',
     'role.resident': 'Résident',
-    
+
     // Quebec-specific terms
     'quebec.neq': 'Numéro d\'entreprise du Québec (NEQ)',
     'quebec.copropriete': 'Copropriété',
     'quebec.syndicat': 'Syndicat de copropriétaires',
     'quebec.regie': 'Régie du logement',
-    
+
     // Privacy and Law 25
     'privacy.consent.title': 'Consentement à la collecte de renseignements personnels',
     'privacy.consent.description': 'Conformément à la Loi 25 du Québec, nous recueillons vos renseignements personnels pour la gestion de votre propriété.',
@@ -281,14 +281,14 @@ const translations = {
     'form.postalCode': 'Postal Code',
     'form.organization': 'Organization',
     'form.role': 'Role',
-    
+
     // Validation messages
     'validation.required': 'This field is required',
     'validation.email.invalid': 'Invalid email address',
     'validation.phone.invalid': 'Invalid phone number',
     'validation.postalCode.invalid': 'Invalid postal code (format: H1A 1A1)',
     'validation.password.weak': 'Password must contain at least 8 characters, one uppercase, one lowercase, and one number',
-    
+
     // Buttons and actions
     'button.save': 'Save',
     'button.cancel': 'Cancel',
@@ -297,33 +297,33 @@ const translations = {
     'button.create': 'Create',
     'button.submit': 'Submit',
     'button.send': 'Send',
-    
+
     // Success messages
     'success.saved': 'Successfully saved',
     'success.created': 'Successfully created',
     'success.updated': 'Successfully updated',
     'success.deleted': 'Successfully deleted',
     'success.sent': 'Successfully sent',
-    
+
     // Error messages
     'error.generic': 'An error occurred',
     'error.network': 'Network connection error',
     'error.unauthorized': 'Unauthorized access',
     'error.forbidden': 'Insufficient permissions',
     'error.notFound': 'Resource not found',
-    
+
     // Roles
     'role.admin': 'Administrator',
     'role.manager': 'Manager',
     'role.tenant': 'Tenant',
     'role.resident': 'Resident',
-    
+
     // Quebec-specific terms
     'quebec.neq': 'Quebec Business Number (NEQ)',
     'quebec.copropriete': 'Condominium',
     'quebec.syndicat': 'Condominium Association',
     'quebec.regie': 'Housing Board',
-    
+
     // Privacy and Law 25
     'privacy.consent.title': 'Consent to Personal Information Collection',
     'privacy.consent.description': 'In accordance with Quebec Law 25, we collect your personal information for property management purposes.',
@@ -374,7 +374,7 @@ export function useLanguage() {
 // Bilingual form component example
 export function BilingualUserForm() {
   const { t, language } = useLanguage();
-  
+
   const userSchema = z.object({
     firstName: z.string().min(1, t('validation.required')),
     lastName: z.string().min(1, t('validation.required')),
@@ -385,7 +385,7 @@ export function BilingualUserForm() {
     ),
     role: z.enum(['admin', 'manager', 'tenant', 'resident']),
     privacyConsent: z.boolean().refine(val => val === true, {
-      message: language === 'fr' 
+      message: language === 'fr'
         ? 'Vous devez accepter la collecte de vos renseignements personnels'
         : 'You must agree to the collection of your personal information',
     }),
@@ -460,7 +460,7 @@ export function BilingualUserForm() {
                 <Input {...field} type="tel" autoComplete="tel" />
               </FormControl>
               <FormDescription>
-                {language === 'fr' 
+                {language === 'fr'
                   ? 'Format: (514) 555-0123'
                   : 'Format: (514) 555-0123'
                 }
@@ -513,13 +513,13 @@ export function BilingualUserForm() {
                 <FormDescription className="text-sm">
                   {t('privacy.consent.description')}
                   <br />
-                  <a 
-                    href="/privacy-policy" 
+                  <a
+                    href="/privacy-policy"
                     className="text-blue-600 hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {language === 'fr' 
+                    {language === 'fr'
                       ? 'Voir notre politique de confidentialité'
                       : 'View our privacy policy'
                     }
@@ -562,10 +562,10 @@ interface PrivacyConsentProps {
   showUserRights?: boolean;
 }
 
-export function PrivacyConsent({ 
-  onConsentChange, 
+export function PrivacyConsent({
+  onConsentChange,
   initialConsent = false,
-  showUserRights = true 
+  showUserRights = true
 }: PrivacyConsentProps) {
   const [consented, setConsented] = useState(initialConsent);
   const { t, language } = useLanguage();
@@ -616,17 +616,17 @@ export function PrivacyConsent({
             {t('privacy.consent.title')}
           </CardTitle>
           <CardDescription>
-            {language === 'fr' 
+            {language === 'fr'
               ? 'Conformément à la Loi 25 sur la protection des renseignements personnels au Québec'
               : 'In accordance with Quebec Law 25 on personal information protection'
             }
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <div>
             <h4 className="font-medium mb-2">
-              {language === 'fr' 
+              {language === 'fr'
                 ? 'Types de renseignements collectés :'
                 : 'Types of information collected:'
               }
@@ -640,7 +640,7 @@ export function PrivacyConsent({
 
           <div>
             <h4 className="font-medium mb-2">
-              {language === 'fr' 
+              {language === 'fr'
                 ? 'Fins d\'utilisation :'
                 : 'Purposes of use:'
               }
@@ -678,31 +678,31 @@ export function PrivacyConsent({
         <Card>
           <CardHeader>
             <CardTitle>
-              {language === 'fr' 
+              {language === 'fr'
                 ? 'Vos droits en matière de protection des données'
                 : 'Your data protection rights'
               }
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button variant="outline" size="sm" className="justify-start">
                 <Eye className="w-4 h-4 mr-2" />
                 {t('privacy.accessRequest')}
               </Button>
-              
+
               <Button variant="outline" size="sm" className="justify-start">
                 <Download className="w-4 h-4 mr-2" />
                 {t('privacy.dataPortability')}
               </Button>
-              
+
               <Button variant="outline" size="sm" className="justify-start">
                 <Trash2 className="w-4 h-4 mr-2" />
                 {t('privacy.rightToDelete')}
               </Button>
             </div>
-            
+
             <p className="text-xs text-gray-600">
               {language === 'fr'
                 ? 'Pour exercer vos droits, contactez notre responsable de la protection des données à privacy@koveo.ca'
@@ -719,7 +719,7 @@ export function PrivacyConsent({
 // Data retention and deletion compliance
 export function useDataRetention() {
   const { language } = useLanguage();
-  
+
   const requestDataDeletion = useMutation({
     mutationFn: async (userId: string) => {
       const response = await fetch(`/api/privacy/delete-request`, {
@@ -728,11 +728,11 @@ export function useDataRetention() {
         body: JSON.stringify({ userId }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to submit deletion request');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -753,11 +753,11 @@ export function useDataRetention() {
         body: JSON.stringify({ userId }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to submit export request');
       }
-      
+
       // Handle file download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -789,3 +789,4 @@ export function useDataRetention() {
 ```
 
 This guide provides comprehensive, production-ready code examples for Quebec compliance, ensuring your application meets all legal requirements while providing an excellent user experience in both French and English.
+

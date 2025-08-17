@@ -231,3 +231,4 @@ This project maintains compliance with Quebec Law 25 and includes:
 
 Last Updated: 2025-08-17
 Version: 2.0.0
+

@@ -161,16 +161,16 @@ All API endpoints are protected with appropriate role/permission checks:
 
 ```typescript
 // Example: Only admins can delete users
-router.delete('/users/:id', 
-  requireAuth, 
-  requireRole(['admin']), 
+router.delete('/users/:id',
+  requireAuth,
+  requireRole(['admin']),
   deleteUser
 );
 
 // Example: Managers and above can create bills
-router.post('/bills', 
-  requireAuth, 
-  authorize('create:bill'), 
+router.post('/bills',
+  requireAuth,
+  authorize('create:bill'),
   createBill
 );
 ```
@@ -182,7 +182,7 @@ The platform includes a comprehensive invitation system that respects role hiera
 ### Role-Based Invitation Permissions
 ```text
 Admins → can invite: Admins, Managers, Tenants, Residents
-Managers → can invite: Tenants, Residents  
+Managers → can invite: Tenants, Residents
 Tenants → cannot invite users
 Residents → cannot invite users
 ```
@@ -235,7 +235,7 @@ Test files:
 When updating from previous role systems:
 
 1. **Database Migration**: Run `npm run db:push` to update role enums
-2. **User Role Mapping**: 
+2. **User Role Mapping**:
    - Previous "owner" roles → "tenant" or "manager" (based on context)
    - New "resident" role for non-tenant occupants
 3. **Permission Review**: Audit existing user permissions
@@ -259,3 +259,4 @@ Planned improvements to the RBAC system:
 - Custom role creation (Enterprise tier)
 - API key-based authentication
 - OAuth2/SAML integration
+

@@ -77,7 +77,7 @@ Each page component must include:
 ```tsx
 /**
  * User Management Page
- * 
+ *
  * Allows managers and admins to view and manage users within their organization.
  * Implements role-based access control and organization-level restrictions.
  */
@@ -95,11 +95,11 @@ export default function UserManagement() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header 
-        title="User Management" 
+      <Header
+        title="User Management"
         subtitle="Manage users within your organization"
       />
-      
+
       <div className="flex-1 overflow-auto p-6">
         {/* Page content */}
       </div>
@@ -201,7 +201,7 @@ This organization structure will evolve as the application grows. Regular review
 
 ### Available Scripts
 - `npm run test:page-organization` - Validate page organization
-- `npm run lint:pages` - Check page naming conventions  
+- `npm run lint:pages` - Check page naming conventions
 - `npm run validate:routes` - Verify router registration
 
 ### IDE Integration
@@ -214,3 +214,4 @@ Configure your IDE to:
 
 **Last Updated**: August 17, 2025
 **Next Review**: September 2025
+

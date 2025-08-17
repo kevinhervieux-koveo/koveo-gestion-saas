@@ -5,7 +5,7 @@ This comprehensive guide documents all 73 React components in the Koveo Gestion 
 ## Table of Contents
 
 - [Layout Components](#layout-components)
-- [Form Components](#form-components) 
+- [Form Components](#form-components)
 - [UI Components](#ui-components)
 - [Admin Components](#admin-components)
 - [Dashboard Components](#dashboard-components)
@@ -72,15 +72,15 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
-  
+
   if (!user) {
     return <Navigate to="/login" />;
   }
-  
+
   return <>{children}</>;
 }
 ```
@@ -398,9 +398,9 @@ interface BulkActionsBarProps {
 
 **Action Types**:
 ```typescript
-type BulkActionType = 
+type BulkActionType =
   | 'activate'
-  | 'deactivate' 
+  | 'deactivate'
   | 'change_role'
   | 'send_password_reset'
   | 'delete'
@@ -860,7 +860,7 @@ toast({
   description: "Operation completed successfully",
 });
 
-// Error notification  
+// Error notification
 toast({
   title: "Error",
   description: "Operation failed",
@@ -906,7 +906,7 @@ Each component category follows specific testing patterns:
 - Submit behavior verification
 - Accessibility compliance
 
-#### Admin Components  
+#### Admin Components
 - Permission-based rendering
 - Bulk action functionality
 - Data manipulation verification
@@ -1130,14 +1130,14 @@ All public components include comprehensive JSDoc:
 ```typescript
 /**
  * User management interface with bulk operations support.
- * 
+ *
  * @component
  * @param {User[]} users - Array of user objects to display
  * @param {Set<string>} selectedUsers - Set of selected user IDs
  * @param {Function} onSelectionChange - Callback for selection changes
  * @param {Function} onBulkAction - Callback for bulk operations
  * @param {boolean} [isLoading=false] - Loading state indicator
- * 
+ *
  * @example
  * ```tsx
  * <UserList
@@ -1168,3 +1168,4 @@ interface UserListProps {
   isLoading?: boolean;
 }
 ```
+
