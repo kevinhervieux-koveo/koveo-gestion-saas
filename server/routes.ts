@@ -2447,44 +2447,52 @@ function registerInvitationRoutes(app: any) {
           });
         }
 
+        // Check if user is from Koveo organization or has full access flag
+        const userOrgMemberships = await db.select({
+          canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+          organizationName: organizations.name
+        })
+        .from(schema.userOrganizations)
+        .leftJoin(organizations, eq(schema.userOrganizations.organizationId, organizations.id))
+        .where(and(
+          eq(schema.userOrganizations.userId, currentUser.id),
+          eq(schema.userOrganizations.isActive, true)
+        ));
+
+        const hasFullAccess = userOrgMemberships.some(membership => 
+          membership.canAccessAllOrganizations || 
+          membership.organizationName?.toLowerCase() === 'koveo'
+        );
+
         // Role-based access control for organization assignment
-        if (currentUser.role === 'manager') {
-          // Check if user has access to all organizations (Koveo users or explicit flag)
-          const userOrgMemberships = await db.select({
-            canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
-            organizationName: organizations.name
-          })
-          .from(schema.userOrganizations)
-          .leftJoin(organizations, eq(schema.userOrganizations.organizationId, organizations.id))
-          .where(and(
-            eq(schema.userOrganizations.userId, currentUser.id),
-            eq(schema.userOrganizations.isActive, true)
-          ));
-
-          const hasFullAccess = userOrgMemberships.some(membership => 
-            membership.canAccessAllOrganizations || 
-            membership.organizationName?.toLowerCase() === 'koveo'
-          );
-
-          if (hasFullAccess) {
-            // Koveo managers or users with full access can invite to any organization
-          } else {
-            // Other managers can only invite to their own organization
-            const userOrganizations = currentUser.organizations || [];
-            if (!userOrganizations.includes(organizationId)) {
-              return res.status(403).json({
-                message: 'Managers can only invite users to their own organization',
-                code: 'ORGANIZATION_ACCESS_DENIED'
-              });
-            }
-          }
-        } else if (currentUser.role === 'admin') {
+        if (currentUser.role === 'admin') {
           // Admins can invite to any organization they have access to
           const { canUserAccessOrganization } = await import('./rbac.js');
           const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
           if (!hasAccess) {
             return res.status(403).json({
               message: 'You do not have access to this organization',
+              code: 'ORGANIZATION_ACCESS_DENIED'
+            });
+          }
+        } else if (hasFullAccess) {
+          // Koveo organization users or users with full access flag can invite to any organization
+          // No additional restrictions needed
+        } else if (currentUser.role === 'manager') {
+          // Non-Koveo managers can only invite to their own organization
+          const userOrganizations = currentUser.organizations || [];
+          if (!userOrganizations.includes(organizationId)) {
+            return res.status(403).json({
+              message: 'Managers can only invite users to their own organization',
+              code: 'ORGANIZATION_ACCESS_DENIED'
+            });
+          }
+        } else {
+          // Non-Koveo tenants and residents cannot invite users to other organizations
+          const userOrganizations = currentUser.organizations || [];
+          if (!userOrganizations.includes(organizationId)) {
+            return res.status(403).json({
+              message: 'You can only invite users to your own organization',
               code: 'ORGANIZATION_ACCESS_DENIED'
             });
           }
@@ -2690,18 +2698,46 @@ function registerInvitationRoutes(app: any) {
               continue;
             }
 
+            // Check if user is from Koveo organization or has full access flag for bulk invitations
+            const userOrgMemberships = await db.select({
+              canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+              organizationName: organizations.name
+            })
+            .from(schema.userOrganizations)
+            .leftJoin(organizations, eq(schema.userOrganizations.organizationId, organizations.id))
+            .where(and(
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            ));
+
+            const hasFullAccess = userOrgMemberships.some(membership => 
+              membership.canAccessAllOrganizations || 
+              membership.organizationName?.toLowerCase() === 'koveo'
+            );
+
             // Role-based access control for organization assignment
-            if (currentUser.role === 'manager') {
+            if (currentUser.role === 'admin') {
+              const { canUserAccessOrganization } = await import('./rbac.js');
+              const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
+              if (!hasAccess) {
+                errors.push({ index, email, error: 'You do not have access to this organization' });
+                continue;
+              }
+            } else if (hasFullAccess) {
+              // Koveo organization users or users with full access flag can invite to any organization
+              // No additional restrictions needed
+            } else if (currentUser.role === 'manager') {
+              // Non-Koveo managers can only invite to their own organization
               const userOrganizations = currentUser.organizations || [];
               if (!userOrganizations.includes(organizationId)) {
                 errors.push({ index, email, error: 'Managers can only invite users to their own organization' });
                 continue;
               }
-            } else if (currentUser.role === 'admin') {
-              const { canUserAccessOrganization } = await import('./rbac.js');
-              const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
-              if (!hasAccess) {
-                errors.push({ index, email, error: 'You do not have access to this organization' });
+            } else {
+              // Non-Koveo tenants and residents cannot invite users to other organizations
+              const userOrganizations = currentUser.organizations || [];
+              if (!userOrganizations.includes(organizationId)) {
+                errors.push({ index, email, error: 'You can only invite users to your own organization' });
                 continue;
               }
             }
@@ -3290,11 +3326,29 @@ function registerInvitationRoutes(app: any) {
   // POST /api/invitations/bulk - Send bulk invitations
   app.post('/api/invitations/bulk', requireAuth, authorize('create:user'), async (req: any, res: any) => {
     try {
+      const currentUser = req.user;
       const { invitations: invitationData } = req.body;
 
       if (!invitationData || !Array.isArray(invitationData)) {
         return res.status(400).json({ message: 'Invitations array is required' });
       }
+
+      // Check if user is from Koveo organization or has full access flag
+      const userOrgMemberships = await db.select({
+        canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+        organizationName: organizations.name
+      })
+      .from(schema.userOrganizations)
+      .leftJoin(organizations, eq(schema.userOrganizations.organizationId, organizations.id))
+      .where(and(
+        eq(schema.userOrganizations.userId, currentUser.id),
+        eq(schema.userOrganizations.isActive, true)
+      ));
+
+      const hasFullAccess = userOrgMemberships.some(membership => 
+        membership.canAccessAllOrganizations || 
+        membership.organizationName?.toLowerCase() === 'koveo'
+      );
 
       const results = [];
       const errors = [];
@@ -3309,6 +3363,53 @@ function registerInvitationRoutes(app: any) {
               details: validation.error.issues
             });
             continue;
+          }
+
+          const { role, organizationId } = validation.data;
+
+          // Role-based access control for roles
+          if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
+            errors.push({
+              email: invitation.email,
+              error: 'Managers can only invite tenants and residents'
+            });
+            continue;
+          }
+
+          // Role-based access control for organization assignment
+          if (currentUser.role === 'admin') {
+            const { canUserAccessOrganization } = await import('./rbac.js');
+            const hasAccess = await canUserAccessOrganization(currentUser.id, organizationId);
+            if (!hasAccess) {
+              errors.push({
+                email: invitation.email,
+                error: 'You do not have access to this organization'
+              });
+              continue;
+            }
+          } else if (hasFullAccess) {
+            // Koveo organization users or users with full access flag can invite to any organization
+            // No additional restrictions needed
+          } else if (currentUser.role === 'manager') {
+            // Non-Koveo managers can only invite to their own organization
+            const userOrganizations = currentUser.organizations || [];
+            if (!userOrganizations.includes(organizationId)) {
+              errors.push({
+                email: invitation.email,
+                error: 'Managers can only invite users to their own organization'
+              });
+              continue;
+            }
+          } else {
+            // Non-Koveo tenants and residents cannot invite users to other organizations
+            const userOrganizations = currentUser.organizations || [];
+            if (!userOrganizations.includes(organizationId)) {
+              errors.push({
+                email: invitation.email,
+                error: 'You can only invite users to your own organization'
+              });
+              continue;
+            }
           }
 
           // Check if user already exists

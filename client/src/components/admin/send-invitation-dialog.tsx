@@ -256,20 +256,19 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       currentUser?.organizations?.includes(org.id)
     );
     
+    // Koveo organization users can add to any organization (regardless of role)
+    if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
+      return organizations;
+    }
+    
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization they have access to
       return organizations;
     } else if (currentUser?.role === 'manager') {
-      // Managers have different rules based on their organization
-      if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
-        // Koveo organization can add to any organization
-        return organizations;
-      } else {
-        // Other organizations can only add users to their own organization
-        return organizations.filter(org => 
-          currentUser?.organizations?.includes(org.id)
-        );
-      }
+      // Non-Koveo managers can only add users to their own organization
+      return organizations.filter(org => 
+        currentUser?.organizations?.includes(org.id)
+      );
     }
     
     // Default: only show user's organizations
