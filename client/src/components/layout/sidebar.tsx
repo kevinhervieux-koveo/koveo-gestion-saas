@@ -7,7 +7,6 @@ import {
   User,
   Building,
   Users,
-  UserPlus,
   DollarSign,
   FileText,
   AlertCircle,
@@ -163,9 +162,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     }
   };
 
-  const topLevelItems = [
-    { name: t('dashboard'), href: '/dashboard', icon: Home },
-  ];
+  const topLevelItems: Array<{ name: string; href: string; icon: any }> = [];
 
   // Helper function to check if user has role or higher
   const hasRoleOrHigher = (requiredRole: string): boolean => {
@@ -200,7 +197,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         { name: 'Budget', href: '/manager/budget', icon: DollarSign },
         { name: 'Bills', href: '/manager/bills', icon: FileText },
         { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
-        { name: 'User Management', href: '/manager/user-management', icon: UserPlus, requiredRole: 'manager' },
+
       ],
     },
     {
@@ -234,7 +231,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     .filter(section => hasRoleOrHigher(section.requiredRole))
     .map(section => ({
       ...section,
-      items: section.items.filter(item => !item.requiredRole || hasRoleOrHigher(item.requiredRole))
+      items: section.items.filter(item => !('requiredRole' in item) || hasRoleOrHigher((item as any).requiredRole))
     }));
 
   return (
@@ -257,7 +254,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       <div className='p-6 border-b border-gray-200'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-3'>
-            <Link href="/dashboard" onClick={handleNavItemClick}>
+            <Link href="/residents/residence" onClick={handleNavItemClick}>
               <img 
                 src={koveoLogo} 
                 alt="Koveo Gestion Logo" 

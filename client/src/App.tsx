@@ -56,19 +56,7 @@ const AdminPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Shared User Management page (used by managers)
-const UserManagement = createOptimizedLoader(
-  () => import('@/pages/manager/user-management'),
-  'user-management',
-  { enableMemoryCleanup: true }
-);
-
 // Optimized lazy-loaded Owner pages
-const OwnerDashboard = createOptimizedLoader(
-  () => import('@/pages/owner/dashboard'),
-  'owner-dashboard',
-  { enableMemoryCleanup: true }
-);
 const OwnerDocumentation = AdminDocumentation; // Reuse admin documentation
 const OwnerPillars = AdminPillars; // Reuse admin pillars
 const OwnerRoadmap = createOptimizedLoader(
@@ -100,7 +88,6 @@ const ManagerDemands = createOptimizedLoader(
 );
 
 // Optimized lazy-loaded Residents pages
-const ResidentsDashboard = optimizedPageLoaders.ResidentsDashboard;
 const ResidentsResidence = createOptimizedLoader(
   () => import('@/pages/residents/residence'),
   'residents-residence',
@@ -244,19 +231,12 @@ function Router() {
               <Route path='/admin/permissions' component={AdminPermissions} />
 
               {/* Owner routes */}
-              <Route path='/owner/dashboard' component={OwnerDashboard} />
               <Route path='/owner/documentation' component={OwnerDocumentation} />
               <Route path='/owner/pillars' component={OwnerPillars} />
               <Route path='/owner/roadmap' component={OwnerRoadmap} />
               <Route path='/owner/quality' component={OwnerQuality} />
               <Route path='/owner/suggestions' component={OwnerSuggestions} />
               <Route path='/owner/permissions' component={OwnerPermissions} />
-
-              {/* Manager User Management route */}
-              <Route path='/manager/user-management' component={() => {
-                console.warn('Loading /manager/user-management route');
-                return <UserManagement />;
-              }} />
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />
@@ -266,7 +246,6 @@ function Router() {
               <Route path='/manager/demands' component={ManagerDemands} />
 
               {/* Residents routes */}
-              <Route path='/dashboard' component={ResidentsDashboard} />
               <Route path='/residents/residence' component={ResidentsResidence} />
               <Route path='/residents/building' component={ResidentsBuilding} />
               <Route path='/residents/demands' component={ResidentsDemands} />
