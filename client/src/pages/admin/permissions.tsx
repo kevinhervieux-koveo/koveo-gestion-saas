@@ -344,14 +344,17 @@ export default function Permissions() {
               </Card>
             </TabsContent>
 
-            {/* Permissions Table Tab */}
+            {/* All Permissions Tab */}
             <TabsContent value="permissions" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5" />
-                    Role-Based Permissions Matrix
+                    All Permissions
                   </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Comprehensive view of permissions by resource and role. This matrix shows which actions each role can perform.
+                  </p>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
@@ -359,224 +362,350 @@ export default function Permissions() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy"></div>
                     </div>
                   ) : (
-                    <div className="space-y-6">
-                      {/* RBAC Matrix Table */}
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[300px]">Permission</TableHead>
-                              <TableHead className="text-center">Admin</TableHead>
-                              <TableHead className="text-center">Manager</TableHead>
-                              <TableHead className="text-center">Tenant</TableHead>
-                              <TableHead className="text-center">Resident</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {/* Static permissions based on config/permissions.json */}
-                            <TableRow>
-                              <TableCell className="font-medium">Profile Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">User Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Organization Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Building Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Residence Access</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Bill Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Budget Management</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Maintenance Requests</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Document Access</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Notifications</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-gray-500">Read Only</span>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">AI Analysis & Assistant</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell className="font-medium">Invitations</TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Check className="h-4 w-4 text-green-600 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </div>
-                      
-                      {/* Permission Stats */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">148</div>
-                          <div className="text-sm text-blue-600">Admin Permissions</div>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">70</div>
-                          <div className="text-sm text-green-600">Manager Permissions</div>
-                        </div>
-                        <div className="text-center p-4 bg-orange-50 rounded-lg">
-                          <div className="text-2xl font-bold text-orange-600">9</div>
-                          <div className="text-sm text-orange-600">Tenant Permissions</div>
-                        </div>
-                        <div className="text-center p-4 bg-purple-50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">9</div>
-                          <div className="text-sm text-purple-600">Resident Permissions</div>
-                        </div>
-                      </div>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50">
+                            <TableHead className="font-semibold text-gray-900">Resource</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Permission</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">ADMIN</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">MANAGER</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">RESIDENT</TableHead>
+                            <TableHead className="font-semibold text-gray-900">Notes</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {/* Organization Permissions */}
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell rowSpan={4} className="font-medium text-gray-900 border-r border-gray-200 align-top">
+                              Organization
+                            </TableCell>
+                            <TableCell className="text-blue-600 font-medium">CREATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Only Admins can create new property management organizations.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can view details of the organization they belong to.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">UPDATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600"></TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">DELETE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600"></TableCell>
+                          </TableRow>
+
+                          {/* User Account Permissions */}
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell rowSpan={6} className="font-medium text-gray-900 border-r border-gray-200 align-top">
+                              User Accounts
+                            </TableCell>
+                            <TableCell className="text-blue-600 font-medium">CREATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can invite new residents or staff to their organization.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ_ALL</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can see all users within their organization.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ_OWN</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              All users can view their own profile.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">UPDATE_ANY</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can update profiles of users in their organization.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">UPDATE_OWN</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              All users can update their own profile information.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">DELETE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600"></TableCell>
+                          </TableRow>
+
+                          {/* Building Management */}
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell rowSpan={4} className="font-medium text-gray-900 border-r border-gray-200 align-top">
+                              Buildings
+                            </TableCell>
+                            <TableCell className="text-blue-600 font-medium">CREATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can add new buildings to their organization.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Residents can view details of their building.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">UPDATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600"></TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">DELETE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600"></TableCell>
+                          </TableRow>
+
+                          {/* Maintenance Requests */}
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell rowSpan={4} className="font-medium text-gray-900 border-r border-gray-200 align-top">
+                              Maintenance
+                            </TableCell>
+                            <TableCell className="text-blue-600 font-medium">CREATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              All users can submit maintenance requests for their unit.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ_ALL</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can view all maintenance requests in their buildings.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">UPDATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can update status and assign maintenance tasks.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">APPROVE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can approve and schedule maintenance work.
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Financial Management */}
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell rowSpan={3} className="font-medium text-gray-900 border-r border-gray-200 align-top">
+                              Bills & Budgets
+                            </TableCell>
+                            <TableCell className="text-blue-600 font-medium">CREATE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can create bills and budgets for buildings.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">READ</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Residents can view their own bills and building budgets.
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="text-blue-600 font-medium">APPROVE</TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <X className="h-4 w-4 text-red-500 mx-auto" />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              Managers can approve budgets and large expenses.
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </CardContent>
