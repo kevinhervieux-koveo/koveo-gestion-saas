@@ -15,7 +15,8 @@ import {
   FileText,
   BarChart3,
   Shield,
-  ArrowRight
+  ArrowRight,
+  Bot
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -39,6 +40,7 @@ export default function Dashboard() {
     if (user.role === 'admin') {
       actions.push(
         { icon: Building, label: 'Organizations', href: '/admin/organizations', color: 'bg-blue-50 text-blue-600' },
+        { icon: Shield, label: 'AI Agent Control', href: '/admin/ai-agent', color: 'bg-violet-50 text-violet-600' },
         { icon: Shield, label: 'Permissions', href: '/admin/permissions', color: 'bg-purple-50 text-purple-600' },
         { icon: BarChart3, label: 'Quality Metrics', href: '/admin/quality', color: 'bg-green-50 text-green-600' },
         { icon: FileText, label: 'Documentation', href: '/admin/documentation', color: 'bg-orange-50 text-orange-600' }
