@@ -69,36 +69,16 @@ const OwnerDashboard = createOptimizedLoader(
   'owner-dashboard',
   { enableMemoryCleanup: true }
 );
-const OwnerDocumentation = createOptimizedLoader(
-  () => import('@/pages/owner/documentation'),
-  'owner-documentation',
-  { enableMemoryCleanup: true }
-);
-const OwnerPillars = createOptimizedLoader(
-  () => import('@/pages/owner/pillars'),
-  'owner-pillars',
-  { enableMemoryCleanup: true }
-);
+const OwnerDocumentation = AdminDocumentation; // Reuse admin documentation
+const OwnerPillars = AdminPillars; // Reuse admin pillars
 const OwnerRoadmap = createOptimizedLoader(
   () => import('@/pages/owner/roadmap'),
   'owner-roadmap',
   { enableMemoryCleanup: true }
 );
-const OwnerQuality = createOptimizedLoader(
-  () => import('@/pages/owner/quality'),
-  'owner-quality',
-  { enableMemoryCleanup: true }
-);
-const OwnerSuggestions = createOptimizedLoader(
-  () => import('@/pages/owner/suggestions'),
-  'owner-suggestions',
-  { enableMemoryCleanup: true }
-);
-const OwnerPermissions = createOptimizedLoader(
-  () => import('@/pages/owner/permissions'),
-  'owner-permissions',
-  { enableMemoryCleanup: true }
-);
+const OwnerQuality = AdminQuality; // Reuse admin quality
+const OwnerSuggestions = AdminSuggestions; // Reuse admin suggestions
+const OwnerPermissions = AdminPermissions; // Reuse admin permissions
 
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
@@ -127,11 +107,7 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-const ResidentsDemands = createOptimizedLoader(
-  () => import('@/pages/residents/demands'),
-  'residents-demands',
-  { enableMemoryCleanup: true }
-);
+const ResidentsDemands = ManagerDemands; // Reuse manager demands for residents
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
@@ -150,12 +126,8 @@ const SettingsIdeaBox = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Optimized lazy-loaded Legacy pages
-const PillarsPage = createOptimizedLoader(
-  () => import('@/pages/pillars'),
-  'pillars-page',
-  { enableMemoryCleanup: true }
-);
+// Optimized lazy-loaded Legacy pages  
+const PillarsPage = AdminPillars; // Reuse admin pillars
 const NotFound = createOptimizedLoader(
   () => import('@/pages/not-found'),
   'not-found',

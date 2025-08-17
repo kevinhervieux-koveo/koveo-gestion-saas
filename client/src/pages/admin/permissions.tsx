@@ -141,7 +141,7 @@ export default function Permissions() {
   // Filter permissions by category
   const filteredPermissions = permissions?.filter(permission => {
     if (selectedCategory === 'all') {return true;}
-    return permission.category === selectedCategory;
+    return permission.resourceType === selectedCategory;
   }) || [];
 
   // Mutations for managing permissions
@@ -167,7 +167,7 @@ export default function Permissions() {
   const validatePermissionMutation = useMutation({
     mutationFn: (permission: string) => 
       apiRequest('POST', '/api/permissions/validate', { permission }),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: 'Permission Validation',
         description: `${data.message} for role: ${data.role}`,
@@ -650,7 +650,7 @@ export default function Permissions() {
                       <ul className="space-y-1 ml-4">
                         <li>• <strong className="text-red-600">Admin</strong>: Full system access ({permissionsConfig?.admin?.length || 0} permissions)</li>
                         <li>• <strong className="text-blue-600">Manager</strong>: Building management ({permissionsConfig?.manager?.length || 0} permissions)</li>
-                        <li>• <strong className="text-green-600">Admin</strong>: Property oversight ({permissionsConfig?.admin?.length || 0} permissions)</li>
+                        <li>• <strong className="text-green-600">Resident</strong>: Property oversight ({permissionsConfig?.resident?.length || 0} permissions)</li>
                         <li>• <strong className="text-yellow-600">Tenant</strong>: Personal data only ({permissionsConfig?.tenant?.length || 0} permissions)</li>
                       </ul>
                     </div>

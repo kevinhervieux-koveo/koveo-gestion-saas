@@ -302,7 +302,7 @@ export function BulkActionsBar({
 
           {/* Role selection for bulk role change */}
           {selectedAction === 'change_role' && (
-            <div className="mt-4 pt-4 border-t border-border">
+            <div className="mt-4 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium">{t('newRole')}:</span>
                 <Select value={roleForBulkChange} onValueChange={setRoleForBulkChange}>
