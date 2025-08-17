@@ -56,6 +56,13 @@ const AdminPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+// Management pages
+const ManagementUserManagement = createOptimizedLoader(
+  () => import('@/pages/management/user-management'),
+  'management-user-management-page',
+  { preloadDelay: 300, enableMemoryCleanup: true }
+);
+
 // Owner routes removed - consolidating all documentation under admin section
 
 // Optimized lazy-loaded Manager pages
@@ -238,6 +245,9 @@ function Router() {
               <Route path='/manager/budget' component={ManagerBudget} />
               <Route path='/manager/bills' component={ManagerBills} />
               <Route path='/manager/demands' component={ManagerDemands} />
+
+              {/* Management routes */}
+              <Route path='/management/user-management' component={ManagementUserManagement} />
 
               {/* Residents routes */}
               <Route path='/residents/residence' component={ResidentsResidence} />
