@@ -86,7 +86,11 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-const ResidentsDemands = ManagerDemands; // Reuse manager demands for residents
+const ResidentsDemands = createOptimizedLoader(
+  () => import('@/pages/residents/demands'),
+  'residents-demands',
+  { enableMemoryCleanup: true }
+);
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
@@ -321,11 +325,19 @@ function HomeRedirect() {
 function App() {
   // Initialize memory monitoring on app start
   useEffect(() => {
-    memoryOptimizer.start();
+    try {
+      memoryOptimizer.start();
+    } catch (error) {
+      console.log('Memory optimizer failed to start:', error);
+    }
     
     // Cleanup on unmount
     return () => {
-      memoryOptimizer.stop();
+      try {
+        memoryOptimizer.stop();
+      } catch (error) {
+        console.log('Memory optimizer failed to stop:', error);
+      }
     };
   }, []);
 
