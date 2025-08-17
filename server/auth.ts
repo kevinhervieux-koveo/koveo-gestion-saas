@@ -298,17 +298,28 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Parse salt and hash from combined password field (format: salt:hash)
+      // Handle both new hashed passwords (salt:hash) and legacy plain text passwords
       const passwordParts = user.password.split(':');
-      if (passwordParts.length !== 2) {
-        return res.status(401).json({ 
-          message: 'Invalid credentials',
-          code: 'INVALID_CREDENTIALS' 
-        });
+      let isValidPassword = false;
+      
+      if (passwordParts.length === 2) {
+        // New format: salt:hash
+        const [salt, hash] = passwordParts;
+        isValidPassword = verifyPassword(password, salt, hash);
+      } else {
+        // Legacy format: plain text (migrate to hashed)
+        if (user.password === password) {
+          isValidPassword = true;
+          
+          // Automatically upgrade to hashed password
+          const { salt, hash } = hashPassword(password);
+          const hashedPassword = `${salt}:${hash}`;
+          await storage.updateUser(user.id, { password: hashedPassword });
+          console.log(`Password upgraded to hashed format for user: ${user.email}`);
+        }
       }
       
-      const [salt, hash] = passwordParts;
-      if (!verifyPassword(password, salt, hash)) {
+      if (!isValidPassword) {
         return res.status(401).json({ 
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS' 
