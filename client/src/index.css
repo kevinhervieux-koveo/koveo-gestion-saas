@@ -131,7 +131,7 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    border-color: var(--border);
   }
 
   body {

@@ -69,6 +69,9 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Monitoring**: Interactive dashboard with metrics and trend analysis.
 - **CLI Operations**: Command-line interface for health checks, context management, and workflow execution.
 
+## Recent Changes
+- **2025-08-17**: Fixed deployment issues including missing gray-200 Tailwind color palette, created missing dashboard file for residents, and resolved CSS border utility class conflicts for successful build process.
+
 ## External Dependencies
 
 ### Core Framework Dependencies
