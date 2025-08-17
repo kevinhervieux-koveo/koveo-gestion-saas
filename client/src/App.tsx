@@ -169,17 +169,18 @@ function Router() {
   
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
-    console.log('Rendering unauthenticated routes, current location:', location);
     return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-          {/* Redirect all other routes to home for unauthenticated users */}
-          <Route component={HomeRedirect} />
-        </Switch>
-      </Suspense>
+      <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/login" component={LoginPage} />
+            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+            {/* Redirect all other routes to home for unauthenticated users */}
+            <Route component={HomeRedirect} />
+          </Switch>
+        </Suspense>
+      </div>
     );
   }
   

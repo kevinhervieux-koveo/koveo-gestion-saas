@@ -14,6 +14,9 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated, logout } = useAuth();
+  
+  // Simple error boundary for debugging
+  try {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
@@ -263,4 +266,16 @@ export default function HomePage() {
       </footer>
     </div>
   );
+  } catch (error) {
+    console.error('HomePage render error:', error);
+    return (
+      <div style={{padding: '20px', minHeight: '100vh', background: '#f3f4f6'}}>
+        <h1>Koveo Gestion - Property Management</h1>
+        <p>Loading the application...</p>
+        <button onClick={() => setLocation('/login')} style={{padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer'}}>
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 }

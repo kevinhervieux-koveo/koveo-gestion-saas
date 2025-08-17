@@ -238,7 +238,12 @@ async function initializeApplication() {
           app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
             const indexPath = path.resolve(distPath, 'index.html');
             if (fs.existsSync(indexPath)) {
-              log(`📄 Serving React app: ${indexPath}`);
+              // Only log once per minute to avoid spam
+              const now = Date.now();
+              if (!global.lastLogTime || (now - global.lastLogTime > 60000)) {
+                log(`📄 Serving React app: ${indexPath}`);
+                global.lastLogTime = now;
+              }
               res.sendFile(indexPath);
             } else {
               res.status(404).send('Built application not found');
