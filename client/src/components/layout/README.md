@@ -37,12 +37,13 @@ import { Header } from '@/components/layout/header';
 **Purpose**: Main navigation with role-based menu items
 
 **Features**:
-- Role-based navigation with permission checks
+- Role-based navigation with centralized permission checks
 - Expandable menu sections for organization
 - Mobile overlay with keyboard navigation (ESC key)
 - Active route highlighting and breadcrumbs
 - User profile section with logout functionality
 - Responsive design with mobile menu support
+- Consolidated navigation configuration from `/config/navigation.ts`
 
 **Props**:
 ```typescript
@@ -52,12 +53,13 @@ interface SidebarProps {
 }
 ```
 
-**Navigation Structure**:
-- **Admin**: Full system access (user management, organizations, analytics)
-- **Manager**: Building and organization management
-- **Owner**: Property ownership features
-- **Residents**: Residence-specific features
-- **Settings**: User preferences and configurations
+**Navigation Structure** (from centralized config):
+- **Admin**: Full system access (organizations, documentation, quality, permissions)
+- **Manager**: Building and organization management (buildings, residences, budget, bills, demands)
+- **Residents**: Residence-specific features (residence, building, demands) - accessible to tenant/resident roles
+- **Settings**: User preferences and configurations (settings, bug reports, idea box)
+
+**Configuration**: All navigation items are defined in `/config/navigation.ts` for consistency and maintainability.
 
 ### Mobile Menu Integration
 Both Header and Sidebar work together to provide responsive navigation:

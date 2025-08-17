@@ -1,16 +1,4 @@
 import {
-  ArrowUp,
-  Home,
-  ShieldCheck,
-  CheckCircle,
-  Settings,
-  User,
-  Building,
-  Users,
-  DollarSign,
-  FileText,
-  AlertCircle,
-  Lightbulb,
   LogOut,
   ChevronDown,
   ChevronRight,
@@ -23,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import koveoLogo from '@/assets/koveo-logo.jpg';
+import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
 
 /**
  * Props for the Sidebar component.
@@ -79,7 +68,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     );
   };
 
-  const renderMenuButton = (section: (typeof menuSections)[0]) => {
+  const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section.key);
 
@@ -118,28 +107,9 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     );
   };
 
-  const renderTopLevelItem = (item: any) => {
-    const ItemIcon = item.icon;
-    const isActive = location === item.href;
 
-    return (
-      <Link key={item.name} href={item.href}>
-        <div
-          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
-            isActive
-              ? 'bg-koveo-light text-koveo-navy'
-              : 'text-gray-600 hover:bg-gray-100'
-          }`}
-          onClick={handleNavItemClick}
-        >
-          <ItemIcon className='w-5 h-5' />
-          <span>{item.name}</span>
-        </div>
-      </Link>
-    );
-  };
 
-  const renderMenuSection = (section: (typeof menuSections)[0]) => {
+  const renderMenuSection = (section: NavigationSection) => {
     const isExpanded = expandedMenus.includes(section.key);
 
     return (
@@ -162,78 +132,8 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     }
   };
 
-  const topLevelItems: Array<{ name: string; href: string; icon: any }> = [];
-
-  // Helper function to check if user has role or higher
-  const hasRoleOrHigher = (requiredRole: string): boolean => {
-    if (!user?.role) {return false;}
-    const roleHierarchy = { tenant: 1, resident: 1, manager: 2, admin: 3 };
-    const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
-    const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
-    return userLevel >= requiredLevel;
-  };
-
-  // Filter menu sections based on user role
-  const getAllMenuSections = () => [
-    {
-      name: 'Residents',
-      key: 'residents',
-      icon: Users,
-      requiredRole: 'tenant',
-      items: [
-        { name: 'My Residence', href: '/residents/residence', icon: Home },
-        { name: 'My Building', href: '/residents/building', icon: Building },
-        { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
-      ],
-    },
-    {
-      name: 'Manager',
-      key: 'manager',
-      icon: Building,
-      requiredRole: 'manager',
-      items: [
-        { name: 'Buildings', href: '/manager/buildings', icon: Building },
-        { name: 'Residences', href: '/manager/residences', icon: Home },
-        { name: 'Budget', href: '/manager/budget', icon: DollarSign },
-        { name: 'Bills', href: '/manager/bills', icon: FileText },
-        { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
-
-      ],
-    },
-    {
-      name: 'Admin',
-      key: 'admin',
-      icon: User,
-      requiredRole: 'admin',
-      items: [
-        { name: 'Organizations', href: '/admin/organizations', icon: Building },
-        { name: 'Documentation', href: '/admin/documentation', icon: FileText },
-        { name: 'Pillars', href: '/admin/pillars', icon: Building },
-        { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
-        { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
-        { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
-        { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
-      ],
-    },
-    {
-      name: 'Settings',
-      key: 'settings',
-      icon: Settings,
-      requiredRole: 'tenant',
-      items: [
-        { name: 'Settings', href: '/settings/settings', icon: Settings },
-        { name: 'Bug Reports', href: '/settings/bug-reports', icon: AlertCircle },
-        { name: 'Idea Box', href: '/settings/idea-box', icon: Lightbulb },
-      ],
-    },
-  ];
-
-  const menuSections = getAllMenuSections()
-    .filter(section => hasRoleOrHigher(section.requiredRole))
-    .map(section => ({
-      ...section,
-      items: section.items.filter(item => !('requiredRole' in item) || hasRoleOrHigher((item as any).requiredRole))
-    }));
+  // Get filtered navigation based on user role
+  const menuSections = getFilteredNavigation(user?.role);
 
   return (
     <>
@@ -285,12 +185,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
 
       {/* Navigation */}
       <nav className='flex-1 px-6 py-4'>
-        {/* Top-level items */}
-        <div className='space-y-1 mb-4'>
-          {topLevelItems.map(renderTopLevelItem)}
-        </div>
-        
-        {/* Menu sections */}
+        {/* Navigation sections */}
         <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
 
         {/* Logout Button */}
