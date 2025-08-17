@@ -10,7 +10,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-// import koveoLogo from '@/assets/koveo-logo.jpg'; // Temporarily disabled to fix import error
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
 
 /**
@@ -156,9 +156,11 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-3'>
             <Link href="/residents/residence" onClick={handleNavItemClick}>
-              <div className="h-12 w-12 bg-koveo-navy rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                K
-              </div>
+              <img 
+                src={koveoLogo} 
+                alt="Koveo Gestion Logo" 
+                className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              />
             </Link>
           </div>
           {/* Mobile close button */}

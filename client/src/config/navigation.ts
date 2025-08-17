@@ -10,7 +10,6 @@ import {
   FileText,
   AlertCircle,
   Lightbulb,
-  Bot,
 } from 'lucide-react';
 
 /**
@@ -73,7 +72,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'admin',
     items: [
       { name: 'Organizations', href: '/admin/organizations', icon: Building },
-      { name: 'AI Agent Control', href: '/admin/ai-agent', icon: Bot },
       { name: 'Documentation', href: '/admin/documentation', icon: FileText },
       { name: 'Pillars', href: '/admin/pillars', icon: Building },
       { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },

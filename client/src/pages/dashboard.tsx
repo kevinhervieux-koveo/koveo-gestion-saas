@@ -15,8 +15,7 @@ import {
   FileText,
   BarChart3,
   Shield,
-  ArrowRight,
-  Bot
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -27,8 +26,6 @@ import { Link } from 'wouter';
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  
-  console.log('Dashboard component rendering, user:', user?.email, 'role:', user?.role);
 
   // Determine role-based navigation items
   const getRoleBasedActions = () => {
@@ -40,7 +37,6 @@ export default function Dashboard() {
     if (user.role === 'admin') {
       actions.push(
         { icon: Building, label: 'Organizations', href: '/admin/organizations', color: 'bg-blue-50 text-blue-600' },
-        { icon: Shield, label: 'AI Agent Control', href: '/admin/ai-agent', color: 'bg-violet-50 text-violet-600' },
         { icon: Shield, label: 'Permissions', href: '/admin/permissions', color: 'bg-purple-50 text-purple-600' },
         { icon: BarChart3, label: 'Quality Metrics', href: '/admin/quality', color: 'bg-green-50 text-green-600' },
         { icon: FileText, label: 'Documentation', href: '/admin/documentation', color: 'bg-orange-50 text-orange-600' }
@@ -105,24 +101,12 @@ export default function Dashboard() {
 
   const welcome = getWelcomeMessage();
 
-  console.log('Dashboard: About to render UI with user:', user?.email, 'role:', user?.role);
-  
   return (
-    <div style={{ minHeight: '100vh', background: '#ffffff', padding: '20px' }}>
-      <div style={{ background: '#f0f0f0', padding: '20px', marginBottom: '20px', borderRadius: '8px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#333333', margin: '0' }}>
-          🏢 Koveo Gestion Dashboard
-        </h1>
-        <p style={{ color: '#666666', margin: '10px 0 0 0' }}>
-          Welcome back, {user?.email} (Role: {user?.role})
-        </p>
-      </div>
-      
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header 
-          title={welcome.title}
-          subtitle={welcome.subtitle}
-        />
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title={welcome.title}
+        subtitle={welcome.subtitle}
+      />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -300,7 +284,6 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
-    </div>
     </div>
   );
 }

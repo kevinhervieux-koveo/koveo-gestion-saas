@@ -55,11 +55,6 @@ const AdminPermissions = createOptimizedLoader(
   'admin-permissions',
   { enableMemoryCleanup: true }
 );
-const AdminAiAgent = createOptimizedLoader(
-  () => import('@/pages/admin/ai-agent'),
-  'admin-ai-agent',
-  { enableMemoryCleanup: true }
-);
 
 // Management pages removed - User Management functionality removed from navigation
 
@@ -245,7 +240,6 @@ function Router() {
               <Route path='/admin/quality' component={AdminQuality} />
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
-              <Route path='/admin/ai-agent' component={AdminAiAgent} />
 
               {/* Owner routes removed - documentation consolidated under admin section */}
 
