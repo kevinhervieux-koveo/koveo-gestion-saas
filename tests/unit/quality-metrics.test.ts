@@ -380,7 +380,7 @@ describe('Quality Metrics Calculation Tests', () => {
 
   describe('Code Quality Metric', () => {
     it('should calculate A+ grade for clean code', async () => {
-      mockedExecSync.mockReturnValue('✓ No errors or warnings found');
+      mockedExecSync.mockReturnValue('');
 
       const metrics = await getQualityMetrics();
       expect(metrics.codeQuality).toBe('A+');
@@ -397,10 +397,13 @@ describe('Quality Metrics Calculation Tests', () => {
 
     it('should calculate B grade for moderate issues', async () => {
       const lintOutput = `
-        src/component.tsx:15:10 - error: Missing dependency in useEffect
-        src/utils.ts:42:5 - error: Unused variable 'temp'
-        src/api.ts:88:2 - error: Promise should be awaited
-        src/hooks.ts:12:15 - warning: Consider using optional chaining
+/path/component.tsx
+  15:10  error  Missing dependency in useEffect
+  42:5   error  Unused variable 'temp'
+  88:2   error  Promise should be awaited
+  12:15  warning  Consider using optional chaining
+
+4 problems (3 errors, 1 warning)
       `;
       mockedExecSync.mockReturnValue(lintOutput);
 
@@ -476,6 +479,9 @@ describe('Quality Metrics Calculation Tests', () => {
     });
 
     it('should validate security metric finds real vulnerabilities', () => {
+      // Clear previous data for clean test
+      QualityMetricValidator['metricsHistory'] = [];
+      
       // Test with known security findings
       QualityMetricValidator.recordMetricEffectiveness('securityIssues', '3', 3, 0, 0);
       QualityMetricValidator.recordMetricEffectiveness('securityIssues', '0', 0, 0, 1);
@@ -597,8 +603,8 @@ const translations: Record<Language, Translations> = {
       expect(effectiveness!.totalRealIssuesFound).toBe(7);
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(95);
       
-      const isQualityMetric = QualityMetricValidator.validateMetricQuality('translationCoverage');
-      expect(isQualityMetric).toBe(true);
+      const validation = QualityMetricValidator.validateMetricQuality('translationCoverage');
+      expect(validation.isValid).toBe(true);
     });
   });
 
@@ -668,8 +674,8 @@ const translations: Record<Language, Translations> = {
       QualityMetricValidator.recordMetricEffectiveness('fakeMetric', 'Bad', 0, 8, 7);
       QualityMetricValidator.recordMetricEffectiveness('fakeMetric', 'Critical', 2, 15, 10);
 
-      const isQualityMetric = QualityMetricValidator.validateMetricQuality('fakeMetric');
-      expect(isQualityMetric).toBe(false);
+      const validation = QualityMetricValidator.validateMetricQuality('fakeMetric');
+      expect(validation.isValid).toBe(false);
 
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('fakeMetric');
       expect(effectiveness!.totalFalsePositives).toBeGreaterThan(effectiveness!.totalRealIssuesFound);

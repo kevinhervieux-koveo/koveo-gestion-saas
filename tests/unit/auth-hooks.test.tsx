@@ -72,18 +72,30 @@ describe('useAuth Hook Tests', () => {
       isActive: true
     };
 
-    // Mock successful user fetch
-    mockApiRequest.mockResolvedValueOnce(mockUser);
+    // Mock successful user fetch - useAuth uses apiRequest directly  
+    mockApiRequest.mockImplementation((method, url) => {
+      if (url === '/api/auth/user') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockUser
+        });
+      }
+      return Promise.reject(new Error('Unknown endpoint'));
+    });
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
     });
 
+    // Wait for the query to complete and auth state to update
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.isAuthenticated).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
     expect(result.current.user).toEqual(mockUser);
   });
 
@@ -132,8 +144,26 @@ describe('useAuth Hook Tests', () => {
   });
 
   it('should handle logout successfully', async () => {
-    // First mock for the initial user fetch
-    mockApiRequest.mockResolvedValueOnce(null);
+    const mockUser = {
+      id: 'user-456',
+      email: 'logout@example.com',
+      firstName: 'Logout',
+      lastName: 'Test',
+      role: 'user',
+      organizationId: 'org-456',
+      isActive: true
+    };
+
+    // Mock initial authenticated state
+    mockApiRequest.mockImplementation((method, url) => {
+      if (url === '/api/auth/user') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockUser
+        });
+      }
+      return Promise.reject(new Error('Unknown endpoint'));
+    });
     
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -141,6 +171,10 @@ describe('useAuth Hook Tests', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(true);
     });
 
     // Mock logout success via fetch (since logout uses fetch directly)

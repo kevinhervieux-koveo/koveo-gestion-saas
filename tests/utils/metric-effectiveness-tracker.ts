@@ -218,4 +218,61 @@ export class MetricEffectivenessTracker {
     }
     return [...this.measurements];
   }
+
+  /**
+   * Gets overall system health across all metrics.
+   */
+  static getSystemHealth(): {
+    totalMetrics: number;
+    effectiveMetrics: number;
+    ineffectiveMetrics: number;
+    averageSystemAccuracy: number;
+    criticalIssues: number;
+    recommendations: string[];
+  } {
+    const uniqueMetrics = [...new Set(this.measurements.map(m => m.metric))];
+    let effectiveCount = 0;
+    let totalAccuracy = 0;
+    let totalCritical = 0;
+    const recommendations: string[] = [];
+
+    uniqueMetrics.forEach(metric => {
+      const effectiveness = this.getMetricEffectiveness(metric);
+      if (effectiveness) {
+        totalAccuracy += effectiveness.averageAccuracy;
+        totalCritical += effectiveness.issueSeverityDistribution.critical;
+
+        const validation = this.validateMetricQuality(metric);
+        if (validation.isValid) {
+          effectiveCount++;
+        } else {
+          recommendations.push(...validation.recommendations);
+        }
+      }
+    });
+
+    return {
+      totalMetrics: uniqueMetrics.length,
+      effectiveMetrics: effectiveCount,
+      ineffectiveMetrics: uniqueMetrics.length - effectiveCount,
+      averageSystemAccuracy: uniqueMetrics.length > 0 ? totalAccuracy / uniqueMetrics.length : 0,
+      criticalIssues: totalCritical,
+      recommendations: [...new Set(recommendations)]
+    };
+  }
+
+  /**
+   * Exports effectiveness data for external analysis.
+   */
+  static exportEffectivenessData(): string {
+    const systemHealth = this.getSystemHealth();
+    const allMeasurements = this.getMeasurements();
+    
+    return JSON.stringify({
+      systemHealth,
+      measurements: allMeasurements,
+      exportedAt: new Date().toISOString(),
+      version: '1.0'
+    }, null, 2);
+  }
 }
