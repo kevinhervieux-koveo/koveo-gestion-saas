@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 declare module '@/components/layout/header' {
   export const Header: React.ComponentType<any>;
   export default Header;

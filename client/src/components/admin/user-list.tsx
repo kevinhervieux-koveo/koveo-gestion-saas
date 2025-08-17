@@ -84,7 +84,7 @@ interface EditUserDialogProps {
  * @param root0._open
  * @returns JSX element for the edit user dialog.
  */
-function EditUserDialog({ user, _open, onOpenChange, onSuccess }: EditUserDialogProps) {
+function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [role, setRole] = useState(user?.role || '');
@@ -128,7 +128,7 @@ function EditUserDialog({ user, _open, onOpenChange, onSuccess }: EditUserDialog
         <DialogHeader>
           <DialogTitle>{t('editUser')}</DialogTitle>
           <DialogDescription>
-            {t('editUserDescription', { name: `${user.firstName} ${user.lastName}` })}
+            {t('editUserDescription').replace('{name}', `${user.firstName} ${user.lastName}`)}
           </DialogDescription>
         </DialogHeader>
         
@@ -286,9 +286,9 @@ export function UserListComponent({
       return;
     }
 
-    const confirmed = window.confirm(t('confirmDeleteUser', { 
-      name: `${user.firstName} ${user.lastName}` 
-    }));
+    const confirmed = window.confirm(
+      t('confirmDeleteUser').replace('{name}', `${user.firstName} ${user.lastName}`)
+    );
     
     if (confirmed) {
       await deleteUserMutation.mutateAsync(user.id);
@@ -329,7 +329,7 @@ export function UserListComponent({
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               {selectedUsers.size > 0 && (
-                <span>{t('selectedUsers', { count: selectedUsers.size })}</span>
+                <span>{t('selectedUsers').replace('{count}', selectedUsers.size.toString())}</span>
               )}
             </div>
           </div>
@@ -363,7 +363,7 @@ export function UserListComponent({
                       <Checkbox
                         checked={selectedUsers.has(user.id)}
                         onCheckedChange={(checked) => handleUserSelection(user.id, checked as boolean)}
-                        aria-label={t('selectUser', { name: `${user.firstName} ${user.lastName}` })}
+                        aria-label={t('selectUser').replace('{name}', `${user.firstName} ${user.lastName}`)}
                       />
                     </TableCell>
                     <TableCell>

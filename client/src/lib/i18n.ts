@@ -155,6 +155,36 @@ export interface Translations {
   expired: string;
   invitations: string;
   invitationSentDescription: string;
+  // Missing user management translations
+  userUpdated: string;
+  userUpdatedSuccessfully: string;
+  editUser: string;
+  status: string;
+  activeUser: string;
+  updating: string;
+  updateUser: string;
+  userDeleted: string;
+  userDeletedSuccessfully: string;
+  passwordResetSent: string;
+  passwordResetEmailSent: string;
+  cannotDeleteOwnAccount: string;
+  never: string;
+  usersList: string;
+  user: string;
+  selectAllUsers: string;
+  lastLogin: string;
+  joinedDate: string;
+  userActions: string;
+  actions: string;
+  resetPassword: string;
+  deactivateUser: string;
+  activateUser: string;
+  deleteUser: string;
+  noUsersFound: string;
+  editUserDescription: string;
+  confirmDeleteUser: string;
+  selectedUsers: string;
+  selectUser: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -304,6 +334,36 @@ const translations: Record<Language, Translations> = {
     expired: 'Expired',
     invitations: 'Invitations',
     invitationSentDescription: 'Invitation has been sent successfully to the user',
+    // Missing user management translations
+    userUpdated: 'User Updated',
+    userUpdatedSuccessfully: 'User has been updated successfully',
+    editUser: 'Edit User',
+    status: 'Status',
+    activeUser: 'Active User',
+    updating: 'Updating...',
+    updateUser: 'Update User',
+    userDeleted: 'User Deleted',
+    userDeletedSuccessfully: 'User has been deleted successfully',
+    passwordResetSent: 'Password Reset Sent',
+    passwordResetEmailSent: 'Password reset email has been sent successfully',
+    cannotDeleteOwnAccount: 'You cannot delete your own account',
+    never: 'Never',
+    usersList: 'Users List',
+    user: 'User',
+    selectAllUsers: 'Select All Users',
+    lastLogin: 'Last Login',
+    joinedDate: 'Joined Date',
+    userActions: 'User Actions',
+    actions: 'Actions',
+    resetPassword: 'Reset Password',
+    deactivateUser: 'Deactivate User',
+    activateUser: 'Activate User',
+    deleteUser: 'Delete User',
+    noUsersFound: 'No users found',
+    editUserDescription: 'Edit the user details for {name}',
+    confirmDeleteUser: 'Are you sure you want to delete {name}?',
+    selectedUsers: '{count} users selected',
+    selectUser: 'Select user {name}',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -452,6 +512,36 @@ const translations: Record<Language, Translations> = {
     expired: 'Expiré',
     invitations: 'Invitations',
     invitationSentDescription: 'L\'invitation a été envoyée avec succès à l\'utilisateur',
+    // Missing user management translations
+    userUpdated: 'Utilisateur mis à jour',
+    userUpdatedSuccessfully: 'L\'utilisateur a été mis à jour avec succès',
+    editUser: 'Modifier l\'utilisateur',
+    status: 'Statut',
+    activeUser: 'Utilisateur actif',
+    updating: 'Mise à jour...',
+    updateUser: 'Mettre à jour l\'utilisateur',
+    userDeleted: 'Utilisateur supprimé',
+    userDeletedSuccessfully: 'L\'utilisateur a été supprimé avec succès',
+    passwordResetSent: 'Réinitialisation de mot de passe envoyée',
+    passwordResetEmailSent: 'Le courriel de réinitialisation de mot de passe a été envoyé avec succès',
+    cannotDeleteOwnAccount: 'Vous ne pouvez pas supprimer votre propre compte',
+    never: 'Jamais',
+    usersList: 'Liste des utilisateurs',
+    user: 'Utilisateur',
+    selectAllUsers: 'Sélectionner tous les utilisateurs',
+    lastLogin: 'Dernière connexion',
+    joinedDate: 'Date d\'adhésion',
+    userActions: 'Actions utilisateur',
+    actions: 'Actions',
+    resetPassword: 'Réinitialiser le mot de passe',
+    deactivateUser: 'Désactiver l\'utilisateur',
+    activateUser: 'Activer l\'utilisateur',
+    deleteUser: 'Supprimer l\'utilisateur',
+    noUsersFound: 'Aucun utilisateur trouvé',
+    editUserDescription: 'Modifier les détails de l\'utilisateur pour {name}',
+    confirmDeleteUser: 'Êtes-vous sûr de vouloir supprimer {name}?',
+    selectedUsers: '{count} utilisateurs sélectionnés',
+    selectUser: 'Sélectionner l\'utilisateur {name}',
   },
 };
 

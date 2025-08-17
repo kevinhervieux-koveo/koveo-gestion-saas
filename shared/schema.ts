@@ -229,6 +229,7 @@ export const users = pgTable('users', {
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   phone: text('phone'),
+  profileImage: text('profile_image'),
   language: text('language').notNull().default('fr'), // Default to French for Quebec
   role: userRoleEnum('role').notNull().default('tenant'),
   isActive: boolean('is_active').notNull().default(true),
