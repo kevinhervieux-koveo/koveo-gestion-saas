@@ -1,9 +1,11 @@
 import express, { type Request, Response, NextFunction } from 'express';
-import { registerRoutes } from './routes';
+import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
 import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // Configure port for deployment platform compatibility
 // Support Cloud Run, Railway, Heroku, and other platforms
@@ -226,7 +228,25 @@ async function initializeApplication() {
       await setupVite(app, server);
     } else {
       log('🏗️ Running in production mode, serving static files from dist/public');
-      serveStatic(app);
+      // Use custom static file serving to avoid the routing parameter issue
+      const distPath = path.resolve(import.meta.dirname, 'public');
+      
+      if (fs.existsSync(distPath)) {
+        // Serve static files
+        app.use(express.static(distPath));
+        
+        // Handle SPA routing by serving index.html for non-API routes
+        app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
+          const indexPath = path.resolve(distPath, 'index.html');
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send('Application not found');
+          }
+        });
+      } else {
+        log(`⚠️ Build directory not found: ${distPath}`, 'error');
+      }
     }
 
     // Setup error handling

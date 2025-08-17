@@ -25,6 +25,9 @@ import {
   type InsertInvitation,
   type InvitationAuditLog,
   type InsertInvitationAuditLog,
+  type Permission,
+  type RolePermission,
+  type UserPermission,
 } from '@shared/schema';
 import { randomUUID } from 'crypto';
 import { hashPassword } from './auth';
@@ -620,6 +623,28 @@ export interface IStorage {
    * @returns {Promise<InvitationAuditLog>} The created audit log entry.
    */
   createInvitationAuditLog(_logEntry: InsertInvitationAuditLog): Promise<InvitationAuditLog>;
+
+  // Permission operations
+  /**
+   * Retrieves all permissions from storage.
+   *
+   * @returns {Promise<Permission[]>} Array of all permission records.
+   */
+  getPermissions(): Promise<Permission[]>;
+  
+  /**
+   * Retrieves all role-permission associations from storage.
+   *
+   * @returns {Promise<RolePermission[]>} Array of all role-permission records.
+   */
+  getRolePermissions(): Promise<RolePermission[]>;
+  
+  /**
+   * Retrieves all user-specific permission overrides from storage.
+   *
+   * @returns {Promise<UserPermission[]>} Array of all user-permission records.
+   */
+  getUserPermissions(): Promise<UserPermission[]>;
 }
 
 /**

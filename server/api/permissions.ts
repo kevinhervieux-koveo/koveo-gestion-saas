@@ -40,20 +40,10 @@ function transformPermission(permission: string) {
  */
 export function registerPermissionsRoutes(app: Express) {
   
-  // Get all system permissions
+  // Get all system permissions from database
   app.get('/api/permissions', requireAuth, authorize('read:user'), async (req, res) => {
     try {
-      // Get all unique permissions from all roles
-      const allPermissions = new Set<string>();
-      
-      Object.values(permissionsConfig).forEach(rolePermissions => {
-        rolePermissions.forEach(permission => allPermissions.add(permission));
-      });
-      
-      const permissions = Array.from(allPermissions).map(permission => 
-        transformPermission(permission)
-      ).sort((a, b) => a.displayName.localeCompare(b.displayName));
-      
+      const permissions = await storage.getPermissions();
       res.json(permissions);
     } catch (error) {
       console.error('Error fetching permissions:', error);
@@ -61,28 +51,49 @@ export function registerPermissionsRoutes(app: Express) {
     }
   });
 
-  // Get role-based permissions 
+  // Get role-based permissions from database
   app.get('/api/role-permissions', requireAuth, authorize('read:user'), async (req, res) => {
     try {
-      const rolePermissions: any[] = [];
-      
-      Object.entries(permissionsConfig).forEach(([role, permissions]) => {
-        permissions.forEach((permission, index) => {
-          rolePermissions.push({
-            id: `${role}-${permission}`,
-            role: role,
-            permissionId: permission,
-            permission: transformPermission(permission),
-            grantedBy: 'system',
-            grantedAt: new Date().toISOString()
-          });
-        });
-      });
-      
+      const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
     } catch (error) {
       console.error('Error fetching role permissions:', error);
       res.status(500).json({ message: 'Failed to fetch role permissions' });
+    }
+  });
+
+  // Get permissions matrix for admin dashboard
+  app.get('/api/permissions-matrix', requireAuth, authorize('read:user'), async (req, res) => {
+    try {
+      const permissions = await storage.getPermissions();
+      const rolePermissions = await storage.getRolePermissions();
+      
+      // Group permissions by resource type
+      const permissionsByResource = permissions.reduce((acc: any, permission: any) => {
+        if (!acc[permission.resourceType]) {
+          acc[permission.resourceType] = [];
+        }
+        acc[permission.resourceType].push(permission);
+        return acc;
+      }, {});
+
+      // Create role matrix
+      const roleMatrix = ['admin', 'manager', 'resident'].reduce((acc: any, role) => {
+        acc[role] = rolePermissions
+          .filter((rp: any) => rp.role === role)
+          .map((rp: any) => rp.permissionId);
+        return acc;
+      }, {});
+
+      res.json({
+        permissionsByResource,
+        roleMatrix,
+        permissions,
+        rolePermissions
+      });
+    } catch (error) {
+      console.error('Error fetching permissions matrix:', error);
+      res.status(500).json({ message: 'Failed to fetch permissions matrix' });
     }
   });
 

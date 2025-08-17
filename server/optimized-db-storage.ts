@@ -34,6 +34,9 @@ import type {
   InsertInvitation,
   InvitationAuditLog,
   InsertInvitationAuditLog,
+  Permission,
+  RolePermission,
+  UserPermission,
 } from '@shared/schema';
 import type { IStorage } from './storage';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
@@ -1468,5 +1471,57 @@ export class OptimizedDatabaseStorage implements IStorage {
     
     queryCache.invalidate('invitation_logs');
     return result[0];
+  }
+
+  // Permission operations
+  
+  /**
+   * Gets all permissions.
+   */
+  async getPermissions(): Promise<Permission[]> {
+    return this.withOptimizations(
+      'getPermissions',
+      'permissions:all',
+      'permissions',
+      () => db
+        .select()
+        .from(schema.permissions)
+        .where(eq(schema.permissions.isActive, true))
+        .orderBy(schema.permissions.resourceType, schema.permissions.action)
+    );
+  }
+
+  /**
+   * Gets all role permissions.
+   */
+  async getRolePermissions(): Promise<RolePermission[]> {
+    return this.withOptimizations(
+      'getRolePermissions',
+      'role_permissions:all',
+      'role_permissions',
+      () => db
+        .select()
+        .from(schema.rolePermissions)
+        .innerJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
+        .where(eq(schema.permissions.isActive, true))
+        .orderBy(schema.rolePermissions.role, schema.permissions.resourceType)
+    );
+  }
+
+  /**
+   * Gets all user permissions.
+   */
+  async getUserPermissions(): Promise<UserPermission[]> {
+    return this.withOptimizations(
+      'getUserPermissions',
+      'user_permissions:all',
+      'user_permissions',
+      () => db
+        .select()
+        .from(schema.userPermissions)
+        .innerJoin(schema.permissions, eq(schema.userPermissions.permissionId, schema.permissions.id))
+        .where(eq(schema.permissions.isActive, true))
+        .orderBy(schema.userPermissions.userId)
+    );
   }
 }
