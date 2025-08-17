@@ -8,9 +8,10 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@assets/(.*)$': '<rootDir>/attached_assets/$1',
+    '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js',
-    '\\.(jpg|jpeg|png|gif|svg)$': 'identity-obj-proxy'
+    '\\.(jpg|jpeg|png|gif|svg|webp)$': '<rootDir>/tests/mocks/fileMock.js',
+    '@/assets/koveo-logo.jpg': '<rootDir>/tests/mocks/fileMock.js'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
@@ -50,7 +51,7 @@ const config = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform))'
   ],
   testTimeout: 10000,
   maxWorkers: 1,

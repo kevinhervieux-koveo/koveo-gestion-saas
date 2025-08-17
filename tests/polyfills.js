@@ -1,6 +1,11 @@
 // Polyfills for Jest environment
-const { TextEncoder, TextDecoder } = require('util');
+const { TextEncoder, TextDecoder, ReadableStream } = require('stream/web');
 require('whatwg-fetch');
+
+// Node.js polyfills for web APIs
+global.ReadableStream = ReadableStream;
+global.TransformStream = require('stream/web').TransformStream;
+global.WritableStream = require('stream/web').WritableStream;
 
 // Text Encoder/Decoder polyfills for Node.js environment
 global.TextEncoder = TextEncoder;
