@@ -32,8 +32,10 @@ import type { IStorage } from './storage';
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
-// Initialize database optimizations on startup
-QueryOptimizer.applyCoreOptimizations().catch(console.error);
+// Initialize database optimizations on startup (skip in test environment)
+if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
+  QueryOptimizer.applyCoreOptimizations().catch(console.error);
+}
 
 /**
  *

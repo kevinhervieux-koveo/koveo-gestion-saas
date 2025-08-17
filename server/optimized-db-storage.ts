@@ -56,8 +56,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    *
    */
   constructor() {
-    // Initialize optimizations on startup
-    this.initializeOptimizations();
+    // Skip optimizations in test environment
+    if (process.env.TEST_ENV !== 'integration' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
+      this.initializeOptimizations();
+    }
   }
 
   /**
