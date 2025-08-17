@@ -1,69 +1,52 @@
-# Testing Infrastructure
+# Tests Directory
 
 ## Overview
-This directory contains comprehensive test suites for the Koveo Gestion platform, including unit tests, integration tests, and specialized organization validation tests.
+
+This directory contains all test files for the Koveo Gestion project, organized by test type and functionality.
 
 ## Test Structure
 
-### Unit Tests (`/unit`)
-- **auth/**: Authentication and RBAC system tests
-- **db/**: Database query scoping and permissions tests
-- **language.test.tsx**: Language switching and internationalization
-- **utils.test.ts**: Utility function tests
-- **feature-management.test.ts**: Feature status and roadmap functionality
+```text
+tests/
+├── organization/          # Project organization validation tests
+├── routing/              # Route validation and navigation tests
+├── unit/                 # Unit tests for individual components and functions
+├── integration/          # Integration tests for API endpoints and workflows
+└── e2e/                  # End-to-end tests for complete user flows
+```
 
-### Integration Tests (`/integration`)
-- Full workflow tests
-- API endpoint integration
-- Database transaction tests
+## Test Suites
 
-### End-to-End Tests (`/e2e`)
-- Complete user journey tests
-- Multi-role interaction scenarios
-- Invitation flow testing
+### Organization Tests (`organization/`)
+Validates project structure, documentation quality, and code organization:
+- **project-structure.test.ts** - Directory structure and naming conventions
+- **documentation-validation.test.ts** - Documentation quality and consistency
+- **error-detection.test.ts** - Common errors and anti-patterns
+- **documentation-improvement.test.ts** - Continuous improvement metrics
 
-### Organization Tests (`/organization`)
-Special test suite for validating project structure and documentation:
+### Routing Tests (`routing/`)
+Ensures proper route configuration and navigation:
+- **route-validation.test.ts** - Route definition validation
+- **navigation.test.tsx** - Navigation component testing
+- **removed-routes.test.tsx** - Prevention of removed route regression
 
-#### 1. `project-structure.test.ts`
-- Validates directory structure
-- Checks configuration files
-- Ensures naming conventions
-- Detects duplicate files
-- Verifies build outputs
+### Unit Tests (`unit/`)
+Test individual components and functions in isolation:
+- Component testing with React Testing Library
+- Utility function testing
+- Business logic validation
 
-#### 2. `documentation-validation.test.ts`
-- Detects documentation redundancies
-- Validates internal links
-- Checks markdown formatting
-- Ensures completeness
-- Validates code examples
+### Integration Tests (`integration/`)
+Test interactions between different parts of the system:
+- API endpoint testing
+- Database integration testing
+- Service integration validation
 
-#### 3. `error-detection.test.ts`
-- Finds broken imports
-- Detects circular dependencies
-- Identifies TypeScript issues
-- Checks for security problems
-- Validates API consistency
-
-#### 4. `documentation-improvement.test.ts`
-- Calculates readability scores
-- Tracks documentation coverage
-- Suggests improvements
-- Monitors update frequency
-- Generates quality reports
-
-### Mobile Tests (`/mobile`)
-- Responsive design validation
-- Touch interaction testing
-- Mobile-specific features
-- Performance on mobile devices
-
-### Routing Tests (`/routing`)
-- Route validation
-- Navigation testing
-- Access control verification
-- Removed route detection
+### End-to-End Tests (`e2e/`)
+Test complete user workflows:
+- User authentication flows
+- Property management workflows
+- Quebec compliance scenarios
 
 ## Running Tests
 
@@ -74,118 +57,63 @@ npm test
 
 ### Specific Test Suites
 ```bash
-# Unit tests only
-npm run test:unit
-
 # Organization validation
-npx jest tests/organization
+npx jest tests/organization --no-coverage
 
-# Specific test file
-npx jest tests/organization/project-structure.test.ts
+# Routing tests
+npx jest tests/routing --no-coverage
+
+# Unit tests only
+npx jest tests/unit
+
+# Integration tests
+npx jest tests/integration
+
+# E2E tests
+npx jest tests/e2e
 ```
 
 ### Test Coverage
 ```bash
+# Generate coverage report
 npm run test:coverage
+
+# View coverage in browser
+npm run test:coverage:open
 ```
 
-### Watch Mode
-```bash
-npm run test:watch
-```
+## Test Guidelines
 
-## Organization Validation
+### Writing Tests
+- Use descriptive test names that explain the expected behavior
+- Group related tests using `describe` blocks
+- Use `beforeEach` and `afterEach` for setup and cleanup
+- Mock external dependencies appropriately
+- Aim for 80%+ test coverage
 
-The organization tests provide continuous validation of project health:
+### Test Data
+- Use factory functions for creating test data
+- Avoid hardcoded values when possible
+- Clean up test data after each test
+- Use meaningful test data that reflects real usage
 
-### Running Organization Validation
-```bash
-# Run all organization tests
-npx jest tests/organization --no-coverage
-
-# Generate validation report
-tsx scripts/validate-organization.ts
-```
-
-### Validation Metrics
-- **Structure**: 75% pass rate (12/16 tests)
-- **Documentation**: 40% pass rate (4/10 tests)
-- **Error Detection**: 60% pass rate (9/15 tests)
-- **Improvement**: 71% pass rate (5/7 tests)
-- **Overall**: 62.5% pass rate (30/48 tests)
-
-### Key Issues Found
-1. Missing server directories
-2. Duplicate sidebar component
-3. Inconsistent file naming (6 files)
-4. Broken documentation links (3)
-5. Code blocks without language specs (9)
-6. Excessive use of 'any' type (49 instances)
-7. Unused imports (126)
+### Organization Tests
+- Tests are automatically run to validate project organization
+- Results are generated in `ORGANIZATION_VALIDATION_REPORT.md`
+- Address failing tests promptly to maintain project quality
 
 ## Test Configuration
 
-### Jest Configuration
-- **Test Environment**: jsdom for browser testing
-- **Coverage**: Configured for client, server, and shared code
-- **Transform**: TypeScript via ts-jest
-- **Setup Files**: 
-  - `tests/setup.ts`: Mock browser APIs
-  - `tests/polyfills.js`: Node.js polyfills
+Test configuration is managed in:
+- `jest.config.js` - Main Jest configuration
+- `package.json` - Test scripts and dependencies
+- Individual test files for specific setup needs
 
-### Test Patterns
-- Test files: `*.test.ts`, `*.test.tsx`, `*.spec.ts`, `*.spec.tsx`
-- Coverage excludes: node_modules, dist, type definitions
+## Quality Standards
 
-## Best Practices
-
-### Writing Tests
-1. Use descriptive test names
-2. Follow AAA pattern (Arrange, Act, Assert)
-3. Mock external dependencies
-4. Test edge cases
-5. Keep tests isolated and independent
-
-### Organization Tests
-1. Run weekly for continuous validation
-2. Fix critical issues immediately
-3. Track improvement metrics over time
-4. Use suggestions for continuous improvement
-5. Update tests as project evolves
-
-## Continuous Improvement
-
-### Weekly Tasks
-1. Run full organization validation
-2. Review and fix failing tests
-3. Update documentation based on suggestions
-4. Clean up unused imports and 'any' types
-
-### Monthly Tasks
-1. Review test coverage metrics
-2. Update test documentation
-3. Refactor tests for maintainability
-4. Add tests for new features
-
-## Reports
-
-### Generated Reports
-- `ORGANIZATION_VALIDATION_REPORT.md`: Comprehensive validation results
-- `coverage/index.html`: Test coverage report
-- `docs/IMPROVEMENT_REPORT.md`: Documentation improvement tracking
-
-### Metrics Tracked
-- Test pass rates
-- Documentation readability scores
-- Code quality metrics
-- Coverage percentages
-- Issue counts by category
-
-## Contributing
-
-When adding new tests:
-1. Place in appropriate directory
-2. Follow existing naming conventions
-3. Update this README
-4. Ensure tests are deterministic
-5. Add to relevant test suite
+All tests must:
+- Pass consistently in CI/CD environment
+- Have clear, descriptive names
+- Include appropriate error scenarios
+- Maintain good performance (fast execution)
+- Follow established coding standards

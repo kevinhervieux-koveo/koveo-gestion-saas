@@ -27,7 +27,7 @@ This document provides comprehensive guidelines for managing pages and routing i
 
 ## Page Structure
 
-```
+```text
 client/src/pages/
 ├── admin/           # Admin-only pages
 ├── auth/            # Authentication pages (login, invitation)
@@ -43,7 +43,7 @@ client/src/pages/
 ## Route Categories
 
 ### Public Routes (No Authentication Required)
-```typescript
+```text
 / - Home page
 /login - Login page
 /accept-invitation - Invitation acceptance page
@@ -52,7 +52,7 @@ client/src/pages/
 ### Protected Routes (Authentication Required)
 
 #### Admin Routes
-```typescript
+```text
 /admin/organizations - Organization management
 /admin/documentation - Documentation management
 /admin/roadmap - Product roadmap
@@ -63,7 +63,7 @@ client/src/pages/
 ```
 
 #### Owner Routes
-```typescript
+```text
 /owner/dashboard - Owner dashboard
 /owner/documentation - Documentation access
 /owner/pillars - Pillar framework
@@ -74,7 +74,7 @@ client/src/pages/
 ```
 
 #### Manager Routes
-```typescript
+```text
 /manager/buildings - Building management
 /manager/residences - Residence management
 /manager/budget - Budget management
@@ -84,7 +84,7 @@ client/src/pages/
 ```
 
 #### Resident Routes
-```typescript
+```text
 /dashboard - Main dashboard (default after login)
 /residents/residence - Residence details
 /residents/building - Building information
@@ -92,7 +92,7 @@ client/src/pages/
 ```
 
 #### Settings Routes
-```typescript
+```text
 /settings/settings - User settings
 /settings/bug-reports - Bug reporting
 /settings/idea-box - Feature suggestions

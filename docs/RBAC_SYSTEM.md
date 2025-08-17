@@ -99,7 +99,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 
 The system implements a strict hierarchical structure:
 
-```
+```text
 Admin (Level 4)
   └─> Manager (Level 3)
       └─> Resident (Level 2)
@@ -131,9 +131,14 @@ export const ROLE_HIERARCHY = {
 ```
 
 **3. Permissions Configuration (`config/permissions.json`)**
-- Defines specific permissions for each role
-- Maintained in JSON format for easy updates
-- Validated against schema on startup
+```json
+{
+  "admin": ["*"],
+  "manager": ["read:*", "create:bill", "manage:building"],
+  "resident": ["read:own_data", "create:maintenance_request"],
+  "tenant": ["read:own_data", "pay:bill"]
+}
+```
 
 ### Database Schema
 
@@ -175,10 +180,12 @@ router.post('/bills',
 The platform includes a comprehensive invitation system that respects role hierarchy:
 
 ### Role-Based Invitation Permissions
-- **Admins** can invite: Admins, Managers, Tenants, Residents
-- **Managers** can invite: Tenants, Residents
-- **Tenants** cannot invite users
-- **Residents** cannot invite users
+```text
+Admins → can invite: Admins, Managers, Tenants, Residents
+Managers → can invite: Tenants, Residents  
+Tenants → cannot invite users
+Residents → cannot invite users
+```
 
 ### Invitation Features
 - Customizable expiration period (1-30 days)

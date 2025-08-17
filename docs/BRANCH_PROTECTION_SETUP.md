@@ -34,7 +34,7 @@ Configure the following settings for the `main` branch:
 - ✅ **Require branches to be up to date before merging**
 
 **Required status checks:**
-```
+```yaml
 Static Analysis
 Testing Suite  
 Quality Analysis
@@ -67,7 +67,7 @@ Configure the following settings for the `develop` branch:
 - ✅ **Require branches to be up to date before merging**
 
 **Required status checks:**
-```
+```yaml
 Static Analysis
 Testing Suite
 Quality Analysis
@@ -162,7 +162,7 @@ Create the following teams with appropriate permissions:
 Navigate to **Settings > Secrets and variables > Actions**:
 
 #### Repository Secrets
-```bash
+```yaml
 # Database (if needed for CI)
 DATABASE_URL
 

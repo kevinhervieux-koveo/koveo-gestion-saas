@@ -8,7 +8,7 @@ This guide establishes the standards for organizing page components in the Koveo
 
 All page components must be located in `client/src/pages/` and organized according to the following structure:
 
-```
+```text
 client/src/pages/
 ├── admin/                 # Admin-only pages (full system access)
 ├── manager/               # Manager pages (building/organization management)
@@ -112,7 +112,7 @@ export default function UserManagement() {
 
 ### ❌ Duplicate Pages
 Don't create the same page in multiple role directories:
-```
+```text
 admin/suggestions.tsx
 owner/suggestions.tsx          # ❌ Duplicate
 admin/suggestions-with-filter.tsx
@@ -121,14 +121,14 @@ owner/suggestions-with-filter.tsx  # ❌ Duplicate
 
 ### ❌ Orphaned Pages
 Don't place role-specific pages in the root directory:
-```
+```text
 pages/pillars.tsx              # ❌ Should be in admin/ or owner/
 pages/user-profile.tsx         # ❌ Should be in settings/
 ```
 
 ### ❌ Mixed Concerns
 Don't mix different access patterns in the same directory:
-```
+```text
 admin/login.tsx                # ❌ Auth pages should be in auth/
 manager/home.tsx               # ❌ Public pages should be in root
 ```

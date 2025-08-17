@@ -658,7 +658,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   </div>
                   <div>
                     <Label htmlFor="featureCategory">Category</Label>
-                    <Select value={formData.featureCategory || ''} onValueChange={(value) => updateFormData('featureCategory', value)}>
+                    <Select value={formData.featureCategory || ''} onValueChange={(value: string) => updateFormData('featureCategory', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -696,7 +696,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Switch
                     id='strategic-path'
                     checked={formData.isStrategicPath}
-                    onCheckedChange={(checked) => updateFormData('isStrategicPath', checked)}
+                    onCheckedChange={(checked: boolean) => updateFormData('isStrategicPath', checked)}
                     className='scale-90'
                   />
                   <span className='text-xs text-gray-500'>Mark this feature as part of the strategic roadmap</span>
@@ -741,7 +741,7 @@ ${formData.additionalNotes || 'No additional notes'}
 
                 <div>
                   <Label htmlFor="priority">Development Priority</Label>
-                  <Select value={formData.priority} onValueChange={(value) => updateFormData('priority', value)}>
+                  <Select value={formData.priority} onValueChange={(value: string) => updateFormData('priority', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority level" />
                     </SelectTrigger>
@@ -771,7 +771,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 
                 <div>
                   <Label htmlFor="complexity">Complexity Assessment</Label>
-                  <Select value={formData.complexity} onValueChange={(value) => updateFormData('complexity', value)}>
+                  <Select value={formData.complexity} onValueChange={(value: string) => updateFormData('complexity', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Assess technical complexity" />
                     </SelectTrigger>
@@ -897,7 +897,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 <Switch
                   id="rbacRequired"
                   checked={formData.rbacRequired}
-                  onCheckedChange={(checked) => updateFormData('rbacRequired', checked)}
+                  onCheckedChange={(checked: boolean) => updateFormData('rbacRequired', checked)}
                 />
                 <span className="text-xs text-gray-500">Enable role-based access control for this feature</span>
               </div>
