@@ -183,9 +183,10 @@ function Router() {
   }
   
   if (isHomePage) {
+    // Redirect authenticated users to dashboard instead of showing home page
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <HomePage />
+        <DashboardRedirect />
       </Suspense>
     );
   }
@@ -271,6 +272,21 @@ function Router() {
  * @returns JSX element that shows loading while redirecting.
  */
 function LoginRedirect() {
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    setLocation('/dashboard');
+  }, [setLocation]);
+  
+  return <LoadingSpinner />;
+}
+
+/**
+ * Dashboard redirect component for authenticated users.
+ * Redirects authenticated users from home page to dashboard.
+ * @returns JSX element that shows loading while redirecting.
+ */
+function DashboardRedirect() {
   const [, setLocation] = useLocation();
   
   useEffect(() => {
