@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
+    "isolatedModules": true,
     "baseUrl": ".",
     "types": ["node", "vite/client", "jest", "@testing-library/jest-dom"],
     "paths": {

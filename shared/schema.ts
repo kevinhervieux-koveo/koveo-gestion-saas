@@ -1936,7 +1936,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
     z.date(),
     z.string().transform((str) => new Date(str))
   ]).refine(
-    (date) => date > new Date(),
+    (date: any) => date > new Date(),
     { message: 'Expiry date must be in the future' }
   ),
   // Make other optional fields truly optional
@@ -1945,7 +1945,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   requires2FA: z.boolean().default(false),
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
-  if (['tenant', 'resident'].includes(data.role)) {
+  if ((data.role === 'tenant' || data.role === 'resident')) {
     return !!data.residenceId;
   }
   return true;

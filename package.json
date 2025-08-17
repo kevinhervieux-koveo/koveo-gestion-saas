@@ -32,32 +32,26 @@
     "dev": "NODE_ENV=development tsx server/index.ts",
     "dev:client": "vite dev --host",
     "dev:server": "NODE_ENV=development tsx watch server/index.ts",
-
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview",
-
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
-
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx scripts/seed-database.ts",
     "db:reset": "tsx scripts/reset-database.ts",
-
     "lint": "npm run lint:fix",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:strict": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
-
     "format": "npm run format:write",
     "format:write": "prettier --write '**/*.{ts,tsx,js,jsx,json,css,md,yml,yaml}'",
     "format:check": "prettier --check '**/*.{ts,tsx,js,jsx,json,css,md,yml,yaml}'",
-
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -65,31 +59,47 @@
     "test:unit": "jest --testPathPattern=tests/unit",
     "test:integration": "jest --testPathPattern=tests/integration",
     "test:e2e": "jest --testPathPattern=tests/e2e",
-
     "quality:check": "tsx scripts/run-quality-check.ts",
     "quality:metrics": "tsx scripts/run-quality-metric-tests.ts",
     "quality:complexity": "npx complexity-report --format json client/src/**/*.{ts,tsx} server/**/*.{ts,tsx}",
-
     "validate": "npm run validate:all",
     "validate:all": "npm run lint:check && npm run format:check && npm run typecheck && npm run test && npm run quality:check",
     "validate:quick": "npm run lint:check && npm run typecheck",
     "validate:pre-commit": "npm run format:check && npm run lint:check && npm run typecheck",
-
     "clean": "rm -rf dist coverage .turbo node_modules/.cache",
     "clean:all": "npm run clean && rm -rf node_modules",
-
     "docs:generate": "typedoc --out docs --entryPoints client/src server --exclude '**/node_modules/**' --exclude '**/tests/**' --name 'Koveo Gestion Documentation'",
     "docs:serve": "npx serve docs",
-
     "analyze": "npm run analyze:bundle",
     "analyze:bundle": "vite build --mode analyze",
     "analyze:deps": "npx depcheck",
-
     "audit:security": "npm audit --audit-level=high",
     "audit:licenses": "npx license-checker --summary",
-
     "preinstall": "npx only-allow npm",
     "postinstall": "npm run typecheck",
     "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.85.3",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.44.4",
+    "drizzle-zod": "^0.5.1",
+    "express": "^5.1.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "lucide-react": "^0.539.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwind-merge": "^3.3.1",
+    "ts-jest": "^29.4.1",
+    "tsx": "^4.20.4",
+    "vite": "^7.1.2",
+    "whatwg-fetch": "^3.6.20",
+    "wouter": "^3.7.1",
+    "zod": "^4.0.17"
   }
 }
