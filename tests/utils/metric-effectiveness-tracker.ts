@@ -1,10 +1,13 @@
 /**
- * Metric Effectiveness Tracker for Quality System Tests
+ * Metric Effectiveness Tracker for Quality System Tests.
  * 
  * This utility tracks the real-world effectiveness of quality metrics
  * to ensure they are finding actual issues, not just reporting numbers.
  */
 
+/**
+ *
+ */
 interface MetricEffectivenessData {
   metric: string;
   calculatedValue: string;
@@ -22,6 +25,9 @@ interface MetricEffectivenessData {
   };
 }
 
+/**
+ *
+ */
 interface EffectivenessResult {
   metric: string;
   totalMeasurements: number;
@@ -38,12 +44,18 @@ interface EffectivenessResult {
   lastMeasurement?: MetricEffectivenessData;
 }
 
+/**
+ *
+ */
 interface ValidationResult {
   isValid: boolean;
   reasons: string[];
   recommendations: string[];
 }
 
+/**
+ *
+ */
 interface ImprovementSuggestion {
   metric: string;
   currentAccuracy: number;
@@ -52,11 +64,26 @@ interface ImprovementSuggestion {
   priority: 'high' | 'medium' | 'low';
 }
 
+/**
+ *
+ */
 export class MetricEffectivenessTracker {
   private static measurements: MetricEffectivenessData[] = [];
 
   /**
    * Records the effectiveness of a quality metric measurement.
+   * @param data
+   * @param data.metric
+   * @param data.calculatedValue
+   * @param data.realIssuesFound
+   * @param data.falsePositives
+   * @param data.missedIssues
+   * @param data.projectPhase
+   * @param data.issueDetails
+   * @param data.issueDetails.criticalIssues
+   * @param data.issueDetails.moderateIssues
+   * @param data.issueDetails.minorIssues
+   * @param data.issueDetails.description
    */
   static recordMetricEffectiveness(data: {
     metric: string;
@@ -85,10 +112,11 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets effectiveness statistics for a specific metric.
+   * @param metric
    */
   static getMetricEffectiveness(metric: string): EffectivenessResult | null {
     const metricData = this.measurements.filter(m => m.metric === metric);
-    if (metricData.length === 0) return null;
+    if (metricData.length === 0) {return null;}
 
     const totalRealIssues = metricData.reduce((sum, m) => sum + m.realIssuesFound, 0);
     const totalFalsePositives = metricData.reduce((sum, m) => sum + m.falsePositives, 0);
@@ -127,6 +155,8 @@ export class MetricEffectivenessTracker {
 
   /**
    * Validates whether a metric is performing effectively.
+   * @param metric
+   * @param threshold
    */
   static validateMetricQuality(metric: string, threshold: number = 80): ValidationResult {
     const effectiveness = this.getMetricEffectiveness(metric);
@@ -171,14 +201,16 @@ export class MetricEffectivenessTracker {
 
   /**
    * Generates improvement suggestions for a metric.
+   * @param metric
+   * @param currentAccuracy
    */
   static generateImprovementSuggestion(metric: string, currentAccuracy: number): ImprovementSuggestion {
     const targetAccuracy = Math.min(95, currentAccuracy + 15);
     const gap = targetAccuracy - currentAccuracy;
 
     let priority: 'high' | 'medium' | 'low' = 'medium';
-    if (currentAccuracy < 60) priority = 'high';
-    else if (currentAccuracy > 85) priority = 'low';
+    if (currentAccuracy < 60) {priority = 'high';}
+    else if (currentAccuracy > 85) {priority = 'low';}
 
     const suggestions: string[] = [];
 
@@ -211,6 +243,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets all measurements for a specific metric.
+   * @param metric
    */
   static getMeasurements(metric?: string): MetricEffectivenessData[] {
     if (metric) {

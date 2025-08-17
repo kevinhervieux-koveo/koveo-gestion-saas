@@ -184,6 +184,10 @@ class QualityMetricValidator {
    * @param missedIssues - Number of actual issues the metric missed.
    * @param projectPhase - Development phase (optional).
    * @param issueDetails - Detailed issue breakdown (optional).
+   * @param issueDetails.criticalIssues
+   * @param issueDetails.moderateIssues
+   * @param issueDetails.minorIssues
+   * @param issueDetails.description
    */
   static recordMetricEffectiveness(
     metric: string,
@@ -305,7 +309,7 @@ describe('Quality Metrics Calculation Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Clear metric history to avoid cross-test interference
-    QualityMetricValidator['metricsHistory'] = [];
+    QualityMetricValidator.metricsHistory = [];
   });
 
   describe('Test Coverage Metric', () => {
@@ -352,7 +356,7 @@ describe('Quality Metrics Calculation Tests', () => {
 
     it('should validate coverage metric finds real issues', () => {
       // Clear previous data
-      QualityMetricValidator['metricsHistory'] = [];
+      QualityMetricValidator.metricsHistory = [];
       
       // Simulate tracking coverage effectiveness over time
       QualityMetricValidator.recordMetricEffectiveness('coverage', '75%', 8, 1, 0);
@@ -480,7 +484,7 @@ describe('Quality Metrics Calculation Tests', () => {
 
     it('should validate security metric finds real vulnerabilities', () => {
       // Clear previous data for clean test
-      QualityMetricValidator['metricsHistory'] = [];
+      QualityMetricValidator.metricsHistory = [];
       
       // Test with known security findings
       QualityMetricValidator.recordMetricEffectiveness('securityIssues', '3', 3, 0, 0);

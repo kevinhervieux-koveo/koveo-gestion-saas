@@ -166,7 +166,6 @@ function Router() {
 
   // Home page and public routes - always without sidebar
   const isHomePage = location === '/';
-  const isPublicRoute = isHomePage || location === '/login' || location === '/accept-invitation';
   
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
