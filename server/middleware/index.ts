@@ -1,5 +1,5 @@
 /**
- * Middleware index file for organizing Express middleware
+ * Middleware index file for organizing Express middleware.
  */
 
 export * from './auth-middleware';

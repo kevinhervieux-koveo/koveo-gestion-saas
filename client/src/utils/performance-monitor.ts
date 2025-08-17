@@ -29,7 +29,7 @@ class PerformanceMonitor {
    * Starts performance monitoring.
    */
   start(): void {
-    if (this.isMonitoring) return;
+    if (this.isMonitoring) {return;}
     this.isMonitoring = true;
 
     // Monitor initial page load metrics
@@ -51,7 +51,7 @@ class PerformanceMonitor {
 
   /**
    * Records the start of a component load.
-   * @param componentName Name of the component
+   * @param componentName Name of the component.
    */
   markComponentLoadStart(componentName: string): void {
     this.componentLoadStart.set(componentName, performance.now());
@@ -59,7 +59,7 @@ class PerformanceMonitor {
 
   /**
    * Records the end of a component load.
-   * @param componentName Name of the component
+   * @param componentName Name of the component.
    */
   markComponentLoadEnd(componentName: string): void {
     const startTime = this.componentLoadStart.get(componentName);
@@ -126,7 +126,7 @@ class PerformanceMonitor {
    */
   private startMemoryTracking(): void {
     const trackMemory = () => {
-      if (!this.isMonitoring) return;
+      if (!this.isMonitoring) {return;}
       
       const usage = getMemoryUsage();
       if (usage) {
@@ -148,7 +148,7 @@ class PerformanceMonitor {
    * Sets up performance observer for detailed metrics.
    */
   private setupPerformanceObserver(): void {
-    if (!('PerformanceObserver' in window)) return;
+    if (!('PerformanceObserver' in window)) {return;}
 
     try {
       // Observe resource loading times
@@ -182,7 +182,7 @@ export const performanceMonitor = new PerformanceMonitor();
 
 /**
  * React hook for component performance tracking.
- * @param componentName Name of the component to track
+ * @param componentName Name of the component to track.
  */
 export function usePerformanceTracking(componentName: string): void {
   useEffect(() => {

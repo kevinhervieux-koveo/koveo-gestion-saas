@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Bell, FileText, Wrench, DollarSign, Calendar, MessageSquare, Building } from 'lucide-react';
 
 /**
- * Residents Dashboard - Main dashboard for residents
+ * Residents Dashboard - Main dashboard for residents.
  */
 export default function ResidentsDashboard() {
   return (

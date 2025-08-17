@@ -1,6 +1,6 @@
 /**
- * @file AI Agent Dashboard
- * @description Comprehensive dashboard and monitoring system for AI agent operations
+ * @file AI Agent Dashboard.
+ * @description Comprehensive dashboard and monitoring system for AI agent operations.
  */
 
 import * as fs from 'fs';
@@ -9,6 +9,9 @@ import { agentToolkit } from './ai-agent-toolkit';
 import { contextManager } from './smart-context-manager';
 import { workflowAssistant } from './intelligent-workflow-assistant';
 
+/**
+ *
+ */
 export interface DashboardMetrics {
   timestamp: string;
   projectHealth: {
@@ -44,6 +47,9 @@ export interface DashboardMetrics {
   }>;
 }
 
+/**
+ *
+ */
 export interface AgentPerformance {
   sessionsToday: number;
   averageSessionDuration: number;
@@ -53,6 +59,9 @@ export interface AgentPerformance {
   efficiency: number;
 }
 
+/**
+ *
+ */
 export interface SystemStatus {
   status: 'optimal' | 'good' | 'warning' | 'critical';
   uptime: number;
@@ -63,13 +72,17 @@ export interface SystemStatus {
 }
 
 /**
- * AI Agent Dashboard for comprehensive monitoring and control
+ * AI Agent Dashboard for comprehensive monitoring and control.
  */
 export class AIAgentDashboard {
   private projectRoot: string;
   private metricsHistory: DashboardMetrics[] = [];
   private sessionStart: Date;
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.sessionStart = new Date();
@@ -77,7 +90,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Load historical metrics
+   * Load historical metrics.
    */
   private loadMetricsHistory(): void {
     const historyPath = path.join(this.projectRoot, '.ai-agent', 'metrics-history.json');
@@ -93,7 +106,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Save metrics to history
+   * Save metrics to history.
    */
   private saveMetricsHistory(): void {
     const historyDir = path.join(this.projectRoot, '.ai-agent');
@@ -108,7 +121,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Collect current metrics
+   * Collect current metrics.
    */
   public async collectMetrics(): Promise<DashboardMetrics> {
     const [projectHealth, codeAnalysis, workspaceContext, recommendations, insights] = await Promise.all([
@@ -161,7 +174,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Get workspace context summary
+   * Get workspace context summary.
    */
   private async getWorkspaceContext(): Promise<{
     workingFiles: number;
@@ -178,7 +191,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Get recommendations summary
+   * Get recommendations summary.
    */
   private async getRecommendations(): Promise<{
     priority: any[];
@@ -189,7 +202,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Generate real-time dashboard HTML
+   * Generate real-time dashboard HTML.
    */
   public async generateDashboardHTML(): Promise<string> {
     const metrics = await this.collectMetrics();
@@ -387,7 +400,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Calculate agent performance metrics
+   * Calculate agent performance metrics.
    */
   private calculateAgentPerformance(): AgentPerformance {
     const sessionDuration = (Date.now() - this.sessionStart.getTime()) / 1000 / 60; // minutes
@@ -414,7 +427,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Get system status
+   * Get system status.
    */
   private getSystemStatus(): SystemStatus {
     const uptime = process.uptime();
@@ -422,8 +435,8 @@ export class AIAgentDashboard {
     const memoryPercentage = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
     let status: SystemStatus['status'] = 'optimal';
-    if (memoryPercentage > 80) status = 'warning';
-    if (memoryPercentage > 95) status = 'critical';
+    if (memoryPercentage > 80) {status = 'warning';}
+    if (memoryPercentage > 95) {status = 'critical';}
 
     return {
       status,
@@ -436,7 +449,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Export dashboard data as JSON
+   * Export dashboard data as JSON.
    */
   public async exportDashboardData(): Promise<string> {
     const metrics = await this.collectMetrics();
@@ -452,7 +465,7 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Save dashboard HTML to file
+   * Save dashboard HTML to file.
    */
   public async saveDashboard(): Promise<string> {
     const html = await this.generateDashboardHTML();
@@ -468,7 +481,8 @@ export class AIAgentDashboard {
   }
 
   /**
-   * Get metrics trends
+   * Get metrics trends.
+   * @param days
    */
   public getMetricsTrends(days: number = 7): any {
     const cutoff = new Date();
@@ -478,7 +492,7 @@ export class AIAgentDashboard {
       new Date(m.timestamp) > cutoff
     );
 
-    if (recentMetrics.length < 2) return null;
+    if (recentMetrics.length < 2) {return null;}
 
     const first = recentMetrics[0];
     const last = recentMetrics[recentMetrics.length - 1];

@@ -1,5 +1,5 @@
 /**
- * Server utility functions
+ * Server utility functions.
  */
 
 export * from './logger';

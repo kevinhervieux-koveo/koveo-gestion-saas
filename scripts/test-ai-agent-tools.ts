@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * @file Test AI Agent Tools
- * @description Comprehensive test and demonstration of all AI agent tools
+ * @file Test AI Agent Tools.
+ * @description Comprehensive test and demonstration of all AI agent tools.
  */
 
 import chalk from 'chalk';
@@ -10,6 +10,9 @@ import { contextManager } from '../tools/smart-context-manager';
 import { workflowAssistant } from '../tools/intelligent-workflow-assistant';
 import { agentDashboard } from '../tools/ai-agent-dashboard';
 
+/**
+ *
+ */
 async function main() {
   console.log(chalk.blue.bold('🤖 Testing AI Agent Toolkit\n'));
 

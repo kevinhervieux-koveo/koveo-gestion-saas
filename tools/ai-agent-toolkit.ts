@@ -1,6 +1,6 @@
 /**
- * @file AI Agent Toolkit
- * @description Enhanced tooling for Replit AI agent development and workflow optimization
+ * @file AI Agent Toolkit.
+ * @description Enhanced tooling for Replit AI agent development and workflow optimization.
  */
 
 import * as fs from 'fs';
@@ -8,6 +8,9 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { glob } from 'glob';
 
+/**
+ *
+ */
 export interface AgentContext {
   projectRoot: string;
   currentBranch: string;
@@ -17,6 +20,9 @@ export interface AgentContext {
   pendingTasks: string[];
 }
 
+/**
+ *
+ */
 export interface CodeAnalysis {
   complexity: number;
   maintainability: number;
@@ -26,6 +32,9 @@ export interface CodeAnalysis {
   suggestions: string[];
 }
 
+/**
+ *
+ */
 export interface ProjectHealth {
   overallScore: number;
   codeQuality: number;
@@ -44,19 +53,23 @@ export interface ProjectHealth {
 }
 
 /**
- * AI Agent Toolkit for enhanced development workflow
+ * AI Agent Toolkit for enhanced development workflow.
  */
 export class AIAgentToolkit {
   private projectRoot: string;
   private context: AgentContext;
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.context = this.loadContext();
   }
 
   /**
-   * Load current project context
+   * Load current project context.
    */
   private loadContext(): AgentContext {
     const gitBranch = this.getGitBranch();
@@ -74,7 +87,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Get current git branch
+   * Get current git branch.
    */
   private getGitBranch(): string {
     try {
@@ -88,7 +101,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Get last commit hash
+   * Get last commit hash.
    */
   private getLastCommit(): string {
     try {
@@ -102,7 +115,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Get currently modified files
+   * Get currently modified files.
    */
   private getWorkingFiles(): string[] {
     try {
@@ -119,7 +132,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Extract active features from ROADMAP and issues
+   * Extract active features from ROADMAP and issues.
    */
   private getActiveFeatures(): string[] {
     const features: string[] = [];
@@ -139,7 +152,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Extract pending tasks from TODO comments and issues
+   * Extract pending tasks from TODO comments and issues.
    */
   private getPendingTasks(): string[] {
     const tasks: string[] = [];
@@ -165,7 +178,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Analyze code quality and complexity
+   * Analyze code quality and complexity.
    */
   public async analyzeCode(): Promise<CodeAnalysis> {
     const analysis: CodeAnalysis = {
@@ -249,7 +262,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Get overall project health score
+   * Get overall project health score.
    */
   public async getProjectHealth(): Promise<ProjectHealth> {
     const codeAnalysis = await this.analyzeCode();
@@ -301,7 +314,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Calculate documentation score
+   * Calculate documentation score.
    */
   private async calculateDocumentationScore(): Promise<number> {
     const mdFiles = glob.sync('**/*.md', {
@@ -314,7 +327,7 @@ export class AIAgentToolkit {
       ignore: ['node_modules/**', 'dist/**', '**/*.test.*']
     });
 
-    if (sourceFiles.length === 0) return 100;
+    if (sourceFiles.length === 0) {return 100;}
 
     let documentedFiles = 0;
     sourceFiles.forEach(file => {
@@ -331,7 +344,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Calculate security score
+   * Calculate security score.
    */
   private async calculateSecurityScore(): Promise<number> {
     let score = 100;
@@ -390,7 +403,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Calculate performance score
+   * Calculate performance score.
    */
   private async calculatePerformanceScore(): Promise<number> {
     let score = 100;
@@ -410,8 +423,8 @@ export class AIAgentToolkit {
         });
 
         const sizeMB = totalSize / (1024 * 1024);
-        if (sizeMB > 10) score -= 20;
-        else if (sizeMB > 5) score -= 10;
+        if (sizeMB > 10) {score -= 20;}
+        else if (sizeMB > 5) {score -= 10;}
       }
 
       // Check for performance anti-patterns
@@ -442,7 +455,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Generate AI agent development suggestions
+   * Generate AI agent development suggestions.
    */
   public generateAgentSuggestions(): string[] {
     const suggestions: string[] = [];
@@ -470,7 +483,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Export current context and analysis
+   * Export current context and analysis.
    */
   public async exportAnalysis(): Promise<string> {
     const health = await this.getProjectHealth();
@@ -489,7 +502,7 @@ export class AIAgentToolkit {
   }
 
   /**
-   * Quick health check for AI agent
+   * Quick health check for AI agent.
    */
   public async quickHealthCheck(): Promise<{
     status: 'healthy' | 'warning' | 'critical';
@@ -499,8 +512,8 @@ export class AIAgentToolkit {
     const health = await this.getProjectHealth();
     
     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-    if (health.overallScore < 70) status = 'warning';
-    if (health.overallScore < 50) status = 'critical';
+    if (health.overallScore < 70) {status = 'warning';}
+    if (health.overallScore < 50) {status = 'critical';}
 
     const topIssues = health.issues
       .filter(issue => issue.severity === 'high' || issue.severity === 'critical')

@@ -1,12 +1,12 @@
 /**
- * Page Organization Tests
+ * Page Organization Tests.
  * 
  * Tests to ensure all pages are properly organized according to documentation standards:
  * - All page components should be in client/src/pages directory
  * - Pages should be organized by role-based access (admin, manager, owner, residents, auth, settings)
  * - No duplicate page components should exist across different role directories
  * - All pages should follow consistent naming conventions
- * - Pages should be properly registered in the main App.tsx router
+ * - Pages should be properly registered in the main App.tsx router.
  */
 
 import { existsSync, readdirSync, statSync } from 'fs';
@@ -57,6 +57,11 @@ describe('Page Organization Validation', () => {
   });
 
   describe('Page File Validation', () => {
+    /**
+     *
+     * @param dir
+     * @param relativePath
+     */
     function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string}> {
       const items = readdirSync(dir);
       const pages: Array<{file: string, path: string}> = [];
@@ -133,6 +138,10 @@ describe('Page Organization Validation', () => {
   });
 
   describe('Page Component Validation', () => {
+    /**
+     *
+     * @param filePath
+     */
     function validatePageComponent(filePath: string): string[] {
       const errors: string[] = [];
       
@@ -193,6 +202,11 @@ describe('Page Organization Validation', () => {
       }
     });
 
+    /**
+     *
+     * @param dir
+     * @param relativePath
+     */
     function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string}> {
       const items = readdirSync(dir);
       const pages: Array<{file: string, path: string}> = [];

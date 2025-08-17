@@ -1,16 +1,16 @@
 #!/usr/bin/env tsx
 
 /**
- * Demo Organization Synchronization Script
+ * Demo Organization Synchronization Script.
  * 
  * This script synchronizes the Demo organization data from development to production.
  * During deployment, it:
  * 1. Deletes all existing Demo organization data from production
  * 2. Exports Demo organization data from development
- * 3. Imports the exported data into production
+ * 3. Imports the exported data into production.
  * 
  * Usage: tsx scripts/sync-demo-organization.ts
- * Environment: Set PRODUCTION_DATABASE_URL for prod sync
+ * Environment: Set PRODUCTION_DATABASE_URL for prod sync.
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -36,6 +36,9 @@ if (process.env.PRODUCTION_DATABASE_URL) {
   prodDb = drizzle({ client: prodPool, schema });
 }
 
+/**
+ *
+ */
 interface DemoOrganizationData {
   organization: any;
   buildings: any[];
@@ -48,7 +51,7 @@ interface DemoOrganizationData {
 }
 
 /**
- * Exports all Demo organization data from development database
+ * Exports all Demo organization data from development database.
  */
 async function exportDemoData(): Promise<DemoOrganizationData> {
   console.log('📤 Exporting Demo organization data from development...');
@@ -155,7 +158,8 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
 }
 
 /**
- * Deletes all Demo organization data from target database
+ * Deletes all Demo organization data from target database.
+ * @param db
  */
 async function deleteDemoData(db: any): Promise<void> {
   console.log('🗑️  Deleting existing Demo organization data...');
@@ -266,7 +270,9 @@ async function deleteDemoData(db: any): Promise<void> {
 }
 
 /**
- * Imports Demo organization data into target database
+ * Imports Demo organization data into target database.
+ * @param db
+ * @param data
  */
 async function importDemoData(db: any, data: DemoOrganizationData): Promise<void> {
   console.log('📥 Importing Demo organization data...');
@@ -291,7 +297,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
     const existingEmails = new Set(existingUsers.map(u => u.email));
     const newUsers = data.users.filter(u => !existingEmails.has(u.email));
     
-    let allUserIds: Record<string, string> = {};
+    const allUserIds: Record<string, string> = {};
     existingUsers.forEach(u => {
       const originalUser = data.users.find(du => du.email === u.email);
       if (originalUser) {
@@ -328,7 +334,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
     console.log(`  ✓ Imported ${data.userOrganizations.length} user-organization relationships`);
 
     // 4. Insert buildings
-    let buildingIdMap: Record<string, string> = {};
+    const buildingIdMap: Record<string, string> = {};
     if (data.buildings.length > 0) {
       const insertedBuildings = await db.insert(schema.buildings)
         .values(data.buildings.map(building => ({
@@ -347,7 +353,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
     }
 
     // 5. Insert residences
-    let residenceIdMap: Record<string, string> = {};
+    const residenceIdMap: Record<string, string> = {};
     if (data.residences.length > 0) {
       const insertedResidences = await db.insert(schema.residences)
         .values(data.residences.map(residence => ({
@@ -408,7 +414,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
 }
 
 /**
- * Synchronizes Demo organization from development to production
+ * Synchronizes Demo organization from development to production.
  */
 async function syncDemoOrganization(): Promise<void> {
   try {
@@ -465,7 +471,7 @@ async function syncDemoOrganization(): Promise<void> {
 }
 
 /**
- * Import Demo organization from JSON file (for production deployment)
+ * Import Demo organization from JSON file (for production deployment).
  */
 async function importFromFile(): Promise<void> {
   try {
@@ -496,6 +502,9 @@ async function importFromFile(): Promise<void> {
 }
 
 // Main execution
+/**
+ *
+ */
 async function main() {
   const command = process.argv[2];
   

@@ -1,18 +1,21 @@
 #!/usr/bin/env tsx
 
 /**
- * Script to fix page organization issues identified by tests
+ * Script to fix page organization issues identified by tests.
  * 
  * This script will:
  * 1. Remove orphaned pillars.tsx from root
  * 2. Identify and consolidate duplicate pages
  * 3. Update imports in App.tsx and other files
- * 4. Generate a migration report
+ * 4. Generate a migration report.
  */
 
 import { existsSync, unlinkSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
+/**
+ *
+ */
 interface DuplicatePage {
   fileName: string;
   locations: string[];
@@ -77,6 +80,9 @@ const duplicatePages: DuplicatePage[] = [
   }
 ];
 
+/**
+ *
+ */
 function main() {
   console.log('🔧 Starting page organization cleanup...\n');
 

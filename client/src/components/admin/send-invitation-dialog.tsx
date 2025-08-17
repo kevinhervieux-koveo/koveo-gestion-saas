@@ -174,11 +174,11 @@ interface Residence {
  * 
  * Allows sending single or bulk invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
- * @param root0 - Component props
- * @param root0.open - Whether dialog is open
- * @param root0.onOpenChange - Handler for dialog open state changes
- * @param root0.onSuccess - Handler called when invitation is sent successfully
- * @returns JSX element for the invitation dialog
+ * @param root0 - Component props.
+ * @param root0.open - Whether dialog is open.
+ * @param root0.onOpenChange - Handler for dialog open state changes.
+ * @param root0.onSuccess - Handler called when invitation is sent successfully.
+ * @returns JSX element for the invitation dialog.
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
@@ -249,7 +249,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
-    if (!organizations) return [];
+    if (!organizations) {return [];}
     
     // Get current user's organization info
     const currentUserOrg = organizations.find(org => 
@@ -279,7 +279,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Check if user can access a specific organization for invitations
   const canInviteToOrganization = (orgId: string) => {
-    if (!orgId || !organizations) return false;
+    if (!orgId || !organizations) {return false;}
     
     const targetOrg = organizations.find(org => org.id === orgId);
     const currentUserOrg = organizations.find(org => 
@@ -311,12 +311,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   };
 
   const getFilteredBuildings = (selectedOrgId: string) => {
-    if (!buildings || !selectedOrgId) return [];
+    if (!buildings || !selectedOrgId) {return [];}
     return buildings.filter(building => building.organizationId === selectedOrgId);
   };
 
   const getFilteredResidences = (selectedBuildingId: string) => {
-    if (!residences || !selectedBuildingId) return [];
+    if (!residences || !selectedBuildingId) {return [];}
     return residences.filter(residence => residence.buildingId === selectedBuildingId);
   };
 

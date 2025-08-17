@@ -1,11 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * @file Demo AI Agent Tools
- * @description Simple demonstration of AI agent tools without git operations
+ * @file Demo AI Agent Tools.
+ * @description Simple demonstration of AI agent tools without git operations.
  */
 
 import chalk from 'chalk';
 
+/**
+ *
+ */
 async function demoAIAgentTools() {
   console.log(chalk.blue.bold('🤖 AI Agent Tools Demo\n'));
 

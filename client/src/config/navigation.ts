@@ -12,6 +12,9 @@ import {
   Lightbulb,
 } from 'lucide-react';
 
+/**
+ *
+ */
 export interface NavigationItem {
   name: string;
   href: string;
@@ -19,6 +22,9 @@ export interface NavigationItem {
   requiredRole?: string;
 }
 
+/**
+ *
+ */
 export interface NavigationSection {
   name: string;
   key: string;
@@ -31,7 +37,7 @@ export interface NavigationSection {
  * Consolidated navigation configuration for the entire application.
  * This is the single source of truth for all navigation structures.
  * 
- * Role hierarchy: tenant (1) = resident (1) < manager (2) < admin (3)
+ * Role hierarchy: tenant (1) = resident (1) < manager (2) < admin (3).
  */
 export const NAVIGATION_CONFIG: NavigationSection[] = [
   {
@@ -99,12 +105,12 @@ export const ROLE_HIERARCHY = {
 
 /**
  * Helper function to check if a user has the required role or higher.
- * @param userRole - The user's current role
- * @param requiredRole - The minimum required role
- * @returns true if user has sufficient permissions
+ * @param userRole - The user's current role.
+ * @param requiredRole - The minimum required role.
+ * @returns True if user has sufficient permissions.
  */
 export function hasRoleOrHigher(userRole: string | undefined, requiredRole: string): boolean {
-  if (!userRole) return false;
+  if (!userRole) {return false;}
   
   const userLevel = ROLE_HIERARCHY[userRole as keyof typeof ROLE_HIERARCHY] || 0;
   const requiredLevel = ROLE_HIERARCHY[requiredRole as keyof typeof ROLE_HIERARCHY] || 0;
@@ -114,8 +120,8 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
 
 /**
  * Filter navigation sections based on user role.
- * @param userRole - The user's current role
- * @returns Array of navigation sections the user can access
+ * @param userRole - The user's current role.
+ * @returns Array of navigation sections the user can access.
  */
 export function getFilteredNavigation(userRole: string | undefined): NavigationSection[] {
   return NAVIGATION_CONFIG

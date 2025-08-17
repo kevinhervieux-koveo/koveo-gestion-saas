@@ -1,6 +1,6 @@
 /**
- * @fileoverview Comprehensive routing tests for Koveo Gestion application
- * Tests route registration, authentication, role-based access, and navigation
+ * @file Comprehensive routing tests for Koveo Gestion application
+ * Tests route registration, authentication, role-based access, and navigation.
  */
 
 import React from 'react';

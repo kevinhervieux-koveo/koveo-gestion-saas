@@ -1,6 +1,6 @@
 /**
- * @file Error Detection Tests
- * @description Tests to catch common errors in project organization
+ * @file Error Detection Tests.
+ * @description Tests to catch common errors in project organization.
  */
 
 import * as fs from 'fs';
@@ -95,6 +95,11 @@ describe('Error Detection in Project Organization', () => {
       const recursionStack = new Set<string>();
       const circularDeps: string[] = [];
 
+      /**
+       *
+       * @param node
+       * @param visitPath
+       */
       function hasCycle(node: string, visitPath: string[] = []): boolean {
         if (recursionStack.has(node)) {
           const cycleStart = visitPath.indexOf(node);

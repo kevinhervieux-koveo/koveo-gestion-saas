@@ -1,12 +1,15 @@
 /**
- * @file Documentation Validation Tests
- * @description Tests for documentation consistency, redundancy, and completeness
+ * @file Documentation Validation Tests.
+ * @description Tests for documentation consistency, redundancy, and completeness.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
 
+/**
+ *
+ */
 interface DocumentationSection {
   file: string;
   line: number;
@@ -18,7 +21,8 @@ describe('Documentation Validation', () => {
   const rootDir = path.resolve(__dirname, '../..');
 
   /**
-   * Simple hash function for content comparison
+   * Simple hash function for content comparison.
+   * @param content
    */
   function hashContent(content: string): string {
     let hash = 0;
@@ -32,7 +36,8 @@ describe('Documentation Validation', () => {
   }
 
   /**
-   * Extract sections from markdown files
+   * Extract sections from markdown files.
+   * @param filePath
    */
   function extractSections(filePath: string): DocumentationSection[] {
     const content = fs.readFileSync(filePath, 'utf-8');

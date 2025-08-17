@@ -1,6 +1,6 @@
 /**
- * @file Intelligent Workflow Assistant
- * @description Advanced workflow automation and intelligent assistance for AI agent
+ * @file Intelligent Workflow Assistant.
+ * @description Advanced workflow automation and intelligent assistance for AI agent.
  */
 
 import * as fs from 'fs';
@@ -8,6 +8,9 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { glob } from 'glob';
 
+/**
+ *
+ */
 export interface WorkflowPattern {
   name: string;
   description: string;
@@ -17,6 +20,9 @@ export interface WorkflowPattern {
   frequency: 'once' | 'periodic' | 'onchange';
 }
 
+/**
+ *
+ */
 export interface WorkflowAction {
   type: 'command' | 'file_operation' | 'validation' | 'notification' | 'analysis';
   description: string;
@@ -24,6 +30,9 @@ export interface WorkflowAction {
   priority: number;
 }
 
+/**
+ *
+ */
 export interface WorkflowSuggestion {
   pattern: string;
   confidence: number;
@@ -33,6 +42,9 @@ export interface WorkflowSuggestion {
   risks: string[];
 }
 
+/**
+ *
+ */
 export interface ProjectInsight {
   category: 'architecture' | 'quality' | 'performance' | 'security' | 'maintenance';
   severity: 'info' | 'warning' | 'error' | 'critical';
@@ -44,20 +56,24 @@ export interface ProjectInsight {
 }
 
 /**
- * Intelligent Workflow Assistant for AI agent optimization
+ * Intelligent Workflow Assistant for AI agent optimization.
  */
 export class IntelligentWorkflowAssistant {
   private projectRoot: string;
   private workflowHistory: Map<string, Date> = new Map();
   private patterns: WorkflowPattern[] = [];
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.initializePatterns();
   }
 
   /**
-   * Initialize common workflow patterns
+   * Initialize common workflow patterns.
    */
   private initializePatterns(): void {
     this.patterns = [
@@ -177,7 +193,9 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Detect workflow patterns from current context
+   * Detect workflow patterns from current context.
+   * @param currentFiles
+   * @param recentChanges
    */
   public detectWorkflowPatterns(currentFiles: string[], recentChanges: string[]): WorkflowSuggestion[] {
     const suggestions: WorkflowSuggestion[] = [];
@@ -249,7 +267,9 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Execute workflow pattern
+   * Execute workflow pattern.
+   * @param patternName
+   * @param dryRun
    */
   public async executeWorkflow(patternName: string, dryRun: boolean = false): Promise<{
     success: boolean;
@@ -359,7 +379,8 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Perform analysis action
+   * Perform analysis action.
+   * @param payload
    */
   private async performAnalysis(payload: any): Promise<string> {
     if (payload.target) {
@@ -409,7 +430,8 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Perform file operation
+   * Perform file operation.
+   * @param payload
    */
   private async performFileOperation(payload: any): Promise<string> {
     if (payload.pattern) {
@@ -425,7 +447,7 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Generate project insights using AI-powered analysis
+   * Generate project insights using AI-powered analysis.
    */
   public async generateProjectInsights(): Promise<ProjectInsight[]> {
     const insights: ProjectInsight[] = [];
@@ -545,7 +567,11 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Smart workflow recommendation engine
+   * Smart workflow recommendation engine.
+   * @param context
+   * @param context.recentFiles
+   * @param context.userIntent
+   * @param context.projectPhase
    */
   public async recommendWorkflows(context: {
     recentFiles?: string[];
@@ -592,7 +618,7 @@ export class IntelligentWorkflowAssistant {
   }
 
   /**
-   * Generate workflow execution report
+   * Generate workflow execution report.
    */
   public generateWorkflowReport(): string {
     const report = {

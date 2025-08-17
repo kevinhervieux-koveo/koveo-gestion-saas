@@ -36,10 +36,18 @@ import { apiRequest } from '@/lib/queryClient';
 import { OrganizationFormDialog } from './organization-form-dialog';
 import type { Organization } from '@shared/schema';
 
+/**
+ *
+ */
 interface OrganizationsCardProps {
   className?: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.className
+ */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();

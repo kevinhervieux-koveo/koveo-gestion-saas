@@ -1,8 +1,14 @@
 /**
- * CORS middleware configuration
+ * CORS middleware configuration.
  */
 import { Request, Response, NextFunction } from 'express';
 
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 export function corsMiddleware(req: Request, res: Response, next: NextFunction) {
   res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

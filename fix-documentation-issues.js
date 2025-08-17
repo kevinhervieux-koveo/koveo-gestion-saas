@@ -13,36 +13,39 @@ const filesToFix = [
 // Code block fixes - map line numbers to language specifications
 const codeBlockFixes = {
   'server/README.md': {
-    20: 'json',      // Package.json structure
+    20: 'json', // Package.json structure
     57: 'typescript', // Middleware configuration  
     79: 'typescript', // RBAC configuration
     117: 'typescript', // Authentication middleware
     135: 'typescript', // Error handling middleware
-    159: 'bash',      // Migration commands
-    171: 'bash',      // Migration commands  
-    193: 'json',      // Response format
+    159: 'bash', // Migration commands
+    171: 'bash', // Migration commands  
+    193: 'json', // Response format
     220: 'typescript', // Route handler
     242: 'typescript', // Email service
     272: 'typescript', // SSL management
     375: 'typescript', // Error handling
-    410: 'typescript'  // Testing example
+    410: 'typescript' // Testing example
   },
   'docs/TEMPLATE.md': {
-    13: 'markdown',   // Template example
-    18: 'yaml',       // Configuration
-    34: 'bash'        // Commands
+    13: 'markdown', // Template example
+    18: 'yaml', // Configuration
+    34: 'bash' // Commands
   },
   'docs/ROUTING_CHECKLIST.md': {
-    16: 'typescript',  // Route definition
+    16: 'typescript', // Route definition
     32: 'typescript', // Component example
-    43: 'bash',       // Command example
+    43: 'bash', // Command example
     62: 'typescript', // Error handling
     74: 'typescript', // Route configuration
-    97: 'bash',       // Testing commands
+    97: 'bash', // Testing commands
     106: 'typescript' // Debug example
   }
 };
 
+/**
+ *
+ */
 function fixCodeBlocks() {
   console.log('🔧 Fixing code block language specifications...');
   
@@ -77,6 +80,9 @@ function fixCodeBlocks() {
   });
 }
 
+/**
+ *
+ */
 function addTableOfContents() {
   console.log('\n📑 Adding table of contents to long documents...');
   
@@ -145,6 +151,9 @@ function addTableOfContents() {
   });
 }
 
+/**
+ *
+ */
 function generateProgressReport() {
   console.log('\n📊 Documentation fix progress:');
   console.log('✅ Fixed "user management" → "User Management" terminology');

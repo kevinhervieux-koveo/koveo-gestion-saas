@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * @fileoverview Build validation script to ensure removed routes are not present in production builds
- * Run this after building to verify that removed routes don't persist in cached files
+ * @file Build validation script to ensure removed routes are not present in production builds
+ * Run this after building to verify that removed routes don't persist in cached files.
  */
 
 import * as fs from 'fs';
@@ -10,7 +10,7 @@ import { glob } from 'glob';
 
 // Configuration
 const REMOVED_ROUTES = [
-  '/admin/dashboard',  // This route was removed but was persisting due to cache
+  '/admin/dashboard', // This route was removed but was persisting due to cache
 ];
 
 const VALID_ROUTES = [
@@ -59,6 +59,9 @@ const VALID_ROUTES = [
   '/pillars',
 ];
 
+/**
+ *
+ */
 interface ValidationResult {
   success: boolean;
   errors: string[];
@@ -66,7 +69,8 @@ interface ValidationResult {
 }
 
 /**
- * Check if a file contains references to removed routes
+ * Check if a file contains references to removed routes.
+ * @param filePath
  */
 async function checkFileForRemovedRoutes(filePath: string): Promise<string[]> {
   const content = await fs.promises.readFile(filePath, 'utf-8');
@@ -97,7 +101,7 @@ async function checkFileForRemovedRoutes(filePath: string): Promise<string[]> {
 }
 
 /**
- * Check source files for route consistency
+ * Check source files for route consistency.
  */
 async function checkSourceFiles(): Promise<ValidationResult> {
   const errors: string[] = [];
@@ -143,7 +147,7 @@ async function checkSourceFiles(): Promise<ValidationResult> {
 }
 
 /**
- * Check build output for removed routes
+ * Check build output for removed routes.
  */
 async function checkBuildOutput(): Promise<ValidationResult> {
   const errors: string[] = [];
@@ -182,7 +186,7 @@ async function checkBuildOutput(): Promise<ValidationResult> {
 }
 
 /**
- * Main validation function
+ * Main validation function.
  */
 async function validateRoutes(): Promise<void> {
   console.log('🔍 Validating routes in Koveo Gestion...\n');

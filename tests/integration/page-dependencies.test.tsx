@@ -1,5 +1,5 @@
 /**
- * Page Dependencies Integration Test
+ * Page Dependencies Integration Test.
  * 
  * Ensures all page components can be imported without missing dependencies
  * and that all necessary packages are properly installed.
@@ -11,6 +11,11 @@ import { join } from 'path';
 describe('Page Dependencies Integration', () => {
   const pagesDir = join(process.cwd(), 'client/src/pages');
 
+  /**
+   *
+   * @param dir
+   * @param relativePath
+   */
   function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string, fullPath: string}> {
     const items = readdirSync(dir);
     const pages: Array<{file: string, path: string, fullPath: string}> = [];

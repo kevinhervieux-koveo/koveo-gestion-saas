@@ -13,7 +13,7 @@ export { InvitationManagement } from './admin/invitation-management';
 export { OrganizationFormDialog } from './admin/organization-form-dialog';
 export { OrganizationsCard } from './admin/organizations-card';
 export { SendInvitationDialog } from './admin/send-invitation-dialog';
-export { UserList } from './admin/user-list';
+export { UserListComponent } from './admin/user-list';
 export { BulkActionsBar } from './admin/bulk-actions-bar';
 
 // Auth Components
@@ -25,7 +25,7 @@ export { DevelopmentConsole } from './dashboard/development-console';
 export { InitializationWizard } from './dashboard/initialization-wizard';
 export { PillarFramework } from './dashboard/pillar-framework';
 export { QualityMetrics } from './dashboard/quality-metrics';
-export { ReplitAiMonitoring } from './dashboard/replit-ai-monitoring';
+export { ReplitAIMonitoring } from './dashboard/replit-ai-monitoring';
 export { WorkspaceStatus } from './dashboard/workspace-status';
 
 // SSL Components

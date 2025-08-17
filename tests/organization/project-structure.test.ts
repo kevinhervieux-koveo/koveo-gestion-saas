@@ -1,6 +1,6 @@
 /**
- * @file Project Structure Validation Tests
- * @description Validates the overall project organization and structure
+ * @file Project Structure Validation Tests.
+ * @description Validates the overall project organization and structure.
  */
 
 import * as fs from 'fs';

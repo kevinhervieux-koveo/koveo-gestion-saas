@@ -31,6 +31,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { insertOrganizationSchema, type InsertOrganization } from '@shared/schema';
 
+/**
+ *
+ */
 interface OrganizationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,6 +42,9 @@ interface OrganizationFormProps {
 /**
  * Form for creating new organizations in the Quebec property management system.
  * Includes all required fields with Quebec-specific defaults and validation.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
  */
 export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) {
   const { t } = useLanguage();

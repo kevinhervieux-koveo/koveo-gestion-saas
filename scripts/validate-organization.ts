@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * @file Organization Validation Script
- * @description Runs all organization validation tests and generates reports
+ * @file Organization Validation Script.
+ * @description Runs all organization validation tests and generates reports.
  */
 
 import { execSync } from 'child_process';
@@ -11,6 +11,9 @@ import chalk from 'chalk';
 
 const rootDir = path.resolve(__dirname, '..');
 
+/**
+ *
+ */
 interface TestResult {
   suite: string;
   passed: boolean;
@@ -19,7 +22,8 @@ interface TestResult {
 }
 
 /**
- * Run a test suite and capture results
+ * Run a test suite and capture results.
+ * @param suitePath
  */
 function runTestSuite(suitePath: string): TestResult {
   const suiteName = path.basename(suitePath, '.test.ts');
@@ -48,7 +52,8 @@ function runTestSuite(suitePath: string): TestResult {
 }
 
 /**
- * Extract improvement suggestions from test output
+ * Extract improvement suggestions from test output.
+ * @param output
  */
 function extractSuggestions(output: string): string[] {
   const suggestions: string[] = [];
@@ -67,7 +72,8 @@ function extractSuggestions(output: string): string[] {
 }
 
 /**
- * Generate validation report
+ * Generate validation report.
+ * @param results
  */
 function generateReport(results: TestResult[]): string {
   const timestamp = new Date().toISOString();
@@ -141,7 +147,7 @@ Generated: ${timestamp}
 }
 
 /**
- * Main validation function
+ * Main validation function.
  */
 async function validateOrganization() {
   console.log(chalk.bold.green('\n🔍 Organization Validation Starting...\n'));

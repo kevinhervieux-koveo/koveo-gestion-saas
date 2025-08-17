@@ -1,5 +1,5 @@
 /**
- * @fileoverview Test suite to ensure removed routes are not accessible
+ * @file Test suite to ensure removed routes are not accessible
  * This test validates that previously removed routes like /admin/user-management
  * don't exist in the application and cannot be accessed.
  */
@@ -11,15 +11,15 @@ describe('Removed Routes Validation', () => {
 
   /**
    * List of routes that should NOT exist in the application
-   * These routes were previously available but have been removed
+   * These routes were previously available but have been removed.
    */
   const REMOVED_ROUTES = [
-    '/admin/user-management',   // User management moved to /manager/user-management only
-    '/admin/dashboard',         // Admin dashboard was removed
+    '/admin/user-management', // User management moved to /manager/user-management only
+    '/admin/dashboard', // Admin dashboard was removed
   ];
 
   /**
-   * List of routes that SHOULD exist and are valid
+   * List of routes that SHOULD exist and are valid.
    */
   const VALID_ADMIN_ROUTES = [
     '/admin/organizations',
@@ -36,7 +36,7 @@ describe('Removed Routes Validation', () => {
     '/manager/budget',
     '/manager/bills',
     '/manager/demands',
-    '/manager/user-management',  // This is the CORRECT location for user management
+    '/manager/user-management', // This is the CORRECT location for user management
   ];
 
   describe('Code Base Validation', () => {
@@ -75,7 +75,7 @@ describe('Removed Routes Validation', () => {
 });
 
 /**
- * Integration test to ensure removed routes are completely cleaned up
+ * Integration test to ensure removed routes are completely cleaned up.
  */
 describe('Route Cleanup Integration Test', () => {
   test('should not have any remaining references to removed admin routes', () => {
@@ -112,7 +112,7 @@ describe('Route Cleanup Integration Test', () => {
         '/manager/budget',
         '/manager/bills',
         '/manager/demands',
-        '/manager/user-management'  // Only managers should have user-management
+        '/manager/user-management' // Only managers should have user-management
       ],
       resident: [
         '/dashboard',

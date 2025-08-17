@@ -1,5 +1,5 @@
 /**
- * Controller index file for organizing route handlers
+ * Controller index file for organizing route handlers.
  */
 
 export * from './auth-controller';

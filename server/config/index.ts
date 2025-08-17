@@ -1,5 +1,5 @@
 /**
- * Centralized configuration management for Koveo Gestion server
+ * Centralized configuration management for Koveo Gestion server.
  */
 
 import { z } from 'zod';
@@ -95,5 +95,8 @@ export const config = {
   },
 } as const;
 
+/**
+ *
+ */
 export type Config = typeof config;
 export default config;

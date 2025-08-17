@@ -1,6 +1,6 @@
 /**
- * @fileoverview Navigation and sidebar integration tests
- * Tests that sidebar navigation correctly routes to pages and handles role-based visibility
+ * @file Navigation and sidebar integration tests
+ * Tests that sidebar navigation correctly routes to pages and handles role-based visibility.
  */
 
 import React from 'react';

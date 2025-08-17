@@ -1,18 +1,33 @@
 /**
- * Organization management controller handlers
+ * Organization management controller handlers.
  */
 import { Request, Response } from 'express';
 
+/**
+ *
+ * @param req
+ * @param res
+ */
 export async function getOrganizationsHandler(req: Request, res: Response) {
   // Implementation handled by existing routes.ts
   res.status(501).json({ message: 'Handler moved to routes.ts' });
 }
 
+/**
+ *
+ * @param req
+ * @param res
+ */
 export async function createOrganizationHandler(req: Request, res: Response) {
   // Implementation handled by existing routes.ts
   res.status(501).json({ message: 'Handler moved to routes.ts' });
 }
 
+/**
+ *
+ * @param req
+ * @param res
+ */
 export async function updateOrganizationHandler(req: Request, res: Response) {
   // Implementation handled by existing routes.ts
   res.status(501).json({ message: 'Handler moved to routes.ts' });

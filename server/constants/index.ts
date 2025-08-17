@@ -1,5 +1,5 @@
 /**
- * Centralized constants for server-side functionality
+ * Centralized constants for server-side functionality.
  */
 
 // User roles and permissions
@@ -151,8 +151,23 @@ export const FILE_UPLOAD = {
   STORAGE_PATH: 'uploads',
 } as const;
 
+/**
+ *
+ */
 export type Role = typeof ROLES[keyof typeof ROLES];
+/**
+ *
+ */
 export type OrganizationType = typeof ORGANIZATION_TYPES[keyof typeof ORGANIZATION_TYPES];
+/**
+ *
+ */
 export type BuildingType = typeof BUILDING_TYPES[keyof typeof BUILDING_TYPES];
+/**
+ *
+ */
 export type Language = typeof LANGUAGES[keyof typeof LANGUAGES];
+/**
+ *
+ */
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];

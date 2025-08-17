@@ -2919,7 +2919,7 @@ function registerInvitationRoutes(app: any) {
         
         // Apply filters and pagination
         const offset = (parseInt(page) - 1) * parseInt(limit);
-        let query = db.select().from(invitations);
+        const query = db.select().from(invitations);
         
         // Apply filters and ordering
         const whereClause = filters.length > 0 ? and(...filters) : undefined;
@@ -3827,7 +3827,7 @@ function registerInvitationRoutes(app: any) {
 
   /**
    * Sync Demo organization data from development to production
-   * Used during deployment to ensure production has latest Demo data
+   * Used during deployment to ensure production has latest Demo data.
    */
   app.post('/api/demo-organization/sync', async (req: any, res: any) => {
     try {
@@ -3900,7 +3900,7 @@ function registerInvitationRoutes(app: any) {
 
   /**
    * Export Demo organization data from current environment
-   * Returns complete Demo organization data structure
+   * Returns complete Demo organization data structure.
    */
   app.get('/api/demo-organization/export', async (req: any, res: any) => {
     try {
@@ -3947,7 +3947,7 @@ function registerInvitationRoutes(app: any) {
 
   /**
    * Get Demo organization sync status
-   * Returns information about current Demo organization
+   * Returns information about current Demo organization.
    */
   app.get('/api/demo-organization/status', async (req: any, res: any) => {
     try {

@@ -1,18 +1,20 @@
 #!/usr/bin/env tsx
 
 /**
- * Deployment Hooks Script
+ * Deployment Hooks Script.
  * 
  * This script runs deployment-specific tasks including Demo organization sync.
  * Should be executed during the deployment process.
  * 
- * Usage: tsx scripts/deployment-hooks.ts
+ * Usage: tsx scripts/deployment-hooks.ts.
  */
 
 import { execSync } from 'child_process';
 
 /**
- * Executes a shell command and logs the output
+ * Executes a shell command and logs the output.
+ * @param command
+ * @param description
  */
 function runCommand(command: string, description: string): void {
   console.log(`🔄 ${description}...`);
@@ -24,14 +26,14 @@ function runCommand(command: string, description: string): void {
     console.log(`✅ ${description} completed`);
   } catch (error: any) {
     console.error(`❌ ${description} failed:`, error.message);
-    if (error.stdout) console.log('STDOUT:', error.stdout);
-    if (error.stderr) console.log('STDERR:', error.stderr);
+    if (error.stdout) {console.log('STDOUT:', error.stdout);}
+    if (error.stderr) {console.log('STDERR:', error.stderr);}
     throw error;
   }
 }
 
 /**
- * Main deployment hook execution
+ * Main deployment hook execution.
  */
 async function runDeploymentHooks(): Promise<void> {
   console.log('🚀 Starting deployment hooks...\n');

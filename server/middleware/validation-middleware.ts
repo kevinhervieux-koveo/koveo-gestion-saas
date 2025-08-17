@@ -1,9 +1,13 @@
 /**
- * Request validation middleware using Zod schemas
+ * Request validation middleware using Zod schemas.
  */
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema } from 'zod';
 
+/**
+ *
+ * @param schema
+ */
 export function validateBody(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -19,6 +23,10 @@ export function validateBody(schema: ZodSchema) {
   };
 }
 
+/**
+ *
+ * @param schema
+ */
 export function validateQuery(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {

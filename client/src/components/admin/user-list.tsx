@@ -81,6 +81,7 @@ interface EditUserDialogProps {
  * @param root0.open - Whether the dialog is open.
  * @param root0.onOpenChange - Callback when dialog open state changes.
  * @param root0.onSuccess - Callback when user is successfully updated.
+ * @param root0._open
  * @returns JSX element for the edit user dialog.
  */
 function EditUserDialog({ user, _open, onOpenChange, onSuccess }: EditUserDialogProps) {

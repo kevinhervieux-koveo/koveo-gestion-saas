@@ -1,8 +1,14 @@
 /**
- * Authentication middleware for protecting routes
+ * Authentication middleware for protecting routes.
  */
 import { Request, Response, NextFunction } from 'express';
 
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.session && 'user' in req.session && req.session.user) {
     next();
@@ -11,6 +17,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+/**
+ *
+ * @param roles
+ */
 export function requireRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.session || !('user' in req.session) || !req.session.user) {

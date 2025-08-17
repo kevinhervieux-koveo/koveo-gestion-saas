@@ -5,6 +5,7 @@ import { registerPermissionsRoutes } from './api/permissions';
 
 /**
  * Core routes registration with essential functionality.
+ * @param app
  */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware

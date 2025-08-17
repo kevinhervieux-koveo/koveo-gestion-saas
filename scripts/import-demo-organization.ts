@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
 /**
- * Import Demo Organization Script
+ * Import Demo Organization Script.
  * 
  * This script imports Demo organization data from a JSON export file.
  * Used in production to import development Demo data.
  * 
- * Usage: tsx scripts/import-demo-organization.ts
+ * Usage: tsx scripts/import-demo-organization.ts.
  */
 
 import { execSync } from 'child_process';

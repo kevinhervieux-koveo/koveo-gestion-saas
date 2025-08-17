@@ -1,6 +1,6 @@
 /**
- * @fileoverview Simple registration wizard tests
- * Basic validation tests without complex component dependencies
+ * @file Simple registration wizard tests
+ * Basic validation tests without complex component dependencies.
  */
 
 describe('Registration Wizard Tests', () => {

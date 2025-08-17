@@ -1,12 +1,15 @@
 /**
- * @file Documentation Continuous Improvement Tests
- * @description Tests and suggestions for continuous documentation improvement
+ * @file Documentation Continuous Improvement Tests.
+ * @description Tests and suggestions for continuous documentation improvement.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
 
+/**
+ *
+ */
 interface DocumentationMetrics {
   file: string;
   wordCount: number;
@@ -23,7 +26,8 @@ describe('Documentation Continuous Improvement', () => {
   const rootDir = path.resolve(__dirname, '../..');
 
   /**
-   * Calculate readability score (simplified Flesch Reading Ease)
+   * Calculate readability score (simplified Flesch Reading Ease).
+   * @param text
    */
   function calculateReadability(text: string): number {
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
@@ -33,7 +37,7 @@ describe('Documentation Continuous Improvement', () => {
       return count + Math.max(1, word.replace(/[^aeiouAEIOU]/g, '').length);
     }, 0);
 
-    if (sentences.length === 0 || words.length === 0) return 0;
+    if (sentences.length === 0 || words.length === 0) {return 0;}
 
     const avgWordsPerSentence = words.length / sentences.length;
     const avgSyllablesPerWord = syllables / words.length;
@@ -44,7 +48,8 @@ describe('Documentation Continuous Improvement', () => {
   }
 
   /**
-   * Analyze documentation file
+   * Analyze documentation file.
+   * @param filePath
    */
   function analyzeDocumentation(filePath: string): DocumentationMetrics {
     const content = fs.readFileSync(filePath, 'utf-8');

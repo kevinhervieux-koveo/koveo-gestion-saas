@@ -1,12 +1,15 @@
 /**
- * @file Smart Context Manager
- * @description Intelligent context management for AI agent workflow optimization
+ * @file Smart Context Manager.
+ * @description Intelligent context management for AI agent workflow optimization.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
 
+/**
+ *
+ */
 export interface FileContext {
   path: string;
   type: 'component' | 'page' | 'utility' | 'config' | 'test' | 'documentation';
@@ -19,6 +22,9 @@ export interface FileContext {
   importance: number;
 }
 
+/**
+ *
+ */
 export interface WorkspaceContext {
   recentFiles: FileContext[];
   relatedFiles: FileContext[];
@@ -27,6 +33,9 @@ export interface WorkspaceContext {
   focusArea: string;
 }
 
+/**
+ *
+ */
 export interface ContextSuggestion {
   type: 'file' | 'directory' | 'pattern' | 'feature';
   description: string;
@@ -36,20 +45,24 @@ export interface ContextSuggestion {
 }
 
 /**
- * Smart Context Manager for AI agent workflow optimization
+ * Smart Context Manager for AI agent workflow optimization.
  */
 export class SmartContextManager {
   private projectRoot: string;
   private fileCache: Map<string, FileContext> = new Map();
   private workspaceContext: WorkspaceContext;
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.workspaceContext = this.initializeContext();
   }
 
   /**
-   * Initialize workspace context
+   * Initialize workspace context.
    */
   private initializeContext(): WorkspaceContext {
     return {
@@ -62,7 +75,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Analyze file and extract context information
+   * Analyze file and extract context information.
+   * @param filePath
    */
   private analyzeFile(filePath: string): FileContext {
     const fullPath = path.join(this.projectRoot, filePath);
@@ -86,19 +100,21 @@ export class SmartContextManager {
   }
 
   /**
-   * Determine file type based on path and content
+   * Determine file type based on path and content.
+   * @param filePath
+   * @param content
    */
   private determineFileType(filePath: string, content: string): FileContext['type'] {
-    if (filePath.includes('.test.') || filePath.includes('.spec.')) return 'test';
-    if (filePath.endsWith('.md') || filePath.includes('docs/')) return 'documentation';
-    if (filePath.includes('config') || filePath.includes('.config.')) return 'config';
-    if (filePath.includes('pages/') || filePath.includes('app/')) return 'page';
-    if (filePath.includes('components/')) return 'component';
-    if (filePath.includes('lib/') || filePath.includes('utils/')) return 'utility';
+    if (filePath.includes('.test.') || filePath.includes('.spec.')) {return 'test';}
+    if (filePath.endsWith('.md') || filePath.includes('docs/')) {return 'documentation';}
+    if (filePath.includes('config') || filePath.includes('.config.')) {return 'config';}
+    if (filePath.includes('pages/') || filePath.includes('app/')) {return 'page';}
+    if (filePath.includes('components/')) {return 'component';}
+    if (filePath.includes('lib/') || filePath.includes('utils/')) {return 'utility';}
     
     // Analyze content for more specific typing
     if (content.includes('export default function') || content.includes('export const')) {
-      if (content.includes('return <') || content.includes('jsx')) return 'component';
+      if (content.includes('return <') || content.includes('jsx')) {return 'component';}
       return 'utility';
     }
     
@@ -106,7 +122,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Extract file dependencies
+   * Extract file dependencies.
+   * @param content
    */
   private extractDependencies(content: string): string[] {
     const dependencies: string[] = [];
@@ -123,7 +140,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Extract exports from file
+   * Extract exports from file.
+   * @param content
    */
   private extractExports(content: string): string[] {
     const exports: string[] = [];
@@ -151,7 +169,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Extract imports from file
+   * Extract imports from file.
+   * @param content
    */
   private extractImports(content: string): string[] {
     const imports: string[] = [];
@@ -173,7 +192,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Calculate file complexity score
+   * Calculate file complexity score.
+   * @param content
    */
   private calculateComplexity(content: string): number {
     let complexity = 0;
@@ -196,44 +216,47 @@ export class SmartContextManager {
   }
 
   /**
-   * Calculate file importance score
+   * Calculate file importance score.
+   * @param filePath
+   * @param content
    */
   private calculateImportance(filePath: string, content: string): number {
     let importance = 0;
     
     // Base importance by type
-    if (filePath.includes('index.')) importance += 20;
-    if (filePath.includes('app.') || filePath.includes('main.')) importance += 30;
-    if (filePath.includes('config')) importance += 15;
-    if (filePath.includes('schema')) importance += 25;
-    if (filePath.includes('route')) importance += 20;
+    if (filePath.includes('index.')) {importance += 20;}
+    if (filePath.includes('app.') || filePath.includes('main.')) {importance += 30;}
+    if (filePath.includes('config')) {importance += 15;}
+    if (filePath.includes('schema')) {importance += 25;}
+    if (filePath.includes('route')) {importance += 20;}
     
     // Content-based importance
-    if (content.includes('export default')) importance += 10;
+    if (content.includes('export default')) {importance += 10;}
     importance += this.extractExports(content).length * 2;
     
     // Size penalty for very large files
-    if (content.length > 10000) importance -= 5;
-    if (content.length > 20000) importance -= 10;
+    if (content.length > 10000) {importance -= 5;}
+    if (content.length > 20000) {importance -= 10;}
     
     return Math.max(0, importance);
   }
 
   /**
-   * Get files related to current working set
+   * Get files related to current working set.
+   * @param targetFiles
    */
   public getRelatedFiles(targetFiles: string[]): FileContext[] {
     const related: Map<string, FileContext> = new Map();
     
     targetFiles.forEach(filePath => {
       const context = this.getFileContext(filePath);
-      if (!context) return;
+      if (!context) {return;}
       
       // Find files that import from or export to this file
       const allFiles = this.getAllFileContexts();
       
       allFiles.forEach(fileContext => {
-        if (fileContext.path === filePath) return;
+        if (fileContext.path === filePath) {return;}
         
         // Check imports/exports relationship
         const hasRelation = 
@@ -253,7 +276,9 @@ export class SmartContextManager {
   }
 
   /**
-   * Check if two files share dependencies
+   * Check if two files share dependencies.
+   * @param file1
+   * @param file2
    */
   private sharesDependencies(file1: FileContext, file2: FileContext): boolean {
     const shared = file1.dependencies.filter(dep => file2.dependencies.includes(dep));
@@ -261,7 +286,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Get file context (cached or analyze)
+   * Get file context (cached or analyze).
+   * @param filePath
    */
   public getFileContext(filePath: string): FileContext | null {
     if (this.fileCache.has(filePath)) {
@@ -269,13 +295,13 @@ export class SmartContextManager {
     }
     
     const fullPath = path.join(this.projectRoot, filePath);
-    if (!fs.existsSync(fullPath)) return null;
+    if (!fs.existsSync(fullPath)) {return null;}
     
     return this.analyzeFile(filePath);
   }
 
   /**
-   * Get all file contexts
+   * Get all file contexts.
    */
   private getAllFileContexts(): FileContext[] {
     const files = glob.sync('**/*.{ts,tsx,js,jsx}', {
@@ -287,7 +313,9 @@ export class SmartContextManager {
   }
 
   /**
-   * Suggest files to work on based on current context
+   * Suggest files to work on based on current context.
+   * @param currentFiles
+   * @param intent
    */
   public suggestNextFiles(currentFiles: string[], intent: string = ''): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
@@ -369,7 +397,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Find test files for given source files
+   * Find test files for given source files.
+   * @param sourceFiles
    */
   private findTestFiles(sourceFiles: string[]): string[] {
     const testFiles: string[] = [];
@@ -400,7 +429,9 @@ export class SmartContextManager {
   }
 
   /**
-   * Update workspace context with new files
+   * Update workspace context with new files.
+   * @param files
+   * @param focusArea
    */
   public updateWorkingSet(files: string[], focusArea?: string): void {
     this.workspaceContext.workingSet = [...new Set([...this.workspaceContext.workingSet, ...files])];
@@ -421,7 +452,9 @@ export class SmartContextManager {
   }
 
   /**
-   * Get smart file recommendations for AI agent
+   * Get smart file recommendations for AI agent.
+   * @param intent
+   * @param context
    */
   public getSmartRecommendations(intent: string = '', context: string = ''): {
     priority: ContextSuggestion[];
@@ -438,7 +471,7 @@ export class SmartContextManager {
   }
 
   /**
-   * Generate context summary for AI agent
+   * Generate context summary for AI agent.
    */
   public generateContextSummary(): string {
     const summary = {
@@ -456,7 +489,7 @@ export class SmartContextManager {
   }
 
   /**
-   * Clear context cache
+   * Clear context cache.
    */
   public clearCache(): void {
     this.fileCache.clear();

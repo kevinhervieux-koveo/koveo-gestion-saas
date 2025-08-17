@@ -21,7 +21,7 @@ import { Link } from 'wouter';
 
 /**
  * Main Dashboard - Central hub for all user roles
- * Provides role-based navigation and quick access to key features
+ * Provides role-based navigation and quick access to key features.
  */
 export default function Dashboard() {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   // Determine role-based navigation items
   const getRoleBasedActions = () => {
-    if (!user) return [];
+    if (!user) {return [];}
 
     const actions = [];
 

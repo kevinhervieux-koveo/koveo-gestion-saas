@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * @file AI Agent CLI
- * @description Command-line interface for AI agent tools and operations
+ * @file AI Agent CLI.
+ * @description Command-line interface for AI agent tools and operations.
  */
 
 import { program } from 'commander';
@@ -14,7 +14,10 @@ import { workflowAssistant } from '../tools/intelligent-workflow-assistant';
 import { agentDashboard } from '../tools/ai-agent-dashboard';
 
 /**
- * Display formatted output
+ * Display formatted output.
+ * @param title
+ * @param data
+ * @param format
  */
 function displayResult(title: string, data: any, format: 'json' | 'table' | 'summary' = 'summary'): void {
   console.log(chalk.blue.bold(`\n📊 ${title}\n`));
@@ -44,7 +47,7 @@ function displayResult(title: string, data: any, format: 'json' | 'table' | 'sum
 }
 
 /**
- * Health check command
+ * Health check command.
  */
 program
   .command('health')
@@ -95,7 +98,7 @@ program
   });
 
 /**
- * Context command
+ * Context command.
  */
 program
   .command('context')
@@ -136,7 +139,7 @@ program
   });
 
 /**
- * Workflow command
+ * Workflow command.
  */
 program
   .command('workflow')
@@ -196,7 +199,7 @@ program
   });
 
 /**
- * Dashboard command
+ * Dashboard command.
  */
 program
   .command('dashboard')
@@ -259,7 +262,7 @@ program
   });
 
 /**
- * Analyze command
+ * Analyze command.
  */
 program
   .command('analyze')
@@ -321,7 +324,7 @@ program
   });
 
 /**
- * Quick command for common operations
+ * Quick command for common operations.
  */
 program
   .command('quick')
