@@ -26,6 +26,14 @@ import { Link } from 'wouter';
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  
+  console.log('Dashboard component rendering, user:', user?.email, 'role:', user?.role);
+  console.log('Dashboard: About to render UI with user:', user?.email, 'role:', user?.role);
+  
+  if (!user) {
+    console.log('Dashboard: No user found, returning loading state');
+    return <div style={{padding: '20px', background: '#ffffff', color: '#000000'}}>Loading user...</div>;
+  }
 
   // Determine role-based navigation items
   const getRoleBasedActions = () => {
@@ -102,14 +110,60 @@ export default function Dashboard() {
   const welcome = getWelcomeMessage();
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: '#ffffff',
+      zIndex: 9999,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'auto'
+    }}>
       <Header 
         title={welcome.title}
         subtitle={welcome.subtitle}
       />
 
-      <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto space-y-6'>
+      <div style={{
+        flex: 1,
+        padding: '24px',
+        background: '#f8fafc',
+        color: '#000000',
+        overflow: 'auto'
+      }}>
+        <div style={{
+          maxWidth: '1280px',
+          margin: '0 auto',
+          color: '#000000'
+        }}>
+          
+          {/* Debug info */}
+          <div style={{
+            padding: '20px',
+            background: '#e3f2fd',
+            border: '2px solid #2196f3',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}>
+            🎉 SUCCESS: User {user.email} ({user.role}) - Dashboard Fully Operational!
+          </div>
+          
+          {/* Simple test content */}
+          <div style={{
+            padding: '20px',
+            background: '#ffffff',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            marginBottom: '20px'
+          }}>
+            <h1 style={{fontSize: '24px', marginBottom: '10px', color: '#000000'}}>Koveo Gestion Dashboard</h1>
+            <p style={{color: '#666666'}}>Welcome to your property management system</p>
+          </div>
           
           {/* Welcome Card with User Info */}
           <Card className="bg-gradient-to-r from-koveo-navy to-blue-600 text-white">
