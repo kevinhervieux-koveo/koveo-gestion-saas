@@ -142,7 +142,6 @@ const mutation = useMutation({
   onSuccess: () => {
     // Invalidate related queries
     queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/user-management'] });
     
     toast({
       title: 'Success',

@@ -108,7 +108,7 @@ export function InvitationManagement({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user-management'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
       toast({
         title: t('invitationCancelled'),
         description: t('invitationCancelledSuccessfully'),

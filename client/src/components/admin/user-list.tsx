@@ -215,7 +215,7 @@ export function UserListComponent({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user-management'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
         title: t('userDeleted'),
         description: t('userDeletedSuccessfully'),
@@ -494,7 +494,7 @@ export function UserListComponent({
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/user-management'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/users'] });
           setEditingUser(null);
         }}
       />
