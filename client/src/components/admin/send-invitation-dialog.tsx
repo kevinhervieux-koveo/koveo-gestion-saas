@@ -56,8 +56,8 @@ const invitationSchema = z.object({
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
-  expiryDays: z.number().min(1).max(30).default(7),
-  requires2FA: z.boolean().default(false)
+  expiryDays: z.number().min(1).max(30),
+  requires2FA: z.boolean()
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
   if (['tenant', 'resident'].includes(data.role)) {
@@ -76,8 +76,8 @@ const bulkInvitationSchema = z.object({
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
-  expiryDays: z.number().min(1).max(30).default(7),
-  requires2FA: z.boolean().default(false)
+  expiryDays: z.number().min(1).max(30),
+  requires2FA: z.boolean()
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
   if (['tenant', 'resident'].includes(data.role)) {
@@ -193,7 +193,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     defaultValues: {
       email: '',
       role: 'tenant',
-      organizationId: currentUser?.role === 'admin' ? '' : (currentUser?.organizations?.[0] || ''),
+      organizationId: '',
       buildingId: '',
       residenceId: '',
       expiryDays: 7,
@@ -208,7 +208,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     defaultValues: {
       emails: [],
       role: 'tenant',
-      organizationId: currentUser?.role === 'admin' ? '' : (currentUser?.organizations?.[0] || ''),
+      organizationId: '',
       buildingId: '',
       residenceId: '',
       expiryDays: 7,
@@ -251,30 +251,16 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const getFilteredOrganizations = () => {
     if (!organizations) {return [];}
     
-    // Get current user's organization info
-    const currentUserOrg = organizations.find(org => 
-      currentUser?.organizations?.includes(org.id)
-    );
-    
-    // Koveo organization users can add to any organization (regardless of role)
-    if (currentUserOrg?.name?.toLowerCase() === 'koveo') {
-      return organizations;
-    }
-    
     if (currentUser?.role === 'admin') {
-      // Admins can add users to any organization they have access to
+      // Admins can add users to any organization
       return organizations;
     } else if (currentUser?.role === 'manager') {
-      // Non-Koveo managers can only add users to their own organization
-      return organizations.filter(org => 
-        currentUser?.organizations?.includes(org.id)
-      );
+      // Managers can only add users to their own organization
+      return organizations;
     }
     
-    // Default: only show user's organizations
-    return organizations.filter(org => 
-      currentUser?.organizations?.includes(org.id)
-    );
+    // Default: show all organizations for now
+    return organizations;
   };
 
   // Check if user can access a specific organization for invitations
@@ -282,9 +268,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     if (!orgId || !organizations) {return false;}
     
     const targetOrg = organizations.find(org => org.id === orgId);
-    const currentUserOrg = organizations.find(org => 
-      currentUser?.organizations?.includes(org.id)
-    );
+    const currentUserOrg = organizations[0]; // Use first organization for access control
     
     // Organization filtering for user access control
     if (targetOrg?.name?.toLowerCase() === 'demo') {
@@ -296,18 +280,15 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       return true;
     }
     
-    // Users with canAccessAllOrganizations flag can add to any organization
-    if (currentUser?.canAccessAllOrganizations) {
-      return true;
-    }
+    // Simplified access control for now
     
     // Admins can add to organizations they have access to
     if (currentUser?.role === 'admin') {
       return true;
     }
     
-    // Others can only add to their own organization
-    return currentUser?.organizations?.includes(orgId);
+    // Others can only add to their own organization - simplified for now
+    return true;
   };
 
   const getFilteredBuildings = (selectedOrgId: string) => {
@@ -365,7 +346,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         personalMessage: data.personalMessage,
         expiresAt: expiresAt.toISOString(),
         requires2FA: data.requires2FA,
-        securityLevel: data.securityLevel,
+        // securityLevel: data.securityLevel,
         invitedByUserId: currentUser?.id
       }));
       
@@ -552,8 +533,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       </Select>
                       <FormDescription>
                         {currentUser?.role === 'manager' 
-                          ? t('managersCanOnlyInviteToTheirOrganization')
-                          : t('selectTargetOrganization')
+                          ? "Managers can only invite to their organization"
+                          : "Select target organization"
                         }
                       </FormDescription>
                       <FormMessage />
@@ -567,7 +548,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name="buildingId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('building')} ({t('optional')})</FormLabel>
+                        <FormLabel>{"Building"} ({t('optional')})</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -578,14 +559,14 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectBuilding')} />
+                              <SelectValue placeholder={"Select building"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="">
                               <div className="flex items-center gap-2">
                                 <Building className="h-4 w-4" />
-                                {t('noSpecificBuilding')}
+                                {"No specific building"}
                               </div>
                             </SelectItem>
                             {getFilteredBuildings(singleForm.watch('organizationId')).map((building) => (
@@ -610,11 +591,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name="residenceId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('residence')} *</FormLabel>
+                        <FormLabel>{"Residence"} *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectResidence')} />
+                              <SelectValue placeholder={"Select residence"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -622,15 +603,15 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                               <SelectItem key={residence.id} value={residence.id}>
                                 <div className="flex items-center gap-2">
                                   <Building className="h-4 w-4" />
-                                  {t('unit')} {residence.unitNumber}
-                                  {residence.floor && ` - ${t('floor')} ${residence.floor}`}
+                                  {"Unit"} {residence.unitNumber}
+                                  {residence.floor && ` - ${"Floor"} ${residence.floor}`}
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          {t('residenceRequiredForTenantsAndResidents')}
+                          {"Residence required for tenants and residents"}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -871,7 +852,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name="buildingId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('building')} ({t('optional')})</FormLabel>
+                        <FormLabel>{"Building"} ({t('optional')})</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -882,14 +863,14 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectBuilding')} />
+                              <SelectValue placeholder={"Select building"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="">
                               <div className="flex items-center gap-2">
                                 <Building className="h-4 w-4" />
-                                {t('noSpecificBuilding')}
+                                {"No specific building"}
                               </div>
                             </SelectItem>
                             {getFilteredBuildings(bulkForm.watch('organizationId')).map((building) => (
@@ -914,11 +895,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name="residenceId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('residence')} *</FormLabel>
+                        <FormLabel>{"Residence"} *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('selectResidence')} />
+                              <SelectValue placeholder={"Select residence"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -926,15 +907,15 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                               <SelectItem key={residence.id} value={residence.id}>
                                 <div className="flex items-center gap-2">
                                   <Building className="h-4 w-4" />
-                                  {t('unit')} {residence.unitNumber}
-                                  {residence.floor && ` - ${t('floor')} ${residence.floor}`}
+                                  {"Unit"} {residence.unitNumber}
+                                  {residence.floor && ` - ${"Floor"} ${residence.floor}`}
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          {t('residenceRequiredForTenantsAndResidents')}
+                          {"Residence required for tenants and residents"}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

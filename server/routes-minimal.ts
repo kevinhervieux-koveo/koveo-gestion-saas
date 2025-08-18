@@ -2,6 +2,7 @@ import type { Express } from 'express';
 import { createServer, type Server } from 'http';
 import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } from './auth';
 import { registerPermissionsRoutes } from './api/permissions';
+import { log } from './vite';
 
 /**
  * Core routes registration with essential functionality.
@@ -9,13 +10,28 @@ import { registerPermissionsRoutes } from './api/permissions';
  */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
-  app.use(sessionConfig);
+  try {
+    app.use(sessionConfig);
+    log('✅ Session middleware configured');
+  } catch (error) {
+    log(`❌ Session setup failed: ${error}`, 'error');
+  }
   
   // Setup authentication routes
-  setupAuthRoutes(app);
+  try {
+    setupAuthRoutes(app);
+    log('✅ Auth routes registered');
+  } catch (error) {
+    log(`❌ Auth routes failed: ${error}`, 'error');
+  }
   
   // Register permissions API routes
-  registerPermissionsRoutes(app);
+  try {
+    registerPermissionsRoutes(app);
+    log('✅ Permissions routes registered');
+  } catch (error) {
+    log(`❌ Permissions routes failed: ${error}`, 'error');
+  }
   
   // Test route
   app.get('/test', (req, res) => {

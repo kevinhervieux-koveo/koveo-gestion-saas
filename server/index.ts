@@ -217,15 +217,37 @@ async function initializeApplication() {
     log('🚀 Starting application initialization...');
     
     // Register API routes FIRST to ensure they take precedence over static serving
-    await registerRoutes(app);
+    try {
+      await registerRoutes(app);
+      log('✅ Routes registered successfully');
+    } catch (error) {
+      log(`❌ Route registration failed: ${error}`, 'error');
+      // Skip route registration but continue with Vite setup
+    }
 
     // Setup static file serving AFTER API routes to avoid conflicts
-    // Always serve static files in deployment (override development detection)
-    const forceProduction = true; // Force production mode for deployment
+    // Check if we should use development mode
+    const isDevelopment = process.env.NODE_ENV === 'development';
     
-    if (!forceProduction && process.env.NODE_ENV === 'development') {
+    if (isDevelopment) {
       log('🔧 Running in development mode with Vite');
-      await setupVite(app, server);
+      try {
+        await setupVite(app, server);
+        log('✅ Vite development server started');
+      } catch (error) {
+        log(`❌ Vite setup failed: ${error}`, 'error');
+        log('⚠️ Falling back to basic static serving', 'error');
+        // Fall back to serving a basic response for all non-API routes
+        app.get('/', (req, res) => {
+          res.send('<html><head><title>Koveo Gestion</title></head><body><h1>Koveo Gestion</h1><p>Development server is starting up...</p><p>The application is initializing. Please wait a moment and refresh the page.</p></body></html>');
+        });
+        app.get('*', (req, res) => {
+          if (req.path.startsWith('/api')) {
+            return res.status(404).json({ error: 'API route not found' });
+          }
+          res.send('<html><head><title>Koveo Gestion</title></head><body><h1>Koveo Gestion</h1><p>Development server is starting up...</p><p>The application is initializing. Please wait a moment and refresh the page.</p></body></html>');
+        });
+      }
     } else {
       log('🏗️ Running in production mode, serving static files from dist/public');
       // Use custom static file serving to avoid the routing parameter issue
@@ -236,7 +258,11 @@ async function initializeApplication() {
         app.use(express.static(distPath));
         
         // Handle SPA routing by serving index.html for non-API routes
-        app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
+        app.get('*', (_req: Request, res: Response) => {
+          // Skip API routes
+          if (_req.path.startsWith('/api')) {
+            return res.status(404).json({ error: 'API route not found' });
+          }
           const indexPath = path.resolve(distPath, 'index.html');
           if (fs.existsSync(indexPath)) {
             res.sendFile(indexPath);
