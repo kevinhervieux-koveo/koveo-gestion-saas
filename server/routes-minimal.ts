@@ -140,6 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           console.log('📥 Single invitation route reached with data:', req.body);
           const currentUser = req.user;
+          console.log('🔍 Current user:', currentUser?.id);
           const invitationData = req.body;
           
           // Validate request data
@@ -188,11 +189,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: invitations.id,
             email: invitations.email,
             status: invitations.status,
-            expiresAt: invitations.expiresAt
+            expiresAt: invitations.expiresAt,
+            organizationId: invitations.organizationId
           })
             .from(invitations)
             .where(and(
               eq(invitations.email, email),
+              eq(invitations.organizationId, organizationId),
               eq(invitations.status, 'pending'),
               gte(invitations.expiresAt, new Date())
             ))
@@ -200,9 +203,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
           if (existingInvitation.length > 0) {
             // Delete existing invitation to replace with new one
+            console.log(`🔄 Found existing invitation for ${email} in organization ${organizationId}, deleting...`);
+            
             await db.delete(invitations)
               .where(and(
                 eq(invitations.email, email),
+                eq(invitations.organizationId, organizationId),
                 eq(invitations.status, 'pending'),
                 gte(invitations.expiresAt, new Date())
               ));
@@ -215,10 +221,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               req,
               'pending',
               'deleted',
-              { reason: 'replaced_with_new_invitation', email }
+              { reason: 'replaced_with_new_invitation', email, organizationId }
             );
             
-            console.log(`🔄 Deleted existing invitation for ${email} to replace with new one`);
+            console.log(`✅ Deleted existing invitation for ${email} in organization ${organizationId}`);
           }
           
           // Generate secure token
