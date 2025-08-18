@@ -108,7 +108,7 @@ export function TokenValidationStep({
   useEffect(() => {
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const token = urlParams.get('token') || urlParams.get('invitation');
     
     if (token && !validationResult) {
       validateToken(token);

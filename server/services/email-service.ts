@@ -57,9 +57,8 @@ export class EmailService {
    */
   constructor() {
     this.mailService = new MailService();
-    this.baseUrl = process.env.BASE_URL || 'https://koveo-gestion.com';
-    // Use verified SendGrid sender address
-    this.fromAddress = 'kevin.hervieux@koveo-gestion.com';
+    this.baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    this.fromAddress = process.env.EMAIL_FROM || 'kevin.hervieux@koveo-gestion.com';
     this.initializeTemplates();
     
     // Initialize immediately if API key is available
@@ -264,7 +263,8 @@ export class EmailService {
     expiryDate: Date,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
-    const invitationUrl = `${this.baseUrl}/accept-invitation?token=${invitationToken}`;
+    // Direct link to user registration with the invitation token
+    const invitationUrl = `${this.baseUrl}/register?invitation=${invitationToken}`;
     
     return this.sendEmail('invitation', recipientEmail, {
       recipientName,

@@ -153,6 +153,7 @@ function Router() {
           <Route path="/" component={HomePage} />
           <Route path="/login" component={LoginPage} />
           <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+          <Route path="/register" component={InvitationAcceptancePage} />
           {/* Redirect all other routes to home for unauthenticated users */}
           <Route component={HomeRedirect} />
         </Switch>
