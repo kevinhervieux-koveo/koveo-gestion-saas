@@ -180,7 +180,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Check for existing pending invitation
-          const existingInvitation = await db.select()
+          const existingInvitation = await db.select({
+            id: invitations.id,
+            email: invitations.email,
+            status: invitations.status,
+            expiresAt: invitations.expiresAt
+          })
             .from(invitations)
             .where(and(
               eq(invitations.email, email),
