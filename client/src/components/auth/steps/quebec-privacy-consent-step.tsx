@@ -251,7 +251,7 @@ export function QuebecPrivacyConsentStep({
                 <div className="mt-2 space-y-1 text-xs text-gray-700">
                   <div className="flex items-center space-x-2">
                     <Mail className="h-3 w-3" />
-                    <span>privacy@koveogestion.com</span>
+                    <span>info@koveo-gestion.com</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Phone className="h-3 w-3" />
