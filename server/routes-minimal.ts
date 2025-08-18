@@ -226,7 +226,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             expiresAt,
             personalMessage,
             invitationContext,
-          }).returning();
+          }).returning({
+            id: invitations.id,
+            email: invitations.email,
+            role: invitations.role,
+            status: invitations.status,
+            organizationId: invitations.organizationId,
+            buildingId: invitations.buildingId,
+            invitedByUserId: invitations.invitedByUserId,
+            createdAt: invitations.createdAt,
+            expiresAt: invitations.expiresAt,
+            personalMessage: invitations.personalMessage
+          });
           
           // Create audit log
           await createInvitationAuditLog(
