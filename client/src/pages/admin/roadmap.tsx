@@ -176,18 +176,28 @@ export default function OwnerRoadmap() {
   const [actionableItems, setActionableItems] = useState<Record<string, ActionableItem[]>>({});
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch features from the database
+  // Fetch features from the database with fresh query
   const { data: features = [], isLoading, error } = useQuery({
-    queryKey: ['/api/features', { roadmap: true }],
+    queryKey: ['/api/features', { roadmap: true, timestamp: Date.now() }],
     queryFn: async () => {
-      const res = await fetch('/api/features?roadmap=true', { credentials: 'include' });
+      console.log('🟡 Making features API request...');
+      const res = await fetch('/api/features?roadmap=true', { 
+        credentials: 'include',
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+      console.log('🟡 API response status:', res.status, res.statusText);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
       const data = await res.json();
-      console.log('Features API response:', data);
+      console.log('🟡 Features API response data:', data);
       return data;
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Debug logging
