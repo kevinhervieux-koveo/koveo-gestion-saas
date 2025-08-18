@@ -266,16 +266,25 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     
     console.log('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
     
-    // Filter out any invalid organizations
-    const validOrgs = organizations.filter(org => 
-      org && 
-      typeof org === 'object' && 
-      org.id && 
-      typeof org.id === 'string' && 
-      org.id.trim() !== '' &&
-      org.name &&
-      typeof org.name === 'string'
-    );
+    // Filter out any invalid organizations with detailed logging
+    const validOrgs = organizations.filter(org => {
+      const isValid = org && 
+        typeof org === 'object' && 
+        org.id && 
+        typeof org.id === 'string' && 
+        org.id.trim() !== '' &&
+        org.name &&
+        typeof org.name === 'string' &&
+        org.name.trim() !== '';
+      
+      if (!isValid) {
+        console.warn('Invalid organization filtered out:', org);
+      }
+      
+      return isValid;
+    });
+    
+    console.log('Valid organizations after filtering:', validOrgs.length, validOrgs.map(o => ({ id: o.id, name: o.name })));
     
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
@@ -532,14 +541,24 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations()
-                            .filter(org => org && org.id && typeof org.id === 'string' && org.id.trim() !== '')
-                            .map((org) => {
+                          {(() => {
+                            const filteredOrgs = getFilteredOrganizations();
+                            console.log('Rendering organizations in Select:', filteredOrgs.length);
+                            
+                            return filteredOrgs.map((org, index) => {
+                              console.log(`Rendering org ${index}:`, { id: org.id, name: org.name, hasValidId: Boolean(org.id && org.id.trim()) });
+                              
+                              if (!org.id || typeof org.id !== 'string' || org.id.trim() === '') {
+                                console.error('Skipping org with invalid ID:', org);
+                                return null;
+                              }
+                              
                               const isDemo = org.name?.toLowerCase() === 'demo';
                               const canInvite = canInviteToOrganization(org.id);
+                              
                               return (
                                 <SelectItem 
-                                  key={org.id} 
+                                  key={`org-${org.id}`}
                                   value={org.id}
                                   disabled={!canInvite}
                                 >
@@ -554,7 +573,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                                   </div>
                                 </SelectItem>
                               );
-                            })}
+                            }).filter(Boolean);
+                          })()}
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -838,16 +858,28 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations()
-                            .filter(org => org && org.id && typeof org.id === 'string' && org.id.trim() !== '')
-                            .map((org) => (
-                              <SelectItem key={org.id} value={org.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {org.name}
-                                </div>
-                              </SelectItem>
-                            ))}
+                          {(() => {
+                            const filteredOrgs = getFilteredOrganizations();
+                            console.log('Rendering bulk organizations in Select:', filteredOrgs.length);
+                            
+                            return filteredOrgs.map((org, index) => {
+                              console.log(`Rendering bulk org ${index}:`, { id: org.id, name: org.name, hasValidId: Boolean(org.id && org.id.trim()) });
+                              
+                              if (!org.id || typeof org.id !== 'string' || org.id.trim() === '') {
+                                console.error('Skipping bulk org with invalid ID:', org);
+                                return null;
+                              }
+                              
+                              return (
+                                <SelectItem key={`bulk-org-${org.id}`} value={org.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Building className="h-4 w-4" />
+                                    {org.name}
+                                  </div>
+                                </SelectItem>
+                              );
+                            }).filter(Boolean);
+                          })()}
                         </SelectContent>
                       </Select>
                       <FormMessage />
