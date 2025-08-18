@@ -1,11 +1,7 @@
-import { useAuth } from '@/hooks/use-auth';
-import { Link } from 'wouter';
-import { useState } from 'react';
+import { Shield, CheckCircle, AlertTriangle, Info, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export default function QualityStyled() {
-  const { user } = useAuth();
-  const [selectedMetric, setSelectedMetric] = useState('overview');
-
+export default function Quality() {
   const qualityMetrics = {
     overview: {
       score: 92,
@@ -14,27 +10,6 @@ export default function QualityStyled() {
       performance: 'Excellent',
       security: 'High',
       accessibility: 'AA Compliant'
-    },
-    codeQuality: {
-      complexity: 6.2,
-      maintainability: 'A',
-      duplicateCode: '2.1%',
-      codeSmells: 3,
-      technicalDebt: '4h 30m'
-    },
-    testing: {
-      unitTests: 45,
-      integrationTests: 23,
-      e2eTests: 8,
-      lastRun: '2 minutes ago',
-      failureRate: '0%'
-    },
-    performance: {
-      loadTime: '1.2s',
-      firstPaint: '0.8s',
-      interactivity: '1.5s',
-      cumulativeShift: '0.05',
-      lighthouse: 94
     }
   };
 
@@ -44,7 +19,6 @@ export default function QualityStyled() {
       type: 'warning',
       title: 'Unused Import Detected',
       file: 'client/src/utils/validation.ts',
-      line: 15,
       severity: 'Low',
       status: 'Open'
     },
@@ -53,7 +27,6 @@ export default function QualityStyled() {
       type: 'info',
       title: 'Performance Optimization Available',
       file: 'client/src/pages/admin/organizations.tsx',
-      line: 45,
       severity: 'Medium',
       status: 'Open'
     },
@@ -62,535 +35,128 @@ export default function QualityStyled() {
       type: 'success',
       title: 'Security Vulnerability Fixed',
       file: 'server/auth/password-utils.ts',
-      line: 23,
       severity: 'High',
       status: 'Resolved'
     }
   ];
 
-  const getMetricColor = (value: number, type: 'score' | 'coverage' | 'performance') => {
-    if (type === 'score' || type === 'coverage') {
-      if (value >= 90) return '#10b981';
-      if (value >= 75) return '#f59e0b';
-      return '#dc2626';
-    }
-    return '#3b82f6';
-  };
-
   const getIssueIcon = (type: string) => {
     switch (type) {
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      case 'success': return '✅';
-      default: return 'ℹ️';
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      default:
+        return <Info className="h-5 w-5 text-blue-500" />;
     }
   };
 
-  const getIssueColor = (severity: string) => {
+  const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'High': return { bg: '#fef2f2', text: '#dc2626' };
-      case 'Medium': return { bg: '#fffbeb', text: '#f59e0b' };
-      case 'Low': return { bg: '#f0fdf4', text: '#10b981' };
-      default: return { bg: '#f8fafc', text: '#6b7280' };
+      case 'High':
+        return 'bg-red-100 text-red-800';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: '#f8fafc',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      display: 'flex'
-    }}>
-      {/* Sidebar */}
-      <div style={{
-        width: '280px',
-        background: 'white',
-        borderRight: '1px solid #e2e8f0',
-        padding: '1.5rem',
-        overflowY: 'auto'
-      }}>
-        {/* Logo */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 'bold'
-          }}>
-            K
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Page Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Quality Assurance</h1>
+            <p className="mt-1 text-sm text-gray-600">Code quality metrics and system health</p>
           </div>
-          <span style={{
-            fontSize: '1.25rem',
-            fontWeight: 'bold',
-            color: '#1f2937'
-          }}>
-            KOVEO
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">Workspace</span>
+            <span className="text-sm font-medium text-green-600">Active</span>
+          </div>
         </div>
-
-        {/* Navigation */}
-        <nav>
-          <Link href="/dashboard">
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              color: '#4b5563',
-              textDecoration: 'none',
-              marginBottom: '0.5rem',
-              cursor: 'pointer'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-              <span>🏠</span>
-              Dashboard
-            </div>
-          </Link>
-
-          <div style={{
-            color: '#9ca3af',
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            margin: '1rem 0 0.5rem',
-            padding: '0 0.75rem'
-          }}>
-            Admin
-          </div>
-
-          {[
-            { icon: '🏢', label: 'Organizations', href: '/admin/organizations' },
-            { icon: '📚', label: 'Documentation', href: '/admin/documentation' },
-            { icon: '🗺️', label: 'Roadmap', href: '/admin/roadmap' },
-            { icon: '✅', label: 'Quality Assurance', href: '/admin/quality', active: true },
-            { icon: '🔐', label: 'RBAC Permissions', href: '/admin/permissions' }
-          ].map((item, index) => (
-            <Link key={index} href={item.href}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                background: item.active ? '#eff6ff' : 'transparent',
-                color: item.active ? '#3b82f6' : '#4b5563',
-                textDecoration: 'none',
-                marginBottom: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: item.active ? '500' : 'normal'
-              }}
-              onMouseOver={(e) => !item.active && (e.currentTarget.style.background = '#f1f5f9')}
-              onMouseOut={(e) => !item.active && (e.currentTarget.style.background = 'transparent')}>
-                <span>{item.icon}</span>
-                {item.label}
-              </div>
-            </Link>
-          ))}
-        </nav>
       </div>
 
       {/* Main Content */}
-      <div style={{
-        flex: 1,
-        padding: '2rem',
-        overflowY: 'auto'
-      }}>
-        {/* Header */}
-        <div style={{
-          marginBottom: '2rem'
-        }}>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
-          }}>
-            Quality Assurance Dashboard
-          </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '1.125rem'
-          }}>
-            Code quality, testing, and performance metrics for Koveo Gestion
-          </p>
-        </div>
-
-        {/* Quality Score Card */}
-        <div style={{
-          background: 'linear-gradient(135deg, #10b981, #059669)',
-          borderRadius: '0.75rem',
-          padding: '2rem',
-          marginBottom: '2rem',
-          color: 'white'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div>
-              <h2 style={{
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                marginBottom: '0.5rem'
-              }}>
-                Overall Quality Score
-              </h2>
-              <div style={{
-                fontSize: '3rem',
-                fontWeight: 'bold',
-                marginBottom: '0.5rem'
-              }}>
-                {qualityMetrics.overview.score}/100
-              </div>
-              <p style={{
-                opacity: 0.9
-              }}>
-                Excellent - Above industry standards
-              </p>
+      <div className="flex-1 p-6">
+        {/* Quality Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+              <span className="text-sm font-medium text-gray-600">Quality Score</span>
             </div>
-            <div style={{
-              fontSize: '4rem',
-              opacity: 0.8
-            }}>
-              🏆
+            <div className="text-2xl font-bold text-gray-900">{qualityMetrics.overview.score}/100</div>
+            <div className="text-sm text-green-600">Excellent</div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle className="h-5 w-5 text-blue-500" />
+              <span className="text-sm font-medium text-gray-600">Test Coverage</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{qualityMetrics.overview.coverage}%</div>
+            <div className="text-sm text-gray-600">
+              {qualityMetrics.overview.tests.passed}/{qualityMetrics.overview.tests.total} tests passing
             </div>
           </div>
-        </div>
 
-        {/* Metric Tabs */}
-        <div style={{
-          background: 'white',
-          borderRadius: '0.75rem',
-          padding: '1rem',
-          marginBottom: '2rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #f3f4f6'
-        }}>
-          <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-            flexWrap: 'wrap'
-          }}>
-            {[
-              { key: 'overview', label: 'Overview', icon: '📊' },
-              { key: 'codeQuality', label: 'Code Quality', icon: '🔍' },
-              { key: 'testing', label: 'Testing', icon: '🧪' },
-              { key: 'performance', label: 'Performance', icon: '⚡' }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setSelectedMetric(tab.key)}
-                style={{
-                  background: selectedMetric === tab.key ? '#3b82f6' : '#f8fafc',
-                  color: selectedMetric === tab.key ? 'white' : '#6b7280',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem 1rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-                onMouseOver={(e) => {
-                  if (selectedMetric !== tab.key) {
-                    e.currentTarget.style.background = '#eff6ff';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (selectedMetric !== tab.key) {
-                    e.currentTarget.style.background = '#f8fafc';
-                  }
-                }}
-              >
-                <span>{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="h-5 w-5 text-purple-500" />
+              <span className="text-sm font-medium text-gray-600">Security</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{qualityMetrics.overview.security}</div>
+            <div className="text-sm text-green-600">No vulnerabilities</div>
           </div>
-        </div>
 
-        {/* Metrics Display */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1.5rem',
-          marginBottom: '2rem'
-        }}>
-          {selectedMetric === 'overview' && [
-            { label: 'Test Coverage', value: `${qualityMetrics.overview.coverage}%`, icon: '🧪', type: 'coverage' },
-            { label: 'Tests Passing', value: `${qualityMetrics.overview.tests.passed}/${qualityMetrics.overview.tests.total}`, icon: '✅', type: 'score' },
-            { label: 'Performance', value: qualityMetrics.overview.performance, icon: '⚡', type: 'text' },
-            { label: 'Security Level', value: qualityMetrics.overview.security, icon: '🔒', type: 'text' }
-          ].map((metric, index) => (
-            <div key={index} style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #f3f4f6'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem'
-              }}>
-                <span style={{ fontSize: '1.5rem' }}>{metric.icon}</span>
-                <span style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  {metric.label}
-                </span>
-              </div>
-              <div style={{
-                fontSize: '1.75rem',
-                fontWeight: 'bold',
-                color: typeof metric.value === 'string' && metric.value.includes('%') 
-                  ? getMetricColor(parseInt(metric.value), 'coverage')
-                  : '#1f2937'
-              }}>
-                {metric.value}
-              </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+              <span className="text-sm font-medium text-gray-600">Performance</span>
             </div>
-          ))}
-
-          {selectedMetric === 'codeQuality' && [
-            { label: 'Complexity Score', value: qualityMetrics.codeQuality.complexity, icon: '📈', suffix: '/10' },
-            { label: 'Maintainability', value: qualityMetrics.codeQuality.maintainability, icon: '🔧', suffix: '' },
-            { label: 'Code Duplication', value: qualityMetrics.codeQuality.duplicateCode, icon: '📋', suffix: '' },
-            { label: 'Technical Debt', value: qualityMetrics.codeQuality.technicalDebt, icon: '⏰', suffix: '' }
-          ].map((metric, index) => (
-            <div key={index} style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #f3f4f6'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem'
-              }}>
-                <span style={{ fontSize: '1.5rem' }}>{metric.icon}</span>
-                <span style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  {metric.label}
-                </span>
-              </div>
-              <div style={{
-                fontSize: '1.75rem',
-                fontWeight: 'bold',
-                color: '#1f2937'
-              }}>
-                {metric.value}{metric.suffix}
-              </div>
-            </div>
-          ))}
-
-          {selectedMetric === 'testing' && [
-            { label: 'Unit Tests', value: qualityMetrics.testing.unitTests, icon: '🔬', suffix: ' tests' },
-            { label: 'Integration Tests', value: qualityMetrics.testing.integrationTests, icon: '🔗', suffix: ' tests' },
-            { label: 'E2E Tests', value: qualityMetrics.testing.e2eTests, icon: '🌐', suffix: ' tests' },
-            { label: 'Failure Rate', value: qualityMetrics.testing.failureRate, icon: '📊', suffix: '' }
-          ].map((metric, index) => (
-            <div key={index} style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #f3f4f6'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem'
-              }}>
-                <span style={{ fontSize: '1.5rem' }}>{metric.icon}</span>
-                <span style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  {metric.label}
-                </span>
-              </div>
-              <div style={{
-                fontSize: '1.75rem',
-                fontWeight: 'bold',
-                color: '#1f2937'
-              }}>
-                {metric.value}{metric.suffix}
-              </div>
-            </div>
-          ))}
-
-          {selectedMetric === 'performance' && [
-            { label: 'Load Time', value: qualityMetrics.performance.loadTime, icon: '⚡', suffix: '' },
-            { label: 'First Paint', value: qualityMetrics.performance.firstPaint, icon: '🎨', suffix: '' },
-            { label: 'Interactivity', value: qualityMetrics.performance.interactivity, icon: '👆', suffix: '' },
-            { label: 'Lighthouse Score', value: qualityMetrics.performance.lighthouse, icon: '🏠', suffix: '/100' }
-          ].map((metric, index) => (
-            <div key={index} style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #f3f4f6'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem'
-              }}>
-                <span style={{ fontSize: '1.5rem' }}>{metric.icon}</span>
-                <span style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  {metric.label}
-                </span>
-              </div>
-              <div style={{
-                fontSize: '1.75rem',
-                fontWeight: 'bold',
-                color: '#1f2937'
-              }}>
-                {metric.value}{metric.suffix}
-              </div>
-            </div>
-          ))}
+            <div className="text-2xl font-bold text-gray-900">{qualityMetrics.overview.performance}</div>
+            <div className="text-sm text-green-600">Load time: 1.2s</div>
+          </div>
         </div>
 
         {/* Recent Issues */}
-        <div style={{
-          background: 'white',
-          borderRadius: '0.75rem',
-          padding: '1.5rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #f3f4f6'
-        }}>
-          <h2 style={{
-            fontSize: '1.25rem',
-            fontWeight: '600',
-            color: '#1f2937',
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
-            🔍 Recent Quality Issues
-          </h2>
-          
-          <div style={{
-            display: 'grid',
-            gap: '1rem'
-          }}>
-            {recentIssues.map((issue) => {
-              const colors = getIssueColor(issue.severity);
-              return (
-                <div key={issue.id} style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  padding: '1rem',
-                  transition: 'all 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = '#f8fafc';
-                  e.currentTarget.style.borderColor = '#d1d5db';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '0.5rem'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem'
-                    }}>
-                      <span>{getIssueIcon(issue.type)}</span>
-                      <h3 style={{
-                        fontWeight: '500',
-                        color: '#1f2937'
-                      }}>
-                        {issue.title}
-                      </h3>
-                    </div>
-                    
-                    <div style={{
-                      display: 'flex',
-                      gap: '0.5rem'
-                    }}>
-                      <div style={{
-                        background: colors.bg,
-                        color: colors.text,
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.75rem',
-                        fontWeight: '500'
-                      }}>
-                        {issue.severity}
-                      </div>
-                      <div style={{
-                        background: issue.status === 'Resolved' ? '#ecfdf5' : '#fef3c7',
-                        color: issue.status === 'Resolved' ? '#059669' : '#d97706',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.75rem',
-                        fontWeight: '500'
-                      }}>
-                        {issue.status}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-gray-700" />
+              <h2 className="text-xl font-semibold text-gray-900">Recent Issues</h2>
+            </div>
+            <Button variant="outline" size="sm">
+              View All Issues
+            </Button>
+          </div>
+
+          <div className="divide-y divide-gray-200">
+            {recentIssues.map((issue) => (
+              <div key={issue.id} className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    {getIssueIcon(issue.type)}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">{issue.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{issue.file}</p>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(issue.severity)}`}>
+                          {issue.severity}
+                        </span>
+                        <span className="text-xs text-gray-500">{issue.status}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  <div style={{
-                    color: '#6b7280',
-                    fontSize: '0.875rem'
-                  }}>
-                    {issue.file}:{issue.line}
-                  </div>
+                  <Button variant="outline" size="sm">
+                    View Details
+                  </Button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </div>

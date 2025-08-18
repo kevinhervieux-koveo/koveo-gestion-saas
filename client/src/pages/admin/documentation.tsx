@@ -1,10 +1,7 @@
-import { useAuth } from '@/hooks/use-auth';
-import { Link } from 'wouter';
-import { Header } from '@/components/layout/header';
+import { Book, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export default function DocumentationStyled() {
-  const { user } = useAuth();
-
+export default function Documentation() {
   const documentationSections = [
     {
       title: 'Getting Started',
@@ -12,7 +9,7 @@ export default function DocumentationStyled() {
       icon: '🚀',
       items: [
         'Quick Start Guide',
-        'User Account Setup',
+        'User Account Setup', 
         'Navigation Overview',
         'First Organization'
       ]
@@ -49,153 +46,44 @@ export default function DocumentationStyled() {
         'Audit Logging',
         'Legal Requirements'
       ]
-    },
-    {
-      title: 'API Reference',
-      description: 'Technical documentation for developers',
-      icon: '🔧',
-      items: [
-        'Authentication API',
-        'Organizations API',
-        'Buildings API',
-        'Users API'
-      ]
-    },
-    {
-      title: 'Troubleshooting',
-      description: 'Common issues and solutions',
-      icon: '🔍',
-      items: [
-        'Login Issues',
-        'Permission Errors',
-        'Data Import Problems',
-        'Performance Issues'
-      ]
     }
   ];
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header 
-        title="Documentation"
-        subtitle="Comprehensive guides and API reference for Koveo Gestion property management platform"
-      />
-      
-      <div style={{padding: '1.5rem'}}>
-
-        {/* Search Bar */}
-        <div style={{
-          background: 'white',
-          borderRadius: '0.75rem',
-          padding: '1rem',
-          marginBottom: '2rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #f3f4f6'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem'
-          }}>
-            <span style={{ fontSize: '1.25rem' }}>🔍</span>
-            <input
-              type="text"
-              placeholder="Search documentation..."
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-                color: '#1f2937'
-              }}
-            />
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Page Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Documentation</h1>
+            <p className="mt-1 text-sm text-gray-600">Comprehensive guides and API documentation</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">Workspace</span>
+            <span className="text-sm font-medium text-green-600">Active</span>
           </div>
         </div>
+      </div>
 
-        {/* Documentation Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: '1.5rem'
-        }}>
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {documentationSections.map((section, index) => (
-            <div key={index} style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #f3f4f6',
-              transition: 'all 0.3s',
-              cursor: 'pointer'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                marginBottom: '1rem'
-              }}>
-                <div style={{
-                  fontSize: '2rem'
-                }}>
-                  {section.icon}
-                </div>
+            <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl">{section.icon}</span>
                 <div>
-                  <h3 style={{
-                    fontSize: '1.25rem',
-                    fontWeight: '600',
-                    color: '#1f2937',
-                    marginBottom: '0.25rem'
-                  }}>
-                    {section.title}
-                  </h3>
-                  <p style={{
-                    color: '#6b7280',
-                    fontSize: '0.875rem'
-                  }}>
-                    {section.description}
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+                  <p className="text-sm text-gray-600">{section.description}</p>
                 </div>
               </div>
               
-              <div style={{
-                display: 'grid',
-                gap: '0.5rem'
-              }}>
+              <div className="space-y-2">
                 {section.items.map((item, itemIndex) => (
-                  <div key={itemIndex} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    color: '#4b5563',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#f8fafc';
-                    e.currentTarget.style.color = '#3b82f6';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#4b5563';
-                  }}>
-                    <div style={{
-                      width: '4px',
-                      height: '4px',
-                      borderRadius: '50%',
-                      background: '#3b82f6'
-                    }}></div>
-                    <span style={{ fontSize: '0.875rem' }}>{item}</span>
+                  <div key={itemIndex} className="flex items-center justify-between py-2 px-3 rounded hover:bg-gray-50">
+                    <span className="text-sm text-gray-700">{item}</span>
+                    <ExternalLink className="h-4 w-4 text-gray-400" />
                   </div>
                 ))}
               </div>
@@ -203,58 +91,21 @@ export default function DocumentationStyled() {
           ))}
         </div>
 
-        {/* Quick Links */}
-        <div style={{
-          marginTop: '3rem',
-          background: 'white',
-          borderRadius: '0.75rem',
-          padding: '1.5rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #f3f4f6'
-        }}>
-          <h2 style={{
-            fontSize: '1.25rem',
-            fontWeight: '600',
-            color: '#1f2937',
-            marginBottom: '1rem'
-          }}>
-            Quick Links
-          </h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem'
-          }}>
-            {[
-              { label: 'API Documentation', icon: '⚡', href: '/api-docs' },
-              { label: 'Video Tutorials', icon: '🎥', href: '/tutorials' },
-              { label: 'Community Forum', icon: '💬', href: '/forum' },
-              { label: 'Support Center', icon: '❓', href: '/support' }
-            ].map((link, index) => (
-              <a key={index} href={link.href} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                background: '#f8fafc',
-                color: '#4b5563',
-                textDecoration: 'none',
-                transition: 'all 0.2s',
-                cursor: 'pointer'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = '#eff6ff';
-                e.currentTarget.style.color = '#3b82f6';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = '#f8fafc';
-                e.currentTarget.style.color = '#4b5563';
-              }}>
-                <span>{link.icon}</span>
-                <span style={{ fontWeight: '500' }}>{link.label}</span>
-              </a>
-            ))}
+        {/* Quick Actions */}
+        <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Book className="h-5 w-5 text-gray-700" />
+            <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex items-center gap-2">
+              <ExternalLink className="h-4 w-4" />
+              View Full Documentation
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Book className="h-4 w-4" />
+              API Reference
+            </Button>
           </div>
         </div>
       </div>

@@ -1,118 +1,57 @@
-import { useState } from 'react';
-import { StyledStatsCard, StyledCard } from '@/components/common';
-import { Header } from '@/components/layout/header';
-import { typography, colors } from '@/styles/inline-styles';
+import { Building2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export default function OrganizationsStyled() {
-  const [refreshCommand] = useState('npm run validate:quick');
-
-  // Mock data for now - in real app this would come from API
-  const stats = {
-    totalOrganizations: 0,
-    activeOrganizations: 0,
-    totalUsers: 4,
-    propertyAdmins: 4
-  };
-
+export default function Organizations() {
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header 
-        title="Admin Dashboard"
-        subtitle="Property management overview and insights"
-      />
-      <div style={{padding: '1.5rem'}}>
-
-      {/* Refresh Command */}
-      <StyledCard>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <span style={{ color: colors.gray[500] }}>⚡ Refresh Command:</span>
-          <code style={{
-            background: colors.gray[200],
-            padding: '0.25rem 0.5rem',
-            borderRadius: '0.25rem',
-            fontSize: '0.875rem',
-            color: colors.gray[800]
-          }}>
-            {refreshCommand}
-          </code>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Page Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Organizations Management</h1>
+            <p className="mt-1 text-sm text-gray-600">Create, view, edit and delete organizations in the system</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">Workspace</span>
+            <span className="text-sm font-medium text-green-600">Active</span>
+          </div>
         </div>
-      </StyledCard>
-
-      {/* Stats Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '1.5rem',
-        marginBottom: '2rem',
-        marginTop: '2rem'
-      }}>
-        <StyledStatsCard 
-          label="Total Organizations" 
-          value={stats.totalOrganizations} 
-          icon="🏢"
-          color={colors.primary}
-        />
-        <StyledStatsCard 
-          label="Active Organizations" 
-          value={stats.activeOrganizations} 
-          icon="💰"
-          color={colors.secondary}
-        />
-        <StyledStatsCard 
-          label="Total Users" 
-          value={stats.totalUsers} 
-          icon="👥"
-          color={colors.gray[500]}
-        />
-        <StyledStatsCard 
-          label="Property Admins" 
-          value={stats.propertyAdmins} 
-          icon="👨‍💼"
-          color={colors.primary}
-        />
       </div>
 
-      {/* Organizations Section */}
-      <StyledCard>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '1.5rem'
-        }}>
-          <span style={{ fontSize: '1.25rem' }}>🏢</span>
-          <h2 style={typography.heading3}>
-            Organizations
-          </h2>
-        </div>
-        
-        <div style={{
-          textAlign: 'center',
-          padding: '3rem 1rem',
-          color: colors.gray[500]
-        }}>
-          <div style={{
-            fontSize: '4rem',
-            marginBottom: '1rem',
-            opacity: 0.3
-          }}>
-            🏢
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="bg-white rounded-lg border border-gray-200">
+          {/* Section Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <Building2 className="h-5 w-5 text-gray-700" />
+              <h2 className="text-xl font-semibold text-gray-900">Organizations</h2>
+            </div>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Create
+            </Button>
           </div>
-          <p style={{
-            fontSize: '1.125rem',
-            marginBottom: '1rem'
-          }}>
-            No organizations found
-          </p>
-          <p style={typography.small}>
-            Create your first organization to get started with property management.
-          </p>
+
+          {/* Empty State */}
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Building2 className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No organizations found</h3>
+            <p className="text-gray-500 text-center mb-6 max-w-md">
+              Create your first organization to get started with property management.
+            </p>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              <Plus className="h-4 w-4" />
+              Create First Organization
+            </Button>
+          </div>
         </div>
-      </StyledCard>
       </div>
     </div>
   );
