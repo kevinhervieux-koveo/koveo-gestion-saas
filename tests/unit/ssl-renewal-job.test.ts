@@ -31,7 +31,7 @@ vi.mock('node-cron', () => ({
 
 describe('SSL Renewal Job', () => {
   let sslRenewalJob: SSLRenewalJob;
-  let originalEnv: NodeJS.ProcessEnv;
+  let originalEnv: typeof process.env;
 
   beforeEach(() => {
     // Save original environment

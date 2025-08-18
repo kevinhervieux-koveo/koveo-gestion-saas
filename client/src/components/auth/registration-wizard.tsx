@@ -99,8 +99,8 @@ export function RegistrationWizard({
   };
 
   // Handle data changes from step components
-  const handleDataChange = (stepData: any) => {
-    setWizardData((prevData: any) => ({
+  const handleDataChange = (stepData: Record<string, unknown>) => {
+    setWizardData((prevData: Record<string, unknown>) => ({
       ...prevData,
       [currentStep.id]: stepData
     }));

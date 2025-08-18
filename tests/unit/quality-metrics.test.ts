@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 // Mock file system operations
@@ -14,7 +14,8 @@ const mockedReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSy
 // Import the quality metrics function (we'll need to extract it from routes.ts)
 // For now, let's recreate the function for testing
 /**
- *
+ * Get quality metrics for the project including coverage, code quality, and security issues
+ * @returns Promise resolving to quality metrics object
  */
 async function getQualityMetrics() {
   try {
@@ -143,7 +144,7 @@ async function getQualityMetrics() {
       buildTime,
       translationCoverage,
     };
-  } catch (error) {
+  } catch (_error) {
     // Fallback to some calculated values
     return {
       coverage: '68%',
@@ -184,10 +185,10 @@ class QualityMetricValidator {
    * @param missedIssues - Number of actual issues the metric missed.
    * @param projectPhase - Development phase (optional).
    * @param issueDetails - Detailed issue breakdown (optional).
-   * @param issueDetails.criticalIssues
-   * @param issueDetails.moderateIssues
-   * @param issueDetails.minorIssues
-   * @param issueDetails.description
+   * @param issueDetails.criticalIssues - Number of critical issues found
+   * @param issueDetails.moderateIssues - Number of moderate issues found
+   * @param issueDetails.minorIssues - Number of minor issues found
+   * @param issueDetails.description - Description of the issues
    */
   static recordMetricEffectiveness(
     metric: string,
@@ -203,7 +204,7 @@ class QualityMetricValidator {
       description?: string;
     }
   ): void {
-    const totalReported = realIssuesFound + falsePositives;
+    const _totalReported = realIssuesFound + falsePositives;
     const totalActual = realIssuesFound + missedIssues;
     const accuracy = totalActual > 0 ? (realIssuesFound / totalActual) * 100 : 100;
 
@@ -217,7 +218,7 @@ class QualityMetricValidator {
       accuracy,
       projectPhase,
       issueDetails
-    } as any);
+    } as MetricEffectivenessData & { projectPhase?: string; issueDetails?: any });
   }
 
   /**
@@ -649,7 +650,7 @@ const translations: Record<Language, Translations> = {
 
     it('should track continuous improvement over time', () => {
       // Simulate quality improvement over multiple measurements
-      const timestamps = [
+      const _timestamps = [
         new Date('2024-01-01'),
         new Date('2024-01-15'),
         new Date('2024-02-01'),

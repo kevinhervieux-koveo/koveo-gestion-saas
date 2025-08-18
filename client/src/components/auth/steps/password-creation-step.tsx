@@ -36,7 +36,7 @@ export function PasswordCreationStep({
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [formData, setFormData] = useState<PasswordCreationData>({
     password: '',
     confirmPassword: '',

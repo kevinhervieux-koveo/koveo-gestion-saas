@@ -71,7 +71,7 @@ interface OrganizationFormDialogProps {
  * @returns JSX element for the organization form dialog.
  */
 export function OrganizationFormDialog({
-  open: _open,
+  open,
   onOpenChange,
   organization,
   onSuccess,
@@ -159,7 +159,7 @@ export function OrganizationFormDialog({
   };
 
   return (
-    <Dialog open={_open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>

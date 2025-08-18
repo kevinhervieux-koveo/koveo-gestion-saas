@@ -83,7 +83,7 @@ interface EditUserDialogProps {
  * @param root0.onSuccess - Callback when user is successfully updated.
  * @returns JSX element for the edit user dialog.
  */
-function EditUserDialog({ user, open: _open, onOpenChange, onSuccess }: EditUserDialogProps) {
+function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [role, setRole] = useState(user?.role || '');
@@ -122,7 +122,7 @@ function EditUserDialog({ user, open: _open, onOpenChange, onSuccess }: EditUser
   if (!user) {return null;}
 
   return (
-    <Dialog open={_open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('editUser')}</DialogTitle>
