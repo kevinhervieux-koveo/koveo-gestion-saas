@@ -50,24 +50,20 @@ export function PasswordCreationStep({
     confirmPassword: false
   });
 
-  // Validate form whenever data changes
+  // Validate form whenever password fields change
   useEffect(() => {
-    const isValid = validateForm();
-    const updatedData = { ...formData, isValid };
-    
-    setFormData(updatedData);
-    onDataChange(updatedData);
-    onValidationChange(isValid);
-  }, [formData.password, formData.confirmPassword, onDataChange, onValidationChange]);
-
-  const validateForm = () => {
     const passwordStrength = validatePasswordStrength(formData.password);
     const passwordsMatch = formData.password === formData.confirmPassword;
     const hasPassword = formData.password.length > 0;
     const hasConfirmPassword = formData.confirmPassword.length > 0;
+    const isValid = passwordStrength.isValid && passwordsMatch && hasPassword && hasConfirmPassword;
+    
+    const updatedData = { ...formData, isValid };
+    onDataChange(updatedData);
+    onValidationChange(isValid);
+  }, [formData.password, formData.confirmPassword]);
 
-    return passwordStrength.isValid && passwordsMatch && hasPassword && hasConfirmPassword;
-  };
+
 
   const handlePasswordChange = (value: string) => {
     setFormData(prev => ({
