@@ -118,15 +118,13 @@ export function TokenValidationStep({
       hasValidationResult: !!validationResult 
     });
     
-    if (token && !validationResult) {
+    if (token) {
       console.log('✅ Found token, starting validation...');
       validateToken(token);
-    } else if (!token) {
+    } else {
       console.log('❌ No token found in URL parameters');
-    } else if (validationResult) {
-      console.log('ℹ️ Validation result already exists, skipping');
     }
-  }, [validationResult]);
+  }, []); // Remove validationResult dependency to ensure it runs on mount
 
   const getTimeRemaining = (expiresAt: string) => {
     const now = new Date();
