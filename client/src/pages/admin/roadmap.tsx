@@ -192,6 +192,8 @@ export default function OwnerRoadmap() {
 
   // Debug logging
   console.log('Features fetched:', features.length, features.slice(0, 3));
+  console.log('Query error:', error);
+  console.log('Loading state:', isLoading);
 
   /**
    * Fetches actionable items for a specific feature.
