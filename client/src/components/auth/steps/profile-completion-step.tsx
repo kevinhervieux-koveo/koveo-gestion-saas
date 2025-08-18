@@ -72,15 +72,22 @@ export function ProfileCompletionStep({
     return hasRequiredFields && isValidPhone && isValidPostalCode;
   };
 
-  // Validate form whenever data changes
+  // Validate form whenever relevant fields change
   useEffect(() => {
-    const isValid = validateForm();
-    const updatedData = { ...formData, isValid };
+    const requiredFields = ['firstName', 'lastName', 'phone', 'language'];
+    const hasRequiredFields = requiredFields.every(field => 
+      formData[field as keyof ProfileCompletionData] && 
+      String(formData[field as keyof ProfileCompletionData]).trim().length > 0
+    );
+
+    const isValidPhone = validatePhone(formData.phone);
+    const isValidPostalCode = !formData.postalCode || validatePostalCode(formData.postalCode);
+    const isValid = hasRequiredFields && isValidPhone && isValidPostalCode;
     
-    setFormData(updatedData);
+    const updatedData = { ...formData, isValid };
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData, onDataChange, onValidationChange, validateForm]);
+  }, [formData.firstName, formData.lastName, formData.phone, formData.language, formData.postalCode]);
 
   const validatePhone = (phone: string) => {
     if (!phone) {return false;}
