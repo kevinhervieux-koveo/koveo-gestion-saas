@@ -525,48 +525,36 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('organization')} *</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          // Reset building and residence when organization changes
-                          singleForm.setValue('buildingId', '');
-                          singleForm.setValue('residenceId', '');
-                        }} 
-                        value={field.value}
-                        disabled={currentUser?.role === 'manager'}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectOrganization')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
+                      <FormControl>
+                        <select
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            // Reset building and residence when organization changes
+                            singleForm.setValue('buildingId', '');
+                            singleForm.setValue('residenceId', '');
+                          }}
+                          disabled={currentUser?.role === 'manager'}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">{t('selectOrganization')}</option>
                           {getFilteredOrganizations().map((org) => {
                             if (!org?.id || !org?.name) return null;
                             
-                            const isDemo = org.name?.toLowerCase() === 'demo';
                             const canInvite = canInviteToOrganization(org.id);
                             
                             return (
-                              <SelectItem 
+                              <option 
                                 key={org.id}
                                 value={org.id}
                                 disabled={!canInvite}
                               >
-                                <span className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  <span>{org.name}</span>
-                                  {isDemo && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Admin Only
-                                    </Badge>
-                                  )}
-                                </span>
-                              </SelectItem>
+                                {org.name}
+                              </option>
                             );
                           })}
-                        </SelectContent>
-                      </Select>
+                        </select>
+                      </FormControl>
                       <FormDescription>
                         {currentUser?.role === 'manager' 
                           ? "Managers can only invite to their organization"
@@ -832,36 +820,30 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('organization')} *</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          // Reset building and residence when organization changes
-                          bulkForm.setValue('buildingId', '');
-                          bulkForm.setValue('residenceId', '');
-                        }} 
-                        value={field.value}
-                        disabled={currentUser?.role === 'manager'}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectOrganization')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
+                      <FormControl>
+                        <select
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            // Reset building and residence when organization changes
+                            bulkForm.setValue('buildingId', '');
+                            bulkForm.setValue('residenceId', '');
+                          }}
+                          disabled={currentUser?.role === 'manager'}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">{t('selectOrganization')}</option>
                           {getFilteredOrganizations().map((org) => {
                             if (!org?.id || !org?.name) return null;
                             
                             return (
-                              <SelectItem key={org.id} value={org.id}>
-                                <span className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  <span>{org.name}</span>
-                                </span>
-                              </SelectItem>
+                              <option key={org.id} value={org.id}>
+                                {org.name}
+                              </option>
                             );
                           })}
-                        </SelectContent>
-                      </Select>
+                        </select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
