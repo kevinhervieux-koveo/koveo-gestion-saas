@@ -40,16 +40,21 @@ export function TopHeader() {
             width: 'auto'
           }}
           onError={(e) => {
+            console.log('Full logo failed to load, trying K logo');
             // Fallback to K logo if main logo fails to load
             const target = e.currentTarget as HTMLImageElement;
             target.src = '/assets/koveo-logo-k.jpg';
             target.style.width = '40px';
             target.onerror = () => {
+              console.log('K logo also failed, using fallback K');
               // Final fallback to styled K
               target.style.display = 'none';
               const fallback = target.nextElementSibling as HTMLElement;
               if (fallback) fallback.style.display = 'flex';
             };
+          }}
+          onLoad={() => {
+            console.log('Logo loaded successfully');
           }}
         />
         {/* Final fallback logo */}
