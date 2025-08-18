@@ -34,13 +34,13 @@ export const useMobileMenu = () => {
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = createOptimizedLoader(
-  () => import('@/pages/admin/organizations-styled'),
-  'admin-organizations-styled',
+  () => import('@/pages/admin/organizations'),
+  'admin-organizations',
   { preloadDelay: 300, enableMemoryCleanup: true }
 );
 const AdminDocumentation = createOptimizedLoader(
-  () => import('@/pages/admin/documentation-styled'),
-  'admin-documentation-styled',
+  () => import('@/pages/admin/documentation'),
+  'admin-documentation',
   { enableMemoryCleanup: true }
 );
 const AdminPillars = createOptimizedLoader(
@@ -49,13 +49,13 @@ const AdminPillars = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const AdminRoadmap = createOptimizedLoader(
-  () => import('@/pages/admin/roadmap-styled'),
-  'admin-roadmap-styled',
+  () => import('@/pages/admin/roadmap'),
+  'admin-roadmap',
   { enableMemoryCleanup: true }
 );
 const AdminQuality = createOptimizedLoader(
-  () => import('@/pages/admin/quality-styled'),
-  'admin-quality-styled',
+  () => import('@/pages/admin/quality'),
+  'admin-quality',
   { enableMemoryCleanup: true }
 );
 const AdminSuggestions = createOptimizedLoader(
@@ -139,7 +139,7 @@ const LoginPage = createOptimizedLoader(
 
 // Home page (public route)
 const HomePage = createOptimizedLoader(
-  () => import('@/pages/home-styled'),
+  () => import('@/pages/home'),
   'home-page',
   { preloadDelay: 100, enableMemoryCleanup: true }
 );
