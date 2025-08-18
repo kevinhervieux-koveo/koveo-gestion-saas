@@ -5,12 +5,13 @@ import {
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
-import { colors } from '@/styles/inline-styles';
 
 /**
  * Props for the Sidebar component.
@@ -22,9 +23,13 @@ interface SidebarProps {
 
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
+ * @param root0
+ * @param root0.isMobileMenuOpen
+ * @param root0.onMobileMenuClose
  */
 export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();
+  const { t } = useLanguage();
   const { logout, user } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['admin', 'manager']);
 
@@ -45,6 +50,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
 
     if (isMobileMenuOpen) {
       document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when mobile menu is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -62,21 +68,6 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     );
   };
 
-  const getNavItemStyle = (isActive: boolean) => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    background: isActive ? colors.primaryLight : 'transparent',
-    color: isActive ? colors.primary : colors.gray[600],
-    textDecoration: 'none',
-    marginBottom: '0.5rem',
-    cursor: 'pointer',
-    fontWeight: isActive ? '500' : 'normal',
-    transition: 'all 0.2s'
-  });
-
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section.key);
@@ -84,68 +75,39 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
     return (
       <button
         onClick={() => toggleMenu(section.key)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          padding: '0.75rem',
-          borderRadius: '0.5rem',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          fontWeight: '500',
-          color: colors.gray[700],
-          marginBottom: '0.5rem',
-          transition: 'all 0.2s'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.background = colors.gray[100];
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.background = 'transparent';
-        }}
+        className='w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors'
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <SectionIcon style={{ width: '16px', height: '16px', color: colors.gray[500] }} />
-          <span>{section.label}</span>
+        <div className='flex items-center space-x-3'>
+          <SectionIcon className='w-5 h-5' />
+          <span>{section.name}</span>
         </div>
-        {isExpanded ? (
-          <ChevronDown style={{ width: '16px', height: '16px', color: colors.gray[400] }} />
-        ) : (
-          <ChevronRight style={{ width: '16px', height: '16px', color: colors.gray[400] }} />
-        )}
+        {isExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
       </button>
     );
   };
 
   const renderMenuItem = (item: any) => {
-    const isActive = location === item.href;
     const ItemIcon = item.icon;
+    const isActive = location === item.href;
 
     return (
-      <Link key={item.href} href={item.href}>
+      <Link key={item.name} href={item.href}>
         <div
-          style={getNavItemStyle(isActive)}
+          className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+            isActive
+              ? 'bg-koveo-light text-koveo-navy font-medium'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
           onClick={handleNavItemClick}
-          onMouseOver={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.background = colors.gray[100];
-            }
-          }}
-          onMouseOut={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.background = 'transparent';
-            }
-          }}
         >
-          <ItemIcon style={{ width: '16px', height: '16px' }} />
+          <ItemIcon className='w-4 h-4' />
           <span>{item.name}</span>
         </div>
       </Link>
     );
   };
+
+
 
   const renderMenuSection = (section: NavigationSection) => {
     const isExpanded = expandedMenus.includes(section.key);
@@ -154,9 +116,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       <div key={section.key}>
         {renderMenuButton(section)}
         {isExpanded && (
-          <div style={{ marginLeft: '1.5rem', marginTop: '0.25rem', marginBottom: '1rem' }}>
-            {section.items.map(renderMenuItem)}
-          </div>
+          <div className='ml-6 mt-1 space-y-1'>{section.items.map(renderMenuItem)}</div>
         )}
       </div>
     );
@@ -167,6 +127,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       await logout();
     } catch (error) {
       console.error('Logout failed:', error);
+      // Fallback: still redirect to login page
       window.location.href = '/login';
     }
   };
@@ -179,239 +140,85 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       {/* Mobile backdrop */}
       {isMobileMenuOpen && (
         <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 40
-          }}
-          className="md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={onMobileMenuClose}
         />
       )}
       
       {/* Sidebar */}
-      <aside 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: '280px',
-          background: colors.white,
-          borderRight: `1px solid ${colors.gray[200]}`,
-          padding: '1.5rem',
-          overflowY: 'auto',
-          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease-in-out',
-          zIndex: 50,
-          boxShadow: isMobileMenuOpen ? '0 10px 25px rgba(0,0,0,0.15)' : 'none',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-        className="md:translate-x-0"
-      >
-        {/* Mobile close button */}
-        {isMobileMenuOpen && (
-          <div style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem'
-          }} className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={onMobileMenuClose}>
-              <X size={20} />
-            </Button>
-          </div>
-        )}
-
-        {/* Logo */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '2rem'
-        }}>
-          <Link href="/dashboard" onClick={handleNavItemClick}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
-              textDecoration: 'none'
-            }}>
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out
+        md:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+      {/* Logo Header */}
+      <div className='p-6 border-b border-gray-200'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center space-x-3'>
+            <Link href="/residents/residence" onClick={handleNavItemClick}>
               <img 
                 src={koveoLogo} 
-                alt="Koveo"
-                style={{
-                  height: '32px',
-                  width: '32px',
-                  borderRadius: '6px'
-                }}
-                onLoad={() => console.log('Logo loaded successfully')}
-                onError={(e) => {
-                  console.error('Logo failed to load:', e);
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
+                alt="Koveo Gestion Logo" 
+                className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity"
               />
-              <div style={{
-                width: '32px',
-                height: '32px',
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                borderRadius: '6px',
-                display: 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 'bold'
-              }}>K</div>
-              <span style={{
-                fontSize: '1.25rem',
-                fontWeight: 'bold',
-                color: colors.gray[800]
-              }}>KOVEO</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Language Toggle */}
-        <div style={{
-          display: 'flex',
-          background: colors.gray[100],
-          borderRadius: '0.5rem',
-          padding: '0.25rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            background: colors.gray[700],
-            color: colors.white,
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            cursor: 'pointer'
-          }}>
-            EN
+            </Link>
           </div>
-          <div style={{
-            color: colors.gray[400],
-            padding: '0.5rem 1rem',
-            fontSize: '0.875rem',
-            cursor: 'pointer'
-          }}>
-            FR
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav style={{ flex: 1 }}>
-          {/* Dashboard Link */}
-          <Link href="/dashboard">
-            <div 
-              style={getNavItemStyle(location === '/dashboard')}
-              onClick={handleNavItemClick}
-              onMouseOver={(e) => {
-                if (location !== '/dashboard') {
-                  e.currentTarget.style.background = colors.gray[100];
-                }
-              }}
-              onMouseOut={(e) => {
-                if (location !== '/dashboard') {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
+          {/* Mobile close button */}
+          {onMobileMenuClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={onMobileMenuClose}
+              aria-label="Close navigation menu"
             >
-              <span>🏠</span>
-              Dashboard
-            </div>
-          </Link>
+              <X className="h-6 w-6" />
+            </Button>
+          )}
+        </div>
+      </div>
 
-          {/* Navigation sections */}
-          <div style={{ marginTop: '1rem' }}>
-            {menuSections.map(renderMenuSection)}
-          </div>
-        </nav>
+      {/* Language Switcher */}
+      <div className='px-6 py-4 border-b border-gray-200'>
+        <LanguageSwitcher />
+      </div>
+
+      {/* Navigation */}
+      <nav className='flex-1 px-6 py-4'>
+        {/* Navigation sections */}
+        <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
 
         {/* Logout Button */}
-        <div style={{
-          marginTop: '2rem',
-          paddingTop: '1rem',
-          borderTop: `1px solid ${colors.gray[200]}`
-        }}>
+        <div className='mt-6 pt-4 border-t border-gray-200'>
           <button
             onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: colors.danger,
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = colors.dangerLight;
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'transparent';
-            }}
+            className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
           >
-            <LogOut style={{ width: '16px', height: '16px' }} />
+            <LogOut className='w-5 h-5' />
             <span>Logout</span>
           </button>
         </div>
+      </nav>
 
-        {/* User Profile */}
-        <div style={{
-          marginTop: '1rem',
-          paddingTop: '1rem',
-          borderTop: `1px solid ${colors.gray[200]}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              background: colors.primary,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <span style={{ color: 'white', fontSize: '0.875rem', fontWeight: '500' }}>
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <p style={{
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                color: colors.gray[900],
-                margin: 0
-              }}>
-                {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
-              </p>
-              <p style={{
-                fontSize: '0.75rem',
-                color: colors.gray[500],
-                margin: 0
-              }}>
-                {user?.role || 'User'}
-              </p>
-            </div>
+      {/* User Profile */}
+      <div className='p-6 border-t border-gray-200'>
+        <div className='flex items-center space-x-3'>
+          <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
+            <span className="text-white text-sm font-medium">
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </span>
+          </div>
+          <div>
+            <p className='text-sm font-medium text-gray-900'>
+              {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
+            </p>
+            <p className='text-xs text-gray-500'>
+              {user?.role || 'User'}
+            </p>
           </div>
         </div>
-      </aside>
+      </div>
+    </aside>
     </>
   );
 }

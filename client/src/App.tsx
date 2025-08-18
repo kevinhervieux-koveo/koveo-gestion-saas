@@ -6,7 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { TopHeader } from '@/components/layout/TopHeader';
+
 import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
@@ -198,10 +198,6 @@ function Router() {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
       <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
-        {/* Top Header - Always visible */}
-        <TopHeader />
-        
-        <div style={{paddingTop: '60px'}}>
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
               <Route path="/" component={HomePage} />
@@ -211,7 +207,6 @@ function Router() {
               <Route component={HomeRedirect} />
             </Switch>
           </Suspense>
-        </div>
       </div>
     );
   }
@@ -233,22 +228,22 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div style={{
-        minHeight: '100vh',
-        background: '#f8fafc',
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>  
-        {/* Sidebar - handles mobile/desktop visibility internally */}
-        <Sidebar 
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={closeMobileMenu}
-        />
+      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
+        {/* Desktop sidebar - always visible on desktop */}
+        <div className="hidden md:block">
+          <Sidebar />
+        </div>
+        
+        {/* Mobile sidebar overlay - only visible when mobile menu is open */}
+        <div className="md:hidden">
+          <Sidebar 
+            isMobileMenuOpen={isMobileMenuOpen}
+            onMobileMenuClose={closeMobileMenu}
+          />
+        </div>
         
         {/* Main content area */}
-        <div style={{
-          marginLeft: '280px',
-          minHeight: '100vh'
-        }} className="md:ml-0">
+        <div className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
               {/* Login page - redirect authenticated users to dashboard */}
