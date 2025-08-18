@@ -250,8 +250,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             { email, role, organizationId, buildingId, residenceId }
           );
           
-          // Return invitation without sensitive token data
-          const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
+          // Return invitation data (no sensitive fields in return object)
+          const safeInvitation = newInvitation;
           
           res.status(201).json({
             invitation: safeInvitation,
