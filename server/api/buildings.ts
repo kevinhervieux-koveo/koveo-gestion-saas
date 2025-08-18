@@ -9,7 +9,7 @@ import {
   users
 } from '@shared/schema';
 import { eq, and, or, inArray, sql } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth-middleware';
+import { requireAuth } from '../auth';
 
 export function registerBuildingRoutes(app: Express): void {
   /**
@@ -22,17 +22,10 @@ export function registerBuildingRoutes(app: Express): void {
    */
   app.get('/api/manager/buildings', requireAuth, async (req: any, res) => {
     try {
-      // Get user from session (requireAuth middleware ensures this exists)
-      const currentUser = req.session.user;
+      // Get user from request (requireAuth middleware ensures this exists)
+      const currentUser = req.user;
       
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
-      
-      if (!currentUser) {
-        return res.status(401).json({
-          error: 'Unauthorized',
-          message: 'Authentication required'
-        });
-      }
 
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
