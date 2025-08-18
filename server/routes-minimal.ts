@@ -10,9 +10,13 @@ import * as schema from '../shared/schema';
 import { eq, and, gte } from 'drizzle-orm';
 import { insertInvitationSchema } from '../shared/schema';
 import crypto from 'crypto';
+import { EmailService } from './services/email-service';
 
 // Import required tables from schema
 const { invitations, users: schemaUsers, organizations, buildings, residences, invitationAuditLog } = schema;
+
+// Initialize email service
+const emailService = new EmailService();
 
 // Utility functions for invitation management
 function generateSecureToken(): string {
@@ -249,6 +253,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'pending',
             { email, role, organizationId, buildingId, residenceId }
           );
+          
+          // Send invitation email
+          try {
+            const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`;
+            
+            // Get organization name
+            const organization = await db.select({ name: organizations.name })
+              .from(organizations)
+              .where(eq(organizations.id, organizationId))
+              .limit(1);
+              
+            const organizationName = organization[0]?.name || 'Your Organization';
+            
+            // Send email using email service
+            await emailService.sendInvitation({
+              recipientEmail: email,
+              recipientName: email.split('@')[0], // Use email prefix as name fallback
+              invitationToken: token,
+              invitationUrl,
+              organizationName,
+              inviterName: `${currentUser.firstName} ${currentUser.lastName}`,
+              expiryDate: expiresAt,
+              language: 'en', // Default to English, could be made configurable
+              personalMessage
+            });
+            
+            console.log(`✅ Invitation email sent successfully to ${email}`);
+          } catch (emailError) {
+            console.error('❌ Failed to send invitation email:', emailError);
+            // Don't fail the entire request if email fails, just log it
+          }
           
           // Return invitation data (no sensitive fields in return object)
           const safeInvitation = newInvitation;
