@@ -344,8 +344,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       
       const response = await apiRequest('POST', '/api/invitations', {
         ...data,
-        expiresAt: expiresAt.toISOString(),
-        invitedByUserId: currentUser?.id
+        expiresAt: expiresAt.toISOString()
       });
       return response.json();
     },
@@ -379,8 +378,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         organizationId: data.organizationId,
         buildingId: data.buildingId,
         personalMessage: data.personalMessage,
-        expiresAt: expiresAt.toISOString(),
-        invitedByUserId: currentUser?.id
+        expiresAt: expiresAt.toISOString()
       }));
       
       const response = await apiRequest('POST', '/api/invitations/bulk', {

@@ -1937,7 +1937,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
     z.date(),
     z.string().transform((str) => new Date(str))
   ]).optional(),
-  invitedByUserId: z.string().uuid().optional(),
+  invitedByUserId: z.string().optional(),
 }).refine((data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if ((data.role === 'tenant' || data.role === 'resident') && data.buildingId) {
