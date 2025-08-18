@@ -37,7 +37,7 @@ Preferred communication style: Simple, everyday language.
 - **RBAC System**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions.
 - **Access Control**: Organization-based access rules (Demo, Koveo, normal organizations, tenant/resident specific).
 - **Security**: Law 25 compliance framework.
-- **Invitation System**: Role-based user invitation with organization and residence assignment, including audit logging.
+- **Invitation System**: Role-based user invitation with organization and residence assignment, including audit logging. 2FA requirements removed for simplified invitation process. Koveo organization members have access to invite users to all organizations.
 
 ### Development Framework (Pillar Methodology)
 - **Core Pillars**: Modular development components for quality assurance, testing, and security.
@@ -91,6 +91,7 @@ Preferred communication style: Simple, everyday language.
   - Environment variables: SYNC_DEMO_ON_DEPLOY, PRODUCTION_DATABASE_URL, SYNC_API_KEY
 
 ### August 2025
+- **2025-08-18**: Successfully removed 2FA requirements from user invitation system. Eliminated requires2FA checkbox from invitation forms, updated frontend and backend schemas, modified database schema to remove requires2FA column, and updated both single and bulk invitation API routes. Database migrations applied successfully. The invitation system now operates without 2FA complexity while maintaining security through existing authentication mechanisms.
 - **2025-08-18**: Successfully resolved roadmap features API and status update issues that were preventing proper functionality in the admin roadmap page. Root cause was Vite middleware intercepting API requests before reaching route handlers. Fixed by registering both `/api/features` and `/api/features/:id/update-status` routes directly in server/index.ts before Vite middleware initialization. Roadmap now properly displays 112 features across all categories with correct progress calculations, and feature status updates work seamlessly with immediate UI refresh.
 - **2025-08-18**: Successfully fixed mobile hamburger menu functionality by restructuring mobile menu context architecture. Created dedicated MobileMenuProvider in separate hook file to avoid React hot reload issues that were causing context to become null. Mobile navigation now properly opens/closes on mobile devices with backdrop overlay and escape key support.
 - **2025-08-18**: Added comprehensive documentation validation to npm run validate command through scripts/docs-validation.ts script. Validation now includes JSDoc coverage checking, TypeDoc validation, and documentation quality assessment. Fixed multiple validation errors including unused variable prefixes, TypeScript any types, empty arrow functions, and missing JSDoc documentation to improve overall code quality and maintainability.
