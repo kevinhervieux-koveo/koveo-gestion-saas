@@ -132,7 +132,21 @@ export default function Buildings() {
   // Mutation for creating new building
   const createBuildingMutation = useMutation({
     mutationFn: async (data: BuildingFormData) => {
-      return apiRequest('/api/admin/buildings', 'POST', data);
+      const response = await fetch('/api/admin/buildings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create building');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -398,7 +412,7 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='2020' 
-                                      {...field}
+                                      value={field.value || ''}
                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                     />
                                   </FormControl>
@@ -416,7 +430,7 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='100' 
-                                      {...field}
+                                      value={field.value || ''}
                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                     />
                                   </FormControl>
@@ -434,7 +448,7 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='10' 
-                                      {...field}
+                                      value={field.value || ''}
                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                     />
                                   </FormControl>
@@ -455,7 +469,7 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='50' 
-                                      {...field}
+                                      value={field.value || ''}
                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                     />
                                   </FormControl>
@@ -473,7 +487,7 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='25' 
-                                      {...field}
+                                      value={field.value || ''}
                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                     />
                                   </FormControl>
