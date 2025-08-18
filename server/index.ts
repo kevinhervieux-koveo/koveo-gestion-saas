@@ -206,6 +206,55 @@ app.get('/api/features', async (req, res) => {
   }
 });
 
+// Feature status update route - Also placed here to bypass middleware issues
+app.post('/api/features/:id/update-status', async (req, res) => {
+  try {
+    const { Pool, neonConfig } = await import('@neondatabase/serverless');
+    const ws = await import('ws');
+    neonConfig.webSocketConstructor = ws.default;
+    
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const { status } = req.body;
+    const featureId = req.params.id;
+    
+    const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
+    
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const updateQuery = `
+      UPDATE features 
+      SET status = $1, updated_at = NOW() 
+      WHERE id = $2 
+      RETURNING *
+    `;
+    
+    const result = await pool.query(updateQuery, [status, featureId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Feature not found' });
+    }
+    
+    const feature = {
+      ...result.rows[0],
+      isPublicRoadmap: result.rows[0].is_public_roadmap,
+      isStrategicPath: result.rows[0].is_strategic_path,
+      businessObjective: result.rows[0].business_objective,
+      targetUsers: result.rows[0].target_users,
+      successMetrics: result.rows[0].success_metrics,
+      createdAt: result.rows[0].created_at,
+      updatedAt: result.rows[0].updated_at
+    };
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.json(feature);
+  } catch (error) {
+    console.error('Feature status update error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start the server immediately with health checks first
 // Cloud Run provides PORT environment variable, fallback to 8080
 let server: any;
