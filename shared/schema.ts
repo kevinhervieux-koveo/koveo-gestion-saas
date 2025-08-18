@@ -1787,7 +1787,6 @@ export const invitations = pgTable('invitations', {
   personalMessage: text('personal_message'), // Optional personal message from inviter
   invitationContext: jsonb('invitation_context'), // Additional context (building access, etc.)
   securityLevel: text('security_level').notNull().default('standard'), // 'standard', 'high', 'critical'
-  requires2FA: boolean('requires_2fa').notNull().default(false), // Require 2FA for acceptance
   // Timestamps
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -1925,7 +1924,6 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   expiresAt: true,
   personalMessage: true,
   invitationContext: true,
-  requires2FA: true,
 }).extend({
   email: z.string().email('Invalid email address'),
   // Make organizationId required
@@ -1943,7 +1941,6 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   // Make other optional fields truly optional
   personalMessage: z.string().optional(),
   invitationContext: z.record(z.string(), z.unknown()).optional(),
-  requires2FA: z.boolean().default(false),
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
   if ((data.role === 'tenant' || data.role === 'resident')) {

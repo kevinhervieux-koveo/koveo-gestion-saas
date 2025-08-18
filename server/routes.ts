@@ -2385,7 +2385,7 @@ function registerInvitationRoutes(app: any) {
           });
         }
         
-        const { email, role, organizationId, buildingId, residenceId, personalMessage, requires2FA } = validation.data;
+        const { email, role, organizationId, buildingId, residenceId, personalMessage } = validation.data;
         
         // Role-based access control for roles
         if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
@@ -2590,7 +2590,6 @@ function registerInvitationRoutes(app: any) {
           expiresAt,
           personalMessage,
           invitationContext,
-          requires2FA: requires2FA || false,
         }).returning();
         
         // Create audit log
@@ -2801,7 +2800,6 @@ function registerInvitationRoutes(app: any) {
               expiresAt,
               personalMessage: validation.data.personalMessage,
               invitationContext,
-              requires2FA: validation.data.requires2FA || false,
             }).returning();
             
             // Create audit log

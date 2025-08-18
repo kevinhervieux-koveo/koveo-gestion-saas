@@ -64,7 +64,6 @@ interface Invitation {
   acceptedAt?: string;
   personalMessage?: string;
   securityLevel: string;
-  requires2FA: boolean;
 }
 
 /**

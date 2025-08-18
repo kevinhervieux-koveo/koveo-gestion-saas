@@ -56,8 +56,7 @@ const invitationSchema = z.object({
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
-  expiryDays: z.number().min(1).max(30),
-  requires2FA: z.boolean()
+  expiryDays: z.number().min(1).max(30)
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
   if (['tenant', 'resident'].includes(data.role)) {
@@ -76,8 +75,7 @@ const bulkInvitationSchema = z.object({
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
-  expiryDays: z.number().min(1).max(30),
-  requires2FA: z.boolean()
+  expiryDays: z.number().min(1).max(30)
 }).refine((data) => {
   // If role is tenant or resident, residence must be assigned
   if (['tenant', 'resident'].includes(data.role)) {
@@ -197,7 +195,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       buildingId: '',
       residenceId: '',
       expiryDays: 7,
-      requires2FA: false,
       personalMessage: ''
     }
   });
@@ -212,7 +209,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       buildingId: '',
       residenceId: '',
       expiryDays: 7,
-      requires2FA: false,
       personalMessage: ''
     }
   });
@@ -345,8 +341,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         buildingId: data.buildingId,
         personalMessage: data.personalMessage,
         expiresAt: expiresAt.toISOString(),
-        requires2FA: data.requires2FA,
-        // securityLevel: data.securityLevel,
         invitedByUserId: currentUser?.id
       }));
       
@@ -647,26 +641,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   )}
                 />
 
-                <FormField
-                  control={singleForm.control}
-                  name="requires2FA"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>{t('require2FA')}</FormLabel>
-                        <FormDescription>
-                          {t('require2FADescription')}
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+
 
                 <FormField
                   control={singleForm.control}
