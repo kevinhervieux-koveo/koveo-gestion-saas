@@ -233,22 +233,22 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
-        {/* Desktop sidebar - always visible on desktop */}
-        <div className="hidden md:block">
-          <Sidebar />
-        </div>
-        
-        {/* Mobile sidebar overlay - only visible when mobile menu is open */}
-        <div className="md:hidden">
-          <Sidebar 
-            isMobileMenuOpen={isMobileMenuOpen}
-            onMobileMenuClose={closeMobileMenu}
-          />
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        background: '#f8fafc',
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}>  
+        {/* Sidebar - handles mobile/desktop visibility internally */}
+        <Sidebar 
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMobileMenuClose={closeMobileMenu}
+        />
         
         {/* Main content area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div style={{
+          marginLeft: '280px',
+          minHeight: '100vh'
+        }} className="md:ml-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
               {/* Login page - redirect authenticated users to dashboard */}
