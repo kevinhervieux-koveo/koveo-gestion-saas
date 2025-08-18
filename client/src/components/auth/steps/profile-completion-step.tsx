@@ -56,13 +56,14 @@ export function ProfileCompletionStep({
 
   // Validate form whenever relevant fields change
   useEffect(() => {
-    const requiredFields = ['firstName', 'lastName', 'phone', 'language'];
+    const requiredFields = ['firstName', 'lastName', 'language'];
     const hasRequiredFields = requiredFields.every(field => 
       formData[field as keyof ProfileCompletionData] && 
       String(formData[field as keyof ProfileCompletionData]).trim().length > 0
     );
 
-    const isValidPhone = validatePhone(formData.phone);
+    // Phone is optional, but if provided must be valid
+    const isValidPhone = !formData.phone || validatePhone(formData.phone);
     const isValid = hasRequiredFields && isValidPhone;
     
     const updatedData = { ...formData, isValid };
@@ -96,7 +97,7 @@ export function ProfileCompletionStep({
     
     const value = formData[field];
     
-    if (['firstName', 'lastName', 'phone', 'language'].includes(field)) {
+    if (['firstName', 'lastName', 'language'].includes(field)) {
       if (!value || String(value).trim().length === 0) {
         return `${label} est requis`;
       }
@@ -174,7 +175,7 @@ export function ProfileCompletionStep({
               {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                  Téléphone *
+                  Téléphone (optionnel)
                 </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
