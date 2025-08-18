@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
           
-          // Check for existing pending invitation
+          // Check for existing pending invitation and delete if found
           const existingInvitation = await db.select({
             id: invitations.id,
             email: invitations.email,
@@ -199,10 +199,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .limit(1);
             
           if (existingInvitation.length > 0) {
-            return res.status(409).json({
-              message: 'Active invitation already exists for this email',
-              code: 'INVITATION_EXISTS'
-            });
+            // Delete existing invitation to replace with new one
+            await db.delete(invitations)
+              .where(and(
+                eq(invitations.email, email),
+                eq(invitations.status, 'pending'),
+                gte(invitations.expiresAt, new Date())
+              ));
+            
+            // Create audit log for the deleted invitation
+            await createInvitationAuditLog(
+              existingInvitation[0].id,
+              'deleted',
+              currentUser.id,
+              req,
+              'pending',
+              'deleted',
+              { reason: 'replaced_with_new_invitation', email }
+            );
+            
+            console.log(`🔄 Deleted existing invitation for ${email} to replace with new one`);
           }
           
           // Generate secure token
