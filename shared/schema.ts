@@ -307,8 +307,8 @@ export const residences = pgTable('residences', {
   bedrooms: integer('bedrooms'),
   bathrooms: decimal('bathrooms', { precision: 3, scale: 1 }),
   balcony: boolean('balcony').default(false),
-  parkingSpaceNumber: text('parking_space_number'),
-  storageSpaceNumber: text('storage_space_number'),
+  parkingSpaceNumbers: text('parking_space_numbers').array(),
+  storageSpaceNumbers: text('storage_space_numbers').array(),
   ownershipPercentage: decimal('ownership_percentage', { precision: 5, scale: 4 }), // For condos
   monthlyFees: decimal('monthly_fees', { precision: 10, scale: 2 }),
   isActive: boolean('is_active').notNull().default(true),
@@ -703,8 +703,8 @@ export const insertResidenceSchema = createInsertSchema(residences).pick({
   bedrooms: true,
   bathrooms: true,
   balcony: true,
-  parkingSpaceNumber: true,
-  storageSpaceNumber: true,
+  parkingSpaceNumbers: true,
+  storageSpaceNumbers: true,
   ownershipPercentage: true,
   monthlyFees: true,
 });

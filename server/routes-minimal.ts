@@ -137,6 +137,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     log(`❌ Building routes failed: ${error}`, 'error');
   }
+
+  // Register residence API routes
+  try {
+    const { registerResidenceRoutes } = await import('./api/residences.js');
+    registerResidenceRoutes(app);
+    log('✅ Residence routes registered');
+  } catch (error) {
+    log(`❌ Residence routes failed: ${error}`, 'error');
+  }
   
   // Register invitation routes
   try {

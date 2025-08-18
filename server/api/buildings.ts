@@ -596,6 +596,40 @@ export function registerBuildingRoutes(app: Express): void {
 
       console.log(`✅ Building created successfully with ID: ${buildingId}`);
 
+      // Auto-generate residences if totalUnits is specified and <= 300
+      if (buildingData.totalUnits && buildingData.totalUnits > 0 && buildingData.totalUnits <= 300) {
+        try {
+          const totalUnits = buildingData.totalUnits;
+          const totalFloors = buildingData.totalFloors || 1;
+          const unitsPerFloor = Math.ceil(totalUnits / totalFloors);
+
+          const residencesToCreate = [];
+          for (let unit = 1; unit <= totalUnits; unit++) {
+            const floor = Math.ceil(unit / unitsPerFloor);
+            const unitOnFloor = ((unit - 1) % unitsPerFloor) + 1;
+            const unitNumber = `${floor}${unitOnFloor.toString().padStart(2, '0')}`;
+
+            residencesToCreate.push({
+              buildingId: buildingId,
+              unitNumber,
+              floor,
+              isActive: true
+            });
+          }
+
+          // Insert all residences at once
+          const createdResidences = await db
+            .insert(residences)
+            .values(residencesToCreate)
+            .returning();
+
+          console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
+        } catch (residenceError) {
+          console.error('⚠️ Error auto-generating residences:', residenceError);
+          // Don't fail the building creation if residence generation fails
+        }
+      }
+
       res.status(201).json({
         message: 'Building created successfully',
         building: newBuilding[0]
