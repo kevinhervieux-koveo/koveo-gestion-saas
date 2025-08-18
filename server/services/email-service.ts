@@ -58,7 +58,7 @@ export class EmailService {
   constructor() {
     this.mailService = new MailService();
     this.baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-    this.fromAddress = process.env.EMAIL_FROM || 'noreply@koveo-gestion.com';
+    this.fromAddress = process.env.EMAIL_FROM || 'kevin.hervieux@koveo-gestion.com';
     this.initializeTemplates();
     
     // Initialize immediately if API key is available
@@ -181,6 +181,10 @@ export class EmailService {
     to: string,
     data: EmailTemplateData
   ): Promise<boolean> {
+    console.log(`📬 Attempting to send ${type} email to ${to}`);
+    console.log(`📧 Using sender address: ${this.fromAddress}`);
+    console.log(`🔧 Service initialized: ${this.isInitialized}`);
+    
     if (!this.isInitialized) {
       console.error('SendGrid email service not initialized');
       return false;
