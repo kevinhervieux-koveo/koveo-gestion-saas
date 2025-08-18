@@ -42,7 +42,7 @@ export function ProfileCompletionStep({
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [formData, setFormData] = useState<ProfileCompletionData>({
     firstName: '',
     lastName: '',
@@ -59,16 +59,6 @@ export function ProfileCompletionStep({
   
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
-  // Validate form whenever data changes
-  useEffect(() => {
-    const isValid = validateForm();
-    const updatedData = { ...formData, isValid };
-    
-    setFormData(updatedData);
-    onDataChange(updatedData);
-    onValidationChange(isValid);
-  }, [formData]);
-
   const validateForm = () => {
     const requiredFields = ['firstName', 'lastName', 'phone', 'language'];
     const hasRequiredFields = requiredFields.every(field => 
@@ -81,6 +71,16 @@ export function ProfileCompletionStep({
 
     return hasRequiredFields && isValidPhone && isValidPostalCode;
   };
+
+  // Validate form whenever data changes
+  useEffect(() => {
+    const isValid = validateForm();
+    const updatedData = { ...formData, isValid };
+    
+    setFormData(updatedData);
+    onDataChange(updatedData);
+    onValidationChange(isValid);
+  }, [formData, onDataChange, onValidationChange, validateForm]);
 
   const validatePhone = (phone: string) => {
     if (!phone) {return false;}

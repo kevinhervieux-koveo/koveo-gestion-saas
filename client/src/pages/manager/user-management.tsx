@@ -76,10 +76,10 @@ export default function UserManagement() {
         title: t('success'),
         description: t('invitationSent'),
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: t('error'),
-        description: error instanceof Error ? error.message : t('errorOccurred'),
+        description: _error instanceof Error ? _error.message : t('errorOccurred'),
         variant: 'destructive',
       });
     }

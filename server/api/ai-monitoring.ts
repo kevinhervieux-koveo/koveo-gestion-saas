@@ -104,8 +104,8 @@ export async function getAIMetrics(req: Request, res: Response) {
       lastAnalysis: metrics.lastAnalysis || new Date(),
       aiEfficiency: parseFloat(metrics.aiEfficiency || '0'),
     });
-  } catch (error) {
-    console.error('Error fetching AI metrics:', error);
+  } catch (_error) {
+    console.error('Error fetching AI metrics:', _error);
     res.status(500).json({ error: 'Failed to fetch AI metrics' });
   }
 }
@@ -145,8 +145,8 @@ export async function getAIInteractions(req: Request, res: Response) {
       .limit(50);
 
     res.json(interactions);
-  } catch (error) {
-    console.error('Error fetching AI interactions:', error);
+  } catch (_error) {
+    console.error('Error fetching AI interactions:', _error);
     res.status(500).json({ error: 'Failed to fetch AI interactions' });
   }
 }
@@ -186,8 +186,8 @@ export async function getAIInsights(req: Request, res: Response) {
       .limit(20);
 
     res.json(insights);
-  } catch (error) {
-    console.error('Error fetching AI insights:', error);
+  } catch (_error) {
+    console.error('Error fetching AI insights:', _error);
     res.status(500).json({ error: 'Failed to fetch AI insights' });
   }
 }
@@ -288,8 +288,8 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       message: 'AI analysis triggered successfully',
       insightsGenerated: numberOfInsights 
     });
-  } catch (error) {
-    console.error('Error triggering AI analysis:', error);
+  } catch (_error) {
+    console.error('Error triggering AI analysis:', _error);
     res.status(500).json({ error: 'Failed to trigger AI analysis' });
   }
 }

@@ -32,7 +32,7 @@ import { Button } from '@/components/ui/button';
 import { insertOrganizationSchema, type InsertOrganization } from '@shared/schema';
 
 /**
- *
+ * Props for the OrganizationForm component.
  */
 interface OrganizationFormProps {
   open: boolean;
@@ -42,12 +42,13 @@ interface OrganizationFormProps {
 /**
  * Form for creating new organizations in the Quebec property management system.
  * Includes all required fields with Quebec-specific defaults and validation.
- * @param root0
- * @param root0.open
- * @param root0.onOpenChange
+ * @param root0 - Component props
+ * @param root0.open - Dialog open state
+ * @param root0.onOpenChange - Callback to handle dialog open state changes
+ * @returns Organization form dialog component
  */
 export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -37,10 +37,11 @@ interface FeatureFormProps {
  * Reusable form dialog component for planning feature development.
  * Collects detailed requirements and generates development prompts.
  * Located in forms directory for easy reuse across the application.
- * @param root0
- * @param root0.feature
- * @param root0.open
- * @param root0.onOpenChange
+ * @param root0 - Component props
+ * @param root0.feature - The feature to edit, null for new features
+ * @param root0.open - Dialog open state
+ * @param root0.onOpenChange - Callback to handle dialog open state changes
+ * @returns Feature form dialog component
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
@@ -184,6 +185,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
   /**
    * Gets the localStorage key for drafts.
+   * @returns The localStorage key for feature drafts
    */
   const getDraftKey = () => {
     const baseKey = 'koveo-feature-draft';
@@ -200,7 +202,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         timestamp: new Date().toISOString(),
         featureId: feature?.id || null
       };
-      localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
+      window.localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
       setLastSaved(new Date());
       setIsDirty(false);
       
@@ -209,17 +211,17 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (error) {
-      console.error('Failed to save draft:', error);
+    } catch (_error) {
+      console.error('Failed to save draft:', _error);
     }
-  }, [formData, feature?.id, toast]);
+  }, [formData, feature?.id, toast, getDraftKey]);
 
   /**
    * Loads draft from localStorage.
    */
   const loadDraft = useCallback(() => {
     try {
-      const savedDraft = localStorage.getItem(getDraftKey());
+      const savedDraft = window.localStorage.getItem(getDraftKey());
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         const formData = draftData.formData;
@@ -233,17 +235,17 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (error) {
-      console.error('Failed to load draft:', error);
+    } catch (_error) {
+      console.error('Failed to load draft:', _error);
     }
-  }, [feature?.id]);
+  }, [feature?.id, getDraftKey]);
 
   /**
    * Clears the saved draft.
    */
   const clearDraft = useCallback(() => {
     try {
-      localStorage.removeItem(getDraftKey());
+      window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
       
@@ -251,17 +253,17 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (error) {
-      console.error('Failed to clear draft:', error);
+    } catch (_error) {
+      console.error('Failed to clear draft:', _error);
     }
-  }, [feature?.id, toast]);
+  }, [feature?.id, toast, getDraftKey]);
 
   /**
    * Updates form data when input values change.
-   * @param field
-   * @param value
+   * @param field - The form field to update
+   * @param value - The new value for the field
    */
-  const updateFormData = (field: string, value: string | boolean | any) => {
+  const updateFormData = (field: string, value: string | boolean | unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
@@ -446,7 +448,7 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -466,7 +468,7 @@ ${formData.additionalNotes || 'No additional notes'}
         description: formData.featureDescription || `Feature: ${formData.featureName}`, // Default description
         category: formData.featureCategory || 'Compliance & Security', // Default category
         status: 'submitted' as const,
-        priority: (formData.priority || 'medium') as any,
+        priority: (formData.priority || 'medium') as 'low' | 'medium' | 'high',
         businessObjective: formData.businessObjective || undefined,
         targetUsers: formData.targetUsers || undefined,
         successMetrics: formData.successMetrics || undefined,
@@ -552,23 +554,23 @@ ${formData.additionalNotes || 'No additional notes'}
     if (open) {
       // Clear any drafts with invalid "Strategic Path" category
       try {
-        const allKeys = Object.keys(localStorage);
+        const allKeys = Object.keys(window.localStorage);
         const draftKeys = allKeys.filter(key => key.startsWith('koveo-feature-draft'));
         
         draftKeys.forEach(key => {
           try {
-            const draftData = JSON.parse(localStorage.getItem(key) || '{}');
+            const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
-              localStorage.removeItem(key);
+              window.localStorage.removeItem(key);
               console.warn('Cleared invalid draft:', key);
             }
-          } catch (error) {
+          } catch (_error) {
             // Invalid JSON, remove it
-            localStorage.removeItem(key);
+            window.localStorage.removeItem(key);
           }
         });
-      } catch (error) {
-        console.error('Error clearing invalid drafts:', error);
+      } catch (_error) {
+        console.error('Error clearing invalid drafts:', _error);
       }
       
       loadDraft();

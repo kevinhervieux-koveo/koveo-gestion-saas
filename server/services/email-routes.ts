@@ -37,8 +37,8 @@ async function createInvitationAuditLog(
       currentValue,
       metadata: metadata ? JSON.stringify(metadata) : null,
     });
-  } catch (error) {
-    console.error('Error creating invitation audit log:', error);
+  } catch (_error) {
+    console.error('Error creating invitation audit log:', _error);
   }
 }
 
@@ -105,8 +105,8 @@ export function registerEmailRoutes(app: Express) {
           res.status(500).json({ message: 'Failed to send reminder email' });
         }
         
-      } catch (error) {
-        console.error('Error sending reminder email:', error);
+      } catch (_error) {
+        console.error('Error sending reminder email:', _error);
         res.status(500).json({ message: 'Failed to send reminder email' });
       }
     }
@@ -165,8 +165,8 @@ export function registerEmailRoutes(app: Express) {
             } else {
               failureCount++;
             }
-          } catch (error) {
-            console.error(`Failed to send reminder for invitation ${invitation.id}:`, error);
+          } catch (_error) {
+            console.error(`Failed to send reminder for invitation ${invitation.id}:`, _error);
             failureCount++;
           }
         }

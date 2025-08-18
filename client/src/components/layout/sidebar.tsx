@@ -23,9 +23,9 @@ interface SidebarProps {
 
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
- * @param root0
- * @param root0.isMobileMenuOpen
- * @param root0.onMobileMenuClose
+ * @param root0 - Component props
+ * @param root0.isMobileMenuOpen - Mobile menu open state
+ * @param root0.onMobileMenuClose - Callback to close mobile menu
  */
 export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
   const [location] = useLocation();
@@ -125,8 +125,8 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (_error) {
+      console.error('Logout failed:', _error);
       // Fallback: still redirect to login page
       window.location.href = '/login';
     }

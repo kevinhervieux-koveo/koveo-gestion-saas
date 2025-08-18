@@ -69,7 +69,7 @@ interface UserListComponentProps {
 interface EditUserDialogProps {
   user: User | null;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   onSuccess: () => void;
 }
 

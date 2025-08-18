@@ -120,8 +120,8 @@ export function registerSSLRoutes(app: Express): void {
         data: responseData
       });
 
-    } catch (error) {
-      console.error(`Failed to fetch SSL certificate for domain ${req.params.domain}:`, error);
+    } catch (_error) {
+      console.error(`Failed to fetch SSL certificate for domain ${req.params.domain}:`, _error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificate information'
@@ -194,8 +194,8 @@ export function registerSSLRoutes(app: Express): void {
         count: certificatesWithStatus.length
       });
 
-    } catch (error) {
-      console.error('Failed to fetch SSL certificates:', error);
+    } catch (_error) {
+      console.error('Failed to fetch SSL certificates:', _error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificates'
@@ -294,8 +294,8 @@ export function registerSSLRoutes(app: Express): void {
         data: statusInfo
       });
 
-    } catch (error) {
-      console.error(`Failed to fetch SSL certificate status for domain ${req.params.domain}:`, error);
+    } catch (_error) {
+      console.error(`Failed to fetch SSL certificate status for domain ${req.params.domain}:`, _error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificate status'

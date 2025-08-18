@@ -18,8 +18,8 @@ export function registerUserRoutes(app: Express): void {
     try {
       const users = await storage.getUsers();
       res.json(users);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
+    } catch (_error) {
+      console.error('Failed to fetch users:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch users',
@@ -52,8 +52,8 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
+    } catch (_error) {
+      console.error('Failed to fetch user:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user',
@@ -86,8 +86,8 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Failed to fetch user by email:', error);
+    } catch (_error) {
+      console.error('Failed to fetch user by email:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user',

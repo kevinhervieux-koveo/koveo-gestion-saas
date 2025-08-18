@@ -146,8 +146,8 @@ export function RegistrationWizard({
       };
 
       await onComplete(completeData);
-    } catch (error) {
-      console.error('Wizard completion error:', error);
+    } catch (_error) {
+      console.error('Wizard completion error:', _error);
       setIsSubmitting(false);
     }
   };
@@ -237,7 +237,7 @@ export function RegistrationWizard({
 
             {/* Render current step component */}
             <currentStep.component
-              data={wizardData[currentStep.id] || {}}
+              data={wizardData[currentStep.id] as Record<string, unknown> || {}}
               onDataChange={handleDataChange}
               onValidationChange={handleValidationChange}
               onNext={handleNext}

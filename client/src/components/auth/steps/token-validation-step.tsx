@@ -37,19 +37,9 @@ export function TokenValidationStep({
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<TokenValidationData | null>(data || null);
-
-  useEffect(() => {
-    // Auto-validate if token is provided via URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    
-    if (token && !validationResult) {
-      validateToken(token);
-    }
-  }, []);
+  const [validationResult, setValidationResult] = useState<TokenValidationData | null>(data as unknown as TokenValidationData || null);
 
   const validateToken = async (token: string) => {
     setIsValidating(true);
@@ -77,7 +67,7 @@ export function TokenValidationStep({
         };
 
         setValidationResult(validationData);
-        onDataChange(validationData);
+        onDataChange(validationData as unknown as Record<string, unknown>);
         onValidationChange(true);
       } else {
         const errorData: TokenValidationData = {
@@ -92,10 +82,10 @@ export function TokenValidationStep({
         };
 
         setValidationResult(errorData);
-        onDataChange(errorData);
+        onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
       }
-    } catch (error) {
+    } catch (_error) {
       const errorData: TokenValidationData = {
         token,
         email: '',
@@ -108,12 +98,22 @@ export function TokenValidationStep({
       };
 
       setValidationResult(errorData);
-      onDataChange(errorData);
+      onDataChange(errorData as unknown as Record<string, unknown>);
       onValidationChange(false);
     } finally {
       setIsValidating(false);
     }
   };
+
+  useEffect(() => {
+    // Auto-validate if token is provided via URL params
+    const urlParams = new window.URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token && !validationResult) {
+      validateToken(token);
+    }
+  }, [validationResult]);
 
   const getTimeRemaining = (expiresAt: string) => {
     const now = new Date();

@@ -174,7 +174,7 @@ interface MetricEffectivenessData {
  * Tracks the effectiveness and accuracy of quality metrics.
  */
 class QualityMetricValidator {
-  private static metricsHistory: MetricEffectivenessData[] = [];
+  public static metricsHistory: MetricEffectivenessData[] = [];
 
   /**
    * Records a quality metric calculation and its real-world effectiveness.

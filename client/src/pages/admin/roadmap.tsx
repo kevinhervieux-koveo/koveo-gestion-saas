@@ -195,8 +195,8 @@ export default function OwnerRoadmap() {
         const items = await response.json();
         setActionableItems(prev => ({ ...prev, [featureId]: items }));
       }
-    } catch (error) {
-      console.error('Failed to fetch actionable items:', error);
+    } catch (_error) {
+      console.error('Failed to fetch actionable items:', _error);
     }
   };
 
@@ -211,7 +211,7 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -456,7 +456,7 @@ export default function OwnerRoadmap() {
         description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',

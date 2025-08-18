@@ -55,7 +55,7 @@ type OrganizationFormData = z.infer<typeof organizationSchema>;
  */
 interface OrganizationFormDialogProps {
   open?: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   organization?: Organization | null;
   onSuccess?: () => void;
 }

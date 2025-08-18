@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 /**
- *
+ * Props for the ActionableItemsPanel component.
  */
 interface ActionableItemsPanelProps {
   feature: Feature;
@@ -33,10 +33,10 @@ interface ActionableItemsPanelProps {
 }
 
 /**
- *
- * @param root0
- * @param root0.feature
- * @param root0.onClose
+ * Panel component for managing actionable items generated from feature analysis.
+ * @param root0 - Component props
+ * @param root0.feature - The feature containing actionable items
+ * @param root0.onClose - Optional callback when panel is closed
  */
 export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelProps) {
   const { toast } = useToast();
@@ -124,7 +124,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         title: '🤖 AI Prompt Copied!',
         description: 'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
-    } catch (error) {
+    } catch (_error) {
       // Fallback to creating a text area and selecting the text
       try {
         const textArea = document.createElement('textarea');
@@ -137,7 +137,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           title: '📋 Prompt Copied!',
           description: 'The implementation prompt has been copied using fallback method.',
         });
-      } catch (fallbackError) {
+      } catch (_fallbackError) {
         toast({
           title: 'Copy Failed',
           description: 'Failed to copy prompt to clipboard. Please manually select and copy the text.',

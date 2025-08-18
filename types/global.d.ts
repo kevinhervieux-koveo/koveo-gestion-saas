@@ -7,15 +7,15 @@ declare global {
      *
      */
     interface Global {
-      fetch: any;
+      fetch: unknown;
     }
   }
   
   /**
-   *
+   * Global window interface extensions.
    */
   interface Window {
-    fetch: any;
+    fetch: unknown;
   }
 }
 
@@ -31,17 +31,17 @@ declare module '@assets/*' {
  * Wouter router type extensions.
  */
 declare module 'wouter' {
-  export { Router as BrowserRouter } from 'wouter';
+  interface Router {
+    // Additional properties if needed
+  }
 }
 
 /**
- * Wouter memory location hook types.
- * @param _options
- * @param _options.path
+ * Wouter memory location hook types for testing.
  */
 declare module 'wouter/memory' {
   /**
-   *
+   * Stub history interface for testing wouter memory location.
    */
   interface StubHistory {
     history: string[];
@@ -50,10 +50,16 @@ declare module 'wouter/memory' {
   }
   
   /**
-   *
+   * Hook return value type for wouter memory location.
    */
   type HookReturnValue = [string, (path: string) => void];
   
+  /**
+   * Memory location hook for testing.
+   * @param _options - Configuration options
+   * @param _options.path - Initial path value
+   * @returns Combined hook return value and stub history
+   */
   function memoryLocation(_options: { path: string }): HookReturnValue & StubHistory;
   export { memoryLocation };
 }

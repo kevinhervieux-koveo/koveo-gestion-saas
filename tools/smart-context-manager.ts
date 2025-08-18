@@ -301,7 +301,8 @@ export class SmartContextManager {
   }
 
   /**
-   * Get all file contexts.
+   * Get all file contexts for the project.
+   * @returns Array of file context objects
    */
   private getAllFileContexts(): FileContext[] {
     const files = glob.sync('**/*.{ts,tsx,js,jsx}', {
@@ -314,8 +315,9 @@ export class SmartContextManager {
 
   /**
    * Suggest files to work on based on current context.
-   * @param currentFiles
-   * @param intent
+   * @param currentFiles - Array of currently active files
+   * @param intent - Development intent or goal
+   * @returns Array of context suggestions
    */
   public suggestNextFiles(currentFiles: string[], intent: string = ''): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
@@ -398,14 +400,14 @@ export class SmartContextManager {
 
   /**
    * Find test files for given source files.
-   * @param sourceFiles
+   * @param sourceFiles - Array of source file paths
+   * @returns Array of corresponding test file paths
    */
   private findTestFiles(sourceFiles: string[]): string[] {
     const testFiles: string[] = [];
     
     sourceFiles.forEach(file => {
       const baseName = file.replace(/\.(ts|tsx|js|jsx)$/, '');
-      const dir = path.dirname(file);
       
       // Look for co-located tests
       const testPatterns = [
@@ -430,8 +432,8 @@ export class SmartContextManager {
 
   /**
    * Update workspace context with new files.
-   * @param files
-   * @param focusArea
+   * @param files - Array of file paths to add to working set
+   * @param focusArea - Optional focus area for the context
    */
   public updateWorkingSet(files: string[], focusArea?: string): void {
     this.workspaceContext.workingSet = [...new Set([...this.workspaceContext.workingSet, ...files])];
@@ -453,10 +455,11 @@ export class SmartContextManager {
 
   /**
    * Get smart file recommendations for AI agent.
-   * @param intent
-   * @param context
+   * @param intent - The development intent or goal
+   * @param _context - Additional context for recommendations (unused)
+   * @returns Smart file recommendations categorized by priority
    */
-  public getSmartRecommendations(intent: string = '', context: string = ''): {
+  public getSmartRecommendations(intent: string = '', _context: string = ''): {
     priority: ContextSuggestion[];
     exploratory: ContextSuggestion[];
     maintenance: ContextSuggestion[];
@@ -472,6 +475,7 @@ export class SmartContextManager {
 
   /**
    * Generate context summary for AI agent.
+   * @returns JSON string containing workspace context summary
    */
   public generateContextSummary(): string {
     const summary = {

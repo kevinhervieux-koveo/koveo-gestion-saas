@@ -37,7 +37,7 @@ export function QuebecPrivacyConsentStep({
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const [formData, setFormData] = useState<QuebecPrivacyConsentData>({
     dataCollectionConsent: false,
     marketingConsent: false,
@@ -57,7 +57,7 @@ export function QuebecPrivacyConsentStep({
     setFormData(updatedData);
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData.dataCollectionConsent, formData.acknowledgedRights]);
+  }, [formData.dataCollectionConsent, formData.acknowledgedRights, onDataChange, onValidationChange, validateForm]);
 
   const validateForm = () => {
     // Required consents: data collection and rights acknowledgment
