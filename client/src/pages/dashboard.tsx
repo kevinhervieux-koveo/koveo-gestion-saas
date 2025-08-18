@@ -110,33 +110,33 @@ export default function Dashboard() {
   const welcome = getWelcomeMessage();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{background: 'linear-gradient(to bottom right, #dbeafe, #f3f4f6)', minHeight: '100vh'}}>
       <Header 
         title={welcome.title}
         subtitle={welcome.subtitle}
       />
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8" style={{maxWidth: '1280px', margin: '0 auto', padding: '2rem'}}>
         <div className="max-w-7xl mx-auto space-y-6">
           
           {/* Welcome Card with User Info */}
-          <Card className="bg-gradient-to-r from-primary to-blue-600 text-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card style={{background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', borderRadius: '0.75rem', overflow: 'hidden'}}>
+            <CardContent className="p-6" style={{padding: '1.5rem'}}>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">{welcome.title}</h2>
-                  <p className="text-blue-100 mb-4">{welcome.subtitle}</p>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <Badge variant="secondary" className="bg-white/20 text-white">
+                  <h2 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'white'}}>{welcome.title}</h2>
+                  <p style={{color: '#dbeafe', marginBottom: '1rem'}}>{welcome.subtitle}</p>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem'}}>
+                    <Badge variant="secondary" style={{background: 'rgba(255,255,255,0.2)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.375rem'}}>
                       {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
                     </Badge>
-                    <span className="text-blue-100">
+                    <span style={{color: '#dbeafe'}}>
                       {user?.email}
                     </span>
                   </div>
                 </div>
                 <div className="hidden md:block">
-                  <Home className="w-16 h-16 text-blue-200" />
+                  <Home className="w-16 h-16" style={{width: '4rem', height: '4rem', color: '#93c5fd'}} />
                 </div>
               </div>
             </CardContent>

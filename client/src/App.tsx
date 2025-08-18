@@ -138,6 +138,13 @@ const DashboardPage = createOptimizedLoader(
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
+// Test styling page
+const TestStylingPage = createOptimizedLoader(
+  () => import('@/pages/test-styling'),
+  'test-styling-page',
+  { preloadDelay: 100, enableMemoryCleanup: true }
+);
+
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
@@ -208,7 +215,7 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter'>
+      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
         {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
@@ -231,6 +238,9 @@ function Router() {
 
               {/* Main Dashboard */}
               <Route path='/dashboard' component={DashboardPage} />
+              
+              {/* Test styling page */}
+              <Route path='/test-styling' component={TestStylingPage} />
 
               {/* Admin routes */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
