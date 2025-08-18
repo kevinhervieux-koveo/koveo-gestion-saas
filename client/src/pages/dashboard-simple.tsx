@@ -71,10 +71,19 @@ export default function DashboardSimple() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
           gap: '1rem'
         }}>
-          {['Organizations', 'Buildings', 'Settings', 'Documentation'].map((item, index) => (
+          {[
+            { name: 'Organizations', path: '/admin/organizations', icon: '🏢' },
+            { name: 'Buildings', path: '/manager/buildings', icon: '🏗️' },
+            { name: 'Permissions', path: '/admin/permissions', icon: '🔐' },
+            { name: 'Quality', path: '/admin/quality', icon: '📊' },
+            { name: 'Documentation', path: '/admin/documentation', icon: '📚' },
+            { name: 'Roadmap', path: '/admin/roadmap', icon: '🗺️' },
+            { name: 'Settings', path: '/settings/settings', icon: '⚙️' },
+            { name: 'Bug Reports', path: '/settings/bug-reports', icon: '🐛' }
+          ].map((item, index) => (
             <a
               key={index}
-              href={`/${item.toLowerCase()}`}
+              href={item.path}
               style={{
                 background: 'white',
                 borderRadius: '0.5rem',
@@ -100,9 +109,9 @@ export default function DashboardSimple() {
                 fontSize: '2rem',
                 marginBottom: '0.5rem'
               }}>
-                {index === 0 ? '🏢' : index === 1 ? '🏗️' : index === 2 ? '⚙️' : '📚'}
+                {item.icon}
               </div>
-              {item}
+              {item.name}
             </a>
           ))}
         </div>
