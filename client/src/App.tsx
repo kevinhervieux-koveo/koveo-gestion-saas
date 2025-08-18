@@ -233,10 +233,7 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      {/* Top Header - Always visible */}
-      <TopHeader />
-      
-      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb', paddingTop: '60px'}}>  
+      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
         {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
