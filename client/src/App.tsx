@@ -203,8 +203,8 @@ function Router() {
               <Route path="/" component={HomePage} />
               <Route path="/login" component={LoginPage} />
               <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-              {/* Redirect all other routes to home for unauthenticated users */}
-              <Route component={HomeRedirect} />
+              {/* For all other routes, show login page */}
+              <Route component={LoginPage} />
             </Switch>
           </Suspense>
       </div>
@@ -247,7 +247,7 @@ function Router() {
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
               {/* Login page - redirect authenticated users to dashboard */}
-              <Route path='/login' component={LoginRedirect} />
+              <Route path='/login' component={DashboardPage} />
 
               {/* Main Dashboard */}
               <Route path='/dashboard' component={DashboardPage} />
