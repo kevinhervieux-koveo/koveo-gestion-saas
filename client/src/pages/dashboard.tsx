@@ -19,7 +19,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-export function Dashboard() {
+export default function Dashboard() {
   const { user, loading } = useAuth();
   const { t } = useLanguage();
 

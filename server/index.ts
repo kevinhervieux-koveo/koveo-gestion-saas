@@ -9,12 +9,12 @@ import * as fs from 'fs';
 
 // Configure port for deployment platform compatibility
 // Support Cloud Run, Railway, Heroku, and other platforms
-let port = parseInt(process.env.PORT || process.env.REPL_PORT || '8080', 10);
+let port = parseInt(process.env.PORT || process.env.REPL_PORT || '5000', 10);
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
-  console.error(`Invalid port: ${process.env.PORT || process.env.REPL_PORT || '8080'}. Using default 8080.`);
-  port = 8080;
+  console.error(`Invalid port: ${process.env.PORT || process.env.REPL_PORT || '5000'}. Using default 5000.`);
+  port = 5000;
 }
 
 const app = express();
