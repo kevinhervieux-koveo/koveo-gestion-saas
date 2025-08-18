@@ -608,6 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Features API - DIRECT DATABASE QUERY (BYPASS AUTH FOR DEBUGGING)  
   app.get('/api/features', async (req, res) => {
     console.warn('🔥🔥🔥 FEATURES API HIT - BYPASS AUTH MODE 🔥🔥🔥');
+    console.log('🔥🔥🔥 FEATURES API HIT - BYPASS AUTH MODE 🔥🔥🔥');
     
     try {
       const { roadmap } = req.query;
@@ -643,6 +644,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
         
         console.warn('🔥 Converted features count:', features.length);
+        console.warn('🔥 About to send JSON response');
+        res.setHeader('Content-Type', 'application/json');
         res.json(features);
       } else {
         const allFeatures = await pool.query('SELECT * FROM features LIMIT 10');

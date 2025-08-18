@@ -188,8 +188,18 @@ export default function OwnerRoadmap() {
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      const data = await res.json();
-      console.log('🟡 Features API response data:', data);
+      const responseText = await res.text();
+      console.log('🟡 Raw response text:', responseText.substring(0, 200));
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('🟡 Parsed JSON data:', data);
+      } catch (e) {
+        console.error('🟡 JSON parse error:', e.message);
+        console.log('🟡 Response starts with:', responseText.substring(0, 100));
+        throw new Error('Invalid JSON response from server');
+      }
       return data;
     },
   });
