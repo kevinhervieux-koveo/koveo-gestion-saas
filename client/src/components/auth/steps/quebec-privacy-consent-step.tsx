@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, FileText, Eye, Lock, Database, Phone, Mail, Download } from 'lucide-react';
+import { Shield, FileText, Eye, Lock, Database, Phone, Mail, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
@@ -48,6 +48,8 @@ export function QuebecPrivacyConsentStep({
     consentDate: new Date().toISOString(),
     ...data
   });
+  
+  const [isDataCollectionExpanded, setIsDataCollectionExpanded] = useState(false);
 
   // Validate form whenever consent data changes
   useEffect(() => {
@@ -71,6 +73,17 @@ export function QuebecPrivacyConsentStep({
     }));
   };
 
+  const handleMasterDataCollectionChange = (value: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      dataCollectionConsent: value,
+      marketingConsent: value,
+      analyticsConsent: value,
+      thirdPartyConsent: value,
+      consentDate: new Date().toISOString()
+    }));
+  };
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <Alert className="border-blue-200 bg-blue-50">
@@ -85,101 +98,127 @@ export function QuebecPrivacyConsentStep({
         {/* Data Collection and Processing */}
         <Card>
           <CardContent className="pt-6">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center mb-4">
-              <Database className="h-5 w-5 mr-2 text-blue-600" />
-              Collecte et traitement des données
-            </h3>
-
-            <div className="space-y-6">
-              {/* Essential Data Collection */}
+            <div className="space-y-4">
+              {/* Master Data Collection Checkbox */}
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <Checkbox 
-                    id="dataCollectionConsent"
-                    checked={formData.dataCollectionConsent}
-                    onCheckedChange={(checked) => handleConsentChange('dataCollectionConsent', checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <Label htmlFor="dataCollectionConsent" className="text-sm font-medium text-green-900 cursor-pointer">
-                      Collecte des données essentielles (Requis) *
-                    </Label>
-                    <p className="text-xs text-green-800 mt-1">
-                      J'accepte la collecte et l'utilisation de mes informations personnelles (nom, email, téléphone, adresse) 
-                      pour l'utilisation des services de gestion immobilière Koveo Gestion.
-                    </p>
-                    <div className="mt-2 text-xs text-green-700">
-                      <strong>Finalités:</strong> Authentification, communication, gestion de compte, services de gestion immobilière
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start space-x-3 flex-1">
+                    <Checkbox 
+                      id="masterDataCollectionConsent"
+                      checked={formData.dataCollectionConsent && formData.marketingConsent && formData.analyticsConsent && formData.thirdPartyConsent}
+                      onCheckedChange={(checked) => handleMasterDataCollectionChange(checked as boolean)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <Database className="h-5 w-5 text-blue-600" />
+                        <Label htmlFor="masterDataCollectionConsent" className="text-lg font-medium text-green-900 cursor-pointer">
+                          Collecte et traitement des données
+                        </Label>
+                      </div>
+                      <p className="text-xs text-green-800 mt-1">
+                        J'accepte tous les types de collecte et traitement de données (essentielles et optionnelles).
+                      </p>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDataCollectionExpanded(!isDataCollectionExpanded)}
+                    className="ml-2 p-1 hover:bg-green-100 rounded-md transition-colors"
+                  >
+                    {isDataCollectionExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-green-700" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-green-700" />
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Optional Consents */}
-              <div className="space-y-3">
-                {/* Marketing Communications */}
-                <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <Checkbox 
-                      id="marketingConsent"
-                      checked={formData.marketingConsent}
-                      onCheckedChange={(checked) => handleConsentChange('marketingConsent', checked as boolean)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="marketingConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
-                        Communications marketing (Optionnel)
-                      </Label>
-                      <p className="text-xs text-gray-600 mt-1">
-                        J'accepte de recevoir des communications promotionnelles, nouvelles fonctionnalités, 
-                        et offres spéciales par email.
-                      </p>
+              {/* Detailed Consents (Collapsible) */}
+              {isDataCollectionExpanded && (
+                <div className="space-y-3 ml-8">
+                  {/* Essential Data Collection */}
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="dataCollectionConsent"
+                        checked={formData.dataCollectionConsent}
+                        onCheckedChange={(checked) => handleConsentChange('dataCollectionConsent', checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="dataCollectionConsent" className="text-sm font-medium text-blue-900 cursor-pointer">
+                          Collecte des données essentielles (Requis) *
+                        </Label>
+                        <p className="text-xs text-blue-800 mt-1">
+                          Authentification, communication, gestion de compte, services de gestion immobilière.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Analytics and Performance */}
-                <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <Checkbox 
-                      id="analyticsConsent"
-                      checked={formData.analyticsConsent}
-                      onCheckedChange={(checked) => handleConsentChange('analyticsConsent', checked as boolean)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="analyticsConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
-                        Analyse et amélioration (Optionnel)
-                      </Label>
-                      <p className="text-xs text-gray-600 mt-1">
-                        J'accepte la collecte de données d'utilisation anonymisées pour améliorer 
-                        les services et performances de la plateforme.
-                      </p>
+                  {/* Marketing Communications */}
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="marketingConsent"
+                        checked={formData.marketingConsent}
+                        onCheckedChange={(checked) => handleConsentChange('marketingConsent', checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="marketingConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
+                          Communications marketing (Optionnel)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Communications promotionnelles, nouvelles fonctionnalités, offres spéciales.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Third Party Services */}
-                <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <Checkbox 
-                      id="thirdPartyConsent"
-                      checked={formData.thirdPartyConsent}
-                      onCheckedChange={(checked) => handleConsentChange('thirdPartyConsent', checked as boolean)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="thirdPartyConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
-                        Services tiers intégrés (Optionnel)
-                      </Label>
-                      <p className="text-xs text-gray-600 mt-1">
-                        J'accepte l'utilisation de services tiers (cartographie, notifications, stockage) 
-                        pour améliorer l'expérience utilisateur.
-                      </p>
+                  {/* Analytics and Performance */}
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="analyticsConsent"
+                        checked={formData.analyticsConsent}
+                        onCheckedChange={(checked) => handleConsentChange('analyticsConsent', checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="analyticsConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
+                          Analyse et amélioration (Optionnel)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Données d'utilisation anonymisées pour améliorer les services.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Third Party Services */}
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="thirdPartyConsent"
+                        checked={formData.thirdPartyConsent}
+                        onCheckedChange={(checked) => handleConsentChange('thirdPartyConsent', checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="thirdPartyConsent" className="text-sm font-medium text-gray-900 cursor-pointer">
+                          Services tiers intégrés (Optionnel)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Cartographie, notifications, stockage pour améliorer l'expérience.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -255,7 +294,7 @@ export function QuebecPrivacyConsentStep({
                   </div>
                   <div className="flex items-center space-x-2">
                     <Phone className="h-3 w-3" />
-                    <span>1-800-KOVEO-25</span>
+                    <span>514-712-8441</span>
                   </div>
                 </div>
               </div>
