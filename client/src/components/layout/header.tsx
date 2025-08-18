@@ -42,7 +42,7 @@ export function Header({ title, subtitle }: HeaderProps) {
   let toggleMobileMenu: (() => void) | undefined;
   try {
     const mobileMenu = useMobileMenu();
-    toggleMobileMenu = mobileMenu.toggleMobileMenu;
+    toggleMobileMenu = mobileMenu?.toggleMobileMenu;
   } catch {
     // Not within MobileMenuProvider - mobile menu not available
     toggleMobileMenu = undefined;
@@ -52,18 +52,16 @@ export function Header({ title, subtitle }: HeaderProps) {
     <header className='bg-white border-b border-gray-200 px-6 py-4'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-4'>
-          {/* Mobile menu button - only visible on mobile */}
-          {toggleMobileMenu && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={toggleMobileMenu}
-              aria-label="Toggle navigation menu"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          )}
+          {/* Mobile menu button - always show on mobile for debugging */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={toggleMobileMenu || (() => console.log('Mobile menu toggle not available'))}
+            aria-label="Toggle navigation menu"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
           <div>
             <h2 className='text-2xl font-semibold text-gray-900'>{title}</h2>
             <p className='text-gray-600'>{subtitle}</p>

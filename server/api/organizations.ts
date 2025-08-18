@@ -6,6 +6,7 @@ import {
   type InsertOrganization,
 } from '@shared/schema';
 import { z } from 'zod';
+import { requireAuth, authorize } from '../auth';
 
 /**
  * Registers all organization-related API endpoints.
@@ -16,7 +17,7 @@ export function registerOrganizationRoutes(app: Express): void {
   /**
    * GET /api/organizations - Retrieves all organizations.
    */
-  app.get('/api/organizations', async (req, res) => {
+  app.get('/api/organizations', requireAuth, authorize('read:organization'), async (req, res) => {
     try {
       const organizations = await storage.getOrganizations();
       res.json(organizations);

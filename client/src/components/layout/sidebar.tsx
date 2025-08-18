@@ -10,7 +10,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogo from '@assets/Koveo_logo (1)_1755288554223.jpg';
 import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
 
 /**
