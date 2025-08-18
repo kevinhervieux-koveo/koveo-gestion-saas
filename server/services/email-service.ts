@@ -264,7 +264,7 @@ export class EmailService {
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
     // Direct link to user registration with the invitation token
-    const invitationUrl = `${this.baseUrl}/register?invitation=${invitationToken}`;
+    const invitationUrl = `https://koveo-gestion.com/register?invitation=${invitationToken}`;
     
     return this.sendEmail('invitation', recipientEmail, {
       recipientName,
