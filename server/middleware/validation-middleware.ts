@@ -30,7 +30,7 @@ export function validateBody(schema: ZodSchema) {
 export function validateQuery(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      req.query = schema.parse(req.query);
+      req.query = schema.parse(req.query) as any;
       next();
     } catch (_error) {
       res.status(400).json({ 

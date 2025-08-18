@@ -151,8 +151,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       .where(eq(schema.users.isActive, true))
       .orderBy(
         options.sortDirection === 'DESC' 
-          ? desc(schema.users[options.sortBy as keyof typeof schema.users] || schema.users.createdAt)
-          : schema.users[options.sortBy as keyof typeof schema.users] || schema.users.createdAt
+          ? desc(schema.users.createdAt)
+          : schema.users.createdAt
       )
       .limit(options.pageSize)
       .offset((options.page - 1) * options.pageSize);
@@ -262,7 +262,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       'buildings',
       async () => {
         // Use materialized view for dashboard statistics
-        const [stats] = await db.execute(
+        const stats = await db.execute(
           sqlOp`SELECT * FROM mv_building_stats WHERE building_id = ${buildingId}`
         );
         return stats.rows[0];
@@ -308,7 +308,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
-      const inserted = await db.insert(schema.users).values(insertUser).returning();
+      const inserted = await db.insert(schema.users).values([insertUser]).returning();
       return inserted;
     });
     
@@ -434,7 +434,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
     const result = await dbPerformanceMonitor.trackQuery('createBuilding', async () => {
-      return db.insert(schema.buildings).values(insertBuilding).returning();
+      return db.insert(schema.buildings).values([insertBuilding]).returning();
     });
     
     // Invalidate building caches
@@ -828,7 +828,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('updateWorkspaceStatus', async () => {
       return db
         .update(schema.workspaceStatus)
-        .set({ status, updatedAt: new Date() })
+        .set({ status })
         .where(eq(schema.workspaceStatus.component, component))
         .returning();
     });
@@ -954,7 +954,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createImprovementSuggestion(suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
     const result = await dbPerformanceMonitor.trackQuery('createImprovementSuggestion', async () => {
-      return db.insert(schema.improvementSuggestions).values(suggestion).returning();
+      return db.insert(schema.improvementSuggestions).values([suggestion]).returning();
     });
     
     queryCache.invalidate('improvement_suggestions');
@@ -968,7 +968,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     await dbPerformanceMonitor.trackQuery('clearNewSuggestions', async () => {
       return db
         .update(schema.improvementSuggestions)
-        .set({ status: 'Acknowledged', updatedAt: new Date() })
+        .set({ status: 'Acknowledged' })
         .where(eq(schema.improvementSuggestions.status, 'New'));
     });
     
@@ -984,7 +984,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('updateSuggestionStatus', async () => {
       return db
         .update(schema.improvementSuggestions)
-        .set({ status, updatedAt: new Date() })
+        .set({ status })
         .where(eq(schema.improvementSuggestions.id, id))
         .returning();
     });
@@ -1019,7 +1019,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       () => db
         .select()
         .from(schema.features)
-        .where(eq(schema.features.status, status))
+        .where(eq(schema.features.status, status as any))
     );
   }
 
@@ -1035,7 +1035,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       () => db
         .select()
         .from(schema.features)
-        .where(eq(schema.features.category, category))
+        .where(eq(schema.features.category, category as any))
     );
   }
 
@@ -1060,7 +1060,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createFeature(feature: InsertFeature): Promise<Feature> {
     const result = await dbPerformanceMonitor.trackQuery('createFeature', async () => {
-      return db.insert(schema.features).values(feature).returning();
+      return db.insert(schema.features).values([feature]).returning();
     });
     
     queryCache.invalidate('features');
@@ -1076,7 +1076,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('updateFeature', async () => {
       return db
         .update(schema.features)
-        .set({ ...updates, updatedAt: new Date() })
+        .set(updates as any)
         .where(eq(schema.features.id, id))
         .returning();
     });
@@ -1144,7 +1144,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
     const result = await dbPerformanceMonitor.trackQuery('createActionableItem', async () => {
-      return db.insert(schema.actionableItems).values(item).returning();
+      return db.insert(schema.actionableItems).values([item]).returning();
     });
     
     queryCache.invalidate('actionable_items');
@@ -1173,7 +1173,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('updateActionableItem', async () => {
       return db
         .update(schema.actionableItems)
-        .set({ ...updates, updatedAt: new Date() })
+        .set(updates as any)
         .where(eq(schema.actionableItems.id, id))
         .returning();
     });
@@ -1294,7 +1294,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       () => db
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.invitedBy, userId))
+        .where(eq(schema.invitations.invitedByUserId, userId))
     );
   }
 
@@ -1320,7 +1320,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
     const result = await dbPerformanceMonitor.trackQuery('createInvitation', async () => {
-      return db.insert(schema.invitations).values(invitation).returning();
+      return db.insert(schema.invitations).values([invitation]).returning();
     });
     
     queryCache.invalidate('invitations');
@@ -1336,7 +1336,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('updateInvitation', async () => {
       return db
         .update(schema.invitations)
-        .set({ ...updates, updatedAt: new Date() })
+        .set(updates as any)
         .where(eq(schema.invitations.id, id))
         .returning();
     });
@@ -1372,18 +1372,14 @@ export class OptimizedDatabaseStorage implements IStorage {
         email: invitation.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        passwordHash: userData.password, // This should be hashed
+        password: userData.password, // This should be hashed
         role: invitation.role,
-        organizationId: invitation.organizationId,
-        isActive: true,
       });
 
       // Update invitation
       const updatedInvitation = await this.updateInvitation(invitation.id, {
         status: 'accepted',
         acceptedAt: new Date(),
-        acceptedIpAddress: ipAddress || null,
-        acceptedUserAgent: userAgent || null,
       });
 
       return { user, invitation: updatedInvitation! };

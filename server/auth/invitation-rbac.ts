@@ -538,16 +538,16 @@ export async function createEnhancedInvitationAuditLog(
     };
 
     // Create audit log entry
-    await db.insert(schema.invitationAuditLog).values({
+    await db.insert(schema.invitationAuditLog).values([{
       invitationId,
       action,
       performedBy,
       ipAddress,
       userAgent,
       details: enhancedDetails,
-      previousStatus: previousStatus as string | undefined,
-      newStatus: newStatus as string | undefined
-    });
+      previousStatus: previousStatus as any,
+      newStatus: newStatus as any
+    }]);
 
     // Log to console for immediate visibility
     console.warn(`📋 INVITATION AUDIT: ${action}`, {
