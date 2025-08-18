@@ -22,7 +22,10 @@ export function registerBuildingRoutes(app: Express): void {
    */
   app.get('/api/manager/buildings', requireAuth, async (req: any, res) => {
     try {
-      const currentUser = req.user;
+      // Get user from session (requireAuth middleware ensures this exists)
+      const currentUser = req.session.user;
+      
+      console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
       
       if (!currentUser) {
         return res.status(401).json({
