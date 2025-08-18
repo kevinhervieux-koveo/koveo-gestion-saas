@@ -39,13 +39,15 @@ export default function Buildings() {
 
   // Fetch buildings data
   const { 
-    data: buildings, 
+    data: buildingsResponse, 
     isLoading, 
     error 
-  } = useQuery<BuildingData[]>({
+  } = useQuery<{buildings: BuildingData[]}>({
     queryKey: ['/api/manager/buildings'],
     enabled: isAuthenticated && hasRoleOrHigher(user?.role, 'manager'),
   });
+
+  const buildings = buildingsResponse?.buildings || [];
 
   // Show access denied for residents and tenants
   if (isAuthenticated && !hasRoleOrHigher(user?.role, 'manager')) {
