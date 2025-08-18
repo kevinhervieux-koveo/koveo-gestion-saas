@@ -1,0 +1,57 @@
+queryClient.ts:32 
+ GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+apiRequest	@	queryClient.ts:32
+queryFn	@	use-auth.tsx:43
+fetchFn	@	@tanstack_react-query.js?v=e022a0b4:852
+run	@	@tanstack_react-query.js?v=e022a0b4:491
+start	@	@tanstack_react-query.js?v=e022a0b4:533
+fetch	@	@tanstack_react-query.js?v=e022a0b4:891
+#executeFetch	@	@tanstack_react-query.js?v=e022a0b4:2042
+onSubscribe	@	@tanstack_react-query.js?v=e022a0b4:1925
+subscribe	@	@tanstack_react-query.js?v=e022a0b4:19
+(anonymous)	@	@tanstack_react-query.js?v=e022a0b4:3084
+subscribeToStore	@	react-dom_client.js?v=e022a0b4:4638
+react_stack_bottom_frame	@	react-dom_client.js?v=e022a0b4:17486
+runWithFiberInDEV	@	react-dom_client.js?v=e022a0b4:1485
+commitHookEffectListMount	@	react-dom_client.js?v=e022a0b4:8460
+commitHookPassiveMountEffects	@	react-dom_client.js?v=e022a0b4:8518
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9887
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9984
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9881
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9984
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9881
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9881
+recursivelyTraversePassiveMountEffects	@	react-dom_client.js?v=e022a0b4:9868
+commitPassiveMountOnFiber	@	react-dom_client.js?v=e022a0b4:9899
+flushPassiveEffects	@	react-dom_client.js?v=e022a0b4:11302
+flushPendingEffects	@	react-dom_client.js?v=e022a0b4:11276
+performSyncWorkOnRoot	@	react-dom_client.js?v=e022a0b4:11632
+flushSyncWorkAcrossRoots_impl	@	react-dom_client.js?v=e022a0b4:11536
+flushSpawnedWork	@	react-dom_client.js?v=e022a0b4:11254
+commitRoot	@	react-dom_client.js?v=e022a0b4:11081
+commitRootWhenReady	@	react-dom_client.js?v=e022a0b4:10512
+performWorkOnRoot	@	react-dom_client.js?v=e022a0b4:10457
+performWorkOnRootViaSchedulerTask	@	react-dom_client.js?v=e022a0b4:11623
+performWorkUntilDeadline	@	react-dom_client.js?v=e022a0b4:36
+<AuthProvider>		
+exports.jsxDEV	@	react_jsx-dev-runtime.js?v=e022a0b4:250
+App	@	App.tsx:284
+react_stack_bottom_frame	@	react-dom_client.js?v=e022a0b4:17424
+renderWithHooks	@	react-dom_client.js?v=e022a0b4:4206
+updateFunctionComponent	@	react-dom_client.js?v=e022a0b4:6619
+beginWork	@	react-dom_client.js?v=e022a0b4:7654
+runWithFiberInDEV	@	react-dom_client.js?v=e022a0b4:1485
+performUnitOfWork	@	react-dom_client.js?v=e022a0b4:10868
+workLoopSync	@	react-dom_client.js?v=e022a0b4:10728
+renderRootSync	@	react-dom_client.js?v=e022a0b4:10711
+performWorkOnRoot	@	react-dom_client.js?v=e022a0b4:10330
+performWorkOnRootViaSchedulerTask	@	react-dom_client.js?v=e022a0b4:11623
+performWorkUntilDeadline	@	react-dom_client.js?v=e022a0b4:36
+<App>		
+exports.jsxDEV	@	react_jsx-dev-runtime.js?v=e022a0b4:250
+(anonymous)	@	main.tsx:5

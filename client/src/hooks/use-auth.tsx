@@ -40,9 +40,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryKey: ['/api/auth/user'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('GET', '/api/auth/user');
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include',
+        });
+        
+        if (response.status === 401) {
+          return null; // Not authenticated, which is normal for public pages
+        }
+        
+        if (!response.ok) {
+          throw new Error(`${response.status}: ${response.statusText}`);
+        }
+        
         return await response.json() as User;
-      } catch {
+      } catch (error) {
+        console.debug('Auth check failed (this is normal for public pages):', error);
         return null;
       }
     },
