@@ -110,67 +110,144 @@ export default function Dashboard() {
   const welcome = getWelcomeMessage();
 
   return (
-    <div className="min-h-screen" style={{background: 'linear-gradient(to bottom right, #dbeafe, #f3f4f6)', minHeight: '100vh'}}>
+    <div style={{
+      background: 'linear-gradient(to bottom right, #dbeafe, #f3f4f6)', 
+      minHeight: '100vh',
+      width: '100%',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
       <Header 
         title={welcome.title}
         subtitle={welcome.subtitle}
       />
 
-      <div className="container mx-auto px-6 py-8" style={{maxWidth: '1280px', margin: '0 auto', padding: '2rem'}}>
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div style={{maxWidth: '1280px', margin: '0 auto', padding: '2rem'}}>
+        <div style={{maxWidth: '80rem', margin: '0 auto'}}>
           
           {/* Welcome Card with User Info */}
-          <Card style={{background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', borderRadius: '0.75rem', overflow: 'hidden'}}>
-            <CardContent className="p-6" style={{padding: '1.5rem'}}>
-              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                <div>
-                  <h2 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'white'}}>{welcome.title}</h2>
-                  <p style={{color: '#dbeafe', marginBottom: '1rem'}}>{welcome.subtitle}</p>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem'}}>
-                    <Badge variant="secondary" style={{background: 'rgba(255,255,255,0.2)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.375rem'}}>
-                      {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-                    </Badge>
-                    <span style={{color: '#dbeafe'}}>
-                      {user?.email}
-                    </span>
-                  </div>
-                </div>
-                <div className="hidden md:block">
-                  <Home className="w-16 h-16" style={{width: '4rem', height: '4rem', color: '#93c5fd'}} />
+          <div style={{
+            background: 'linear-gradient(to right, #3b82f6, #2563eb)', 
+            color: 'white', 
+            borderRadius: '0.75rem', 
+            overflow: 'hidden',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+              <div>
+                <h2 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'white'}}>{welcome.title}</h2>
+                <p style={{color: '#dbeafe', marginBottom: '1rem'}}>{welcome.subtitle}</p>
+                <div style={{display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem'}}>
+                  <span style={{
+                    background: 'rgba(255,255,255,0.2)', 
+                    color: 'white', 
+                    padding: '0.25rem 0.75rem', 
+                    borderRadius: '0.375rem',
+                    fontWeight: 500
+                  }}>
+                    {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                  </span>
+                  <span style={{color: '#dbeafe'}}>
+                    {user?.email}
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div style={{display: 'none'}}>
+                <Home style={{width: '4rem', height: '4rem', color: '#93c5fd'}} />
+              </div>
+            </div>
+          </div>
 
           {/* Quick Actions Grid */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <TrendingUp className='w-5 h-5' />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4'>
-                {roleActions.map((action, index) => {
-                  const Icon = action.icon;
-                  return (
-                    <Link key={index} href={action.href}>
-                      <Button 
-                        variant='outline' 
-                        className='h-auto p-4 flex flex-col space-y-2 group hover:shadow-md transition-all duration-200'
-                      >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform`}>
-                          <Icon className='w-5 h-5' />
-                        </div>
-                        <span className="text-xs font-medium text-center">{action.label}</span>
-                      </Button>
-                    </Link>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          <div style={{
+            background: 'white',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '1rem',
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              color: '#1f2937'
+            }}>
+              <TrendingUp style={{width: '1.25rem', height: '1.25rem'}} />
+              Quick Actions
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '1rem'
+            }}>
+              {roleActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Link key={index} href={action.href}>
+                    <div style={{
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      padding: '1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      background: 'white'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}>
+                      <div style={{
+                        width: '2.5rem',
+                        height: '2.5rem',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: action.color.includes('blue') ? '#dbeafe' : 
+                                   action.color.includes('green') ? '#d1fae5' :
+                                   action.color.includes('purple') ? '#e9d5ff' :
+                                   action.color.includes('orange') ? '#fed7aa' :
+                                   action.color.includes('yellow') ? '#fef3c7' :
+                                   action.color.includes('indigo') ? '#e0e7ff' :
+                                   action.color.includes('cyan') ? '#cffafe' :
+                                   action.color.includes('emerald') ? '#d1fae5' :
+                                   '#f3f4f6',
+                        color: action.color.includes('blue') ? '#2563eb' : 
+                               action.color.includes('green') ? '#059669' :
+                               action.color.includes('purple') ? '#7c3aed' :
+                               action.color.includes('orange') ? '#ea580c' :
+                               action.color.includes('yellow') ? '#d97706' :
+                               action.color.includes('indigo') ? '#4f46e5' :
+                               action.color.includes('cyan') ? '#0891b2' :
+                               action.color.includes('emerald') ? '#059669' :
+                               '#4b5563'
+                      }}>
+                        <Icon style={{width: '1.25rem', height: '1.25rem'}} />
+                      </div>
+                      <span style={{fontSize: '0.75rem', fontWeight: 500, textAlign: 'center', color: '#374151'}}>
+                        {action.label}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Recent Activity & System Status */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>

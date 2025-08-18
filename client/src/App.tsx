@@ -133,7 +133,7 @@ const HomePage = createOptimizedLoader(
 
 // Main Dashboard page
 const DashboardPage = createOptimizedLoader(
-  () => import('@/pages/dashboard'),
+  () => import('@/pages/dashboard-simple'),
   'dashboard-page',
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
