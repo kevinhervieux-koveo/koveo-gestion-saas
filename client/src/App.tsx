@@ -6,7 +6,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-
 import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
@@ -33,11 +32,7 @@ export const useMobileMenu = () => {
 };
 
 // Optimized lazy-loaded Admin pages
-const AdminOrganizations = createOptimizedLoader(
-  () => import('@/pages/admin/organizations'),
-  'admin-organizations',
-  { preloadDelay: 300, enableMemoryCleanup: true }
-);
+const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
 const AdminDocumentation = createOptimizedLoader(
   () => import('@/pages/admin/documentation'),
   'admin-documentation',
@@ -48,16 +43,8 @@ const AdminPillars = createOptimizedLoader(
   'admin-pillars',
   { enableMemoryCleanup: true }
 );
-const AdminRoadmap = createOptimizedLoader(
-  () => import('@/pages/admin/roadmap'),
-  'admin-roadmap',
-  { enableMemoryCleanup: true }
-);
-const AdminQuality = createOptimizedLoader(
-  () => import('@/pages/admin/quality'),
-  'admin-quality',
-  { enableMemoryCleanup: true }
-);
+const AdminRoadmap = optimizedPageLoaders.AdminRoadmap;
+const AdminQuality = optimizedPageLoaders.AdminQuality;
 const AdminSuggestions = createOptimizedLoader(
   () => import('@/pages/admin/suggestions'),
   'admin-suggestions',
@@ -99,11 +86,7 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-const ResidentsDemands = createOptimizedLoader(
-  () => import('@/pages/residents/demands'),
-  'residents-demands',
-  { enableMemoryCleanup: true }
-);
+const ResidentsDemands = ManagerDemands; // Reuse manager demands for residents
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
@@ -151,13 +134,6 @@ const DashboardPage = createOptimizedLoader(
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
-// Test styling page
-const TestStylingPage = createOptimizedLoader(
-  () => import('@/pages/test-styling'),
-  'test-styling-page',
-  { preloadDelay: 100, enableMemoryCleanup: true }
-);
-
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
@@ -176,13 +152,6 @@ function Router() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  console.log('Router: isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'location:', location);
-  
-  // Add more detailed logging to track the location change issue
-  useEffect(() => {
-    console.log('Router location changed to:', location);
-  }, [location]);
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -192,7 +161,6 @@ function Router() {
   };
 
   if (isLoading) {
-    console.log('Router: showing loading spinner due to isLoading');
     return <LoadingSpinner />;
   }
 
@@ -202,25 +170,22 @@ function Router() {
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
-      <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Switch>
-              <Route path="/" component={HomePage} />
-              <Route path="/login" component={LoginPage} />
-              <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-              {/* Redirect all other routes to login for unauthenticated users */}
-              <Route component={LoginRedirect} />
-            </Switch>
-          </Suspense>
-      </div>
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+          {/* Redirect all other routes to home for unauthenticated users */}
+          <Route component={HomeRedirect} />
+        </Switch>
+      </Suspense>
     );
   }
   
   if (isHomePage) {
-    // Redirect authenticated users to dashboard instead of showing home page
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <DashboardRedirect />
+        <HomePage />
       </Suspense>
     );
   }
@@ -233,7 +198,7 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
+      <div className='h-full flex bg-gray-50 font-inter'>
         {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
@@ -251,7 +216,13 @@ function Router() {
         <div className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
-              {/* Admin routes FIRST - to prevent dashboard redirects */}
+              {/* Login page - redirect authenticated users to dashboard */}
+              <Route path='/login' component={LoginRedirect} />
+
+              {/* Main Dashboard */}
+              <Route path='/dashboard' component={DashboardPage} />
+
+              {/* Admin routes */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
               <Route path='/admin/documentation' component={AdminDocumentation} />
               <Route path='/admin/pillars' component={AdminPillars} />
@@ -259,28 +230,6 @@ function Router() {
               <Route path='/admin/quality' component={AdminQuality} />
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
-
-              {/* Login page - redirect authenticated users to dashboard */}
-              <Route path='/login' component={LoginRedirect} />
-
-              {/* Main Dashboard - redirect admin users to organizations */}
-              <Route path='/dashboard'>
-                {() => {
-                  const { user } = useAuth();
-                  const [, setLocation] = useLocation();
-                  
-                  useEffect(() => {
-                    if (user?.role === 'admin') {
-                      setLocation('/admin/organizations');
-                    }
-                  }, [user, setLocation]);
-                  
-                  return <DashboardPage />;
-                }}
-              </Route>
-              
-              {/* Test styling page */}
-              <Route path='/test-styling' component={TestStylingPage} />
 
               {/* Owner routes removed - documentation consolidated under admin section */}
 
@@ -317,26 +266,11 @@ function Router() {
 }
 
 /**
- * Login redirect component for unauthenticated users.
- * Redirects unauthenticated users to login page.
+ * Login redirect component for authenticated users.
+ * Redirects authenticated users from login page to dashboard.
  * @returns JSX element that shows loading while redirecting.
  */
 function LoginRedirect() {
-  const [, setLocation] = useLocation();
-  
-  useEffect(() => {
-    setLocation('/login');
-  }, [setLocation]);
-  
-  return <LoadingSpinner />;
-}
-
-/**
- * Dashboard redirect component for authenticated users.
- * Redirects authenticated users from home page to dashboard.
- * @returns JSX element that shows loading while redirecting.
- */
-function DashboardRedirect() {
   const [, setLocation] = useLocation();
   
   useEffect(() => {
@@ -369,37 +303,25 @@ function HomeRedirect() {
 function App() {
   // Initialize memory monitoring on app start
   useEffect(() => {
-    try {
-      memoryOptimizer.start();
-    } catch (error) {
-      console.log('Memory optimizer failed to start:', error);
-    }
+    memoryOptimizer.start();
     
     // Cleanup on unmount
     return () => {
-      try {
-        memoryOptimizer.stop();
-      } catch (error) {
-        console.log('Memory optimizer failed to stop:', error);
-      }
+      memoryOptimizer.stop();
     };
   }, []);
 
-  console.log('App component rendering...');
-
   return (
-    <div style={{ minHeight: '100vh', background: '#ffffff' }}>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 }
 

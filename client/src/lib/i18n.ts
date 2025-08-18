@@ -143,7 +143,7 @@ export interface Translations {
   activeUsers: string;
   pendingInvitations: string;
   totalInvitations: string;
-
+  userManagement: string;
   manageUsersInvitationsRoles: string;
   searchUsersInvitations: string;
   filterByRole: string;
@@ -350,7 +350,7 @@ const translations: Record<Language, Translations> = {
     activeUsers: 'Active Users',
     pendingInvitations: 'Pending Invitations',
     totalInvitations: 'Total Invitations',
-
+    userManagement: 'User Management',
     manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
     searchUsersInvitations: 'Search users and invitations...',
     filterByRole: 'Filter by role',
@@ -556,7 +556,7 @@ const translations: Record<Language, Translations> = {
     activeUsers: 'Utilisateurs actifs',
     pendingInvitations: 'Invitations en attente',
     totalInvitations: 'Total des invitations',
-
+    userManagement: 'Gestion des utilisateurs',
     manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
     searchUsersInvitations: 'Rechercher utilisateurs et invitations...',
     filterByRole: 'Filtrer par rôle',
