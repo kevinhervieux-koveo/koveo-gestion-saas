@@ -9,8 +9,7 @@ import {
   users
 } from '@shared/schema';
 import { eq, and, or, inArray, sql } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth';
-import { authorize } from '../middleware/authorize';
+import { requireAuth } from '../middleware/auth-middleware';
 
 export function registerBuildingRoutes(app: Express): void {
   /**

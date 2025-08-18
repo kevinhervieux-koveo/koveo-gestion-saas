@@ -4,6 +4,7 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
+import { registerBuildingRoutes } from './api/buildings';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -127,6 +128,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ User routes registered');
   } catch (error) {
     log(`❌ User routes failed: ${error}`, 'error');
+  }
+  
+  // Register building API routes
+  try {
+    registerBuildingRoutes(app);
+    log('✅ Building routes registered');
+  } catch (error) {
+    log(`❌ Building routes failed: ${error}`, 'error');
   }
   
   // Register invitation routes
