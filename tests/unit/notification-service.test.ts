@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { NotificationService } from '../../server/services/notification_service';
 import { db } from '../../server/db';
-import { notifications, users } from '@shared/schema';
+import { notifications } from '@shared/schema';
 
 // Mock database functions
 const mockSelect = jest.fn();
@@ -24,7 +24,7 @@ describe('Notification Service', () => {
 
   beforeEach(() => {
     notificationService = new NotificationService();
-    mockDb = db as any;
+    mockDb = db as typeof db;
     
     // Setup the mock functions
     mockDb.select = mockSelect;
@@ -116,7 +116,7 @@ describe('Notification Service', () => {
       // Override the mock to return empty array
       mockWhere.mockResolvedValue([]);
       
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       
       const expiryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
       await notificationService.sendSSLExpiryAlert('test.example.com', expiryDate, 5);
@@ -284,7 +284,7 @@ describe('Notification Service', () => {
         throw new Error('Database error');
       });
       
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
       
       const count = await notificationService.getUnreadSSLNotificationCount('user-789');
       
