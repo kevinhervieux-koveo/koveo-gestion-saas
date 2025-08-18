@@ -35,9 +35,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
 
-  // Query to get current user
+  // Check if we're on a public page that doesn't need auth
+  const isPublicPage = window.location.pathname.includes('/register') || 
+                       window.location.pathname.includes('/login') ||
+                       window.location.pathname === '/';
+
+  // Query to get current user (disabled for public pages)
   const { data: userData, isLoading } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
+    enabled: !isPublicPage, // Only run auth query on protected pages
     queryFn: async () => {
       try {
         const response = await fetch('/api/auth/user', {
@@ -45,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         
         if (response.status === 401) {
-          return null; // Not authenticated, which is normal for public pages
+          return null; // Not authenticated
         }
         
         if (!response.ok) {
@@ -54,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         return await response.json() as User;
       } catch (error) {
-        console.debug('Auth check failed (this is normal for public pages):', error);
+        console.debug('Auth check failed:', error);
         return null;
       }
     },
