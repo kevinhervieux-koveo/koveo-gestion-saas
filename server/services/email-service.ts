@@ -216,9 +216,15 @@ export class EmailService {
       });
 
       console.log(`✅ ${type} email sent successfully to ${to}`);
+      console.log(`📧 Email details: From: ${this.fromAddress}, Subject: ${subject}`);
       return true;
     } catch (_error) {
       console.error(`❌ Failed to send ${type} email to ${to}:`, _error);
+      console.error('❌ SendGrid Error Details:', {
+        message: _error?.message,
+        code: _error?.code,
+        response: _error?.response?.body
+      });
       return false;
     }
   }
