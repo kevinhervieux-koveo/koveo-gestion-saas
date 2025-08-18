@@ -1,7 +1,7 @@
 import { useLanguage } from '@/hooks/use-language';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMobileMenu } from '@/App';
+import { useMobileMenu } from '@/hooks/use-mobile-menu';
 
 /**
  * Props for the Header component.
@@ -41,9 +41,6 @@ export function Header({ title, subtitle }: HeaderProps) {
   // Access mobile menu context
   const mobileMenu = useMobileMenu();
   const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
-  
-  // Temporary debug log
-  console.log('Mobile menu context:', mobileMenu);
   
   const handleMobileMenuClick = () => {
     if (toggleMobileMenu) {

@@ -6,27 +6,12 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { Suspense, useEffect, useState, createContext, useContext } from 'react';
+import { Suspense, useEffect } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 
-// Mobile menu context
-/**
- *
- */
-interface MobileMenuContextType {
-  isMobileMenuOpen: boolean;
-  toggleMobileMenu: () => void;
-  closeMobileMenu: () => void;
-}
-
-const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undefined);
-
-export const useMobileMenu = () => {
-  const context = useContext(MobileMenuContext);
-  return context;
-};
+import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -152,15 +137,6 @@ const InvitationAcceptancePage = createOptimizedLoader(
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -169,54 +145,40 @@ function Router() {
   // Home page and public routes - always without sidebar
   const isHomePage = location === '/';
   
-  const mobileMenuContext = {
-    isMobileMenuOpen,
-    toggleMobileMenu,
-    closeMobileMenu,
-  };
-
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
-      <MobileMenuContext.Provider value={mobileMenuContext}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/login" component={LoginPage} />
-            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-            {/* Redirect all other routes to home for unauthenticated users */}
-            <Route component={HomeRedirect} />
-          </Switch>
-        </Suspense>
-      </MobileMenuContext.Provider>
+      <Suspense fallback={<LoadingSpinner />}>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+          {/* Redirect all other routes to home for unauthenticated users */}
+          <Route component={HomeRedirect} />
+        </Switch>
+      </Suspense>
     );
   }
   
   if (isHomePage) {
     return (
-      <MobileMenuContext.Provider value={mobileMenuContext}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <HomePage />
-        </Suspense>
-      </MobileMenuContext.Provider>
+      <Suspense fallback={<LoadingSpinner />}>
+        <HomePage />
+      </Suspense>
     );
   }
 
   return (
-    <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter'>
-        {/* Desktop sidebar - always visible on desktop */}
-        <div className="hidden md:block">
-          <Sidebar />
-        </div>
-        
-        {/* Mobile sidebar overlay - only visible when mobile menu is open */}
-        <div className="md:hidden">
-          <Sidebar 
-            isMobileMenuOpen={isMobileMenuOpen}
-            onMobileMenuClose={closeMobileMenu}
-          />
-        </div>
+    <div className='h-full flex bg-gray-50 font-inter'>
+      {/* Desktop sidebar - always visible on desktop */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Mobile sidebar overlay - only visible when mobile menu is open */}
+      <div className="md:hidden">
+        <Sidebar />
+      </div>
         
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -264,9 +226,8 @@ function Router() {
               <Route component={NotFound} />
             </Switch>
           </Suspense>
-        </div>
       </div>
-    </MobileMenuContext.Provider>
+    </div>
   );
 }
 
@@ -320,10 +281,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <MobileMenuProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </MobileMenuProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>

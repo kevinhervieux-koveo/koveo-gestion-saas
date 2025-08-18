@@ -14,21 +14,13 @@ import { Button } from '@/components/ui/button';
 // import koveoLogo from '@assets/Koveo_logo (1)_1755288554223.jpg';
 import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
 
-/**
- * Props for the Sidebar component.
- */
-interface SidebarProps {
-  isMobileMenuOpen?: boolean;
-  onMobileMenuClose?: () => void;
-}
+import { useMobileMenu } from '@/hooks/use-mobile-menu';
 
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
- * @param root0 - Component props
- * @param root0.isMobileMenuOpen - Mobile menu open state
- * @param root0.onMobileMenuClose - Callback to close mobile menu
  */
-export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: SidebarProps = {}) {
+export function Sidebar() {
+  const { isMobileMenuOpen, closeMobileMenu } = useMobileMenu();
   const [location] = useLocation();
   const { t } = useLanguage();
   const { logout, user } = useAuth();
@@ -36,16 +28,16 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
 
   // Close mobile menu when clicking on navigation items
   const handleNavItemClick = () => {
-    if (onMobileMenuClose) {
-      onMobileMenuClose();
+    if (closeMobileMenu) {
+      closeMobileMenu();
     }
   };
 
   // Close mobile menu on escape key press
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileMenuOpen && onMobileMenuClose) {
-        onMobileMenuClose();
+      if (e.key === 'Escape' && isMobileMenuOpen && closeMobileMenu) {
+        closeMobileMenu();
       }
     };
 
@@ -61,7 +53,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isMobileMenuOpen, onMobileMenuClose]);
+  }, [isMobileMenuOpen, closeMobileMenu]);
 
   const toggleMenu = (menuName: string) => {
     setExpandedMenus((prev) =>
@@ -142,7 +134,7 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
       {isMobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={onMobileMenuClose}
+          onClick={closeMobileMenu}
         />
       )}
       
@@ -163,17 +155,15 @@ export function Sidebar({ isMobileMenuOpen = false, onMobileMenuClose }: Sidebar
             </Link>
           </div>
           {/* Mobile close button */}
-          {onMobileMenuClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={onMobileMenuClose}
-              aria-label="Close navigation menu"
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={closeMobileMenu}
+            aria-label="Close navigation menu"
+          >
+            <X className="h-6 w-6" />
+          </Button>
         </div>
       </div>
 
