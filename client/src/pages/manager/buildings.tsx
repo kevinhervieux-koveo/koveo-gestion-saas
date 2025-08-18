@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Building, Plus, Settings, Search, MapPin, Calendar, Users, Car, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+// Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
 
 interface BuildingData {
@@ -80,7 +80,7 @@ export default function Buildings() {
           <div className='max-w-7xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
-                <LoadingSpinner size="lg" />
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
                 <p className='text-gray-500 mt-4'>Loading buildings...</p>
               </CardContent>
             </Card>
