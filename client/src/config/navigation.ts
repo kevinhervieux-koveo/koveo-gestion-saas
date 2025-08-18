@@ -66,6 +66,16 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
   },
 
   {
+    name: 'Management',
+    key: 'management',
+    icon: ShieldCheck,
+    requiredRole: 'manager',
+    items: [
+      { name: 'User Management', href: '/management/user-management', icon: Users },
+    ],
+  },
+
+  {
     name: 'Admin',
     key: 'admin',
     icon: User,
