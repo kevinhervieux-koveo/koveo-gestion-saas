@@ -141,6 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Validate request data
           const validation = insertInvitationSchema.safeParse(invitationData);
           if (!validation.success) {
+            console.error('❌ Validation failed:', validation.error.issues);
+            console.error('📝 Raw input data:', invitationData);
             return res.status(400).json({
               message: 'Invalid invitation data',
               errors: validation.error.issues

@@ -1926,8 +1926,8 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   email: z.string().email('Invalid email address'),
   // Make organizationId required
   organizationId: z.string().uuid('Organization is required'),
-  buildingId: z.string().uuid().optional().or(z.literal('none').transform(() => undefined)),
-  residenceId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional().or(z.literal('none')),
+  residenceId: z.string().uuid().optional().or(z.literal('').transform(() => undefined)),
   // Make other optional fields truly optional
   personalMessage: z.string().optional(),
   invitationContext: z.record(z.string(), z.unknown()).optional(),
