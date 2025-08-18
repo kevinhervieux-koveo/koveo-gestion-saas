@@ -2,6 +2,8 @@ import type { Express } from 'express';
 import { createServer, type Server } from 'http';
 import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } from './auth';
 import { registerPermissionsRoutes } from './api/permissions';
+import { registerOrganizationRoutes } from './api/organizations';
+import { registerUserRoutes } from './api/users';
 import { log } from './vite';
 
 /**
@@ -31,6 +33,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Permissions routes registered');
   } catch (error) {
     log(`❌ Permissions routes failed: ${error}`, 'error');
+  }
+  
+  // Register organization API routes
+  try {
+    registerOrganizationRoutes(app);
+    log('✅ Organization routes registered');
+  } catch (error) {
+    log(`❌ Organization routes failed: ${error}`, 'error');
+  }
+  
+  // Register user API routes
+  try {
+    registerUserRoutes(app);
+    log('✅ User routes registered');
+  } catch (error) {
+    log(`❌ User routes failed: ${error}`, 'error');
   }
   
   // Test route
