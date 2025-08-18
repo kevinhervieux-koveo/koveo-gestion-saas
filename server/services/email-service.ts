@@ -57,7 +57,7 @@ export class EmailService {
    */
   constructor() {
     this.mailService = new MailService();
-    this.baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    this.baseUrl = process.env.BASE_URL || 'https://koveo-gestion.com';
     this.fromAddress = process.env.EMAIL_FROM || 'kevin.hervieux@koveo-gestion.com';
     this.initializeTemplates();
     
@@ -213,10 +213,21 @@ export class EmailService {
         subject,
         html,
         text,
+        replyTo: {
+          name: 'Kevin Hervieux',
+          email: 'kevin.hervieux@koveo-gestion.com',
+        },
         headers: {
           'List-Unsubscribe': `<${this.baseUrl}/api/email/unsubscribe?token=${data.unsubscribeToken}&email=${encodeURIComponent(to)}>`,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          'X-Mailer': 'Koveo Gestion Platform',
+          'X-Priority': '3',
         },
+        categories: ['invitation', 'user-management'],
+        customArgs: {
+          'invitation_type': type,
+          'organization': data.organizationName || 'unknown'
+        }
       });
 
       console.log(`✅ ${type} email sent successfully to ${to}`);

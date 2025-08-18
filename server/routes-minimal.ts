@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(201).json({
             invitation: safeInvitation,
             message: 'Invitation created successfully',
-            invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`
+            invitationUrl: `https://koveo-gestion.com/accept-invitation?token=${token}`
           });
           
         } catch (error) {
