@@ -584,7 +584,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <option value="">{"Select building"}</option>
-                            <option value="">{"No specific building"}</option>
+                            <option value="none">{"No specific building"}</option>
                             {getFilteredBuildings(singleForm.watch('organizationId')).map((building) => (
                               <option key={building.id} value={building.id}>
                                 {building.name} - {building.address}
@@ -598,7 +598,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   />
                 )}
 
-                {['tenant', 'resident'].includes(singleForm.watch('role')) && singleForm.watch('buildingId') && (
+                {['tenant', 'resident'].includes(singleForm.watch('role')) && singleForm.watch('buildingId') && singleForm.watch('buildingId') !== 'none' && (
                   <FormField
                     control={singleForm.control}
                     name="residenceId"
@@ -850,7 +850,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <option value="">{"Select building"}</option>
-                            <option value="">{"No specific building"}</option>
+                            <option value="none">{"No specific building"}</option>
                             {getFilteredBuildings(bulkForm.watch('organizationId')).map((building) => (
                               <option key={building.id} value={building.id}>
                                 {building.name} - {building.address}
@@ -864,7 +864,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   />
                 )}
 
-                {['tenant', 'resident'].includes(bulkForm.watch('role')) && bulkForm.watch('buildingId') && (
+                {['tenant', 'resident'].includes(bulkForm.watch('role')) && bulkForm.watch('buildingId') && bulkForm.watch('buildingId') !== 'none' && (
                   <FormField
                     control={bulkForm.control}
                     name="residenceId"

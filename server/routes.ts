@@ -2487,15 +2487,18 @@ function registerInvitationRoutes(app: any) {
 
         // Validate residence assignment for tenants and residents
         if (['tenant', 'resident'].includes(role as string)) {
-          if (!residenceId) {
+          // Only require residence if a specific building is selected
+          if (buildingId && buildingId !== 'none' && !residenceId) {
             return res.status(400).json({
-              message: 'Residence must be assigned for tenants and residents',
+              message: 'Residence must be assigned for tenants and residents when a building is selected',
               code: 'RESIDENCE_REQUIRED'
             });
           }
 
-          // Verify residence belongs to the specified building/organization
-          const residenceQuery = await db.select({
+          // Only validate residence if one was provided
+          if (residenceId) {
+            // Verify residence belongs to the specified building/organization
+            const residenceQuery = await db.select({
             id: residences.id,
             buildingId: residences.buildingId,
             building: {
@@ -2528,6 +2531,7 @@ function registerInvitationRoutes(app: any) {
               message: 'Residence does not belong to the selected building',
               code: 'RESIDENCE_BUILDING_MISMATCH'
             });
+          }
           }
         }
         
@@ -3350,7 +3354,61 @@ function registerInvitationRoutes(app: any) {
             continue;
           }
 
-          const { role, organizationId } = validation.data;
+          const { role, organizationId, buildingId, residenceId } = validation.data;
+
+          // Validate residence assignment for tenants and residents
+          if (['tenant', 'resident'].includes(role as string)) {
+            // Only require residence if a specific building is selected
+            if (buildingId && buildingId !== 'none' && !residenceId) {
+              errors.push({
+                email: invitation.email,
+                error: 'Residence must be assigned for tenants and residents when a building is selected'
+              });
+              continue;
+            }
+
+            // Only validate residence if one was provided
+            if (residenceId) {
+              // Verify residence belongs to the specified building/organization
+              const residenceQuery = await db.select({
+                id: residences.id,
+                buildingId: residences.buildingId,
+                building: {
+                  id: buildings.id,
+                  organizationId: buildings.organizationId
+                }
+              })
+              .from(residences)
+              .leftJoin(buildings, eq(residences.buildingId, buildings.id))
+              .where(eq(residences.id, residenceId))
+              .limit(1);
+
+              if (residenceQuery.length === 0) {
+                errors.push({
+                  email: invitation.email,
+                  error: 'Invalid residence selected'
+                });
+                continue;
+              }
+
+              const residence = residenceQuery[0];
+              if (residence.building?.organizationId !== organizationId) {
+                errors.push({
+                  email: invitation.email,
+                  error: 'Residence does not belong to the selected organization'
+                });
+                continue;
+              }
+
+              if (buildingId && residence.buildingId !== buildingId) {
+                errors.push({
+                  email: invitation.email,
+                  error: 'Residence does not belong to the selected building'
+                });
+                continue;
+              }
+            }
+          }
 
           // Role-based access control for roles
           if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
