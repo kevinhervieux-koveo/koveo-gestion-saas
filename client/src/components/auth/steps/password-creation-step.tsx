@@ -58,7 +58,7 @@ export function PasswordCreationStep({
     setFormData(updatedData);
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData.password, formData.confirmPassword]);
+  }, [formData.password, formData.confirmPassword, onDataChange, onValidationChange]);
 
   const validateForm = () => {
     const passwordStrength = validatePasswordStrength(formData.password);

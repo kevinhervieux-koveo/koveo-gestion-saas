@@ -77,8 +77,8 @@ export class EmailService {
       this.mailService.setApiKey(apiKey);
       this.isInitialized = true;
       console.log('✅ SendGrid email service initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize SendGrid email service:', error);
+    } catch (_error) {
+      console.error('❌ Failed to initialize SendGrid email service:', _error);
       this.isInitialized = false;
     }
   }
@@ -209,8 +209,8 @@ export class EmailService {
 
       console.log(`✅ ${type} email sent successfully to ${to}`);
       return true;
-    } catch (error) {
-      console.error(`❌ Failed to send ${type} email to ${to}:`, error);
+    } catch (_error) {
+      console.error(`❌ Failed to send ${type} email to ${to}:`, _error);
       return false;
     }
   }

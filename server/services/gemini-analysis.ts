@@ -176,9 +176,9 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
     } else {
       throw new Error('Invalid response from Gemini');
     }
-  } catch (error) {
-    console.error('Error analyzing feature with Gemini:', error);
-    throw new Error(`Failed to analyze feature: ${error}`);
+  } catch (_error) {
+    console.error('Error analyzing feature with Gemini:', _error);
+    throw new Error(`Failed to analyze feature: ${_error}`);
   }
 }
 
