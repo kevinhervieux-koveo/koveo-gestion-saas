@@ -33,23 +33,30 @@ export function TopHeader() {
         gap: '0.75rem'
       }}>
         <img 
-          src="/assets/koveo-logo.jpg" 
-          alt="Koveo Logo"
+          src="/assets/koveo-logo-full.jpg" 
+          alt="Koveo Gestion Inc."
           style={{
             height: '40px',
             width: 'auto'
           }}
           onError={(e) => {
-            // Fallback to styled K if logo fails to load
-            e.currentTarget.style.display = 'none';
-            e.currentTarget.nextElementSibling.style.display = 'flex';
+            // Fallback to K logo if main logo fails to load
+            const target = e.currentTarget as HTMLImageElement;
+            target.src = '/assets/koveo-logo-k.jpg';
+            target.style.width = '40px';
+            target.onerror = () => {
+              // Final fallback to styled K
+              target.style.display = 'none';
+              const fallback = target.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            };
           }}
         />
-        {/* Fallback logo */}
+        {/* Final fallback logo */}
         <div style={{
           width: '40px',
           height: '40px',
-          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+          background: 'linear-gradient(135deg, #334155, #1e293b)',
           borderRadius: '8px',
           display: 'none',
           alignItems: 'center',
@@ -60,14 +67,6 @@ export function TopHeader() {
         }}>
           K
         </div>
-        <span style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: colors.gray[800],
-          letterSpacing: '-0.025em'
-        }}>
-          KOVEO
-        </span>
       </div>
 
       {/* Navigation and Auth */}

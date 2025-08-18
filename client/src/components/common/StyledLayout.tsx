@@ -47,7 +47,25 @@ export function StyledLayout({ children, currentPath }: StyledLayoutProps) {
       <div style={layout.sidebar}>
         {/* Logo */}
         <div style={logoStyle.container}>
-          <div style={logoStyle.icon}>K</div>
+          <img 
+            src="/assets/koveo-logo-k.jpg" 
+            alt="Koveo"
+            style={{
+              height: '32px',
+              width: '32px',
+              borderRadius: '6px'
+            }}
+            onError={(e) => {
+              // Fallback to styled K if logo fails to load
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          />
+          <div style={{
+            ...logoStyle.icon,
+            display: 'none'
+          }}>K</div>
           <span style={logoStyle.text}>KOVEO</span>
         </div>
 
