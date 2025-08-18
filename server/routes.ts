@@ -4078,6 +4078,9 @@ function registerInvitationRoutes(app: any) {
     }
   });
 
+  // Register invitation routes
+  registerInvitationRoutes(app);
+
   // Create and return HTTP server instance
   return createServer(app);
 }
