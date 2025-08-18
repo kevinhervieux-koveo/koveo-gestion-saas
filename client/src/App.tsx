@@ -203,8 +203,8 @@ function Router() {
               <Route path="/" component={HomePage} />
               <Route path="/login" component={LoginPage} />
               <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-              {/* Redirect all other routes to home for unauthenticated users */}
-              <Route component={HomeRedirect} />
+              {/* Redirect all other routes to login for unauthenticated users */}
+              <Route component={LoginRedirect} />
             </Switch>
           </Suspense>
       </div>
@@ -299,15 +299,15 @@ function Router() {
 }
 
 /**
- * Login redirect component for authenticated users.
- * Redirects authenticated users from login page to dashboard.
+ * Login redirect component for unauthenticated users.
+ * Redirects unauthenticated users to login page.
  * @returns JSX element that shows loading while redirecting.
  */
 function LoginRedirect() {
   const [, setLocation] = useLocation();
   
   useEffect(() => {
-    setLocation('/dashboard');
+    setLocation('/login');
   }, [setLocation]);
   
   return <LoadingSpinner />;
