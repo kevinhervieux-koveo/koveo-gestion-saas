@@ -214,13 +214,25 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch organizations (filtered by user access)
-  const { data: organizations } = useQuery<Organization[]>({
+  const { data: organizations, error: orgError, isLoading: orgLoading } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
+      console.log('Fetching organizations...');
       const response = await apiRequest('GET', '/api/users/me/organizations');
-      const data = await response.json();
-      console.log('Organizations fetched:', data);
-      return data;
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      const text = await response.text();
+      console.log('Raw response text:', text);
+      
+      try {
+        const data = JSON.parse(text);
+        console.log('Organizations parsed successfully:', data);
+        return data;
+      } catch (e) {
+        console.error('Failed to parse organizations JSON:', e);
+        console.error('Raw text was:', text);
+        throw new Error('Invalid JSON response');
+      }
     },
     enabled: open
   });

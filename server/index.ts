@@ -206,6 +206,48 @@ app.get('/api/features', async (req, res) => {
   }
 });
 
+// User organizations API route - Must be before Vite middleware
+app.get('/api/users/me/organizations', async (req, res) => {
+  try {
+    // Import session middleware and authentication
+    const { requireAuth } = await import('./auth');
+    const { getUserAccessibleOrganizations } = await import('./rbac');
+    const { Pool, neonConfig } = await import('@neondatabase/serverless');
+    const { drizzle } = await import('drizzle-orm/neon-serverless');
+    const { inArray } = await import('drizzle-orm');
+    const schema = await import('../shared/schema');
+    const ws = await import('ws');
+    
+    neonConfig.webSocketConstructor = ws.default;
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const db = drizzle({ client: pool, schema });
+    
+    // Check authentication
+    if (!req.session?.user) {
+      return res.status(401).json({ message: 'Authentication required', code: 'AUTH_REQUIRED' });
+    }
+    
+    const userId = req.session.user.id;
+    console.log('Getting accessible organizations for user:', userId);
+    
+    const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
+    console.log('Accessible org IDs:', accessibleOrgIds);
+    
+    const organizations = await db.query.organizations.findMany({
+      where: inArray(schema.organizations.id, accessibleOrgIds),
+      orderBy: [schema.organizations.name]
+    });
+    
+    console.log('Organizations found:', organizations.length, organizations.map(o => ({ id: o.id, name: o.name })));
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.json(organizations);
+  } catch (error) {
+    console.error('Error fetching user organizations:', error);
+    res.status(500).json({ message: 'Failed to fetch user organizations' });
+  }
+});
+
 // Feature status update route - Also placed here to bypass middleware issues
 app.post('/api/features/:id/update-status', async (req, res) => {
   try {
