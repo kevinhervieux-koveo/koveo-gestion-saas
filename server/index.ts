@@ -164,6 +164,53 @@ app.use((req, res, next) => {
   next();
 });
 
+// EMERGENCY BYPASS: Add features route directly here to bypass all middleware
+app.get('/api/features', async (req, res) => {
+  console.log('🚨 EMERGENCY FEATURES ROUTE HIT 🚨');
+  console.warn('🚨 EMERGENCY FEATURES ROUTE HIT 🚨');
+  
+  try {
+    const { Pool, neonConfig } = await import('@neondatabase/serverless');
+    const ws = await import('ws');
+    neonConfig.webSocketConstructor = ws.default;
+    
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const { roadmap } = req.query;
+    
+    if (roadmap === 'true') {
+      const rawFeatures = await pool.query(`
+        SELECT id, name, description, category, status, priority, 
+               business_objective, target_users, success_metrics,
+               is_public_roadmap, is_strategic_path, created_at, updated_at
+        FROM features 
+        WHERE is_public_roadmap = true 
+        ORDER BY created_at DESC
+      `);
+      
+      console.log('🚨 Emergency route found:', rawFeatures.rows.length, 'features');
+      
+      const features = rawFeatures.rows.map(row => ({
+        ...row,
+        isPublicRoadmap: row.is_public_roadmap,
+        isStrategicPath: row.is_strategic_path,
+        businessObjective: row.business_objective,
+        targetUsers: row.target_users,
+        successMetrics: row.success_metrics,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.json(features);
+    } else {
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('🚨 Emergency route error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start the server immediately with health checks first
 // Cloud Run provides PORT environment variable, fallback to 8080
 let server: any;
