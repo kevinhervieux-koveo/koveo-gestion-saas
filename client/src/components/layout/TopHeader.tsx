@@ -28,12 +28,17 @@ export function TopHeader() {
     }}>
       {/* Logo */}
       <Link href="/">
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          cursor: 'pointer'
-        }}>
+        <div 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            // Scroll to top when logo is clicked
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}>
           <img 
             src="/assets/koveo-logo-full.jpg" 
             alt="Koveo Gestion Inc."
