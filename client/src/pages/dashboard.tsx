@@ -110,63 +110,17 @@ export default function Dashboard() {
   const welcome = getWelcomeMessage();
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      background: '#ffffff',
-      zIndex: 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'auto'
-    }}>
+    <div className="min-h-screen bg-background">
       <Header 
         title={welcome.title}
         subtitle={welcome.subtitle}
       />
 
-      <div style={{
-        flex: 1,
-        padding: '24px',
-        background: '#f8fafc',
-        color: '#000000',
-        overflow: 'auto'
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          color: '#000000'
-        }}>
-          
-          {/* Debug info */}
-          <div style={{
-            padding: '20px',
-            background: '#e3f2fd',
-            border: '2px solid #2196f3',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}>
-            🎉 SUCCESS: User {user.email} ({user.role}) - Dashboard Fully Operational!
-          </div>
-          
-          {/* Simple test content */}
-          <div style={{
-            padding: '20px',
-            background: '#ffffff',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
-            <h1 style={{fontSize: '24px', marginBottom: '10px', color: '#000000'}}>Koveo Gestion Dashboard</h1>
-            <p style={{color: '#666666'}}>Welcome to your property management system</p>
-          </div>
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto space-y-6">
           
           {/* Welcome Card with User Info */}
-          <Card className="bg-gradient-to-r from-koveo-navy to-blue-600 text-white">
+          <Card className="bg-gradient-to-r from-primary to-blue-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
