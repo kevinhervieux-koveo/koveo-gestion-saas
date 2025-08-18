@@ -164,11 +164,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// EMERGENCY BYPASS: Add features route directly here to bypass all middleware
+// Features API route - Placed here to ensure it takes precedence over Vite middleware
 app.get('/api/features', async (req, res) => {
-  console.log('🚨 EMERGENCY FEATURES ROUTE HIT 🚨');
-  console.warn('🚨 EMERGENCY FEATURES ROUTE HIT 🚨');
-  
   try {
     const { Pool, neonConfig } = await import('@neondatabase/serverless');
     const ws = await import('ws');
@@ -187,8 +184,6 @@ app.get('/api/features', async (req, res) => {
         ORDER BY created_at DESC
       `);
       
-      console.log('🚨 Emergency route found:', rawFeatures.rows.length, 'features');
-      
       const features = rawFeatures.rows.map(row => ({
         ...row,
         isPublicRoadmap: row.is_public_roadmap,
@@ -206,7 +201,7 @@ app.get('/api/features', async (req, res) => {
       res.json([]);
     }
   } catch (error) {
-    console.error('🚨 Emergency route error:', error);
+    console.error('Features API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
