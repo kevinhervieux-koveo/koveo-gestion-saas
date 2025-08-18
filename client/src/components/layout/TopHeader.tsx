@@ -27,52 +27,55 @@ export function TopHeader() {
       fontFamily: typography.fontFamily
     }}>
       {/* Logo */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-      }}>
-        <img 
-          src="/assets/koveo-logo-full.jpg" 
-          alt="Koveo Gestion Inc."
-          style={{
-            height: '40px',
-            width: 'auto'
-          }}
-          onError={(e) => {
-            console.log('Full logo failed to load, trying K logo');
-            // Fallback to K logo if main logo fails to load
-            const target = e.currentTarget as HTMLImageElement;
-            target.src = '/assets/koveo-logo-k.jpg';
-            target.style.width = '40px';
-            target.onerror = () => {
-              console.log('K logo also failed, using fallback K');
-              // Final fallback to styled K
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
-            };
-          }}
-          onLoad={() => {
-            console.log('Logo loaded successfully');
-          }}
-        />
-        {/* Final fallback logo */}
+      <Link href="/">
         <div style={{
-          width: '40px',
-          height: '40px',
-          background: 'linear-gradient(135deg, #334155, #1e293b)',
-          borderRadius: '8px',
-          display: 'none',
+          display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          color: colors.white,
-          fontWeight: 'bold',
-          fontSize: '1.25rem'
+          gap: '0.75rem',
+          cursor: 'pointer'
         }}>
-          K
+          <img 
+            src="/assets/koveo-logo-full.jpg" 
+            alt="Koveo Gestion Inc."
+            style={{
+              height: '40px',
+              width: 'auto'
+            }}
+            onError={(e) => {
+              console.log('Full logo failed to load, trying K logo');
+              // Fallback to K logo if main logo fails to load
+              const target = e.currentTarget as HTMLImageElement;
+              target.src = '/assets/koveo-logo-k.jpg';
+              target.style.width = '40px';
+              target.onerror = () => {
+                console.log('K logo also failed, using fallback K');
+                // Final fallback to styled K
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              };
+            }}
+            onLoad={() => {
+              console.log('Logo loaded successfully');
+            }}
+          />
+          {/* Final fallback logo */}
+          <div style={{
+            width: '40px',
+            height: '40px',
+            background: 'linear-gradient(135deg, #334155, #1e293b)',
+            borderRadius: '8px',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.white,
+            fontWeight: 'bold',
+            fontSize: '1.25rem'
+          }}>
+            K
+          </div>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation and Auth */}
       <div style={{
