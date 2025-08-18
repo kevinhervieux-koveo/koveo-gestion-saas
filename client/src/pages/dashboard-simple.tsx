@@ -8,18 +8,22 @@ export default function DashboardSimple() {
   
   console.log('DashboardSimple rendering with user:', user?.email);
   
-  // Redirect based on user role - Admin goes to roadmap
+  // Only redirect from dashboard, not when accessing specific admin pages
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') {
-        // Redirect admin users directly to roadmap page
-        setLocation('/admin/roadmap');
-      } else if (user.role === 'manager') {
-        // Redirect managers to buildings page
-        setLocation('/manager/buildings');
-      } else {
-        // Redirect residents/tenants to their residence page
-        setLocation('/residents/residence');
+      // Only redirect if we're on the dashboard page itself
+      const currentPath = window.location.pathname;
+      if (currentPath === '/dashboard') {
+        if (user.role === 'admin') {
+          // Redirect admin users directly to organizations page
+          setLocation('/admin/organizations');
+        } else if (user.role === 'manager') {
+          // Redirect managers to buildings page
+          setLocation('/manager/buildings');
+        } else {
+          // Redirect residents/tenants to their residence page
+          setLocation('/residents/residence');
+        }
       }
     }
   }, [user, setLocation]);
