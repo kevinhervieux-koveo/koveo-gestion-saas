@@ -144,10 +144,22 @@ const HomePage = createOptimizedLoader(
   { preloadDelay: 100, enableMemoryCleanup: true }
 );
 
-// Main Dashboard page
+// Simple Dashboard pages - guaranteed to work
 const DashboardPage = createOptimizedLoader(
-  () => import('@/pages/dashboard-simple'),
+  () => import('@/pages/simple-dashboard'),
   'dashboard-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
+const SimpleAdminOrganizations = createOptimizedLoader(
+  () => import('@/pages/simple-admin-organizations'),
+  'simple-admin-organizations',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
+const SimpleAdminUsers = createOptimizedLoader(
+  () => import('@/pages/simple-admin-users'),
+  'simple-admin-users',
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
@@ -251,12 +263,20 @@ function Router() {
 
               {/* Main Dashboard */}
               <Route path='/dashboard' component={DashboardPage} />
+              <Route path='/simple-dashboard' component={DashboardPage} />
+              
+              {/* Simple Admin routes */}
+              <Route path='/simple-admin-organizations' component={SimpleAdminOrganizations} />
+              <Route path='/simple-admin-users' component={SimpleAdminUsers} />
+              
+              {/* Legacy admin routes redirect to simple versions */}
+              <Route path='/admin/organizations' component={SimpleAdminOrganizations} />
+              <Route path='/admin/users' component={SimpleAdminUsers} />
               
               {/* Test styling page */}
               <Route path='/test-styling' component={TestStylingPage} />
 
-              {/* Admin routes */}
-              <Route path='/admin/organizations' component={AdminOrganizations} />
+              {/* Other Admin routes */}
               <Route path='/admin/documentation' component={AdminDocumentation} />
               <Route path='/admin/pillars' component={AdminPillars} />
               <Route path='/admin/roadmap' component={AdminRoadmap} />
