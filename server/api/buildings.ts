@@ -609,4 +609,152 @@ export function registerBuildingRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * PUT /api/admin/buildings/:id - Update a building (Admin and Manager)
+   */
+  app.put('/api/admin/buildings/:id', requireAuth, async (req: any, res) => {
+    try {
+      // Check if user is admin or manager
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin' && currentUser.role !== 'manager') {
+        return res.status(403).json({
+          message: 'Admin or Manager access required',
+          code: 'ADMIN_MANAGER_REQUIRED'
+        });
+      }
+
+      const buildingId = req.params.id;
+      const buildingData = req.body;
+      console.log(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
+
+      // Validate required fields
+      if (!buildingData.name || !buildingData.organizationId) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Building name and organization are required'
+        });
+      }
+
+      // Check if building exists
+      const existingBuilding = await db
+        .select()
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+
+      if (existingBuilding.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Building not found'
+        });
+      }
+
+      // Update building
+      const updatedBuilding = await db
+        .update(buildings)
+        .set({
+          name: buildingData.name,
+          address: buildingData.address || '',
+          city: buildingData.city || '',
+          province: buildingData.province || 'QC',
+          postalCode: buildingData.postalCode || '',
+          buildingType: buildingData.buildingType || 'condo',
+          yearBuilt: buildingData.yearBuilt,
+          totalUnits: buildingData.totalUnits || 0,
+          totalFloors: buildingData.totalFloors,
+          parkingSpaces: buildingData.parkingSpaces,
+          storageSpaces: buildingData.storageSpaces,
+          amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
+          managementCompany: buildingData.managementCompany,
+          organizationId: buildingData.organizationId,
+          updatedAt: new Date()
+        })
+        .where(eq(buildings.id, buildingId))
+        .returning();
+
+      console.log(`✅ Building updated successfully: ${buildingId}`);
+
+      res.json({
+        message: 'Building updated successfully',
+        building: updatedBuilding[0]
+      });
+
+    } catch (error) {
+      console.error('❌ Error updating building:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update building'
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/admin/buildings/:id - Delete a building (Admin only)
+   */
+  app.delete('/api/admin/buildings/:id', requireAuth, async (req: any, res) => {
+    try {
+      // Check if user is admin
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const buildingId = req.params.id;
+      console.log(`🗑️ Admin ${currentUser.id} deleting building: ${buildingId}`);
+
+      // Check if building exists
+      const existingBuilding = await db
+        .select()
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+
+      if (existingBuilding.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Building not found'
+        });
+      }
+
+      // Soft delete by setting isActive to false
+      await db
+        .update(buildings)
+        .set({
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(buildings.id, buildingId));
+
+      console.log(`✅ Building deleted successfully: ${buildingId}`);
+
+      res.json({
+        message: 'Building deleted successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Error deleting building:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete building'
+      });
+    }
+  });
 }

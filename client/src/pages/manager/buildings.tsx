@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package } from 'lucide-react';
+import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package, Edit3, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
@@ -74,6 +74,8 @@ export default function Buildings() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingBuilding, setEditingBuilding] = useState<BuildingData | null>(null);
   const { toast } = useToast();
 
   // Fetch buildings data
@@ -167,7 +169,126 @@ export default function Buildings() {
   });
 
   const onSubmit = (data: BuildingFormData) => {
-    createBuildingMutation.mutate(data);
+    if (editingBuilding) {
+      updateBuildingMutation.mutate({ id: editingBuilding.id, ...data });
+    } else {
+      createBuildingMutation.mutate(data);
+    }
+  };
+
+  // Form for editing building
+  const editForm = useForm<BuildingFormData>({
+    resolver: zodResolver(buildingFormSchema),
+    defaultValues: {
+      name: '',
+      organizationId: '',
+      address: '',
+      city: '',
+      province: 'QC',
+      postalCode: '',
+      buildingType: 'condo',
+      yearBuilt: undefined,
+      totalUnits: undefined,
+      totalFloors: undefined,
+      parkingSpaces: undefined,
+      storageSpaces: undefined,
+      managementCompany: '',
+    },
+  });
+
+  // Mutation for updating building
+  const updateBuildingMutation = useMutation({
+    mutationFn: async (data: BuildingFormData & { id: string }) => {
+      const response = await fetch(`/api/admin/buildings/${data.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update building');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Building updated',
+        description: 'The building has been successfully updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
+      setIsEditDialogOpen(false);
+      setEditingBuilding(null);
+      editForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update building.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation for deleting building
+  const deleteBuildingMutation = useMutation({
+    mutationFn: async (buildingId: string) => {
+      const response = await fetch(`/api/admin/buildings/${buildingId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete building');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Building deleted',
+        description: 'The building has been successfully deleted.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete building.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEditBuilding = (building: BuildingData) => {
+    setEditingBuilding(building);
+    editForm.reset({
+      name: building.name,
+      organizationId: building.organizationId,
+      address: building.address,
+      city: building.city,
+      province: building.province,
+      postalCode: building.postalCode,
+      buildingType: building.buildingType,
+      yearBuilt: building.yearBuilt,
+      totalUnits: building.totalUnits,
+      totalFloors: building.totalFloors,
+      parkingSpaces: building.parkingSpaces,
+      storageSpaces: building.storageSpaces,
+      managementCompany: building.managementCompany,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteBuilding = (building: BuildingData) => {
+    if (confirm(`Are you sure you want to delete "${building.name}"? This action cannot be undone.`)) {
+      deleteBuildingMutation.mutate(building.id);
+    }
   };
 
   // Show access denied for residents and tenants
@@ -550,6 +671,278 @@ export default function Buildings() {
             </CardContent>
           </Card>
 
+          {/* Edit Building Dialog */}
+          {(user?.role === 'admin' || user?.role === 'manager') && (
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+                <DialogHeader>
+                  <DialogTitle>Edit Building</DialogTitle>
+                </DialogHeader>
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(onSubmit)} className='space-y-4'>
+                    {/* Required Fields */}
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='name'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Building Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder='Enter building name' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='organizationId'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Organization *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder='Select organization' />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {organizations.map((org) => (
+                                  <SelectItem key={org.id} value={org.id}>
+                                    {org.name} ({org.type})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Optional Address Fields */}
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='address'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                              <Input placeholder='Street address' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='city'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>City</FormLabel>
+                            <FormControl>
+                              <Input placeholder='City' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='province'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Province</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value='QC'>Quebec</SelectItem>
+                                <SelectItem value='ON'>Ontario</SelectItem>
+                                <SelectItem value='BC'>British Columbia</SelectItem>
+                                <SelectItem value='AB'>Alberta</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='postalCode'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Postal Code</FormLabel>
+                            <FormControl>
+                              <Input placeholder='H1A 1B1' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='buildingType'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Building Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value='condo'>Condo</SelectItem>
+                                <SelectItem value='rental'>Rental</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Optional Building Details */}
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='yearBuilt'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Year Built</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                placeholder='2020' 
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='totalUnits'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Units</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                placeholder='100' 
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='totalFloors'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Floors</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                placeholder='10' 
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='parkingSpaces'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Parking Spaces</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                placeholder='50' 
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name='storageSpaces'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Storage Spaces</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                placeholder='25' 
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={editForm.control}
+                      name='managementCompany'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Management Company</FormLabel>
+                          <FormControl>
+                            <Input placeholder='Management company name' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className='flex justify-end space-x-2 pt-4'>
+                      <Button 
+                        type='button' 
+                        variant='outline' 
+                        onClick={() => setIsEditDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type='submit' 
+                        disabled={updateBuildingMutation.isPending}
+                      >
+                        {updateBuildingMutation.isPending ? 'Updating...' : 'Update Building'}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          )}
+
           {/* Buildings List */}
           {buildings && buildings.length > 0 ? (
             <div className='grid gap-6'>
@@ -564,13 +957,39 @@ export default function Buildings() {
                         </CardTitle>
                         <p className='text-sm text-gray-600 mt-1'>{building.organizationName}</p>
                       </div>
-                      <div className='flex gap-2'>
-                        <Badge variant={building.buildingType === 'condo' ? 'default' : 'secondary'}>
-                          {building.buildingType === 'condo' ? 'Condo' : 'Rental'}
-                        </Badge>
-                        <Badge variant='outline'>
-                          {building.accessType === 'organization' ? 'Organization' : 'Residence'}
-                        </Badge>
+                      <div className='flex items-center gap-2'>
+                        <div className='flex gap-2'>
+                          <Badge variant={building.buildingType === 'condo' ? 'default' : 'secondary'}>
+                            {building.buildingType === 'condo' ? 'Condo' : 'Rental'}
+                          </Badge>
+                          <Badge variant='outline'>
+                            {building.accessType === 'organization' ? 'Organization' : 'Residence'}
+                          </Badge>
+                        </div>
+                        {(user?.role === 'admin' || user?.role === 'manager') && (
+                          <div className='flex gap-1 ml-2'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleEditBuilding(building)}
+                              className='h-8 w-8 p-0'
+                              title='Edit building'
+                            >
+                              <Edit3 className='w-4 h-4' />
+                            </Button>
+                            {user?.role === 'admin' && (
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => handleDeleteBuilding(building)}
+                                className='h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                                title='Delete building'
+                              >
+                                <Trash2 className='w-4 h-4' />
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
