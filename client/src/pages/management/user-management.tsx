@@ -26,13 +26,13 @@ export default function UserManagement() {
   const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
 
   // Fetch users
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery({
+  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ['/api/users'],
     enabled: true,
   });
 
   // Fetch invitations
-  const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery({
+  const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
     queryKey: ['/api/invitations'],
     enabled: true,
   });
@@ -51,7 +51,7 @@ export default function UserManagement() {
     onSuccess: () => {
       toast({
         title: t('success'),
-        description: t('bulkActionCompleted'),
+        description: t('userUpdatedSuccessfully'),
       });
       setSelectedUsers(new Set());
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -74,12 +74,12 @@ export default function UserManagement() {
       await apiRequest('POST', `/api/invitations/${invitationId}/resend`);
       toast({
         title: t('success'),
-        description: t('invitationReminderSent'),
+        description: t('invitationSent'),
       });
     } catch (error) {
       toast({
         title: t('error'),
-        description: error instanceof Error ? error.message : t('unexpectedError'),
+        description: error instanceof Error ? error.message : t('errorOccurred'),
         variant: 'destructive',
       });
     }
@@ -91,21 +91,21 @@ export default function UserManagement() {
   };
 
   // Calculate stats
-  const totalUsers = users.length;
-  const activeUsers = users.filter((user: User) => user.isActive).length;
-  const adminUsers = users.filter((user: User) => user.role === 'admin').length;
+  const totalUsers = users?.length || 0;
+  const activeUsers = users?.filter((user: User) => user.isActive).length || 0;
+  const adminUsers = users?.filter((user: User) => user.role === 'admin').length || 0;
 
   if (usersError) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Header 
           title={t('userManagement')}
-          subtitle={t('manageUsersInYourOrganization')}
+          subtitle={t('manageAllUsers')}
         />
         <div className="flex-1 p-6">
           <Card>
             <CardContent className="p-6">
-              <p className="text-red-600">{t('errorLoadingUsers')}</p>
+              <p className="text-red-600">{t('errorOccurred')}</p>
             </CardContent>
           </Card>
         </div>
@@ -117,7 +117,7 @@ export default function UserManagement() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header 
         title={t('userManagement')}
-        subtitle={t('manageUsersInYourOrganization')}
+        subtitle={t('manageAllUsers')}
       />
       
       <div className="flex-1 p-6 space-y-6">
@@ -133,7 +133,7 @@ export default function UserManagement() {
             <CardContent>
               <div className="text-2xl font-bold">{totalUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('registeredUsers')}
+                {t('total')}
               </p>
             </CardContent>
           </Card>
@@ -148,7 +148,7 @@ export default function UserManagement() {
             <CardContent>
               <div className="text-2xl font-bold">{activeUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('currentlyActive')}
+                {t('active')}
               </p>
             </CardContent>
           </Card>
@@ -156,14 +156,14 @@ export default function UserManagement() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                {t('administrators')}
+                {t('admin')}
               </CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{adminUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('adminRole')}
+                {t('role')}
               </p>
             </CardContent>
           </Card>
@@ -201,7 +201,7 @@ export default function UserManagement() {
             <Card>
               <CardContent className="p-0">
                 <UserListComponent
-                  users={users}
+                  users={users || []}
                   selectedUsers={selectedUsers}
                   onSelectionChange={setSelectedUsers}
                   onBulkAction={handleBulkAction}
@@ -215,7 +215,7 @@ export default function UserManagement() {
             <Card>
               <CardContent className="p-6">
                 <InvitationManagement
-                  invitations={invitations}
+                  invitations={invitations || []}
                   onSendReminder={handleSendReminder}
                   onRefresh={refetchInvitations}
                   isLoading={invitationsLoading}
