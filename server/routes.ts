@@ -2614,6 +2614,12 @@ function registerInvitationRoutes(app: any) {
           const inviterUser = await db.select().from(schema.users).where(eq(schema.users.id, currentUser.id)).limit(1);
           const organization = organizationId ? await db.select().from(schema.organizations).where(eq(schema.organizations.id, organizationId)).limit(1) : null;
           
+          console.log('📧 Attempting to send invitation email...', {
+            to: email,
+            organizationName: organization?.[0]?.name || 'Koveo Gestion',
+            inviterName: `${inviterUser[0]?.firstName} ${inviterUser[0]?.lastName}` || 'System Administrator'
+          });
+          
           const emailSent = await emailService.sendInvitationEmail(
             email,
             email.split('@')[0], // Use email prefix as name for now
@@ -2625,10 +2631,12 @@ function registerInvitationRoutes(app: any) {
           );
           
           if (!emailSent) {
-            console.warn(`Failed to send invitation email to ${email}`);
+            console.warn(`⚠️ Failed to send invitation email to ${email} - invitation created but email not sent`);
+          } else {
+            console.log(`✅ Invitation email sent successfully to ${email}`);
           }
         } catch (emailError) {
-          console.error('Email sending error:', emailError);
+          console.error('❌ Email sending error:', emailError);
           // Don't fail the invitation creation if email fails
         }
         
@@ -2642,8 +2650,12 @@ function registerInvitationRoutes(app: any) {
         });
         
       } catch (error) {
-        console.error('Error creating invitation:', error);
-        res.status(500).json({ message: 'Failed to create invitation' });
+        console.error('❌ Error creating invitation:', error);
+        console.error('❌ Error stack:', error instanceof Error ? error.stack : String(error));
+        res.status(500).json({ 
+          message: 'Failed to create invitation',
+          error: process.env.NODE_ENV === 'development' ? String(error) : undefined
+        });
       }
     }
   );

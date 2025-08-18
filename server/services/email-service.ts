@@ -60,6 +60,13 @@ export class EmailService {
     this.baseUrl = process.env.BASE_URL || 'http://localhost:5000';
     this.fromAddress = process.env.EMAIL_FROM || 'noreply@koveo-gestion.com';
     this.initializeTemplates();
+    
+    // Initialize immediately if API key is available
+    if (process.env.SENDGRID_API_KEY) {
+      this.initialize().catch(error => {
+        console.error('❌ Failed to initialize email service in constructor:', error);
+      });
+    }
   }
 
   /**
@@ -70,6 +77,7 @@ export class EmailService {
     
     if (!apiKey) {
       console.warn('SENDGRID_API_KEY not configured. Email service will not function.');
+      this.isInitialized = false;
       return;
     }
 
