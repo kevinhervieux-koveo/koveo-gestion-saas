@@ -521,7 +521,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations().map((org) => {
+                          {getFilteredOrganizations().filter(org => org.id && org.id.trim() !== '').map((org) => {
                             const isDemo = org.name?.toLowerCase() === 'demo';
                             const canInvite = canInviteToOrganization(org.id);
                             return (
@@ -825,7 +825,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations().map((org) => (
+                          {getFilteredOrganizations().filter(org => org.id && org.id.trim() !== '').map((org) => (
                             <SelectItem key={org.id} value={org.id}>
                               <div className="flex items-center gap-2">
                                 <Building className="h-4 w-4" />
