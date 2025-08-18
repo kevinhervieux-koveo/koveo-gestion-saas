@@ -259,23 +259,34 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
-    if (!organizations) {
+    if (!organizations || !Array.isArray(organizations)) {
       console.log('No organizations available');
       return [];
     }
     
     console.log('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
     
+    // Filter out any invalid organizations
+    const validOrgs = organizations.filter(org => 
+      org && 
+      typeof org === 'object' && 
+      org.id && 
+      typeof org.id === 'string' && 
+      org.id.trim() !== '' &&
+      org.name &&
+      typeof org.name === 'string'
+    );
+    
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
-      return organizations;
+      return validOrgs;
     } else if (currentUser?.role === 'manager') {
       // Managers can only add users to their own organization
-      return organizations;
+      return validOrgs;
     }
     
-    // Default: show all organizations for now
-    return organizations;
+    // Default: show all valid organizations for now
+    return validOrgs;
   };
 
   // Check if user can access a specific organization for invitations
@@ -521,27 +532,29 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations().filter(org => org.id && org.id.trim() !== '').map((org) => {
-                            const isDemo = org.name?.toLowerCase() === 'demo';
-                            const canInvite = canInviteToOrganization(org.id);
-                            return (
-                              <SelectItem 
-                                key={org.id} 
-                                value={org.id}
-                                disabled={!canInvite}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {org.name}
-                                  {isDemo && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Admin Only
-                                    </Badge>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
+                          {getFilteredOrganizations()
+                            .filter(org => org && org.id && typeof org.id === 'string' && org.id.trim() !== '')
+                            .map((org) => {
+                              const isDemo = org.name?.toLowerCase() === 'demo';
+                              const canInvite = canInviteToOrganization(org.id);
+                              return (
+                                <SelectItem 
+                                  key={org.id} 
+                                  value={org.id}
+                                  disabled={!canInvite}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Building className="h-4 w-4" />
+                                    {org.name}
+                                    {isDemo && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Admin Only
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -825,14 +838,16 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {getFilteredOrganizations().filter(org => org.id && org.id.trim() !== '').map((org) => (
-                            <SelectItem key={org.id} value={org.id}>
-                              <div className="flex items-center gap-2">
-                                <Building className="h-4 w-4" />
-                                {org.name}
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {getFilteredOrganizations()
+                            .filter(org => org && org.id && typeof org.id === 'string' && org.id.trim() !== '')
+                            .map((org) => (
+                              <SelectItem key={org.id} value={org.id}>
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  {org.name}
+                                </div>
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
