@@ -2590,7 +2590,7 @@ function registerInvitationRoutes(app: any) {
           role: role as any,
           invitedByUserId: currentUser.id,
           organizationId,
-          buildingId,
+          buildingId: buildingId === 'none' ? null : buildingId,
           expiresAt,
           personalMessage,
           invitationContext,
@@ -3493,6 +3493,7 @@ function registerInvitationRoutes(app: any) {
             .insert(invitations)
             .values({
               ...invitation,
+              buildingId: invitation.buildingId === 'none' ? null : invitation.buildingId,
               token: hashedToken,
               status: 'pending',
               createdAt: new Date()
