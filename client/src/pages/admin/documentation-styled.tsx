@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from 'wouter';
+import { Header } from '@/components/layout/header';
 
 export default function DocumentationStyled() {
   const { user } = useAuth();
@@ -74,142 +75,16 @@ export default function DocumentationStyled() {
   ];
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: '#f8fafc',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      display: 'flex'
-    }}>
-      {/* Sidebar */}
-      <div style={{
-        width: '280px',
-        background: 'white',
-        borderRight: '1px solid #e2e8f0',
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title="Documentation"
+        subtitle="Comprehensive guides and API reference for Koveo Gestion property management platform"
+      />
+      
+      <div style={{ 
         padding: '1.5rem',
         overflowY: 'auto'
       }}>
-        {/* Logo */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 'bold'
-          }}>
-            K
-          </div>
-          <span style={{
-            fontSize: '1.25rem',
-            fontWeight: 'bold',
-            color: '#1f2937'
-          }}>
-            KOVEO
-          </span>
-        </div>
-
-        {/* Navigation */}
-        <nav>
-          <Link href="/dashboard">
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              color: '#4b5563',
-              textDecoration: 'none',
-              marginBottom: '0.5rem',
-              cursor: 'pointer'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-              <span>🏠</span>
-              Dashboard
-            </div>
-          </Link>
-
-          <div style={{
-            color: '#9ca3af',
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            margin: '1rem 0 0.5rem',
-            padding: '0 0.75rem'
-          }}>
-            Admin
-          </div>
-
-          {[
-            { icon: '🏢', label: 'Organizations', href: '/admin/organizations' },
-            { icon: '📚', label: 'Documentation', href: '/admin/documentation', active: true },
-            { icon: '🗺️', label: 'Roadmap', href: '/admin/roadmap' },
-            { icon: '✅', label: 'Quality Assurance', href: '/admin/quality' },
-            { icon: '🔐', label: 'RBAC Permissions', href: '/admin/permissions' }
-          ].map((item, index) => (
-            <Link key={index} href={item.href}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                background: item.active ? '#eff6ff' : 'transparent',
-                color: item.active ? '#3b82f6' : '#4b5563',
-                textDecoration: 'none',
-                marginBottom: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: item.active ? '500' : 'normal'
-              }}
-              onMouseOver={(e) => !item.active && (e.currentTarget.style.background = '#f1f5f9')}
-              onMouseOut={(e) => !item.active && (e.currentTarget.style.background = 'transparent')}>
-                <span>{item.icon}</span>
-                {item.label}
-              </div>
-            </Link>
-          ))}
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div style={{
-        flex: 1,
-        padding: '2rem',
-        overflowY: 'auto'
-      }}>
-        {/* Header */}
-        <div style={{
-          marginBottom: '2rem'
-        }}>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
-          }}>
-            Documentation
-          </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '1.125rem'
-          }}>
-            Comprehensive guides and API reference for Koveo Gestion property management platform
-          </p>
-        </div>
 
         {/* Search Bar */}
         <div style={{

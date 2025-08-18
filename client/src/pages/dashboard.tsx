@@ -110,15 +110,7 @@ export default function Dashboard() {
   const welcome = getWelcomeMessage();
 
   return (
-    <div style={{
-      background: 'linear-gradient(to bottom right, #dbeafe, #f3f4f6)', 
-      minHeight: '100vh',
-      width: '100%',
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
+    <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
         title={welcome.title}
         subtitle={welcome.subtitle}
