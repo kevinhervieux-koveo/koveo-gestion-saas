@@ -5,6 +5,80 @@ import { registerPermissionsRoutes } from './api/permissions';
 import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { log } from './vite';
+import { db } from './db';
+import * as schema from '../shared/schema';
+import { eq, and, gte } from 'drizzle-orm';
+import { insertInvitationSchema } from '../shared/schema';
+import crypto from 'crypto';
+
+// Import required tables from schema
+const { invitations, users: schemaUsers, organizations, buildings, residences, invitationAuditLog } = schema;
+
+// Utility functions for invitation management
+function generateSecureToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Rate limiting for invitations
+const invitationRateLimit = new Map();
+function rateLimitInvitations(limit: number) {
+  return (req: any, res: any, next: any) => {
+    const userId = req.user?.id;
+    const key = `invitation_${userId}`;
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutes
+
+    if (!invitationRateLimit.has(key)) {
+      invitationRateLimit.set(key, { count: 0, resetTime: now + windowMs });
+    }
+
+    const userLimit = invitationRateLimit.get(key);
+    if (now > userLimit.resetTime) {
+      userLimit.count = 0;
+      userLimit.resetTime = now + windowMs;
+    }
+
+    if (userLimit.count >= limit) {
+      return res.status(429).json({
+        message: 'Too many invitation requests. Please try again later.',
+        code: 'RATE_LIMIT_EXCEEDED'
+      });
+    }
+
+    userLimit.count++;
+    next();
+  };
+}
+
+// Audit logging function
+async function createInvitationAuditLog(
+  invitationId: string,
+  action: string,
+  performedBy?: string,
+  req?: any,
+  previousStatus?: string,
+  newStatus?: string,
+  details?: any
+) {
+  try {
+    await db.insert(invitationAuditLog).values({
+      invitationId,
+      action,
+      performedBy,
+      ipAddress: req?.ip || req?.connection?.remoteAddress,
+      userAgent: req?.get('User-Agent'),
+      details,
+      previousStatus: previousStatus as any,
+      newStatus: newStatus as any,
+    });
+  } catch (error) {
+    console.error('Failed to create audit log:', error);
+  }
+}
 
 /**
  * Core routes registration with essential functionality.
@@ -49,6 +123,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ User routes registered');
   } catch (error) {
     log(`❌ User routes failed: ${error}`, 'error');
+  }
+  
+  // Register invitation routes
+  try {
+    // POST /api/invitations - Create single invitation
+    app.post('/api/invitations', 
+      requireAuth, 
+      authorize('create:user'),
+      rateLimitInvitations(10),
+      async (req: any, res: any) => {
+        try {
+          console.log('📥 Single invitation route reached with data:', req.body);
+          const currentUser = req.user;
+          const invitationData = req.body;
+          
+          // Validate request data
+          const validation = insertInvitationSchema.safeParse(invitationData);
+          if (!validation.success) {
+            return res.status(400).json({
+              message: 'Invalid invitation data',
+              errors: validation.error.issues
+            });
+          }
+          
+          const { email, role, organizationId, buildingId, residenceId, personalMessage } = validation.data;
+          
+          // Role-based access control for roles
+          if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
+            return res.status(403).json({
+              message: 'Managers can only invite tenants and residents',
+              code: 'INSUFFICIENT_ROLE_PERMISSIONS'
+            });
+          }
+
+          // Validate residence assignment for tenants and residents
+          if (['tenant', 'resident'].includes(role as string)) {
+            // Only require residence if a specific building is selected
+            if (buildingId && buildingId !== 'none' && !residenceId) {
+              return res.status(400).json({
+                message: 'Residence must be assigned for tenants and residents when a building is selected',
+                code: 'RESIDENCE_REQUIRED'
+              });
+            }
+          }
+
+          // Check if user already exists
+          const existingUser = await db.select().from(schemaUsers).where(eq(schemaUsers.email, email)).limit(1);
+          if (existingUser.length > 0) {
+            return res.status(409).json({
+              message: 'User with this email already exists',
+              code: 'USER_EXISTS'
+            });
+          }
+          
+          // Check for existing pending invitation
+          const existingInvitation = await db.select()
+            .from(invitations)
+            .where(and(
+              eq(invitations.email, email),
+              eq(invitations.status, 'pending'),
+              gte(invitations.expiresAt, new Date())
+            ))
+            .limit(1);
+            
+          if (existingInvitation.length > 0) {
+            return res.status(409).json({
+              message: 'Active invitation already exists for this email',
+              code: 'INVITATION_EXISTS'
+            });
+          }
+          
+          // Generate secure token
+          const token = generateSecureToken();
+          const tokenHash = hashToken(token);
+          
+          // Set expiration (7 days from now)
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          
+          // Create invitation
+          const invitationContext = {
+            organizationId,
+            buildingId: buildingId === 'none' ? null : buildingId,
+            residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
+          };
+
+          const [newInvitation] = await db.insert(invitations).values({
+            email,
+            token,
+            tokenHash,
+            role: role as any,
+            invitedByUserId: currentUser.id,
+            organizationId,
+            buildingId: buildingId === 'none' ? null : buildingId,
+            expiresAt,
+            personalMessage,
+            invitationContext,
+          }).returning();
+          
+          // Create audit log
+          await createInvitationAuditLog(
+            newInvitation.id,
+            'created',
+            currentUser.id,
+            req,
+            undefined,
+            'pending',
+            { email, role, organizationId, buildingId, residenceId }
+          );
+          
+          // Return invitation without sensitive token data
+          const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
+          
+          res.status(201).json({
+            invitation: safeInvitation,
+            message: 'Invitation created successfully',
+            invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`
+          });
+          
+        } catch (error) {
+          console.error('Error creating invitation:', error);
+          res.status(500).json({ message: 'Failed to create invitation' });
+        }
+      }
+    );
+
+    // GET /api/invitations - List invitations
+    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: any, res: any) => {
+      try {
+        const invitationList = await db.select().from(invitations);
+        res.json(invitationList);
+      } catch (error) {
+        console.error('Error fetching invitations:', error);
+        res.status(500).json({ message: 'Failed to fetch invitations' });
+      }
+    });
+
+    log('✅ Invitation routes registered');
+  } catch (error) {
+    log(`❌ Invitation routes failed: ${error}`, 'error');
   }
   
   // Test route
