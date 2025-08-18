@@ -106,6 +106,7 @@ async function syncFeatureToProduction(feature: any) {
  * ```
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  console.log('🚀 Starting registerRoutes function...');
   // Health check endpoints are now handled in index.ts for immediate response
   // This function now focuses on API routes and business logic
 
@@ -2373,6 +2374,7 @@ function registerInvitationRoutes(app: any) {
     rateLimitInvitations(10),
     async (req: any, res: any) => {
       try {
+        console.log('📥 Invitation route reached with data:', req.body);
         const currentUser = req.user;
         const invitationData = req.body;
         
@@ -4078,9 +4080,128 @@ function registerInvitationRoutes(app: any) {
     }
   });
 
-  // Register invitation routes
-  registerInvitationRoutes(app);
+  // POST /api/invitations - Create new user invitation (moved inline for proper registration)
+  app.post('/api/invitations', 
+    requireAuth, 
+    authorize('create:user'),
+    rateLimitInvitations(10),
+    async (req: any, res: any) => {
+      try {
+        console.log('📥 Single invitation route reached with data:', req.body);
+        const currentUser = req.user;
+        const invitationData = req.body;
+        
+        // Validate request data
+        const validation = insertInvitationSchema.safeParse(invitationData);
+        if (!validation.success) {
+          return res.status(400).json({
+            message: 'Invalid invitation data',
+            errors: validation.error.issues
+          });
+        }
+        
+        const { email, role, organizationId, buildingId, residenceId, personalMessage } = validation.data;
+        
+        // Role-based access control for roles
+        if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
+          return res.status(403).json({
+            message: 'Managers can only invite tenants and residents',
+            code: 'INSUFFICIENT_ROLE_PERMISSIONS'
+          });
+        }
+
+        // Validate residence assignment for tenants and residents
+        if (['tenant', 'resident'].includes(role as string)) {
+          // Only require residence if a specific building is selected
+          if (buildingId && buildingId !== 'none' && !residenceId) {
+            return res.status(400).json({
+              message: 'Residence must be assigned for tenants and residents when a building is selected',
+              code: 'RESIDENCE_REQUIRED'
+            });
+          }
+        }
+
+        // Check if user already exists
+        const existingUser = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
+        if (existingUser.length > 0) {
+          return res.status(409).json({
+            message: 'User with this email already exists',
+            code: 'USER_EXISTS'
+          });
+        }
+        
+        // Check for existing pending invitation
+        const existingInvitation = await db.select()
+          .from(invitations)
+          .where(and(
+            eq(invitations.email, email),
+            eq(invitations.status, 'pending'),
+            gte(invitations.expiresAt, new Date())
+          ))
+          .limit(1);
+          
+        if (existingInvitation.length > 0) {
+          return res.status(409).json({
+            message: 'Active invitation already exists for this email',
+            code: 'INVITATION_EXISTS'
+          });
+        }
+        
+        // Generate secure token
+        const token = generateSecureToken();
+        const tokenHash = hashToken(token);
+        
+        // Set expiration (7 days from now)
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        
+        // Create invitation
+        const invitationContext = {
+          organizationId,
+          buildingId: buildingId === 'none' ? null : buildingId,
+          residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
+        };
+
+        const [newInvitation] = await db.insert(invitations).values({
+          email,
+          token,
+          tokenHash,
+          role: role as any,
+          invitedByUserId: currentUser.id,
+          organizationId,
+          buildingId: buildingId === 'none' ? null : buildingId,
+          expiresAt,
+          personalMessage,
+          invitationContext,
+        }).returning();
+        
+        // Create audit log
+        await createInvitationAuditLog(
+          newInvitation.id,
+          'created',
+          currentUser.id,
+          req,
+          undefined,
+          'pending',
+          { email, role, organizationId, buildingId, residenceId }
+        );
+        
+        // Return invitation without sensitive token data
+        const { token: _, tokenHash: __, ...safeInvitation } = newInvitation;
+        
+        res.status(201).json({
+          invitation: safeInvitation,
+          message: 'Invitation created successfully',
+          invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`
+        });
+        
+      } catch (error) {
+        console.error('Error creating invitation:', error);
+        res.status(500).json({ message: 'Failed to create invitation' });
+      }
+    }
+  );
 
   // Create and return HTTP server instance
+  console.log('🏁 Finishing registerRoutes function...');
   return createServer(app);
 }
