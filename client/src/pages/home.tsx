@@ -4,8 +4,7 @@ import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'luc
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-// Import logo from public assets
-const koveoLogo = '/assets/Koveo_logo (1)_1755288554223-ClmBeIAX.jpg';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Home page component for Koveo Gestion.
@@ -15,7 +14,7 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated, logout } = useAuth();
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
       {/* Navigation Header */}
