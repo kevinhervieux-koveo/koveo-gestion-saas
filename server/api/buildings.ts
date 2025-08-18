@@ -21,14 +21,7 @@ export function registerBuildingRoutes(app: Express): void {
    * - Resident/Tenant: Can see only buildings where they have residences (role is not used, only residence links)
    */
   app.get('/api/manager/buildings', async (req: any, res) => {
-    console.log('🔍 Session Debug:', {
-      hasSession: !!req.session,
-      sessionUserId: req.session?.userId,
-      sessionUser: req.session?.user ? 'exists' : 'missing',
-      hasUser: !!req.user
-    });
-    
-    // Quick authentication check like other routes
+    // Authentication check
     if (!req.session?.userId && !req.session?.user) {
       return res.status(401).json({
         message: 'Authentication required',
@@ -54,8 +47,6 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
       
-      console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
-
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
       let accessibleBuildings: any[] = [];
