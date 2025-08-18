@@ -25,9 +25,6 @@ const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undef
 
 export const useMobileMenu = () => {
   const context = useContext(MobileMenuContext);
-  if (context === undefined) {
-    throw new Error('useMobileMenu must be used within a MobileMenuProvider');
-  }
   return context;
 };
 

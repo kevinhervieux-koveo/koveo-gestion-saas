@@ -45,8 +45,8 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const permissions = await storage.getPermissions();
       res.json(permissions);
-    } catch (error) {
-      console.error('Error fetching permissions:', error);
+    } catch (_error) {
+      console.error('Error fetching permissions:', _error);
       res.status(500).json({ message: 'Failed to fetch permissions' });
     }
   });
@@ -56,8 +56,8 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
-    } catch (error) {
-      console.error('Error fetching role permissions:', error);
+    } catch (_error) {
+      console.error('Error fetching role permissions:', _error);
       res.status(500).json({ message: 'Failed to fetch role permissions' });
     }
   });
@@ -91,8 +91,8 @@ export function registerPermissionsRoutes(app: Express) {
         permissions,
         rolePermissions
       });
-    } catch (error) {
-      console.error('Error fetching permissions matrix:', error);
+    } catch (_error) {
+      console.error('Error fetching permissions matrix:', _error);
       res.status(500).json({ message: 'Failed to fetch permissions matrix' });
     }
   });
@@ -106,8 +106,8 @@ export function registerPermissionsRoutes(app: Express) {
       const userPermissions: any[] = [];
       
       res.json(userPermissions);
-    } catch (error) {
-      console.error('Error fetching user permissions:', error);
+    } catch (_error) {
+      console.error('Error fetching user permissions:', _error);
       res.status(500).json({ message: 'Failed to fetch user permissions' });
     }
   });
@@ -142,8 +142,8 @@ export function registerPermissionsRoutes(app: Express) {
         note: 'This feature requires additional database schema for user_permission_overrides table'
       });
       
-    } catch (error) {
-      console.error('Error granting user permission:', error);
+    } catch (_error) {
+      console.error('Error granting user permission:', _error);
       res.status(500).json({ message: 'Failed to grant user permission' });
     }
   });
@@ -159,8 +159,8 @@ export function registerPermissionsRoutes(app: Express) {
         note: 'This feature requires additional database schema for user_permission_overrides table'
       });
       
-    } catch (error) {
-      console.error('Error revoking user permission:', error);
+    } catch (_error) {
+      console.error('Error revoking user permission:', _error);
       res.status(500).json({ message: 'Failed to revoke user permission' });
     }
   });
@@ -186,8 +186,8 @@ export function registerPermissionsRoutes(app: Express) {
         note: 'This feature requires implementing a mechanism to update permissions.json or move permissions to database'
       });
       
-    } catch (error) {
-      console.error('Error updating role permissions:', error);
+    } catch (_error) {
+      console.error('Error updating role permissions:', _error);
       res.status(500).json({ message: 'Failed to update role permissions' });
     }
   });
@@ -203,8 +203,8 @@ export function registerPermissionsRoutes(app: Express) {
       }));
       
       res.json(categories);
-    } catch (error) {
-      console.error('Error fetching permission categories:', error);
+    } catch (_error) {
+      console.error('Error fetching permission categories:', _error);
       res.status(500).json({ message: 'Failed to fetch permission categories' });
     }
   });

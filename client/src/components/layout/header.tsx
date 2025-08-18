@@ -38,15 +38,9 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const { t } = useLanguage();
   
-  // Safely access mobile menu context
-  let toggleMobileMenu: (() => void) | undefined;
-  try {
-    const mobileMenu = useMobileMenu();
-    toggleMobileMenu = mobileMenu?.toggleMobileMenu;
-  } catch {
-    // Not within MobileMenuProvider - mobile menu not available
-    toggleMobileMenu = undefined;
-  }
+  // Access mobile menu context
+  const mobileMenu = useMobileMenu();
+  const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
 
   return (
     <header className='bg-white border-b border-gray-200 px-6 py-4'>
