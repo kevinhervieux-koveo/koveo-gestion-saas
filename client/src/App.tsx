@@ -155,9 +155,7 @@ function Router() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
-    console.log('toggleMobileMenu called, current state:', isMobileMenuOpen);
     setIsMobileMenuOpen(!isMobileMenuOpen);
-    console.log('toggleMobileMenu new state will be:', !isMobileMenuOpen);
   };
 
   const closeMobileMenu = () => {
@@ -171,34 +169,38 @@ function Router() {
   // Home page and public routes - always without sidebar
   const isHomePage = location === '/';
   
-  if (!isAuthenticated) {
-    // For unauthenticated users, only show public routes and redirect everything else
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-          {/* Redirect all other routes to home for unauthenticated users */}
-          <Route component={HomeRedirect} />
-        </Switch>
-      </Suspense>
-    );
-  }
-  
-  if (isHomePage) {
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <HomePage />
-      </Suspense>
-    );
-  }
-
   const mobileMenuContext = {
     isMobileMenuOpen,
     toggleMobileMenu,
     closeMobileMenu,
   };
+
+  if (!isAuthenticated) {
+    // For unauthenticated users, only show public routes and redirect everything else
+    return (
+      <MobileMenuContext.Provider value={mobileMenuContext}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/login" component={LoginPage} />
+            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+            {/* Redirect all other routes to home for unauthenticated users */}
+            <Route component={HomeRedirect} />
+          </Switch>
+        </Suspense>
+      </MobileMenuContext.Provider>
+    );
+  }
+  
+  if (isHomePage) {
+    return (
+      <MobileMenuContext.Provider value={mobileMenuContext}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <HomePage />
+        </Suspense>
+      </MobileMenuContext.Provider>
+    );
+  }
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>

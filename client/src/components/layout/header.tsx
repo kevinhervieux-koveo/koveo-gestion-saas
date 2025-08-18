@@ -42,23 +42,12 @@ export function Header({ title, subtitle }: HeaderProps) {
   const mobileMenu = useMobileMenu();
   const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
   
-  // Enhanced debugging for mobile menu
+  // Temporary debug log
   console.log('Mobile menu context:', mobileMenu);
-  console.log('Is mobile menu open:', mobileMenu?.isMobileMenuOpen);
-  
-  // Check if mobile menu context is available
-  if (!mobileMenu || !toggleMobileMenu) {
-    console.log('Mobile menu toggle not available');
-  }
   
   const handleMobileMenuClick = () => {
-    console.log('Mobile menu button clicked');
-    console.log('Current state before toggle:', mobileMenu?.isMobileMenuOpen);
     if (toggleMobileMenu) {
       toggleMobileMenu();
-      console.log('Toggle function called');
-    } else {
-      console.log('No toggle function available');
     }
   };
 
