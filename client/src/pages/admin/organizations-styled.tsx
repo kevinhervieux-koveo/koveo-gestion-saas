@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyledLayout, StyledStatsCard, StyledCard } from '@/components/common';
+import { StyledStatsCard, StyledCard } from '@/components/common';
+import { Header } from '@/components/layout/header';
 import { typography, colors } from '@/styles/inline-styles';
 
 export default function OrganizationsStyled() {
@@ -14,46 +15,12 @@ export default function OrganizationsStyled() {
   };
 
   return (
-    <StyledLayout currentPath="/admin/organizations">
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '2rem'
-      }}>
-        <div>
-          <h1 style={typography.heading1}>
-            Admin Dashboard
-          </h1>
-          <p style={{
-            ...typography.body,
-            marginBottom: '1rem'
-          }}>
-            Property management overview and insights
-          </p>
-        </div>
-        
-        <div style={{
-          background: colors.secondaryLight,
-          color: colors.secondaryDark,
-          padding: '0.5rem 1rem',
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          fontWeight: '500',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <div style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: colors.secondary
-          }}></div>
-          Workspace Active
-        </div>
-      </div>
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title="Admin Dashboard"
+        subtitle="Property management overview and insights"
+      />
+      <div style={{padding: '1.5rem'}}>
 
       {/* Refresh Command */}
       <StyledCard>
@@ -146,6 +113,7 @@ export default function OrganizationsStyled() {
           </p>
         </div>
       </StyledCard>
-    </StyledLayout>
+      </div>
+    </div>
   );
 }

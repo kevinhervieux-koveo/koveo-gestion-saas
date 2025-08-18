@@ -4,15 +4,6 @@ interface StyledLayoutProps {
 }
 
 export function StyledLayout({ children, currentPath }: StyledLayoutProps) {
-  // This layout is now just a content wrapper that works with the main App.tsx sidebar
-  return (
-    <div style={{
-      padding: '1.5rem',
-      maxWidth: '100%',
-      background: '#f8fafc',
-      minHeight: '100vh'
-    }}>
-      {children}
-    </div>
-  );
+  // Just return children - no custom layout needed
+  return <>{children}</>;
 }

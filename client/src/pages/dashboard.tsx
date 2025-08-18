@@ -116,8 +116,7 @@ export default function Dashboard() {
         subtitle={welcome.subtitle}
       />
 
-      <div style={{maxWidth: '1280px', margin: '0 auto', padding: '2rem'}}>
-        <div style={{maxWidth: '80rem', margin: '0 auto'}}>
+      <div style={{padding: '1.5rem'}}>
           
           {/* Welcome Card with User Info */}
           <div style={{
