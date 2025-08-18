@@ -1918,10 +1918,8 @@ export type SSLCertificate = typeof sslCertificates.$inferSelect;
 export const insertInvitationSchema = createInsertSchema(invitations).pick({
   email: true,
   role: true,
-  invitedByUserId: true,
   organizationId: true,
   buildingId: true,
-  expiresAt: true,
   personalMessage: true,
   invitationContext: true,
 }).extend({
@@ -1930,17 +1928,16 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   organizationId: z.string().uuid('Organization is required'),
   buildingId: z.string().uuid().optional().or(z.literal('none').transform(() => undefined)),
   residenceId: z.string().uuid().optional(),
-  // Accept both string and date for expiresAt to handle serialization
-  expiresAt: z.union([
-    z.date(),
-    z.string().transform((str) => new Date(str))
-  ]).refine(
-    (date: any) => date > new Date(),
-    { message: 'Expiry date must be in the future' }
-  ),
   // Make other optional fields truly optional
   personalMessage: z.string().optional(),
   invitationContext: z.record(z.string(), z.unknown()).optional(),
+  // Accept frontend fields for convenience
+  expiryDays: z.number().min(1).max(30).optional(),
+  expiresAt: z.union([
+    z.date(),
+    z.string().transform((str) => new Date(str))
+  ]).optional(),
+  invitedByUserId: z.string().uuid().optional(),
 }).refine((data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if ((data.role === 'tenant' || data.role === 'resident') && data.buildingId) {
