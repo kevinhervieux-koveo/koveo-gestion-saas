@@ -52,7 +52,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     ],
   },
   {
-    name: 'Manager',
+    name: 'Management',
     key: 'manager',
     icon: Building,
     requiredRole: 'manager',

@@ -216,16 +216,57 @@ async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
     
-    // Register API routes FIRST to ensure they take precedence over static serving
-    await registerRoutes(app);
-
-    // Setup static file serving AFTER API routes to avoid conflicts
-    // Always serve static files in deployment (override development detection)
-    const forceProduction = true; // Force production mode for deployment
+    // Setup static file serving FIRST to prevent auth middleware from blocking assets
+    // Use NODE_ENV to determine serving mode
     
-    if (!forceProduction && process.env.NODE_ENV === 'development') {
-      log('🔧 Running in development mode with Vite');
-      await setupVite(app, server);
+    if (process.env.NODE_ENV === 'development') {
+      log('🔧 Setting up Vite development server with HMR');
+      try {
+        await setupVite(app, server);
+        log('✅ Vite development server initialized successfully');
+      } catch (error) {
+        log(`❌ Failed to setup Vite server: ${error}`, 'error');
+        log('🔧 Falling back to static file serving from dist/public');
+        
+        // Fallback to serving built files if Vite setup fails
+        const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
+        log(`📁 Looking for built files at: ${distPath}`);
+        
+        if (fs.existsSync(distPath)) {
+          log('✅ Found built files, serving static content');
+          app.use(express.static(distPath));
+          app.get(/^\/(?!api).*/, (_req: Request, res: Response) => {
+            const indexPath = path.resolve(distPath, 'index.html');
+            if (fs.existsSync(indexPath)) {
+              // Only log once per minute to avoid spam
+              const now = Date.now();
+              if (!global.lastLogTime || (now - global.lastLogTime > 60000)) {
+                log(`📄 Serving React app: ${indexPath}`);
+                global.lastLogTime = now;
+              }
+              res.sendFile(indexPath);
+            } else {
+              res.status(404).send('Built application not found');
+            }
+          });
+        } else {
+          log('⚠️ No built files found either, serving basic placeholder');
+          app.get('*', (_req: Request, res: Response) => {
+            res.send(`
+              <!DOCTYPE html>
+              <html>
+                <head><title>Koveo Gestion</title></head>
+                <body>
+                  <h1>Koveo Gestion</h1>
+                  <p>Application is starting up...</p>
+                  <p>Please run: <code>npm run build</code></p>
+                  <p><a href="/api/health">API Health Check</a></p>
+                </body>
+              </html>
+            `);
+          });
+        }
+      }
     } else {
       log('🏗️ Running in production mode, serving static files from dist/public');
       // Use custom static file serving to avoid the routing parameter issue
@@ -248,6 +289,9 @@ async function initializeApplication() {
         log(`⚠️ Build directory not found: ${distPath}`, 'error');
       }
     }
+
+    // Register API routes AFTER static serving to ensure assets are not blocked by auth
+    await registerRoutes(app);
 
     // Setup error handling
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

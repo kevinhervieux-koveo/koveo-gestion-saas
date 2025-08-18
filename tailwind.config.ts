@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-export default {
+const config: Config = {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
@@ -79,11 +79,11 @@ export default {
         "koveo-light": "var(--koveo-light)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
-        mono: ["var(--font-mono)"],
-        inter: ["Inter", "sans-serif"],
-      },
+  sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+  serif: ["Georgia", "Cambria", "Times New Roman", "Times", "serif"],
+  mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+  inter: ["Inter", "sans-serif"],
+},
       keyframes: {
         "accordion-down": {
           from: {
@@ -109,4 +109,6 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
-} satisfies Config;
+};
+
+export default config;

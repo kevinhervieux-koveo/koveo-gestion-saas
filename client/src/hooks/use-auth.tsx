@@ -36,13 +36,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   // Query to get current user
-  const { data: userData, isLoading } = useQuery<User | null>({
+  const { data: userData, isLoading, error } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('GET', '/api/auth/user');
+        // Use fetch directly to handle 401/403 without throwing errors
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include',
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+          // Expected when not logged in - return null instead of throwing
+          return null;
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         return await response.json() as User;
-      } catch {
+      } catch (error) {
+        console.log('Auth check failed (expected when not logged in):', error);
         return null;
       }
     },

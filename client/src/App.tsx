@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
+
 import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
@@ -32,7 +33,11 @@ export const useMobileMenu = () => {
 };
 
 // Optimized lazy-loaded Admin pages
-const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
+const AdminOrganizations = createOptimizedLoader(
+  () => import('@/pages/admin/organizations'),
+  'admin-organizations',
+  { preloadDelay: 300, enableMemoryCleanup: true }
+);
 const AdminDocumentation = createOptimizedLoader(
   () => import('@/pages/admin/documentation'),
   'admin-documentation',
@@ -43,8 +48,16 @@ const AdminPillars = createOptimizedLoader(
   'admin-pillars',
   { enableMemoryCleanup: true }
 );
-const AdminRoadmap = optimizedPageLoaders.AdminRoadmap;
-const AdminQuality = optimizedPageLoaders.AdminQuality;
+const AdminRoadmap = createOptimizedLoader(
+  () => import('@/pages/admin/roadmap'),
+  'admin-roadmap',
+  { enableMemoryCleanup: true }
+);
+const AdminQuality = createOptimizedLoader(
+  () => import('@/pages/admin/quality'),
+  'admin-quality',
+  { enableMemoryCleanup: true }
+);
 const AdminSuggestions = createOptimizedLoader(
   () => import('@/pages/admin/suggestions'),
   'admin-suggestions',
@@ -86,7 +99,11 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-const ResidentsDemands = ManagerDemands; // Reuse manager demands for residents
+const ResidentsDemands = createOptimizedLoader(
+  () => import('@/pages/residents/demands'),
+  'residents-demands',
+  { enableMemoryCleanup: true }
+);
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
@@ -129,9 +146,16 @@ const HomePage = createOptimizedLoader(
 
 // Main Dashboard page
 const DashboardPage = createOptimizedLoader(
-  () => import('@/pages/dashboard'),
+  () => import('@/pages/dashboard-simple'),
   'dashboard-page',
   { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
+// Test styling page
+const TestStylingPage = createOptimizedLoader(
+  () => import('@/pages/test-styling'),
+  'test-styling-page',
+  { preloadDelay: 100, enableMemoryCleanup: true }
 );
 
 // Invitation acceptance page (public route)
@@ -152,6 +176,8 @@ function Router() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  console.log('Router: isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'location:', location);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -161,6 +187,7 @@ function Router() {
   };
 
   if (isLoading) {
+    console.log('Router: showing loading spinner due to isLoading');
     return <LoadingSpinner />;
   }
 
@@ -170,22 +197,25 @@ function Router() {
   if (!isAuthenticated) {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-          {/* Redirect all other routes to home for unauthenticated users */}
-          <Route component={HomeRedirect} />
-        </Switch>
-      </Suspense>
+      <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Switch>
+              <Route path="/" component={HomePage} />
+              <Route path="/login" component={LoginPage} />
+              <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+              {/* Redirect all other routes to home for unauthenticated users */}
+              <Route component={HomeRedirect} />
+            </Switch>
+          </Suspense>
+      </div>
     );
   }
   
   if (isHomePage) {
+    // Redirect authenticated users to dashboard instead of showing home page
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <HomePage />
+        <DashboardRedirect />
       </Suspense>
     );
   }
@@ -198,7 +228,7 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter'>
+      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
         {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
@@ -221,6 +251,9 @@ function Router() {
 
               {/* Main Dashboard */}
               <Route path='/dashboard' component={DashboardPage} />
+              
+              {/* Test styling page */}
+              <Route path='/test-styling' component={TestStylingPage} />
 
               {/* Admin routes */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
@@ -281,6 +314,21 @@ function LoginRedirect() {
 }
 
 /**
+ * Dashboard redirect component for authenticated users.
+ * Redirects authenticated users from home page to dashboard.
+ * @returns JSX element that shows loading while redirecting.
+ */
+function DashboardRedirect() {
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    setLocation('/dashboard');
+  }, [setLocation]);
+  
+  return <LoadingSpinner />;
+}
+
+/**
  * Home redirect component for unauthenticated users.
  * Redirects unauthenticated users from protected routes to home page.
  * @returns JSX element that shows loading while redirecting.
@@ -303,25 +351,37 @@ function HomeRedirect() {
 function App() {
   // Initialize memory monitoring on app start
   useEffect(() => {
-    memoryOptimizer.start();
+    try {
+      memoryOptimizer.start();
+    } catch (error) {
+      console.log('Memory optimizer failed to start:', error);
+    }
     
     // Cleanup on unmount
     return () => {
-      memoryOptimizer.stop();
+      try {
+        memoryOptimizer.stop();
+      } catch (error) {
+        console.log('Memory optimizer failed to stop:', error);
+      }
     };
   }, []);
 
+  console.log('App component rendering...');
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 
