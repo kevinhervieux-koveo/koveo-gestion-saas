@@ -40,6 +40,8 @@ export interface AccessContext {
  */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
+    console.log('Getting accessible organizations for user:', userId);
+    
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
       where: and(
@@ -50,11 +52,19 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
         organization: true
       }
     });
+    
+    console.log('User organizations found:', userOrgs.map(uo => ({ 
+      orgId: uo.organizationId, 
+      orgName: uo.organization?.name, 
+      canAccessAll: uo.canAccessAllOrganizations 
+    })));
 
     // Get Demo organization ID (always accessible)
     const demoOrg = await db.query.organizations.findFirst({
       where: eq(schema.organizations.name, 'Demo')
     });
+    
+    console.log('Demo org found:', demoOrg?.id);
 
     const accessibleOrgIds = new Set<string>();
     
@@ -66,10 +76,12 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     // Check each user organization membership
     for (const userOrg of userOrgs) {
       if (userOrg.canAccessAllOrganizations || userOrg.organization?.name?.toLowerCase() === 'koveo') {
+        console.log('User has full access - adding all organizations');
         // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true)
         });
+        console.log('All organizations found:', allOrgs.map(o => ({ id: o.id, name: o.name })));
         allOrgs.forEach(org => accessibleOrgIds.add(org.id));
         break;
       } else {
@@ -78,7 +90,9 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
       }
     }
 
-    return Array.from(accessibleOrgIds);
+    const result = Array.from(accessibleOrgIds);
+    console.log('Final accessible org IDs:', result);
+    return result;
   } catch (_error) {
     console.error('Error getting user accessible organizations:', _error);
     return [];
