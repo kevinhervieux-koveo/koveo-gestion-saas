@@ -155,7 +155,9 @@ function Router() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
+    console.log('toggleMobileMenu called, current state:', isMobileMenuOpen);
     setIsMobileMenuOpen(!isMobileMenuOpen);
+    console.log('toggleMobileMenu new state will be:', !isMobileMenuOpen);
   };
 
   const closeMobileMenu = () => {

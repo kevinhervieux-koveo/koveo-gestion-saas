@@ -42,10 +42,25 @@ export function Header({ title, subtitle }: HeaderProps) {
   const mobileMenu = useMobileMenu();
   const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
   
+  // Enhanced debugging for mobile menu
+  console.log('Mobile menu context:', mobileMenu);
+  console.log('Is mobile menu open:', mobileMenu?.isMobileMenuOpen);
+  
   // Check if mobile menu context is available
   if (!mobileMenu || !toggleMobileMenu) {
     console.log('Mobile menu toggle not available');
   }
+  
+  const handleMobileMenuClick = () => {
+    console.log('Mobile menu button clicked');
+    console.log('Current state before toggle:', mobileMenu?.isMobileMenuOpen);
+    if (toggleMobileMenu) {
+      toggleMobileMenu();
+      console.log('Toggle function called');
+    } else {
+      console.log('No toggle function available');
+    }
+  };
 
   return (
     <header className='bg-white border-b border-gray-200 px-6 py-4'>
@@ -56,7 +71,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             variant="ghost"
             size="sm"
             className="md:hidden"
-            onClick={toggleMobileMenu || (() => console.log('Mobile menu toggle not available'))}
+            onClick={handleMobileMenuClick}
             aria-label="Toggle navigation menu"
           >
             <Menu className="h-6 w-6" />
