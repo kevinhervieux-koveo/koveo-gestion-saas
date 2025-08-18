@@ -573,36 +573,25 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Building"} ({t('optional')})</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Reset residence when building changes
-                            singleForm.setValue('residenceId', '');
-                          }} 
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={"Select building"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">
-                              <div className="flex items-center gap-2">
-                                <Building className="h-4 w-4" />
-                                {"No specific building"}
-                              </div>
-                            </SelectItem>
+                        <FormControl>
+                          <select
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                              // Reset residence when building changes
+                              singleForm.setValue('residenceId', '');
+                            }}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">{"Select building"}</option>
+                            <option value="">{"No specific building"}</option>
                             {getFilteredBuildings(singleForm.watch('organizationId')).map((building) => (
-                              <SelectItem key={building.id} value={building.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {building.name} - {building.address}
-                                </div>
-                              </SelectItem>
+                              <option key={building.id} value={building.id}>
+                                {building.name} - {building.address}
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -616,24 +605,21 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Residence"} *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={"Select residence"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
+                        <FormControl>
+                          <select
+                            {...field}
+                            onChange={field.onChange}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">{"Select residence"}</option>
                             {getFilteredResidences(singleForm.watch('buildingId')).map((residence) => (
-                              <SelectItem key={residence.id} value={residence.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {"Unit"} {residence.unitNumber}
-                                  {residence.floor && ` - ${"Floor"} ${residence.floor}`}
-                                </div>
-                              </SelectItem>
+                              <option key={residence.id} value={residence.id}>
+                                {"Unit"} {residence.unitNumber}
+                                {residence.floor && ` - ${"Floor"} ${residence.floor}`}
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </select>
+                        </FormControl>
                         <FormDescription>
                           {"Residence required for tenants and residents"}
                         </FormDescription>
@@ -649,23 +635,20 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('expiresIn')}</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">1 {t('day')}</SelectItem>
-                          <SelectItem value="3">3 {t('days')}</SelectItem>
-                          <SelectItem value="7">7 {t('days')}</SelectItem>
-                          <SelectItem value="14">14 {t('days')}</SelectItem>
-                          <SelectItem value="30">30 {t('days')}</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <select
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          value={field.value.toString()}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="1">1 {t('day')}</option>
+                          <option value="3">3 {t('days')}</option>
+                          <option value="7">7 {t('days')}</option>
+                          <option value="14">14 {t('days')}</option>
+                          <option value="30">30 {t('days')}</option>
+                        </select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -856,36 +839,25 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Building"} ({t('optional')})</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Reset residence when building changes
-                            bulkForm.setValue('residenceId', '');
-                          }} 
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={"Select building"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">
-                              <div className="flex items-center gap-2">
-                                <Building className="h-4 w-4" />
-                                {"No specific building"}
-                              </div>
-                            </SelectItem>
+                        <FormControl>
+                          <select
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                              // Reset residence when building changes
+                              bulkForm.setValue('residenceId', '');
+                            }}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">{"Select building"}</option>
+                            <option value="">{"No specific building"}</option>
                             {getFilteredBuildings(bulkForm.watch('organizationId')).map((building) => (
-                              <SelectItem key={building.id} value={building.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {building.name} - {building.address}
-                                </div>
-                              </SelectItem>
+                              <option key={building.id} value={building.id}>
+                                {building.name} - {building.address}
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -899,24 +871,21 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Residence"} *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={"Select residence"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
+                        <FormControl>
+                          <select
+                            {...field}
+                            onChange={field.onChange}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">{"Select residence"}</option>
                             {getFilteredResidences(bulkForm.watch('buildingId')).map((residence) => (
-                              <SelectItem key={residence.id} value={residence.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
-                                  {"Unit"} {residence.unitNumber}
-                                  {residence.floor && ` - ${"Floor"} ${residence.floor}`}
-                                </div>
-                              </SelectItem>
+                              <option key={residence.id} value={residence.id}>
+                                {"Unit"} {residence.unitNumber}
+                                {residence.floor && ` - ${"Floor"} ${residence.floor}`}
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </select>
+                        </FormControl>
                         <FormDescription>
                           {"Residence required for tenants and residents"}
                         </FormDescription>
