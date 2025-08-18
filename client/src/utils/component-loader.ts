@@ -147,18 +147,18 @@ export function getComponentCacheSize(): number {
 export const optimizedPageLoaders = {
   // Admin pages
   AdminOrganizations: createOptimizedLoader(
-    () => import('@/pages/admin/organizations'),
-    'admin-organizations',
+    () => import('@/pages/admin/organizations-styled'),
+    'admin-organizations-styled',
     { enableMemoryCleanup: true }
   ),
   AdminRoadmap: createOptimizedLoader(
-    () => import('@/pages/admin/roadmap'),
-    'admin-roadmap',
+    () => import('@/pages/admin/roadmap-styled'),
+    'admin-roadmap-styled',
     { preloadDelay: 3000, enableMemoryCleanup: true }
   ),
   AdminQuality: createOptimizedLoader(
-    () => import('@/pages/admin/quality'),
-    'admin-quality',
+    () => import('@/pages/admin/quality-styled'),
+    'admin-quality-styled',
     { preloadDelay: 5000, enableMemoryCleanup: true }
   ),
   
