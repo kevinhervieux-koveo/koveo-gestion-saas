@@ -91,8 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      // Redirect to dashboard after successful login
-      setLocation('/dashboard');
+      // Redirect based on role after successful login
+      if (data.user.role === 'admin') {
+        setLocation('/admin/organizations');
+      } else {
+        setLocation('/dashboard');
+      }
     },
   });
 

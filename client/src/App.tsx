@@ -246,16 +246,7 @@ function Router() {
         <div className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
-              {/* Login page - redirect authenticated users to dashboard */}
-              <Route path='/login' component={LoginRedirect} />
-
-              {/* Main Dashboard */}
-              <Route path='/dashboard' component={DashboardPage} />
-              
-              {/* Test styling page */}
-              <Route path='/test-styling' component={TestStylingPage} />
-
-              {/* Admin routes */}
+              {/* Admin routes FIRST - to prevent dashboard redirects */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
               <Route path='/admin/documentation' component={AdminDocumentation} />
               <Route path='/admin/pillars' component={AdminPillars} />
@@ -263,6 +254,28 @@ function Router() {
               <Route path='/admin/quality' component={AdminQuality} />
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
+
+              {/* Login page - redirect authenticated users to dashboard */}
+              <Route path='/login' component={LoginRedirect} />
+
+              {/* Main Dashboard - redirect admin users to organizations */}
+              <Route path='/dashboard'>
+                {() => {
+                  const { user } = useAuth();
+                  const [, setLocation] = useLocation();
+                  
+                  useEffect(() => {
+                    if (user?.role === 'admin') {
+                      setLocation('/admin/organizations');
+                    }
+                  }, [user, setLocation]);
+                  
+                  return <DashboardPage />;
+                }}
+              </Route>
+              
+              {/* Test styling page */}
+              <Route path='/test-styling' component={TestStylingPage} />
 
               {/* Owner routes removed - documentation consolidated under admin section */}
 
