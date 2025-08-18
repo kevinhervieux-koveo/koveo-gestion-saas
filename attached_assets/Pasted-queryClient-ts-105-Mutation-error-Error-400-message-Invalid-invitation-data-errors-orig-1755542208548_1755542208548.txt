@@ -1,0 +1,36 @@
+queryClient.ts:105 Mutation error: Error: 400: {"message":"Invalid invitation data","errors":[{"origin":"string","code":"invalid_format","format":"uuid","pattern":"/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/","path":["invitedByUserId"],"message":"Invalid UUID"},{"origin":"string","code":"invalid_format","format":"uuid","pattern":"/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/","path":["residenceId"],"message":"Invalid UUID"}]}
+    at throwIfResNotOk (queryClient.ts:13:11)
+    at async apiRequest (queryClient.ts:39:3)
+    at async Object.mutationFn (send-invitation-dialog.tsx:345:24)
+onError	@	queryClient.ts:105
+execute	@	@tanstack_react-query.js?v=e022a0b4:1252
+await in execute		
+mutate	@	@tanstack_react-query.js?v=e022a0b4:2637
+(anonymous)	@	@tanstack_react-query.js?v=e022a0b4:3351
+onSingleSubmit	@	send-invitation-dialog.tsx:415
+(anonymous)	@	chunk-JYNBG5WP.js?v=e022a0b4:1506
+await in (anonymous)		
+executeDispatch	@	react-dom_client.js?v=e022a0b4:11736
+runWithFiberInDEV	@	react-dom_client.js?v=e022a0b4:1485
+processDispatchQueue	@	react-dom_client.js?v=e022a0b4:11772
+(anonymous)	@	react-dom_client.js?v=e022a0b4:12182
+batchedUpdates$1	@	react-dom_client.js?v=e022a0b4:2628
+dispatchEventForPluginEventSystem	@	react-dom_client.js?v=e022a0b4:11877
+dispatchEvent	@	react-dom_client.js?v=e022a0b4:14792
+dispatchDiscreteEvent	@	react-dom_client.js?v=e022a0b4:14773
+<form>		
+exports.jsxDEV	@	react_jsx-dev-runtime.js?v=e022a0b4:250
+SendInvitationDialog	@	send-invitation-dialog.tsx:475
+react_stack_bottom_frame	@	react-dom_client.js?v=e022a0b4:17424
+renderWithHooks	@	react-dom_client.js?v=e022a0b4:4206
+updateFunctionComponent	@	react-dom_client.js?v=e022a0b4:6619
+beginWork	@	react-dom_client.js?v=e022a0b4:7654
+runWithFiberInDEV	@	react-dom_client.js?v=e022a0b4:1485
+performUnitOfWork	@	react-dom_client.js?v=e022a0b4:10868
+workLoopSync	@	react-dom_client.js?v=e022a0b4:10728
+renderRootSync	@	react-dom_client.js?v=e022a0b4:10711
+performWorkOnRoot	@	react-dom_client.js?v=e022a0b4:10330
+performSyncWorkOnRoot	@	react-dom_client.js?v=e022a0b4:11635
+flushSyncWorkAcrossRoots_impl	@	react-dom_client.js?v=e022a0b4:11536
+processRootScheduleInMicrotask	@	react-dom_client.js?v=e022a0b4:11558
+(anonymous)	@	react-dom_client.js?v=e022a0b4:11649

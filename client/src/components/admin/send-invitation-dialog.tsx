@@ -339,14 +339,17 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Single invitation mutation
   const singleInvitationMutation = useMutation({
     mutationFn: async (data: InvitationFormData) => {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
+      // Only send the fields expected by the backend schema
+      const requestData = {
+        email: data.email,
+        role: data.role,
+        organizationId: data.organizationId,
+        buildingId: data.buildingId,
+        residenceId: data.residenceId,
+        personalMessage: data.personalMessage
+      };
       
-      const response = await apiRequest('POST', '/api/invitations', {
-        ...data,
-        expiresAt: expiresAt.toISOString(),
-        invitedByUserId: currentUser?.id
-      });
+      const response = await apiRequest('POST', '/api/invitations', requestData);
       return response.json();
     },
     onSuccess: () => {
@@ -370,17 +373,14 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Bulk invitation mutation
   const bulkInvitationMutation = useMutation({
     mutationFn: async (data: BulkInvitationFormData) => {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
-      
+      // Only send the fields expected by the backend schema
       const invitations = data.emails.map(email => ({
         email,
         role: data.role,
         organizationId: data.organizationId,
         buildingId: data.buildingId,
-        personalMessage: data.personalMessage,
-        expiresAt: expiresAt.toISOString(),
-        invitedByUserId: currentUser?.id
+        residenceId: data.residenceId,
+        personalMessage: data.personalMessage
       }));
       
       const response = await apiRequest('POST', '/api/invitations/bulk', {
