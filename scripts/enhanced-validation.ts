@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
  * Enhanced validation script that includes documentation validation
- * Integrates with existing npm validation workflow
+ * Integrates with existing npm validation workflow.
  */
 
 import { execSync } from 'child_process';
 import { validateDocs } from './docs-validation.js';
 
 /**
- * Enhanced validation runner that includes documentation checks
- * @returns Process exit code
+ * Enhanced validation runner that includes documentation checks.
+ * @returns Process exit code.
  */
 async function runEnhancedValidation(): Promise<number> {
   console.log('🔍 Running enhanced validation with documentation checks...\n');

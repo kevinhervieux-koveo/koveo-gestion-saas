@@ -34,9 +34,9 @@ interface ActionableItemsPanelProps {
 
 /**
  * Panel component for managing actionable items generated from feature analysis.
- * @param root0 - Component props
- * @param root0.feature - The feature containing actionable items
- * @param root0.onClose - Optional callback when panel is closed
+ * @param root0 - Component props.
+ * @param root0.feature - The feature containing actionable items.
+ * @param root0.onClose - Optional callback when panel is closed.
  */
 export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelProps) {
   const { toast } = useToast();

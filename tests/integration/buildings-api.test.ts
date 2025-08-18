@@ -1,5 +1,5 @@
 /**
- * @fileoverview Integration tests for Buildings API endpoints
+ * @file Integration tests for Buildings API endpoints
  * Tests all building-related API endpoints with proper authentication,
  * role-based access control, data validation, and error handling.
  */

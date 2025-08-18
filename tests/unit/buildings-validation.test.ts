@@ -1,5 +1,5 @@
 /**
- * @fileoverview Validation tests for building schemas and business logic
+ * @file Validation tests for building schemas and business logic
  * Tests Zod schema validation, business rules, and data integrity constraints
  * for building management functionality.
  */

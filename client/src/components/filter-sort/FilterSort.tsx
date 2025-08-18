@@ -50,16 +50,16 @@ interface FilterSortProps {
 /**
  * Advanced filtering and sorting component with preset support.
  * Provides a comprehensive interface for data filtering, sorting, and search functionality.
- * @param props - The component props
- * @param props.config - Filter and sort configuration options
- * @param props.filters - Current active filters array
- * @param props.sort - Current sort configuration
- * @param props.search - Current search query string
- * @param props.onAddFilter - Callback to add a new filter
- * @param props.onRemoveFilter - Callback to remove a filter by field
- * @param props.onUpdateFilter - Callback to update an existing filter
- * @param props.onClearFilters - Callback to clear all active filters
- * @param props.onSetSort - Callback to set sort configuration
+ * @param props - The component props.
+ * @param props.config - Filter and sort configuration options.
+ * @param props.filters - Current active filters array.
+ * @param props.sort - Current sort configuration.
+ * @param props.search - Current search query string.
+ * @param props.onAddFilter - Callback to add a new filter.
+ * @param props.onRemoveFilter - Callback to remove a filter by field.
+ * @param props.onUpdateFilter - Callback to update an existing filter.
+ * @param props.onClearFilters - Callback to clear all active filters.
+ * @param props.onSetSort - Callback to set sort configuration.
  * @param props.onToggleSort - Callback to toggle sort direction for a field
  * @param props.onSetSearch - Callback to update search query
  * @param props.onApplyPreset - Optional callback to apply filter presets

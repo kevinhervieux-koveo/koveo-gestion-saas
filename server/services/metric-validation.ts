@@ -96,7 +96,7 @@ export class MetricValidationService {
   /**
    * Gets the singleton instance of the metric validation service.
    * Ensures consistent validation across the entire application.
-   * @returns The singleton instance of MetricValidationService
+   * @returns The singleton instance of MetricValidationService.
    */
   public static getInstance(): MetricValidationService {
     if (!MetricValidationService.instance) {

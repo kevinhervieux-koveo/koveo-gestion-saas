@@ -1,4 +1,4 @@
-import { analyzeFeatureWithGemini, getDocumentationContext } from '../../server/services/gemini-analysis';
+import { getDocumentationContext } from '../../server/services/gemini-analysis';
 import type { Feature } from '@shared/schema';
 
 /**
@@ -27,7 +27,17 @@ describe('LLM Form Mapping Validation', () => {
     dependencies: 'Authentication system, audit logging, notification system',
     userFlow: 'User logs in -> Views security dashboard -> Configures settings -> Saves preferences',
     isStrategicPath: true,
-    roadmapVisibility: 'public',
+    isPublicRoadmap: true,
+    metadata: null,
+    aiAnalysisResult: null,
+    aiAnalyzedAt: null,
+    requestedBy: null,
+    assignedTo: null,
+    estimatedHours: null,
+    actualHours: null,
+    startDate: null,
+    completedDate: null,
+    tags: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     syncedAt: new Date()
@@ -37,7 +47,7 @@ describe('LLM Form Mapping Validation', () => {
    * Test that the LLM analysis service accepts all form fields.
    */
   it('should accept all feature form fields as input', async () => {
-    const documentationContext = await getDocumentationContext();
+    const _documentationContext = await getDocumentationContext();
     
     // This should not throw an error and should accept all the fields from our form
     expect(async () => {
@@ -100,7 +110,7 @@ describe('LLM Form Mapping Validation', () => {
       'estimatedEffort'
     ];
     
-    const optionalActionableItemFields = [
+    const _optionalActionableItemFields = [
       'dependencies'
     ];
     

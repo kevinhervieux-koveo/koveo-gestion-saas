@@ -2,14 +2,20 @@
 
 /**
  * Replit Environment Monitor
- * Lightweight monitoring script for Replit-specific metrics
+ * Lightweight monitoring script for Replit-specific metrics.
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+/**
+ *
+ */
 class ReplitMonitor {
+  /**
+   *
+   */
   constructor() {
     this.startTime = Date.now();
     this.metrics = {
@@ -22,7 +28,7 @@ class ReplitMonitor {
   }
 
   /**
-   * Collect system metrics
+   * Collect system metrics.
    */
   collectMetrics() {
     try {
@@ -51,7 +57,7 @@ class ReplitMonitor {
   }
 
   /**
-   * Start monitoring loop
+   * Start monitoring loop.
    */
   start() {
     console.log('🔍 Starting Replit Environment Monitor...');

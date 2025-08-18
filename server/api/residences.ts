@@ -4,6 +4,10 @@ import { residences, buildings, organizations, userResidences, users } from '../
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index.js';
 
+/**
+ *
+ * @param app
+ */
 export function registerResidenceRoutes(app: Express) {
   // Get all residences with filtering and search
   app.get('/api/residences', requireAuth, async (req: any, res: any) => {
@@ -12,7 +16,7 @@ export function registerResidenceRoutes(app: Express) {
       const { search, buildingId, floor } = req.query;
 
       // Start with base conditions
-      let conditions = [eq(residences.isActive, true)];
+      const conditions = [eq(residences.isActive, true)];
 
       // Apply filters
       if (buildingId) {
@@ -79,7 +83,7 @@ export function registerResidenceRoutes(app: Express) {
 
       // Group tenants by residence
       const tenantsByResidence = tenants.reduce((acc, { residenceId, tenant }) => {
-        if (!acc[residenceId]) acc[residenceId] = [];
+        if (!acc[residenceId]) {acc[residenceId] = [];}
         acc[residenceId].push({
           id: tenant.id,
           firstName: tenant.firstName,

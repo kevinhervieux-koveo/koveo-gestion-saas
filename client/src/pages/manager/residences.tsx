@@ -11,6 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Home, Search, Edit, Users, Building, MapPin, Car, Package, Bed, Bath } from 'lucide-react';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -42,12 +45,18 @@ interface Residence {
   }>;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
   totalFloors: number;
 }
 
+/**
+ *
+ */
 export default function Residences() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
@@ -61,12 +70,12 @@ export default function Residences() {
     queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedBuilding && selectedBuilding !== 'all') params.append('buildingId', selectedBuilding);
-      if (selectedFloor && selectedFloor !== 'all') params.append('floor', selectedFloor);
+      if (searchTerm) {params.append('search', searchTerm);}
+      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);}
+      if (selectedFloor && selectedFloor !== 'all') {params.append('floor', selectedFloor);}
       
       const response = await fetch(`/api/residences?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch residences');
+      if (!response.ok) {throw new Error('Failed to fetch residences');}
       return response.json() as Promise<Residence[]>;
     }
   });
@@ -76,7 +85,7 @@ export default function Residences() {
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await fetch('/api/manager/buildings');
-      if (!response.ok) throw new Error('Failed to fetch buildings');
+      if (!response.ok) {throw new Error('Failed to fetch buildings');}
       return response.json();
     }
   });
@@ -89,7 +98,7 @@ export default function Residences() {
     queryKey: ['/api/residences/all'],
     queryFn: async () => {
       const response = await fetch('/api/residences');
-      if (!response.ok) throw new Error('Failed to fetch all residences');
+      if (!response.ok) {throw new Error('Failed to fetch all residences');}
       return response.json() as Promise<Residence[]>;
     }
   });

@@ -7,9 +7,12 @@ import { agentToolkit } from '../tools/ai-agent-toolkit';
 
 /**
  * AI Agent Toolkit Demonstration
- * Showcases the enhanced capabilities of the AI agent tooling system
+ * Showcases the enhanced capabilities of the AI agent tooling system.
  */
 
+/**
+ *
+ */
 async function runDemo() {
   console.log(chalk.blue.bold('🚀 AI Agent Toolkit Enhanced Demonstration\n'));
   

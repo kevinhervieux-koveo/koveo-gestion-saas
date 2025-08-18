@@ -12,14 +12,18 @@ import { eq, and, or, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import crypto from 'crypto';
 
+/**
+ *
+ * @param app
+ */
 export function registerBuildingRoutes(app: Express): void {
   /**
-   * GET /api/manager/buildings - Retrieves buildings based on user role and associations
+   * GET /api/manager/buildings - Retrieves buildings based on user role and associations.
    * 
    * Access Control Logic:
    * - Admin: Can see all buildings in their organization + buildings where they have residences
    * - Manager: Can see all buildings in their organization + buildings where they have residences  
-   * - Resident/Tenant: Can see only buildings where they have residences (role is not used, only residence links)
+   * - Resident/Tenant: Can see only buildings where they have residences (role is not used, only residence links).
    */
   app.get('/api/manager/buildings', async (req: any, res) => {
     // Authentication check
@@ -50,7 +54,7 @@ export function registerBuildingRoutes(app: Express): void {
       
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
-      let accessibleBuildings: any[] = [];
+      const accessibleBuildings: any[] = [];
       const buildingIds = new Set<string>();
 
       // Check if user belongs to Koveo organization (special global access)
@@ -328,7 +332,7 @@ export function registerBuildingRoutes(app: Express): void {
 
   /**
    * GET /api/manager/buildings/:id - Get a specific building with detailed information
-   * Uses the same access control logic as the list endpoint
+   * Uses the same access control logic as the list endpoint.
    */
   app.get('/api/manager/buildings/:id', requireAuth, async (req: any, res) => {
     try {
@@ -536,7 +540,7 @@ export function registerBuildingRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/admin/buildings - Create a new building (Admin only)
+   * POST /api/admin/buildings - Create a new building (Admin only).
    */
   app.post('/api/admin/buildings', requireAuth, async (req: any, res) => {
     try {
@@ -645,7 +649,7 @@ export function registerBuildingRoutes(app: Express): void {
   });
 
   /**
-   * PUT /api/admin/buildings/:id - Update a building (Admin and Manager)
+   * PUT /api/admin/buildings/:id - Update a building (Admin and Manager).
    */
   app.put('/api/admin/buildings/:id', requireAuth, async (req: any, res) => {
     try {
@@ -731,7 +735,7 @@ export function registerBuildingRoutes(app: Express): void {
   });
 
   /**
-   * DELETE /api/admin/buildings/:id - Delete a building (Admin only)
+   * DELETE /api/admin/buildings/:id - Delete a building (Admin only).
    */
   app.delete('/api/admin/buildings/:id', requireAuth, async (req: any, res) => {
     try {

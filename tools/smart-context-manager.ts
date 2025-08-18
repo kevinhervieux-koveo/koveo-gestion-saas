@@ -302,7 +302,7 @@ export class SmartContextManager {
 
   /**
    * Get all file contexts for the project.
-   * @returns Array of file context objects
+   * @returns Array of file context objects.
    */
   private getAllFileContexts(): FileContext[] {
     const files = glob.sync('**/*.{ts,tsx,js,jsx}', {
@@ -315,9 +315,9 @@ export class SmartContextManager {
 
   /**
    * Suggest files to work on based on current context.
-   * @param currentFiles - Array of currently active files
-   * @param intent - Development intent or goal
-   * @returns Array of context suggestions
+   * @param currentFiles - Array of currently active files.
+   * @param intent - Development intent or goal.
+   * @returns Array of context suggestions.
    */
   public suggestNextFiles(currentFiles: string[], intent: string = ''): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
@@ -400,8 +400,8 @@ export class SmartContextManager {
 
   /**
    * Find test files for given source files.
-   * @param sourceFiles - Array of source file paths
-   * @returns Array of corresponding test file paths
+   * @param sourceFiles - Array of source file paths.
+   * @returns Array of corresponding test file paths.
    */
   private findTestFiles(sourceFiles: string[]): string[] {
     const testFiles: string[] = [];
@@ -432,8 +432,8 @@ export class SmartContextManager {
 
   /**
    * Update workspace context with new files.
-   * @param files - Array of file paths to add to working set
-   * @param focusArea - Optional focus area for the context
+   * @param files - Array of file paths to add to working set.
+   * @param focusArea - Optional focus area for the context.
    */
   public updateWorkingSet(files: string[], focusArea?: string): void {
     this.workspaceContext.workingSet = [...new Set([...this.workspaceContext.workingSet, ...files])];
@@ -455,9 +455,9 @@ export class SmartContextManager {
 
   /**
    * Get smart file recommendations for AI agent.
-   * @param intent - The development intent or goal
-   * @param _context - Additional context for recommendations (unused)
-   * @returns Smart file recommendations categorized by priority
+   * @param intent - The development intent or goal.
+   * @param _context - Additional context for recommendations (unused).
+   * @returns Smart file recommendations categorized by priority.
    */
   public getSmartRecommendations(intent: string = '', _context: string = ''): {
     priority: ContextSuggestion[];
@@ -475,7 +475,7 @@ export class SmartContextManager {
 
   /**
    * Generate context summary for AI agent.
-   * @returns JSON string containing workspace context summary
+   * @returns JSON string containing workspace context summary.
    */
   public generateContextSummary(): string {
     const summary = {

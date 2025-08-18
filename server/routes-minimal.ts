@@ -20,16 +20,27 @@ const { invitations, users: schemaUsers, organizations, buildings, residences, i
 const emailService = new EmailService();
 
 // Utility functions for invitation management
+/**
+ *
+ */
 function generateSecureToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
+/**
+ *
+ * @param token
+ */
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 // Rate limiting for invitations
 const invitationRateLimit = new Map();
+/**
+ *
+ * @param limit
+ */
 function rateLimitInvitations(limit: number) {
   return (req: any, res: any, next: any) => {
     const userId = req.user?.id;
@@ -60,6 +71,16 @@ function rateLimitInvitations(limit: number) {
 }
 
 // Audit logging function
+/**
+ *
+ * @param invitationId
+ * @param action
+ * @param performedBy
+ * @param req
+ * @param previousStatus
+ * @param newStatus
+ * @param details
+ */
 async function createInvitationAuditLog(
   invitationId: string,
   action: string,

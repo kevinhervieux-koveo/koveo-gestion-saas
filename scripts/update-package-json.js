@@ -2,7 +2,7 @@
 
 /**
  * Enhanced Package.json Configuration
- * Use this to manually update your package.json with AI agent scripts
+ * Use this to manually update your package.json with AI agent scripts.
  */
 
 const enhancedPackageJson = {

@@ -69,6 +69,10 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   private taskQueue: Array<{ id: string; task: string; priority: number; context?: any }> = [];
   private isProcessing: boolean = false;
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     super();
     this.projectRoot = projectRoot;
@@ -142,6 +146,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Handle incoming WebSocket messages for interactive control.
+   * @param data
+   * @param ws
    */
   private handleWebSocketMessage(data: any, ws: WebSocket): void {
     switch (data.type) {
@@ -164,6 +170,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Broadcast updates to all connected clients.
+   * @param type
+   * @param data
    */
   private broadcastUpdate(type: string, data: any): void {
     const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() });
@@ -208,6 +216,9 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Queue a task for execution with priority handling.
+   * @param task
+   * @param priority
+   * @param context
    */
   public queueTask(task: string, priority: number = 1, context?: any): string {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -228,7 +239,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Process the task queue sequentially.
    */
   private async processTaskQueue(): Promise<void> {
-    if (this.isProcessing || this.taskQueue.length === 0) return;
+    if (this.isProcessing || this.taskQueue.length === 0) {return;}
     
     this.isProcessing = true;
     
@@ -262,6 +273,10 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute a specific task with comprehensive monitoring.
+   * @param task
+   * @param task.id
+   * @param task.task
+   * @param task.context
    */
   private async executeTask(task: { id: string; task: string; context?: any }): Promise<TaskResult> {
     const startTime = Date.now();
@@ -308,6 +323,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute linting task with detailed reporting.
+   * @param task
    */
   private async executeLintTask(task: any): Promise<TaskResult> {
     return new Promise((resolve) => {
@@ -361,6 +377,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute test task with coverage reporting.
+   * @param task
    */
   private async executeTestTask(task: any): Promise<TaskResult> {
     return new Promise((resolve) => {
@@ -409,6 +426,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute build task with timing.
+   * @param task
    */
   private async executeBuildTask(task: any): Promise<TaskResult> {
     const startTime = Date.now();
@@ -445,6 +463,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute format task.
+   * @param task
    */
   private async executeFormatTask(task: any): Promise<TaskResult> {
     return new Promise((resolve) => {
@@ -465,6 +484,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Execute generic shell command task.
+   * @param task
    */
   private async executeGenericTask(task: any): Promise<TaskResult> {
     return new Promise((resolve) => {
@@ -493,6 +513,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
 
   /**
    * Update session metrics based on task result.
+   * @param result
    */
   private updateSessionMetrics(result: TaskResult): void {
     if (result.metrics) {
@@ -640,7 +661,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       }
       
       // Debounced automatic quality check
-      if (debounceTimer) clearTimeout(debounceTimer);
+      if (debounceTimer) {clearTimeout(debounceTimer);}
       debounceTimer = setTimeout(() => {
         this.queueTask('npm run lint:check', 2, { trigger: 'file_change', file: relativePath });
       }, 2000);

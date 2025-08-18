@@ -413,6 +413,7 @@ async function interactiveTaskSelection(): Promise<string> {
 
 /**
  * Generate HTML report.
+ * @param data
  */
 function generateHTMLReport(data: any): string {
   return `<!DOCTYPE html>
@@ -482,6 +483,7 @@ function generateHTMLReport(data: any): string {
 
 /**
  * Generate text report.
+ * @param data
  */
 function generateTextReport(data: any): string {
   return `

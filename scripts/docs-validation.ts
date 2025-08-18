@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Documentation validation script for JSDoc coverage and TypeDoc validation
- * Integrates with npm validation workflow
+ * Integrates with npm validation workflow.
  */
 
 import { execSync } from 'child_process';
@@ -9,8 +9,8 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 /**
- * Check JSDoc coverage for TypeScript files
- * @returns Number of files with missing JSDoc
+ * Check JSDoc coverage for TypeScript files.
+ * @returns Number of files with missing JSDoc.
  */
 function checkJSDocCoverage(): number {
   console.log('📚 Checking JSDoc coverage...');
@@ -58,8 +58,8 @@ function checkJSDocCoverage(): number {
 }
 
 /**
- * Validate TypeDoc generation
- * @returns Exit code from TypeDoc validation
+ * Validate TypeDoc generation.
+ * @returns Exit code from TypeDoc validation.
  */
 function validateTypeDoc(): number {
   console.log('📖 Validating TypeDoc generation...');
@@ -75,8 +75,8 @@ function validateTypeDoc(): number {
 }
 
 /**
- * Main documentation validation function
- * @returns Exit code (0 = success, 1 = failure)
+ * Main documentation validation function.
+ * @returns Exit code (0 = success, 1 = failure).
  */
 export function validateDocs(): number {
   console.log('🔍 Running documentation validation...\n');

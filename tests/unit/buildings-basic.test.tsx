@@ -1,5 +1,5 @@
 /**
- * @fileoverview Basic unit tests for Buildings Management functionality
+ * @file Basic unit tests for Buildings Management functionality
  * Tests core building operations, validation, and role-based access.
  */
 

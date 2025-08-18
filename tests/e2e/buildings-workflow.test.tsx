@@ -1,5 +1,5 @@
 /**
- * @fileoverview End-to-end tests for Buildings Management workflow
+ * @file End-to-end tests for Buildings Management workflow
  * Tests complete user journeys including authentication, navigation,
  * CRUD operations, and role-based access control.
  */

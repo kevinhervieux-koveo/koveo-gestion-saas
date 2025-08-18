@@ -48,6 +48,10 @@ export class ReplitIntegrationEnhancer {
   private environment: ReplitEnvironment | null = null;
   private deploymentInfo: DeploymentInfo | null = null;
 
+  /**
+   *
+   * @param projectRoot
+   */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.detectReplitEnvironment();
@@ -273,7 +277,7 @@ export class ReplitIntegrationEnhancer {
    */
   private async optimizePackageScripts(): Promise<void> {
     const packagePath = path.join(this.projectRoot, 'package.json');
-    if (!fs.existsSync(packagePath)) return;
+    if (!fs.existsSync(packagePath)) {return;}
     
     const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
     
@@ -755,7 +759,7 @@ export class ReplitIntegrationEnhancer {
    */
   public generateEnvironmentReport(): string {
     const env = this.environment;
-    if (!env) return 'Replit environment not detected';
+    if (!env) {return 'Replit environment not detected';}
     
     const report = `
 # Replit Environment Report
@@ -794,7 +798,7 @@ ${this.generateRecommendations().join('\n')}
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
     
-    if (!this.environment) return recommendations;
+    if (!this.environment) {return recommendations;}
     
     const { capabilities, secrets, databases } = this.environment;
     

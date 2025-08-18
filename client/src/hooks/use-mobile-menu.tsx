@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 /**
- * Mobile menu context type definition
+ * Mobile menu context type definition.
  */
 interface MobileMenuContextType {
   isMobileMenuOpen: boolean;
@@ -12,7 +12,7 @@ interface MobileMenuContextType {
 const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undefined);
 
 /**
- * Hook to use mobile menu context
+ * Hook to use mobile menu context.
  */
 export const useMobileMenu = () => {
   const context = useContext(MobileMenuContext);
@@ -23,14 +23,16 @@ export const useMobileMenu = () => {
 };
 
 /**
- * Mobile menu provider props
+ * Mobile menu provider props.
  */
 interface MobileMenuProviderProps {
   children: ReactNode;
 }
 
 /**
- * Mobile menu provider component
+ * Mobile menu provider component.
+ * @param root0
+ * @param root0.children
  */
 export function MobileMenuProvider({ children }: MobileMenuProviderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Unit tests for Buildings Management page
+ * @file Unit tests for Buildings Management page
  * Tests component rendering, user interactions, role-based permissions, 
  * form validation, and data handling for building management functionality.
  */

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Integration tests for buildings API validation and business logic
+ * @file Integration tests for buildings API validation and business logic
  * Tests server-side validation, database constraints, and API response handling.
  */
 
@@ -78,7 +78,7 @@ describe('Buildings API Integration Validation Tests', () => {
   // Mock validation function
   const validateField = (fieldName: string, value: any) => {
     const rules = buildingValidationRules[fieldName as keyof typeof buildingValidationRules];
-    if (!rules) return { valid: true };
+    if (!rules) {return { valid: true };}
 
     const errors: string[] = [];
 
@@ -524,7 +524,7 @@ describe('Buildings API Integration Validation Tests', () => {
         name: 'Valid Building',
         organizationId: '123e4567-e89b-12d3-a456-426614174000',
         yearBuilt: '2020', // String instead of number
-        totalUnits: '50',   // String instead of number
+        totalUnits: '50', // String instead of number
       };
 
       const result = validateBuilding(typeCoercionBuilding);

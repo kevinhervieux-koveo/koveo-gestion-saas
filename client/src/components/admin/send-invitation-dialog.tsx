@@ -537,7 +537,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         >
                           <option value="">{t('selectOrganization')}</option>
                           {getFilteredOrganizations().map((org) => {
-                            if (!org?.id || !org?.name) return null;
+                            if (!org?.id || !org?.name) {return null;}
                             
                             const canInvite = canInviteToOrganization(org.id);
                             
@@ -815,7 +815,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         >
                           <option value="">{t('selectOrganization')}</option>
                           {getFilteredOrganizations().map((org) => {
-                            if (!org?.id || !org?.name) return null;
+                            if (!org?.id || !org?.name) {return null;}
                             
                             return (
                               <option key={org.id} value={org.id}>

@@ -31,6 +31,9 @@ declare module '@assets/*' {
  * Wouter router type extensions.
  */
 declare module 'wouter' {
+  /**
+   *
+   */
   interface Router {
     // Additional properties if needed
   }
@@ -56,9 +59,9 @@ declare module 'wouter/memory' {
   
   /**
    * Memory location hook for testing.
-   * @param _options - Configuration options
-   * @param _options.path - Initial path value
-   * @returns Combined hook return value and stub history
+   * @param _options - Configuration options.
+   * @param _options.path - Initial path value.
+   * @returns Combined hook return value and stub history.
    */
   function memoryLocation(_options: { path: string }): HookReturnValue & StubHistory;
   export { memoryLocation };

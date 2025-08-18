@@ -14,8 +14,8 @@ const mockedReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSy
 // Import the quality metrics function (we'll need to extract it from routes.ts)
 // For now, let's recreate the function for testing
 /**
- * Get quality metrics for the project including coverage, code quality, and security issues
- * @returns Promise resolving to quality metrics object
+ * Get quality metrics for the project including coverage, code quality, and security issues.
+ * @returns Promise resolving to quality metrics object.
  */
 async function getQualityMetrics() {
   try {
@@ -185,10 +185,10 @@ class QualityMetricValidator {
    * @param missedIssues - Number of actual issues the metric missed.
    * @param projectPhase - Development phase (optional).
    * @param issueDetails - Detailed issue breakdown (optional).
-   * @param issueDetails.criticalIssues - Number of critical issues found
-   * @param issueDetails.moderateIssues - Number of moderate issues found
-   * @param issueDetails.minorIssues - Number of minor issues found
-   * @param issueDetails.description - Description of the issues
+   * @param issueDetails.criticalIssues - Number of critical issues found.
+   * @param issueDetails.moderateIssues - Number of moderate issues found.
+   * @param issueDetails.minorIssues - Number of minor issues found.
+   * @param issueDetails.description - Description of the issues.
    */
   static recordMetricEffectiveness(
     metric: string,

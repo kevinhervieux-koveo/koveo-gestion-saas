@@ -37,11 +37,11 @@ interface FeatureFormProps {
  * Reusable form dialog component for planning feature development.
  * Collects detailed requirements and generates development prompts.
  * Located in forms directory for easy reuse across the application.
- * @param root0 - Component props
- * @param root0.feature - The feature to edit, null for new features
- * @param root0.open - Dialog open state
- * @param root0.onOpenChange - Callback to handle dialog open state changes
- * @returns Feature form dialog component
+ * @param root0 - Component props.
+ * @param root0.feature - The feature to edit, null for new features.
+ * @param root0.open - Dialog open state.
+ * @param root0.onOpenChange - Callback to handle dialog open state changes.
+ * @returns Feature form dialog component.
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
@@ -185,7 +185,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
   /**
    * Gets the localStorage key for drafts.
-   * @returns The localStorage key for feature drafts
+   * @returns The localStorage key for feature drafts.
    */
   const getDraftKey = () => {
     const baseKey = 'koveo-feature-draft';
@@ -260,8 +260,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
   /**
    * Updates form data when input values change.
-   * @param field - The form field to update
-   * @param value - The new value for the field
+   * @param field - The form field to update.
+   * @param value - The new value for the field.
    */
   const updateFormData = (field: string, value: string | boolean | unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));

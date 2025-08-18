@@ -9,10 +9,14 @@ import { organizations } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
+/**
+ *
+ * @param app
+ */
 export function registerOrganizationRoutes(app: Express): void {
   /**
    * GET /api/admin/organizations - Retrieves all organizations for admin users
-   * Only admin users can access all organizations
+   * Only admin users can access all organizations.
    */
   app.get('/api/admin/organizations', requireAuth, async (req: any, res) => {
     try {

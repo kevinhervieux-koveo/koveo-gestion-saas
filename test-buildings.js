@@ -2,7 +2,7 @@
 
 /**
  * Simple test runner for buildings management functionality
- * Tests validation logic, search functionality, and role-based access control
+ * Tests validation logic, search functionality, and role-based access control.
  */
 
 // Mock building data

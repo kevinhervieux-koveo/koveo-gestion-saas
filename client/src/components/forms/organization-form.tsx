@@ -42,10 +42,10 @@ interface OrganizationFormProps {
 /**
  * Form for creating new organizations in the Quebec property management system.
  * Includes all required fields with Quebec-specific defaults and validation.
- * @param root0 - Component props
- * @param root0.open - Dialog open state
- * @param root0.onOpenChange - Callback to handle dialog open state changes
- * @returns Organization form dialog component
+ * @param root0 - Component props.
+ * @param root0.open - Dialog open state.
+ * @param root0.onOpenChange - Callback to handle dialog open state changes.
+ * @returns Organization form dialog component.
  */
 export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) {
   const { t: _t } = useLanguage();

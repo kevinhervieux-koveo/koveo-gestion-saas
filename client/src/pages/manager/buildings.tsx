@@ -19,6 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 // Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
 
+/**
+ *
+ */
 interface BuildingData {
   id: string;
   name: string;
@@ -41,6 +44,9 @@ interface BuildingData {
   createdAt: string;
 }
 
+/**
+ *
+ */
 interface Organization {
   id: string;
   name: string;
@@ -64,6 +70,9 @@ const buildingFormSchema = z.object({
   managementCompany: z.string().optional(),
 });
 
+/**
+ *
+ */
 type BuildingFormData = z.infer<typeof buildingFormSchema>;
 
 /**
@@ -101,7 +110,7 @@ export default function Buildings() {
 
   // Filter buildings based on search term
   const buildings = useMemo(() => {
-    if (!searchTerm) return allBuildings;
+    if (!searchTerm) {return allBuildings;}
     
     const lowerSearchTerm = searchTerm.toLowerCase();
     return allBuildings.filter(building => 

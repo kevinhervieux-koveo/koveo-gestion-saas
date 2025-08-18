@@ -14,6 +14,9 @@ import { X, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -46,13 +49,25 @@ const residenceEditSchema = z.object({
   monthlyFees: z.string().optional(),
 });
 
+/**
+ *
+ */
 type ResidenceEditFormData = z.infer<typeof residenceEditSchema>;
 
+/**
+ *
+ */
 interface ResidenceEditFormProps {
   residence: Residence;
   onSuccess: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.residence
+ * @param root0.onSuccess
+ */
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
