@@ -62,16 +62,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'Budget', href: '/manager/budget', icon: DollarSign },
       { name: 'Bills', href: '/manager/bills', icon: FileText },
       { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
-    ],
-  },
-
-  {
-    name: 'Management',
-    key: 'management',
-    icon: ShieldCheck,
-    requiredRole: 'manager',
-    items: [
-      { name: 'User Management', href: '/management/user-management', icon: Users },
+      { name: 'User Management', href: '/manager/user-management', icon: Users },
     ],
   },
 

@@ -71,6 +71,9 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### January 2025
+- **User Management Menu Restructuring**: Moved User Management functionality from a separate Management section to be under the Manager menu section at `/manager/user-management`. This provides better navigation organization and clearer role-based access for managers and admins.
+
 ### December 2024
 - **Demo Organization Synchronization System**: Implemented comprehensive deployment synchronization where Demo organization data is automatically pushed from development to production during deployment
 

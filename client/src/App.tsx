@@ -56,10 +56,10 @@ const AdminPermissions = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Optimized lazy-loaded Management pages
-const ManagementUserManagement = createOptimizedLoader(
-  () => import('@/pages/management/user-management'),
-  'management-user-management',
+// Manager User Management component  
+const ManagerUserManagement = createOptimizedLoader(
+  () => import('@/pages/manager/user-management'),
+  'manager-user-management',
   { enableMemoryCleanup: true }
 );
 
@@ -244,9 +244,7 @@ function Router() {
               <Route path='/manager/budget' component={ManagerBudget} />
               <Route path='/manager/bills' component={ManagerBills} />
               <Route path='/manager/demands' component={ManagerDemands} />
-
-              {/* Management routes */}
-              <Route path='/management/user-management' component={ManagementUserManagement} />
+              <Route path='/manager/user-management' component={ManagerUserManagement} />
 
               {/* Residents routes */}
               <Route path='/residents/residence' component={ResidentsResidence} />
