@@ -34,7 +34,7 @@ export const useMobileMenu = () => {
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = createOptimizedLoader(
-  () => import('@/pages/admin/organizations'),
+  () => import('@/pages/admin/organizations-simple'),
   'admin-organizations',
   { preloadDelay: 300, enableMemoryCleanup: true }
 );
