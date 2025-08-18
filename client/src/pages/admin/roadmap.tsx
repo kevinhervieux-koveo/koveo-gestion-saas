@@ -177,9 +177,17 @@ export default function OwnerRoadmap() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch features from the database
-  const { data: features = [], isLoading } = useQuery({
+  const { data: features = [], isLoading, error } = useQuery({
     queryKey: ['/api/features', { roadmap: true }],
-    queryFn: () => fetch('/api/features?roadmap=true').then((res) => res.json()),
+    queryFn: async () => {
+      const res = await fetch('/api/features?roadmap=true', { credentials: 'include' });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Features API response:', data);
+      return data;
+    },
   });
 
   // Debug logging

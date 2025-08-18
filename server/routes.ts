@@ -605,45 +605,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Features API - TEMPORARY DEBUG VERSION
+  // Features API - TEMPORARY TEST VERSION
   app.get('/api/features', async (req, res) => {
+    console.log('🔥 FEATURES API ROUTE HIT!');
+    
     try {
       const { status, category, roadmap } = req.query;
-       
-      console.log('=== FEATURES API DEBUG ===');
-      console.log('Query params:', { status, category, roadmap });
-
-      // Test basic database connection first
-      const testQuery = await db.select().from(schema.features).limit(1);
-      console.log('Basic test query result count:', testQuery.length);
-
-      // Now try the roadmap query
-      let features;
+      console.log('🔥 Query params received:', { status, category, roadmap });
+      
+      // Simple test to see if this executes
+      console.log('🔥 About to query database...');
+      
+      // Try raw SQL first to bypass any ORM issues  
+      const rawResult = await pool.query('SELECT id, name, category, is_public_roadmap FROM features WHERE is_public_roadmap = true LIMIT 5');
+      console.log('🔥 Raw SQL sample results:', rawResult.rows);
+      
+      // Now try with Drizzle
+      const drizzleResult = await db.select().from(schema.features).limit(3);
+      console.log('🔥 Drizzle test result count:', drizzleResult.length);
+      
+      // If roadmap query
       if (roadmap === 'true') {
-        console.log('Executing roadmap query...');
-        features = await db
+        const roadmapFeatures = await db
           .select()
           .from(schema.features)
           .where(eq(schema.features.isPublicRoadmap, true));
-        console.log('Roadmap query result count:', features.length);
+        console.log('🔥 Roadmap features found:', roadmapFeatures.length);
+        res.json(roadmapFeatures);
       } else {
-        console.log('Executing all features query...');
-        features = await db
-          .select()
-          .from(schema.features);
-        console.log('All features query result count:', features.length);
+        res.json(drizzleResult);
       }
-
-      console.log('=== END DEBUG ===');
-      res.json(features);
     } catch (error) {
-      console.error('Error fetching features:', error);
-      res
-        .status(500)
-        .json({
-          message: 'Failed to fetch features',
-          error: error instanceof Error ? error.message : String(error),
-        });
+      console.error('🔥 ERROR in features API:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch features',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   });
 
