@@ -4,9 +4,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 // Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
 
@@ -32,6 +41,31 @@ interface BuildingData {
   createdAt: string;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+  type: string;
+}
+
+// Building form schema - only name and organization are required
+const buildingFormSchema = z.object({
+  name: z.string().min(1, 'Building name is required'),
+  organizationId: z.string().min(1, 'Organization is required'),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+  buildingType: z.enum(['condo', 'rental']).optional(),
+  yearBuilt: z.number().optional(),
+  totalUnits: z.number().optional(),
+  totalFloors: z.number().optional(),
+  parkingSpaces: z.number().optional(),
+  storageSpaces: z.number().optional(),
+  managementCompany: z.string().optional(),
+});
+
+type BuildingFormData = z.infer<typeof buildingFormSchema>;
+
 /**
  * Buildings management page for Admin and Manager roles.
  * Shows all buildings in the user's organization with proper access control.
@@ -39,6 +73,8 @@ interface BuildingData {
 export default function Buildings() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   // Fetch buildings data
   const { 
@@ -50,7 +86,16 @@ export default function Buildings() {
     enabled: isAuthenticated && hasRoleOrHigher(user?.role, 'manager'),
   });
 
+  // Fetch organizations for admin users
+  const { 
+    data: organizationsResponse 
+  } = useQuery<{organizations: Organization[]}>({
+    queryKey: ['/api/admin/organizations'],
+    enabled: isAuthenticated && user?.role === 'admin',
+  });
+
   const allBuildings = buildingsResponse?.buildings || [];
+  const organizations = organizationsResponse?.organizations || [];
 
   // Filter buildings based on search term
   const buildings = useMemo(() => {
@@ -63,6 +108,53 @@ export default function Buildings() {
       `${building.city}, ${building.province}`.toLowerCase().includes(lowerSearchTerm)
     );
   }, [allBuildings, searchTerm]);
+
+  // Form for adding new building
+  const form = useForm<BuildingFormData>({
+    resolver: zodResolver(buildingFormSchema),
+    defaultValues: {
+      name: '',
+      organizationId: '',
+      address: '',
+      city: '',
+      province: 'QC',
+      postalCode: '',
+      buildingType: 'condo',
+      yearBuilt: undefined,
+      totalUnits: undefined,
+      totalFloors: undefined,
+      parkingSpaces: undefined,
+      storageSpaces: undefined,
+      managementCompany: '',
+    },
+  });
+
+  // Mutation for creating new building
+  const createBuildingMutation = useMutation({
+    mutationFn: async (data: BuildingFormData) => {
+      return apiRequest('/api/admin/buildings', 'POST', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Building created',
+        description: 'The building has been successfully added.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
+      setIsAddDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create building.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const onSubmit = (data: BuildingFormData) => {
+    createBuildingMutation.mutate(data);
+  };
 
   // Show access denied for residents and tenants
   if (isAuthenticated && !hasRoleOrHigher(user?.role, 'manager')) {
@@ -149,11 +241,288 @@ export default function Buildings() {
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <Button className='h-auto p-4 flex flex-col space-y-2' disabled>
-                  <Plus className='w-6 h-6' />
-                  <span>Add New Building</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
-                </Button>
+                {user?.role === 'admin' ? (
+                  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className='h-auto p-4 flex flex-col space-y-2'>
+                        <Plus className='w-6 h-6' />
+                        <span>Add New Building</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+                      <DialogHeader>
+                        <DialogTitle>Add New Building</DialogTitle>
+                      </DialogHeader>
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                          {/* Required Fields */}
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <FormField
+                              control={form.control}
+                              name='name'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Building Name *</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='Enter building name' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='organizationId'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Organization *</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder='Select organization' />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {organizations.map((org) => (
+                                        <SelectItem key={org.id} value={org.id}>
+                                          {org.name} ({org.type})
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {/* Optional Address Fields */}
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <FormField
+                              control={form.control}
+                              name='address'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Address</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='Street address' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='city'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>City</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='City' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                            <FormField
+                              control={form.control}
+                              name='province'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Province</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value='QC'>Quebec</SelectItem>
+                                      <SelectItem value='ON'>Ontario</SelectItem>
+                                      <SelectItem value='BC'>British Columbia</SelectItem>
+                                      <SelectItem value='AB'>Alberta</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='postalCode'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Postal Code</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='H1A 1B1' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='buildingType'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Building Type</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value='condo'>Condo</SelectItem>
+                                      <SelectItem value='rental'>Rental</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {/* Optional Building Details */}
+                          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                            <FormField
+                              control={form.control}
+                              name='yearBuilt'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Year Built</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type='number' 
+                                      placeholder='2020' 
+                                      {...field}
+                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='totalUnits'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Total Units</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type='number' 
+                                      placeholder='100' 
+                                      {...field}
+                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='totalFloors'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Total Floors</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type='number' 
+                                      placeholder='10' 
+                                      {...field}
+                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <FormField
+                              control={form.control}
+                              name='parkingSpaces'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Parking Spaces</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type='number' 
+                                      placeholder='50' 
+                                      {...field}
+                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name='storageSpaces'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Storage Spaces</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type='number' 
+                                      placeholder='25' 
+                                      {...field}
+                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name='managementCompany'
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Management Company</FormLabel>
+                                <FormControl>
+                                  <Input placeholder='Management company name' {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className='flex justify-end space-x-2 pt-4'>
+                            <Button 
+                              type='button' 
+                              variant='outline' 
+                              onClick={() => setIsAddDialogOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type='submit' 
+                              disabled={createBuildingMutation.isPending}
+                            >
+                              {createBuildingMutation.isPending ? 'Creating...' : 'Create Building'}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Button className='h-auto p-4 flex flex-col space-y-2' disabled>
+                    <Plus className='w-6 h-6' />
+                    <span>Add New Building</span>
+                    <Badge variant='secondary' className='text-xs'>Admin Only</Badge>
+                  </Button>
+                )}
                 <div className='relative'>
                   <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' />
                   <Input

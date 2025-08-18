@@ -10,6 +10,7 @@ import {
 } from '@shared/schema';
 import { eq, and, or, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
+import crypto from 'crypto';
 
 export function registerBuildingRoutes(app: Express): void {
   /**
@@ -530,6 +531,81 @@ export function registerBuildingRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch building details'
+      });
+    }
+  });
+
+  /**
+   * POST /api/admin/buildings - Create a new building (Admin only)
+   */
+  app.post('/api/admin/buildings', requireAuth, async (req: any, res) => {
+    try {
+      // Check if user is admin
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const buildingData = req.body;
+      console.log(`🏢 Admin ${currentUser.id} creating new building: ${buildingData.name}`);
+
+      // Validate required fields
+      if (!buildingData.name || !buildingData.organizationId) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Building name and organization are required'
+        });
+      }
+
+      // Create building with ID
+      const buildingId = crypto.randomUUID();
+      
+      const newBuilding = await db
+        .insert(buildings)
+        .values({
+          id: buildingId,
+          name: buildingData.name,
+          address: buildingData.address || '',
+          city: buildingData.city || '',
+          province: buildingData.province || 'QC',
+          postalCode: buildingData.postalCode || '',
+          buildingType: buildingData.buildingType || 'condo',
+          yearBuilt: buildingData.yearBuilt,
+          totalUnits: buildingData.totalUnits || 0,
+          totalFloors: buildingData.totalFloors,
+          parkingSpaces: buildingData.parkingSpaces,
+          storageSpaces: buildingData.storageSpaces,
+          amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
+          managementCompany: buildingData.managementCompany,
+          organizationId: buildingData.organizationId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      console.log(`✅ Building created successfully with ID: ${buildingId}`);
+
+      res.status(201).json({
+        message: 'Building created successfully',
+        building: newBuilding[0]
+      });
+
+    } catch (error) {
+      console.error('❌ Error creating building:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to create building'
       });
     }
   });
