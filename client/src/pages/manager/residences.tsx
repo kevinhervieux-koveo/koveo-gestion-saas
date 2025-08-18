@@ -53,6 +53,8 @@ export default function Residences() {
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
   const [editingResidence, setEditingResidence] = useState<Residence | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch residences with search and filters
   const { data: residences, isLoading: residencesLoading, refetch } = useQuery({
@@ -98,6 +100,29 @@ export default function Residences() {
         .sort((a, b) => a - b)
     : [];
 
+  // Reset page when filters change
+  const handleBuildingChange = (value: string) => {
+    setSelectedBuilding(value);
+    setCurrentPage(1);
+  };
+
+  const handleFloorChange = (value: string) => {
+    setSelectedFloor(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  // Pagination calculations
+  const totalItems = residences?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentResidences = residences?.slice(startIndex, endIndex) || [];
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='Residences Management' subtitle='Manage all residences and units' />
@@ -120,14 +145,14 @@ export default function Residences() {
                   <Input
                     placeholder='Search by unit number or tenant name...'
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className='w-full'
                   />
                 </div>
                 
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>Building</label>
-                  <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+                  <Select value={selectedBuilding} onValueChange={handleBuildingChange}>
                     <SelectTrigger>
                       <SelectValue placeholder='All Buildings' />
                     </SelectTrigger>
@@ -144,7 +169,7 @@ export default function Residences() {
                 
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>Floor</label>
-                  <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+                  <Select value={selectedFloor} onValueChange={handleFloorChange}>
                     <SelectTrigger>
                       <SelectValue placeholder='All Floors' />
                     </SelectTrigger>
@@ -179,7 +204,7 @@ export default function Residences() {
                   </CardContent>
                 </Card>
               ))
-            ) : residences?.length === 0 ? (
+            ) : totalItems === 0 ? (
               <Card className='col-span-full'>
                 <CardContent className='p-8 text-center'>
                   <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
@@ -188,7 +213,7 @@ export default function Residences() {
                 </CardContent>
               </Card>
             ) : (
-              residences?.map((residence) => (
+              currentResidences.map((residence) => (
                 <Card key={residence.id} className='hover:shadow-lg transition-shadow'>
                   <CardContent className='p-6'>
                     <div className='flex justify-between items-start mb-4'>
@@ -308,6 +333,47 @@ export default function Residences() {
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className='flex justify-center items-center gap-2 mt-6'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              
+              <div className='flex items-center gap-1'>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => setCurrentPage(page)}
+                    className='w-8 h-8 p-0'
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+              
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+              
+              <div className='ml-4 text-sm text-gray-600'>
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} residences
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
