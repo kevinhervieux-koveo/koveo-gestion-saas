@@ -4,22 +4,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Phone, MapPin, Globe } from 'lucide-react';
+import { User, Phone, Globe } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { WizardStepProps } from '../registration-wizard';
 
 /**
  * Interface for profile completion step data.
  * Contains user profile information for registration.
+ * Note: Address comes from assigned building/residence, not user profile.
  */
 interface ProfileCompletionData {
   firstName: string;
   lastName: string;
   phone: string;
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
   language: string;
   dateOfBirth: string;
   isValid: boolean;
@@ -47,10 +44,6 @@ export function ProfileCompletionStep({
     firstName: '',
     lastName: '',
     phone: '',
-    address: '',
-    city: '',
-    province: 'QC',
-    postalCode: '',
     language: 'fr',
     dateOfBirth: '',
     isValid: false,
@@ -59,18 +52,7 @@ export function ProfileCompletionStep({
   
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
-  const validateForm = () => {
-    const requiredFields = ['firstName', 'lastName', 'phone', 'language'];
-    const hasRequiredFields = requiredFields.every(field => 
-      formData[field as keyof ProfileCompletionData] && 
-      String(formData[field as keyof ProfileCompletionData]).trim().length > 0
-    );
 
-    const isValidPhone = validatePhone(formData.phone);
-    const isValidPostalCode = !formData.postalCode || validatePostalCode(formData.postalCode);
-
-    return hasRequiredFields && isValidPhone && isValidPostalCode;
-  };
 
   // Validate form whenever relevant fields change
   useEffect(() => {
@@ -81,13 +63,12 @@ export function ProfileCompletionStep({
     );
 
     const isValidPhone = validatePhone(formData.phone);
-    const isValidPostalCode = !formData.postalCode || validatePostalCode(formData.postalCode);
-    const isValid = hasRequiredFields && isValidPhone && isValidPostalCode;
+    const isValid = hasRequiredFields && isValidPhone;
     
     const updatedData = { ...formData, isValid };
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData.firstName, formData.lastName, formData.phone, formData.language, formData.postalCode]);
+  }, [formData.firstName, formData.lastName, formData.phone, formData.language]);
 
   const validatePhone = (phone: string) => {
     if (!phone) {return false;}
@@ -96,12 +77,7 @@ export function ProfileCompletionStep({
     return phoneRegex.test(phone);
   };
 
-  const validatePostalCode = (postalCode: string) => {
-    if (!postalCode) {return true;} // Optional field
-    // Canadian postal code format (A1A 1A1)
-    const postalRegex = /^[A-Za-z]\d[A-Za-z][-\s]?\d[A-Za-z]\d$/;
-    return postalRegex.test(postalCode);
-  };
+
 
   const handleInputChange = (field: keyof ProfileCompletionData, value: string) => {
     setFormData(prev => ({
@@ -130,9 +106,7 @@ export function ProfileCompletionStep({
       return 'Format de téléphone invalide (ex: 514-123-4567)';
     }
     
-    if (field === 'postalCode' && value && !validatePostalCode(String(value))) {
-      return 'Format de code postal invalide (ex: H1A 1A1)';
-    }
+
     
     return null;
   };
@@ -238,90 +212,7 @@ export function ProfileCompletionStep({
             </div>
           </div>
 
-          {/* Address Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
-              <MapPin className="h-5 w-5 mr-2" />
-              Adresse (optionnel)
-            </h3>
-            
-            <div className="space-y-4">
-              {/* Street Address */}
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-sm font-medium text-gray-700">
-                  Adresse
-                </Label>
-                <Input
-                  id="address"
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  onBlur={() => handleBlur('address')}
-                  placeholder="123 Rue Principale"
-                />
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* City */}
-                <div className="space-y-2">
-                  <Label htmlFor="city" className="text-sm font-medium text-gray-700">
-                    Ville
-                  </Label>
-                  <Input
-                    id="city"
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    onBlur={() => handleBlur('city')}
-                    placeholder="Montréal"
-                  />
-                </div>
-
-                {/* Province */}
-                <div className="space-y-2">
-                  <Label htmlFor="province" className="text-sm font-medium text-gray-700">
-                    Province
-                  </Label>
-                  <Select value={formData.province} onValueChange={(value) => handleInputChange('province', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="QC">Québec</SelectItem>
-                      <SelectItem value="ON">Ontario</SelectItem>
-                      <SelectItem value="BC">Colombie-Britannique</SelectItem>
-                      <SelectItem value="AB">Alberta</SelectItem>
-                      <SelectItem value="SK">Saskatchewan</SelectItem>
-                      <SelectItem value="MB">Manitoba</SelectItem>
-                      <SelectItem value="NB">Nouveau-Brunswick</SelectItem>
-                      <SelectItem value="NS">Nouvelle-Écosse</SelectItem>
-                      <SelectItem value="PE">Île-du-Prince-Édouard</SelectItem>
-                      <SelectItem value="NL">Terre-Neuve-et-Labrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Postal Code */}
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode" className="text-sm font-medium text-gray-700">
-                    Code postal
-                  </Label>
-                  <Input
-                    id="postalCode"
-                    type="text"
-                    value={formData.postalCode}
-                    onChange={(e) => handleInputChange('postalCode', e.target.value.toUpperCase())}
-                    onBlur={() => handleBlur('postalCode')}
-                    placeholder="H1A 1A1"
-                    className={getFieldError('postalCode', 'Code postal') ? 'border-red-500' : ''}
-                  />
-                  {getFieldError('postalCode', 'Code postal') && (
-                    <p className="text-sm text-red-600">{getFieldError('postalCode', 'Code postal')}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Quebec Compliance Notice */}
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">

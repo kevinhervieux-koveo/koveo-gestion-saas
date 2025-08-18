@@ -98,10 +98,6 @@ export default function InvitationAcceptancePage() {
           lastName: profileData.lastName,
           password: passwordData.password,
           phone: profileData.phone,
-          address: profileData.address,
-          city: profileData.city,
-          province: profileData.province,
-          postalCode: profileData.postalCode,
           language: profileData.language,
           dateOfBirth: profileData.dateOfBirth,
           privacyConsents: {
