@@ -2,9 +2,11 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building, Plus, Settings, Search, MapPin, Calendar, Users, Car, Package } from 'lucide-react';
+import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
 // Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
 
@@ -36,6 +38,7 @@ interface BuildingData {
  */
 export default function Buildings() {
   const { user, isAuthenticated } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch buildings data
   const { 
@@ -47,7 +50,19 @@ export default function Buildings() {
     enabled: isAuthenticated && hasRoleOrHigher(user?.role, 'manager'),
   });
 
-  const buildings = buildingsResponse?.buildings || [];
+  const allBuildings = buildingsResponse?.buildings || [];
+
+  // Filter buildings based on search term
+  const buildings = useMemo(() => {
+    if (!searchTerm) return allBuildings;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return allBuildings.filter(building => 
+      building.name.toLowerCase().includes(lowerSearchTerm) ||
+      building.address.toLowerCase().includes(lowerSearchTerm) ||
+      `${building.city}, ${building.province}`.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [allBuildings, searchTerm]);
 
   // Show access denied for residents and tenants
   if (isAuthenticated && !hasRoleOrHigher(user?.role, 'manager')) {
@@ -119,7 +134,7 @@ export default function Buildings() {
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
         title='Buildings Management' 
-        subtitle={`Manage all buildings in your organization • ${buildings?.length || 0} buildings`} 
+        subtitle={`Manage all buildings in your organization • ${allBuildings?.length || 0} buildings${searchTerm ? ` (${buildings.length} matching)` : ''}`} 
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -133,22 +148,21 @@ export default function Buildings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <Button className='h-auto p-4 flex flex-col space-y-2' disabled>
                   <Plus className='w-6 h-6' />
                   <span>Add New Building</span>
                   <Badge variant='secondary' className='text-xs'>Future</Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
-                  <Search className='w-6 h-6' />
-                  <span>Search Buildings</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
-                </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled>
-                  <Settings className='w-6 h-6' />
-                  <span>Building Settings</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
-                </Button>
+                <div className='relative'>
+                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' />
+                  <Input
+                    placeholder='Search buildings by name or address...'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className='pl-10 h-auto p-4'
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
