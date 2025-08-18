@@ -61,7 +61,7 @@ export const typography = {
 export const layout = {
   container: {
     position: 'fixed' as const,
-    top: 0,
+    top: '60px', // Account for top header
     left: 0,
     right: 0,
     bottom: 0,

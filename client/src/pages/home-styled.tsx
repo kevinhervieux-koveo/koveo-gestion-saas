@@ -1,301 +1,176 @@
 import { Link } from 'wouter';
+import { colors, typography } from '@/styles/inline-styles';
 
 export default function HomeStyled() {
   return (
     <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      minHeight: '100vh',
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: typography.fontFamily,
       overflow: 'auto'
     }}>
-      {/* Header */}
+      {/* Main Hero Section */}
       <div style={{
-        background: 'white',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '1rem 0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '1.25rem'
-            }}>
-              K
-            </div>
-            <span style={{
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: '#1f2937'
-            }}>
-              Koveo Gestion
-            </span>
-          </div>
-          
-          <Link href="/dashboard">
-            <div style={{
-              background: '#3b82f6',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.5rem',
-              textDecoration: 'none',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              display: 'inline-block'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = '#2563eb';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = '#3b82f6';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}>
-              Go to Dashboard
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      {/* Hero Section */}
-      <div style={{
-        padding: '6rem 2rem',
-        textAlign: 'center',
+        padding: '6rem 2rem 4rem 2rem', // Extra top padding for fixed header
+        textAlign: 'center' as const,
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
         <h1 style={{
-          fontSize: '4rem',
+          fontSize: '3.5rem',
           fontWeight: 'bold',
-          color: '#1f2937',
-          marginBottom: '2rem',
-          lineHeight: '1.1'
+          color: colors.gray[800],
+          marginBottom: '1.5rem',
+          lineHeight: '1.2'
         }}>
-          Modern Property Management
-          <br />
-          <span style={{ color: '#3b82f6' }}>for Quebec</span>
+          Quebec Property Management
         </h1>
         
         <p style={{
           fontSize: '1.25rem',
-          color: '#6b7280',
-          maxWidth: '800px',
-          margin: '0 auto 3rem',
+          color: colors.gray[600],
+          marginBottom: '3rem',
+          maxWidth: '600px',
+          margin: '0 auto 3rem auto',
           lineHeight: '1.6'
         }}>
-          Comprehensive property management solution designed specifically for 
-          Quebec's regulatory environment. Manage buildings, residents, finances, 
-          and compliance all in one secure platform.
+          Comprehensive tools for residential communities in Quebec. 
+          Manage properties, track maintenance, and ensure Law 25 compliance.
         </p>
         
-        <Link href="/dashboard">
+        <Link href="/login">
           <div style={{
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            color: 'white',
+            background: colors.primary,
+            color: colors.white,
             padding: '1rem 2rem',
-            borderRadius: '0.75rem',
+            borderRadius: '0.5rem',
             fontSize: '1.125rem',
             fontWeight: '600',
             textDecoration: 'none',
             cursor: 'pointer',
-            transition: 'all 0.3s',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
+            transition: 'all 0.2s',
+            display: 'inline-block',
             boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
           }}
           onMouseOver={(e) => {
+            e.currentTarget.style.background = colors.primaryDark;
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.4)';
           }}
           onMouseOut={(e) => {
+            e.currentTarget.style.background = colors.primary;
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
           }}>
-            Start Managing Today
-            <span style={{ fontSize: '1.25rem' }}>→</span>
+            Get Started
           </div>
         </Link>
       </div>
 
-      {/* Features Grid */}
+      {/* Features Section */}
       <div style={{
-        background: 'white',
-        padding: '6rem 2rem',
-        borderTop: '1px solid #e5e7eb'
+        padding: '4rem 2rem',
+        maxWidth: '1200px',
+        margin: '0 auto'
       }}>
         <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '2rem'
         }}>
-          <h2 style={{
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            textAlign: 'center',
-            marginBottom: '4rem'
-          }}>
-            Everything You Need
-          </h2>
-          
+          {/* Feature Card 1 */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem'
+            background: colors.white,
+            borderRadius: '0.75rem',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: `1px solid ${colors.gray[200]}`
           }}>
-            {[
-              {
-                icon: '🏢',
-                title: 'Building Management',
-                description: 'Complete oversight of all your properties with detailed building profiles and maintenance tracking.'
-              },
-              {
-                icon: '👥',
-                title: 'Resident Portal',
-                description: 'Streamlined communication and service requests for all residents and tenants.'
-              },
-              {
-                icon: '💰',
-                title: 'Financial Planning',
-                description: 'Budgeting, billing, and financial reporting designed for Quebec property management.'
-              },
-              {
-                icon: '⚖️',
-                title: 'Law 25 Compliance',
-                description: 'Built-in privacy protection and data compliance features for Quebec regulations.'
-              },
-              {
-                icon: '📊',
-                title: 'Analytics & Insights',
-                description: 'Comprehensive reporting and analytics to optimize your property operations.'
-              },
-              {
-                icon: '🔒',
-                title: 'Enterprise Security',
-                description: 'Bank-level security with role-based access control and audit logging.'
-              }
-            ].map((feature, index) => (
-              <div key={index} style={{
-                background: '#f8fafc',
-                borderRadius: '1rem',
-                padding: '2rem',
-                border: '1px solid #e2e8f0',
-                transition: 'all 0.3s',
-                cursor: 'pointer'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
-                e.currentTarget.style.background = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.background = '#f8fafc';
-              }}>
-                <div style={{
-                  fontSize: '3rem',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
-                }}>
-                  {feature.icon}
-                </div>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
-                }}>
-                  {feature.title}
-                </h3>
-                <p style={{
-                  color: '#6b7280',
-                  lineHeight: '1.6',
-                  textAlign: 'center'
-                }}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+            <div style={{
+              fontSize: '2.5rem',
+              marginBottom: '1rem'
+            }}>🏢</div>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              color: colors.gray[800],
+              marginBottom: '1rem'
+            }}>
+              Property Management
+            </h3>
+            <p style={{
+              color: colors.gray[600],
+              lineHeight: '1.6'
+            }}>
+              Manage buildings, units, and residents with comprehensive tools designed for Quebec's regulatory environment.
+            </p>
+          </div>
+
+          {/* Feature Card 2 */}
+          <div style={{
+            background: colors.white,
+            borderRadius: '0.75rem',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: `1px solid ${colors.gray[200]}`
+          }}>
+            <div style={{
+              fontSize: '2.5rem',
+              marginBottom: '1rem'
+            }}>⚖️</div>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              color: colors.gray[800],
+              marginBottom: '1rem'
+            }}>
+              Law 25 Compliance
+            </h3>
+            <p style={{
+              color: colors.gray[600],
+              lineHeight: '1.6'
+            }}>
+              Built-in compliance tools to ensure your property management meets Quebec's privacy and data protection requirements.
+            </p>
+          </div>
+
+          {/* Feature Card 3 */}
+          <div style={{
+            background: colors.white,
+            borderRadius: '0.75rem',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: `1px solid ${colors.gray[200]}`
+          }}>
+            <div style={{
+              fontSize: '2.5rem',
+              marginBottom: '1rem'
+            }}>🛠️</div>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              color: colors.gray[800],
+              marginBottom: '1rem'
+            }}>
+              Maintenance Tracking
+            </h3>
+            <p style={{
+              color: colors.gray[600],
+              lineHeight: '1.6'
+            }}>
+              Track maintenance requests, schedule repairs, and manage vendors with comprehensive workflow tools.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Footer */}
       <div style={{
-        background: 'linear-gradient(135deg, #1e293b, #334155)',
-        color: 'white',
-        padding: '6rem 2rem',
-        textAlign: 'center'
+        textAlign: 'center' as const,
+        padding: '3rem 2rem',
+        color: colors.gray[500],
+        borderTop: `1px solid ${colors.gray[200]}`,
+        marginTop: '2rem'
       }}>
-        <div style={{
-          maxWidth: '800px',
-          margin: '0 auto'
-        }}>
-          <h2 style={{
-            fontSize: '2.5rem',
-            fontWeight: 'bold',
-            marginBottom: '1.5rem'
-          }}>
-            Ready to Transform Your Property Management?
-          </h2>
-          <p style={{
-            fontSize: '1.25rem',
-            color: '#cbd5e1',
-            marginBottom: '2rem'
-          }}>
-            Join Quebec property managers who trust Koveo Gestion for their operations.
-          </p>
-          <Link href="/dashboard">
-            <div style={{
-              background: 'white',
-              color: '#1f2937',
-              padding: '1rem 2rem',
-              borderRadius: '0.75rem',
-              fontSize: '1.125rem',
-              fontWeight: '600',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              display: 'inline-block'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 20px rgba(255,255,255,0.2)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}>
-              Get Started Today
-            </div>
-          </Link>
-        </div>
+        <p>&copy; 2024 Koveo Gestion. All rights reserved.</p>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
+import { TopHeader } from '@/components/layout/TopHeader';
 import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
@@ -197,15 +198,20 @@ function Router() {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
       <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/login" component={LoginPage} />
-            <Route path="/accept-invitation" component={InvitationAcceptancePage} />
-            {/* Redirect all other routes to home for unauthenticated users */}
-            <Route component={HomeRedirect} />
-          </Switch>
-        </Suspense>
+        {/* Top Header - Always visible */}
+        <TopHeader />
+        
+        <div style={{paddingTop: '60px'}}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Switch>
+              <Route path="/" component={HomePage} />
+              <Route path="/login" component={LoginPage} />
+              <Route path="/accept-invitation" component={InvitationAcceptancePage} />
+              {/* Redirect all other routes to home for unauthenticated users */}
+              <Route component={HomeRedirect} />
+            </Switch>
+          </Suspense>
+        </div>
       </div>
     );
   }
@@ -227,7 +233,10 @@ function Router() {
 
   return (
     <MobileMenuContext.Provider value={mobileMenuContext}>
-      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb'}}>  
+      {/* Top Header - Always visible */}
+      <TopHeader />
+      
+      <div className='h-full flex bg-gray-50 font-inter' style={{minHeight: '100vh', background: '#f9fafb', paddingTop: '60px'}}>  
         {/* Desktop sidebar - always visible on desktop */}
         <div className="hidden md:block">
           <Sidebar />
