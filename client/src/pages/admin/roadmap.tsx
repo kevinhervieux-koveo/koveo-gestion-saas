@@ -1,169 +1,395 @@
-import { MapPin, Filter, Clock, CheckCircle, Circle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Header } from '@/components/layout/header';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Clock, Target, TrendingUp, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
 
+interface RoadmapItem {
+  id: string;
+  title: string;
+  description: string;
+  status: 'planned' | 'in-progress' | 'completed' | 'on-hold';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  category: string;
+  startDate: string;
+  targetDate: string;
+  progress: number;
+  assignee: string;
+  dependencies: string[];
+}
+
+interface RoadmapMilestone {
+  id: string;
+  name: string;
+  targetDate: string;
+  status: 'upcoming' | 'current' | 'completed';
+  progress: number;
+  items: number;
+}
+
 export default function Roadmap() {
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('6months');
 
-  const roadmapItems = [
-    {
-      id: 1,
-      title: 'Enhanced Mobile Application',
-      description: 'Native mobile apps for iOS and Android with offline capabilities and push notifications.',
-      status: 'in-progress',
-      quarter: 'Q1 2025',
-      votes: 89,
-      completion: 65
-    },
-    {
-      id: 2,
-      title: 'AI-Powered Maintenance Predictions',
-      description: 'Machine learning algorithms to predict maintenance needs and optimize scheduling.',
-      status: 'planned',
-      quarter: 'Q2 2025',
-      votes: 124,
-      completion: 0
-    },
-    {
-      id: 3,
-      title: 'Advanced Financial Analytics',
-      description: 'Comprehensive financial reporting with forecasting and budget optimization tools.',
-      status: 'completed',
-      quarter: 'Q4 2024',
-      votes: 156,
-      completion: 100
-    },
-    {
-      id: 4,
-      title: 'Integration with Quebec Government APIs',
-      description: 'Direct integration with provincial databases for regulatory compliance and reporting.',
-      status: 'research',
-      quarter: 'Q3 2025',
-      votes: 203,
-      completion: 5
-    }
-  ];
+  // Mock data - in real app this would come from API
+  const { data: roadmapItems = [], isLoading } = useQuery<RoadmapItem[]>({
+    queryKey: ['/api/roadmap/items'],
+    queryFn: () => Promise.resolve([
+      {
+        id: '1',
+        title: 'Multi-tenant Architecture Enhancement',
+        description: 'Implement advanced multi-tenant capabilities for better organization isolation',
+        status: 'in-progress',
+        priority: 'high',
+        category: 'Architecture',
+        startDate: '2024-08-01',
+        targetDate: '2024-10-15',
+        progress: 65,
+        assignee: 'Engineering Team',
+        dependencies: ['Security Audit']
+      },
+      {
+        id: '2',
+        title: 'Quebec Law 25 Full Compliance',
+        description: 'Complete implementation of privacy protection measures',
+        status: 'in-progress',
+        priority: 'critical',
+        category: 'Compliance',
+        startDate: '2024-07-15',
+        targetDate: '2024-09-30',
+        progress: 80,
+        assignee: 'Legal & Tech Team',
+        dependencies: []
+      },
+      {
+        id: '3',
+        title: 'Advanced Reporting Dashboard',
+        description: 'Build comprehensive financial and operational reporting',
+        status: 'planned',
+        priority: 'medium',
+        category: 'Features',
+        startDate: '2024-10-01',
+        targetDate: '2024-12-15',
+        progress: 0,
+        assignee: 'Product Team',
+        dependencies: ['Multi-tenant Architecture']
+      },
+      {
+        id: '4',
+        title: 'Mobile App Development',
+        description: 'Native mobile applications for residents and managers',
+        status: 'planned',
+        priority: 'high',
+        category: 'Platform',
+        startDate: '2024-11-01',
+        targetDate: '2025-03-30',
+        progress: 0,
+        assignee: 'Mobile Team',
+        dependencies: ['API Optimization']
+      },
+      {
+        id: '5',
+        title: 'AI-Powered Maintenance Scheduling',
+        description: 'Implement machine learning for predictive maintenance',
+        status: 'planned',
+        priority: 'medium',
+        category: 'Innovation',
+        startDate: '2025-01-15',
+        targetDate: '2025-06-30',
+        progress: 0,
+        assignee: 'AI Team',
+        dependencies: ['Data Migration']
+      }
+    ])
+  });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'in-progress':
-        return <Circle className="h-5 w-5 text-blue-500" />;
-      case 'planned':
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-      default:
-        return <Circle className="h-5 w-5 text-gray-400" />;
-    }
-  };
+  const { data: milestones = [], isLoading: milestonesLoading } = useQuery<RoadmapMilestone[]>({
+    queryKey: ['/api/roadmap/milestones'],
+    queryFn: () => Promise.resolve([
+      {
+        id: '1',
+        name: 'Q3 2024 - Compliance & Security',
+        targetDate: '2024-09-30',
+        status: 'current',
+        progress: 75,
+        items: 8
+      },
+      {
+        id: '2',
+        name: 'Q4 2024 - Platform Enhancement',
+        targetDate: '2024-12-31',
+        status: 'upcoming',
+        progress: 25,
+        items: 12
+      },
+      {
+        id: '3',
+        name: 'Q1 2025 - Mobile & Innovation',
+        targetDate: '2025-03-31',
+        status: 'upcoming',
+        progress: 0,
+        items: 6
+      }
+    ])
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'default';
       case 'in-progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'default';
       case 'planned':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'secondary';
+      case 'on-hold':
+        return 'destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'secondary';
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical':
+        return 'bg-red-500';
+      case 'high':
+        return 'bg-orange-500';
+      case 'medium':
+        return 'bg-yellow-500';
+      case 'low':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const filteredItems = roadmapItems.filter(item =>
+    selectedCategory === 'all' || item.category.toLowerCase() === selectedCategory.toLowerCase()
+  );
+
+  const categories = ['all', ...Array.from(new Set(roadmapItems.map(item => item.category)))];
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Page Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Product Roadmap</h1>
-            <p className="mt-1 text-sm text-gray-600">Upcoming features and development timeline</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Workspace</span>
-            <span className="text-sm font-medium text-green-600">Active</span>
-          </div>
+      <Header 
+        title="Product Roadmap"
+        subtitle="Strategic development timeline and feature planning"
+      />
+      
+      <div className="flex-1 p-6 space-y-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{roadmapItems.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all categories
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {roadmapItems.filter(item => item.status === 'in-progress').length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Active development
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {roadmapItems.filter(item => item.status === 'completed').length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This quarter
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {Math.round(roadmapItems.reduce((sum, item) => sum + item.progress, 0) / roadmapItems.length)}%
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Average completion
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        {/* Filters */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Filter className="h-5 w-5 text-gray-700" />
-            <span className="text-sm font-medium text-gray-700">Filter by status:</span>
-            <div className="flex gap-2">
-              {['all', 'completed', 'in-progress', 'planned', 'research'].map((filter) => (
-                <Button
-                  key={filter}
-                  variant={selectedFilter === filter ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedFilter(filter)}
-                  className="capitalize"
-                >
-                  {filter}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Roadmap Items */}
-        <div className="space-y-4">
-          {roadmapItems.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4 flex-1">
-                  {getStatusIcon(item.status)}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                        {item.status.replace('-', ' ')}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-3">{item.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {item.quarter}
-                      </span>
-                      <span>{item.votes} votes</span>
-                      {item.completion > 0 && (
-                        <span>{item.completion}% complete</span>
+        <Tabs defaultValue="timeline" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="timeline">Timeline View</TabsTrigger>
+            <TabsTrigger value="milestones">Milestones</TabsTrigger>
+            <TabsTrigger value="planning">Planning Board</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="timeline" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5" />
+                    <CardTitle>Development Timeline</CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="px-3 py-2 border rounded-md"
+                    >
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>
+                          {cat === 'all' ? 'All Categories' : cat}
+                        </option>
+                      ))}
+                    </select>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredItems.map((item) => (
+                    <div key={item.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold">{item.title}</h3>
+                            <Badge variant={getStatusColor(item.status)}>
+                              {item.status}
+                            </Badge>
+                            <div className={`w-3 h-3 rounded-full ${getPriorityColor(item.priority)}`} />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>📅 {item.startDate} → {item.targetDate}</span>
+                            <span>👤 {item.assignee}</span>
+                            <span>🏷️ {item.category}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Progress</span>
+                          <span>{item.progress}%</span>
+                        </div>
+                        <Progress value={item.progress} className="h-2" />
+                      </div>
+                      {item.dependencies.length > 0 && (
+                        <div className="mt-3 pt-3 border-t">
+                          <p className="text-xs text-muted-foreground">
+                            Dependencies: {item.dependencies.join(', ')}
+                          </p>
+                        </div>
                       )}
                     </div>
-                  </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    Vote
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="milestones" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Target className="h-5 w-5" />
+                  <CardTitle>Development Milestones</CardTitle>
                 </div>
-              </div>
-              
-              {item.completion > 0 && (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-                    <span>Progress</span>
-                    <span>{item.completion}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${item.completion}%` }}
-                    ></div>
-                  </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {milestones.map((milestone) => (
+                    <div key={milestone.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold">{milestone.name}</h3>
+                        <Badge variant={milestone.status === 'completed' ? 'default' : 'secondary'}>
+                          {milestone.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>{milestone.items} items • Target: {milestone.targetDate}</span>
+                          <span>{milestone.progress}%</span>
+                        </div>
+                        <Progress value={milestone.progress} className="h-2" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="planning" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5" />
+                  <CardTitle>Planning Board</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {['planned', 'in-progress', 'completed', 'on-hold'].map((status) => (
+                    <div key={status} className="space-y-3">
+                      <h4 className="font-medium capitalize flex items-center gap-2">
+                        {status === 'in-progress' && <Clock className="h-4 w-4" />}
+                        {status === 'completed' && <CheckCircle className="h-4 w-4" />}
+                        {status === 'on-hold' && <AlertCircle className="h-4 w-4" />}
+                        {status === 'planned' && <Target className="h-4 w-4" />}
+                        {status.replace('-', ' ')} ({roadmapItems.filter(item => item.status === status).length})
+                      </h4>
+                      <div className="space-y-2">
+                        {roadmapItems
+                          .filter(item => item.status === status)
+                          .map(item => (
+                            <div key={item.id} className="p-3 border rounded-lg">
+                              <h5 className="font-medium text-sm mb-1">{item.title}</h5>
+                              <p className="text-xs text-muted-foreground mb-2">{item.category}</p>
+                              <div className="flex items-center justify-between">
+                                <div className={`w-2 h-2 rounded-full ${getPriorityColor(item.priority)}`} />
+                                <span className="text-xs">{item.progress}%</span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
