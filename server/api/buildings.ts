@@ -61,66 +61,116 @@ export function registerBuildingRoutes(app: Express): void {
       let accessibleBuildings: any[] = [];
       const buildingIds = new Set<string>();
 
-      // For Admin and Manager roles: Get buildings from their organizations
-      if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-        // Get user's organizations
-        const userOrgs = await db
+      // Check if user belongs to Koveo organization (special global access)
+      const userOrgs = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          organizationName: organizations.name,
+          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(
+          and(
+            eq(userOrganizations.userId, currentUser.id),
+            eq(userOrganizations.isActive, true)
+          )
+        );
+
+      const isKoveoUser = userOrgs.some(org => org.organizationName === 'Koveo');
+      
+      if (isKoveoUser) {
+        console.log(`🌟 Koveo organization user detected - granting access to ALL buildings`);
+        
+        // Koveo users can see ALL buildings from ALL organizations
+        const allBuildings = await db
           .select({
-            organizationId: userOrganizations.organizationId
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+            city: buildings.city,
+            province: buildings.province,
+            postalCode: buildings.postalCode,
+            buildingType: buildings.buildingType,
+            yearBuilt: buildings.yearBuilt,
+            totalUnits: buildings.totalUnits,
+            totalFloors: buildings.totalFloors,
+            parkingSpaces: buildings.parkingSpaces,
+            storageSpaces: buildings.storageSpaces,
+            amenities: buildings.amenities,
+            managementCompany: buildings.managementCompany,
+            organizationId: buildings.organizationId,
+            isActive: buildings.isActive,
+            createdAt: buildings.createdAt,
+            updatedAt: buildings.updatedAt,
+            organizationName: organizations.name,
+            organizationType: organizations.type
           })
-          .from(userOrganizations)
-          .where(
-            and(
-              eq(userOrganizations.userId, currentUser.id),
-              eq(userOrganizations.isActive, true)
-            )
-          );
+          .from(buildings)
+          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+          .where(eq(buildings.isActive, true))
+          .orderBy(organizations.name, buildings.name);
 
-        if (userOrgs.length > 0) {
-          const orgIds = userOrgs.map(uo => uo.organizationId);
-          
-          // Get all buildings from these organizations
-          const orgBuildings = await db
-            .select({
-              id: buildings.id,
-              name: buildings.name,
-              address: buildings.address,
-              city: buildings.city,
-              province: buildings.province,
-              postalCode: buildings.postalCode,
-              buildingType: buildings.buildingType,
-              yearBuilt: buildings.yearBuilt,
-              totalUnits: buildings.totalUnits,
-              totalFloors: buildings.totalFloors,
-              parkingSpaces: buildings.parkingSpaces,
-              storageSpaces: buildings.storageSpaces,
-              amenities: buildings.amenities,
-              managementCompany: buildings.managementCompany,
-              organizationId: buildings.organizationId,
-              isActive: buildings.isActive,
-              createdAt: buildings.createdAt,
-              updatedAt: buildings.updatedAt,
-              organizationName: organizations.name,
-              organizationType: organizations.type
-            })
-            .from(buildings)
-            .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-            .where(
-              and(
-                inArray(buildings.organizationId, orgIds),
-                eq(buildings.isActive, true)
-              )
-            );
+        // Add all buildings with special Koveo access type
+        allBuildings.forEach(building => {
+          if (!buildingIds.has(building.id)) {
+            buildingIds.add(building.id);
+            accessibleBuildings.push({
+              ...building,
+              accessType: 'koveo-global' // Special access type for Koveo users
+            });
+          }
+        });
+        
+      } else {
+        // Regular users: For Admin and Manager roles: Get buildings from their organizations only
+        if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+          if (userOrgs.length > 0) {
+            const orgIds = userOrgs.map(uo => uo.organizationId);
+            
+            // Get all buildings from these organizations only
+            const orgBuildings = await db
+              .select({
+                id: buildings.id,
+                name: buildings.name,
+                address: buildings.address,
+                city: buildings.city,
+                province: buildings.province,
+                postalCode: buildings.postalCode,
+                buildingType: buildings.buildingType,
+                yearBuilt: buildings.yearBuilt,
+                totalUnits: buildings.totalUnits,
+                totalFloors: buildings.totalFloors,
+                parkingSpaces: buildings.parkingSpaces,
+                storageSpaces: buildings.storageSpaces,
+                amenities: buildings.amenities,
+                managementCompany: buildings.managementCompany,
+                organizationId: buildings.organizationId,
+                isActive: buildings.isActive,
+                createdAt: buildings.createdAt,
+                updatedAt: buildings.updatedAt,
+                organizationName: organizations.name,
+                organizationType: organizations.type
+              })
+              .from(buildings)
+              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+              .where(
+                and(
+                  inArray(buildings.organizationId, orgIds),
+                  eq(buildings.isActive, true)
+                )
+              );
 
-          orgBuildings.forEach(building => {
-            if (!buildingIds.has(building.id)) {
-              buildingIds.add(building.id);
-              accessibleBuildings.push({
-                ...building,
-                accessType: 'organization' // Track how user has access
-              });
-            }
-          });
+            orgBuildings.forEach(building => {
+              if (!buildingIds.has(building.id)) {
+                buildingIds.add(building.id);
+                accessibleBuildings.push({
+                  ...building,
+                  accessType: 'organization' // Track how user has access
+                });
+              }
+            });
+          }
         }
       }
 
