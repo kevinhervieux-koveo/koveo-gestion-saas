@@ -81,7 +81,10 @@ export default function DocumentationStyled() {
         subtitle="Comprehensive guides and API reference for Koveo Gestion property management platform"
       />
       
-      <div style={{padding: '1.5rem'}}>
+      <div style={{ 
+        padding: '1.5rem',
+        overflowY: 'auto'
+      }}>
 
         {/* Search Bar */}
         <div style={{

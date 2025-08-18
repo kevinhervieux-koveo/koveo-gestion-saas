@@ -6,7 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-
+import { TopHeader } from '@/components/layout/TopHeader';
 import { Suspense, useEffect, useState, createContext, useContext } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
@@ -198,6 +198,10 @@ function Router() {
     // For unauthenticated users, only show public routes and redirect everything else
     return (
       <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #ffffff, #f9fafb)'}}>
+        {/* Top Header - Always visible */}
+        <TopHeader />
+        
+        <div style={{paddingTop: '60px'}}>
           <Suspense fallback={<LoadingSpinner />}>
             <Switch>
               <Route path="/" component={HomePage} />
@@ -207,6 +211,7 @@ function Router() {
               <Route component={HomeRedirect} />
             </Switch>
           </Suspense>
+        </div>
       </div>
     );
   }
