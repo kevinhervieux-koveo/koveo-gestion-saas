@@ -116,16 +116,16 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid user data',
-          details: error.errors,
+          details: _error.issues,
         });
       }
 
-      console.error('Failed to create user:', error);
+      console.error('Failed to create user:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create user',
@@ -166,16 +166,16 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid user data',
-          details: error.errors,
+          details: _error.issues,
         });
       }
 
-      console.error('Failed to update user:', error);
+      console.error('Failed to update user:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update user',
@@ -214,8 +214,8 @@ export function registerUserRoutes(app: Express): void {
         message: 'User deactivated successfully',
         id: user.id,
       });
-    } catch (error) {
-      console.error('Failed to deactivate user:', error);
+    } catch (_error) {
+      console.error('Failed to deactivate user:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to deactivate user',
@@ -267,16 +267,16 @@ export function registerUserRoutes(app: Express): void {
       const validatedResponse = permissionsResponseSchema.parse(responseData);
       
       res.json(validatedResponse);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         return res.status(500).json({
           error: 'Internal server error',
           message: 'Failed to validate permissions response',
-          details: error.errors,
+          details: _error.issues,
         });
       }
 
-      console.error('Failed to fetch user permissions:', error);
+      console.error('Failed to fetch user permissions:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user permissions',

@@ -79,8 +79,8 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     }
 
     return Array.from(accessibleOrgIds);
-  } catch (error) {
-    console.error('Error getting user accessible organizations:', error);
+  } catch (_error) {
+    console.error('Error getting user accessible organizations:', _error);
     return [];
   }
 }
@@ -99,8 +99,8 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
     });
 
     return userResidences.map(ur => ur.residenceId);
-  } catch (error) {
-    console.error('Error getting user accessible residences:', error);
+  } catch (_error) {
+    console.error('Error getting user accessible residences:', _error);
     return [];
   }
 }

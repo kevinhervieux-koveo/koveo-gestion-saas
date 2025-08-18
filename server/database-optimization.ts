@@ -365,8 +365,8 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.log(`✓ Applied: ${indexQuery}`);
-      } catch (error) {
-        console.warn(`⚠ Failed to apply index: ${indexQuery}`, error);
+      } catch (_error) {
+        console.warn(`⚠ Failed to apply index: ${indexQuery}`, _error);
       }
     }
     
@@ -375,8 +375,8 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.log(`✓ Applied covering index: ${indexQuery}`);
-      } catch (error) {
-        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, error);
+      } catch (_error) {
+        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, _error);
       }
     }
     
@@ -385,8 +385,8 @@ export class QueryOptimizer {
       try {
         await sql`${viewQuery}`;
         console.log(`✓ Created materialized view`);
-      } catch (error) {
-        console.warn(`⚠ Failed to create materialized view`, error);
+      } catch (_error) {
+        console.warn(`⚠ Failed to create materialized view`, _error);
       }
     }
     

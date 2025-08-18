@@ -38,9 +38,9 @@ export async function initializeDatabaseOptimizations(): Promise<void> {
     console.log('🎯 Database optimizations initialized successfully');
     console.log('📊 Performance monitoring active - target: reduce 132ms query time');
     
-  } catch (error) {
-    console.error('❌ Database optimization initialization failed:', error);
-    throw error;
+  } catch (_error) {
+    console.error('❌ Database optimization initialization failed:', _error);
+    throw _error;
   }
 }
 

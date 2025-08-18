@@ -360,8 +360,8 @@ export async function applyAISuggestion(req: Request, res: Response) {
       message: 'Suggestion applied successfully',
       insight: updatedInsight 
     });
-  } catch (error) {
-    console.error('Error applying AI suggestion:', error);
+  } catch (_error) {
+    console.error('Error applying AI suggestion:', _error);
     res.status(500).json({ error: 'Failed to apply AI suggestion' });
   }
 }
@@ -481,8 +481,8 @@ export async function recordAIInteraction(req: Request, res: Response) {
     await updateAIMetrics();
 
     res.json(newInteraction);
-  } catch (error) {
-    console.error('Error recording AI interaction:', error);
+  } catch (_error) {
+    console.error('Error recording AI interaction:', _error);
     res.status(500).json({ error: 'Failed to record AI interaction' });
   }
 }

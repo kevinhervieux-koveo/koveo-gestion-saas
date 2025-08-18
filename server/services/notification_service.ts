@@ -66,9 +66,9 @@ export class NotificationService {
 
       console.log(`SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (error) {
-      console.error('Failed to send SSL expiry notification:', error);
-      throw new Error(`Failed to send SSL expiry notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      console.error('Failed to send SSL expiry notification:', _error);
+      throw new Error(`Failed to send SSL expiry notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
 
@@ -121,9 +121,9 @@ export class NotificationService {
 
       console.log(`SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (error) {
-      console.error('Failed to send SSL renewal failure notification:', error);
-      throw new Error(`Failed to send SSL renewal failure notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      console.error('Failed to send SSL renewal failure notification:', _error);
+      throw new Error(`Failed to send SSL renewal failure notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
 
@@ -183,8 +183,8 @@ export class NotificationService {
 
       console.log(`SSL renewal success notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (error) {
-      console.error('Failed to send SSL renewal success notification:', error);
+    } catch (_error) {
+      console.error('Failed to send SSL renewal success notification:', _error);
       // Don't throw error for success notifications
     }
   }
@@ -208,8 +208,8 @@ export class NotificationService {
         );
 
       return result.length;
-    } catch (error) {
-      console.error('Failed to get unread SSL notification count:', error);
+    } catch (_error) {
+      console.error('Failed to get unread SSL notification count:', _error);
       return 0;
     }
   }

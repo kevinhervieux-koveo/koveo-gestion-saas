@@ -21,8 +21,8 @@ export function registerOrganizationRoutes(app: Express): void {
     try {
       const organizations = await storage.getOrganizations();
       res.json(organizations);
-    } catch (error) {
-      console.error('Failed to fetch organizations:', error);
+    } catch (_error) {
+      console.error('Failed to fetch organizations:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -53,8 +53,8 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       res.json(organization);
-    } catch (error) {
-      console.error('Failed to fetch organization:', error);
+    } catch (_error) {
+      console.error('Failed to fetch organization:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch organization',
@@ -80,16 +80,16 @@ export function registerOrganizationRoutes(app: Express): void {
 
       const organization = await storage.createOrganization(validatedData);
       res.status(201).json(organization);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid organization data',
-          details: error.errors,
+          details: _error.issues,
         });
       }
 
-      console.error('Failed to create organization:', error);
+      console.error('Failed to create organization:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create organization',
@@ -127,16 +127,16 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       res.json(organization);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid organization data',
-          details: error.errors,
+          details: _error.issues,
         });
       }
 
-      console.error('Failed to update organization:', error);
+      console.error('Failed to update organization:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization',
@@ -175,8 +175,8 @@ export function registerOrganizationRoutes(app: Express): void {
         message: 'Organization deactivated successfully',
         id: organization.id,
       });
-    } catch (error) {
-      console.error('Failed to deactivate organization:', error);
+    } catch (_error) {
+      console.error('Failed to deactivate organization:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to deactivate organization',
@@ -209,8 +209,8 @@ export function registerOrganizationRoutes(app: Express): void {
 
       const buildings = await storage.getBuildingsByOrganization(id);
       res.json(buildings);
-    } catch (error) {
-      console.error('Failed to fetch organization buildings:', error);
+    } catch (_error) {
+      console.error('Failed to fetch organization buildings:', _error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch organization buildings',

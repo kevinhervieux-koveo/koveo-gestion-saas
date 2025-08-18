@@ -84,8 +84,8 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach(callback => {
       try {
         callback(alert);
-      } catch (error) {
-        console.error('Error in security alert callback:', error);
+      } catch (_error) {
+        console.error('Error in security alert callback:', _error);
       }
     });
 
@@ -106,8 +106,8 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null
       });
-    } catch (error) {
-      console.error('Failed to log security alert:', error);
+    } catch (_error) {
+      console.error('Failed to log security alert:', _error);
     }
   }
 

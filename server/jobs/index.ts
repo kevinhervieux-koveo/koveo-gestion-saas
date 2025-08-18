@@ -16,9 +16,9 @@ export async function startJobs(): Promise<void> {
     await sslRenewalJob.start();
     
     console.log('All background jobs started successfully');
-  } catch (error) {
-    console.error('Failed to start background jobs:', error);
-    throw error;
+  } catch (_error) {
+    console.error('Failed to start background jobs:', _error);
+    throw _error;
   }
 }
 

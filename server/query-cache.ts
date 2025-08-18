@@ -226,8 +226,8 @@ export function withCache<T>(
       queryCache.set(cacheType, cacheKey, result);
       
       resolve(result);
-    } catch (error) {
-      reject(error);
+    } catch (_error) {
+      reject(_error);
     }
   });
 }

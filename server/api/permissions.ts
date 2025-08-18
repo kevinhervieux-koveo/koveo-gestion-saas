@@ -227,8 +227,8 @@ export function registerPermissionsRoutes(app: Express) {
         message: hasPermission ? 'Permission granted' : 'Permission denied'
       });
       
-    } catch (error) {
-      console.error('Error validating permission:', error);
+    } catch (_error) {
+      console.error('Error validating permission:', _error);
       res.status(500).json({ message: 'Failed to validate permission' });
     }
   });

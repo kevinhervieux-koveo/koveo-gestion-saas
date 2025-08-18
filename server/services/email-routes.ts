@@ -178,8 +178,8 @@ export function registerEmailRoutes(app: Express) {
           totalProcessed: pendingInvitations.length
         });
         
-      } catch (error) {
-        console.error('Error sending bulk reminder emails:', error);
+      } catch (_error) {
+        console.error('Error sending bulk reminder emails:', _error);
         res.status(500).json({ message: 'Failed to send bulk reminder emails' });
       }
     }
@@ -233,8 +233,8 @@ export function registerEmailRoutes(app: Express) {
         </html>
       `);
       
-    } catch (error) {
-      console.error('Error processing unsubscribe:', error);
+    } catch (_error) {
+      console.error('Error processing unsubscribe:', _error);
       res.status(500).send('Erreur lors du désabonnement. Veuillez réessayer.');
     }
   });

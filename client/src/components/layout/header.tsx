@@ -41,6 +41,11 @@ export function Header({ title, subtitle }: HeaderProps) {
   // Access mobile menu context
   const mobileMenu = useMobileMenu();
   const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
+  
+  // Check if mobile menu context is available
+  if (!mobileMenu || !toggleMobileMenu) {
+    console.log('Mobile menu toggle not available');
+  }
 
   return (
     <header className='bg-white border-b border-gray-200 px-6 py-4'>

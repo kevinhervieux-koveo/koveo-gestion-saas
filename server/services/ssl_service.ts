@@ -82,8 +82,8 @@ export class SSLService {
 
       // Create account if it doesn't exist
       await this.ensureAccount();
-    } catch (error) {
-      throw new Error(`Failed to initialize SSL service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      throw new Error(`Failed to initialize SSL service: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
 
@@ -132,8 +132,8 @@ export class SSLService {
 
       return certData;
 
-    } catch (error) {
-      throw new Error(`Failed to request certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      throw new Error(`Failed to request certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
 
@@ -153,8 +153,8 @@ export class SSLService {
       // For basic validation, just check if domain resolves
       // In production, you might want more sophisticated checks
       return txtRecords !== undefined;
-    } catch (error) {
-      console.error(`Domain ownership validation failed for ${domain}:`, error);
+    } catch (_error) {
+      console.error(`Domain ownership validation failed for ${domain}:`, _error);
       return false;
     }
   }
@@ -174,8 +174,8 @@ export class SSLService {
       }
 
       return existingCert || await this.requestCertificate(domain);
-    } catch (error) {
-      throw new Error(`Failed to rotate certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (_error) {
+      throw new Error(`Failed to rotate certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
 
