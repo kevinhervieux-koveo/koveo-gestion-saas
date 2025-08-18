@@ -8,12 +8,12 @@ export default function DashboardSimple() {
   
   console.log('DashboardSimple rendering with user:', user?.email);
   
-  // Redirect based on user role
+  // Redirect based on user role - Admin goes to roadmap
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') {
-        // Redirect admin users directly to organizations page
-        setLocation('/admin/organizations');
+        // Redirect admin users directly to roadmap page
+        setLocation('/admin/roadmap');
       } else if (user.role === 'manager') {
         // Redirect managers to buildings page
         setLocation('/manager/buildings');
