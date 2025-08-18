@@ -267,17 +267,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const organizationName = organization[0]?.name || 'Your Organization';
             
             // Send email using email service
-            await emailService.sendInvitation({
-              recipientEmail: email,
-              recipientName: email.split('@')[0], // Use email prefix as name fallback
-              invitationToken: token,
-              invitationUrl,
+            await emailService.sendInvitationEmail(
+              email,
+              email.split('@')[0], // Use email prefix as name fallback
+              token,
               organizationName,
-              inviterName: `${currentUser.firstName} ${currentUser.lastName}`,
-              expiryDate: expiresAt,
-              language: 'en', // Default to English, could be made configurable
-              personalMessage
-            });
+              `${currentUser.firstName} ${currentUser.lastName}`,
+              expiresAt,
+              'en' // Default to English, could be made configurable
+            );
             
             console.log(`✅ Invitation email sent successfully to ${email}`);
           } catch (emailError) {
