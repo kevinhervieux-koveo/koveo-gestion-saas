@@ -1928,7 +1928,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   email: z.string().email('Invalid email address'),
   // Make organizationId required
   organizationId: z.string().uuid('Organization is required'),
-  buildingId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional().or(z.literal('none').transform(() => undefined)),
   residenceId: z.string().uuid().optional(),
   // Accept both string and date for expiresAt to handle serialization
   expiresAt: z.union([
@@ -1942,13 +1942,13 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   personalMessage: z.string().optional(),
   invitationContext: z.record(z.string(), z.unknown()).optional(),
 }).refine((data) => {
-  // If role is tenant or resident, residence must be assigned
-  if ((data.role === 'tenant' || data.role === 'resident')) {
+  // If role is tenant or resident and a specific building is selected, residence must be assigned
+  if ((data.role === 'tenant' || data.role === 'resident') && data.buildingId) {
     return !!data.residenceId;
   }
   return true;
 }, {
-  message: 'Residence must be assigned for tenants and residents',
+  message: 'Residence must be assigned for tenants and residents when a building is selected',
   path: ['residenceId']
 });
 

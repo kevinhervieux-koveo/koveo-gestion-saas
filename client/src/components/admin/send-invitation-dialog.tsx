@@ -58,13 +58,13 @@ const invitationSchema = z.object({
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
 }).refine((data) => {
-  // If role is tenant or resident, residence must be assigned
-  if (['tenant', 'resident'].includes(data.role)) {
+  // If role is tenant or resident and a specific building is selected, residence must be assigned
+  if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
   }
   return true;
 }, {
-  message: 'Residence must be assigned for tenants and residents',
+  message: 'Residence must be assigned for tenants and residents when a building is selected',
   path: ['residenceId']
 });
 
@@ -77,13 +77,13 @@ const bulkInvitationSchema = z.object({
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
 }).refine((data) => {
-  // If role is tenant or resident, residence must be assigned
-  if (['tenant', 'resident'].includes(data.role)) {
+  // If role is tenant or resident and a specific building is selected, residence must be assigned
+  if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
   }
   return true;
 }, {
-  message: 'Residence must be assigned for tenants and residents',
+  message: 'Residence must be assigned for tenants and residents when a building is selected',
   path: ['residenceId']
 });
 

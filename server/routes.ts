@@ -2579,7 +2579,7 @@ function registerInvitationRoutes(app: any) {
         // Create invitation
         const invitationContext = {
           organizationId,
-          buildingId,
+          buildingId: buildingId === 'none' ? null : buildingId,
           residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
         };
 
@@ -2789,7 +2789,7 @@ function registerInvitationRoutes(app: any) {
             
             const invitationContext = {
               organizationId,
-              buildingId,
+              buildingId: buildingId === 'none' ? null : buildingId,
               residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
             };
             
@@ -2800,7 +2800,7 @@ function registerInvitationRoutes(app: any) {
               role: role as 'admin' | 'manager' | 'tenant' | 'resident',
               invitedByUserId: currentUser.id,
               organizationId,
-              buildingId,
+              buildingId: buildingId === 'none' ? null : buildingId,
               expiresAt,
               personalMessage: validation.data.personalMessage,
               invitationContext,
