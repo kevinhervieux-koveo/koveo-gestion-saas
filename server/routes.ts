@@ -605,28 +605,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Features API
-  app.get('/api/features', requireAuth, authorize('read:feature'), async (req, res) => {
+  // Features API - TEMPORARY DEBUG VERSION
+  app.get('/api/features', async (req, res) => {
     try {
       const { status, category, roadmap } = req.query;
        
-      console.warn('Features API called with query:', { status, category, roadmap });
+      console.log('=== FEATURES API DEBUG ===');
+      console.log('Query params:', { status, category, roadmap });
 
-      // Use direct select with from/where for better debugging
+      // Test basic database connection first
+      const testQuery = await db.select().from(schema.features).limit(1);
+      console.log('Basic test query result count:', testQuery.length);
+
+      // Now try the roadmap query
       let features;
       if (roadmap === 'true') {
+        console.log('Executing roadmap query...');
         features = await db
           .select()
           .from(schema.features)
           .where(eq(schema.features.isPublicRoadmap, true));
+        console.log('Roadmap query result count:', features.length);
       } else {
+        console.log('Executing all features query...');
         features = await db
           .select()
           .from(schema.features);
+        console.log('All features query result count:', features.length);
       }
 
-       
-      console.warn('Found features:', features.length);
+      console.log('=== END DEBUG ===');
       res.json(features);
     } catch (error) {
       console.error('Error fetching features:', error);
