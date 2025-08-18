@@ -388,8 +388,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/invitations/validate', async (req: any, res: any) => {
       try {
         const { token } = req.body;
+        console.log('🔍 Validating invitation token:', { 
+          token: token ? `${token.substring(0, 8)}...` : 'missing',
+          bodyKeys: Object.keys(req.body)
+        });
         
         if (!token) {
+          console.log('❌ Missing token in request body');
           return res.status(400).json({
             message: 'Token is required',
             code: 'TOKEN_REQUIRED'
@@ -398,6 +403,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Find invitation by token hash (since we store hashed tokens)
         const tokenHash = hashToken(token);
+        console.log('🔐 Token hash lookup:', { 
+          originalToken: `${token.substring(0, 8)}...`,
+          tokenHash: `${tokenHash.substring(0, 8)}...` 
+        });
+        
         const invitation = await db.select({
           id: invitations.id,
           email: invitations.email,
@@ -412,6 +422,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(invitations)
         .where(eq(invitations.tokenHash, tokenHash))
         .limit(1);
+        
+        console.log('📊 Database query result:', { found: invitation.length > 0 });
 
         if (invitation.length === 0) {
           await createInvitationAuditLog(
@@ -600,18 +612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName,
           role: invitationData.role,
           phone: phone || '',
-          address: address || '',
-          city: city || '',
-          province: province || 'QC',
-          postalCode: postalCode || '',
-          language: language || 'fr',
-          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-          dataCollectionConsent,
-          marketingConsent: marketingConsent || false,
-          analyticsConsent: analyticsConsent || false,
-          thirdPartyConsent: thirdPartyConsent || false,
-          acknowledgedRights,
-          consentDate: new Date()
+          language: language || 'fr'
         });
 
         // Create user-organization relationship
