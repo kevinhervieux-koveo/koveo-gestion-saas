@@ -712,7 +712,7 @@ export default function OwnerRoadmap() {
     const completed = features.filter((f) => f.status === 'completed').length;
     const inProgress = features.filter((f) => f.status === 'in-progress').length;
     const total = features.length;
-    const progress = ((completed + inProgress * 0.5) / total) * 100;
+    const progress = total > 0 ? ((completed + inProgress * 0.5) / total) * 100 : 0;
     return {
       completed,
       inProgress,
