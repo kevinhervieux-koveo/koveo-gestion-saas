@@ -182,6 +182,9 @@ export default function OwnerRoadmap() {
     queryFn: () => fetch('/api/features?roadmap=true').then((res) => res.json()),
   });
 
+  // Debug logging
+  console.log('Features fetched:', features.length, features.slice(0, 3));
+
   /**
    * Fetches actionable items for a specific feature.
    * @param featureId
@@ -496,6 +499,9 @@ export default function OwnerRoadmap() {
     acc[feature.category].push(feature);
     return acc;
   }, {});
+
+  // Debug logging
+  console.log('Grouped features:', Object.keys(groupedFeatures), groupedFeatures);
 
   const sections: Section[] = [
     {

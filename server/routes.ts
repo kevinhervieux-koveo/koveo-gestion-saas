@@ -612,10 +612,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
        
       console.warn('Features API called with query:', { status, category, roadmap });
 
-      // Simple query to test connection
-      const features = await db.query.features.findMany({
-        where: roadmap === 'true' ? eq(schema.features.isPublicRoadmap, true) : undefined,
-      });
+      // Use direct select with from/where for better debugging
+      let features;
+      if (roadmap === 'true') {
+        features = await db
+          .select()
+          .from(schema.features)
+          .where(eq(schema.features.isPublicRoadmap, true));
+      } else {
+        features = await db
+          .select()
+          .from(schema.features);
+      }
 
        
       console.warn('Found features:', features.length);
