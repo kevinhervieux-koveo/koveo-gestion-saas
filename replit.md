@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **RBAC**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions.
 - **Access Control**: Organization-based access rules (Demo, Koveo, normal organizations, tenant/resident specific).
 - **Security**: Law 25 compliance framework.
-- **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, and simplified process without 2FA.
+- **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, automatic replacement of existing invitations, and simplified process without 2FA.
 
 ### Development Framework (Pillar Methodology)
 - **Core Principles**: Modular components for quality assurance, testing, and security.
