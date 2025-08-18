@@ -34,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 - **Access Control**: Organization-based access rules (Demo, Koveo, normal organizations, tenant/resident specific).
 - **Security**: Law 25 compliance framework.
 - **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, automatic replacement of existing invitations, and simplified process without 2FA.
-- **Buildings Management**: Role-based access control system where Admin and Manager roles can view all buildings in their organization, while Resident and Tenant roles are restricted from accessing Manager and Admin features.
+- **Buildings Management**: Role-based access control system where Admin and Manager roles can view all buildings in their organization, while Resident and Tenant roles are restricted from accessing Manager and Admin features. Special privilege: Koveo organization users have global access to view buildings from all organizations.
 
 ### Development Framework (Pillar Methodology)
 - **Core Principles**: Modular components for quality assurance, testing, and security.
