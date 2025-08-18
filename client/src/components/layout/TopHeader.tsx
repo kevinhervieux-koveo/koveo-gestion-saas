@@ -40,17 +40,18 @@ export function TopHeader() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}>
           <img 
-            src="/assets/koveo-logo-full.jpg" 
+            src={`/assets/koveo-logo-full.jpg?v=${Date.now()}`}
             alt="Koveo Gestion Inc."
             style={{
               height: '40px',
-              width: 'auto'
+              width: 'auto',
+              display: 'block'
             }}
             onError={(e) => {
               console.log('Full logo failed to load, trying K logo');
               // Fallback to K logo if main logo fails to load
               const target = e.currentTarget as HTMLImageElement;
-              target.src = '/assets/koveo-logo-k.jpg';
+              target.src = `/assets/koveo-logo-k.jpg?v=${Date.now()}`;
               target.style.width = '40px';
               target.onerror = () => {
                 console.log('K logo also failed, using fallback K');
