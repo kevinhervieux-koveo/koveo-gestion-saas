@@ -146,7 +146,7 @@ const HomePage = createOptimizedLoader(
 
 // Main Dashboard page
 const DashboardPage = createOptimizedLoader(
-  () => import('@/pages/dashboard-simple'),
+  () => import('@/pages/dashboard'),
   'dashboard-page',
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
@@ -177,6 +177,11 @@ function Router() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   console.log('Router: isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'location:', location);
+  
+  // Add more detailed logging to track the location change issue
+  useEffect(() => {
+    console.log('Router location changed to:', location);
+  }, [location]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
