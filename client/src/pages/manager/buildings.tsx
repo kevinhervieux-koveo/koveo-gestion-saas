@@ -533,8 +533,8 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='2020' 
-                                      value={field.value || ''}
-                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -551,8 +551,8 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='100' 
-                                      value={field.value || ''}
-                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -569,8 +569,8 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='10' 
-                                      value={field.value || ''}
-                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -590,8 +590,8 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='50' 
-                                      value={field.value || ''}
-                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -608,8 +608,8 @@ export default function Buildings() {
                                     <Input 
                                       type='number' 
                                       placeholder='25' 
-                                      value={field.value || ''}
-                                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -823,8 +823,8 @@ export default function Buildings() {
                               <Input 
                                 type='number' 
                                 placeholder='2020' 
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                                onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                               />
                             </FormControl>
                             <FormMessage />
@@ -841,8 +841,8 @@ export default function Buildings() {
                               <Input 
                                 type='number' 
                                 placeholder='100' 
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                                onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                               />
                             </FormControl>
                             <FormMessage />
@@ -859,8 +859,8 @@ export default function Buildings() {
                               <Input 
                                 type='number' 
                                 placeholder='10' 
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                                onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                               />
                             </FormControl>
                             <FormMessage />
@@ -880,8 +880,8 @@ export default function Buildings() {
                               <Input 
                                 type='number' 
                                 placeholder='50' 
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                                onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                               />
                             </FormControl>
                             <FormMessage />
@@ -898,8 +898,8 @@ export default function Buildings() {
                               <Input 
                                 type='number' 
                                 placeholder='25' 
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                                onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                               />
                             </FormControl>
                             <FormMessage />
