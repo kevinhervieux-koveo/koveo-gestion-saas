@@ -3767,11 +3767,14 @@ function registerInvitationRoutes(app: any) {
     try {
       const { getUserAccessibleOrganizations } = await import('./rbac');
       const accessibleOrgIds = await getUserAccessibleOrganizations(req.user!.id);
+      console.log('Accessible org IDs for user', req.user!.id, ':', accessibleOrgIds);
       
       const organizations = await db.query.organizations.findMany({
         where: inArray(schema.organizations.id, accessibleOrgIds),
         orderBy: [schema.organizations.name]
       });
+      
+      console.log('Organizations found:', organizations.length, organizations.map(o => ({ id: o.id, name: o.name })));
 
       res.json(organizations);
     } catch (error) {

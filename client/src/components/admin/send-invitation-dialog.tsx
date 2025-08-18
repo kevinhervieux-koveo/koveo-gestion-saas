@@ -218,7 +218,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/users/me/organizations');
-      return response.json();
+      const data = await response.json();
+      console.log('Organizations fetched:', data);
+      return data;
     },
     enabled: open
   });
@@ -245,7 +247,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
-    if (!organizations) {return [];}
+    if (!organizations) {
+      console.log('No organizations available');
+      return [];
+    }
+    
+    console.log('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
     
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
