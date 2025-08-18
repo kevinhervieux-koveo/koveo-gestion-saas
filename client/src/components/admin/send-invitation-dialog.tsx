@@ -284,7 +284,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       return isValid;
     });
     
-    console.log('Valid organizations after filtering:', validOrgs.length, validOrgs.map(o => ({ id: o.id, name: o.name })));
+    // console.log('Valid organizations after filtering:', validOrgs.length, validOrgs.map(o => ({ id: o.id, name: o.name })));
     
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
@@ -541,40 +541,30 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(() => {
-                            const filteredOrgs = getFilteredOrganizations();
-                            console.log('Rendering organizations in Select:', filteredOrgs.length);
+                          {getFilteredOrganizations().map((org) => {
+                            if (!org?.id || !org?.name) return null;
                             
-                            return filteredOrgs.map((org, index) => {
-                              console.log(`Rendering org ${index}:`, { id: org.id, name: org.name, hasValidId: Boolean(org.id && org.id.trim()) });
-                              
-                              if (!org.id || typeof org.id !== 'string' || org.id.trim() === '') {
-                                console.error('Skipping org with invalid ID:', org);
-                                return null;
-                              }
-                              
-                              const isDemo = org.name?.toLowerCase() === 'demo';
-                              const canInvite = canInviteToOrganization(org.id);
-                              
-                              return (
-                                <SelectItem 
-                                  key={`org-${org.id}`}
-                                  value={org.id}
-                                  disabled={!canInvite}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Building className="h-4 w-4" />
-                                    {org.name}
-                                    {isDemo && (
-                                      <Badge variant="outline" className="text-xs">
-                                        Admin Only
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </SelectItem>
-                              );
-                            }).filter(Boolean);
-                          })()}
+                            const isDemo = org.name?.toLowerCase() === 'demo';
+                            const canInvite = canInviteToOrganization(org.id);
+                            
+                            return (
+                              <SelectItem 
+                                key={org.id}
+                                value={org.id}
+                                disabled={!canInvite}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  <span>{org.name}</span>
+                                  {isDemo && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Admin Only
+                                    </Badge>
+                                  )}
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -858,28 +848,18 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(() => {
-                            const filteredOrgs = getFilteredOrganizations();
-                            console.log('Rendering bulk organizations in Select:', filteredOrgs.length);
+                          {getFilteredOrganizations().map((org) => {
+                            if (!org?.id || !org?.name) return null;
                             
-                            return filteredOrgs.map((org, index) => {
-                              console.log(`Rendering bulk org ${index}:`, { id: org.id, name: org.name, hasValidId: Boolean(org.id && org.id.trim()) });
-                              
-                              if (!org.id || typeof org.id !== 'string' || org.id.trim() === '') {
-                                console.error('Skipping bulk org with invalid ID:', org);
-                                return null;
-                              }
-                              
-                              return (
-                                <SelectItem key={`bulk-org-${org.id}`} value={org.id}>
-                                  <div className="flex items-center gap-2">
-                                    <Building className="h-4 w-4" />
-                                    {org.name}
-                                  </div>
-                                </SelectItem>
-                              );
-                            }).filter(Boolean);
-                          })()}
+                            return (
+                              <SelectItem key={org.id} value={org.id}>
+                                <span className="flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  <span>{org.name}</span>
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
