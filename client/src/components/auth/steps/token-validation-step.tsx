@@ -112,9 +112,19 @@ export function TokenValidationStep({
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
     const token = urlParams.get('token') || urlParams.get('invitation');
+    console.log('🔍 Checking URL for token:', { 
+      token: token ? `${token.substring(0, 8)}...` : 'not found',
+      url: window.location.search,
+      hasValidationResult: !!validationResult 
+    });
     
     if (token && !validationResult) {
+      console.log('✅ Found token, starting validation...');
       validateToken(token);
+    } else if (!token) {
+      console.log('❌ No token found in URL parameters');
+    } else if (validationResult) {
+      console.log('ℹ️ Validation result already exists, skipping');
     }
   }, [validationResult]);
 
