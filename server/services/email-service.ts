@@ -58,7 +58,8 @@ export class EmailService {
   constructor() {
     this.mailService = new MailService();
     this.baseUrl = process.env.BASE_URL || 'https://koveo-gestion.com';
-    this.fromAddress = process.env.EMAIL_FROM || 'kevin.hervieux@koveo-gestion.com';
+    // Use verified SendGrid sender address
+    this.fromAddress = 'kevin.hervieux@koveo-gestion.com';
     this.initializeTemplates();
     
     // Initialize immediately if API key is available
