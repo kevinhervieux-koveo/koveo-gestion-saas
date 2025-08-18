@@ -20,10 +20,39 @@ export function registerBuildingRoutes(app: Express): void {
    * - Manager: Can see all buildings in their organization + buildings where they have residences  
    * - Resident/Tenant: Can see only buildings where they have residences (role is not used, only residence links)
    */
-  app.get('/api/manager/buildings', requireAuth, async (req: any, res) => {
+  app.get('/api/manager/buildings', async (req: any, res) => {
+    console.log('🔍 Session Debug:', {
+      hasSession: !!req.session,
+      sessionUserId: req.session?.userId,
+      sessionUser: req.session?.user ? 'exists' : 'missing',
+      hasUser: !!req.user
+    });
+    
+    // Quick authentication check like other routes
+    if (!req.session?.userId && !req.session?.user) {
+      return res.status(401).json({
+        message: 'Authentication required',
+        code: 'AUTH_REQUIRED'
+      });
+    }
+    
     try {
-      // Get user from request (requireAuth middleware ensures this exists)
-      const currentUser = req.user;
+      // Use session data directly for now
+      let currentUser = req.user || req.session?.user;
+      
+      // If we only have userId, we need to fetch the user
+      if (!currentUser && req.session?.userId) {
+        // Import storage from the auth route pattern
+        const { storage } = await import('../storage');
+        currentUser = await storage.getUser(req.session.userId);
+      }
+      
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND'
+        });
+      }
       
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
