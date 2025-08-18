@@ -69,19 +69,32 @@ export default function Residences() {
     }
   });
 
-  // Fetch buildings for filter dropdown
-  const { data: buildings } = useQuery({
-    queryKey: ['/api/buildings'],
+  // Fetch buildings for filter dropdown - use manager endpoint for proper permissions
+  const { data: buildingsData } = useQuery({
+    queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
-      const response = await fetch('/api/buildings');
+      const response = await fetch('/api/manager/buildings');
       if (!response.ok) throw new Error('Failed to fetch buildings');
-      return response.json() as Promise<Building[]>;
+      return response.json();
     }
   });
 
-  // Get unique floors from residences for filter
-  const availableFloors = residences 
-    ? [...new Set(residences.map(r => r.floor).filter(floor => floor != null))]
+  // Extract buildings array from the response
+  const buildings = buildingsData?.buildings || [];
+
+  // Fetch all residences to get complete floor list for filter (without search/filter params)
+  const { data: allResidences } = useQuery({
+    queryKey: ['/api/residences/all'],
+    queryFn: async () => {
+      const response = await fetch('/api/residences');
+      if (!response.ok) throw new Error('Failed to fetch all residences');
+      return response.json() as Promise<Residence[]>;
+    }
+  });
+
+  // Get unique floors from all residences for filter dropdown
+  const availableFloors = allResidences 
+    ? [...new Set(allResidences.map(r => r.floor).filter(floor => floor != null))]
         .sort((a, b) => a - b)
     : [];
 
