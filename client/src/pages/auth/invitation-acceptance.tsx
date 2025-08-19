@@ -100,14 +100,13 @@ export default function InvitationAcceptancePage() {
           phone: profileData.phone,
           language: profileData.language,
           dateOfBirth: profileData.dateOfBirth,
-          privacyConsents: {
-            dataCollectionConsent: privacyData.dataCollectionConsent,
-            marketingConsent: privacyData.marketingConsent,
-            analyticsConsent: privacyData.analyticsConsent,
-            thirdPartyConsent: privacyData.thirdPartyConsent,
-            acknowledgedRights: privacyData.acknowledgedRights,
-            consentDate: privacyData.consentDate,
-          }
+          // Privacy consents as flat properties (matching server expectations)
+          dataCollectionConsent: privacyData.dataCollectionConsent,
+          marketingConsent: privacyData.marketingConsent,
+          analyticsConsent: privacyData.analyticsConsent,
+          thirdPartyConsent: privacyData.thirdPartyConsent,
+          acknowledgedRights: privacyData.acknowledgedRights,
+          consentDate: privacyData.consentDate,
         }),
       });
       
