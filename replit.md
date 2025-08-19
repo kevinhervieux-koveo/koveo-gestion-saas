@@ -8,7 +8,7 @@ Koveo Gestion is an AI-powered SaaS platform for property management, specifical
 - **Registration System Completed**: Multi-step registration wizard with invitation token validation, password creation, and Quebec Law 25 privacy consent fully implemented and tested
 - **Database Schema Enhanced**: Added password_reset_tokens table with security features (token expiration, one-time use, SHA-256 hashing)
 - **Email Service Integration**: SendGrid integration for password reset emails with French/English templates, disabled link tracking for direct URL access, uses FRONTEND_URL environment variable for correct domain
-- **Frontend Pages Added**: Forgot password and reset password pages with proper styling and error handling
+- **Frontend Pages Added**: Forgot password and reset password pages with proper styling, error handling, and public route authentication
 - **Security Features**: Password reset tokens expire after 1 hour, secure token generation, and proper validation
 - **Database Schema Fixed**: Added missing username field to users table and updated user creation logic
 - **Privacy Consent Enhanced**: Collapsible "Collecte et traitement des données" section with master checkbox functionality

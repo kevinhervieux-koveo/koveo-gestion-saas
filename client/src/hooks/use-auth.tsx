@@ -38,6 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check if we're on a public page that doesn't need auth
   const isPublicPage = window.location.pathname.includes('/register') || 
                        window.location.pathname.includes('/login') ||
+                       window.location.pathname.includes('/forgot-password') ||
+                       window.location.pathname.includes('/reset-password') ||
+                       window.location.pathname.includes('/accept-invitation') ||
                        window.location.pathname === '/';
 
   // Query to get current user (disabled for public pages)
