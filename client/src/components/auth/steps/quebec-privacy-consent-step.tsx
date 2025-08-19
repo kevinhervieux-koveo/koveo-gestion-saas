@@ -76,10 +76,10 @@ export function QuebecPrivacyConsentStep({
   const handleMasterDataCollectionChange = (value: boolean) => {
     setFormData(prev => ({
       ...prev,
-      dataCollectionConsent: value,
-      marketingConsent: value,
-      analyticsConsent: value,
-      thirdPartyConsent: value,
+      dataCollectionConsent: value, // Essential consent (required)
+      marketingConsent: value,      // Optional consent
+      analyticsConsent: value,      // Optional consent  
+      thirdPartyConsent: value,     // Optional consent
       consentDate: new Date().toISOString()
     }));
   };
@@ -233,7 +233,7 @@ export function QuebecPrivacyConsentStep({
 
             <div className="space-y-4">
               {/* Rights Acknowledgment */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <div className={`p-4 rounded-lg border-2 ${!formData.acknowledgedRights ? 'bg-yellow-50 border-yellow-300' : 'bg-blue-50 border-blue-200'}`}>
                 <div className="flex items-start space-x-3">
                   <Checkbox 
                     id="acknowledgedRights"
@@ -242,13 +242,18 @@ export function QuebecPrivacyConsentStep({
                     className="mt-1"
                   />
                   <div className="flex-1">
-                    <Label htmlFor="acknowledgedRights" className="text-sm font-medium text-blue-900 cursor-pointer">
+                    <Label htmlFor="acknowledgedRights" className={`text-sm font-medium cursor-pointer ${!formData.acknowledgedRights ? 'text-yellow-900' : 'text-blue-900'}`}>
                       Reconnaissance de mes droits (Requis) *
                     </Label>
-                    <p className="text-xs text-blue-800 mt-1">
+                    <p className={`text-xs mt-1 ${!formData.acknowledgedRights ? 'text-yellow-800' : 'text-blue-800'}`}>
                       J'ai été informé(e) de mes droits concernant mes renseignements personnels et 
                       je comprends que je peux exercer ces droits à tout moment.
                     </p>
+                    {!formData.acknowledgedRights && (
+                      <p className="text-xs text-yellow-700 font-medium mt-2">
+                        ⚠️ Cette case doit être cochée pour continuer.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
