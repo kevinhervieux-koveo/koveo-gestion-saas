@@ -13,8 +13,10 @@ import { Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 
 const resetPasswordSchema = z.object({
   password: z.string()
-    .min(6, 'Le mot de passe doit contenir au moins 6 caractères')
-    .max(100, 'Le mot de passe ne peut pas dépasser 100 caractères'),
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .max(100, 'Le mot de passe ne peut pas dépasser 100 caractères')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
+      'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',
@@ -89,7 +91,9 @@ export default function ResetPasswordPage() {
       } else if (error.code === 'TOKEN_ALREADY_USED') {
         errorMessage = 'Ce lien de réinitialisation a déjà été utilisé.';
       } else if (error.code === 'PASSWORD_TOO_SHORT') {
-        errorMessage = 'Le mot de passe doit contenir au moins 6 caractères.';
+        errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
+      } else if (error.code === 'PASSWORD_TOO_WEAK') {
+        errorMessage = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
       }
       
       toast({

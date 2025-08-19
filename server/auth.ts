@@ -519,10 +519,23 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      if (password.length < 6) {
+      // Validate password strength
+      if (password.length < 8) {
         return res.status(400).json({ 
-          message: 'Password must be at least 6 characters long',
+          message: 'Password must be at least 8 characters long',
           code: 'PASSWORD_TOO_SHORT' 
+        });
+      }
+
+      // Check password complexity requirements
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+        return res.status(400).json({ 
+          message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+          code: 'PASSWORD_TOO_WEAK' 
         });
       }
 
