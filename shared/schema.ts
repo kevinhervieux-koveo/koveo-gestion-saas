@@ -822,6 +822,15 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   userAgent: true,
 });
 
+/**
+ * Type for creating new password reset token records with validation.
+ */
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+/**
+ * Type representing a complete password reset token record from the database.
+ */
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
 export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
   name: true,
   description: true,

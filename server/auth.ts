@@ -414,6 +414,7 @@ export function setupAuthRoutes(app: any) {
         password: hashedPassword,
         firstName,
         lastName,
+        username: email.toLowerCase(), // Use email as username
         role,
         language,
       });
@@ -473,6 +474,8 @@ export function setupAuthRoutes(app: any) {
 
       // Send password reset email
       const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+      
+      console.log('Generated reset URL:', resetUrl);
       
       const emailSent = await emailService.sendPasswordResetEmail(
         email.toLowerCase(),

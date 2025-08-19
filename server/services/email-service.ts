@@ -54,10 +54,16 @@ class EmailService {
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${resetUrl}" 
                      style="background: #2563eb; color: white; padding: 12px 24px; 
-                            text-decoration: none; border-radius: 6px; display: inline-block;">
+                            text-decoration: none; border-radius: 6px; display: inline-block;"
+                     clicktracking="off">
                     Réinitialiser mon mot de passe
                   </a>
                 </div>
+                
+                <p style="font-size: 14px; color: #6b7280; word-break: break-all; margin: 20px 0;">
+                  <strong>Lien direct (copiez-collez si nécessaire):</strong><br>
+                  ${resetUrl}
+                </p>
                 
                 <p><strong>Ce lien expire dans 1 heure pour votre sécurité.</strong></p>
                 
@@ -116,10 +122,16 @@ Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées sel
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${resetUrl}" 
                      style="background: #2563eb; color: white; padding: 12px 24px; 
-                            text-decoration: none; border-radius: 6px; display: inline-block;">
+                            text-decoration: none; border-radius: 6px; display: inline-block;"
+                     clicktracking="off">
                     Reset My Password
                   </a>
                 </div>
+                
+                <p style="font-size: 14px; color: #6b7280; word-break: break-all; margin: 20px 0;">
+                  <strong>Direct link (copy-paste if needed):</strong><br>
+                  ${resetUrl}
+                </p>
                 
                 <p><strong>This link expires in 1 hour for your security.</strong></p>
                 
@@ -157,6 +169,9 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       };
 
       const template = templates[language];
+      
+      console.log('Sending password reset email with URL:', resetUrl);
+      console.log('Email tracking settings applied: click tracking disabled');
 
       await this.mailService.send({
         to,
@@ -167,6 +182,17 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
         subject: template.subject,
         text: template.text,
         html: template.html,
+        mailSettings: {
+          bypassListManagement: {
+            enable: false
+          },
+          footer: {
+            enable: false
+          },
+          sandboxMode: {
+            enable: false
+          }
+        },
         trackingSettings: {
           clickTracking: {
             enable: false,
@@ -176,6 +202,9 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
             enable: false
           },
           subscriptionTracking: {
+            enable: false
+          },
+          ganalytics: {
             enable: false
           }
         }
