@@ -4,7 +4,7 @@
 Koveo Gestion is an AI-powered SaaS platform for property management, specifically designed for Quebec's residential communities. It offers comprehensive tools for documentation, maintenance, financial planning, and complaint management, ensuring compliance with Law 25 and supporting both French and English. The project aims to deliver a robust, enterprise-grade application using a rigorous, automated development system called the "Pillar Methodology," with significant market potential in Quebec's co-ownership properties.
 
 ## Recent Changes (August 2025)
-- **Password Reset System Completed**: Full password reset functionality with secure token-based authentication, email integration, and comprehensive frontend pages
+- **Password Reset System Completed**: Full password reset functionality with secure token-based authentication, email integration, comprehensive frontend pages, and working API integration
 - **Registration System Completed**: Multi-step registration wizard with invitation token validation, password creation, and Quebec Law 25 privacy consent fully implemented and tested
 - **Database Schema Enhanced**: Added password_reset_tokens table with security features (token expiration, one-time use, SHA-256 hashing)
 - **Email Service Integration**: SendGrid integration for password reset emails with French/English templates, disabled link tracking for direct URL access, uses FRONTEND_URL environment variable for correct domain
