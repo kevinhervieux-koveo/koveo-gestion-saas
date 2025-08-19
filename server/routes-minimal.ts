@@ -605,7 +605,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { salt, hash } = hashPassword(password);
         const hashedPassword = `${salt}:${hash}`;
 
+        // Generate username from email (part before @)
+        const username = invitationData.email.split('@')[0].toLowerCase();
+
         const newUser = await storage.createUser({
+          username,
           email: invitationData.email.toLowerCase(),
           password: hashedPassword,
           firstName,

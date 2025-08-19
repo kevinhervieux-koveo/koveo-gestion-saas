@@ -224,6 +224,7 @@ export const users = pgTable('users', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+  username: text('username').notNull().unique(), // Username field required by database
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
   firstName: text('first_name').notNull(),
@@ -650,6 +651,7 @@ export const qualityIssues = pgTable('quality_issues', {
 // Insert schemas for core application
 export const insertUserSchema = createInsertSchema(users)
   .pick({
+    username: true,
     email: true,
     password: true,
     firstName: true,
@@ -663,6 +665,7 @@ export const insertUserSchema = createInsertSchema(users)
     lastName: z.string().min(1).max(100, 'Last name must be 100 characters or less'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
+    username: z.string().min(1).max(50, 'Username must be 50 characters or less'),
   });
 
 export const insertOrganizationSchema = createInsertSchema(organizations).pick({
