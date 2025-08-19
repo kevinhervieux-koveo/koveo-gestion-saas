@@ -90,4 +90,4 @@ waitForPort = 5000
 integrations = ["javascript_sendgrid==1.0.0", "javascript_gemini==1.0.0", "javascript_object_storage==1.0.0", "javascript_openai==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_database==1.0.0"]
 
 [objectStorage]
-defaultBucketID = "replit-objstore-729e8033-7540-4400-9eae-f906a4debfb5"
+defaultBucketID = "replit-objstore-080489df-69c3-487c-9caa-3cc4342ecfd3"

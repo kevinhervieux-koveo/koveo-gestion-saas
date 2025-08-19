@@ -7,6 +7,8 @@ import {
   type InsertBuilding,
   type Residence,
   type InsertResidence,
+  type Document,
+  type InsertDocument,
   type DevelopmentPillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -536,6 +538,83 @@ export interface IStorage {
    */
   deleteActionableItemsByFeature(_featureId: string): Promise<boolean>;
 
+  // Document operations
+  /**
+   * Retrieves documents with role-based filtering for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<Document[]>} Array of documents the user can access.
+   */
+  getDocumentsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _residenceIds?: string[]
+  ): Promise<Document[]>;
+
+  /**
+   * Retrieves a specific document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<Document | undefined>} Document record or undefined if not found or access denied.
+   */
+  getDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _residenceIds?: string[]
+  ): Promise<Document | undefined>;
+
+  /**
+   * Creates a new document in the storage system.
+   *
+   * @param {InsertDocument} _document - Document data for creation.
+   * @returns {Promise<Document>} The created document record with generated ID and timestamps.
+   */
+  createDocument(_document: InsertDocument): Promise<Document>;
+
+  /**
+   * Updates an existing document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {Partial<InsertDocument>} _updates - Partial document data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<Document | undefined>} Updated document record or undefined if not found or access denied.
+   */
+  updateDocument(
+    _id: string,
+    _updates: Partial<InsertDocument>,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<Document | undefined>;
+
+  /**
+   * Deletes a document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<boolean>;
+
   // Invitation operations
   /**
    * Retrieves all invitations from storage.
@@ -679,6 +758,83 @@ export interface IStorage {
    * @returns {Promise<UserPermission[]>} Array of all user-permission records.
    */
   getUserPermissions(): Promise<UserPermission[]>;
+
+  // Document operations
+  /**
+   * Retrieves all documents with role-based filtering.
+   *
+   * @param {string} _userId - The requesting user's ID.
+   * @param {string} _userRole - The user's role (admin, manager, tenant, resident).
+   * @param {string} [_organizationId] - User's organization ID for filtering.
+   * @param {string[]} [_residenceIds] - User's residence IDs for filtering.
+   * @returns {Promise<Document[]>} Array of documents the user can access.
+   */
+  getDocumentsForUser(
+    _userId: string, 
+    _userRole: string, 
+    _organizationId?: string, 
+    _residenceIds?: string[]
+  ): Promise<Document[]>;
+  
+  /**
+   * Retrieves a specific document by its unique identifier with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The requesting user's ID.
+   * @param {string} _userRole - The user's role for permission checking.
+   * @param {string} [_organizationId] - User's organization ID for filtering.
+   * @param {string[]} [_residenceIds] - User's residence IDs for filtering.
+   * @returns {Promise<Document | undefined>} Document record or undefined if not found/accessible.
+   */
+  getDocument(
+    _id: string, 
+    _userId: string, 
+    _userRole: string, 
+    _organizationId?: string, 
+    _residenceIds?: string[]
+  ): Promise<Document | undefined>;
+  
+  /**
+   * Creates a new document in the storage system.
+   *
+   * @param {InsertDocument} _document - Document data for creation.
+   * @returns {Promise<Document>} The created document record with generated ID.
+   */
+  createDocument(_document: InsertDocument): Promise<Document>;
+  
+  /**
+   * Updates an existing document's information.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {Partial<InsertDocument>} _updates - Partial document data containing fields to update.
+   * @param {string} _userId - The requesting user's ID for permission checking.
+   * @param {string} _userRole - The user's role for permission checking.
+   * @param {string} [_organizationId] - User's organization ID for permission checking.
+   * @returns {Promise<Document | undefined>} Updated document record or undefined if not found/accessible.
+   */
+  updateDocument(
+    _id: string, 
+    _updates: Partial<InsertDocument>, 
+    _userId: string, 
+    _userRole: string, 
+    _organizationId?: string
+  ): Promise<Document | undefined>;
+  
+  /**
+   * Deletes a document from the storage system.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The requesting user's ID for permission checking.
+   * @param {string} _userRole - The user's role for permission checking.
+   * @param {string} [_organizationId] - User's organization ID for permission checking.
+   * @returns {Promise<boolean>} True if document was deleted, false if not found/accessible.
+   */
+  deleteDocument(
+    _id: string, 
+    _userId: string, 
+    _userRole: string, 
+    _organizationId?: string
+  ): Promise<boolean>;
 }
 
 /**
@@ -710,6 +866,7 @@ export class MemStorage implements IStorage {
   private organizations: Map<string, Organization>;
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
+  private documents: Map<string, Document>;
 
   /**
    * Creates a new MemStorage instance with empty storage maps.
@@ -729,6 +886,7 @@ export class MemStorage implements IStorage {
     this.organizations = new Map();
     this.buildings = new Map();
     this.residences = new Map();
+    this.documents = new Map();
 
     // Storage initialized empty - no mock data
   }
@@ -2111,6 +2269,159 @@ export class MemStorage implements IStorage {
     } as InvitationAuditLog;
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
+  }
+
+  // Document operations - Memory storage implementation
+  
+  /**
+   * Retrieves documents with role-based filtering.
+   */
+  async getDocumentsForUser(
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<Document[]> {
+    const allDocuments = Array.from(this.documents.values());
+    
+    return allDocuments.filter(doc => {
+      // Admin can see all documents
+      if (userRole === 'admin') return true;
+      
+      // Manager can see all documents in their organization
+      if (userRole === 'manager' && organizationId) {
+        return doc.organizationId === organizationId || 
+               (doc.buildingId && this.buildings.get(doc.buildingId)?.organizationId === organizationId);
+      }
+      
+      // Resident can see documents assigned to their residences or buildings
+      if (userRole === 'resident' && residenceIds) {
+        if (doc.residenceId && residenceIds.includes(doc.residenceId)) return true;
+        if (doc.buildingId) {
+          const building = this.buildings.get(doc.buildingId);
+          return residenceIds.some(resId => {
+            const residence = this.residences.get(resId);
+            return residence?.buildingId === building?.id;
+          });
+        }
+        return false;
+      }
+      
+      // Tenant can only see documents marked as visible to tenants
+      if (userRole === 'tenant' && residenceIds) {
+        if (!doc.isVisibleToTenants) return false;
+        if (doc.residenceId && residenceIds.includes(doc.residenceId)) return true;
+        if (doc.buildingId) {
+          const building = this.buildings.get(doc.buildingId);
+          return residenceIds.some(resId => {
+            const residence = this.residences.get(resId);
+            return residence?.buildingId === building?.id;
+          });
+        }
+        return false;
+      }
+      
+      return false;
+    });
+  }
+  
+  /**
+   * Retrieves a specific document with permission check.
+   */
+  async getDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<Document | undefined> {
+    const document = this.documents.get(id);
+    if (!document) return undefined;
+    
+    const accessibleDocs = await this.getDocumentsForUser(userId, userRole, organizationId, residenceIds);
+    return accessibleDocs.find(doc => doc.id === id);
+  }
+  
+  /**
+   * Creates a new document.
+   */
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const id = randomUUID();
+    const newDocument: Document = {
+      id,
+      ...document,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as Document;
+    this.documents.set(id, newDocument);
+    return newDocument;
+  }
+  
+  /**
+   * Updates an existing document with permission check.
+   */
+  async updateDocument(
+    id: string, 
+    updates: Partial<InsertDocument>, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<Document | undefined> {
+    const document = this.documents.get(id);
+    if (!document) return undefined;
+    
+    // Check permissions - admin and manager in same org can edit
+    if (userRole === 'admin') {
+      // Admin can edit any document
+    } else if (userRole === 'manager' && organizationId) {
+      const canEdit = document.organizationId === organizationId || 
+                     (document.buildingId && this.buildings.get(document.buildingId)?.organizationId === organizationId);
+      if (!canEdit) return undefined;
+    } else if (userRole === 'resident') {
+      // Resident can only edit documents they uploaded
+      if (document.uploadedBy !== userId) return undefined;
+    } else {
+      // Tenant cannot edit documents
+      return undefined;
+    }
+    
+    const updatedDocument = {
+      ...document,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.documents.set(id, updatedDocument);
+    return updatedDocument;
+  }
+  
+  /**
+   * Deletes a document with permission check.
+   */
+  async deleteDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<boolean> {
+    const document = this.documents.get(id);
+    if (!document) return false;
+    
+    // Check permissions - admin and manager in same org can delete
+    if (userRole === 'admin') {
+      // Admin can delete any document
+    } else if (userRole === 'manager' && organizationId) {
+      const canDelete = document.organizationId === organizationId || 
+                       (document.buildingId && this.buildings.get(document.buildingId)?.organizationId === organizationId);
+      if (!canDelete) return false;
+    } else if (userRole === 'resident') {
+      // Resident can only delete documents they uploaded
+      if (document.uploadedBy !== userId) return false;
+    } else {
+      // Tenant cannot delete documents
+      return false;
+    }
+    
+    return this.documents.delete(id);
   }
 
   // Password reset operations - Memory storage implementation

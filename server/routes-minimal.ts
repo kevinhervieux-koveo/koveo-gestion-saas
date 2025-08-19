@@ -5,6 +5,7 @@ import { registerPermissionsRoutes } from './api/permissions';
 import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
+import { registerDocumentRoutes } from './api/documents';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -159,6 +160,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Building routes registered');
   } catch (error) {
     log(`❌ Building routes failed: ${error}`, 'error');
+  }
+
+  // Register document API routes
+  try {
+    registerDocumentRoutes(app);
+    log('✅ Document routes registered');
+  } catch (error) {
+    log(`❌ Document routes failed: ${error}`, 'error');
   }
 
   // Register residence API routes

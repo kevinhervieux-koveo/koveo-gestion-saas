@@ -447,6 +447,8 @@ export const documents = pgTable('documents', {
   fileSize: integer('file_size'),
   mimeType: text('mime_type'),
   isPublic: boolean('is_public').notNull().default(false),
+  // New fields for tenant visibility control
+  isVisibleToTenants: boolean('is_visible_to_tenants').notNull().default(false),
   uploadedBy: uuid('uploaded_by')
     .notNull()
     .references(() => users.id),
