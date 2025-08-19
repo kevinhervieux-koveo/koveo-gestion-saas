@@ -515,15 +515,8 @@ async function initializeApplication() {
  */
 async function initializeEmailServiceInBackground(): Promise<void> {
   try {
-    log('📧 Starting email service initialization...');
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Email service timeout after 10 seconds')), 10000);
-    });
-    
-    await Promise.race([emailService.initialize(), timeoutPromise]);
-    log('📧 Email service initialized successfully');
+    log('📧 Email service is ready (on-demand initialization)');
+    // Email service will initialize on first use - no need for upfront initialization
   } catch (error) {
     log('⚠️ Email service initialization failed:', String(error));
     // Continue running - don't crash the server
