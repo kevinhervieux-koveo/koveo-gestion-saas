@@ -41,7 +41,7 @@ const documentFormSchema = z.object({
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
-  isVisibleToTenants: z.boolean().default(false),
+  isVisibleToTenants: z.boolean(),
 });
 
 type DocumentFormData = z.infer<typeof documentFormSchema>;
@@ -64,6 +64,30 @@ interface Document {
   updatedAt: string;
 }
 
+interface User {
+  id: string;
+  role: string;
+  [key: string]: any;
+}
+
+interface Organization {
+  id: string;
+  name: string;
+  [key: string]: any;
+}
+
+interface Building {
+  id: string;
+  name: string;
+  [key: string]: any;
+}
+
+interface Residence {
+  id: string;
+  unitNumber: string;
+  [key: string]: any;
+}
+
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -75,37 +99,37 @@ export default function Documents() {
   const queryClient = useQueryClient();
 
   // Get current user info
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/user"],
   });
 
   // Get documents
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
   // Get buildings for assignment
-  const { data: buildings = [] } = useQuery({
+  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ["/api/manager/buildings"],
   });
 
   // Get residences for assignment
-  const { data: residences = [] } = useQuery({
+  const { data: residences = [] } = useQuery<Residence[]>({
     queryKey: ["/api/residences"],
   });
 
   // Get organizations
-  const { data: organizations = [] } = useQuery({
+  const { data: organizationsResponse } = useQuery<{ organizations: Organization[] }>({
     queryKey: ["/api/admin/organizations"],
   });
+
+  const buildings = buildingsResponse?.buildings || [];
+  const organizations = organizationsResponse?.organizations || [];
 
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
-      return apiRequest("/api/documents", {
-        method: "POST",
-        body: data,
-      });
+      return apiRequest("/api/documents", "POST", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -127,10 +151,7 @@ export default function Documents() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      return apiRequest(`/api/documents/${id}`, {
-        method: "PUT",
-        body: data,
-      });
+      return apiRequest(`/api/documents/${id}`, "PUT", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -152,9 +173,7 @@ export default function Documents() {
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/documents/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/documents/${id}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -173,243 +192,227 @@ export default function Documents() {
   });
 
   // Update document file mutation
-  const updateDocumentFileMutation = useMutation({
-    mutationFn: async ({ 
-      id, 
-      fileUrl, 
-      fileName, 
-      fileSize, 
-      mimeType 
-    }: { 
-      id: string; 
-      fileUrl: string; 
-      fileName: string; 
-      fileSize: number; 
-      mimeType: string; 
-    }) => {
-      return apiRequest(`/api/documents/${id}/file`, {
-        method: "PUT",
-        body: { fileUrl, fileName, fileSize, mimeType },
-      });
+  const uploadFileMutation = useMutation({
+    mutationFn: async ({ id, fileData }: { id: string; fileData: { fileUrl: string; fileName: string; fileSize: number; mimeType: string } }) => {
+      return apiRequest(`/api/documents/${id}/upload`, "POST", fileData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
       setUploadingDocumentId(null);
       toast({
-        title: "Success",
-        description: "Document file uploaded successfully",
+        title: "File uploaded",
+        description: "The file has been uploaded successfully.",
       });
     },
     onError: (error: any) => {
+      setUploadingDocumentId(null);
       toast({
         title: "Error",
-        description: error.message || "Failed to upload document file",
+        description: error.message || "Failed to upload file",
         variant: "destructive",
       });
-      setUploadingDocumentId(null);
     },
   });
 
-  // Form for creating/editing documents
-  const form = useForm<DocumentFormData>({
+  // Get upload URL
+  const getUploadURL = async () => {
+    const response = await apiRequest('/api/objects/upload', 'POST') as any;
+    return response.uploadURL;
+  };
+
+  // Handle file upload completion
+  const handleUploadComplete = (documentId: string) => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      const fileUrl = uploadedFile.uploadURL as string;
+      const fileName = uploadedFile.name;
+      const fileSize = uploadedFile.size || 0;
+      const mimeType = uploadedFile.type || 'application/octet-stream';
+
+      uploadFileMutation.mutate({
+        id: documentId,
+        fileData: { fileUrl, fileName, fileSize, mimeType }
+      });
+    }
+  };
+
+  // Forms
+  const form = useForm({
     resolver: zodResolver(documentFormSchema),
     defaultValues: {
       title: "",
       description: "",
-      category: "other",
+      category: "other" as const,
+      organizationId: "",
+      buildingId: "",
+      residenceId: "",
       isVisibleToTenants: false,
     },
   });
 
-  // Handle document file upload
-  const handleGetUploadParameters = async () => {
-    try {
-      const response = await apiRequest("/api/documents/upload-url", {
-        method: "POST",
-      });
-      return {
-        method: "PUT" as const,
-        url: response.uploadURL,
-      };
-    } catch (error) {
-      console.error("Error getting upload URL:", error);
-      throw error;
-    }
-  };
-
-  const handleUploadComplete = (documentId: string) => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      const fileUrl = uploadedFile.uploadURL;
-      const fileName = uploadedFile.name;
-      const fileSize = uploadedFile.size || 0;
-      const mimeType = uploadedFile.type || "application/octet-stream";
-
-      updateDocumentFileMutation.mutate({
-        id: documentId,
-        fileUrl,
-        fileName,
-        fileSize,
-        mimeType,
-      });
-    }
-  };
-
-  // Handle document creation
-  const handleCreateDocument = (data: DocumentFormData) => {
-    createDocumentMutation.mutate(data);
-  };
-
-  // Handle document editing
-  const handleEditDocument = (document: Document) => {
-    setSelectedDocument(document);
-    form.reset({
-      title: document.title,
-      description: document.description || "",
-      category: document.category as any,
-      organizationId: document.organizationId || "",
-      buildingId: document.buildingId || "",
-      residenceId: document.residenceId || "",
-      isVisibleToTenants: document.isVisibleToTenants,
-    });
-  };
-
-  // Handle document update
-  const handleUpdateDocument = (data: DocumentFormData) => {
-    if (selectedDocument) {
-      updateDocumentMutation.mutate({
-        id: selectedDocument.id,
-        data,
-      });
-    }
-  };
-
-  // Handle document download
-  const handleDownloadDocument = (document: Document) => {
-    if (document.fileUrl) {
-      window.open(`/api/documents/${document.id}/download`, '_blank');
-    } else {
-      toast({
-        title: "No file",
-        description: "This document has no file attached",
-        variant: "destructive",
-      });
-    }
-  };
+  const updateForm = useForm({
+    resolver: zodResolver(documentFormSchema),
+    defaultValues: selectedDocument ? {
+      title: selectedDocument.title,
+      description: selectedDocument.description || "",
+      category: selectedDocument.category as any,
+      organizationId: selectedDocument.organizationId || "",
+      buildingId: selectedDocument.buildingId || "",
+      residenceId: selectedDocument.residenceId || "",
+      isVisibleToTenants: selectedDocument.isVisibleToTenants,
+    } : {
+      title: "",
+      description: "",
+      category: "other" as const,
+      organizationId: "",
+      buildingId: "",
+      residenceId: "",
+      isVisibleToTenants: false,
+    },
+  });
 
   // Filter documents
-  const filteredDocuments = documents.filter((doc: Document) => {
-    const matchesSearch = !searchTerm || 
-      doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || doc.category === selectedCategory;
-    
     return matchesSearch && matchesCategory;
   });
 
-  // Format file size
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return "Unknown size";
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  // Get organization name
+  const getOrganizationName = (id: string) => {
+    const org = organizations.find((o) => o.id === id);
+    return org?.name || "Unknown Organization";
   };
 
-  // Get assignment display text
-  const getAssignmentText = (document: Document) => {
-    if (document.residenceId) {
-      const residence = residences.find((r: any) => r.id === document.residenceId);
-      return residence ? `${residence.unit} - ${residence.building?.name || 'Building'}` : 'Residence';
-    }
-    if (document.buildingId) {
-      const building = buildings.find((b: any) => b.id === document.buildingId);
-      return building ? building.name : 'Building';
-    }
-    if (document.organizationId) {
-      const org = organizations.find((o: any) => o.id === document.organizationId);
-      return org ? org.name : 'Organization';
-    }
-    return 'General';
+  // Get building name
+  const getBuildingName = (id: string) => {
+    const building = buildings.find((b) => b.id === id);
+    return building?.name || "Unknown Building";
   };
 
-  const canCreateDocuments = user?.role && ['admin', 'manager', 'resident'].includes(user.role);
+  // Get residence name
+  const getResidenceName = (id: string) => {
+    const residence = residences.find((r) => r.id === id);
+    return residence?.unitNumber || "Unknown Residence";
+  };
+
+  // Handle form submission
+  const onSubmit = (data: DocumentFormData) => {
+    createDocumentMutation.mutate(data);
+    form.reset();
+  };
+
+  const onUpdate = (data: DocumentFormData) => {
+    if (selectedDocument) {
+      updateDocumentMutation.mutate({ id: selectedDocument.id, data });
+    }
+  };
+
+  if (documentsLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Loading documents...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Document Management</h1>
-          <p className="text-muted-foreground">
-            Manage property documents with role-based access control
+          <h1 className="text-3xl font-bold text-gray-900">Document Management</h1>
+          <p className="text-gray-600 mt-2">
+            Manage documents for buildings and residences with role-based access control
           </p>
         </div>
-        {canCreateDocuments && (
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Document
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Document</DialogTitle>
-                <DialogDescription>
-                  Add a new document to the system. You can upload the file after creating the document.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateDocument)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Document
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Document</DialogTitle>
+              <DialogDescription>
+                Add a new document to the system. You can upload the file after creating the document entry.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Document title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Document description" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input placeholder="Document title" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
+                        <SelectContent>
+                          {DOCUMENT_CATEGORIES.map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {user?.role === 'admin' && organizations.length > 0 && (
                   <FormField
                     control={form.control}
-                    name="description"
+                    name="organizationId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Document description (optional)" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Organization</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue placeholder="Select organization (optional)" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {DOCUMENT_CATEGORIES.map((category) => (
-                              <SelectItem key={category.value} value={category.value}>
-                                {category.label}
+                            {organizations.map((org) => (
+                              <SelectItem key={org.id} value={org.id}>
+                                {org.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -418,129 +421,99 @@ export default function Documents() {
                       </FormItem>
                     )}
                   />
+                )}
 
-                  {user?.role === 'admin' && organizations.length > 0 && (
-                    <FormField
-                      control={form.control}
-                      name="organizationId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Organization (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select organization" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No organization</SelectItem>
-                              {organizations.map((org: any) => (
-                                <SelectItem key={org.id} value={org.id}>
-                                  {org.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {buildings.length > 0 && (
-                    <FormField
-                      control={form.control}
-                      name="buildingId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Building (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select building" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No building</SelectItem>
-                              {buildings.map((building: any) => (
-                                <SelectItem key={building.id} value={building.id}>
-                                  {building.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {residences.length > 0 && (
-                    <FormField
-                      control={form.control}
-                      name="residenceId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Residence (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select residence" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No residence</SelectItem>
-                              {residences.map((residence: any) => (
-                                <SelectItem key={residence.id} value={residence.id}>
-                                  {residence.unit} - {residence.building?.name || 'Building'}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
+                {(user?.role === 'admin' || user?.role === 'manager') && buildings.length > 0 && (
                   <FormField
                     control={form.control}
-                    name="isVisibleToTenants"
+                    name="buildingId"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Visible to Tenants</FormLabel>
-                          <FormDescription>
-                            Allow tenants to view this document
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
+                      <FormItem>
+                        <FormLabel>Building</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select building (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {buildings.map((building) => (
+                              <SelectItem key={building.id} value={building.id}>
+                                {building.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
+                )}
 
-                  <DialogFooter>
-                    <Button type="submit" disabled={createDocumentMutation.isPending}>
-                      {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        )}
+                {(user?.role === 'admin' || user?.role === 'manager') && residences.length > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="residenceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Residence</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select residence (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {residences.map((residence) => (
+                              <SelectItem key={residence.id} value={residence.id}>
+                                Unit {residence.unitNumber}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="isVisibleToTenants"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Visible to Tenants</FormLabel>
+                        <FormDescription>
+                          Allow tenants to view this document
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button type="submit" disabled={createDocumentMutation.isPending}>
+                    {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex space-x-4">
+      {/* Search and filter controls */}
+      <div className="flex gap-4 mb-6">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search documents..."
               value={searchTerm}
@@ -551,10 +524,10 @@ export default function Documents() {
         </div>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="All categories" />
+            <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All categories</SelectItem>
+            <SelectItem value="">All Categories</SelectItem>
             {DOCUMENT_CATEGORIES.map((category) => (
               <SelectItem key={category.value} value={category.value}>
                 {category.label}
@@ -564,151 +537,157 @@ export default function Documents() {
         </Select>
       </div>
 
-      {/* Documents Grid */}
-      {documentsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map((document: Document) => (
-            <Card key={document.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      {document.title}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      {document.description || "No description"}
+      {/* Documents grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredDocuments.map((document) => (
+          <Card key={document.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg truncate">{document.title}</CardTitle>
+                  {document.description && (
+                    <CardDescription className="mt-1 line-clamp-2">
+                      {document.description}
                     </CardDescription>
-                  </div>
-                  <Badge variant="outline">
-                    {DOCUMENT_CATEGORIES.find(c => c.value === document.category)?.label || document.category}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    {document.residenceId ? (
-                      <Home className="w-4 h-4 mr-1" />
-                    ) : (
-                      <Building className="w-4 h-4 mr-1" />
-                    )}
-                    {getAssignmentText(document)}
-                  </div>
-                  
-                  {document.fileName && (
-                    <div className="text-sm">
-                      <p className="font-medium">{document.fileName}</p>
-                      <p className="text-muted-foreground">{formatFileSize(document.fileSize)}</p>
-                    </div>
                   )}
-                  
-                  {document.isVisibleToTenants && (
-                    <Badge variant="secondary" className="text-xs">
-                      Visible to Tenants
-                    </Badge>
-                  )}
-                  
-                  <div className="flex justify-between items-center pt-2">
-                    <div className="flex space-x-2">
-                      {document.fileUrl ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDownloadDocument(document)}
-                        >
-                          <Download className="w-4 h-4 mr-1" />
-                          Download
-                        </Button>
-                      ) : (
-                        canCreateDocuments && (
-                          <ObjectUploader
-                            onGetUploadParameters={handleGetUploadParameters}
-                            onComplete={handleUploadComplete(document.id)}
-                            buttonClassName="h-8 text-xs"
-                          >
-                            <Upload className="w-4 h-4 mr-1" />
-                            Upload File
-                          </ObjectUploader>
-                        )
-                      )}
-                    </div>
-                    
-                    {canCreateDocuments && (user?.role === 'admin' || document.uploadedBy === user?.id) && (
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEditDocument(document)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteDocumentMutation.mutate(document.id)}
-                          disabled={deleteDocumentMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                <Badge variant="secondary" className="ml-2 shrink-0">
+                  {DOCUMENT_CATEGORIES.find(c => c.value === document.category)?.label || document.category}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Assignment info */}
+              <div className="space-y-1 text-sm text-gray-600">
+                {document.organizationId && (
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4" />
+                    <span>{getOrganizationName(document.organizationId)}</span>
+                  </div>
+                )}
+                {document.buildingId && (
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4" />
+                    <span>{getBuildingName(document.buildingId)}</span>
+                  </div>
+                )}
+                {document.residenceId && (
+                  <div className="flex items-center gap-2">
+                    <Home className="w-4 h-4" />
+                    <span>{getResidenceName(document.residenceId)}</span>
+                  </div>
+                )}
+              </div>
 
-      {filteredDocuments.length === 0 && !documentsLoading && (
+              {/* File info */}
+              {document.fileName ? (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <FileText className="w-4 h-4" />
+                  <span className="truncate">{document.fileName}</span>
+                  {document.fileSize && (
+                    <span className="text-xs">
+                      ({(document.fileSize / 1024 / 1024).toFixed(1)} MB)
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 italic">No file uploaded</div>
+              )}
+
+              {/* Tenant visibility */}
+              {document.isVisibleToTenants && (
+                <Badge variant="outline" className="text-xs">
+                  Visible to Tenants
+                </Badge>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-between items-center pt-2">
+                <div className="flex gap-2">
+                  {document.fileUrl && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => window.open(document.fileUrl, '_blank')}
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Download
+                    </Button>
+                  )}
+                  {!document.fileName && (
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={50 * 1024 * 1024} // 50MB
+                      onGetUploadParameters={async () => {
+                        setUploadingDocumentId(document.id);
+                        const url = await getUploadURL();
+                        return { method: 'PUT' as const, url };
+                      }}
+                      onComplete={handleUploadComplete(document.id)}
+                      buttonClassName="text-sm"
+                    >
+                      <Upload className="w-4 h-4 mr-1" />
+                      Upload
+                    </ObjectUploader>
+                  )}
+                </div>
+                <div className="flex gap-1">
+                  {(user?.role === 'admin' || user?.role === 'manager' || document.uploadedBy === user?.id) && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedDocument(document)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this document?')) {
+                            deleteDocumentMutation.mutate(document.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredDocuments.length === 0 && (
         <div className="text-center py-12">
-          <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No documents found</h3>
-          <p className="text-muted-foreground mb-4">
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+          <p className="text-gray-600">
             {searchTerm || selectedCategory 
-              ? "Try adjusting your search criteria" 
-              : "Get started by creating your first document"}
+              ? "Try adjusting your search or filter criteria."
+              : "Get started by creating your first document."
+            }
           </p>
-          {canCreateDocuments && !searchTerm && !selectedCategory && (
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Document
-            </Button>
-          )}
         </div>
       )}
 
-      {/* Edit Document Dialog */}
+      {/* Edit document dialog */}
       <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Document</DialogTitle>
             <DialogDescription>
-              Update document information
+              Update the document information and settings.
             </DialogDescription>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleUpdateDocument)} className="space-y-4">
+
+          <Form {...updateForm}>
+            <form onSubmit={updateForm.handleSubmit(onUpdate)} className="space-y-4">
               <FormField
-                control={form.control}
+                control={updateForm.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
@@ -720,23 +699,23 @@ export default function Documents() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
-                control={form.control}
+                control={updateForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Document description (optional)" {...field} />
+                      <Textarea placeholder="Document description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
-                control={form.control}
+                control={updateForm.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
@@ -761,12 +740,12 @@ export default function Documents() {
               />
 
               <FormField
-                control={form.control}
+                control={updateForm.control}
                 name="isVisibleToTenants"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Visible to Tenants</FormLabel>
+                      <FormLabel>Visible to Tenants</FormLabel>
                       <FormDescription>
                         Allow tenants to view this document
                       </FormDescription>
