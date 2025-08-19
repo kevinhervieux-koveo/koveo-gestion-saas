@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Home, Search, Edit, Users, Building, MapPin, Car, Package, Bed, Bath } from 'lucide-react';
+import { Home, Search, Edit, Users, Building, MapPin, Car, Package, Bed, Bath, FileText } from 'lucide-react';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 
 /**
@@ -309,20 +309,31 @@ export default function Residences() {
                       )}
                     </div>
 
-                    {/* Edit Button */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant='outline' 
-                          size='sm' 
-                          className='w-full'
-                          onClick={() => setEditingResidence(residence)}
-                        >
-                          <Edit className='w-3 h-3 mr-1' />
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className='max-w-2xl'>
+                    {/* Action Buttons */}
+                    <div className='flex gap-2'>
+                      <Button 
+                        variant='outline' 
+                        size='sm' 
+                        className='flex-1'
+                        onClick={() => window.location.href = `/documents?residenceId=${residence.id}`}
+                        title='Manage residence documents'
+                      >
+                        <FileText className='w-3 h-3 mr-1' />
+                        Documents
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant='outline' 
+                            size='sm' 
+                            className='flex-1'
+                            onClick={() => setEditingResidence(residence)}
+                          >
+                            <Edit className='w-3 h-3 mr-1' />
+                            Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className='max-w-2xl'>
                         <DialogHeader>
                           <DialogTitle>Edit Unit {residence.unitNumber}</DialogTitle>
                         </DialogHeader>
@@ -335,8 +346,9 @@ export default function Residences() {
                             }}
                           />
                         )}
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardContent>
                 </Card>
               ))

@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package, Edit3, Trash2 } from 'lucide-react';
+import { Building, Plus, Search, MapPin, Calendar, Users, Car, Package, Edit3, Trash2, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
@@ -977,6 +977,15 @@ export default function Buildings() {
                         </div>
                         {(user?.role === 'admin' || user?.role === 'manager') && (
                           <div className='flex gap-1 ml-2'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => window.location.href = `/documents?buildingId=${building.id}`}
+                              className='h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                              title='Manage building documents'
+                            >
+                              <FileText className='w-4 h-4' />
+                            </Button>
                             <Button
                               variant='ghost'
                               size='sm'
