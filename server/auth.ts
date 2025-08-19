@@ -9,7 +9,10 @@ import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { emailService } from './services/email-service';
+import { EmailService } from './services/email-service';
+
+// Initialize email service
+const emailService = new EmailService();
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
