@@ -1538,8 +1538,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .values(token)
       .returning();
     
-    // Invalidate user-related cache
-    queryCache.clear('password_reset_tokens');
+    // Token created successfully
     
     return result[0];
   }
@@ -1568,8 +1567,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .where(eq(schema.passwordResetTokens.id, tokenId))
       .returning();
 
-    // Invalidate cache
-    queryCache.clear('password_reset_tokens');
+    // Token marked as used
     
     return result[0];
   }
@@ -1579,8 +1577,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .where(lte(schema.passwordResetTokens.expiresAt, new Date()))
       .returning();
 
-    // Invalidate cache
-    queryCache.clear('password_reset_tokens');
+    // Expired tokens cleaned up
     
     return result.length;
   }

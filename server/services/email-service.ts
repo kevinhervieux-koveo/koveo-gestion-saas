@@ -24,12 +24,11 @@ class EmailService {
    */
   async sendPasswordResetEmail(
     to: string,
-    resetToken: string,
+    userName: string,
+    resetUrl: string,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
     try {
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/auth/reset-password?token=${resetToken}`;
-      
       const templates = {
         fr: {
           subject: 'Réinitialisation de votre mot de passe - Koveo Gestion',
@@ -46,7 +45,7 @@ class EmailService {
                 
                 <h2 style="color: #374151;">Réinitialisation de votre mot de passe</h2>
                 
-                <p>Bonjour,</p>
+                <p>Bonjour ${userName},</p>
                 
                 <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Koveo Gestion.</p>
                 
@@ -78,7 +77,7 @@ class EmailService {
           `,
           text: `Réinitialisation de votre mot de passe - Koveo Gestion
 
-Bonjour,
+Bonjour ${userName},
 
 Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Koveo Gestion.
 
@@ -108,7 +107,7 @@ Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées sel
                 
                 <h2 style="color: #374151;">Reset Your Password</h2>
                 
-                <p>Hello,</p>
+                <p>Hello ${userName},</p>
                 
                 <p>You have requested to reset your password for your Koveo Gestion account.</p>
                 
@@ -140,7 +139,7 @@ Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées sel
           `,
           text: `Password Reset - Koveo Gestion
 
-Hello,
+Hello ${userName},
 
 You have requested to reset your password for your Koveo Gestion account.
 
