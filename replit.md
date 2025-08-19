@@ -3,6 +3,12 @@
 ## Overview
 Koveo Gestion is an AI-powered SaaS platform for property management, specifically designed for Quebec's residential communities. It offers comprehensive tools for documentation, maintenance, financial planning, and complaint management, ensuring compliance with Law 25 and supporting both French and English. The project aims to deliver a robust, enterprise-grade application using a rigorous, automated development system called the "Pillar Methodology," with significant market potential in Quebec's co-ownership properties.
 
+## Recent Changes (August 2025)
+- **Registration System Completed**: Multi-step registration wizard with invitation token validation, password creation, and Quebec Law 25 privacy consent fully implemented and tested
+- **Database Schema Fixed**: Added missing username field to users table and updated user creation logic
+- **Privacy Consent Enhanced**: Collapsible "Collecte et traitement des données" section with master checkbox functionality
+- **Contact Information Updated**: Phone number displays correct "514-712-8441" from PHONE_CONTACT secret
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -33,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 - **RBAC**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions.
 - **Access Control**: Organization-based access rules (Demo, Koveo, normal organizations, tenant/resident specific).
 - **Security**: Law 25 compliance framework.
-- **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, automatic replacement of existing invitations, and simplified process without 2FA.
+- **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, automatic replacement of existing invitations, and simplified process without 2FA. Complete multi-step registration wizard with token validation, password creation, and Quebec Law 25 privacy consent with collapsible data collection section and master checkbox functionality.
 - **Buildings Management**: Comprehensive building management system with role-based access control where Admin and Manager roles can view all buildings in their organization, while Resident and Tenant roles are restricted from accessing Manager and Admin features. Features include real-time search functionality for building names and addresses, admin-only building creation with organization assignment, and edit/delete capabilities (Admin and Manager can edit all building information, only Admin can delete buildings). Special privilege: Koveo organization users have global access to view buildings from all organizations.
 - **Residences Management**: Complete residences management system with automatic generation of residences when buildings are created (max 300 units per building). Features include advanced search by unit number or assigned person name, filtering by building and floor, pagination with 10 residences per page, and comprehensive edit functionality. Each residence supports multiple parking spots and storage spaces as arrays. Role-based access ensures users can only see residences in buildings they have access to. No create/delete buttons exist since residences are auto-generated from building data.
 
