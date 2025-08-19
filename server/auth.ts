@@ -473,7 +473,9 @@ export function setupAuthRoutes(app: any) {
       });
 
       // Send password reset email
-      const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+      const frontendUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+      const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+      const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
       
       console.log('Generated reset URL:', resetUrl);
       
