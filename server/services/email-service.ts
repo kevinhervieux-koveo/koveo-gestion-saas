@@ -167,6 +167,18 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
         subject: template.subject,
         text: template.text,
         html: template.html,
+        trackingSettings: {
+          clickTracking: {
+            enable: false,
+            enableText: false
+          },
+          openTracking: {
+            enable: false
+          },
+          subscriptionTracking: {
+            enable: false
+          }
+        }
       });
 
       return true;
