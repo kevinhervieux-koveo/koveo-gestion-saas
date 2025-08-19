@@ -49,20 +49,14 @@ class EmailService {
                 
                 <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Koveo Gestion.</p>
                 
-                <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
+                <p>Copiez et collez ce lien dans votre navigateur pour réinitialiser votre mot de passe :</p>
                 
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetUrl}" 
-                     style="background: #2563eb; color: white; padding: 12px 24px; 
-                            text-decoration: none; border-radius: 6px; display: inline-block;"
-                     clicktracking="off">
-                    Réinitialiser mon mot de passe
-                  </a>
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0; word-break: break-all;">
+                  <code style="font-size: 14px; color: #374151;">${resetUrl}</code>
                 </div>
                 
-                <p style="font-size: 14px; color: #6b7280; word-break: break-all; margin: 20px 0;">
-                  <strong>Lien direct (copiez-collez si nécessaire):</strong><br>
-                  ${resetUrl}
+                <p style="text-align: center; margin: 20px 0;">
+                  <strong style="color: #dc2626;">Important:</strong> Ce lien expire dans 1 heure.
                 </p>
                 
                 <p><strong>Ce lien expire dans 1 heure pour votre sécurité.</strong></p>
@@ -117,20 +111,14 @@ Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées sel
                 
                 <p>You have requested to reset your password for your Koveo Gestion account.</p>
                 
-                <p>Click the button below to create a new password:</p>
+                <p>Copy and paste this link into your browser to reset your password:</p>
                 
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetUrl}" 
-                     style="background: #2563eb; color: white; padding: 12px 24px; 
-                            text-decoration: none; border-radius: 6px; display: inline-block;"
-                     clicktracking="off">
-                    Reset My Password
-                  </a>
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0; word-break: break-all;">
+                  <code style="font-size: 14px; color: #374151;">${resetUrl}</code>
                 </div>
                 
-                <p style="font-size: 14px; color: #6b7280; word-break: break-all; margin: 20px 0;">
-                  <strong>Direct link (copy-paste if needed):</strong><br>
-                  ${resetUrl}
+                <p style="text-align: center; margin: 20px 0;">
+                  <strong style="color: #dc2626;">Important:</strong> This link expires in 1 hour.
                 </p>
                 
                 <p><strong>This link expires in 1 hour for your security.</strong></p>
