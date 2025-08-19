@@ -106,6 +106,16 @@ const LoginPage = createOptimizedLoader(
   'login-page',
   { preloadDelay: 500, enableMemoryCleanup: true }
 );
+const ForgotPasswordPage = createOptimizedLoader(
+  () => import('@/pages/auth/forgot-password'),
+  'forgot-password-page',
+  { preloadDelay: 500, enableMemoryCleanup: true }
+);
+const ResetPasswordPage = createOptimizedLoader(
+  () => import('@/pages/auth/reset-password'),
+  'reset-password-page',
+  { preloadDelay: 500, enableMemoryCleanup: true }
+);
 
 // Home page (public route)
 const HomePage = createOptimizedLoader(
@@ -152,6 +162,8 @@ function Router() {
         <Switch>
           <Route path="/" component={HomePage} />
           <Route path="/login" component={LoginPage} />
+          <Route path="/forgot-password" component={ForgotPasswordPage} />
+          <Route path="/reset-password" component={ResetPasswordPage} />
           <Route path="/accept-invitation" component={InvitationAcceptancePage} />
           <Route path="/register" component={InvitationAcceptancePage} />
           {/* Redirect all other routes to home for unauthenticated users */}

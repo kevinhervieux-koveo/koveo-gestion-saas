@@ -28,6 +28,8 @@ import {
   type Permission,
   type RolePermission,
   type UserPermission,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
 } from '@shared/schema';
 import { randomUUID } from 'crypto';
 import { hashPassword } from './auth';
@@ -89,6 +91,38 @@ export interface IStorage {
    * @returns {Promise<User | undefined>} Updated user record or undefined if not found.
    */
   updateUser(_id: string, _updates: Partial<User>): Promise<User | undefined>;
+
+  // Password reset operations
+  /**
+   * Creates a new password reset token for a user.
+   *
+   * @param {InsertPasswordResetToken} _token - Token data for creation.
+   * @returns {Promise<PasswordResetToken>} The created token record.
+   */
+  createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  
+  /**
+   * Retrieves a password reset token by its token string.
+   *
+   * @param {string} _token - The token string to look up.
+   * @returns {Promise<PasswordResetToken | undefined>} Token record or undefined if not found.
+   */
+  getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined>;
+  
+  /**
+   * Marks a password reset token as used.
+   *
+   * @param {string} _tokenId - The unique token identifier.
+   * @returns {Promise<PasswordResetToken | undefined>} Updated token record or undefined if not found.
+   */
+  markPasswordResetTokenAsUsed(_tokenId: string): Promise<PasswordResetToken | undefined>;
+  
+  /**
+   * Deletes expired password reset tokens.
+   *
+   * @returns {Promise<number>} Number of expired tokens deleted.
+   */
+  cleanupExpiredPasswordResetTokens(): Promise<number>;
 
   // Organization operations
   /**
@@ -2077,6 +2111,52 @@ export class MemStorage implements IStorage {
     } as InvitationAuditLog;
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
+  }
+
+  // Password reset operations - Memory storage implementation
+  private passwordResetTokens = new Map<string, PasswordResetToken>();
+
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const id = randomUUID();
+    const newToken: PasswordResetToken = {
+      id,
+      ...token,
+      isUsed: false,
+      usedAt: null,
+      createdAt: new Date(),
+    } as PasswordResetToken;
+    this.passwordResetTokens.set(id, newToken);
+    return newToken;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    return Array.from(this.passwordResetTokens.values())
+      .find(t => t.token === token);
+  }
+
+  async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
+    const token = this.passwordResetTokens.get(tokenId);
+    if (!token) return undefined;
+
+    const updatedToken = {
+      ...token,
+      isUsed: true,
+      usedAt: new Date(),
+    };
+    this.passwordResetTokens.set(tokenId, updatedToken);
+    return updatedToken;
+  }
+
+  async cleanupExpiredPasswordResetTokens(): Promise<number> {
+    const now = new Date();
+    const expiredTokens = Array.from(this.passwordResetTokens.entries())
+      .filter(([_, token]) => token.expiresAt <= now);
+    
+    expiredTokens.forEach(([id, _]) => {
+      this.passwordResetTokens.delete(id);
+    });
+    
+    return expiredTokens.length;
   }
 }
 

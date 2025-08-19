@@ -9,6 +9,7 @@ import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { emailService } from './services/email-service';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
@@ -428,6 +429,166 @@ export function setupAuthRoutes(app: any) {
       res.status(500).json({ 
         message: 'Registration failed',
         code: 'REGISTRATION_ERROR' 
+      });
+    }
+  });
+
+  // Password Reset Request Route
+  app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ 
+          message: 'Email is required',
+          code: 'MISSING_EMAIL' 
+        });
+      }
+
+      const user = await storage.getUserByEmail(email.toLowerCase());
+      if (!user || !user.isActive) {
+        // Always respond with success for security (don't reveal if email exists)
+        return res.json({ 
+          message: 'If this email exists, a password reset link has been sent.',
+          success: true 
+        });
+      }
+
+      // Generate secure random token
+      const resetToken = randomBytes(32).toString('hex');
+      const tokenHash = createHash('sha256').update(resetToken).digest('hex');
+
+      // Create password reset token (expires in 1 hour)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      await storage.createPasswordResetToken({
+        userId: user.id,
+        token: resetToken,
+        tokenHash: tokenHash,
+        expiresAt: expiresAt,
+        ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      });
+
+      // Send password reset email
+      const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+      
+      const emailSent = await emailService.sendPasswordResetEmail(
+        email.toLowerCase(),
+        `${user.firstName} ${user.lastName}`,
+        resetUrl
+      );
+
+      if (!emailSent) {
+        console.error('Failed to send password reset email to:', email);
+        return res.status(500).json({ 
+          message: 'Failed to send password reset email',
+          code: 'EMAIL_SEND_FAILED' 
+        });
+      }
+
+      res.json({ 
+        message: 'If this email exists, a password reset link has been sent.',
+        success: true 
+      });
+
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ 
+        message: 'Password reset request failed',
+        code: 'PASSWORD_RESET_REQUEST_ERROR' 
+      });
+    }
+  });
+
+  // Password Reset Route
+  app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ 
+          message: 'Token and password are required',
+          code: 'MISSING_FIELDS' 
+        });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ 
+          message: 'Password must be at least 6 characters long',
+          code: 'PASSWORD_TOO_SHORT' 
+        });
+      }
+
+      // Find the password reset token
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken) {
+        return res.status(400).json({ 
+          message: 'Invalid or expired password reset token',
+          code: 'INVALID_TOKEN' 
+        });
+      }
+
+      // Check if token is expired
+      if (new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ 
+          message: 'Password reset token has expired',
+          code: 'TOKEN_EXPIRED' 
+        });
+      }
+
+      // Check if token has already been used
+      if (resetToken.isUsed) {
+        return res.status(400).json({ 
+          message: 'Password reset token has already been used',
+          code: 'TOKEN_ALREADY_USED' 
+        });
+      }
+
+      // Verify token hash for additional security
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      if (tokenHash !== resetToken.tokenHash) {
+        return res.status(400).json({ 
+          message: 'Invalid password reset token',
+          code: 'INVALID_TOKEN_HASH' 
+        });
+      }
+
+      // Get the user
+      const user = await storage.getUser(resetToken.userId);
+      if (!user || !user.isActive) {
+        return res.status(400).json({ 
+          message: 'User account not found or inactive',
+          code: 'USER_NOT_FOUND' 
+        });
+      }
+
+      // Update user password with hashed version
+      const { salt, hash } = hashPassword(password);
+      const hashedPassword = `${salt}:${hash}`;
+      
+      await storage.updateUser(user.id, { 
+        password: hashedPassword,
+        updatedAt: new Date() 
+      });
+
+      // Mark token as used
+      await storage.markPasswordResetTokenAsUsed(resetToken.id);
+
+      // Clean up expired tokens
+      await storage.cleanupExpiredPasswordResetTokens();
+
+      res.json({ 
+        message: 'Password has been reset successfully',
+        success: true 
+      });
+
+    } catch (error) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ 
+        message: 'Password reset failed',
+        code: 'PASSWORD_RESET_ERROR' 
       });
     }
   });

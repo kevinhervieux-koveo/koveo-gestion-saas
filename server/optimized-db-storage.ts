@@ -37,6 +37,8 @@ import type {
   Permission,
   RolePermission,
   UserPermission,
+  PasswordResetToken,
+  InsertPasswordResetToken,
 } from '@shared/schema';
 import type { IStorage } from './storage';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
@@ -1528,5 +1530,58 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.permissions.isActive, true))
         .orderBy(schema.userPermissions.userId)
     );
+  }
+
+  // Password reset operations
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const result = await db.insert(schema.passwordResetTokens)
+      .values(token)
+      .returning();
+    
+    // Invalidate user-related cache
+    queryCache.clear('password_reset_tokens');
+    
+    return result[0];
+  }
+
+  async getPasswordResetToken(tokenValue: string): Promise<PasswordResetToken | undefined> {
+    return this.withOptimizations(
+      'getPasswordResetToken',
+      `token_${tokenValue}`,
+      'password_reset_tokens',
+      async () => {
+        const result = await db.select()
+          .from(schema.passwordResetTokens)
+          .where(eq(schema.passwordResetTokens.token, tokenValue))
+          .limit(1);
+        return result[0];
+      }
+    );
+  }
+
+  async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
+    const result = await db.update(schema.passwordResetTokens)
+      .set({
+        isUsed: true,
+        usedAt: new Date(),
+      })
+      .where(eq(schema.passwordResetTokens.id, tokenId))
+      .returning();
+
+    // Invalidate cache
+    queryCache.clear('password_reset_tokens');
+    
+    return result[0];
+  }
+
+  async cleanupExpiredPasswordResetTokens(): Promise<number> {
+    const result = await db.delete(schema.passwordResetTokens)
+      .where(lte(schema.passwordResetTokens.expiresAt, new Date()))
+      .returning();
+
+    // Invalidate cache
+    queryCache.clear('password_reset_tokens');
+    
+    return result.length;
   }
 }

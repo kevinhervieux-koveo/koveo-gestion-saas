@@ -472,6 +472,27 @@ export const notifications = pgTable('notifications', {
 });
 
 /**
+ * Password reset tokens table for secure password reset functionality.
+ * Stores temporary tokens that expire after a set time for security.
+ */
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  tokenHash: text('token_hash').notNull(), // Hashed version for security
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+  isUsed: boolean('is_used').notNull().default(false),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
  * Development pillars table for the Pillar Methodology framework.
  * Stores the five core development pillars and their completion status.
  */
@@ -792,6 +813,15 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   relatedEntityType: true,
 });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).pick({
+  userId: true,
+  token: true,
+  tokenHash: true,
+  expiresAt: true,
+  ipAddress: true,
+  userAgent: true,
+});
+
 export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
   name: true,
   description: true,
@@ -1022,6 +1052,17 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
  * Inferred from the notifications table schema for type safety.
  */
 export type Notification = typeof notifications.$inferSelect;
+
+/**
+ * Type for creating new password reset token records with validation.
+ * Derived from the insertPasswordResetTokenSchema for type-safe token creation.
+ */
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+/**
+ * Type representing a complete password reset token record from the database.
+ * Inferred from the passwordResetTokens table schema for type safety.
+ */
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
 // Framework types
 /**

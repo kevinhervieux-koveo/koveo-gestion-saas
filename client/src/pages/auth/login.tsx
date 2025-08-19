@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -189,6 +189,14 @@ export default function LoginPage() {
                     language === 'fr' ? 'Se connecter' : 'Sign In'
                   )}
                 </Button>
+
+                <div className="text-center">
+                  <Button variant="link" asChild className="text-sm">
+                    <Link href="/forgot-password">
+                      {language === 'fr' ? 'Mot de passe oublié ?' : 'Forgot your password?'}
+                    </Link>
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
