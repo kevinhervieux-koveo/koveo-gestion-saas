@@ -9,6 +9,7 @@ import {
   boolean,
   date,
   integer,
+  json,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -127,7 +128,7 @@ export const invitations = pgTable('invitations', {
   usageCount: integer('usage_count').notNull().default(0),
   maxUsageCount: integer('max_usage_count').notNull().default(1),
   personalMessage: text('personal_message'),
-  invitationContext: text('invitation_context', { mode: 'json' }),
+  invitationContext: json('invitation_context'),
   securityLevel: text('security_level'),
   requires2fa: boolean('requires_2fa').notNull().default(false),
   acceptedAt: timestamp('accepted_at'),
@@ -203,7 +204,7 @@ export const permissions = pgTable('permissions', {
   description: text('description'),
   resourceType: resourceTypeEnum('resource_type').notNull(),
   action: actionEnum('action').notNull(),
-  conditions: text('conditions', { mode: 'json' }),
+  conditions: json('conditions'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
