@@ -188,9 +188,10 @@ export default function ResidenceDocuments() {
         throw new Error("User not authenticated");
       }
       
-      // Clean user ID - take only first 36 characters to make valid UUID
-      const cleanUserId = user.id.substring(0, 36);
-      console.log("Creating document with cleaned user ID:", cleanUserId); // Debug log
+      // Clean user ID - extract valid UUID format (36 chars: 8-4-4-4-12)
+      const uuidMatch = user.id.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
+      const cleanUserId = uuidMatch ? uuidMatch[0] : user.id.substring(0, 36);
+      console.log("Creating document with cleaned user ID:", cleanUserId, "(length:", cleanUserId.length, ")"); // Debug log
       
       const documentData: any = {
         name: data.name,
@@ -238,7 +239,9 @@ export default function ResidenceDocuments() {
       if (data.type) updateData.type = data.type;
       if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
       if (data.residenceId) updateData.residenceId = data.residenceId;
-      updateData.uploadedBy = user?.id?.substring(0, 36); // Use cleaned user ID
+      // Clean user ID properly
+      const uuidMatch = user?.id?.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
+      updateData.uploadedBy = uuidMatch ? uuidMatch[0] : user?.id?.substring(0, 36); // Use cleaned user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
     onSuccess: () => {
