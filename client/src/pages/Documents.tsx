@@ -333,7 +333,7 @@ export default function Documents() {
               Add Document
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Document</DialogTitle>
               <DialogDescription>
@@ -342,7 +342,8 @@ export default function Documents() {
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="max-h-[60vh] overflow-y-auto pr-2">
+                <form id="create-document-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="title"
@@ -498,12 +499,13 @@ export default function Documents() {
                   )}
                 />
 
-                <DialogFooter>
-                  <Button type="submit" disabled={createDocumentMutation.isPending}>
-                    {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
-                  </Button>
-                </DialogFooter>
-              </form>
+                </form>
+              </div>
+              <DialogFooter className="mt-4">
+                <Button type="submit" form="create-document-form" disabled={createDocumentMutation.isPending}>
+                  {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
+                </Button>
+              </DialogFooter>
             </Form>
           </DialogContent>
         </Dialog>
@@ -676,7 +678,7 @@ export default function Documents() {
 
       {/* Edit document dialog */}
       <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Document</DialogTitle>
             <DialogDescription>
@@ -685,7 +687,8 @@ export default function Documents() {
           </DialogHeader>
 
           <Form {...updateForm}>
-            <form onSubmit={updateForm.handleSubmit(onUpdate)} className="space-y-4">
+            <div className="max-h-[60vh] overflow-y-auto pr-2">
+              <form id="update-document-form" onSubmit={updateForm.handleSubmit(onUpdate)} className="space-y-4">
               <FormField
                 control={updateForm.control}
                 name="title"
@@ -760,12 +763,13 @@ export default function Documents() {
                 )}
               />
 
-              <DialogFooter>
-                <Button type="submit" disabled={updateDocumentMutation.isPending}>
-                  {updateDocumentMutation.isPending ? "Updating..." : "Update Document"}
-                </Button>
-              </DialogFooter>
-            </form>
+              </form>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button type="submit" form="update-document-form" disabled={updateDocumentMutation.isPending}>
+                {updateDocumentMutation.isPending ? "Updating..." : "Update Document"}
+              </Button>
+            </DialogFooter>
           </Form>
         </DialogContent>
       </Dialog>
