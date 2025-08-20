@@ -6,6 +6,7 @@ import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
+import cleanupRoutes from './api/cleanup';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -171,6 +172,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Document routes registered');
   } catch (error) {
     log(`❌ Document routes failed: ${error}`, 'error');
+  }
+
+  // Register cleanup API routes
+  try {
+    app.use('/api/admin', cleanupRoutes);
+    log('✅ Cleanup routes registered');
+  } catch (error) {
+    log(`❌ Cleanup routes failed: ${error}`, 'error');
   }
 
   // Register residence API routes
