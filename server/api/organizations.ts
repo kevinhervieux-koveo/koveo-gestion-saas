@@ -282,28 +282,35 @@ export function registerOrganizationRoutes(app: Express): void {
           eq(residences.isActive, true)
         ));
 
-      // Count documents associated with this organization
-      const orgDocumentsCount = await db
-        .select({ count: count() })
-        .from(documents)
-        .where(eq(documents.organizationId, organizationId));
+      // Count documents if table exists (graceful handling)
+      let totalDocuments = 0;
+      try {
+        // Count documents associated with this organization
+        const orgDocumentsCount = await db
+          .select({ count: count() })
+          .from(documents)
+          .where(eq(documents.organizationId, organizationId));
 
-      // Count documents associated with buildings in this organization
-      const buildingDocumentsCount = await db
-        .select({ count: count() })
-        .from(documents)
-        .innerJoin(buildings, eq(documents.buildingId, buildings.id))
-        .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+        // Count documents associated with buildings in this organization
+        const buildingDocumentsCount = await db
+          .select({ count: count() })
+          .from(documents)
+          .innerJoin(buildings, eq(documents.buildingId, buildings.id))
+          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
 
-      // Count documents associated with residences in buildings of this organization  
-      const residenceDocumentsCount = await db
-        .select({ count: count() })
-        .from(documents)
-        .innerJoin(residences, eq(documents.residenceId, residences.id))
-        .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-        .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true)));
+        // Count documents associated with residences in buildings of this organization  
+        const residenceDocumentsCount = await db
+          .select({ count: count() })
+          .from(documents)
+          .innerJoin(residences, eq(documents.residenceId, residences.id))
+          .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true)));
 
-      const totalDocuments = (orgDocumentsCount[0]?.count || 0) + (buildingDocumentsCount[0]?.count || 0) + (residenceDocumentsCount[0]?.count || 0);
+        totalDocuments = (orgDocumentsCount[0]?.count || 0) + (buildingDocumentsCount[0]?.count || 0) + (residenceDocumentsCount[0]?.count || 0);
+      } catch (docError) {
+        console.log('Documents table not available, skipping document count');
+        totalDocuments = 0;
+      }
 
       // Count users who will become orphaned (only belong to this organization)
       const potentialOrphansCount = await db
@@ -328,6 +335,35 @@ export function registerOrganizationRoutes(app: Express): void {
 
     } catch (error) {
       console.error('❌ Error analyzing deletion impact:', error);
+      
+      // Return partial data if we can get basic counts
+      try {
+        const organization = await db
+          .select({ id: organizations.id, name: organizations.name })
+          .from(organizations)
+          .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
+          .limit(1);
+
+        if (organization.length > 0) {
+          const buildingsCount = await db
+            .select({ count: count() })
+            .from(buildings)
+            .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+
+          res.json({
+            organization: organization[0],
+            buildings: buildingsCount[0]?.count || 0,
+            residences: 0,
+            documents: 0,
+            potentialOrphanedUsers: 0,
+            note: 'Some data may not be available due to database schema issues'
+          });
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
+      
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to analyze deletion impact'
