@@ -79,18 +79,18 @@ export function registerDocumentRoutes(app: Express): void {
       if (specificResidenceId) {
         // Verify user has access to this specific residence
         // Handle both simple {residenceId: string} and complex nested structures
-        const hasAccess = userResidences.some(ur => {
+        const hasAccess = userResidences.some((ur: any) => {
           // Handle simple structure
-          if (ur.residenceId) {
-            return ur.residenceId === specificResidenceId;
+          if (ur.residenceId === specificResidenceId) {
+            return true;
           }
           // Handle complex nested structure
-          if (ur.userResidence && ur.userResidence.residenceId) {
-            return ur.userResidence.residenceId === specificResidenceId;
+          if (ur.userResidence?.residenceId === specificResidenceId) {
+            return true;
           }
           // Handle residence nested structure
-          if (ur.residence && ur.residence.id) {
-            return ur.residence.id === specificResidenceId;
+          if (ur.residence?.id === specificResidenceId) {
+            return true;
           }
           return false;
         });
@@ -100,21 +100,21 @@ export function registerDocumentRoutes(app: Express): void {
         residenceIds = [specificResidenceId];
       } else {
         // Extract residence IDs from both simple and complex structures
-        residenceIds = userResidences.map(ur => {
+        residenceIds = userResidences.map((ur: any) => {
           // Handle simple structure
           if (ur.residenceId) {
             return ur.residenceId;
           }
           // Handle complex nested structure
-          if (ur.userResidence && ur.userResidence.residenceId) {
+          if (ur.userResidence?.residenceId) {
             return ur.userResidence.residenceId;
           }
           // Handle residence nested structure
-          if (ur.residence && ur.residence.id) {
+          if (ur.residence?.id) {
             return ur.residence.id;
           }
           return null;
-        }).filter(id => id !== null);
+        }).filter((id: any) => id !== null);
       }
       
       const buildingIds = buildings.map(b => b.id);
