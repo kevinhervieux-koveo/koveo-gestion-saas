@@ -63,6 +63,8 @@ export const insertDocumentBuildingSchema = createInsertSchema(documentsBuilding
   fileSize: true,
   mimeType: true,
   uploadedBy: true,
+}).extend({
+  dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
 });
 
 export const insertDocumentResidentSchema = createInsertSchema(documentsResidents).pick({
@@ -75,6 +77,8 @@ export const insertDocumentResidentSchema = createInsertSchema(documentsResident
   fileSize: true,
   mimeType: true,
   uploadedBy: true,
+}).extend({
+  dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
 });
 
 // Types

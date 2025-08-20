@@ -173,8 +173,9 @@ export default function BuildingDocuments() {
       const documentData: any = {
         name: data.name,
         type: data.type, // This is the document category (bylaw, financial, etc.)
-        dateReference: new Date(data.dateReference), // Convert to Date object
+        dateReference: data.dateReference, // Send as YYYY-MM-DD string
         buildingId: data.buildingId,
+        uploadedBy: user?.id, // Add user ID
       };
       
       // Add file data if uploaded
@@ -212,8 +213,9 @@ export default function BuildingDocuments() {
       const updateData: any = {};
       if (data.name) updateData.name = data.name;
       if (data.type) updateData.type = data.type;
-      if (data.dateReference) updateData.dateReference = new Date(data.dateReference);
+      if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
       if (data.buildingId) updateData.buildingId = data.buildingId;
+      updateData.uploadedBy = user?.id; // Add user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
     onSuccess: () => {
