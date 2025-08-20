@@ -10,6 +10,7 @@ import {
   boolean,
   integer,
   decimal,
+  date,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -116,27 +117,27 @@ export const features = pgTable('features', {
   category: featureCategoryEnum('category').notNull(),
   status: featureStatusEnum('status').notNull().default('submitted'),
   priority: featurePriorityEnum('priority').notNull().default('medium'),
+  requestedBy: text('requested_by'),
+  assignedTo: text('assigned_to'),
+  estimatedHours: integer('estimated_hours'),
+  actualHours: integer('actual_hours'),
+  startDate: date('start_date'),
+  completedDate: date('completed_date'),
+  isPublicRoadmap: boolean('is_public_roadmap').notNull().default(true),
+  tags: jsonb('tags'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
   businessObjective: text('business_objective'),
   targetUsers: text('target_users'),
   successMetrics: text('success_metrics'),
   technicalComplexity: text('technical_complexity'),
   dependencies: text('dependencies'),
   userFlow: text('user_flow'),
-  acceptanceCriteria: text('acceptance_criteria'),
-  estimatedHours: integer('estimated_hours'),
-  actualHours: integer('actual_hours'),
-  quebecComplianceNotes: text('quebec_compliance_notes'),
-  submittedBy: uuid('submitted_by')
-    .notNull()
-    .references(() => users.id),
-  assignedTo: uuid('assigned_to').references(() => users.id),
-  showOnRoadmap: boolean('show_on_roadmap').notNull().default(false),
-  roadmapOrder: integer('roadmap_order'),
+  aiAnalysisResult: jsonb('ai_analysis_result'),
+  aiAnalyzedAt: timestamp('ai_analyzed_at'),
   isStrategicPath: boolean('is_strategic_path').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  startedAt: timestamp('started_at'),
-  completedAt: timestamp('completed_at'),
+  syncedAt: timestamp('synced_at'),
 });
 
 /**
@@ -322,17 +323,7 @@ export const improvementSuggestionsRelations = relations(improvementSuggestions,
   }),
 }));
 
-export const featuresRelations = relations(features, ({ one, many }) => ({
-  submittedBy: one(users, {
-    fields: [features.submittedBy],
-    references: [users.id],
-    relationName: 'submittedBy',
-  }),
-  assignedTo: one(users, {
-    fields: [features.assignedTo],
-    references: [users.id],
-    relationName: 'assignedTo',
-  }),
+export const featuresRelations = relations(features, ({ many }) => ({
   actionableItems: many(actionableItems),
 }));
 
@@ -340,9 +331,5 @@ export const actionableItemsRelations = relations(actionableItems, ({ one }) => 
   feature: one(features, {
     fields: [actionableItems.featureId],
     references: [features.id],
-  }),
-  assignedTo: one(users, {
-    fields: [actionableItems.assignedTo],
-    references: [users.id],
   }),
 }));
