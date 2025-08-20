@@ -275,7 +275,7 @@ export default function Documents() {
   const filteredDocuments = documents.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || doc.category === selectedCategory;
+    const matchesCategory = !selectedCategory || selectedCategory === "all" || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -527,7 +527,7 @@ export default function Documents() {
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {DOCUMENT_CATEGORIES.map((category) => (
               <SelectItem key={category.value} value={category.value}>
                 {category.label}
