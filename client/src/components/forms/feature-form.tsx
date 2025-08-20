@@ -187,10 +187,10 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * Gets the localStorage key for drafts.
    * @returns The localStorage key for feature drafts.
    */
-  const getDraftKey = () => {
+  const getDraftKey = useCallback(() => {
     const baseKey = 'koveo-feature-draft';
     return feature?.id ? `${baseKey}-${feature.id}` : `${baseKey}-new`;
-  };
+  }, [feature?.id]);
 
   /**
    * Saves form data to localStorage.
