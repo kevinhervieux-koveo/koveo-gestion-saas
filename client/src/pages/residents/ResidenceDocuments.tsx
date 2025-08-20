@@ -140,7 +140,7 @@ export default function ResidenceDocuments() {
 
   // Get documents for this specific residence
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
-    queryKey: ["/api/documents", "residence", residenceId],
+    queryKey: ["/api/documents", { type: "resident", residenceId }],
     queryFn: async () => {
       if (!residenceId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
@@ -212,7 +212,7 @@ export default function ResidenceDocuments() {
       setIsCreateDialogOpen(false);
       setUploadedFile(null);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
     } catch (error) {
       toast({ 
         title: "Error", 
@@ -252,7 +252,7 @@ export default function ResidenceDocuments() {
       setSelectedDocument(null);
       setUploadedFile(null);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
     } catch (error) {
       toast({ 
         title: "Error", 
@@ -276,7 +276,7 @@ export default function ResidenceDocuments() {
       }
 
       toast({ title: "Success", description: "Document deleted successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
     } catch (error) {
       toast({ 
         title: "Error", 
