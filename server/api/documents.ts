@@ -579,6 +579,107 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Update document with file information after upload
+  app.post('/api/documents/:id/upload', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userRole = user.role;
+      const userId = user.id;
+      const documentId = req.params.id;
+      const { fileUrl, fileName, fileSize, mimeType } = req.body;
+      
+      // Validate required fields
+      if (!fileUrl) {
+        return res.status(400).json({ message: 'fileUrl is required' });
+      }
+      
+      // Get user's organization for permission checking
+      const organizations = await storage.getUserOrganizations(userId);
+      const residences = await storage.getUserResidences(userId);
+      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+      const residenceIds = residences.map(ur => ur.residenceId);
+      
+      // Normalize the object storage path
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(fileUrl);
+      
+      let updatedDocument: any = null;
+      
+      // Try to update in building documents first
+      const hasNewDocumentMethods = 'updateBuildingDocument' in storage;
+      
+      if (hasNewDocumentMethods) {
+        try {
+          updatedDocument = await (storage as any).updateBuildingDocument(
+            documentId,
+            {
+              fileUrl: normalizedPath,
+              fileName: fileName || 'document',
+              fileSize: fileSize?.toString() || null,
+              mimeType: mimeType || 'application/octet-stream',
+            },
+            userId,
+            userRole,
+            organizationId
+          );
+        } catch (error) {
+          console.log('Document not found in building documents, trying resident documents');
+        }
+        
+        // If not found in building documents, try resident documents
+        if (!updatedDocument) {
+          try {
+            updatedDocument = await (storage as any).updateResidentDocument(
+              documentId,
+              {
+                fileUrl: normalizedPath,
+                fileName: fileName || 'document',
+                fileSize: fileSize?.toString() || null,
+                mimeType: mimeType || 'application/octet-stream',
+              },
+              userId,
+              userRole,
+              organizationId
+            );
+          } catch (error) {
+            console.log('Document not found in resident documents');
+          }
+        }
+      }
+      
+      // Fallback to legacy documents if not found
+      if (!updatedDocument) {
+        try {
+          updatedDocument = await storage.updateDocument(
+            documentId,
+            {
+              fileUrl: normalizedPath,
+              fileName: fileName || 'document',
+              fileSize: fileSize?.toString() || null,
+              mimeType: mimeType || 'application/octet-stream',
+            } as any,
+            userId,
+            userRole,
+            organizationId
+          );
+        } catch (error) {
+          console.log('Document not accessible for update');
+        }
+      }
+      
+      if (!updatedDocument) {
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+      
+      res.json({ 
+        message: 'Document file updated successfully',
+        document: updatedDocument 
+      });
+    } catch (error) {
+      console.error('Error updating document file:', error);
+      res.status(500).json({ message: 'Failed to update document file' });
+    }
+  });
+
   // Download/serve document files
   app.get('/api/documents/:id/download', requireAuth, async (req: any, res) => {
     try {
