@@ -96,6 +96,7 @@ const documentSchema = z.object({
   type: z.string().min(1, 'Document type is required'),
   dateReference: z.string().min(1, 'Reference date is required'),
   description: z.string().optional(),
+  isVisibleToTenants: z.boolean().optional(),
 });
 
 export default function ResidenceDocuments() {
@@ -106,6 +107,7 @@ export default function ResidenceDocuments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [tenantVisibilityFilter, setTenantVisibilityFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<ResidenceDocument | null>(null);
@@ -173,10 +175,13 @@ export default function ResidenceDocuments() {
       const matchesCategory = selectedCategory === "all" || doc.type === selectedCategory;
       const matchesYear = selectedYear === "all" || 
         new Date(doc.dateReference).getFullYear().toString() === selectedYear;
+      const matchesTenantVisibility = tenantVisibilityFilter === "all" || 
+        (tenantVisibilityFilter === "visible" && doc.isVisibleToTenants) ||
+        (tenantVisibilityFilter === "hidden" && !doc.isVisibleToTenants);
       
-      return matchesSearch && matchesCategory && matchesYear;
+      return matchesSearch && matchesCategory && matchesYear && matchesTenantVisibility;
     });
-  }, [documents, searchTerm, selectedCategory, selectedYear]);
+  }, [documents, searchTerm, selectedCategory, selectedYear, tenantVisibilityFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
@@ -187,7 +192,7 @@ export default function ResidenceDocuments() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedYear]);
+  }, [searchTerm, selectedCategory, selectedYear, tenantVisibilityFilter]);
 
   // Form setup
   const form = useForm<z.infer<typeof documentSchema>>({
@@ -197,6 +202,7 @@ export default function ResidenceDocuments() {
       type: "",
       dateReference: new Date().toISOString().split('T')[0],
       description: "",
+      isVisibleToTenants: true,
     },
   });
 
@@ -210,7 +216,7 @@ export default function ResidenceDocuments() {
         fileName: uploadedFile?.fileName,
         fileSize: uploadedFile?.fileSize?.toString(),
         mimeType: uploadedFile?.mimeType,
-        isVisibleToTenants: true, // Always visible for residents
+        isVisibleToTenants: data.isVisibleToTenants ?? true,
       };
 
       const response = await fetch('/api/documents', {
@@ -248,7 +254,7 @@ export default function ResidenceDocuments() {
         fileName: uploadedFile?.fileName || selectedDocument.fileName,
         fileSize: uploadedFile?.fileSize?.toString() || selectedDocument.fileSize,
         mimeType: uploadedFile?.mimeType || selectedDocument.mimeType,
-        isVisibleToTenants: true, // Always visible for residents
+        isVisibleToTenants: data.isVisibleToTenants ?? selectedDocument.isVisibleToTenants ?? true,
       };
 
       const response = await fetch(`/api/documents/${selectedDocument.id}`, {
@@ -535,6 +541,27 @@ export default function ResidenceDocuments() {
                     )}
                   />
                   
+                  <FormField
+                    control={form.control}
+                    name="isVisibleToTenants"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base font-medium">Available For Tenant</FormLabel>
+                          <div className="text-sm text-gray-500">
+                            Allow tenants to view this document
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1">
                       Create Document
@@ -606,6 +633,20 @@ export default function ResidenceDocuments() {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Tenant Access</Label>
+                  <Select value={tenantVisibilityFilter} onValueChange={setTenantVisibilityFilter}>
+                    <SelectTrigger className="w-32 mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="visible">Visible</SelectItem>
+                      <SelectItem value="hidden">Hidden</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             
@@ -660,6 +701,12 @@ export default function ResidenceDocuments() {
                           <h3 className="font-medium text-gray-900 truncate">{document.name}</h3>
                           <Badge variant="outline" className="shrink-0">
                             {DOCUMENT_CATEGORIES.find(cat => cat.value === document.type)?.label || document.type}
+                          </Badge>
+                          <Badge 
+                            variant={document.isVisibleToTenants ? "secondary" : "destructive"} 
+                            className="shrink-0 text-xs"
+                          >
+                            {document.isVisibleToTenants ? "Tenant Visible" : "Tenant Hidden"}
                           </Badge>
                         </div>
                         
@@ -720,6 +767,7 @@ export default function ResidenceDocuments() {
                               type: document.type,
                               dateReference: document.dateReference ? document.dateReference.split('T')[0] : new Date().toISOString().split('T')[0],
                               description: '',
+                              isVisibleToTenants: document.isVisibleToTenants ?? true,
                             });
                           }}
                           title="Edit Document"
@@ -914,6 +962,27 @@ export default function ResidenceDocuments() {
                                 />
                               </FormControl>
                               <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="isVisibleToTenants"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base font-medium">Available For Tenant</FormLabel>
+                                <div className="text-sm text-gray-500">
+                                  Allow tenants to view this document
+                                </div>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
                             </FormItem>
                           )}
                         />
