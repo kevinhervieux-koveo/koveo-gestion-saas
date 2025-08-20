@@ -9,12 +9,12 @@ import {
   organizations,
   buildings,
   residences,
-  documents,
   users,
   userOrganizations,
-  userResidences
+  userResidences,
+  invitations
 } from '@shared/schema';
-import { and, eq, count, sql, or, inArray, isNull } from 'drizzle-orm';
+import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
 /**
@@ -233,6 +233,8 @@ export function registerOrganizationRoutes(app: Express): void {
    * Shows what will be deleted when removing an organization.
    */
   app.get('/api/organizations/:id/deletion-impact', requireAuth, async (req: any, res) => {
+    const organizationId = req.params.id;
+    
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -248,8 +250,6 @@ export function registerOrganizationRoutes(app: Express): void {
           code: 'ADMIN_REQUIRED'
         });
       }
-
-      const organizationId = req.params.id;
 
       // Check if organization exists
       const organization = await db
@@ -282,34 +282,18 @@ export function registerOrganizationRoutes(app: Express): void {
           eq(residences.isActive, true)
         ));
 
-      // Count documents if table exists (graceful handling)
-      let totalDocuments = 0;
+      // Count invitations associated with this organization
+      let totalInvitations = 0;
       try {
-        // Count documents associated with this organization
-        const orgDocumentsCount = await db
+        const invitationsCount = await db
           .select({ count: count() })
-          .from(documents)
-          .where(eq(documents.organizationId, organizationId));
+          .from(invitations)
+          .where(eq(invitations.organizationId, organizationId));
 
-        // Count documents associated with buildings in this organization
-        const buildingDocumentsCount = await db
-          .select({ count: count() })
-          .from(documents)
-          .innerJoin(buildings, eq(documents.buildingId, buildings.id))
-          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
-
-        // Count documents associated with residences in buildings of this organization  
-        const residenceDocumentsCount = await db
-          .select({ count: count() })
-          .from(documents)
-          .innerJoin(residences, eq(documents.residenceId, residences.id))
-          .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true)));
-
-        totalDocuments = (orgDocumentsCount[0]?.count || 0) + (buildingDocumentsCount[0]?.count || 0) + (residenceDocumentsCount[0]?.count || 0);
-      } catch (docError) {
-        console.log('Documents table not available, skipping document count');
-        totalDocuments = 0;
+        totalInvitations = invitationsCount[0]?.count || 0;
+      } catch (invError) {
+        console.log('Invitations table access failed, skipping invitation count');
+        totalInvitations = 0;
       }
 
       // Count users who will become orphaned (only belong to this organization)
@@ -327,7 +311,7 @@ export function registerOrganizationRoutes(app: Express): void {
         organization: organization[0],
         buildings: buildingsCount[0]?.count || 0,
         residences: residencesCount[0]?.count || 0,
-        documents: totalDocuments,
+        invitations: totalInvitations,
         potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0
       };
 
@@ -354,7 +338,7 @@ export function registerOrganizationRoutes(app: Express): void {
             organization: organization[0],
             buildings: buildingsCount[0]?.count || 0,
             residences: 0,
-            documents: 0,
+            invitations: 0,
             potentialOrphanedUsers: 0,
             note: 'Some data may not be available due to database schema issues'
           });
@@ -428,25 +412,12 @@ export function registerOrganizationRoutes(app: Express): void {
 
           const residenceIds = buildingResidences.map(r => r.id);
 
-          // 3. Soft delete documents associated with organization, buildings, or residences
-          // Note: documents table uses hard delete, so we'll delete them completely
-          if (residenceIds.length > 0) {
-            await tx.delete(documents)
-              .where(or(
-                eq(documents.organizationId, organizationId),
-                inArray(documents.buildingId, buildingIds),
-                inArray(documents.residenceId, residenceIds)
-              ));
-          } else if (buildingIds.length > 0) {
-            await tx.delete(documents)
-              .where(or(
-                eq(documents.organizationId, organizationId),
-                inArray(documents.buildingId, buildingIds)
-              ));
-          } else {
-            await tx.delete(documents)
-              .where(eq(documents.organizationId, organizationId));
-          }
+          // 3. Delete invitations associated with this organization
+          await tx.delete(invitations)
+            .where(eq(invitations.organizationId, organizationId));
+
+          // Note: Documents table doesn't have foreign keys to organizations/buildings/residences
+          // Documents are managed separately and don't need cascading deletion
 
           // 4. Soft delete user-residence relationships
           if (residenceIds.length > 0) {
