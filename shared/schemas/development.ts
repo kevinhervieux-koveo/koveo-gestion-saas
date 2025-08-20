@@ -1,0 +1,347 @@
+import { sql } from 'drizzle-orm';
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  jsonb,
+  uuid,
+  pgEnum,
+  boolean,
+  integer,
+  decimal,
+} from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
+import { relations } from 'drizzle-orm';
+import { users } from './core';
+
+// Development enums
+export const suggestionCategoryEnum = pgEnum('suggestion_category', [
+  'Code Quality',
+  'Security',
+  'Testing',
+  'Documentation',
+  'Performance',
+  'Continuous Improvement',
+  'Replit AI Agent Monitoring',
+  'Replit App',
+]);
+
+export const suggestionPriorityEnum = pgEnum('suggestion_priority', [
+  'Low',
+  'Medium',
+  'High',
+  'Critical',
+]);
+
+export const suggestionStatusEnum = pgEnum('suggestion_status', ['New', 'Acknowledged', 'Done']);
+
+export const featureStatusEnum = pgEnum('feature_status', [
+  'submitted',
+  'planned',
+  'in-progress',
+  'ai-analyzed',
+  'completed',
+  'cancelled',
+]);
+
+export const featurePriorityEnum = pgEnum('feature_priority', [
+  'low',
+  'medium',
+  'high',
+  'critical',
+]);
+
+export const featureCategoryEnum = pgEnum('feature_category', [
+  'Dashboard & Home',
+  'Property Management',
+  'Resident Management',
+  'Financial Management',
+  'Maintenance & Requests',
+  'Document Management',
+  'Communication',
+  'AI & Automation',
+  'Compliance & Security',
+  'Analytics & Reporting',
+  'Integration & API',
+  'Infrastructure & Performance',
+  'Website',
+]);
+
+export const actionableItemStatusEnum = pgEnum('actionable_item_status', [
+  'pending',
+  'in-progress',
+  'completed',
+  'blocked',
+]);
+
+// Development tables
+/**
+ * Improvement suggestions table for the Pillar Methodology framework.
+ * Stores AI-generated and manual suggestions for code quality, security, and process improvements.
+ */
+export const improvementSuggestions = pgTable('improvement_suggestions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  category: suggestionCategoryEnum('category').notNull(),
+  priority: suggestionPriorityEnum('priority').notNull(),
+  status: suggestionStatusEnum('status').notNull().default('New'),
+  filePath: text('file_path'),
+  technicalDetails: text('technical_details'),
+  businessImpact: text('business_impact'),
+  implementationEffort: text('implementation_effort'),
+  quebecComplianceRelevance: text('quebec_compliance_relevance'),
+  suggestedBy: uuid('suggested_by').references(() => users.id),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  acknowledgedAt: timestamp('acknowledged_at'),
+  completedAt: timestamp('completed_at'),
+});
+
+/**
+ * Features table for tracking development roadmap items and functionality.
+ * Used by the Pillar Methodology framework for feature planning and tracking.
+ */
+export const features = pgTable('features', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  category: featureCategoryEnum('category').notNull(),
+  status: featureStatusEnum('status').notNull().default('submitted'),
+  priority: featurePriorityEnum('priority').notNull().default('medium'),
+  businessObjective: text('business_objective'),
+  targetUsers: text('target_users'),
+  successMetrics: text('success_metrics'),
+  technicalComplexity: text('technical_complexity'),
+  dependencies: text('dependencies'),
+  userFlow: text('user_flow'),
+  acceptanceCriteria: text('acceptance_criteria'),
+  estimatedHours: integer('estimated_hours'),
+  actualHours: integer('actual_hours'),
+  quebecComplianceNotes: text('quebec_compliance_notes'),
+  submittedBy: uuid('submitted_by')
+    .notNull()
+    .references(() => users.id),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  showOnRoadmap: boolean('show_on_roadmap').notNull().default(false),
+  roadmapOrder: integer('roadmap_order'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+});
+
+/**
+ * Actionable items table for tracking specific tasks generated from feature analysis.
+ * Links features to concrete development tasks and implementation steps.
+ */
+export const actionableItems = pgTable('actionable_items', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  featureId: uuid('feature_id')
+    .notNull()
+    .references(() => features.id),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  type: text('type').notNull(), // 'code', 'test', 'documentation', 'design', etc.
+  status: actionableItemStatusEnum('status').notNull().default('pending'),
+  estimatedHours: integer('estimated_hours'),
+  actualHours: integer('actual_hours'),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  dependencies: jsonb('dependencies'), // Array of other actionable item IDs
+  acceptanceCriteria: text('acceptance_criteria'),
+  implementation_notes: text('implementation_notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+});
+
+/**
+ * Development pillars table for the Pillar Methodology framework.
+ * Stores the five core development pillars and their completion status.
+ */
+export const developmentPillars = pgTable('development_pillars', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  status: text('status').notNull().default('pending'), // 'pending', 'in-progress', 'complete'
+  order: text('order').notNull(),
+  configuration: jsonb('configuration'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const workspaceStatus = pgTable('workspace_status', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  component: text('component').notNull(),
+  status: text('status').notNull().default('pending'), // 'pending', 'in-progress', 'complete'
+  lastUpdated: timestamp('last_updated').defaultNow(),
+});
+
+export const qualityMetrics = pgTable('quality_metrics', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  metricType: text('metric_type').notNull(),
+  value: text('value').notNull(),
+  timestamp: timestamp('timestamp').defaultNow(),
+});
+
+export const frameworkConfiguration = pgTable('framework_configuration', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Insert schemas
+export const insertImprovementSuggestionSchema = createInsertSchema(improvementSuggestions).pick({
+  title: true,
+  description: true,
+  category: true,
+  priority: true,
+  status: true,
+  filePath: true,
+  technicalDetails: true,
+  businessImpact: true,
+  implementationEffort: true,
+  quebecComplianceRelevance: true,
+  suggestedBy: true,
+  assignedTo: true,
+});
+
+export const insertFeatureSchema = createInsertSchema(features).pick({
+  name: true,
+  description: true,
+  category: true,
+  status: true,
+  priority: true,
+  businessObjective: true,
+  targetUsers: true,
+  successMetrics: true,
+  technicalComplexity: true,
+  dependencies: true,
+  userFlow: true,
+  acceptanceCriteria: true,
+  estimatedHours: true,
+  quebecComplianceNotes: true,
+  submittedBy: true,
+  assignedTo: true,
+  showOnRoadmap: true,
+  roadmapOrder: true,
+});
+
+export const insertActionableItemSchema = createInsertSchema(actionableItems).pick({
+  featureId: true,
+  title: true,
+  description: true,
+  type: true,
+  status: true,
+  estimatedHours: true,
+  assignedTo: true,
+  dependencies: true,
+  acceptanceCriteria: true,
+  implementation_notes: true,
+});
+
+export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
+  name: true,
+  description: true,
+  status: true,
+  order: true,
+  configuration: true,
+});
+
+export const insertWorkspaceStatusSchema = createInsertSchema(workspaceStatus).pick({
+  component: true,
+  status: true,
+});
+
+export const insertQualityMetricSchema = createInsertSchema(qualityMetrics).pick({
+  metricType: true,
+  value: true,
+});
+
+export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfiguration).pick({
+  key: true,
+  value: true,
+  description: true,
+});
+
+// Types
+export type InsertImprovementSuggestion = z.infer<typeof insertImprovementSuggestionSchema>;
+export type ImprovementSuggestion = typeof improvementSuggestions.$inferSelect;
+
+export type InsertFeature = z.infer<typeof insertFeatureSchema>;
+export type Feature = typeof features.$inferSelect;
+
+export type InsertActionableItem = z.infer<typeof insertActionableItemSchema>;
+export type ActionableItem = typeof actionableItems.$inferSelect;
+
+export type InsertPillar = z.infer<typeof insertPillarSchema>;
+export type Pillar = typeof developmentPillars.$inferSelect;
+
+export type InsertWorkspaceStatus = z.infer<typeof insertWorkspaceStatusSchema>;
+export type WorkspaceStatus = typeof workspaceStatus.$inferSelect;
+
+export type InsertQualityMetric = z.infer<typeof insertQualityMetricSchema>;
+export type QualityMetric = typeof qualityMetrics.$inferSelect;
+
+export type InsertFrameworkConfiguration = z.infer<typeof insertFrameworkConfigSchema>;
+export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
+
+// Relations
+export const improvementSuggestionsRelations = relations(improvementSuggestions, ({ one }) => ({
+  suggestedBy: one(users, {
+    fields: [improvementSuggestions.suggestedBy],
+    references: [users.id],
+    relationName: 'suggestedBy',
+  }),
+  assignedTo: one(users, {
+    fields: [improvementSuggestions.assignedTo],
+    references: [users.id],
+    relationName: 'assignedTo',
+  }),
+}));
+
+export const featuresRelations = relations(features, ({ one, many }) => ({
+  submittedBy: one(users, {
+    fields: [features.submittedBy],
+    references: [users.id],
+    relationName: 'submittedBy',
+  }),
+  assignedTo: one(users, {
+    fields: [features.assignedTo],
+    references: [users.id],
+    relationName: 'assignedTo',
+  }),
+  actionableItems: many(actionableItems),
+}));
+
+export const actionableItemsRelations = relations(actionableItems, ({ one }) => ({
+  feature: one(features, {
+    fields: [actionableItems.featureId],
+    references: [features.id],
+  }),
+  assignedTo: one(users, {
+    fields: [actionableItems.assignedTo],
+    references: [users.id],
+  }),
+}));

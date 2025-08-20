@@ -1,23 +1,15 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Header } from '@/components/layout/header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
   Home,
   Building,
   Users,
@@ -32,41 +24,29 @@ import {
   Database,
   Cloud,
   Plus,
-  Target,
   Terminal,
   Globe,
-  AlertTriangle,
-  Copy,
+  Search,
+  Target,
+  CheckCircle2,
+  Clock,
+  Circle,
   ChevronDown,
   ChevronRight,
   ListTodo,
   MessageCircle,
-  Search,
+  Copy,
+  AlertTriangle,
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Feature, ActionableItem } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
+import { useFeatureDuplicateAnalysis, getDuplicateBadge, getDuplicateNote } from '@/components/roadmap/feature-duplicate-analysis';
+import { RoadmapSection, type Section } from '@/components/roadmap/roadmap-section';
+import { generateLLMHelpForm } from '@/components/roadmap/llm-help-form';
+import { getStatusIcon, getStatusBadge, getPriorityBadge, getActionableItemStatusIcon, getActionableItemStatusBadge } from '@/components/roadmap/feature-status-badges';
 
-/**
- * Duplicate analysis result for a feature.
- */
-interface DuplicateInfo {
-  isDuplicate: boolean;
-  duplicateCount: number;
-  duplicateFeatures: Feature[];
-  similarityType: 'exact' | 'similar' | 'none';
-}
-
-/**
- * Section interface for roadmap organization.
- */
-interface Section {
-  title: string;
-  icon: any;
-  description: string;
-  features: Feature[];
-}
 
 /**
  * Owner roadmap page displaying all features with planning capabilities.
@@ -194,7 +174,6 @@ export default function OwnerRoadmap() {
 
   /**
    * Fetches actionable items for a specific feature.
-   * @param featureId
    */
   const fetchActionableItems = useCallback(async (featureId: string) => {
     // Check if already fetched to prevent duplicate requests
@@ -220,8 +199,7 @@ export default function OwnerRoadmap() {
   }, []);
 
   /**
-   * Copies the implementation prompt to clipboard.
-   * @param prompt
+   * Copies text to clipboard with toast feedback.
    */
   const handleCopyPrompt = async (prompt: string) => {
     try {
@@ -241,7 +219,6 @@ export default function OwnerRoadmap() {
 
   /**
    * Handles toggling actionable item status between pending and completed.
-   * @param item
    */
   const handleToggleActionableItem = (item: ActionableItem) => {
     const newStatus = item.status === 'completed' ? 'pending' : 'completed';
@@ -274,68 +251,8 @@ export default function OwnerRoadmap() {
     });
   }, [fetchActionableItems]);
 
-  /**
-   * Analyzes features for duplicates and similarities.
-   */
-  const duplicateAnalysis = useMemo(() => {
-    if (!features.length) {return new Map<string, DuplicateInfo>();}
-    
-    const analysis = new Map<string, DuplicateInfo>();
-    
-    features.forEach((feature: Feature, index: number) => {
-      const duplicates: Feature[] = [];
-      let exactMatch = false;
-      
-      // Compare with all other features
-      features.forEach((otherFeature: Feature, otherIndex: number) => {
-        if (index === otherIndex) {return;}
-        
-        const nameMatch = feature.name.toLowerCase().trim() === otherFeature.name.toLowerCase().trim();
-        const descMatch = feature.description?.toLowerCase().trim() === otherFeature.description?.toLowerCase().trim();
-        
-        // Check for exact duplicates (same name OR same description)
-        if (nameMatch || (descMatch && feature.description && otherFeature.description)) {
-          duplicates.push(otherFeature);
-          exactMatch = true;
-        }
-        // Check for similar features (containing similar keywords)
-        else {
-          const featureWords = feature.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-          const otherWords = otherFeature.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-          
-          const commonWords = featureWords.filter((word: string) => otherWords.includes(word));
-          
-          // If more than 50% of significant words match, consider it similar
-          if (featureWords.length > 0 && commonWords.length / featureWords.length > 0.5) {
-            duplicates.push(otherFeature);
-          }
-        }
-      });
-      
-      analysis.set(feature.id, {
-        isDuplicate: duplicates.length > 0,
-        duplicateCount: duplicates.length,
-        duplicateFeatures: duplicates,
-        similarityType: exactMatch ? 'exact' : duplicates.length > 0 ? 'similar' : 'none'
-      });
-    });
-    
-    return analysis;
-  }, [features]);
-
-  /**
-   * Gets total duplicate statistics.
-   */
-  const duplicateStats = useMemo(() => {
-    const exactDuplicates = Array.from(duplicateAnalysis.values()).filter(d => d.similarityType === 'exact');
-    const similarFeatures = Array.from(duplicateAnalysis.values()).filter(d => d.similarityType === 'similar');
-    
-    return {
-      totalExact: exactDuplicates.length,
-      totalSimilar: similarFeatures.length,
-      totalWithDuplicates: Array.from(duplicateAnalysis.values()).filter(d => d.isDuplicate).length
-    };
-  }, [duplicateAnalysis]);
+  // Use the duplicate analysis hook
+  const { duplicateAnalysis, duplicateStats } = useFeatureDuplicateAnalysis(features);
 
   /**
    * Handles clicking on a feature item to open the planning dialog.
@@ -358,118 +275,8 @@ export default function OwnerRoadmap() {
    * Copies LLM help form to clipboard for feature discussion.
    */
   const handleCopyLLMForm = async () => {
-    const llmHelpForm = `# Koveo Gestion Feature Development Discussion Form
-
-## 📖 APPLICATION CONTEXT
-**Koveo Gestion** is a comprehensive property management platform for Quebec residential communities.
-
-### Tech Stack:
-- **Frontend**: React 18 with TypeScript, Vite, shadcn/ui components, Tailwind CSS
-- **Backend**: Express.js with TypeScript, RESTful API
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Express sessions with PostgreSQL session store
-- **Validation**: Zod schemas for runtime type validation
-- **State Management**: TanStack Query for server state, React Hook Form for forms
-
-### Key Patterns:
-- Monorepo structure with shared types between frontend and backend
-- Type-safe database operations with Drizzle ORM
-- Comprehensive validation with Zod schemas
-- Internationalization supporting French and English
-- Role-based access control (admin, manager, owner, tenant)
-
-### Database Schema includes:
-- Users, Organizations, Buildings, Residences
-- Bills, Maintenance Requests, Budgets
-- Documents, Notifications
-- Features and Actionable Items for roadmap management
-
-### Security Considerations:
-- Quebec Law 25 compliance required
-- Secure authentication with bcrypt password hashing
-- Session management with secure cookies
-- Input validation and sanitization
-
----
-
-## 🎯 Feature Overview
-**What feature do you want to build?**
-[Describe the feature in one sentence]
-
-**What problem does this solve?**
-[Explain the user problem or business need]
-
-## 👥 User Context
-**Who will use this feature?**
-[Target users: Property managers, Tenants, Owners, etc.]
-
-**How will they use it?**
-[Describe the user's workflow and interaction]
-
-## 📋 Requirements
-**What should this feature do? (List 3-5 key capabilities)**
-1. 
-2. 
-3. 
-4. 
-5. 
-
-**What should this feature NOT do? (Any constraints or boundaries)**
-- 
-- 
-- 
-
-## 🔧 Technical Considerations
-**Does this feature need to:**
-- [ ] Store new data in the database?
-- [ ] Integrate with external APIs?
-- [ ] Work on mobile devices?
-- [ ] Support Quebec French language?
-- [ ] Meet accessibility requirements?
-- [ ] Handle file uploads/downloads?
-- [ ] Send notifications?
-
-**Any existing features this should connect to?**
-[List related features or integrations]
-
-## 📊 Success Criteria
-**How will we know this feature is successful?**
-[Measurable outcomes or user feedback]
-
-**What's the priority level?**
-[ ] Critical (must have immediately)
-[ ] High (needed soon)
-[ ] Medium (would be nice to have)
-[ ] Low (future consideration)
-
-## 💭 Additional Context
-**Any examples or references?**
-[Screenshots, competitor examples, or inspiration]
-
-**Special Quebec/Law 25 considerations?**
-[Privacy, language, or compliance requirements]
-
----
-
-## 🔴 CRITICAL INSTRUCTIONS FOR LLM:
-
-**RESPOND ONLY TO THE SPECIFIC QUESTIONS AND SECTIONS FILLED OUT ABOVE.**
-
-1. **DO NOT** suggest additional features or requirements beyond what's specified
-2. **DO NOT** provide generic advice or best practices unless specifically asked
-3. **ONLY** address the exact questions and requirements mentioned in the completed sections
-4. **FOCUS** on the Koveo Gestion architecture and patterns described in the context
-5. **ENSURE** all suggestions align with Quebec Law 25 compliance and French/English support
-6. **PROVIDE** specific implementation details using the tech stack mentioned (React 18, Express.js, PostgreSQL, Drizzle ORM)
-7. **ASK** clarifying questions ONLY about unclear or incomplete sections in the form
-8. **KEEP** responses concise and directly related to the feature being discussed
-9. **USE** existing database schema and patterns mentioned in the context
-10. **REFERENCE** specific file paths and component structures based on the monorepo architecture
-
-**Your role is to help refine and implement the SPECIFIC feature described, not to expand the scope or suggest alternatives.**`;
-
     try {
-      await navigator.clipboard.writeText(llmHelpForm);
+      await navigator.clipboard.writeText(generateLLMHelpForm());
       toast({
         title: 'Enhanced LLM Help Form Copied',
         description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
@@ -606,129 +413,6 @@ export default function OwnerRoadmap() {
     },
   ];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className='w-4 h-4 text-green-600' />;
-      case 'in-progress':
-        return <Clock className='w-4 h-4 text-blue-600' />;
-      case 'planned':
-        return <Circle className='w-4 h-4 text-gray-400' />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className='bg-green-100 text-green-800 hover:bg-green-100'>Completed</Badge>;
-      case 'in-progress':
-        return <Badge className='bg-blue-100 text-blue-800 hover:bg-blue-100'>In Progress</Badge>;
-      case 'planned':
-        return <Badge className='bg-gray-100 text-gray-800 hover:bg-gray-100'>Planned</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  const getPriorityBadge = (priority?: string) => {
-    if (!priority) {
-      return null;
-    }
-    switch (priority) {
-      case 'high':
-        return (
-          <Badge className='bg-red-100 text-red-800 hover:bg-red-100 ml-2'>High Priority</Badge>
-        );
-      case 'medium':
-        return (
-          <Badge className='bg-yellow-100 text-yellow-800 hover:bg-yellow-100 ml-2'>Medium</Badge>
-        );
-      case 'low':
-        return <Badge className='bg-gray-100 text-gray-600 hover:bg-gray-100 ml-2'>Low</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  /**
-   * Gets duplicate badge for a feature.
-   * @param featureId
-   */
-  const getDuplicateBadge = (featureId: string) => {
-    const dupInfo = duplicateAnalysis.get(featureId);
-    if (!dupInfo || !dupInfo.isDuplicate) {return null;}
-    
-    if (dupInfo.similarityType === 'exact') {
-      return (
-        <Badge className='bg-red-100 text-red-800 hover:bg-red-100 ml-2 flex items-center gap-1'>
-          <AlertTriangle className='h-3 w-3' />
-          Exact Duplicate ({dupInfo.duplicateCount})
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge className='bg-orange-100 text-orange-800 hover:bg-orange-100 ml-2 flex items-center gap-1'>
-          <Copy className='h-3 w-3' />
-          Similar ({dupInfo.duplicateCount})
-        </Badge>
-      );
-    }
-  };
-
-  /**
-   * Gets duplicate note text for a feature.
-   * @param featureId
-   */
-  const getDuplicateNote = (featureId: string) => {
-    const dupInfo = duplicateAnalysis.get(featureId);
-    if (!dupInfo || !dupInfo.isDuplicate) {return null;}
-    
-    const duplicateNames = dupInfo.duplicateFeatures.map(f => f.name).join(', ');
-    
-    if (dupInfo.similarityType === 'exact') {
-      return `⚠️ This feature has ${dupInfo.duplicateCount} exact ${dupInfo.duplicateCount === 1 ? 'duplicate' : 'duplicates'}: ${duplicateNames}`;
-    } else {
-      return `📋 This feature is similar to ${dupInfo.duplicateCount} other ${dupInfo.duplicateCount === 1 ? 'feature' : 'features'}: ${duplicateNames}`;
-    }
-  };
-
-  /**
-   * Gets status icon for actionable items.
-   * @param status
-   */
-  const getActionableItemStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className='w-3 h-3 text-green-600' />;
-      case 'in-progress':
-        return <Clock className='w-3 h-3 text-blue-600' />;
-      case 'blocked':
-        return <AlertTriangle className='w-3 h-3 text-red-600' />;
-      case 'pending':
-      default:
-        return <Circle className='w-3 h-3 text-gray-400' />;
-    }
-  };
-
-  /**
-   * Gets status badge for actionable items.
-   * @param status
-   */
-  const getActionableItemStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className='bg-green-100 text-green-800 hover:bg-green-100 text-xs'>Done</Badge>;
-      case 'in-progress':
-        return <Badge className='bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs'>Working</Badge>;
-      case 'blocked':
-        return <Badge className='bg-red-100 text-red-800 hover:bg-red-100 text-xs'>Blocked</Badge>;
-      case 'pending':
-      default:
-        return <Badge className='bg-gray-100 text-gray-800 hover:bg-gray-100 text-xs'>Todo</Badge>;
-    }
-  };
 
   const calculateProgress = (features: Feature[]) => {
     const completed = features.filter((f) => f.status === 'completed').length;
