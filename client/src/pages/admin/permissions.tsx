@@ -557,7 +557,6 @@ export default function Permissions() {
                         </div>
                       </div>
                     )}
-                  )}
                 </CardContent>
               </Card>
             </TabsContent>
