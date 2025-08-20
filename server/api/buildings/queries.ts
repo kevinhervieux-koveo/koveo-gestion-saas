@@ -25,7 +25,7 @@ export interface BuildingWithOrg {
   totalFloors?: number;
   parkingSpaces?: number;
   storageSpaces?: number;
-  amenities?: string;
+  amenities?: any;
   managementCompany?: string;
   organizationId: string;
   isActive: boolean;
@@ -245,14 +245,14 @@ export async function getBuildingDeletionImpact(buildingId: string) {
 
   const residenceIds = buildingResidences.map(r => r.id);
 
-  // Count associated documents
+  // Count associated documents (documents table uses boolean flags, not foreign keys)
   const documentsCount = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(documents)
     .where(
       residenceIds.length > 0 
-        ? inArray(documents.residenceId, residenceIds)
-        : eq(documents.buildingId, buildingId)
+        ? eq(documents.residence, true)
+        : eq(documents.buildings, true)
     );
 
   // Count users who would become orphaned

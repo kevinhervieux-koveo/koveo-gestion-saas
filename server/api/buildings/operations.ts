@@ -19,13 +19,13 @@ export interface BuildingCreateData {
   city?: string;
   province?: string;
   postalCode?: string;
-  buildingType?: string;
+  buildingType?: 'apartment' | 'condo' | 'rental';
   yearBuilt?: number;
   totalUnits?: number;
   totalFloors?: number;
   parkingSpaces?: number;
   storageSpaces?: number;
-  amenities?: string[];
+  amenities?: any;
   managementCompany?: string;
   organizationId: string;
 }
@@ -47,24 +47,21 @@ export async function createBuilding(buildingData: BuildingCreateData) {
   const newBuilding = await db
     .insert(buildings)
     .values({
-      id: buildingId,
       name: buildingData.name,
       address: buildingData.address || '',
       city: buildingData.city || '',
       province: buildingData.province || 'QC',
       postalCode: buildingData.postalCode || '',
-      buildingType: buildingData.buildingType || 'condo',
+      buildingType: (buildingData.buildingType as 'apartment' | 'condo' | 'rental') || 'condo',
       yearBuilt: buildingData.yearBuilt,
       totalUnits: buildingData.totalUnits || 0,
       totalFloors: buildingData.totalFloors,
       parkingSpaces: buildingData.parkingSpaces,
       storageSpaces: buildingData.storageSpaces,
-      amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
+      amenities: buildingData.amenities,
       managementCompany: buildingData.managementCompany,
       organizationId: buildingData.organizationId,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      isActive: true
     })
     .returning();
 
@@ -117,7 +114,7 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
       city: buildingData.city || '',
       province: buildingData.province || 'QC',
       postalCode: buildingData.postalCode || '',
-      buildingType: buildingData.buildingType || 'condo',
+      buildingType: (buildingData.buildingType as 'apartment' | 'condo' | 'rental') || 'condo',
       yearBuilt: buildingData.yearBuilt,
       totalUnits: buildingData.totalUnits || 0,
       totalFloors: buildingData.totalFloors,
@@ -177,9 +174,9 @@ export async function cascadeDeleteBuilding(buildingId: string) {
 
     if (residenceIds.length > 0) {
       // 2. Delete documents associated with building or its residences
-      // Note: Using proper field names based on schema
+      // Note: Document table uses boolean flags, not foreign keys
       await tx.delete(documents)
-        .where(inArray(documents.residence, residenceIds));
+        .where(eq(documents.residence, true));
 
       // 3. Soft delete user-residence relationships
       await tx.update(userResidences)
