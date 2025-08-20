@@ -92,8 +92,8 @@ describe('SQL Injection Security Tests', () => {
       }).returning({ id: schema.users.id });
       
       testUserId = testUser.id;
-    } catch (error) {
-      console.log('Test user may already exist, continuing...');
+    } catch (_error) {
+      console.warn('Test user may already exist, continuing...');
     }
   });
 
@@ -103,8 +103,8 @@ describe('SQL Injection Security Tests', () => {
       if (testUserId) {
         await db.delete(schema.users).where(eq(schema.users.id, testUserId));
       }
-    } catch (error) {
-      console.log('Cleanup error:', error);
+    } catch (_error) {
+      console.error('Cleanup error occurred during test teardown');
     }
   });
 
@@ -313,7 +313,7 @@ describe('SQL Injection Security Tests', () => {
   describe('Second-Order SQL Injection Tests', () => {
     it.each(SQL_INJECTION_PAYLOADS.secondOrder)('should prevent second-order SQL injection via user input: %s', async (payload) => {
       // First, try to store malicious payload
-      const storeResponse = await request(app)
+      const _storeResponse = await request(app)
         .post('/api/invitations')
         .send({
           email: 'test@example.com',

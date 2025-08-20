@@ -4,13 +4,13 @@
  * These tests focus on the core database operations without requiring full app setup.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import { db } from '../../server/db';
 import * as schema from '../../shared/schema';
 import { eq, and, or, inArray } from 'drizzle-orm';
 
-// Mock user context for testing
-const mockUserContext = {
+// Mock user context for testing (unused in current tests but kept for future expansion)
+const _mockUserContext = {
   userId: 'test-user-id',
   role: 'tenant' as const,
   organizationIds: ['test-org-1'],
@@ -56,7 +56,7 @@ describe('SQL Injection Unit Security Tests', () => {
     });
 
     it('should safely handle malicious input in role filters', async () => {
-      const maliciousRole = "admin'; UPDATE users SET role='admin'; --";
+      const maliciousRole = "admin'; UPDATE users SET role='admin'; --" as any;
       
       try {
         const result = await db
@@ -84,7 +84,7 @@ describe('SQL Injection Unit Security Tests', () => {
           .where(
             and(
               eq(schema.users.email, maliciousEmail),
-              eq(schema.users.role, maliciousRole)
+              eq(schema.users.role, maliciousRole as any)
             )
           );
           

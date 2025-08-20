@@ -447,10 +447,18 @@ describe('Buildings Management Unit Tests', () => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
         
-        if (!typedData.name) errors.push('Building name is required');
-        if (!typedData.organizationId) errors.push('Organization is required');
-        if (typedData.yearBuilt && typeof typedData.yearBuilt !== 'number') errors.push('Invalid year');
-        if (typedData.totalUnits && typeof typedData.totalUnits !== 'number') errors.push('Invalid units');
+        if (!typedData.name) {
+          errors.push('Building name is required');
+        }
+        if (!typedData.organizationId) {
+          errors.push('Organization is required');
+        }
+        if (typedData.yearBuilt && typeof typedData.yearBuilt !== 'number') {
+          errors.push('Invalid year');
+        }
+        if (typedData.totalUnits && typeof typedData.totalUnits !== 'number') {
+          errors.push('Invalid units');
+        }
         
         return { isValid: errors.length === 0, errors };
       };

@@ -43,13 +43,20 @@ jest.mock('../server/performance-monitoring.ts', () => ({
 
 // Console setup
 const originalConsole = { ...console };
-beforeAll(() => {
+
+/**
+ * Global test setup to reduce console noise during test execution.
+ */
+global.beforeAll(() => {
   // Reduce console noise during tests
   console.log = jest.fn();
   console.warn = jest.fn();
 });
 
-afterAll(() => {
+/**
+ * Global test teardown to restore console functionality.
+ */
+global.afterAll(() => {
   // Restore console
   Object.assign(console, originalConsole);
 });

@@ -63,7 +63,7 @@ declare module 'wouter/memory' {
    * @param _options._path - Initial path value for memory location.
    * @returns Combined hook return value and stub history.
    */
-  function memoryLocation(_options: { _path: string }): HookReturnValue & StubHistory;
+  function memoryLocation(options: { path: string }): HookReturnValue & StubHistory;
   export { memoryLocation };
 }
 
