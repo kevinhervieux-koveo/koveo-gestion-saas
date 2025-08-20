@@ -132,6 +132,7 @@ export const features = pgTable('features', {
   assignedTo: uuid('assigned_to').references(() => users.id),
   showOnRoadmap: boolean('show_on_roadmap').notNull().default(false),
   roadmapOrder: integer('roadmap_order'),
+  isStrategicPath: boolean('is_strategic_path').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   startedAt: timestamp('started_at'),
