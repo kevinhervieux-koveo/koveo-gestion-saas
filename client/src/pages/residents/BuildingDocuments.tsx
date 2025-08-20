@@ -71,6 +71,7 @@ export default function ResidentsBuildingDocuments() {
   const urlParams = new URLSearchParams(window.location.search);
   const buildingId = urlParams.get('buildingId');
   
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
@@ -100,6 +101,7 @@ export default function ResidentsBuildingDocuments() {
   });
   
   const documents = documentsResponse?.documents || [];
+  
 
   // Get available years from documents
   const availableYears = useMemo(() => {
@@ -111,10 +113,14 @@ export default function ResidentsBuildingDocuments() {
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [documents]);
 
-  // Filter documents based on search, category, year, and visibility
+  // Filter documents - first by building, then by user filters
   const filteredDocuments = useMemo(() => {
     let filtered = documents;
 
+    // First ensure we only show documents for this building
+    filtered = filtered.filter(doc => doc.buildingId === buildingId);
+
+    // Apply user filters
     if (searchTerm) {
       filtered = filtered.filter(doc => 
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -143,7 +149,12 @@ export default function ResidentsBuildingDocuments() {
     }
 
     return filtered;
-  }, [documents, searchTerm, selectedCategory, selectedYear, selectedVisibility]);
+  }, [documents, searchTerm, selectedCategory, selectedYear, selectedVisibility, buildingId]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedYear, selectedVisibility]);
 
 
   // Paginate filtered documents
