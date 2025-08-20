@@ -311,6 +311,46 @@ async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
     
+    // Object Storage routes (must come before other routes for proper file serving)
+    try {
+      const { ObjectStorageService, ObjectNotFoundError } = await import('./objectStorage');
+
+      // Route for serving private objects (with authentication required)
+      app.get('/objects/:objectPath(*)', async (req: any, res) => {
+        try {
+          const objectStorageService = new ObjectStorageService();
+          const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+          await objectStorageService.downloadObject(objectFile, res);
+        } catch (error) {
+          console.error('Error serving private object:', error);
+          if (error instanceof ObjectNotFoundError) {
+            return res.status(404).json({ error: 'File not found' });
+          }
+          return res.status(500).json({ error: 'Internal server error' });
+        }
+      });
+
+      // Route for serving public objects (no authentication needed)
+      app.get('/public-objects/:filePath(*)', async (req, res) => {
+        const filePath = req.params.filePath;
+        try {
+          const objectStorageService = new ObjectStorageService();
+          const file = await objectStorageService.searchPublicObject(filePath);
+          if (!file) {
+            return res.status(404).json({ error: 'File not found' });
+          }
+          await objectStorageService.downloadObject(file, res);
+        } catch (error) {
+          console.error('Error serving public object:', error);
+          return res.status(500).json({ error: 'Internal server error' });
+        }
+      });
+
+      log('✅ Object storage routes registered');
+    } catch (error) {
+      log(`❌ Object storage routes setup failed: ${error}`, 'error');
+    }
+
     // Register API routes FIRST to ensure they take precedence over static serving
     try {
       await registerRoutes(app);

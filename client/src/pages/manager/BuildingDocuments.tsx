@@ -21,6 +21,35 @@ import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Building, Calen
 import { Header } from "@/components/layout/header";
 import type { UploadResult } from "@uppy/core";
 
+// Utility function to convert raw object storage URLs to server routes
+function getDisplayableFileUrl(fileUrl: string): string {
+  if (!fileUrl) return '';
+  
+  // If it's already a proper server route, return as-is
+  if (fileUrl.startsWith('/objects/') || fileUrl.startsWith('/public-objects/')) {
+    return fileUrl;
+  }
+  
+  // If it's a Google Cloud Storage URL, convert to objects route
+  if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
+    // Extract the path part after the bucket name
+    const urlParts = fileUrl.split('/');
+    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com'));
+    if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
+      const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
+      return `/objects/${pathAfterBucket}`;
+    }
+  }
+  
+  // If it starts with /objects/, use as-is
+  if (fileUrl.startsWith('/objects/')) {
+    return fileUrl;
+  }
+  
+  // For other formats, try to use as objects route
+  return `/objects/${fileUrl.replace(/^\/+/, '')}`;
+}
+
 // Document categories
 const DOCUMENT_CATEGORIES = [
   { value: 'bylaw', label: 'Bylaws' },
@@ -731,13 +760,13 @@ export default function BuildingDocuments() {
                               <div className="border rounded-lg bg-gray-50">
                                 {selectedDocument.mimeType?.includes('pdf') ? (
                                   <iframe
-                                    src={selectedDocument.fileUrl}
+                                    src={getDisplayableFileUrl(selectedDocument.fileUrl)}
                                     className="w-full h-96 rounded-lg"
                                     title="Document Preview"
                                   />
                                 ) : selectedDocument.mimeType?.startsWith('image/') ? (
                                   <img
-                                    src={selectedDocument.fileUrl}
+                                    src={getDisplayableFileUrl(selectedDocument.fileUrl)}
                                     alt={selectedDocument.fileName || 'Document'}
                                     className="w-full max-h-96 object-contain rounded-lg"
                                   />
@@ -750,7 +779,7 @@ export default function BuildingDocuments() {
                                     </p>
                                     <Button
                                       onClick={() => {
-                                        window.open(selectedDocument.fileUrl!, '_blank');
+                                        window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
                                       }}
                                       variant="outline"
                                     >
@@ -765,7 +794,7 @@ export default function BuildingDocuments() {
                               <div className="flex gap-2">
                                 <Button
                                   onClick={() => {
-                                    window.open(selectedDocument.fileUrl!, '_blank');
+                                    window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
                                   }}
                                   variant="outline"
                                   className="flex-1"
@@ -776,7 +805,7 @@ export default function BuildingDocuments() {
                                 <Button
                                   onClick={() => {
                                     const link = document.createElement('a');
-                                    link.href = selectedDocument.fileUrl!;
+                                    link.href = getDisplayableFileUrl(selectedDocument.fileUrl);
                                     link.download = selectedDocument.fileName || 'document';
                                     link.click();
                                   }}
