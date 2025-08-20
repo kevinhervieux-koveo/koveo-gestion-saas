@@ -50,6 +50,134 @@ const documentFormSchema = z.object({
 
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
+// Edit Document Form Component
+interface EditDocumentFormProps {
+  document: BuildingDocument;
+  onSave: (updatedDocument: BuildingDocument) => void;
+  onCancel: () => void;
+}
+
+function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
+  const { toast } = useToast();
+  
+  const editForm = useForm<DocumentFormData>({
+    resolver: zodResolver(documentFormSchema),
+    defaultValues: {
+      name: document.name,
+      type: document.type as any,
+      dateReference: document.dateReference.split('T')[0], // Convert to YYYY-MM-DD format
+      buildingId: document.buildingId,
+    },
+  });
+
+  const updateDocumentMutation = useMutation({
+    mutationFn: async (data: DocumentFormData) => {
+      const response = await apiRequest('PUT', `/api/documents/${document.id}`, data);
+      return { response, data };
+    },
+    onSuccess: ({ response, data }: { response: any; data: DocumentFormData }) => {
+      const queryClient = useQueryClient();
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      // Create updated document object with the response data
+      const updatedDocument = {
+        ...document,
+        ...data,
+        ...response
+      };
+      onSave(updatedDocument);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update document. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = (data: DocumentFormData) => {
+    updateDocumentMutation.mutate(data);
+  };
+
+  return (
+    <Form {...editForm}>
+      <form onSubmit={editForm.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={editForm.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Document Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter document name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={editForm.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {DOCUMENT_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={editForm.control}
+          name="dateReference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Reference Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex gap-2 pt-4">
+          <Button
+            type="submit"
+            disabled={updateDocumentMutation.isPending}
+            className="flex-1"
+          >
+            {updateDocumentMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={updateDocumentMutation.isPending}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
 interface BuildingDocument {
   id: string;
   name: string;
@@ -581,154 +709,186 @@ export default function BuildingDocuments() {
 
               {/* View/Edit Document Dialog */}
               <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogContent className={isEditMode ? "sm:max-w-[500px] max-h-[90vh] overflow-y-auto" : "sm:max-w-[800px] max-h-[90vh] overflow-y-auto"}>
                   <DialogHeader>
                     <DialogTitle>
                       {isEditMode ? "Edit Document" : "View Document"}
                     </DialogTitle>
                     <DialogDescription>
-                      {isEditMode ? "Modify document details below." : "Document information and actions."}
+                      {isEditMode ? "Modify document details below." : selectedDocument?.name}
                     </DialogDescription>
                   </DialogHeader>
 
                   {selectedDocument && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Name</Label>
-                          <p className="text-sm text-gray-600">{selectedDocument.name}</p>
-                        </div>
-                        <div>
-                          <Label>Category</Label>
-                          <p className="text-sm text-gray-600">
-                            {DOCUMENT_CATEGORIES.find(c => c.value === selectedDocument.type)?.label}
-                          </p>
-                        </div>
-                        <div>
-                          <Label>Date Reference</Label>
-                          <p className="text-sm text-gray-600">
-                            {new Date(selectedDocument.dateReference).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <Label>Upload Date</Label>
-                          <p className="text-sm text-gray-600">
-                            {new Date(selectedDocument.uploadDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* File Information */}
-                      {selectedDocument.fileUrl && (
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                          <h4 className="font-medium mb-2">File Information</h4>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            {selectedDocument.fileName && (
-                              <div>
-                                <Label>File Name</Label>
-                                <p className="text-gray-600">{selectedDocument.fileName}</p>
+                      {!isEditMode ? (
+                        /* VIEW MODE */
+                        <>
+                          {/* Document Viewer */}
+                          {selectedDocument.fileUrl ? (
+                            <div className="space-y-4">
+                              {/* Document Preview */}
+                              <div className="border rounded-lg bg-gray-50">
+                                {selectedDocument.mimeType?.includes('pdf') ? (
+                                  <iframe
+                                    src={selectedDocument.fileUrl}
+                                    className="w-full h-96 rounded-lg"
+                                    title="Document Preview"
+                                  />
+                                ) : selectedDocument.mimeType?.startsWith('image/') ? (
+                                  <img
+                                    src={selectedDocument.fileUrl}
+                                    alt={selectedDocument.fileName || 'Document'}
+                                    className="w-full max-h-96 object-contain rounded-lg"
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center h-48 text-center p-4">
+                                    <FileText className="h-16 w-16 text-gray-400 mb-4" />
+                                    <h3 className="font-medium text-gray-900 mb-2">{selectedDocument.fileName}</h3>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                      {selectedDocument.mimeType} • {selectedDocument.fileSize ? (selectedDocument.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size'}
+                                    </p>
+                                    <Button
+                                      onClick={() => {
+                                        window.open(selectedDocument.fileUrl!, '_blank');
+                                      }}
+                                      variant="outline"
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Open in New Tab
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {selectedDocument.fileSize && (
-                              <div>
-                                <Label>File Size</Label>
-                                <p className="text-gray-600">
-                                  {(selectedDocument.fileSize / 1024 / 1024).toFixed(2)} MB
-                                </p>
+                              
+                              {/* Document Actions */}
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => {
+                                    window.open(selectedDocument.fileUrl!, '_blank');
+                                  }}
+                                  variant="outline"
+                                  className="flex-1"
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Open in New Tab
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    const link = document.createElement('a');
+                                    link.href = selectedDocument.fileUrl!;
+                                    link.download = selectedDocument.fileName || 'document';
+                                    link.click();
+                                  }}
+                                  variant="outline"
+                                  className="flex-1"
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download
+                                </Button>
                               </div>
-                            )}
-                            {selectedDocument.mimeType && (
-                              <div>
-                                <Label>File Type</Label>
-                                <p className="text-gray-600">{selectedDocument.mimeType}</p>
-                              </div>
-                            )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">No file attached</h3>
+                              <p className="text-gray-500 mb-4">This document doesn't have a file attached yet.</p>
+                              <ObjectUploader
+                                onGetUploadParameters={async () => {
+                                  const response = await fetch('/api/documents/upload-url', {
+                                    method: 'POST',
+                                    credentials: 'include'
+                                  });
+                                  const data = await response.json();
+                                  return { method: "PUT", url: data.uploadURL };
+                                }}
+                                onComplete={async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+                                  try {
+                                    const uploadedFile = result.successful[0];
+                                    if (uploadedFile?.uploadURL) {
+                                      await apiRequest('POST', `/api/documents/${selectedDocument.id}/upload`, {
+                                        fileUrl: uploadedFile.uploadURL,
+                                        fileName: uploadedFile.name,
+                                        fileSize: uploadedFile.size,
+                                        mimeType: uploadedFile.type
+                                      });
+                                      
+                                      toast({
+                                        title: "File uploaded successfully",
+                                        description: `${uploadedFile.name} has been uploaded to the document.`,
+                                      });
+                                      
+                                      // Refresh the documents list
+                                      const queryClient = useQueryClient();
+                                      await queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+                                      
+                                      // Update the selected document in the dialog
+                                      const updatedDocument = {
+                                        ...selectedDocument,
+                                        fileUrl: uploadedFile.uploadURL,
+                                        fileName: uploadedFile.name,
+                                        fileSize: uploadedFile.size,
+                                        mimeType: uploadedFile.type
+                                      };
+                                      setSelectedDocument(updatedDocument);
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: "Upload failed",
+                                      description: "Failed to upload file. Please try again.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                                buttonClassName="w-auto"
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload File
+                              </ObjectUploader>
+                            </div>
+                          )}
+                          
+                          {/* Document Info */}
+                          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                            <div>
+                              <Label className="text-xs text-gray-500">Category</Label>
+                              <p className="text-sm">{DOCUMENT_CATEGORIES.find(c => c.value === selectedDocument.type)?.label}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-500">Date Reference</Label>
+                              <p className="text-sm">{new Date(selectedDocument.dateReference).toLocaleDateString()}</p>
+                            </div>
                           </div>
-                        </div>
+                        </>
+                      ) : (
+                        /* EDIT MODE */
+                        <EditDocumentForm 
+                          document={selectedDocument}
+                          onSave={(updatedDocument) => {
+                            setSelectedDocument(updatedDocument);
+                            setIsEditMode(false);
+                            toast({
+                              title: "Document updated",
+                              description: "Document has been successfully updated.",
+                            });
+                          }}
+                          onCancel={() => setIsEditMode(false)}
+                        />
                       )}
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 pt-4 border-t">
-                        {selectedDocument.fileUrl ? (
+                      
+                      {/* Bottom Actions */}
+                      {!isEditMode && (
+                        <div className="flex gap-2 pt-4 border-t">
                           <Button
                             variant="outline"
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = selectedDocument.fileUrl!;
-                              link.download = selectedDocument.fileName || 'document';
-                              link.click();
-                            }}
+                            onClick={() => setIsEditMode(true)}
                             className="flex-1"
                           >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download File
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Document
                           </Button>
-                        ) : (
-                          <div className="flex-1">
-                            <ObjectUploader
-                              onGetUploadParameters={async () => {
-                                const response = await fetch('/api/documents/upload-url', {
-                                  method: 'POST',
-                                  credentials: 'include'
-                                });
-                                const data = await response.json();
-                                return { method: "PUT", url: data.uploadURL };
-                              }}
-                              onComplete={async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-                                try {
-                                  const uploadedFile = result.successful[0];
-                                  if (uploadedFile?.uploadURL) {
-                                    await apiRequest('POST', `/api/documents/${selectedDocument.id}/upload`, {
-                                      fileUrl: uploadedFile.uploadURL,
-                                      fileName: uploadedFile.name,
-                                      fileSize: uploadedFile.size,
-                                      mimeType: uploadedFile.type
-                                    });
-                                    
-                                    toast({
-                                      title: "File uploaded successfully",
-                                      description: `${uploadedFile.name} has been uploaded to the document.`,
-                                    });
-                                    
-                                    // Refresh the documents list
-                                    const queryClient = useQueryClient();
-                                    await queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-                                    
-                                    // Update the selected document in the dialog
-                                    const updatedDocument = {
-                                      ...selectedDocument,
-                                      fileUrl: uploadedFile.uploadURL,
-                                      fileName: uploadedFile.name,
-                                      fileSize: uploadedFile.size,
-                                      mimeType: uploadedFile.type
-                                    };
-                                    setSelectedDocument(updatedDocument);
-                                  }
-                                } catch (error) {
-                                  toast({
-                                    title: "Upload failed",
-                                    description: "Failed to upload file. Please try again.",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                              buttonClassName="w-full"
-                            >
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload File
-                            </ObjectUploader>
-                          </div>
-                        )}
-                        
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditMode(!isEditMode);
-                          }}
-                        >
-                          {isEditMode ? "Cancel Edit" : "Edit Document"}
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </DialogContent>
