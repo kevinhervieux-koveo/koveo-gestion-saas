@@ -694,7 +694,7 @@ export default function OwnerRoadmap() {
                                         </span>
                                         {getStatusBadge(feature.status)}
                                         {feature.priority && getPriorityBadge(feature.priority)}
-                                        {getDuplicateBadge(feature.id || feature.name)}
+                                        {getDuplicateBadge(feature.id || feature.name, undefined)}
                                         {items.length > 0 && (
                                           <Badge className='bg-purple-100 text-purple-800 hover:bg-purple-100 ml-2 text-xs'>
                                             <ListTodo className='w-3 h-3 mr-1' />
@@ -746,9 +746,9 @@ export default function OwnerRoadmap() {
                                           />
                                         </div>
                                       </div>
-                                      {getDuplicateNote(feature.id || feature.name) && (
+                                      {getDuplicateNote(feature.id || feature.name, undefined) && (
                                         <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800'>
-                                          {getDuplicateNote(feature.id || feature.name)}
+                                          {getDuplicateNote(feature.id || feature.name, undefined)}
                                         </div>
                                       )}
                                     </div>
@@ -782,9 +782,9 @@ export default function OwnerRoadmap() {
                                                   <div className='flex items-center space-x-2'>
                                                     <span className='text-sm font-medium text-gray-900'>{item.title}</span>
                                                     {getActionableItemStatusBadge(item.status)}
-                                                    {item.estimatedEffort && (
+                                                    {(item as any).estimatedEffort && (
                                                       <Badge variant='outline' className='text-xs'>
-                                                        {item.estimatedEffort}
+                                                        {(item as any).estimatedEffort}
                                                       </Badge>
                                                     )}
                                                   </div>
@@ -807,25 +807,25 @@ export default function OwnerRoadmap() {
                                                   </div>
                                                 </div>
                                                 <p className='text-xs text-gray-600 mt-1'>{item.description}</p>
-                                                {item.technicalDetails && (
+                                                {(item as any).technicalDetails && (
                                                   <p className='text-xs text-gray-500 mt-1'>
-                                                    <strong>Technical:</strong> {item.technicalDetails}
+                                                    <strong>Technical:</strong> {(item as any).technicalDetails}
                                                   </p>
                                                 )}
-                                                {item.implementationPrompt && (
+                                                {(item as any).implementationPrompt && (
                                                   <div className='mt-2 p-2 bg-blue-50 border border-blue-200 rounded'>
                                                     <div className='flex items-start justify-between'>
                                                       <div className='flex-1'>
                                                         <p className='text-xs font-medium text-blue-900 mb-1'>Replit AI Agent Prompt:</p>
                                                         <p className='text-xs text-blue-800 whitespace-pre-wrap font-mono'>
-                                                          {item.implementationPrompt}
+                                                          {(item as any).implementationPrompt}
                                                         </p>
                                                       </div>
                                                       <Button
                                                         variant='ghost'
                                                         size='sm'
                                                         className='ml-2 h-6 px-2'
-                                                        onClick={() => handleCopyPrompt(item.implementationPrompt || '')}
+                                                        onClick={() => handleCopyPrompt((item as any).implementationPrompt || '')}
                                                       >
                                                         <Copy className='w-3 h-3 mr-1' />
                                                         Copy

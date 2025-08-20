@@ -149,12 +149,10 @@ export default function Buildings() {
             </div>
             
             {user?.role === 'admin' && (
-              <DialogTrigger asChild>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Building
-                </Button>
-              </DialogTrigger>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Building
+              </Button>
             )}
           </div>
 
