@@ -30,6 +30,10 @@ const createDocumentSchema = insertDocumentSchema.extend({
   isVisibleToTenants: z.boolean().default(false),
 });
 
+/**
+ *
+ * @param app
+ */
 export function registerDocumentRoutes(app: Express): void {
   
   // Get all documents for the authenticated user

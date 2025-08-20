@@ -9,6 +9,9 @@ class EmailService {
   private fromEmail: string = 'noreply@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
 
+  /**
+   *
+   */
   constructor() {
     if (!process.env.SENDGRID_API_KEY) {
       throw new Error("SENDGRID_API_KEY environment variable must be set");
@@ -21,6 +24,10 @@ class EmailService {
   /**
    * Send password reset email in French or English.
    * Complies with Quebec Law 25 privacy requirements.
+   * @param to
+   * @param userName
+   * @param resetUrl
+   * @param language
    */
   async sendPasswordResetEmail(
     to: string,
@@ -207,6 +214,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
 
   /**
    * Send test email to verify SendGrid configuration.
+   * @param to
    */
   async sendTestEmail(to: string): Promise<boolean> {
     try {

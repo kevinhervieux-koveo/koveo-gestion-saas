@@ -808,7 +808,13 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
 });
 
 // Document types
+/**
+ *
+ */
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+/**
+ *
+ */
 export type Document = typeof documents.$inferSelect;
 
 export const insertPillarSchema = createInsertSchema(developmentPillars).pick({

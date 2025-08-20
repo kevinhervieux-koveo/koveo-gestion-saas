@@ -23,7 +23,13 @@ export const objectStorageClient = new Storage({
   projectId: "",
 });
 
+/**
+ *
+ */
 export class ObjectNotFoundError extends Error {
+  /**
+   *
+   */
   constructor() {
     super("Object not found");
     this.name = "ObjectNotFoundError";
@@ -32,10 +38,19 @@ export class ObjectNotFoundError extends Error {
 }
 
 // The object storage service is used to interact with the object storage service.
+/**
+ *
+ */
 export class ObjectStorageService {
+  /**
+   *
+   */
   constructor() {}
 
   // Gets the public object search paths.
+  /**
+   *
+   */
   getPublicObjectSearchPaths(): Array<string> {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
     const paths = Array.from(
@@ -56,6 +71,9 @@ export class ObjectStorageService {
   }
 
   // Gets the private object directory.
+  /**
+   *
+   */
   getPrivateObjectDir(): string {
     const dir = process.env.PRIVATE_OBJECT_DIR || "";
     if (!dir) {
@@ -68,6 +86,10 @@ export class ObjectStorageService {
   }
 
   // Search for a public object from the search paths.
+  /**
+   *
+   * @param filePath
+   */
   async searchPublicObject(filePath: string): Promise<File | null> {
     for (const searchPath of this.getPublicObjectSearchPaths()) {
       const fullPath = `${searchPath}/${filePath}`;
@@ -88,6 +110,12 @@ export class ObjectStorageService {
   }
 
   // Downloads an object to the response.
+  /**
+   *
+   * @param file
+   * @param res
+   * @param cacheTtlSec
+   */
   async downloadObject(file: File, res: Response, cacheTtlSec: number = 3600) {
     try {
       // Get file metadata
@@ -120,6 +148,9 @@ export class ObjectStorageService {
   }
 
   // Gets the upload URL for an object entity.
+  /**
+   *
+   */
   async getObjectEntityUploadURL(): Promise<string> {
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
@@ -144,6 +175,10 @@ export class ObjectStorageService {
   }
 
   // Gets the object entity file from the object path.
+  /**
+   *
+   * @param objectPath
+   */
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
@@ -170,6 +205,10 @@ export class ObjectStorageService {
     return objectFile;
   }
 
+  /**
+   *
+   * @param rawPath
+   */
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;
@@ -194,12 +233,20 @@ export class ObjectStorageService {
   }
 
   // Sets the object ACL policy and return the normalized path.
+  /**
+   *
+   * @param rawPath
+   */
   async setObjectEntityPath(rawPath: string): Promise<string> {
     const normalizedPath = this.normalizeObjectEntityPath(rawPath);
     return normalizedPath;
   }
 }
 
+/**
+ *
+ * @param path
+ */
 function parseObjectPath(path: string): {
   bucketName: string;
   objectName: string;
@@ -221,6 +268,14 @@ function parseObjectPath(path: string): {
   };
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.bucketName
+ * @param root0.objectName
+ * @param root0.method
+ * @param root0.ttlSec
+ */
 async function signObjectURL({
   bucketName,
   objectName,

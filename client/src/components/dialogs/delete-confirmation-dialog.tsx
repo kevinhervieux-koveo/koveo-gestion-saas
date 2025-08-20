@@ -20,6 +20,9 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
+/**
+ *
+ */
 interface DeletionImpact {
   organization?: { id: string; name: string };
   building?: { id: string; name: string };
@@ -29,6 +32,9 @@ interface DeletionImpact {
   potentialOrphanedUsers: number;
 }
 
+/**
+ *
+ */
 interface DeleteConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +47,15 @@ interface DeleteConfirmationDialogProps {
 
 /**
  * Delete Confirmation Dialog with Impact Analysis
- * Shows exactly what will be deleted when cascading delete is performed
+ * Shows exactly what will be deleted when cascading delete is performed.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.entityType
+ * @param root0.entityId
+ * @param root0.entityName
+ * @param root0.onConfirm
+ * @param root0.isDeleting
  */
 export function DeleteConfirmationDialog({
   open,
@@ -90,9 +104,9 @@ export function DeleteConfirmationDialog({
   };
 
   const getTotalItemsToDelete = () => {
-    if (!impact) return 0;
+    if (!impact) {return 0;}
     let total = 1; // The entity itself
-    if (impact.buildings) total += impact.buildings;
+    if (impact.buildings) {total += impact.buildings;}
     total += impact.residences;
     total += impact.documents;
     total += impact.potentialOrphanedUsers;

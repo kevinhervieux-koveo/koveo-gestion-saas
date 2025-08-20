@@ -77,9 +77,9 @@ export function QuebecPrivacyConsentStep({
     setFormData(prev => ({
       ...prev,
       dataCollectionConsent: value, // Essential consent (required)
-      marketingConsent: value,      // Optional consent
-      analyticsConsent: value,      // Optional consent  
-      thirdPartyConsent: value,     // Optional consent
+      marketingConsent: value, // Optional consent
+      analyticsConsent: value, // Optional consent  
+      thirdPartyConsent: value, // Optional consent
       consentDate: new Date().toISOString()
     }));
   };

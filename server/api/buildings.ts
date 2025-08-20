@@ -799,7 +799,7 @@ export function registerBuildingRoutes(app: Express): void {
 
   /**
    * GET /api/admin/buildings/:id/deletion-impact - Get deletion impact analysis
-   * Shows what will be deleted when removing a building
+   * Shows what will be deleted when removing a building.
    */
   app.get('/api/admin/buildings/:id/deletion-impact', requireAuth, async (req: any, res) => {
     try {
@@ -883,7 +883,7 @@ export function registerBuildingRoutes(app: Express): void {
 
   /**
    * DELETE /api/admin/buildings/:id/cascade - Cascade delete a building
-   * Replaces the simple delete with cascading delete that removes residences, documents, and orphaned users
+   * Replaces the simple delete with cascading delete that removes residences, documents, and orphaned users.
    */
   app.delete('/api/admin/buildings/:id/cascade', requireAuth, async (req: any, res) => {
     try {

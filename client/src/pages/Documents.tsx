@@ -44,8 +44,14 @@ const documentFormSchema = z.object({
   isVisibleToTenants: z.boolean(),
 });
 
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
+/**
+ *
+ */
 interface Document {
   id: string;
   title: string;
@@ -64,30 +70,45 @@ interface Document {
   updatedAt: string;
 }
 
+/**
+ *
+ */
 interface User {
   id: string;
   role: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Organization {
   id: string;
   name: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");

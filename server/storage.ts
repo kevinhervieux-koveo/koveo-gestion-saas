@@ -2330,7 +2330,7 @@ export class MemStorage implements IStorage {
     
     return allDocuments.filter(doc => {
       // Admin and Manager can see all documents
-      if (userRole === 'admin' || userRole === 'manager') return true;
+      if (userRole === 'admin' || userRole === 'manager') {return true;}
       
       // Resident can see building and residence documents
       if (userRole === 'resident') {
@@ -2357,7 +2357,7 @@ export class MemStorage implements IStorage {
     residenceIds?: string[]
   ): Promise<Document | undefined> {
     const document = this.documents.get(id);
-    if (!document) return undefined;
+    if (!document) {return undefined;}
     
     const accessibleDocs = await this.getDocumentsForUser(userId, userRole, organizationId, residenceIds);
     return accessibleDocs.find(doc => doc.id === id);
@@ -2389,7 +2389,7 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<Document | undefined> {
     const document = this.documents.get(id);
-    if (!document) return undefined;
+    if (!document) {return undefined;}
     
     // Admin and Manager can edit any document
     if (userRole === 'admin' || userRole === 'manager') {
@@ -2417,7 +2417,7 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<boolean> {
     const document = this.documents.get(id);
-    if (!document) return false;
+    if (!document) {return false;}
     
     // Admin and Manager can delete any document
     if (userRole === 'admin' || userRole === 'manager') {
@@ -2451,7 +2451,7 @@ export class MemStorage implements IStorage {
 
   async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
     const token = this.passwordResetTokens.get(tokenId);
-    if (!token) return undefined;
+    if (!token) {return undefined;}
 
     const updatedToken = {
       ...token,

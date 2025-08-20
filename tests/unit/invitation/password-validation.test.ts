@@ -3,9 +3,7 @@ import {
   getPasswordCriteria,
   getPasswordStrengthLabel,
   getPasswordStrengthColor,
-  getPasswordStrengthBarColor,
-  PasswordStrengthResult,
-  PasswordCriteria
+  getPasswordStrengthBarColor
 } from '../../../client/src/utils/password-validation';
 
 describe('Password Validation System', () => {

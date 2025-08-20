@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { render } from '@testing-library/react';
-import { ReactWrapper } from 'enzyme';
+import React from 'react';
 
 /**
  * Quebec French Language Validation Test Suite.
@@ -92,14 +92,15 @@ const QUEBEC_LEGAL_TERMS = {
 
 /**
  * Extracts all visible text from a rendered React component.
- * @param container
+ * @param container - The HTML element to extract text from
+ * @returns Array of visible text strings
  */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
   
   /**
-   *
-   * @param node
+   * Traverses DOM nodes to extract text content.
+   * @param node - The DOM node to traverse
    */
   function traverse(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -136,8 +137,9 @@ function extractVisibleText(container: HTMLElement): string[] {
 
 /**
  * Validates text against language rules.
- * @param text
- * @param context
+ * @param text - The text to validate
+ * @param context - Context information for the validation
+ * @returns Array of validation violations
  */
 function validateText(text: string, context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -146,7 +148,13 @@ function validateText(text: string, context: string = ''): Array<{
   severity: 'error' | 'warning';
   context: string;
 }> {
-  const violations: Array<any> = [];
+  const violations: Array<{
+    type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
+    term: string;
+    suggestion?: string;
+    severity: 'error' | 'warning';
+    context: string;
+  }> = [];
   const lowerText = text.toLowerCase();
   
   // Check for anglicisms

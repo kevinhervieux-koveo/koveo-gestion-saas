@@ -60,14 +60,14 @@ interface FilterSortProps {
  * @param props.onUpdateFilter - Callback to update an existing filter.
  * @param props.onClearFilters - Callback to clear all active filters.
  * @param props.onSetSort - Callback to set sort configuration.
- * @param props.onToggleSort - Callback to toggle sort direction for a field
- * @param props.onSetSearch - Callback to update search query
- * @param props.onApplyPreset - Optional callback to apply filter presets
- * @param props.activeFilterCount - Number of currently active filters
- * @param props.resultCount - Number of filtered results
- * @param props.totalCount - Total number of items before filtering
- * @param props.className - Optional CSS class name
- * @returns JSX element for the filter sort interface
+ * @param props.onToggleSort - Callback to toggle sort direction for a field.
+ * @param props.onSetSearch - Callback to update search query.
+ * @param props.onApplyPreset - Optional callback to apply filter presets.
+ * @param props.activeFilterCount - Number of currently active filters.
+ * @param props.resultCount - Number of filtered results.
+ * @param props.totalCount - Total number of items before filtering.
+ * @param props.className - Optional CSS class name.
+ * @returns JSX element for the filter sort interface.
  */
 export function FilterSort({
   config,

@@ -55,6 +55,9 @@ const organizationFormSchema = z.object({
   registrationNumber: z.string().optional(),
 });
 
+/**
+ *
+ */
 type OrganizationFormData = z.infer<typeof organizationFormSchema>;
 
 /**

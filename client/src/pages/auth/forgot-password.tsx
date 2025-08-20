@@ -15,8 +15,14 @@ const forgotPasswordSchema = z.object({
   email: z.string().email('Veuillez entrer une adresse e-mail valide'),
 });
 
+/**
+ *
+ */
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
+/**
+ *
+ */
 export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);

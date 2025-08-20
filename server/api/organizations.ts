@@ -24,7 +24,7 @@ import { requireAuth } from '../auth';
 export function registerOrganizationRoutes(app: Express): void {
   /**
    * GET /api/organizations - Retrieves organizations accessible to the current user
-   * Returns array of organizations directly for frontend components
+   * Returns array of organizations directly for frontend components.
    */
   app.get('/api/organizations', requireAuth, async (req: any, res) => {
     try {
@@ -165,7 +165,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
   /**
    * POST /api/organizations - Create a new organization
-   * Allows authorized users to create organizations
+   * Allows authorized users to create organizations.
    */
   app.post('/api/organizations', requireAuth, async (req: any, res) => {
     try {
@@ -230,7 +230,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
   /**
    * GET /api/organizations/:id/deletion-impact - Get deletion impact analysis
-   * Shows what will be deleted when removing an organization
+   * Shows what will be deleted when removing an organization.
    */
   app.get('/api/organizations/:id/deletion-impact', requireAuth, async (req: any, res) => {
     try {
@@ -373,7 +373,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
   /**
    * DELETE /api/organizations/:id - Cascade delete an organization
-   * Deletes organization and all related entities (buildings, residences, documents, orphaned users)
+   * Deletes organization and all related entities (buildings, residences, documents, orphaned users).
    */
   app.delete('/api/organizations/:id', requireAuth, async (req: any, res) => {
     try {

@@ -1683,6 +1683,10 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   // Password reset operations
+  /**
+   *
+   * @param token
+   */
   async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
     const result = await db.insert(schema.passwordResetTokens)
       .values(token)
@@ -1693,6 +1697,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   *
+   * @param tokenValue
+   */
   async getPasswordResetToken(tokenValue: string): Promise<PasswordResetToken | undefined> {
     return this.withOptimizations(
       'getPasswordResetToken',
@@ -1708,6 +1716,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     );
   }
 
+  /**
+   *
+   * @param tokenId
+   */
   async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
     const result = await db.update(schema.passwordResetTokens)
       .set({
@@ -1722,6 +1734,9 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   *
+   */
   async cleanupExpiredPasswordResetTokens(): Promise<number> {
     const result = await db.delete(schema.passwordResetTokens)
       .where(lte(schema.passwordResetTokens.expiresAt, new Date()))

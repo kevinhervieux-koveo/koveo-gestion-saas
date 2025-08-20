@@ -23,8 +23,14 @@ const resetPasswordSchema = z.object({
   path: ['confirmPassword'],
 });
 
+/**
+ *
+ */
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
+/**
+ *
+ */
 export default function ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
