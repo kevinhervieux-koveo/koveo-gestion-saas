@@ -465,18 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // GET /api/invitations - List invitations
     app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: any, res: any) => {
       try {
-        const invitationList = await db.select({
-          id: invitations.id,
-          email: invitations.email,
-          role: invitations.role,
-          status: invitations.status,
-          organizationId: invitations.organizationId,
-          buildingId: invitations.buildingId,
-          invitedByUserId: invitations.invitedByUserId,
-          createdAt: invitations.createdAt,
-          expiresAt: invitations.expiresAt,
-          personalMessage: invitations.personalMessage
-        }).from(invitations);
+        const invitationList = await db.select().from(invitations);
         res.json(invitationList);
       } catch (error) {
         console.error('Error fetching invitations:', error);

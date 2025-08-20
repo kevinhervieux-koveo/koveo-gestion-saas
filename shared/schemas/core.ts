@@ -8,6 +8,7 @@ import {
   pgEnum,
   boolean,
   date,
+  integer,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -110,25 +111,32 @@ export const userOrganizations = pgTable('user_organizations', {
  * Supports role-based invitations with expiration and security features.
  */
 export const invitations = pgTable('invitations', {
-  id: uuid('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: uuid('organization_id')
-    .notNull()
-    .references(() => organizations.id),
-  residenceId: uuid('residence_id'), // Will reference residences.id when available
+  organizationId: text('organization_id'),
+  buildingId: text('building_id'),
   email: text('email').notNull(),
-  role: userRoleEnum('role').notNull(),
   token: text('token').notNull().unique(),
+  role: userRoleEnum('role').notNull(),
   status: invitationStatusEnum('status').notNull().default('pending'),
-  invitedBy: uuid('invited_by')
-    .notNull()
-    .references(() => users.id),
+  invitedBy: text('invited_by_user_id')
+    .notNull(),
   expiresAt: timestamp('expires_at').notNull(),
+  tokenHash: text('token_hash').notNull(),
+  usageCount: integer('usage_count').notNull().default(0),
+  maxUsageCount: integer('max_usage_count').notNull().default(1),
+  personalMessage: text('personal_message'),
+  invitationContext: text('invitation_context', { mode: 'json' }),
+  securityLevel: text('security_level'),
+  requires2fa: boolean('requires_2fa').notNull().default(false),
   acceptedAt: timestamp('accepted_at'),
-  acceptedBy: uuid('accepted_by').references(() => users.id),
+  acceptedBy: text('accepted_by_user_id'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  lastAccessedAt: timestamp('last_accessed_at'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
 });
 
 /**
