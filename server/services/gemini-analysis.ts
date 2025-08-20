@@ -1,7 +1,8 @@
 import type { Feature, ActionableItem } from '@shared/schema';
 
 /**
- *
+ * Result structure for AI feature analysis containing actionable implementation steps.
+ * Used by Gemini AI service to return structured feature breakdowns.
  */
 interface AnalysisResult {
   summary: string;
@@ -19,9 +20,29 @@ interface AnalysisResult {
 }
 
 /**
- *
- * @param feature
- * @param documentationContext
+ * Analyzes a feature request using Google's Gemini AI to generate implementation plan.
+ * Provides detailed actionable items, technical recommendations, and effort estimates
+ * specific to the Koveo Gestion property management platform architecture.
+ * 
+ * @param {Feature} feature - The feature object containing name, description, priority, and other details
+ * @param {string} documentationContext - System architecture and technical context for AI analysis
+ * @returns {Promise<AnalysisResult>} Promise resolving to structured analysis with actionable items
+ * 
+ * @throws {Error} When GEMINI_API_KEY environment variable is not configured
+ * @throws {Error} When Gemini API request fails or returns invalid response
+ * 
+ * @example
+ * ```typescript
+ * const feature = {
+ *   name: "User Authentication",
+ *   description: "Implement secure login system",
+ *   category: "security",
+ *   priority: "high"
+ * };
+ * const context = await getDocumentationContext();
+ * const analysis = await analyzeFeatureWithGemini(feature, context);
+ * console.log(analysis.actionableItems.length); // Number of implementation steps
+ * ```
  */
 export async function analyzeFeatureWithGemini(
   feature: Feature,
@@ -183,9 +204,20 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
 }
 
 /**
- *
- * @param featureId
- * @param analysisResult
+ * Transforms AI-generated actionable items into database-ready format.
+ * Maps Gemini analysis results to the ActionableItem schema structure,
+ * setting appropriate defaults and order indices for persistence.
+ * 
+ * @param {string} featureId - UUID of the feature these actionable items belong to
+ * @param {AnalysisResult} analysisResult - Structured analysis result from Gemini AI
+ * @returns {Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[]} Array of database-ready actionable items
+ * 
+ * @example
+ * ```typescript
+ * const analysis = await analyzeFeatureWithGemini(feature, context);
+ * const dbItems = formatActionableItemsForDatabase(feature.id, analysis);
+ * await storage.createActionableItems(dbItems);
+ * ```
  */
 export function formatActionableItemsForDatabase(
   featureId: string,
@@ -206,7 +238,23 @@ export function formatActionableItemsForDatabase(
 }
 
 /**
- *
+ * Retrieves comprehensive system documentation context for AI feature analysis.
+ * Provides detailed information about Koveo Gestion's architecture, patterns,
+ * technologies, and Quebec Law 25 compliance requirements to guide AI analysis.
+ * 
+ * @returns {Promise<string>} Promise resolving to formatted documentation string containing:
+ *   - Technology stack details (React, Express, PostgreSQL, etc.)
+ *   - Database schema overview and key entities
+ *   - API patterns and security considerations
+ *   - UI/UX guidelines and accessibility requirements
+ *   - Quebec regulatory compliance requirements
+ * 
+ * @example
+ * ```typescript
+ * const context = await getDocumentationContext();
+ * const analysis = await analyzeFeatureWithGemini(feature, context);
+ * // Context ensures AI suggestions align with system architecture
+ * ```
  */
 export async function getDocumentationContext(): Promise<string> {
   // For now, return a summary of the system architecture

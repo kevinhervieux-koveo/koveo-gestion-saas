@@ -10,7 +10,16 @@ class EmailService {
   private fromName: string = 'Koveo Gestion';
 
   /**
-   *
+   * Initializes the EmailService with SendGrid configuration.
+   * Validates that the SENDGRID_API_KEY environment variable is set.
+   * 
+   * @throws {Error} When SENDGRID_API_KEY environment variable is not set
+   * 
+   * @example
+   * ```typescript
+   * const emailService = new EmailService();
+   * await emailService.sendPasswordResetEmail('user@example.com', 'John', 'https://reset-url');
+   * ```
    */
   constructor() {
     if (!process.env.SENDGRID_API_KEY) {
@@ -22,12 +31,28 @@ class EmailService {
   }
 
   /**
-   * Send password reset email in French or English.
-   * Complies with Quebec Law 25 privacy requirements.
-   * @param to
-   * @param userName
-   * @param resetUrl
-   * @param language
+   * Sends password reset email in French or English with Quebec Law 25 compliance.
+   * Uses professional templates with security warnings and privacy disclaimers.
+   * Link tracking is disabled for direct URL access as required by security protocols.
+   * 
+   * @param {string} to - Recipient email address
+   * @param {string} userName - User's display name for personalization
+   * @param {string} resetUrl - Complete password reset URL with token
+   * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec)
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully
+   * 
+   * @throws {Error} When SendGrid API fails or invalid parameters provided
+   * 
+   * @example
+   * ```typescript
+   * const emailService = new EmailService();
+   * const success = await emailService.sendPasswordResetEmail(
+   *   'user@example.com',
+   *   'Jean Dupont',
+   *   'https://app.koveo.com/reset-password?token=abc123',
+   *   'fr'
+   * );
+   * ```
    */
   async sendPasswordResetEmail(
     to: string,
@@ -213,8 +238,20 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
   }
 
   /**
-   * Send test email to verify SendGrid configuration.
-   * @param to
+   * Sends a test email to verify SendGrid configuration and connectivity.
+   * Used for troubleshooting email delivery issues and validating API setup.
+   * 
+   * @param {string} to - Recipient email address for the test email
+   * @returns {Promise<boolean>} Promise resolving to true if test email sent successfully
+   * 
+   * @example
+   * ```typescript
+   * const emailService = new EmailService();
+   * const success = await emailService.sendTestEmail('admin@example.com');
+   * if (success) {
+   *   console.log('SendGrid configuration is working');
+   * }
+   * ```
    */
   async sendTestEmail(to: string): Promise<boolean> {
     try {
