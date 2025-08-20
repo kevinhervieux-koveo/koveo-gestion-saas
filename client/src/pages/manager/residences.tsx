@@ -359,7 +359,7 @@ export default function Residences() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className='flex justify-center items-center gap-2 mt-6'>
+            <div className='flex justify-center items-center gap-4 mt-6'>
               <Button
                 variant='outline'
                 size='sm'
@@ -369,18 +369,30 @@ export default function Residences() {
                 Previous
               </Button>
               
-              <div className='flex items-center gap-1'>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size='sm'
-                    onClick={() => setCurrentPage(page)}
-                    className='w-8 h-8 p-0'
-                  >
-                    {page}
-                  </Button>
-                ))}
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-gray-600'>Page</span>
+                <Input
+                  type='number'
+                  min='1'
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const page = parseInt(e.target.value);
+                    if (page >= 1 && page <= totalPages) {
+                      setCurrentPage(page);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const page = parseInt(e.target.value);
+                    if (isNaN(page) || page < 1) {
+                      setCurrentPage(1);
+                    } else if (page > totalPages) {
+                      setCurrentPage(totalPages);
+                    }
+                  }}
+                  className='w-16 text-center'
+                />
+                <span className='text-sm text-gray-600'>of {totalPages}</span>
               </div>
               
               <Button
@@ -392,7 +404,7 @@ export default function Residences() {
                 Next
               </Button>
               
-              <div className='ml-4 text-sm text-gray-600'>
+              <div className='text-sm text-gray-600'>
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} residences
               </div>
             </div>
