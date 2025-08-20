@@ -239,6 +239,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     log(`❌ Features and actionable items routes failed: ${error}`, 'error');
   }
+
+  // Register quality metrics API route
+  try {
+    app.get('/api/quality-metrics', requireAuth, async (req: any, res: any) => {
+      try {
+        // Generate mock quality metrics data that matches the expected format
+        const metrics = {
+          coverage: "85%",
+          codeQuality: "A",
+          securityIssues: "2",
+          buildTime: "1.2s",
+          translationCoverage: "92%",
+          responseTime: "120ms",
+          memoryUsage: "45MB",
+          bundleSize: "2.1MB", 
+          dbQueryTime: "15ms",
+          pageLoadTime: "1.8s"
+        };
+        
+        res.json(metrics);
+      } catch (error) {
+        console.error('Error fetching quality metrics:', error);
+        res.status(500).json({ message: 'Failed to fetch quality metrics' });
+      }
+    });
+    
+    log('✅ Quality metrics routes registered');
+  } catch (error) {
+    log(`❌ Quality metrics routes failed: ${error}`, 'error');
+  }
   
   // Register invitation routes
   try {
