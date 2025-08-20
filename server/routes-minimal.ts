@@ -17,7 +17,7 @@ import { hashPassword } from './auth';
 import { storage } from './storage';
 
 // Import required tables from schema
-const { invitations, users: schemaUsers, organizations, buildings, residences, invitationAuditLog } = schema;
+const { invitations, users: schemaUsers, organizations, buildings, residences } = schema;
 
 // Initialize email service
 const emailService = new EmailService();
@@ -73,16 +73,17 @@ function rateLimitInvitations(limit: number) {
   };
 }
 
-// Audit logging function
+// Audit logging function - simplified version
 /**
- *
- * @param invitationId
- * @param action
- * @param performedBy
- * @param req
- * @param previousStatus
- * @param newStatus
- * @param details
+ * Creates an audit log entry for invitation actions.
+ * 
+ * @param {string} invitationId - The invitation ID to log
+ * @param {string} action - The action performed
+ * @param {string} [performedBy] - User who performed the action
+ * @param {any} [req] - Express request object for IP/user agent
+ * @param {string} [previousStatus] - Previous invitation status
+ * @param {string} [newStatus] - New invitation status
+ * @param {any} [details] - Additional details
  */
 async function createInvitationAuditLog(
   invitationId: string,
@@ -94,15 +95,17 @@ async function createInvitationAuditLog(
   details?: any
 ) {
   try {
-    await db.insert(invitationAuditLog).values({
+    // Log audit information to console for now
+    console.log('Invitation audit log:', {
       invitationId,
       action,
       performedBy,
       ipAddress: req?.ip || req?.connection?.remoteAddress,
       userAgent: req?.get('User-Agent'),
       details,
-      previousStatus: previousStatus as any,
-      newStatus: newStatus as any,
+      previousStatus,
+      newStatus,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Failed to create audit log:', error);
