@@ -1,0 +1,36 @@
+queryClient.ts:32  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/pillars/suggestions/eaf273df-45fa-46fe-9475-b9b961bcbfc2/complete 403 (Forbidden)
+apiRequest @ queryClient.ts:32
+mutationFn @ suggestions.tsx:88
+fn @ @tanstack_react-query.js?v=d690c398:1197
+run @ @tanstack_react-query.js?v=d690c398:491
+start @ @tanstack_react-query.js?v=d690c398:533
+execute @ @tanstack_react-query.js?v=d690c398:1232
+await in execute
+mutate @ @tanstack_react-query.js?v=d690c398:2637
+(anonymous) @ @tanstack_react-query.js?v=d690c398:3351
+onClick @ suggestions.tsx:295
+executeDispatch @ react-dom_client.js?v=d690c398:11736
+runWithFiberInDEV @ react-dom_client.js?v=d690c398:1485
+processDispatchQueue @ react-dom_client.js?v=d690c398:11772
+(anonymous) @ react-dom_client.js?v=d690c398:12182
+batchedUpdates$1 @ react-dom_client.js?v=d690c398:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=d690c398:11877
+dispatchEvent @ react-dom_client.js?v=d690c398:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=d690c398:14773
+queryClient.ts:105 Mutation error: Error: 403: {"message":"Insufficient permissions","code":"PERMISSION_DENIED","required":"delete:improvement_suggestion","userRole":"admin","details":"User with role 'admin' does not have permission 'delete:improvement_suggestion'"}
+    at throwIfResNotOk (queryClient.ts:13:11)
+    at async apiRequest (queryClient.ts:39:3)
+onError @ queryClient.ts:105
+execute @ @tanstack_react-query.js?v=d690c398:1252
+await in execute
+mutate @ @tanstack_react-query.js?v=d690c398:2637
+(anonymous) @ @tanstack_react-query.js?v=d690c398:3351
+onClick @ suggestions.tsx:295
+executeDispatch @ react-dom_client.js?v=d690c398:11736
+runWithFiberInDEV @ react-dom_client.js?v=d690c398:1485
+processDispatchQueue @ react-dom_client.js?v=d690c398:11772
+(anonymous) @ react-dom_client.js?v=d690c398:12182
+batchedUpdates$1 @ react-dom_client.js?v=d690c398:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=d690c398:11877
+dispatchEvent @ react-dom_client.js?v=d690c398:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=d690c398:14773

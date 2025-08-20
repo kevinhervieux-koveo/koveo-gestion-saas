@@ -152,6 +152,81 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// Permissions enums
+export const resourceTypeEnum = pgEnum('resource_type', [
+  'user',
+  'organization', 
+  'building',
+  'residence',
+  'bill',
+  'budget',
+  'maintenance_request',
+  'document',
+  'audit_log',
+  'system_settings',
+  'development_pillar',
+  'quality_metric',
+  'feature',
+  'actionable_item',
+  'improvement_suggestion'
+]);
+
+export const permissionActionEnum = pgEnum('permission_action', [
+  'read',
+  'create', 
+  'update',
+  'delete',
+  'manage',
+  'approve',
+  'assign',
+  'share',
+  'export',
+  'backup',
+  'restore'
+]);
+
+// Permissions tables
+export const permissions = pgTable('permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  description: text('description'),
+  resourceType: resourceTypeEnum('resource_type').notNull(),
+  action: permissionActionEnum('permission_action').notNull(),
+  conditions: text('conditions', { mode: 'json' }),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const rolePermissions = pgTable('role_permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  role: userRoleEnum('role').notNull(),
+  permissionId: uuid('permission_id')
+    .notNull()
+    .references(() => permissions.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const userPermissions = pgTable('user_permissions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  permissionId: uuid('permission_id')
+    .notNull()
+    .references(() => permissions.id),
+  granted: boolean('granted').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -204,6 +279,27 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   userAgent: true,
 });
 
+export const insertPermissionSchema = createInsertSchema(permissions).pick({
+  name: true,
+  displayName: true,
+  description: true,
+  resourceType: true,
+  action: true,
+  conditions: true,
+  isActive: true,
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).pick({
+  role: true,
+  permissionId: true,
+});
+
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).pick({
+  userId: true,
+  permissionId: true,
+  granted: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -219,6 +315,15 @@ export type Invitation = typeof invitations.$inferSelect;
 
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type Permission = typeof permissions.$inferSelect;
+
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+
+export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+export type UserPermission = typeof userPermissions.$inferSelect;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

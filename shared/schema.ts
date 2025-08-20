@@ -46,6 +46,18 @@ export type {
   InsertNotification,
   Document,
   InsertDocument,
+  Permission,
+  InsertPermission,
+  RolePermission,
+  InsertRolePermission,
+  UserPermission,
+  InsertUserPermission,
+  Invitation,
+  InsertInvitation,
+  InvitationAuditLog,
+  InsertInvitationAuditLog,
+  PasswordResetToken,
+  InsertPasswordResetToken,
 } from './schemas/core';
 
 export type {
