@@ -92,28 +92,29 @@ const QUEBEC_LEGAL_TERMS = {
 
 /**
  * Extracts all visible text from a rendered React component.
- * @param container - The HTML element to extract text from
- * @returns Array of visible text strings
+ * @param container - The HTML element to extract text from.
+ * @returns Array of visible text strings.
  */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
   
   /**
    * Traverses DOM nodes to extract text content.
-   * @param node - The DOM node to traverse
+   * @param node - The DOM node to traverse.
    */
   function traverse(node: Node) {
-    if (node.nodeType === Node.TEXT_NODE) {
+    if (node.nodeType === 3) { // Node.TEXT_NODE
       const text = node.textContent?.trim();
       if (text) {
         textNodes.push(text);
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
+    } else if (node.nodeType === 1) { // Node.ELEMENT_NODE
       const element = node as Element;
       // Skip hidden elements
+      const htmlElement = element as HTMLElement;
       if (element.getAttribute('hidden') !== null || 
-          element.style.display === 'none' ||
-          element.style.visibility === 'hidden') {
+          htmlElement.style.display === 'none' ||
+          htmlElement.style.visibility === 'hidden') {
         return;
       }
       
@@ -137,9 +138,9 @@ function extractVisibleText(container: HTMLElement): string[] {
 
 /**
  * Validates text against language rules.
- * @param text - The text to validate
- * @param context - Context information for the validation
- * @returns Array of validation violations
+ * @param text - The text to validate.
+ * @param context - Context information for the validation.
+ * @returns Array of validation violations.
  */
 function validateText(text: string, context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -222,13 +223,19 @@ function validateText(text: string, context: string = ''): Array<{
 /**
  * Language validation utility class.
  */
-export class LanguageValidator {
-  private violations: Array<any> = [];
+class LanguageValidator {
+  private violations: Array<{
+    type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
+    term: string;
+    suggestion?: string;
+    severity: 'error' | 'warning';
+    context: string;
+  }> = [];
   
   /**
    * Validates a React component for language compliance.
-   * @param component
-   * @param componentName
+   * @param component - The React component to validate.
+   * @param componentName - Name of the component for context.
    */
   validateComponent(component: React.ReactElement, componentName: string): void {
     const { container } = render(component);
@@ -243,8 +250,8 @@ export class LanguageValidator {
   
   /**
    * Validates raw HTML content.
-   * @param html
-   * @param pageName
+   * @param html - The HTML string to validate.
+   * @param pageName - Name of the page for context.
    */
   validateHTML(html: string, pageName: string): void {
     const dom = new JSDOM(html);
@@ -259,16 +266,17 @@ export class LanguageValidator {
   
   /**
    * Validates JSON content (for API responses, translations, etc.).
-   * @param jsonData
-   * @param dataName
+   * @param jsonData - The JSON data to validate.
+   * @param dataName - Name of the data source for context.
    */
-  validateJSON(jsonData: any, dataName: string): void {
+  validateJSON(jsonData: Record<string, unknown>, dataName: string): void {
     /**
-     *
-     * @param obj
-     * @param path
+     * Recursively extracts string values from an object.
+     * @param obj - Object to extract strings from.
+     * @param path - Current path in the object.
+     * @returns Array of extracted strings.
      */
-    function extractStrings(obj: any, path: string = ''): string[] {
+    function extractStrings(obj: unknown, path: string = ''): string[] {
       const strings: string[] = [];
       
       if (typeof obj === 'string') {
@@ -296,21 +304,24 @@ export class LanguageValidator {
   
   /**
    * Gets all validation violations.
+   * @returns Array of all violations found.
    */
-  getViolations(): Array<any> {
+  getViolations() {
     return this.violations;
   }
   
   /**
    * Gets violations by severity.
-   * @param severity
+   * @param severity - The severity level to filter by.
+   * @returns Array of violations with specified severity.
    */
-  getViolationsBySeverity(severity: 'error' | 'warning'): Array<any> {
+  getViolationsBySeverity(severity: 'error' | 'warning') {
     return this.violations.filter(v => v.severity === severity);
   }
   
   /**
    * Checks if validation passed (no errors).
+   * @returns True if no error violations found.
    */
   isValid(): boolean {
     return this.getViolationsBySeverity('error').length === 0;
@@ -318,6 +329,7 @@ export class LanguageValidator {
   
   /**
    * Generates a validation report.
+   * @returns Formatted validation report string.
    */
   generateReport(): string {
     const errors = this.getViolationsBySeverity('error');
@@ -471,7 +483,8 @@ describe('Quebec French Language Validation', () => {
   it('should generate comprehensive validation report', () => {
     const testText = 'Please login to your building dashboard in Quebec';
     const violations = validateText(testText, 'Test page');
-    validator.violations = violations;
+    // Reset validator and add violations for testing
+    (validator as any).violations = violations;
     
     const report = validator.generateReport();
     
@@ -491,4 +504,5 @@ describe('Quebec French Language Validation', () => {
 });
 
 // Export for use in other test files
-export { validateText, LanguageValidator, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS };
+export { validateText, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS };
+export const testLanguageValidator = new LanguageValidator();

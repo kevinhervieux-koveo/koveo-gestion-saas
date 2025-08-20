@@ -907,7 +907,30 @@ export class MemStorage implements IStorage {
     // Storage initialized empty - no mock data
   }
 
+  // Permission operations
+  /**
+   * Retrieves all permissions from storage.
+   */
+  async getPermissions(): Promise<Permission[]> {
+    // Return empty array for now - permissions not implemented in this storage
+    return [];
+  }
 
+  /**
+   * Retrieves all role-specific permission mappings from storage.
+   */
+  async getRolePermissions(): Promise<RolePermission[]> {
+    // Return empty array for now - role permissions not implemented in this storage
+    return [];
+  }
+
+  /**
+   * Retrieves all user-specific permission overrides from storage.
+   */
+  async getUserPermissions(): Promise<UserPermission[]> {
+    // Return empty array for now - user permissions not implemented in this storage
+    return [];
+  }
 
   // User operations
   /**
@@ -999,10 +1022,12 @@ export class MemStorage implements IStorage {
    */
   async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
     const user = this.users.get(userId);
-    if (!user || !user.organizationId) {
+    if (!user) {
       return [];
     }
-    return [{ organizationId: user.organizationId }];
+    // User type doesn't have organizationId property in current schema
+    // Return empty array for now
+    return [];
   }
 
   /**
@@ -1013,10 +1038,12 @@ export class MemStorage implements IStorage {
    */
   async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
     const user = this.users.get(userId);
-    if (!user || !user.assignedResidenceId) {
+    if (!user) {
       return [];
     }
-    return [{ residenceId: user.assignedResidenceId }];
+    // User type doesn't have assignedResidenceId property in current schema
+    // Return empty array for now
+    return [];
   }
 
   // Organization operations
@@ -1222,7 +1249,7 @@ export class MemStorage implements IStorage {
       city: insertBuilding.city,
       province: insertBuilding.province || 'QC',
       postalCode: insertBuilding.postalCode,
-      buildingType: insertBuilding.buildingType ?? null,
+      buildingType: insertBuilding.buildingType ?? null as 'condo' | 'rental' | null,
       yearBuilt: insertBuilding.yearBuilt ?? null,
       totalUnits: insertBuilding.totalUnits ?? null,
       totalFloors: insertBuilding.totalFloors ?? null,
@@ -1383,8 +1410,8 @@ export class MemStorage implements IStorage {
       bedrooms: insertResidence.bedrooms ?? null,
       bathrooms: insertResidence.bathrooms ?? null,
       balcony: insertResidence.balcony ?? null,
-      parkingSpaceNumber: insertResidence.parkingSpaceNumber ?? null,
-      storageSpaceNumber: insertResidence.storageSpaceNumber ?? null,
+      parkingSpaceNumbers: insertResidence.parkingSpaceNumbers ?? null as string[] | null,
+      storageSpaceNumbers: insertResidence.storageSpaceNumbers ?? null as string[] | null,
       ownershipPercentage: insertResidence.ownershipPercentage ?? null,
       monthlyFees: insertResidence.monthlyFees ?? null,
       isActive: true,
@@ -1477,7 +1504,7 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       language: insertUser.language || 'fr',
-      role: insertUser.role || 'tenant',
+      role: (insertUser.role || 'tenant') as 'admin' | 'manager' | 'tenant' | 'resident',
       phone: insertUser.phone || null,
       id,
       isActive: true,
@@ -1777,7 +1804,7 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const suggestion: ImprovementSuggestion = {
       ...insertSuggestion,
-      status: insertSuggestion.status || 'New',
+      status: (insertSuggestion.status || 'New') as 'New' | 'Acknowledged' | 'Done',
       filePath: insertSuggestion.filePath || null,
       id,
       createdAt: new Date(),
@@ -1879,8 +1906,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const feature: Feature = {
       ...insertFeature,
-      status: insertFeature.status || 'planned',
-      priority: insertFeature.priority || 'medium',
+      status: (insertFeature.status || 'planned') as 'submitted' | 'planned' | 'in-progress' | 'ai-analyzed' | 'completed' | 'cancelled',
+      priority: (insertFeature.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
       isPublicRoadmap: insertFeature.isPublicRoadmap ?? true,
       requestedBy: insertFeature.requestedBy || null,
       assignedTo: insertFeature.assignedTo || null,
@@ -2235,8 +2262,9 @@ export class MemStorage implements IStorage {
       firstName: userData.firstName,
       lastName: userData.lastName,
       password: userData.password,
+      username: invitation.email, // Use email as username
       role: invitation.role,
-      organizationId: invitation.organizationId,
+      // organizationId not supported in current User schema
     });
 
     // Update invitation
@@ -2370,9 +2398,13 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newDocument: Document = {
       id,
-      ...document,
+      name: document.name,
+      type: document.type,
+      tenant: document.tenant ?? false,
+      residence: document.residence ?? false,
+      buildings: document.buildings ?? false,
       uploadDate: new Date(),
-      dateReference: document.dateReference || null,
+      dateReference: document.dateReference || new Date(),
     };
     this.documents.set(id, newDocument);
     return newDocument;

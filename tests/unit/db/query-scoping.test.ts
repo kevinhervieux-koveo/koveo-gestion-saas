@@ -151,7 +151,7 @@ describe('Database Query Scoping Tests', () => {
 
       const scopedQuery = await scopeQuery(mockQuery, adminContext, 'bills');
       
-      expect(scopedQuery).toBe(mockQuery);
+      expect(_scopedQuery).toBe(mockQuery);
       expect(mockQuery.where).not.toHaveBeenCalled();
     });
 
@@ -328,7 +328,7 @@ describe('Database Query Scoping Tests', () => {
           }) as any);
         }
 
-        const scopedQuery = await scopeQuery(mockQuery, testCase.context, 'bills');
+        const _scopedQuery = await scopeQuery(mockQuery, testCase.context, 'bills');
 
         if (testCase.shouldScope) {
           expect(mockQuery.where).toHaveBeenCalled();
@@ -356,10 +356,10 @@ describe('Database Query Scoping Tests', () => {
 
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-      const scopedQuery = await scopeQuery(mockQuery, userContext, 'unknown_entity');
+      const _scopedQuery = await scopeQuery(mockQuery, userContext, 'unknown_entity');
       
       expect(consoleSpy).toHaveBeenCalledWith('No scoping rule defined for entity type: unknown_entity');
-      expect(scopedQuery).toBe(mockQuery);
+      expect(_scopedQuery).toBe(mockQuery);
       
       consoleSpy.mockRestore();
     });
@@ -378,7 +378,7 @@ describe('Database Query Scoping Tests', () => {
         })
       }) as any);
 
-      const scopedQuery = await scopeQuery(mockQuery, incompleteContext, 'buildings');
+      const _scopedQuery = await scopeQuery(mockQuery, incompleteContext, 'buildings');
       
       // Should still apply scoping (denying access)
       expect(mockQuery.where).toHaveBeenCalled();

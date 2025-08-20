@@ -9,7 +9,7 @@ import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
 
 /**
- *
+ * Props interface for ObjectUploader component.
  */
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
@@ -19,7 +19,7 @@ interface ObjectUploaderProps {
     url: string;
   }>;
   onComplete?: (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
+    _result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => void;
   buttonClassName?: string;
   children: ReactNode;
@@ -52,6 +52,7 @@ interface ObjectUploaderProps {
  *   policies.
  * @param props.buttonClassName - Optional CSS class name for the button.
  * @param props.children - Content to be rendered inside the button.
+ * @returns JSX element for file upload component.
  */
 export function ObjectUploader({
   maxNumberOfFiles = 1,
