@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { insertOrganizationSchema, type InsertOrganization } from '@shared/schema';
+import { type InsertOrganization } from '@shared/schema';
 
 /**
  * Props for the OrganizationForm component.
@@ -38,6 +38,24 @@ interface OrganizationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Define the form schema with Quebec-specific validation
+const organizationFormSchema = z.object({
+  name: z.string().min(1, 'Organization name is required').max(200, 'Name must be 200 characters or less'),
+  type: z.string().min(1, 'Organization type is required'),
+  address: z.string().min(1, 'Address is required').max(300, 'Address must be 300 characters or less'),
+  city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
+  province: z.string().default('QC'),
+  postalCode: z.string()
+    .min(1, 'Postal code is required')
+    .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/, 'Invalid Canadian postal code format'),
+  phone: z.string().optional(),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
+  registrationNumber: z.string().optional(),
+});
+
+type OrganizationFormData = z.infer<typeof organizationFormSchema>;
 
 /**
  * Form for creating new organizations in the Quebec property management system.
@@ -52,24 +70,8 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Form schema with Quebec-specific validation
-  const formSchema = insertOrganizationSchema.extend({
-    name: z.string().min(1, 'Organization name is required').max(200, 'Name must be 200 characters or less'),
-    type: z.string().min(1, 'Organization type is required'),
-    address: z.string().min(1, 'Address is required').max(300, 'Address must be 300 characters or less'),
-    city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
-    province: z.string().default('QC'),
-    postalCode: z.string()
-      .min(1, 'Postal code is required')
-      .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/, 'Invalid Canadian postal code format'),
-    phone: z.string().optional(),
-    email: z.string().email('Invalid email address').optional().or(z.literal('')),
-    website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-    registrationNumber: z.string().optional(),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<OrganizationFormData>({
+    resolver: zodResolver(organizationFormSchema),
     defaultValues: {
       name: '',
       type: '',
@@ -108,9 +110,9 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = (data: OrganizationFormData) => {
     // Convert empty strings to undefined for optional fields
-    const cleanData = {
+    const cleanData: InsertOrganization = {
       ...data,
       phone: data.phone || undefined,
       email: data.email || undefined,
