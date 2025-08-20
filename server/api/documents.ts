@@ -78,13 +78,43 @@ export function registerDocumentRoutes(app: Express): void {
       let residenceIds: string[];
       if (specificResidenceId) {
         // Verify user has access to this specific residence
-        const hasAccess = userResidences.some(ur => ur.residenceId === specificResidenceId);
+        // Handle both simple {residenceId: string} and complex nested structures
+        const hasAccess = userResidences.some(ur => {
+          // Handle simple structure
+          if (ur.residenceId) {
+            return ur.residenceId === specificResidenceId;
+          }
+          // Handle complex nested structure
+          if (ur.userResidence && ur.userResidence.residenceId) {
+            return ur.userResidence.residenceId === specificResidenceId;
+          }
+          // Handle residence nested structure
+          if (ur.residence && ur.residence.id) {
+            return ur.residence.id === specificResidenceId;
+          }
+          return false;
+        });
         if (!hasAccess) {
           return res.status(403).json({ message: 'Access denied to this residence' });
         }
         residenceIds = [specificResidenceId];
       } else {
-        residenceIds = userResidences.map(ur => ur.residenceId);
+        // Extract residence IDs from both simple and complex structures
+        residenceIds = userResidences.map(ur => {
+          // Handle simple structure
+          if (ur.residenceId) {
+            return ur.residenceId;
+          }
+          // Handle complex nested structure
+          if (ur.userResidence && ur.userResidence.residenceId) {
+            return ur.userResidence.residenceId;
+          }
+          // Handle residence nested structure
+          if (ur.residence && ur.residence.id) {
+            return ur.residence.id;
+          }
+          return null;
+        }).filter(id => id !== null);
       }
       
       const buildingIds = buildings.map(b => b.id);
