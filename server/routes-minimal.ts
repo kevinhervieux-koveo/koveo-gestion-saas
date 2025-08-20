@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .select()
           .from(schema.actionableItems)
           .where(eq(schema.actionableItems.featureId, req.params.id))
-          .orderBy(schema.actionableItems.orderIndex);
+          .orderBy(schema.actionableItems.createdAt);
 
         res.json(items);
       } catch (error) {
@@ -782,9 +782,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // GET /api/pillars/suggestions - Get improvement suggestions
     app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: any, res: any) => {
       try {
-        // Fetch directly from database, ordered by creation date (newest first)
+        // Fetch only the columns that exist in the database
         const suggestions = await db
-          .select()
+          .select({
+            id: schema.improvementSuggestions.id,
+            title: schema.improvementSuggestions.title,
+            description: schema.improvementSuggestions.description,
+            category: schema.improvementSuggestions.category,
+            priority: schema.improvementSuggestions.priority,
+            status: schema.improvementSuggestions.status,
+            filePath: schema.improvementSuggestions.filePath,
+            createdAt: schema.improvementSuggestions.createdAt
+          })
           .from(schema.improvementSuggestions)
           .orderBy(desc(schema.improvementSuggestions.createdAt));
         res.json(suggestions);
