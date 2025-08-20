@@ -6,9 +6,10 @@ import {
   residences, 
   userResidences,
   userOrganizations,
-  users
+  users,
+  documents
 } from '@shared/schema';
-import { eq, and, or, inArray, sql } from 'drizzle-orm';
+import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import crypto from 'crypto';
 
@@ -465,8 +466,8 @@ export function registerBuildingRoutes(app: Express): void {
           bedrooms: residences.bedrooms,
           bathrooms: residences.bathrooms,
           balcony: residences.balcony,
-          parkingSpaceNumber: residences.parkingSpaceNumber,
-          storageSpaceNumber: residences.storageSpaceNumber,
+          parkingSpaceNumbers: residences.parkingSpaceNumbers,
+          storageSpaceNumbers: residences.storageSpaceNumbers,
           monthlyFees: residences.monthlyFees,
           isActive: residences.isActive
         })
@@ -792,6 +793,208 @@ export function registerBuildingRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete building'
+      });
+    }
+  });
+
+  /**
+   * GET /api/admin/buildings/:id/deletion-impact - Get deletion impact analysis
+   * Shows what will be deleted when removing a building
+   */
+  app.get('/api/admin/buildings/:id/deletion-impact', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const buildingId = req.params.id;
+
+      // Check if building exists
+      const building = await db
+        .select({ id: buildings.id, name: buildings.name })
+        .from(buildings)
+        .where(and(eq(buildings.id, buildingId), eq(buildings.isActive, true)))
+        .limit(1);
+
+      if (building.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Building not found'
+        });
+      }
+
+      // Count residences in this building
+      const residencesCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(residences)
+        .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
+
+      // Count documents associated with this building or its residences
+      const documentsCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(documents)
+        .leftJoin(residences, eq(documents.residenceId, residences.id))
+        .where(or(
+          eq(documents.buildingId, buildingId),
+          and(eq(residences.buildingId, buildingId), eq(residences.isActive, true))
+        ));
+
+      // Count users who will become orphaned (only have relationships with residences in this building)
+      const potentialOrphansCount = await db
+        .select({ count: sql<number>`count(distinct ${userResidences.userId})` })
+        .from(userResidences)
+        .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+        .innerJoin(users, eq(userResidences.userId, users.id))
+        .where(and(
+          eq(residences.buildingId, buildingId),
+          eq(residences.isActive, true),
+          eq(userResidences.isActive, true),
+          eq(users.isActive, true)
+        ));
+
+      const impact = {
+        building: building[0],
+        residences: residencesCount[0]?.count || 0,
+        documents: documentsCount[0]?.count || 0,
+        potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0
+      };
+
+      res.json(impact);
+
+    } catch (error) {
+      console.error('❌ Error analyzing building deletion impact:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to analyze deletion impact'
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/admin/buildings/:id/cascade - Cascade delete a building
+   * Replaces the simple delete with cascading delete that removes residences, documents, and orphaned users
+   */
+  app.delete('/api/admin/buildings/:id/cascade', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const buildingId = req.params.id;
+      console.log(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
+
+      // Check if building exists
+      const building = await db
+        .select({ id: buildings.id, name: buildings.name })
+        .from(buildings)
+        .where(and(eq(buildings.id, buildingId), eq(buildings.isActive, true)))
+        .limit(1);
+
+      if (building.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Building not found'
+        });
+      }
+
+      // Start transaction for cascading delete
+      await db.transaction(async (tx) => {
+        // 1. Get all residences in this building
+        const buildingResidences = await tx
+          .select({ id: residences.id })
+          .from(residences)
+          .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
+
+        const residenceIds = buildingResidences.map(r => r.id);
+
+        if (residenceIds.length > 0) {
+          // 2. Delete documents associated with building or its residences
+          await tx.delete(documents)
+            .where(or(
+              eq(documents.buildingId, buildingId),
+              inArray(documents.residenceId, residenceIds)
+            ));
+
+          // 3. Soft delete user-residence relationships
+          await tx.update(userResidences)
+            .set({ isActive: false, updatedAt: new Date() })
+            .where(inArray(userResidences.residenceId, residenceIds));
+
+          // 4. Find and soft delete orphaned users (users who now have no active relationships)
+          const orphanedUsers = await tx
+            .select({ id: users.id })
+            .from(users)
+            .leftJoin(userOrganizations, and(
+              eq(users.id, userOrganizations.userId),
+              eq(userOrganizations.isActive, true)
+            ))
+            .leftJoin(userResidences, and(
+              eq(users.id, userResidences.userId),
+              eq(userResidences.isActive, true)
+            ))
+            .where(and(
+              eq(users.isActive, true),
+              isNull(userOrganizations.userId),
+              isNull(userResidences.userId)
+            ));
+
+          if (orphanedUsers.length > 0) {
+            const orphanedUserIds = orphanedUsers.map(u => u.id);
+            await tx.update(users)
+              .set({ isActive: false, updatedAt: new Date() })
+              .where(inArray(users.id, orphanedUserIds));
+          }
+
+          // 5. Soft delete residences
+          await tx.update(residences)
+            .set({ isActive: false, updatedAt: new Date() })
+            .where(inArray(residences.id, residenceIds));
+        } else {
+          // Still delete documents associated directly with the building
+          await tx.delete(documents)
+            .where(eq(documents.buildingId, buildingId));
+        }
+
+        // 6. Finally, soft delete the building
+        await tx.update(buildings)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(eq(buildings.id, buildingId));
+      });
+
+      console.log(`✅ Building cascading delete completed: ${buildingId}`);
+
+      res.json({
+        message: 'Building and related entities deleted successfully',
+        deletedBuilding: building[0].name
+      });
+
+    } catch (error) {
+      console.error('❌ Error cascading delete building:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete building and related entities'
       });
     }
   });

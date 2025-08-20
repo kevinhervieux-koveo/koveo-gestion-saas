@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 // Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
+import { DeleteConfirmationDialog } from '@/components/dialogs/delete-confirmation-dialog';
 
 /**
  *
@@ -87,6 +88,7 @@ export default function Buildings() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<BuildingData | null>(null);
+  const [deletingBuilding, setDeletingBuilding] = useState<BuildingData | null>(null);
   const { toast } = useToast();
 
   // Fetch buildings data
@@ -297,8 +299,13 @@ export default function Buildings() {
   };
 
   const handleDeleteBuilding = (building: BuildingData) => {
-    if (confirm(`Are you sure you want to delete "${building.name}"? This action cannot be undone.`)) {
-      deleteBuildingMutation.mutate(building.id);
+    setDeletingBuilding(building);
+  };
+
+  const confirmDeleteBuilding = () => {
+    if (deletingBuilding) {
+      deleteBuildingMutation.mutate(deletingBuilding.id);
+      setDeletingBuilding(null);
     }
   };
 
@@ -1100,6 +1107,19 @@ export default function Buildings() {
             </Card>
           )}
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        {deletingBuilding && (
+          <DeleteConfirmationDialog
+            open={!!deletingBuilding}
+            onOpenChange={(open) => !open && setDeletingBuilding(null)}
+            entityType="building"
+            entityId={deletingBuilding.id}
+            entityName={deletingBuilding.name}
+            onConfirm={confirmDeleteBuilding}
+            isDeleting={deleteBuildingMutation.isPending}
+          />
+        )}
       </div>
     </div>
   );

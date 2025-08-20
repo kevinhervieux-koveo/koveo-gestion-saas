@@ -5,8 +5,16 @@
 
 import { Express } from 'express';
 import { db } from '../db';
-import { organizations } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { 
+  organizations,
+  buildings,
+  residences,
+  documents,
+  users,
+  userOrganizations,
+  userResidences
+} from '@shared/schema';
+import { and, eq, count, sql, or, inArray, isNull } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
 /**
@@ -216,6 +224,247 @@ export function registerOrganizationRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create organization'
+      });
+    }
+  });
+
+  /**
+   * GET /api/organizations/:id/deletion-impact - Get deletion impact analysis
+   * Shows what will be deleted when removing an organization
+   */
+  app.get('/api/organizations/:id/deletion-impact', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const organizationId = req.params.id;
+
+      // Check if organization exists
+      const organization = await db
+        .select({ id: organizations.id, name: organizations.name })
+        .from(organizations)
+        .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
+        .limit(1);
+
+      if (organization.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Organization not found'
+        });
+      }
+
+      // Count buildings in this organization
+      const buildingsCount = await db
+        .select({ count: count() })
+        .from(buildings)
+        .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+
+      // Count residences in buildings of this organization
+      const residencesCount = await db
+        .select({ count: count() })
+        .from(residences)
+        .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+        .where(and(
+          eq(buildings.organizationId, organizationId),
+          eq(buildings.isActive, true),
+          eq(residences.isActive, true)
+        ));
+
+      // Count documents associated with this organization, its buildings, or residences
+      const documentsCount = await db
+        .select({ count: count() })
+        .from(documents)
+        .leftJoin(buildings, eq(documents.buildingId, buildings.id))
+        .leftJoin(residences, eq(documents.residenceId, residences.id))
+        .leftJoin(buildings as any, eq(residences.buildingId, buildings.id))
+        .where(or(
+          eq(documents.organizationId, organizationId),
+          and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)),
+          and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true))
+        ));
+
+      // Count users who will become orphaned (only belong to this organization)
+      const potentialOrphansCount = await db
+        .select({ count: count() })
+        .from(userOrganizations)
+        .innerJoin(users, eq(userOrganizations.userId, users.id))
+        .where(and(
+          eq(userOrganizations.organizationId, organizationId),
+          eq(userOrganizations.isActive, true),
+          eq(users.isActive, true)
+        ));
+
+      const impact = {
+        organization: organization[0],
+        buildings: buildingsCount[0]?.count || 0,
+        residences: residencesCount[0]?.count || 0,
+        documents: documentsCount[0]?.count || 0,
+        potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0
+      };
+
+      res.json(impact);
+
+    } catch (error) {
+      console.error('❌ Error analyzing deletion impact:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to analyze deletion impact'
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/organizations/:id - Cascade delete an organization
+   * Deletes organization and all related entities (buildings, residences, documents, orphaned users)
+   */
+  app.delete('/api/organizations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const organizationId = req.params.id;
+      console.log(`🗑️ Admin ${currentUser.id} cascading delete organization: ${organizationId}`);
+
+      // Check if organization exists
+      const organization = await db
+        .select({ id: organizations.id, name: organizations.name })
+        .from(organizations)
+        .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
+        .limit(1);
+
+      if (organization.length === 0) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Organization not found'
+        });
+      }
+
+      // Start transaction for cascading delete
+      await db.transaction(async (tx) => {
+        // 1. Get all buildings in this organization
+        const orgBuildings = await tx
+          .select({ id: buildings.id })
+          .from(buildings)
+          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+
+        const buildingIds = orgBuildings.map(b => b.id);
+
+        if (buildingIds.length > 0) {
+          // 2. Get all residences in these buildings
+          const buildingResidences = await tx
+            .select({ id: residences.id })
+            .from(residences)
+            .where(and(inArray(residences.buildingId, buildingIds), eq(residences.isActive, true)));
+
+          const residenceIds = buildingResidences.map(r => r.id);
+
+          // 3. Soft delete documents associated with organization, buildings, or residences
+          // Note: documents table uses hard delete, so we'll delete them completely
+          if (residenceIds.length > 0) {
+            await tx.delete(documents)
+              .where(or(
+                eq(documents.organizationId, organizationId),
+                inArray(documents.buildingId, buildingIds),
+                inArray(documents.residenceId, residenceIds)
+              ));
+          } else if (buildingIds.length > 0) {
+            await tx.delete(documents)
+              .where(or(
+                eq(documents.organizationId, organizationId),
+                inArray(documents.buildingId, buildingIds)
+              ));
+          } else {
+            await tx.delete(documents)
+              .where(eq(documents.organizationId, organizationId));
+          }
+
+          // 4. Soft delete user-residence relationships
+          if (residenceIds.length > 0) {
+            await tx.update(userResidences)
+              .set({ isActive: false, updatedAt: new Date() })
+              .where(inArray(userResidences.residenceId, residenceIds));
+          }
+
+          // 5. Soft delete residences
+          if (residenceIds.length > 0) {
+            await tx.update(residences)
+              .set({ isActive: false, updatedAt: new Date() })
+              .where(inArray(residences.id, residenceIds));
+          }
+
+          // 6. Soft delete buildings
+          await tx.update(buildings)
+            .set({ isActive: false, updatedAt: new Date() })
+            .where(inArray(buildings.id, buildingIds));
+        }
+
+        // 7. Soft delete user-organization relationships
+        await tx.update(userOrganizations)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(eq(userOrganizations.organizationId, organizationId));
+
+        // 8. Find and soft delete orphaned users (users who now have no active organization relationships)
+        const orphanedUsers = await tx
+          .select({ id: users.id })
+          .from(users)
+          .leftJoin(userOrganizations, and(
+            eq(users.id, userOrganizations.userId),
+            eq(userOrganizations.isActive, true)
+          ))
+          .where(and(
+            eq(users.isActive, true),
+            isNull(userOrganizations.userId)
+          ));
+
+        if (orphanedUsers.length > 0) {
+          const orphanedUserIds = orphanedUsers.map(u => u.id);
+          await tx.update(users)
+            .set({ isActive: false, updatedAt: new Date() })
+            .where(inArray(users.id, orphanedUserIds));
+        }
+
+        // 9. Finally, soft delete the organization
+        await tx.update(organizations)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(eq(organizations.id, organizationId));
+      });
+
+      console.log(`✅ Organization cascading delete completed: ${organizationId}`);
+
+      res.json({
+        message: 'Organization and related entities deleted successfully',
+        deletedOrganization: organization[0].name
+      });
+
+    } catch (error) {
+      console.error('❌ Error cascading delete organization:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete organization and related entities'
       });
     }
   });

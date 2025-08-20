@@ -34,6 +34,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { OrganizationFormDialog } from './organization-form-dialog';
+import { DeleteConfirmationDialog } from '@/components/dialogs/delete-confirmation-dialog';
 import type { Organization } from '@shared/schema';
 
 /**
@@ -279,29 +280,17 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog 
-        open={!!deletingOrganization} 
-        onOpenChange={() => setDeletingOrganization(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Organization</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deletingOrganization?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deletingOrganization && (
+        <DeleteConfirmationDialog
+          open={!!deletingOrganization}
+          onOpenChange={(open) => !open && setDeletingOrganization(null)}
+          entityType="organization"
+          entityId={deletingOrganization.id}
+          entityName={deletingOrganization.name}
+          onConfirm={confirmDelete}
+          isDeleting={deleteMutation.isPending}
+        />
+      )}
 
       {/* View Organization Dialog */}
       {viewingOrganization && (
