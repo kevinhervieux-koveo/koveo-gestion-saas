@@ -121,6 +121,7 @@
     "read:improvement_suggestion",
     "create:improvement_suggestion",
     "update:improvement_suggestion",
+    "delete:improvement_suggestion",
     "read:feature",
     "create:feature",
     "update:feature",
