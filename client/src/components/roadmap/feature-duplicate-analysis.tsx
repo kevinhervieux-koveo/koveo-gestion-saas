@@ -91,7 +91,10 @@ export function useFeatureDuplicateAnalysis(features: Feature[]) {
 /**
  * Gets duplicate badge for a feature.
  */
-export function getDuplicateBadge(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo>) {
+export function getDuplicateBadge(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo> | undefined) {
+  if (!duplicateAnalysis) {
+    return null;
+  }
   const dupInfo = duplicateAnalysis.get(featureId);
   if (!dupInfo || !dupInfo.isDuplicate) {
     return null;
@@ -117,7 +120,10 @@ export function getDuplicateBadge(featureId: string, duplicateAnalysis: Map<stri
 /**
  * Gets duplicate note text for a feature.
  */
-export function getDuplicateNote(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo>) {
+export function getDuplicateNote(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo> | undefined) {
+  if (!duplicateAnalysis) {
+    return null;
+  }
   const dupInfo = duplicateAnalysis.get(featureId);
   if (!dupInfo || !dupInfo.isDuplicate) {
     return null;
