@@ -9,7 +9,7 @@ import { registerDocumentRoutes } from './api/documents';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
-import { eq, and, gte, desc } from 'drizzle-orm';
+import { eq, and, gte, desc, sql } from 'drizzle-orm';
 import { insertInvitationSchema } from '../shared/schema';
 import crypto from 'crypto';
 import { EmailService } from './services/email-service';
