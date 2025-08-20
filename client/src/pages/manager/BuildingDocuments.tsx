@@ -170,10 +170,21 @@ export default function BuildingDocuments() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
-      const documentData = { ...data, type: "building" };
+      const documentData: any = {
+        name: data.name,
+        type: data.type, // This is the document category (bylaw, financial, etc.)
+        dateReference: new Date(data.dateReference), // Convert to Date object
+        buildingId: data.buildingId,
+      };
+      
+      // Add file data if uploaded
       if (uploadedFile) {
-        Object.assign(documentData, uploadedFile);
+        documentData.fileUrl = uploadedFile.fileUrl;
+        documentData.fileName = uploadedFile.fileName;
+        documentData.fileSize = uploadedFile.fileSize.toString();
+        documentData.mimeType = uploadedFile.mimeType;
       }
+      
       return apiRequest("POST", "/api/documents", documentData);
     },
     onSuccess: () => {
@@ -198,7 +209,12 @@ export default function BuildingDocuments() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      return apiRequest("PUT", `/api/documents/${id}`, { ...data, type: "building" });
+      const updateData: any = {};
+      if (data.name) updateData.name = data.name;
+      if (data.type) updateData.type = data.type;
+      if (data.dateReference) updateData.dateReference = new Date(data.dateReference);
+      if (data.buildingId) updateData.buildingId = data.buildingId;
+      return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "building", buildingId] });
@@ -220,7 +236,7 @@ export default function BuildingDocuments() {
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/documents/${id}`, { type: "building" });
+      return apiRequest("DELETE", `/api/documents/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "building", buildingId] });
@@ -241,7 +257,12 @@ export default function BuildingDocuments() {
   // Upload file mutation
   const uploadFileMutation = useMutation({
     mutationFn: async ({ id, fileData }: { id: string; fileData: { fileUrl: string; fileName: string; fileSize: number; mimeType: string } }) => {
-      return apiRequest("POST", `/api/documents/${id}/upload`, { ...fileData, type: "building" });
+      return apiRequest("POST", `/api/documents/${id}/upload`, {
+        fileUrl: fileData.fileUrl,
+        fileName: fileData.fileName,
+        fileSize: fileData.fileSize.toString(),
+        mimeType: fileData.mimeType,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "building", buildingId] });
