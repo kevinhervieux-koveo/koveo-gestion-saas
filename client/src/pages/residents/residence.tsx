@@ -200,14 +200,10 @@ export default function MyResidence() {
   const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ['/api/documents', 'residence', selectedResidence?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/documents?type=resident`);
+      const response = await fetch(`/api/documents?type=resident&residenceId=${selectedResidence?.id}`);
       if (!response.ok) throw new Error('Failed to fetch documents');
       const data = await response.json();
-      // Filter to only documents for the selected residence
-      const residenceDocuments = data.documents?.filter((doc: any) => 
-        doc.entityType === 'residence' && doc.entityId === selectedResidence?.id
-      ) || [];
-      return residenceDocuments;
+      return data.documents || [];
     },
     enabled: !!selectedResidence?.id,
   });
