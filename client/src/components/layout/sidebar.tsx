@@ -24,7 +24,7 @@ export function Sidebar() {
   const [location] = useLocation();
   const { t } = useLanguage();
   const { logout, user } = useAuth();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['admin', 'manager']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   // Close mobile menu when clicking on navigation items
   const handleNavItemClick = () => {
