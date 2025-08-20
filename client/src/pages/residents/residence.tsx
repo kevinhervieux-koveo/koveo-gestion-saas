@@ -32,7 +32,7 @@ import {
   Eye,
   Filter,
   Upload
-} from 'lucide-react';
+, Pencil} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -258,35 +258,66 @@ export default function MyResidence() {
     },
   });
 
+  // Handle editing a contact
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    contactForm.reset({
+      name: contact.name,
+      email: contact.email || '',
+      phone: contact.phone || '',
+      contactCategory: contact.contactCategory,
+    });
+    setIsContactDialogOpen(true);
+  };
+
   const handleAddContact = async (data: ContactFormData) => {
     if (!selectedResidence) return;
 
     try {
-      const response = await fetch('/api/contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email || undefined,
-          phone: data.phone || undefined,
-          entity: 'residence',
-          entityId: selectedResidence.id,
-          contactCategory: data.contactCategory,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to add contact');
+      if (editingContact) {
+        // Update existing contact
+        const response = await fetch(`/api/contacts/${editingContact.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email || undefined,
+            phone: data.phone || undefined,
+            contactCategory: data.contactCategory,
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update contact');
+        toast({ title: 'Contact updated successfully' });
+      } else {
+        // Add new contact
+        const response = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email || undefined,
+            phone: data.phone || undefined,
+            entity: 'residence',
+            entityId: selectedResidence.id,
+            contactCategory: data.contactCategory,
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to add contact');
+        toast({ title: 'Contact added successfully' });
+      }
 
       await queryClient.invalidateQueries({
         queryKey: ['/api/residences', selectedResidence.id, 'contacts'],
       });
 
       setIsContactDialogOpen(false);
+      setEditingContact(null);
       contactForm.reset();
-      toast({ title: 'Contact added successfully' });
     } catch (error) {
       toast({ 
-        title: 'Error adding contact', 
+        title: editingContact ? 'Error updating contact' : 'Error adding contact', 
         description: 'Please try again later',
         variant: 'destructive' 
       });
@@ -658,7 +689,7 @@ export default function MyResidence() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Add New Contact</DialogTitle>
+                          <DialogTitle>{editingContact ? 'Edit Contact' : 'Add New Contact'}</DialogTitle>
                         </DialogHeader>
                         <Form {...contactForm}>
                           <form onSubmit={contactForm.handleSubmit(handleAddContact)} className='space-y-4'>
@@ -727,10 +758,14 @@ export default function MyResidence() {
                               )}
                             />
                             <div className='flex justify-end gap-2'>
-                              <Button type='button' variant='outline' onClick={() => setIsContactDialogOpen(false)}>
+                              <Button type='button' variant='outline' onClick={() => {
+                                setIsContactDialogOpen(false);
+                                setEditingContact(null);
+                                contactForm.reset();
+                              }}>
                                 Cancel
                               </Button>
-                              <Button type='submit'>Add Contact</Button>
+                              <Button type='submit'>{editingContact ? 'Update Contact' : 'Add Contact'}</Button>
                             </div>
                           </form>
                         </Form>
@@ -749,13 +784,22 @@ export default function MyResidence() {
                             <Badge variant='outline' className='capitalize'>
                               {contact.contactCategory}
                             </Badge>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteContact(contact.id)}
-                            >
-                              <Trash2 className='w-4 h-4' />
-                            </Button>
+                            <div className='flex gap-1'>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => handleEditContact(contact)}
+                              >
+                                <Pencil className='w-4 h-4' />
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => handleDeleteContact(contact.id)}
+                              >
+                                <Trash2 className='w-4 h-4' />
+                              </Button>
+                            </div>
                           </div>
                           <div>
                             <p className='font-semibold'>
