@@ -7,6 +7,7 @@ import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import { registerContactRoutes } from './api/contacts';
+import { registerDemandRoutes } from './api/demands';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
@@ -199,6 +200,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Contact routes registered');
   } catch (error) {
     log(`❌ Contact routes failed: ${error}`, 'error');
+  }
+
+  // Register demand API routes
+  try {
+    registerDemandRoutes(app);
+    log('✅ Demand routes registered');
+  } catch (error) {
+    log(`❌ Demand routes failed: ${error}`, 'error');
   }
 
   // Register features and actionable items API routes

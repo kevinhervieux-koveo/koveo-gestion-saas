@@ -1061,6 +1061,142 @@ export interface IStorage {
     _userRole: string, 
     _organizationId?: string
   ): Promise<boolean>;
+
+  // Demand operations
+  /**
+   * Retrieves demands with role-based filtering for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_buildingIds] - Array of building IDs the user has access to (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<Demand[]>} Array of demands the user can access.
+   */
+  getDemandsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[],
+    _residenceIds?: string[]
+  ): Promise<Demand[]>;
+
+  /**
+   * Retrieves a specific demand with permission check.
+   *
+   * @param {string} _id - The unique demand identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_buildingIds] - Array of building IDs the user has access to (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<Demand | undefined>} Demand record or undefined if not found or access denied.
+   */
+  getDemand(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[],
+    _residenceIds?: string[]
+  ): Promise<Demand | undefined>;
+
+  /**
+   * Creates a new demand in the storage system.
+   *
+   * @param {InsertDemand} _demand - Demand data for creation.
+   * @returns {Promise<Demand>} The created demand record with generated ID and timestamps.
+   */
+  createDemand(_demand: InsertDemand): Promise<Demand>;
+
+  /**
+   * Updates an existing demand with permission check.
+   *
+   * @param {string} _id - The unique demand identifier.
+   * @param {Partial<Demand>} _updates - Partial demand data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<Demand | undefined>} Updated demand record or undefined if not found or access denied.
+   */
+  updateDemand(
+    _id: string,
+    _updates: Partial<Demand>,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<Demand | undefined>;
+
+  /**
+   * Deletes a demand with permission check.
+   *
+   * @param {string} _id - The unique demand identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteDemand(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<boolean>;
+
+  // Demand Comment operations
+  /**
+   * Retrieves comments for a specific demand.
+   *
+   * @param {string} _demandId - The unique demand identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<DemandComment[]>} Array of demand comments ordered by creation time.
+   */
+  getDemandComments(
+    _demandId: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<DemandComment[]>;
+
+  /**
+   * Creates a new comment on a demand.
+   *
+   * @param {InsertDemandComment} _comment - Comment data for creation.
+   * @returns {Promise<DemandComment>} The created comment record with generated ID and timestamps.
+   */
+  createDemandComment(_comment: InsertDemandComment): Promise<DemandComment>;
+
+  /**
+   * Updates an existing demand comment with permission check.
+   *
+   * @param {string} _id - The unique comment identifier.
+   * @param {Partial<DemandComment>} _updates - Partial comment data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<DemandComment | undefined>} Updated comment record or undefined if not found or access denied.
+   */
+  updateDemandComment(
+    _id: string,
+    _updates: Partial<DemandComment>,
+    _userId: string,
+    _userRole: string
+  ): Promise<DemandComment | undefined>;
+
+  /**
+   * Deletes a demand comment with permission check.
+   *
+   * @param {string} _id - The unique comment identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteDemandComment(
+    _id: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<boolean>;
 }
 
 /**
@@ -2714,6 +2850,105 @@ export class MemStorage implements IStorage {
     });
     
     return expiredTokens.length;
+  }
+
+  // Demand operations (stub implementation)
+  async getDemandsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[],
+    _residenceIds?: string[]
+  ): Promise<Demand[]> {
+    // Return empty array for now
+    return [];
+  }
+
+  async getDemand(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[],
+    _residenceIds?: string[]
+  ): Promise<Demand | undefined> {
+    // Return undefined for now
+    return undefined;
+  }
+
+  async createDemand(_demand: InsertDemand): Promise<Demand> {
+    // Create a simple mock implementation
+    const demand = {
+      id: randomUUID(),
+      ..._demand,
+      status: 'draft',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as Demand;
+    
+    return demand;
+  }
+
+  async updateDemand(
+    _id: string,
+    _updates: Partial<Demand>,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<Demand | undefined> {
+    // Return undefined for now
+    return undefined;
+  }
+
+  async deleteDemand(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<boolean> {
+    // Return false for now
+    return false;
+  }
+
+  // Demand Comment operations (stub implementation)
+  async getDemandComments(
+    _demandId: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<DemandComment[]> {
+    // Return empty array for now
+    return [];
+  }
+
+  async createDemandComment(_comment: InsertDemandComment): Promise<DemandComment> {
+    // Create a simple mock implementation
+    const comment = {
+      id: randomUUID(),
+      ..._comment,
+      createdAt: new Date(),
+    } as DemandComment;
+    
+    return comment;
+  }
+
+  async updateDemandComment(
+    _id: string,
+    _updates: Partial<DemandComment>,
+    _userId: string,
+    _userRole: string
+  ): Promise<DemandComment | undefined> {
+    // Return undefined for now
+    return undefined;
+  }
+
+  async deleteDemandComment(
+    _id: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<boolean> {
+    // Return false for now
+    return false;
   }
 }
 

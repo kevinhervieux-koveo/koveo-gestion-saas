@@ -91,7 +91,7 @@ const ManagerBills = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ManagerDemands = createOptimizedLoader(
-  () => import('@/pages/manager/demands'),
+  () => import('@/pages/ManagerDemandsPage'),
   'manager-demands',
   { enableMemoryCleanup: true }
 );
@@ -103,7 +103,11 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-const ResidentsDemands = ManagerDemands; // Reuse manager demands for residents
+const ResidentsDemands = createOptimizedLoader(
+  () => import('@/pages/ResidentDemandsPage'),
+  'residents-demands',
+  { enableMemoryCleanup: true }
+);
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
