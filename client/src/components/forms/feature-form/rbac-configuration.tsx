@@ -8,16 +8,17 @@ import type { FeatureFormData } from './use-feature-form-data';
  */
 interface RBACConfigurationProps {
   formData: FeatureFormData;
-  onUpdateFormData: (field: string, value: boolean) => void;
-  onUpdateRBACRole: (role: string, field: string, value: boolean | string) => void;
+  onUpdateFormData: (_field: string, _value: boolean) => void;
+  onUpdateRBACRole: (_role: string, _field: string, _value: boolean | string) => void;
 }
 
 /**
  * Component for configuring Role-Based Access Control (RBAC) settings.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
- * @param root0.onUpdateRBACRole
+ * @param root0 - Component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @param root0.onUpdateRBACRole - Function to update RBAC role settings.
+ * @returns JSX element for the RBAC configuration.
  */
 export function RBACConfiguration({
   formData,

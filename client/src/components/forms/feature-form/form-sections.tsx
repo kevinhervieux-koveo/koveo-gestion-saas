@@ -10,14 +10,15 @@ import type { FeatureFormData } from './use-feature-form-data';
  */
 interface FormSectionProps {
   formData: FeatureFormData;
-  onUpdateFormData: (field: string, value: string | boolean) => void;
+  onUpdateFormData: (_field: string, _value: string | boolean) => void;
 }
 
 /**
  * Basic Information section component.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
+ * @param root0 - Form section component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @returns JSX element for the basic information section.
  */
 export function BasicInformationSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -95,9 +96,10 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
 
 /**
  * Business Requirements section component.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
+ * @param root0 - Form section component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @returns JSX element for the business requirements section.
  */
 export function BusinessRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -171,9 +173,10 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
 
 /**
  * Technical Requirements section component.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
+ * @param root0 - Form section component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @returns JSX element for the technical requirements section.
  */
 export function TechnicalRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -247,9 +250,10 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
 
 /**
  * User Experience section component.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
+ * @param root0 - Form section component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @returns JSX element for the user experience section.
  */
 export function UserExperienceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -293,9 +297,10 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
 
 /**
  * Quality & Performance section component.
- * @param root0
- * @param root0.formData
- * @param root0.onUpdateFormData
+ * @param root0 - Form section component props.
+ * @param root0.formData - Current form data.
+ * @param root0.onUpdateFormData - Function to update form data.
+ * @returns JSX element for the quality performance section.
  */
 export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (

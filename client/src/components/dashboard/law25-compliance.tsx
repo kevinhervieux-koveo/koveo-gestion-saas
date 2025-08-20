@@ -36,9 +36,10 @@ interface Law25ComplianceData {
 /**
  * Quebec Law 25 compliance dashboard component that displays privacy compliance status,
  * violations, and remediation guidance for property management systems.
+ * @returns JSX element for the Law 25 compliance dashboard.
  */
 export function Law25Compliance() {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
 
   const { data: complianceData, isLoading } = useQuery<Law25ComplianceData>({
     queryKey: ['/api/law25-compliance'],

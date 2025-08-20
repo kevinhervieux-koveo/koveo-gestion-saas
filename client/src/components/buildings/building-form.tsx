@@ -23,16 +23,16 @@ interface BuildingFormProps {
 
 /**
  * Reusable building form component for creating and editing buildings.
- * @param root0 - Building form component props
- * @param root0.isOpen - Whether the dialog is open
- * @param root0.onOpenChange - Callback when dialog open state changes
- * @param root0.form - React Hook Form instance
- * @param root0.onSubmit - Form submission handler
- * @param root0.organizations - Available organizations for selection
- * @param root0.isSubmitting - Whether form is currently submitting
- * @param root0.title - Dialog title text
- * @param root0.submitLabel - Submit button text
- * @returns JSX element for the building form dialog
+ * @param root0 - Building form component props.
+ * @param root0.isOpen - Whether the dialog is open.
+ * @param root0.onOpenChange - Callback when dialog open state changes.
+ * @param root0.form - React Hook Form instance.
+ * @param root0.onSubmit - Form submission handler.
+ * @param root0.organizations - Available organizations for selection.
+ * @param root0.isSubmitting - Whether form is currently submitting.
+ * @param root0.title - Dialog title text.
+ * @param root0.submitLabel - Submit button text.
+ * @returns JSX element for the building form dialog.
  */
 export function BuildingForm({
   isOpen,

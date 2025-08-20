@@ -3,8 +3,9 @@ import type { FeatureFormData } from './use-feature-form-data';
 
 /**
  * Generates a comprehensive development prompt based on feature data and form input.
- * @param feature
- * @param formData
+ * @param feature - Feature data for context, null for new features.
+ * @param formData - Form data containing feature requirements.
+ * @returns Generated development prompt string.
  */
 export function generateDevelopmentPrompt(
   feature: Feature | null,

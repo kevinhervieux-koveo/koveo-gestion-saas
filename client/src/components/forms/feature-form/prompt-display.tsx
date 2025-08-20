@@ -12,23 +12,24 @@ import type { Feature } from '@shared/schema';
 interface PromptDisplayProps {
   prompt: string;
   feature: Feature | null;
-  onSavePrompt: (prompt: string, title: string) => void;
-  onCopyToClipboard: (text: string) => Promise<void>;
+  onSavePrompt: (_prompt: string, _title: string) => void;
+  onCopyToClipboard: (_text: string) => Promise<void>;
   isSaving?: boolean;
 }
 
 /**
  * Component for displaying and managing generated development prompts.
- * @param root0
- * @param root0.prompt
- * @param root0.feature
- * @param root0.onSavePrompt
- * @param root0.onCopyToClipboard
- * @param root0.isSaving
+ * @param root0 - Component props.
+ * @param root0.prompt - The generated prompt text.
+ * @param root0.feature - Feature data for context.
+ * @param root0.onSavePrompt - Callback to save the prompt.
+ * @param root0.onCopyToClipboard - Callback to copy text to clipboard.
+ * @param root0.isSaving - Whether saving is in progress.
+ * @returns JSX element for the prompt display component.
  */
 export function PromptDisplay({ 
   prompt, 
-  feature, 
+  feature: _feature, 
   onSavePrompt, 
   onCopyToClipboard,
   isSaving = false 
@@ -80,7 +81,7 @@ export function PromptDisplay({
             Copy to Clipboard
           </Button>
           
-          {feature?.id && (
+          {_feature?.id && (
             <div className="flex items-center gap-2">
               <div className="flex flex-col gap-1">
                 <Label htmlFor="promptTitle" className="text-xs text-gray-600">

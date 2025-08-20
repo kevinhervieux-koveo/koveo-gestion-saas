@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+// useMutation and useQueryClient imports removed (unused)
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 /**
- *
+ * Interface for deletion impact analysis data.
  */
 interface DeletionImpact {
   organization?: { id: string; name: string };
@@ -33,11 +33,11 @@ interface DeletionImpact {
 }
 
 /**
- *
+ * Interface for DeleteConfirmationDialog component props.
  */
 interface DeleteConfirmationDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   entityType: 'organization' | 'building';
   entityId: string;
   entityName: string;
@@ -46,16 +46,17 @@ interface DeleteConfirmationDialogProps {
 }
 
 /**
- * Delete Confirmation Dialog with Impact Analysis
+ * Delete Confirmation Dialog with Impact Analysis.
  * Shows exactly what will be deleted when cascading delete is performed.
- * @param root0
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.entityType
- * @param root0.entityId
- * @param root0.entityName
- * @param root0.onConfirm
- * @param root0.isDeleting
+ * @param root0 - Component props.
+ * @param root0.open - Whether the dialog is open.
+ * @param root0.onOpenChange - Callback when dialog open state changes.
+ * @param root0.entityType - Type of entity being deleted.
+ * @param root0.entityId - ID of the entity being deleted.
+ * @param root0.entityName - Name of the entity being deleted.
+ * @param root0.onConfirm - Callback when deletion is confirmed.
+ * @param root0.isDeleting - Whether deletion is in progress.
+ * @returns JSX element for the delete confirmation dialog.
  */
 export function DeleteConfirmationDialog({
   open,

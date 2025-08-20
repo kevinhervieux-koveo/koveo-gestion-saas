@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+// Label import removed (unused)
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Copy, FileText, Zap, Clock, Trash2 } from 'lucide-react';
+import { FileText, Zap, Clock, Trash2 } from 'lucide-react';
 import type { Feature } from '@shared/schema';
 
 // Import our modular components
@@ -37,10 +37,11 @@ interface FeatureFormProps {
 /**
  * Refactored feature form dialog component for planning feature development.
  * Now uses modular components for better maintainability and separation of concerns.
- * @param root0
- * @param root0.feature
- * @param root0.open
- * @param root0.onOpenChange
+ * @param root0 - Component props.
+ * @param root0.feature - Feature data for editing, null for creating new.
+ * @param root0.open - Whether the dialog is open.
+ * @param root0.onOpenChange - Callback when dialog open state changes.
+ * @returns JSX element for the feature form dialog.
  */
 export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFormProps) {
   const [step, setStep] = useState<'form' | 'prompt'>('form');
