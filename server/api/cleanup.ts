@@ -22,13 +22,13 @@ router.post('/cleanup-storage', async (req, res) => {
       .from(documentsResidents)
       .where(isNotNull(documentsResidents.fileUrl));
 
-    // Combine all referenced file URLs and extract object paths
+    // Combine all referenced file URLs and extract object paths from hierarchical structure
     const referencedObjectPaths = new Set();
     
     [...buildingDocs, ...residentDocs].forEach(doc => {
       if (doc.fileUrl) {
         try {
-          // Convert URL to object path
+          // Convert URL to object path - handles hierarchical paths
           const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.fileUrl);
           if (normalizedPath.startsWith('/objects/')) {
             const objectPath = normalizedPath.replace('/objects/', '');
@@ -42,12 +42,13 @@ router.post('/cleanup-storage', async (req, res) => {
 
     console.log(`Found ${referencedObjectPaths.size} files referenced in database`);
 
-    // Get private object directory
+    // Get private object directory for hierarchical structure
     const privateDir = objectStorageService.getPrivateObjectDir();
     const bucketName = privateDir.split('/')[1]; // Extract bucket name from path like "/bucket-name/path"
     const prefixPath = privateDir.split('/').slice(2).join('/'); // Get path after bucket
 
-    // List all files in the storage bucket under the documents directory
+    // List all files recursively in the storage bucket under the private directory
+    // This will scan the entire hierarchy: organization-*/building-*/buildings_documents/* and residence-*/*
     const bucket = objectStorageClient.bucket(bucketName);
     const [files] = await bucket.getFiles({ prefix: prefixPath });
     
@@ -55,18 +56,28 @@ router.post('/cleanup-storage', async (req, res) => {
     let totalFilesInStorage = files.length;
     const deletedFiles: string[] = [];
 
-    // Check each file in storage
+    // Check each file in storage across the hierarchical structure
     for (const file of files) {
       // Get the object path relative to the private directory
-      const objectPath = file.name.replace(prefixPath + '/', '');
+      let objectPath = file.name;
+      
+      // Remove the private directory prefix to get the hierarchical path
+      if (objectPath.startsWith(prefixPath)) {
+        objectPath = objectPath.substring(prefixPath.length);
+        // Remove leading slash if present
+        if (objectPath.startsWith('/')) {
+          objectPath = objectPath.substring(1);
+        }
+      }
       
       // Skip if this file is referenced in the database
       if (referencedObjectPaths.has(objectPath)) {
         continue;
       }
       
-      // Skip directory markers and non-document files
-      if (file.name.endsWith('/') || !objectPath.includes('/')) {
+      // Skip directory markers, empty paths, and folders
+      if (file.name.endsWith('/') || !objectPath || objectPath.split('/').length < 4) {
+        // Hierarchical files should have at least: organization-id/building-id/type/filename
         continue;
       }
       

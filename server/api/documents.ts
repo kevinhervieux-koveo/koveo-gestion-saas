@@ -570,8 +570,33 @@ export function registerDocumentRoutes(app: Express): void {
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
         return res.status(403).json({ message: 'Insufficient permissions to upload documents' });
       }
+
+      // Extract parameters from request body
+      const { organizationId, buildingId, residenceId, documentType } = req.body;
+
+      // Validate required parameters
+      if (!organizationId || !documentType) {
+        return res.status(400).json({ message: 'Organization ID and document type are required' });
+      }
+
+      if (documentType === 'building' && !buildingId) {
+        return res.status(400).json({ message: 'Building ID is required for building documents' });
+      }
+
+      if (documentType === 'residence' && (!buildingId || !residenceId)) {
+        return res.status(400).json({ message: 'Building ID and Residence ID are required for residence documents' });
+      }
+
+      if (!['building', 'residence'].includes(documentType)) {
+        return res.status(400).json({ message: 'Document type must be either "building" or "residence"' });
+      }
       
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL({
+        organizationId,
+        buildingId,
+        residenceId,
+        documentType: documentType as 'building' | 'residence'
+      });
       res.json({ uploadURL });
     } catch (error) {
       console.error('Error getting upload URL:', error);

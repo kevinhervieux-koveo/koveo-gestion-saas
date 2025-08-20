@@ -46,8 +46,8 @@ function getDisplayableFileUrl(fileUrl: string): string {
     return fileUrl;
   }
   
-  // For other formats, try to use as objects route
-  return `/objects/${fileUrl.replace(/^/+/, '')}`;
+  // For other formats, try to use as objects route  
+  return `/objects/${fileUrl.replace(/^\/+/, '')}`;
 }
 
 // Document categories
@@ -484,10 +484,31 @@ export default function ResidenceDocuments() {
   // Handle file upload for new document
   const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
     setIsUploadingNewFile(true); // Start upload tracking
+    
+    if (!residence) {
+      setIsUploadingNewFile(false);
+      throw new Error('No residence selected');
+    }
+
     const response = await fetch('/api/documents/upload-url', { 
       method: 'POST',
-      credentials: 'include'
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        organizationId: building?.organizationId,
+        buildingId: residence.buildingId,
+        residenceId: residence.id,
+        documentType: 'residence'
+      })
     });
+    
+    if (!response.ok) {
+      setIsUploadingNewFile(false);
+      throw new Error('Failed to get upload URL');
+    }
+    
     const data = await response.json();
     return { method: "PUT" as const, url: data.uploadURL };
   };
@@ -840,7 +861,16 @@ export default function ResidenceDocuments() {
                                 onGetUploadParameters={async () => {
                                   const response = await fetch('/api/documents/upload-url', {
                                     method: 'POST',
-                                    credentials: 'include'
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                      organizationId: building?.organizationId,
+                                      buildingId: residence?.buildingId,
+                                      residenceId: residence?.id,
+                                      documentType: 'residence'
+                                    })
                                   });
                                   const data = await response.json();
                                   return { method: "PUT", url: data.uploadURL };

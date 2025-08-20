@@ -147,11 +147,18 @@ export class ObjectStorageService {
     }
   }
 
-  // Gets the upload URL for an object entity.
+  // Gets the upload URL for an object entity with hierarchical structure
   /**
-   *
+   * Creates upload URL following the hierarchy:
+   * .private/organization-{id}/building-{id}/buildings_documents/{file}
+   * .private/organization-{id}/building-{id}/residence-{id}/{file}
    */
-  async getObjectEntityUploadURL(): Promise<string> {
+  async getObjectEntityUploadURL(options: {
+    organizationId: string;
+    buildingId?: string;
+    residenceId?: string;
+    documentType: 'building' | 'residence';
+  }): Promise<string> {
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error(
@@ -161,7 +168,21 @@ export class ObjectStorageService {
     }
 
     const objectId = randomUUID();
-    const fullPath = `${privateObjectDir}/documents/${objectId}`;
+    let fullPath: string;
+
+    if (options.documentType === 'building') {
+      // Building documents: .private/organization-{id}/building-{id}/buildings_documents/{file}
+      if (!options.buildingId) {
+        throw new Error('Building ID is required for building documents');
+      }
+      fullPath = `${privateObjectDir}/organization-${options.organizationId}/building-${options.buildingId}/buildings_documents/${objectId}`;
+    } else {
+      // Residence documents: .private/organization-{id}/building-{id}/residence-{id}/{file}
+      if (!options.buildingId || !options.residenceId) {
+        throw new Error('Building ID and Residence ID are required for residence documents');
+      }
+      fullPath = `${privateObjectDir}/organization-${options.organizationId}/building-${options.buildingId}/residence-${options.residenceId}/${objectId}`;
+    }
 
     const { bucketName, objectName } = parseObjectPath(fullPath);
 
@@ -174,27 +195,29 @@ export class ObjectStorageService {
     });
   }
 
-  // Gets the object entity file from the object path.
+  // Gets the object entity file from the object path with hierarchical structure
   /**
-   *
-   * @param objectPath
+   * Retrieves files from hierarchical paths:
+   * /objects/organization-{id}/building-{id}/buildings_documents/{file}
+   * /objects/organization-{id}/building-{id}/residence-{id}/{file}
    */
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
     }
 
-    const parts = objectPath.slice(1).split("/");
-    if (parts.length < 2) {
+    const parts = objectPath.slice(9).split("/"); // Remove "/objects/"
+    if (parts.length < 4) {
+      // Minimum: organization-id/building-id/type/file
       throw new ObjectNotFoundError();
     }
 
-    const entityId = parts.slice(1).join("/");
+    const entityPath = parts.join("/");
     let entityDir = this.getPrivateObjectDir();
     if (!entityDir.endsWith("/")) {
       entityDir = `${entityDir}/`;
     }
-    const objectEntityPath = `${entityDir}${entityId}`;
+    const objectEntityPath = `${entityDir}${entityPath}`;
     const { bucketName, objectName } = parseObjectPath(objectEntityPath);
     const bucket = objectStorageClient.bucket(bucketName);
     const objectFile = bucket.file(objectName);
@@ -206,8 +229,7 @@ export class ObjectStorageService {
   }
 
   /**
-   *
-   * @param rawPath
+   * Normalizes hierarchical object paths from URLs to /objects/... format
    */
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
@@ -227,9 +249,9 @@ export class ObjectStorageService {
       return rawObjectPath;
     }
   
-    // Extract the entity ID from the path
-    const entityId = rawObjectPath.slice(objectEntityDir.length);
-    return `/objects/${entityId}`;
+    // Extract the entity path from the hierarchical structure
+    const entityPath = rawObjectPath.slice(objectEntityDir.length);
+    return `/objects/${entityPath}`;
   }
 
   // Sets the object ACL policy and return the normalized path.

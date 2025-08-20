@@ -470,10 +470,30 @@ export default function BuildingDocuments() {
   // Handle file upload for new document
   const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
     setIsUploadingNewFile(true); // Start upload tracking
+    
+    if (!building) {
+      setIsUploadingNewFile(false);
+      throw new Error('No building selected');
+    }
+
     const response = await fetch('/api/documents/upload-url', { 
       method: 'POST',
-      credentials: 'include'
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        organizationId: building.organizationId,
+        buildingId: building.id,
+        documentType: 'building'
+      })
     });
+    
+    if (!response.ok) {
+      setIsUploadingNewFile(false);
+      throw new Error('Failed to get upload URL');
+    }
+    
     const data = await response.json();
     return { method: "PUT" as const, url: data.uploadURL };
   };
@@ -826,7 +846,15 @@ export default function BuildingDocuments() {
                                 onGetUploadParameters={async () => {
                                   const response = await fetch('/api/documents/upload-url', {
                                     method: 'POST',
-                                    credentials: 'include'
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                      organizationId: building?.organizationId,
+                                      buildingId: building?.id,
+                                      documentType: 'building'
+                                    })
                                   });
                                   const data = await response.json();
                                   return { method: "PUT", url: data.uploadURL };
