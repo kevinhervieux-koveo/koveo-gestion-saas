@@ -150,30 +150,40 @@ const InvitationAcceptancePage = createOptimizedLoader(
  * @returns JSX element for the router component.
  */
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [location] = useLocation();
 
+  // Show loading spinner while authentication is being determined
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  // Home page and public routes - always without sidebar
-  const isHomePage = location === '/';
+  // Check if we're on a public page
+  const isPublicPage = ['/', '/login', '/forgot-password', '/reset-password', '/accept-invitation', '/register'].includes(location);
   
-  if (!isAuthenticated) {
-    // For unauthenticated users, only show public routes and redirect everything else
+  // If we're on a public page, allow access regardless of auth status
+  if (isPublicPage) {
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
           <Route path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
+          <Route path="/login" component={isAuthenticated ? LoginRedirect : LoginPage} />
           <Route path="/forgot-password" component={ForgotPasswordPage} />
           <Route path="/reset-password" component={ResetPasswordPage} />
           <Route path="/accept-invitation" component={InvitationAcceptancePage} />
           <Route path="/register" component={InvitationAcceptancePage} />
-          {/* Redirect all other routes to home for unauthenticated users */}
-          <Route component={HomeRedirect} />
         </Switch>
+      </Suspense>
+    );
+  }
+
+  // For protected routes, require authentication
+  if (!isAuthenticated) {
+    // Only redirect to home if we're certain the user is not authenticated
+    // and we're not in a loading state
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <HomeRedirect />
       </Suspense>
     );
   }

@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                        window.location.pathname.includes('/accept-invitation') ||
                        window.location.pathname === '/';
 
-  // Query to get current user (disabled for public pages)
+  // Query to get current user (always enabled, but we handle public pages differently)
   const { data: userData, isLoading } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
-    enabled: !isPublicPage, // Only run auth query on protected pages
+    enabled: true, // Always run auth query to prevent reload redirects
     queryFn: async () => {
       try {
         const response = await fetch('/api/auth/user', {
