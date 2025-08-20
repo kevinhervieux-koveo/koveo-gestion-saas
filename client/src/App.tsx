@@ -60,6 +60,16 @@ const Documents = createOptimizedLoader(
   'documents-page',
   { enableMemoryCleanup: true }
 );
+const BuildingDocuments = createOptimizedLoader(
+  () => import('@/pages/manager/BuildingDocuments'),
+  'building-documents-page',
+  { enableMemoryCleanup: true }
+);
+const ResidenceDocuments = createOptimizedLoader(
+  () => import('@/pages/manager/ResidenceDocuments'),
+  'residence-documents-page',
+  { enableMemoryCleanup: true }
+);
 const ManagerBudget = createOptimizedLoader(
   () => import('@/pages/manager/budget'),
   'manager-budget',
@@ -226,7 +236,9 @@ function Router() {
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />
+              <Route path='/manager/buildings/documents' component={BuildingDocuments} />
               <Route path='/manager/residences' component={ManagerResidences} />
+              <Route path='/manager/residences/documents' component={ResidenceDocuments} />
               <Route path='/manager/budget' component={ManagerBudget} />
               <Route path='/manager/bills' component={ManagerBills} />
               <Route path='/manager/demands' component={ManagerDemands} />

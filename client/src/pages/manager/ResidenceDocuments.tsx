@@ -1,0 +1,584 @@
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Home, Calendar, Filter } from "lucide-react";
+import { Header } from "@/components/layout/header";
+import type { UploadResult } from "@uppy/core";
+
+// Document categories
+const DOCUMENT_CATEGORIES = [
+  { value: 'lease', label: 'Lease Documents' },
+  { value: 'inspection', label: 'Inspections' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'financial', label: 'Financial' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'correspondence', label: 'Correspondence' },
+  { value: 'permits', label: 'Permits' },
+  { value: 'utilities', label: 'Utilities' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+// Form schema for creating/editing residence documents
+const documentFormSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255, "Name too long"),
+  type: z.enum(['lease', 'inspection', 'maintenance', 'financial', 'insurance', 'legal', 'correspondence', 'permits', 'utilities', 'other']),
+  dateReference: z.string().refine((dateStr) => {
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  }, {
+    message: "Valid date is required",
+  }),
+  residenceId: z.string().min(1, "Residence ID is required"),
+});
+
+type DocumentFormData = z.infer<typeof documentFormSchema>;
+
+interface ResidenceDocument {
+  id: string;
+  name: string;
+  type: string;
+  dateReference: string;
+  uploadDate: string;
+  residenceId: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  fileUrl?: string;
+}
+
+interface User {
+  id: string;
+  role: string;
+  [key: string]: any;
+}
+
+interface Residence {
+  id: string;
+  unitNumber: string;
+  floor?: string;
+  buildingId: string;
+  [key: string]: any;
+}
+
+interface Building {
+  id: string;
+  name: string;
+  address: string;
+  [key: string]: any;
+}
+
+export default function ResidenceDocuments() {
+  // Get residenceId from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const residenceId = urlParams.get('residenceId');
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<ResidenceDocument | null>(null);
+  const [uploadingDocumentId, setUploadingDocumentId] = useState<string | null>(null);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Get current user info
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/auth/user"],
+  });
+
+  // Get residences info
+  const { data: residences = [] } = useQuery<Residence[]>({
+    queryKey: ["/api/residences"],
+  });
+
+  // Get buildings info for context
+  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
+    queryKey: ["/api/manager/buildings"],
+  });
+
+  const residence = residences.find(r => r.id === residenceId);
+  const building = buildingsResponse?.buildings?.find(b => b.id === residence?.buildingId);
+
+  // Get documents for this specific residence
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<ResidenceDocument[]>({
+    queryKey: ["/api/documents", "residence", residenceId],
+    queryFn: async () => {
+      if (!residenceId) return [];
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      return response.json();
+    },
+    enabled: !!residenceId,
+  });
+
+  // Get available years from documents
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    documents.forEach(doc => {
+      const year = new Date(doc.dateReference).getFullYear().toString();
+      years.add(year);
+    });
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [documents]);
+
+  // Filter documents based on search, category, and year
+  const filteredDocuments = useMemo(() => {
+    let filtered = documents;
+
+    if (searchTerm) {
+      filtered = filtered.filter(doc => 
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(doc => doc.type === selectedCategory);
+    }
+
+    if (selectedYear !== "all") {
+      filtered = filtered.filter(doc => 
+        new Date(doc.dateReference).getFullYear().toString() === selectedYear
+      );
+    }
+
+    return filtered;
+  }, [documents, searchTerm, selectedCategory, selectedYear]);
+
+  // Group documents by category for display
+  const documentsByCategory = useMemo(() => {
+    const grouped: Record<string, ResidenceDocument[]> = {};
+    
+    DOCUMENT_CATEGORIES.forEach(category => {
+      grouped[category.value] = filteredDocuments.filter(doc => doc.type === category.value);
+    });
+
+    return grouped;
+  }, [filteredDocuments]);
+
+  // Create document mutation
+  const createDocumentMutation = useMutation({
+    mutationFn: async (data: DocumentFormData) => {
+      return apiRequest("/api/documents", "POST", { ...data, type: "resident" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Document created successfully. Now upload the file.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create document",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update document mutation
+  const updateDocumentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
+      return apiRequest(`/api/documents/${id}`, "PUT", { ...data, type: "resident" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
+      setSelectedDocument(null);
+      toast({
+        title: "Success",
+        description: "Document updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update document",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/documents/${id}`, "DELETE", { type: "resident" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
+      toast({
+        title: "Success",
+        description: "Document deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete document",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Upload file mutation
+  const uploadFileMutation = useMutation({
+    mutationFn: async ({ id, fileData }: { id: string; fileData: { fileUrl: string; fileName: string; fileSize: number; mimeType: string } }) => {
+      return apiRequest(`/api/documents/${id}/upload`, "POST", { ...fileData, type: "resident" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
+      setUploadingDocumentId(null);
+      toast({
+        title: "File uploaded",
+        description: "The file has been uploaded successfully.",
+      });
+    },
+    onError: (error: any) => {
+      setUploadingDocumentId(null);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload file",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Form for creating documents
+  const form = useForm<DocumentFormData>({
+    resolver: zodResolver(documentFormSchema),
+    defaultValues: {
+      name: "",
+      type: "other",
+      dateReference: new Date().toISOString().split('T')[0],
+      residenceId: residenceId || "",
+    },
+  });
+
+  const handleCreateDocument = (data: DocumentFormData) => {
+    createDocumentMutation.mutate(data);
+  };
+
+  const handleDeleteDocument = (document: ResidenceDocument) => {
+    if (window.confirm("Are you sure you want to delete this document?")) {
+      deleteDocumentMutation.mutate(document.id);
+    }
+  };
+
+  const handleFileUploadComplete = (documentId: string) => (result: UploadResult<any, any>) => {
+    const uploadedFile = result.successful[0];
+    if (uploadedFile && uploadedFile.uploadURL) {
+      const fileData = {
+        fileUrl: uploadedFile.uploadURL,
+        fileName: uploadedFile.name,
+        fileSize: uploadedFile.size || 0,
+        mimeType: uploadedFile.type || 'application/octet-stream',
+      };
+      uploadFileMutation.mutate({ id: documentId, fileData });
+    }
+  };
+
+  const handleDownloadDocument = async (document: ResidenceDocument) => {
+    try {
+      const response = await fetch(`/api/documents/${document.id}/download`);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = document.fileName || document.name;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Failed to download document",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!residenceId) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="Residence Documents" subtitle="Residence ID is required" />
+        <div className="flex-1 overflow-auto p-6">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Home className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Residence ID Required</h3>
+              <p className="text-gray-500">Please provide a residence ID to view documents.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <Header 
+        title={`Unit ${residence?.unitNumber || residenceId} Documents`}
+        subtitle={`Manage documents for ${building?.name || 'this residence'} - Unit ${residence?.unitNumber || ''}`}
+      />
+      
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Search and Filter Controls */}
+          <div className="mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search documents..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {DOCUMENT_CATEGORIES.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-full sm:w-32">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Document
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add New Document</DialogTitle>
+                    <DialogDescription>
+                      Create a new document for this residence. You can upload the file after creating.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleCreateDocument)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Document Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter document name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DOCUMENT_CATEGORIES.map((category) => (
+                                  <SelectItem key={category.value} value={category.value}>
+                                    {category.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="dateReference"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Reference Date</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="date" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <DialogFooter>
+                        <Button type="submit" disabled={createDocumentMutation.isPending}>
+                          {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          {documentsLoading ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-500">Loading documents...</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Tabs defaultValue={DOCUMENT_CATEGORIES[0].value} className="w-full">
+              <TabsList className="grid grid-cols-5 lg:grid-cols-10 mb-6">
+                {DOCUMENT_CATEGORIES.map((category) => (
+                  <TabsTrigger 
+                    key={category.value} 
+                    value={category.value}
+                    className="text-xs"
+                  >
+                    {category.label}
+                    <Badge variant="outline" className="ml-1 text-xs">
+                      {documentsByCategory[category.value]?.length || 0}
+                    </Badge>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {DOCUMENT_CATEGORIES.map((category) => (
+                <TabsContent key={category.value} value={category.value}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        {category.label} Documents
+                      </h3>
+                      <Badge variant="outline">
+                        {documentsByCategory[category.value]?.length || 0} documents
+                      </Badge>
+                    </div>
+
+                    {documentsByCategory[category.value]?.length === 0 ? (
+                      <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-8">
+                          <FileText className="h-12 w-12 text-gray-400 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No {category.label.toLowerCase()} documents</h3>
+                          <p className="text-gray-500">Get started by creating your first document.</p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {documentsByCategory[category.value]?.map((document) => (
+                          <Card key={document.id} className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-sm font-medium mb-1 line-clamp-2">
+                                    {document.name}
+                                  </CardTitle>
+                                  <CardDescription className="text-xs">
+                                    <Calendar className="h-3 w-3 inline mr-1" />
+                                    {new Date(document.dateReference).toLocaleDateString()}
+                                  </CardDescription>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {DOCUMENT_CATEGORIES.find(c => c.value === document.type)?.label}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="flex flex-wrap gap-2">
+                                {document.fileUrl ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDownloadDocument(document)}
+                                    className="flex-1"
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download
+                                  </Button>
+                                ) : (
+                                  <ObjectUploader
+                                    onGetUploadParameters={async () => {
+                                      const response = await fetch(`/api/documents/${document.id}/upload-url`);
+                                      const data = await response.json();
+                                      return { method: "PUT", url: data.uploadUrl };
+                                    }}
+                                    onComplete={handleFileUploadComplete(document.id)}
+                                    buttonClassName="flex-1"
+                                  >
+                                    <Upload className="h-3 w-3 mr-1" />
+                                    Upload File
+                                  </ObjectUploader>
+                                )}
+                                
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteDocument(document)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
