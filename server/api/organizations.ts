@@ -16,6 +16,7 @@ import {
 } from '@shared/schema';
 import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
 import { requireAuth } from '../auth';
+import { ObjectStorageService } from '../objectStorage';
 
 /**
  *
@@ -217,6 +218,11 @@ export function registerOrganizationRoutes(app: Express): void {
       });
 
       console.log('✅ Created organization:', newOrganization.name);
+      
+      // Create object storage hierarchy for the new organization
+      const objectStorageService = new ObjectStorageService();
+      await objectStorageService.createOrganizationHierarchy(newOrganization.id);
+      
       res.status(201).json(newOrganization);
 
     } catch (error) {
@@ -471,6 +477,10 @@ export function registerOrganizationRoutes(app: Express): void {
       });
 
       console.log(`✅ Organization cascading delete completed: ${organizationId}`);
+
+      // Clean up object storage hierarchy for the deleted organization
+      const objectStorageService = new ObjectStorageService();
+      await objectStorageService.deleteOrganizationHierarchy(organizationId);
 
       res.json({
         message: 'Organization and related entities deleted successfully',

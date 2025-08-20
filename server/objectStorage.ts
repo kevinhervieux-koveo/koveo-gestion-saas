@@ -263,6 +263,150 @@ export class ObjectStorageService {
     const normalizedPath = this.normalizeObjectEntityPath(rawPath);
     return normalizedPath;
   }
+
+  // Create hierarchical directory structure for organization
+  /**
+   * Creates directory structure for an organization
+   */
+  async createOrganizationHierarchy(organizationId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // Create organization directory marker
+      const orgDir = `${privateDir.replace('/', '')}/organization-${organizationId}/.keep`;
+      const orgFile = bucket.file(orgDir);
+      await orgFile.save('', { metadata: { contentType: 'text/plain' } });
+
+      console.log(`✅ Created organization hierarchy for: ${organizationId}`);
+    } catch (error) {
+      console.error(`❌ Failed to create organization hierarchy for ${organizationId}:`, error);
+    }
+  }
+
+  // Create hierarchical directory structure for building
+  /**
+   * Creates directory structure for a building under an organization
+   */
+  async createBuildingHierarchy(organizationId: string, buildingId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // Create building directory and buildings_documents subdirectory
+      const buildingDir = `${privateDir.replace('/', '')}/organization-${organizationId}/building-${buildingId}`;
+      const buildingsDocDir = `${buildingDir}/buildings_documents/.keep`;
+      
+      const buildingsDocFile = bucket.file(buildingsDocDir);
+      await buildingsDocFile.save('', { metadata: { contentType: 'text/plain' } });
+
+      console.log(`✅ Created building hierarchy for: ${buildingId} in organization ${organizationId}`);
+    } catch (error) {
+      console.error(`❌ Failed to create building hierarchy for ${buildingId}:`, error);
+    }
+  }
+
+  // Create hierarchical directory structure for residence
+  /**
+   * Creates directory structure for a residence under a building
+   */
+  async createResidenceHierarchy(organizationId: string, buildingId: string, residenceId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // Create residence directory
+      const residenceDir = `${privateDir.replace('/', '')}/organization-${organizationId}/building-${buildingId}/residence-${residenceId}/.keep`;
+      
+      const residenceFile = bucket.file(residenceDir);
+      await residenceFile.save('', { metadata: { contentType: 'text/plain' } });
+
+      console.log(`✅ Created residence hierarchy for: ${residenceId} in building ${buildingId}`);
+    } catch (error) {
+      console.error(`❌ Failed to create residence hierarchy for ${residenceId}:`, error);
+    }
+  }
+
+  // Delete hierarchical directory structure (with safety checks)
+  /**
+   * Safely deletes directory structure and all contents for an organization
+   */
+  async deleteOrganizationHierarchy(organizationId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // List all files in the organization directory
+      const prefix = `${privateDir.replace('/', '')}/organization-${organizationId}/`;
+      const [files] = await bucket.getFiles({ prefix });
+
+      // Delete all files in the organization hierarchy
+      for (const file of files) {
+        await file.delete();
+        console.log(`🗑️ Deleted: ${file.name}`);
+      }
+
+      console.log(`✅ Deleted organization hierarchy for: ${organizationId}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete organization hierarchy for ${organizationId}:`, error);
+    }
+  }
+
+  // Delete hierarchical directory structure for building
+  /**
+   * Safely deletes directory structure and all contents for a building
+   */
+  async deleteBuildingHierarchy(organizationId: string, buildingId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // List all files in the building directory
+      const prefix = `${privateDir.replace('/', '')}/organization-${organizationId}/building-${buildingId}/`;
+      const [files] = await bucket.getFiles({ prefix });
+
+      // Delete all files in the building hierarchy
+      for (const file of files) {
+        await file.delete();
+        console.log(`🗑️ Deleted: ${file.name}`);
+      }
+
+      console.log(`✅ Deleted building hierarchy for: ${buildingId} in organization ${organizationId}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete building hierarchy for ${buildingId}:`, error);
+    }
+  }
+
+  // Delete hierarchical directory structure for residence
+  /**
+   * Safely deletes directory structure and all contents for a residence
+   */
+  async deleteResidenceHierarchy(organizationId: string, buildingId: string, residenceId: string): Promise<void> {
+    try {
+      const privateDir = this.getPrivateObjectDir();
+      const { bucketName } = parseObjectPath(privateDir);
+      const bucket = objectStorageClient.bucket(bucketName);
+
+      // List all files in the residence directory
+      const prefix = `${privateDir.replace('/', '')}/organization-${organizationId}/building-${buildingId}/residence-${residenceId}/`;
+      const [files] = await bucket.getFiles({ prefix });
+
+      // Delete all files in the residence hierarchy
+      for (const file of files) {
+        await file.delete();
+        console.log(`🗑️ Deleted: ${file.name}`);
+      }
+
+      console.log(`✅ Deleted residence hierarchy for: ${residenceId} in building ${buildingId}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete residence hierarchy for ${residenceId}:`, error);
+    }
+  }
 }
 
 /**

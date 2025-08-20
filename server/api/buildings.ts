@@ -11,6 +11,7 @@ import {
 } from '@shared/schema';
 import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
+import { ObjectStorageService } from '../objectStorage';
 import crypto from 'crypto';
 
 /**
@@ -601,6 +602,10 @@ export function registerBuildingRoutes(app: Express): void {
 
       console.log(`✅ Building created successfully with ID: ${buildingId}`);
 
+      // Create object storage hierarchy for the new building
+      const objectStorageService = new ObjectStorageService();
+      await objectStorageService.createBuildingHierarchy(buildingData.organizationId, buildingId);
+
       // Auto-generate residences if totalUnits is specified and <= 300
       if (buildingData.totalUnits && buildingData.totalUnits > 0 && buildingData.totalUnits <= 300) {
         try {
@@ -629,6 +634,11 @@ export function registerBuildingRoutes(app: Express): void {
             .returning();
 
           console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
+          
+          // Create object storage hierarchy for each residence
+          for (const residence of createdResidences) {
+            await objectStorageService.createResidenceHierarchy(buildingData.organizationId, buildingId, residence.id);
+          }
         } catch (residenceError) {
           console.error('⚠️ Error auto-generating residences:', residenceError);
           // Don't fail the building creation if residence generation fails
@@ -783,6 +793,10 @@ export function registerBuildingRoutes(app: Express): void {
         .where(eq(buildings.id, buildingId));
 
       console.log(`✅ Building deleted successfully: ${buildingId}`);
+
+      // Clean up object storage hierarchy for the deleted building
+      const objectStorageService = new ObjectStorageService();
+      await objectStorageService.deleteBuildingHierarchy(existingBuilding[0].organizationId, buildingId);
 
       res.json({
         message: 'Building deleted successfully'
@@ -983,6 +997,19 @@ export function registerBuildingRoutes(app: Express): void {
       });
 
       console.log(`✅ Building cascading delete completed: ${buildingId}`);
+
+      // Clean up object storage hierarchy for the deleted building  
+      // Get organization ID from building before deletion
+      const buildingOrg = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+        
+      if (buildingOrg.length > 0) {
+        const objectStorageService = new ObjectStorageService();
+        await objectStorageService.deleteBuildingHierarchy(buildingOrg[0].organizationId, buildingId);
+      }
 
       res.json({
         message: 'Building and related entities deleted successfully',
