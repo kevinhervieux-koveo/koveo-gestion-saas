@@ -178,8 +178,8 @@ export function registerContactRoutes(app: Express) {
 
       const contact = existing[0];
 
-      // Check permissions - only managers and admins can delete contacts
-      if (user.role !== 'admin' && user.role !== 'manager') {
+      // Check permissions - residents, managers and admins can delete contacts
+      if (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'resident') {
         return res.status(403).json({ message: 'Access denied' });
       }
 
