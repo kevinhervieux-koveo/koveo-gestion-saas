@@ -52,20 +52,16 @@ interface Residence {
 }
 
 interface Contact {
-  contact: {
-    id: string;
-    userId: string;
-    entity: string;
-    entityId: string;
-    contactCategory: string;
-  };
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-  };
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  entity: string;
+  entityId: string;
+  contactCategory: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface UserResidence {
@@ -73,7 +69,9 @@ interface UserResidence {
 }
 
 const contactSchema = z.object({
-  userId: z.string().min(1, 'User is required'),
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  phone: z.string().optional(),
   contactCategory: z.enum(['resident', 'manager', 'tenant', 'maintenance', 'other']),
 });
 
@@ -114,14 +112,13 @@ export default function MyResidence() {
     enabled: !!selectedResidence?.id,
   });
 
-  // Get all users for contact selection
-  const { data: users } = useQuery({
-    queryKey: ['/api/users'],
-  });
 
   const contactForm = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
       contactCategory: 'resident',
     },
   });
@@ -134,9 +131,12 @@ export default function MyResidence() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
+          name: data.name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
           entity: 'residence',
           entityId: selectedResidence.id,
+          contactCategory: data.contactCategory,
         }),
       });
 
@@ -368,24 +368,39 @@ export default function MyResidence() {
                           <form onSubmit={contactForm.handleSubmit(handleAddContact)} className='space-y-4'>
                             <FormField
                               control={contactForm.control}
-                              name='userId'
+                              name='name'
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>User</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder='Select a user' />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {users?.map((user: any) => (
-                                        <SelectItem key={user.id} value={user.id}>
-                                          {user.firstName} {user.lastName} ({user.email})
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                  <FormLabel>Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='Enter contact name' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={contactForm.control}
+                              name='email'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Input type='email' placeholder='Enter email address' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={contactForm.control}
+                              name='phone'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Phone (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='Enter phone number' {...field} />
+                                  </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -432,31 +447,33 @@ export default function MyResidence() {
                   ) : contacts && contacts.length > 0 ? (
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                       {contacts.map((contact) => (
-                        <div key={contact.contact.id} className='border rounded-lg p-4 space-y-2'>
+                        <div key={contact.id} className='border rounded-lg p-4 space-y-2'>
                           <div className='flex items-center justify-between'>
                             <Badge variant='outline' className='capitalize'>
-                              {contact.contact.contactCategory}
+                              {contact.contactCategory}
                             </Badge>
                             <Button
                               variant='ghost'
                               size='sm'
-                              onClick={() => handleDeleteContact(contact.contact.id)}
+                              onClick={() => handleDeleteContact(contact.id)}
                             >
                               <Trash2 className='w-4 h-4' />
                             </Button>
                           </div>
                           <div>
                             <p className='font-semibold'>
-                              {contact.user.firstName} {contact.user.lastName}
+                              {contact.name}
                             </p>
-                            <p className='text-sm text-gray-600 flex items-center gap-1'>
-                              <Mail className='w-3 h-3' />
-                              {contact.user.email}
-                            </p>
-                            {contact.user.phone && (
+                            {contact.email && (
+                              <p className='text-sm text-gray-600 flex items-center gap-1'>
+                                <Mail className='w-3 h-3' />
+                                {contact.email}
+                              </p>
+                            )}
+                            {contact.phone && (
                               <p className='text-sm text-gray-600 flex items-center gap-1'>
                                 <Phone className='w-3 h-3' />
-                                {contact.user.phone}
+                                {contact.phone}
                               </p>
                             )}
                           </div>

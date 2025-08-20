@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { db } from '../db.js';
-import { contacts, users, residences, buildings, organizations } from '../../shared/schema.js';
+import { contacts, residences, buildings, organizations } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index.js';
 import { insertContactSchema } from '../../shared/schemas/property.js';
@@ -22,20 +22,10 @@ export function registerContactRoutes(app: Express) {
         return res.status(400).json({ message: 'Invalid entity type' });
       }
 
-      // Get contacts with user details
+      // Get contacts
       const entityContacts = await db
-        .select({
-          contact: contacts,
-          user: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            email: users.email,
-            phone: users.phone,
-          }
-        })
+        .select()
         .from(contacts)
-        .innerJoin(users, eq(contacts.userId, users.id))
         .where(and(
           eq(contacts.entity, entity as any),
           eq(contacts.entityId, entityId),
@@ -74,18 +64,8 @@ export function registerContactRoutes(app: Express) {
 
       // Get contacts for the residence
       const residenceContacts = await db
-        .select({
-          contact: contacts,
-          user: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            email: users.email,
-            phone: users.phone,
-          }
-        })
+        .select()
         .from(contacts)
-        .innerJoin(users, eq(contacts.userId, users.id))
         .where(and(
           eq(contacts.entity, 'residence'),
           eq(contacts.entityId, residenceId),
@@ -106,18 +86,7 @@ export function registerContactRoutes(app: Express) {
       const validatedData = insertContactSchema.parse(req.body);
 
       // Check permissions based on user role and entity
-      const { entity, entityId, userId, contactCategory } = validatedData;
-
-      // Verify the user exists
-      const targetUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (targetUser.length === 0) {
-        return res.status(400).json({ message: 'User not found' });
-      }
+      const { entity, entityId, name, email, phone, contactCategory } = validatedData;
 
       // Verify entity exists based on type
       if (entity === 'residence') {
@@ -135,27 +104,13 @@ export function registerContactRoutes(app: Express) {
       // Create the contact
       const [newContact] = await db
         .insert(contacts)
-        .values(validatedData)
+        .values([{
+          ...validatedData,
+          contactCategory: validatedData.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'other'
+        }])
         .returning();
 
-      // Return the contact with user details
-      const contactWithUser = await db
-        .select({
-          contact: contacts,
-          user: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            email: users.email,
-            phone: users.phone,
-          }
-        })
-        .from(contacts)
-        .innerJoin(users, eq(contacts.userId, users.id))
-        .where(eq(contacts.id, newContact.id))
-        .limit(1);
-
-      res.status(201).json(contactWithUser[0]);
+      res.status(201).json(newContact);
     } catch (error) {
       console.error('Error creating contact:', error);
       res.status(500).json({ message: 'Failed to create contact' });
@@ -182,8 +137,8 @@ export function registerContactRoutes(app: Express) {
 
       const contact = existing[0];
 
-      // Check permissions - users can only edit their own contacts or if they are manager/admin
-      if (user.role !== 'admin' && user.role !== 'manager' && contact.userId !== user.id) {
+      // Check permissions - only managers and admins can edit contacts
+      if (user.role !== 'admin' && user.role !== 'manager') {
         return res.status(403).json({ message: 'Access denied' });
       }
 
@@ -197,24 +152,7 @@ export function registerContactRoutes(app: Express) {
         .where(eq(contacts.id, id))
         .returning();
 
-      // Return the contact with user details
-      const contactWithUser = await db
-        .select({
-          contact: contacts,
-          user: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            email: users.email,
-            phone: users.phone,
-          }
-        })
-        .from(contacts)
-        .innerJoin(users, eq(contacts.userId, users.id))
-        .where(eq(contacts.id, updatedContact.id))
-        .limit(1);
-
-      res.json(contactWithUser[0]);
+      res.json(updatedContact);
     } catch (error) {
       console.error('Error updating contact:', error);
       res.status(500).json({ message: 'Failed to update contact' });

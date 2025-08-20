@@ -123,9 +123,9 @@ export const contacts = pgTable('contacts', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
+  name: text('name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
   entity: contactEntityEnum('entity').notNull(),
   entityId: uuid('entity_id').notNull(),
   contactCategory: contactCategoryEnum('contact_category').notNull(),
@@ -175,7 +175,9 @@ export const insertUserResidenceSchema = createInsertSchema(userResidences).pick
 });
 
 export const insertContactSchema = createInsertSchema(contacts).pick({
-  userId: true,
+  name: true,
+  email: true,
+  phone: true,
   entity: true,
   entityId: true,
   contactCategory: true,
@@ -246,9 +248,3 @@ export const userResidencesRelations = relations(userResidences, ({ one }) => ({
   }),
 }));
 
-export const contactsRelations = relations(contacts, ({ one }) => ({
-  user: one(users, {
-    fields: [contacts.userId],
-    references: [users.id],
-  }),
-}));
