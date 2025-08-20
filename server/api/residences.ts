@@ -31,6 +31,66 @@ export function registerResidenceRoutes(app: Express) {
     }
   });
 
+  // Get assigned users for a specific residence
+  app.get('/api/residences/:residenceId/assigned-users', requireAuth, async (req: any, res: any) => {
+    try {
+      const { residenceId } = req.params;
+      const currentUser = req.user;
+
+      // Get assigned users with their details
+      const assignedUsers = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          phone: users.phone,
+          relationshipType: userResidences.relationshipType,
+          startDate: userResidences.startDate,
+          endDate: userResidences.endDate,
+          isActive: userResidences.isActive,
+        })
+        .from(userResidences)
+        .innerJoin(users, eq(userResidences.userId, users.id))
+        .where(and(
+          eq(userResidences.residenceId, residenceId),
+          eq(userResidences.isActive, true)
+        ));
+
+      res.json(assignedUsers);
+    } catch (error) {
+      console.error('Error fetching assigned users:', error);
+      res.status(500).json({ message: 'Failed to fetch assigned users' });
+    }
+  });
+
+  // Update assigned user information
+  app.put('/api/residences/:residenceId/assigned-users/:userId', requireAuth, async (req: any, res: any) => {
+    try {
+      const { userId } = req.params;
+      const { firstName, lastName, email, phone } = req.body;
+      const currentUser = req.user;
+
+      // Update user information
+      await db
+        .update(users)
+        .set({
+          firstName,
+          lastName,
+          email,
+          phone,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      res.json({ message: 'User updated successfully' });
+    } catch (error) {
+      console.error('Error updating assigned user:', error);
+      res.status(500).json({ message: 'Failed to update assigned user' });
+    }
+  });
+
   // Get all residences with filtering and search
   app.get('/api/residences', requireAuth, async (req: any, res: any) => {
     try {

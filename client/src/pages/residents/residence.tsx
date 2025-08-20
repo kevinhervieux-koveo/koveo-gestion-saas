@@ -73,6 +73,19 @@ interface Contact {
   updatedAt: string;
 }
 
+interface AssignedUser {
+  id: string;
+  username: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  relationshipType: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+}
+
 interface UserResidence {
   residenceId: string;
 }
@@ -132,6 +145,7 @@ export default function MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [editingAssignedUser, setEditingAssignedUser] = useState<AssignedUser | null>(null);
   const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isEditingDocument, setIsEditingDocument] = useState(false);
@@ -168,6 +182,17 @@ export default function MyResidence() {
   // Get contacts for the selected residence
   const { data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/residences', selectedResidence?.id, 'contacts'],
+    enabled: !!selectedResidence?.id,
+  });
+
+  // Get assigned users for the selected residence
+  const { data: assignedUsers, refetch: refetchAssignedUsers } = useQuery<AssignedUser[]>({
+    queryKey: ['/api/residences', selectedResidence?.id, 'assigned-users'],
+    queryFn: async () => {
+      const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);
+      if (!response.ok) throw new Error('Failed to fetch assigned users');
+      return response.json();
+    },
     enabled: !!selectedResidence?.id,
   });
 
