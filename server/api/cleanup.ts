@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { documentsBuildings, documentsResidents } from '../../shared/schema';
-import { ObjectStorageService } from '../objectStorage';
+import { ObjectStorageService, objectStorageClient } from '../objectStorage';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
 
@@ -22,32 +22,81 @@ router.post('/cleanup-storage', async (req, res) => {
       .from(documentsResidents)
       .where(isNotNull(documentsResidents.fileUrl));
 
-    // Combine all referenced file URLs
-    const referencedFiles = new Set([
-      ...buildingDocs.map(doc => doc.fileUrl).filter(Boolean),
-      ...residentDocs.map(doc => doc.fileUrl).filter(Boolean)
-    ]);
+    // Combine all referenced file URLs and extract object paths
+    const referencedObjectPaths = new Set();
+    
+    [...buildingDocs, ...residentDocs].forEach(doc => {
+      if (doc.fileUrl) {
+        try {
+          // Convert URL to object path
+          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.fileUrl);
+          if (normalizedPath.startsWith('/objects/')) {
+            const objectPath = normalizedPath.replace('/objects/', '');
+            referencedObjectPaths.add(objectPath);
+          }
+        } catch (error) {
+          console.log(`Could not normalize path for ${doc.fileUrl}`);
+        }
+      }
+    });
 
-    console.log(`Found ${referencedFiles.size} files referenced in database:`, Array.from(referencedFiles));
+    console.log(`Found ${referencedObjectPaths.size} files referenced in database`);
 
-    // Get private object directory for cleanup
+    // Get private object directory
     const privateDir = objectStorageService.getPrivateObjectDir();
+    const bucketName = privateDir.split('/')[1]; // Extract bucket name from path like "/bucket-name/path"
+    const prefixPath = privateDir.split('/').slice(2).join('/'); // Get path after bucket
+
+    // List all files in the storage bucket under the documents directory
+    const bucket = objectStorageClient.bucket(bucketName);
+    const [files] = await bucket.getFiles({ prefix: prefixPath });
     
-    // For now, just return the analysis - actual cleanup would be more complex
-    // as we'd need to list all files in storage and compare
-    
+    let deletedCount = 0;
+    let totalFilesInStorage = files.length;
+    const deletedFiles: string[] = [];
+
+    // Check each file in storage
+    for (const file of files) {
+      // Get the object path relative to the private directory
+      const objectPath = file.name.replace(prefixPath + '/', '');
+      
+      // Skip if this file is referenced in the database
+      if (referencedObjectPaths.has(objectPath)) {
+        continue;
+      }
+      
+      // Skip directory markers and non-document files
+      if (file.name.endsWith('/') || !objectPath.includes('/')) {
+        continue;
+      }
+      
+      try {
+        // Delete orphaned file
+        await file.delete();
+        deletedFiles.push(objectPath);
+        deletedCount++;
+        console.log(`Deleted orphaned file: ${objectPath}`);
+      } catch (error) {
+        console.error(`Failed to delete ${objectPath}:`, error);
+      }
+    }
+
     res.json({
       success: true,
-      message: `Analysis complete. Found ${referencedFiles.size} files in database that should exist in storage.`,
-      referencedFiles: Array.from(referencedFiles),
-      recommendation: 'Files in storage not referenced by these URLs can be considered orphaned.'
+      message: `Cleanup complete. Deleted ${deletedCount} orphaned files.`,
+      details: {
+        totalFilesInStorage,
+        referencedInDatabase: referencedObjectPaths.size,
+        deletedOrphaned: deletedCount,
+        deletedFiles
+      }
     });
 
   } catch (error) {
-    console.error('Error during storage cleanup analysis:', error);
+    console.error('Error during storage cleanup:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to analyze storage cleanup' 
+      error: 'Failed to cleanup storage: ' + error.message 
     });
   }
 });
@@ -82,6 +131,36 @@ router.get('/storage-stats', async (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: 'Failed to get storage statistics' 
+    });
+  }
+});
+
+/**
+ * Auto-cleanup endpoint that runs automatically
+ */
+router.post('/auto-cleanup', async (req, res) => {
+  try {
+    // Call the cleanup storage function
+    const cleanupResponse = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const result = await cleanupResponse.json();
+    
+    console.log('Auto-cleanup completed:', result);
+    
+    res.json({
+      success: true,
+      message: 'Auto-cleanup completed successfully',
+      result
+    });
+    
+  } catch (error) {
+    console.error('Auto-cleanup failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Auto-cleanup failed: ' + error.message 
     });
   }
 });

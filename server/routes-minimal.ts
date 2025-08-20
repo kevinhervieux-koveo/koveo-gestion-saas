@@ -7,6 +7,7 @@ import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import cleanupRoutes from './api/cleanup';
+import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -931,6 +932,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/ready', (req, res) => {
     res.json({ status: 'ready' });
   });
+
+  // Start automatic storage cleanup scheduler
+  try {
+    const cleanupScheduler = CleanupScheduler.getInstance();
+    cleanupScheduler.startAutoCleanup();
+    log('✅ Storage cleanup scheduler initialized');
+  } catch (error) {
+    log(`❌ Cleanup scheduler failed: ${error}`, 'error');
+  }
 
   // Create and return HTTP server
   const server = createServer(app);
