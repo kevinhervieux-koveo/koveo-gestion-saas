@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
 import { Shield, Users, Settings, Plus, Search, Filter, Edit, Save, X, Check, AlertTriangle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -87,7 +87,7 @@ export default function Permissions() {
   const [filterRole, setFilterRole] = useState('all');
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [showNewPermissionForm, setShowNewPermissionForm] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -164,9 +164,17 @@ export default function Permissions() {
     setCurrentPage(1);
   };
   
+  // Set default category to first available category if none selected
+  useEffect(() => {
+    const availableCategories = Object.keys(permissionsByResource);
+    if (!selectedCategory && availableCategories.length > 0) {
+      setSelectedCategory(availableCategories[0]);
+    }
+  }, [permissionsByResource, selectedCategory]);
+
   // Filter permissions by category
   const filteredPermissions = permissions?.filter(permission => {
-    if (selectedCategory === 'all') {return true;}
+    if (!selectedCategory) {return false;}
     return permission.resourceType === selectedCategory;
   }) || [];
 
@@ -585,7 +593,6 @@ export default function Permissions() {
                         <SelectValue placeholder="Filter by category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
                         {Object.keys(permissionsByResource).map(category => (
                           <SelectItem key={category} value={category}>
                             {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
