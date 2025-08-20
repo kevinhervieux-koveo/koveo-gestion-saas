@@ -102,7 +102,7 @@ const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  contactCategory: z.enum(['resident', 'manager', 'tenant', 'maintenance', 'other']),
+  contactCategory: z.enum(['resident', 'manager', 'tenant', 'maintenance', 'emergency', 'other']),
 });
 
 const documentSchema = z.object({
@@ -590,6 +590,7 @@ export default function MyResidence() {
                                       <SelectItem value='manager'>Manager</SelectItem>
                                       <SelectItem value='tenant'>Tenant</SelectItem>
                                       <SelectItem value='maintenance'>Maintenance</SelectItem>
+                                      <SelectItem value='emergency'>Emergency</SelectItem>
                                       <SelectItem value='other'>Other</SelectItem>
                                     </SelectContent>
                                   </Select>

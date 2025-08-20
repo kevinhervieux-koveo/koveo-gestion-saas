@@ -34,6 +34,7 @@ export const contactCategoryEnum = pgEnum('contact_category', [
   'manager', 
   'tenant',
   'maintenance',
+  'emergency',
   'other',
 ]);
 
