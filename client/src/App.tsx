@@ -37,6 +37,11 @@ const AdminPermissions = createOptimizedLoader(
   'admin-permissions',
   { enableMemoryCleanup: true }
 );
+const AdminCompliance = createOptimizedLoader(
+  () => import('@/pages/admin/compliance'),
+  'admin-compliance',
+  { enableMemoryCleanup: true }
+);
 
 // Manager User Management component  
 const ManagerUserManagement = createOptimizedLoader(
@@ -213,6 +218,7 @@ function Router() {
               <Route path='/admin/pillars' component={AdminPillars} />
               <Route path='/admin/roadmap' component={AdminRoadmap} />
               <Route path='/admin/quality' component={AdminQuality} />
+              <Route path='/admin/compliance' component={AdminCompliance} />
               <Route path='/admin/suggestions' component={AdminSuggestions} />
               <Route path='/admin/permissions' component={AdminPermissions} />
 

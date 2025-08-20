@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+dist/
+build/
+coverage/
+
+# Generated files
+*.generated.*
+*.min.js
+*.min.css
+
+# Test files that don't need compliance checking
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+__mocks__/
+
+# Configuration files
+*.config.js
+*.config.ts
+vite.config.ts
+tailwind.config.ts
+drizzle.config.ts
+
+# Documentation
+docs/
+*.md
+*.txt
+
+# Logs
+*.log
+logs/

@@ -10,6 +10,7 @@ import {
   FileText,
   AlertCircle,
   Lightbulb,
+  Shield,
 } from 'lucide-react';
 
 /**
@@ -77,6 +78,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'Pillars', href: '/admin/pillars', icon: Building },
       { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
       { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
+      { name: 'Law 25 Compliance', href: '/admin/compliance', icon: Shield },
       { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
       { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
     ],

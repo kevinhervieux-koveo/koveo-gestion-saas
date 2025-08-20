@@ -893,6 +893,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     log(`❌ Improvement suggestions routes failed: ${error}`, 'error');
   }
+
+  // Register Law 25 compliance routes
+  try {
+    // Import and register the Law 25 compliance route
+    const law25ComplianceRouter = (await import('./routes/law25-compliance')).default;
+    app.use('/api/law25-compliance', law25ComplianceRouter);
+    
+    log('✅ Law 25 compliance routes registered');
+  } catch (error) {
+    log(`❌ Law 25 compliance routes failed: ${error}`, 'error');
+  }
   
   // Test route
   app.get('/test', (req, res) => {

@@ -1,0 +1,188 @@
+rules:
+  # Quebec Law 25 Data Collection Rules
+  - id: law25-explicit-consent-required
+    pattern-either:
+      - pattern: |
+          $FORM.register($FIELD, { required: true })
+      - pattern: |
+          $FIELD: z.string().min(1)
+    message: "Personal data collection requires explicit consent under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: privacy
+      law25: data-collection
+      
+  - id: law25-sensitive-data-logging
+    pattern-either:
+      - pattern: console.log($...ARGS)
+      - pattern: console.warn($...ARGS)
+      - pattern: console.error($...ARGS)
+      - pattern: logger.info($...ARGS)
+      - pattern: logger.warn($...ARGS)
+      - pattern: logger.error($...ARGS)
+    metavariable-pattern:
+      metavariable: $...ARGS
+      patterns:
+        - pattern-either:
+          - pattern-regex: '.*(?i)(password|ssn|sin|nas|email|phone|address|postalcode|postal_code).*'
+    message: "Potentially sensitive personal data detected in logging - violates Quebec Law 25 data minimization"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: privacy
+      law25: data-minimization
+
+  - id: law25-data-retention-policy
+    pattern-either:
+      - pattern: |
+          const $VAR = { ..., createdAt: ..., ...}
+      - pattern: |
+          $TABLE.insert({ ..., created_at: ..., ...})
+    message: "Data retention policy required for personal data under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: privacy
+      law25: data-retention
+
+  - id: law25-consent-tracking
+    pattern-either:
+      - pattern: |
+          $USER.email
+      - pattern: |
+          $USER.phone
+      - pattern: |
+          $USER.address
+    message: "Access to personal data requires consent tracking under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: privacy
+      law25: consent-tracking
+
+  # Property Management Specific Rules
+  - id: tenant-financial-data-protection
+    pattern-either:
+      - pattern: |
+          $...VARS.amount
+      - pattern: |
+          $...VARS.balance
+      - pattern: |
+          $...VARS.rent
+      - pattern: |
+          bill.$FIELD
+    message: "Tenant financial data requires encryption and proper access controls"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: financial-privacy
+      domain: property-management
+
+  - id: building-access-data-security
+    pattern-either:
+      - pattern: |
+          $...VARS.keyCode
+      - pattern: |
+          $...VARS.accessCode
+      - pattern: |
+          $...VARS.buzzerCode
+    message: "Building access data must be encrypted and access-controlled"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      domain: property-management
+
+  # Data Transfer and Storage Rules
+  - id: law25-cross-border-transfer
+    pattern-either:
+      - pattern: |
+          fetch($URL, ...)
+      - pattern: |
+          axios.post($URL, ...)
+      - pattern: |
+          axios.get($URL, ...)
+    metavariable-pattern:
+      metavariable: $URL
+      patterns:
+        - pattern-not-regex: '^(\/|\.\/|\.\.\/|https?:\/\/(localhost|127\.0\.0\.1|.*\.replit\.app))'
+    message: "Cross-border data transfer requires explicit consent under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: privacy
+      law25: cross-border-transfer
+
+  - id: law25-data-breach-notification
+    pattern-either:
+      - pattern: |
+          try { ... } catch ($ERR) { ... }
+      - pattern: |
+          .catch($ERR => ...)
+    message: "Data breach detection and notification procedures required under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: security
+      law25: breach-notification
+
+  # Consent Management Rules
+  - id: law25-consent-withdrawal
+    pattern-either:
+      - pattern: |
+          const consent = { ..., granted: true, ... }
+      - pattern: |
+          $USER.consent = true
+    message: "Consent withdrawal mechanism required under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: privacy
+      law25: consent-withdrawal
+
+  - id: law25-data-subject-rights
+    pattern-either:
+      - pattern: |
+          $USER.delete()
+      - pattern: |
+          $USER.update($DATA)
+      - pattern: |
+          deleteUser($ID)
+    message: "Data subject rights implementation (access, rectification, erasure) required under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: privacy
+      law25: data-subject-rights
+
+  # Security and Encryption Rules
+  - id: law25-encryption-at-rest
+    pattern-either:
+      - pattern: |
+          $DB.insert({ ..., $SENSITIVE_FIELD: $VALUE, ... })
+      - pattern: |
+          $TABLE.create({ ..., password: $PWD, ... })
+    metavariable-pattern:
+      metavariable: $SENSITIVE_FIELD
+      patterns:
+        - pattern-regex: '.*(?i)(password|ssn|sin|nas|credit_card|bank_account).*'
+    message: "Sensitive data must be encrypted at rest under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      law25: encryption
+
+  - id: law25-secure-communication
+    pattern-either:
+      - pattern: |
+          http://$...REST
+      - pattern: |
+          new URL("http://$...REST")
+    message: "Personal data transmission must use secure protocols (HTTPS) under Quebec Law 25"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      law25: secure-transmission

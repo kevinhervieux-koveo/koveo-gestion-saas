@@ -106,6 +106,32 @@ interface VulnerabilityResult {
 }
 
 /**
+ * Interface for Quebec Law 25 compliance analysis results.
+ */
+interface Law25ComplianceResult {
+  totalViolations: number;
+  criticalViolations: number;
+  violations: Array<{
+    severity: 'error' | 'warning' | 'info';
+    rule: string;
+    message: string;
+    file: string;
+    line: number;
+    category: string;
+    law25Aspect: string;
+  }>;
+  complianceScore: number;
+  categories: {
+    dataCollection: number;
+    consent: number;
+    dataRetention: number;
+    security: number;
+    crossBorderTransfer: number;
+    dataSubjectRights: number;
+  };
+}
+
+/**
  * Generates improvement suggestions based on analysis results.
  * @param complexity
  * @param coverage
@@ -120,7 +146,8 @@ async function generateSuggestions(
   vulnerabilities: VulnerabilityResult,
   translationCoverage: TranslationCoverageResult,
   accessibility: AccessibilityResult,
-  componentCoverage: ComponentCoverageResult
+  componentCoverage: ComponentCoverageResult,
+  law25Compliance: Law25ComplianceResult
 ): Promise<InsertImprovementSuggestion[]> {
   const suggestions: InsertImprovementSuggestion[] = [];
 
@@ -289,6 +316,89 @@ async function generateSuggestions(
         priority: 'High',
         status: 'New',
         filePath: comp.file,
+      });
+    });
+
+  // Quebec Law 25 Compliance suggestions
+  if (law25Compliance.criticalViolations > 0) {
+    suggestions.push({
+      title: `${law25Compliance.criticalViolations} Critical Law 25 Violations`,
+      description: `Critical Quebec privacy law violations detected. These must be addressed immediately to ensure legal compliance with Law 25.`,
+      category: 'Security',
+      priority: 'Critical',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  if (law25Compliance.complianceScore < 80) {
+    suggestions.push({
+      title: 'Law 25 Compliance Score Below Threshold',
+      description: `Quebec Law 25 compliance score (${law25Compliance.complianceScore}/100) is below recommended threshold (80). Review privacy practices and data handling procedures.`,
+      category: 'Security',
+      priority: law25Compliance.complianceScore < 60 ? 'High' : 'Medium',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  // Category-specific Law 25 suggestions
+  if (law25Compliance.categories.dataCollection > 0) {
+    suggestions.push({
+      title: 'Data Collection Consent Issues',
+      description: `${law25Compliance.categories.dataCollection} data collection practices lack proper consent mechanisms. Implement explicit consent for personal data collection.`,
+      category: 'Security',
+      priority: 'High',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  if (law25Compliance.categories.security > 0) {
+    suggestions.push({
+      title: 'Personal Data Security Violations',
+      description: `${law25Compliance.categories.security} security issues detected with personal data handling. Implement encryption and secure transmission protocols.`,
+      category: 'Security',
+      priority: 'Critical',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  if (law25Compliance.categories.consent > 0) {
+    suggestions.push({
+      title: 'Consent Management Issues',
+      description: `${law25Compliance.categories.consent} consent tracking and withdrawal mechanisms need improvement. Implement proper consent management system.`,
+      category: 'Security',
+      priority: 'High',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  if (law25Compliance.categories.crossBorderTransfer > 0) {
+    suggestions.push({
+      title: 'Cross-Border Data Transfer Issues',
+      description: `${law25Compliance.categories.crossBorderTransfer} potential cross-border data transfers detected without proper safeguards. Review data transfer practices.`,
+      category: 'Security',
+      priority: 'High',
+      status: 'New',
+      filePath: null,
+    });
+  }
+
+  // Add specific violation suggestions for the most critical issues
+  law25Compliance.violations
+    .filter(v => v.severity === 'error')
+    .slice(0, 3)
+    .forEach(violation => {
+      suggestions.push({
+        title: `Law 25 Violation: ${violation.rule}`,
+        description: `${violation.message} (File: ${violation.file}, Line: ${violation.line})`,
+        category: 'Security',
+        priority: 'Critical',
+        status: 'New',
+        filePath: violation.file,
       });
     });
 
@@ -727,6 +837,124 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
 }
 
 /**
+ * Analyzes Quebec Law 25 compliance using Semgrep.
+ */
+async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
+  try {
+    console.warn('🛡️ Analyzing Quebec Law 25 compliance...');
+    
+    // Run Semgrep with Law 25 rules
+    const semgrepOutput = execSync(
+      'npx semgrep --config=.semgrep.yml --json --no-git-ignore --include="*.ts" --include="*.tsx" .',
+      { encoding: 'utf-8', stdio: 'pipe' }
+    );
+
+    const semgrepResults = JSON.parse(semgrepOutput);
+    const violations = semgrepResults.results || [];
+    
+    // Process violations by category
+    const categories = {
+      dataCollection: 0,
+      consent: 0,
+      dataRetention: 0,
+      security: 0,
+      crossBorderTransfer: 0,
+      dataSubjectRights: 0
+    };
+    
+    const processedViolations = violations.map((violation: any) => {
+      const metadata = violation.extra?.metadata || {};
+      const law25Aspect = metadata.law25 || 'general';
+      const severity = violation.extra?.severity || 'info';
+      
+      // Categorize violations
+      switch (law25Aspect) {
+        case 'data-collection':
+          categories.dataCollection++;
+          break;
+        case 'consent-tracking':
+        case 'consent-withdrawal':
+          categories.consent++;
+          break;
+        case 'data-retention':
+          categories.dataRetention++;
+          break;
+        case 'encryption':
+        case 'secure-transmission':
+          categories.security++;
+          break;
+        case 'cross-border-transfer':
+          categories.crossBorderTransfer++;
+          break;
+        case 'data-subject-rights':
+          categories.dataSubjectRights++;
+          break;
+      }
+      
+      return {
+        severity: severity as 'error' | 'warning' | 'info',
+        rule: violation.check_id || 'unknown',
+        message: violation.extra?.message || 'Law 25 compliance issue detected',
+        file: violation.path || 'unknown',
+        line: violation.start?.line || 0,
+        category: metadata.category || 'privacy',
+        law25Aspect
+      };
+    });
+    
+    const totalViolations = processedViolations.length;
+    const criticalViolations = processedViolations.filter(v => v.severity === 'error').length;
+    
+    // Calculate compliance score (0-100)
+    // Base score of 100, deduct points for violations
+    let complianceScore = 100;
+    complianceScore -= criticalViolations * 10; // -10 points per critical violation
+    complianceScore -= processedViolations.filter(v => v.severity === 'warning').length * 5; // -5 points per warning
+    complianceScore -= processedViolations.filter(v => v.severity === 'info').length * 1; // -1 point per info
+    complianceScore = Math.max(0, complianceScore); // Ensure it doesn't go below 0
+    
+    console.warn(`   📊 Found ${totalViolations} total violations (${criticalViolations} critical)`);
+    console.warn(`   🎯 Compliance score: ${complianceScore}/100`);
+    
+    // Log category breakdown
+    console.warn(`   📂 Violations by category:`);
+    console.warn(`      Data Collection: ${categories.dataCollection}`);
+    console.warn(`      Consent Management: ${categories.consent}`);
+    console.warn(`      Data Retention: ${categories.dataRetention}`);
+    console.warn(`      Security: ${categories.security}`);
+    console.warn(`      Cross-border Transfer: ${categories.crossBorderTransfer}`);
+    console.warn(`      Data Subject Rights: ${categories.dataSubjectRights}`);
+    
+    return {
+      totalViolations,
+      criticalViolations,
+      violations: processedViolations,
+      complianceScore,
+      categories
+    };
+    
+  } catch (error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Law 25 compliance analysis failed: ${error}${COLORS.RESET}`);
+    console.warn(`   This might be due to missing Semgrep configuration or network issues.`);
+    
+    return {
+      totalViolations: 0,
+      criticalViolations: 0,
+      violations: [],
+      complianceScore: 0,
+      categories: {
+        dataCollection: 0,
+        consent: 0,
+        dataRetention: 0,
+        security: 0,
+        crossBorderTransfer: 0,
+        dataSubjectRights: 0
+      }
+    };
+  }
+}
+
+/**
  * Validates quality metrics against defined thresholds.
  * @param complexity - Complexity analysis results.
  * @param coverage - Coverage analysis results.
@@ -742,7 +970,8 @@ function validateQuality(
   vulnerabilities: VulnerabilityResult,
   translationCoverage: TranslationCoverageResult,
   accessibility: AccessibilityResult,
-  componentCoverage: ComponentCoverageResult
+  componentCoverage: ComponentCoverageResult,
+  law25Compliance: Law25ComplianceResult
 ): boolean {
   let isValid = true;
   
@@ -842,6 +1071,23 @@ function validateQuality(
     console.warn(`${COLORS.GREEN}✅ Component testing coverage adequate${COLORS.RESET}`);
   }
   
+  // Quebec Law 25 compliance validation
+  console.warn(`\n🛡️ Quebec Law 25 Compliance:`);
+  console.warn(`   Compliance Score: ${law25Compliance.complianceScore}/100`);
+  console.warn(`   Total Violations: ${law25Compliance.totalViolations}`);
+  console.warn(`   Critical Violations: ${law25Compliance.criticalViolations}`);
+  
+  if (law25Compliance.criticalViolations > 0) {
+    console.warn(`${COLORS.RED}❌ CRITICAL LAW 25 VIOLATIONS FOUND!${COLORS.RESET}`);
+    console.warn(`   ${law25Compliance.criticalViolations} critical privacy compliance issues must be resolved`);
+    isValid = false;
+  } else if (law25Compliance.complianceScore < 80) {
+    console.warn(`${COLORS.YELLOW}⚠️  Law 25 compliance score below recommended threshold (80/100)${COLORS.RESET}`);
+    console.warn(`   Current score: ${law25Compliance.complianceScore}/100`);
+  } else {
+    console.warn(`${COLORS.GREEN}✅ Quebec Law 25 compliance requirements met${COLORS.RESET}`);
+  }
+  
   return isValid;
 }
 
@@ -860,7 +1106,8 @@ async function verifyQualityMetricsAPI(
   vulnerabilities: VulnerabilityResult,
   translationCoverage: TranslationCoverageResult,
   accessibility: AccessibilityResult,
-  componentCoverage: ComponentCoverageResult
+  componentCoverage: ComponentCoverageResult,
+  law25Compliance: Law25ComplianceResult
 ): Promise<boolean> {
   try {
     console.warn('\n🔍 Verifying quality metrics are correctly updated in /owner/quality...');
@@ -914,6 +1161,11 @@ async function verifyQualityMetricsAPI(
     console.warn(`\n♿ Accessibility Compliance:`);
     console.warn(`   Analysis calculated: ${accessibility.coveragePercentage}%`);
     
+    console.warn(`\n🛡️ Quebec Law 25 Compliance:`);
+    console.warn(`   Compliance score: ${law25Compliance.complianceScore}/100`);
+    console.warn(`   Total violations: ${law25Compliance.totalViolations}`);
+    console.warn(`   Critical violations: ${law25Compliance.criticalViolations}`);
+    
     // Determine if metrics look reasonable
     const metricsUpdated = (
       apiCoverage > 0 || 
@@ -959,17 +1211,18 @@ async function main(): Promise<void> {
     );
     
     // Run analysis in parallel for efficiency
-    const [complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage] = await Promise.all([
+    const [complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance] = await Promise.all([
       analyzeComplexity(),
       analyzeCoverage(),
       analyzeVulnerabilities(),
       analyzeTranslationCoverage(),
       analyzeAccessibility(),
       analyzeComponentCoverage(),
+      analyzeLaw25Compliance(),
     ]);
     
     // Generate suggestions based on findings
-    const allSuggestions = await generateSuggestions(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
+    const allSuggestions = await generateSuggestions(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance);
     
     // Filter out suggestions that already exist (by title)
     const newSuggestions = allSuggestions.filter(
@@ -990,10 +1243,10 @@ async function main(): Promise<void> {
     }
     
     // Validate against thresholds
-    const isQualityValid = validateQuality(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
+    const isQualityValid = validateQuality(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance);
     
     // Verify that quality metrics are correctly updated in the API/UI
-    const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage);
+    const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance);
     
     console.warn('\n' + '='.repeat(50));
     
