@@ -79,6 +79,50 @@ export function registerContactRoutes(app: Express) {
     }
   });
 
+  // Get contacts with filtering by entity and entityId
+  app.get('/api/contacts', requireAuth, async (req: any, res: any) => {
+    try {
+      const { entity, entityId } = req.query;
+      const user = req.user;
+
+      if (!entity || !entityId) {
+        return res.status(400).json({ message: 'Entity and entityId are required' });
+      }
+
+      // Check permissions for building contacts
+      if (entity === 'building') {
+        // Anyone can view building contacts for buildings they have access to
+        const hasAccess = await db
+          .select()
+          .from(buildings)
+          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+          .where(and(
+            eq(buildings.id, entityId),
+            eq(buildings.isActive, true)
+          ));
+
+        if (hasAccess.length === 0) {
+          return res.status(404).json({ message: 'Building not found' });
+        }
+      }
+
+      // Get contacts for the specified entity
+      const entityContacts = await db
+        .select()
+        .from(contacts)
+        .where(and(
+          eq(contacts.entity, entity as 'building' | 'residence' | 'organization'),
+          eq(contacts.entityId, entityId),
+          eq(contacts.isActive, true)
+        ));
+
+      res.json(entityContacts);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      res.status(500).json({ message: 'Failed to fetch contacts' });
+    }
+  });
+
   // Create a new contact
   app.post('/api/contacts', requireAuth, async (req: any, res: any) => {
     try {
@@ -87,6 +131,11 @@ export function registerContactRoutes(app: Express) {
 
       // Check permissions based on user role and entity
       const { entity, entityId, name, email, phone, contactCategory } = validatedData;
+
+      // Only managers and admins can add building contacts
+      if (entity === 'building' && user.role !== 'admin' && user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only managers and admins can add building contacts' });
+      }
 
       // Verify entity exists based on type
       if (entity === 'residence') {
@@ -98,6 +147,16 @@ export function registerContactRoutes(app: Express) {
         
         if (residence.length === 0) {
           return res.status(400).json({ message: 'Residence not found' });
+        }
+      } else if (entity === 'building') {
+        const building = await db
+          .select()
+          .from(buildings)
+          .where(eq(buildings.id, entityId))
+          .limit(1);
+        
+        if (building.length === 0) {
+          return res.status(400).json({ message: 'Building not found' });
         }
       }
 

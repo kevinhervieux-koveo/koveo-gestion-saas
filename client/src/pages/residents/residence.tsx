@@ -169,6 +169,17 @@ export default function MyResidence() {
     enabled: !!selectedResidence?.id,
   });
 
+  // Get building contacts for the selected residence's building
+  const { data: buildingContacts, isLoading: buildingContactsLoading } = useQuery<Contact[]>({
+    queryKey: ['/api/contacts', 'building', selectedResidence?.building?.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/contacts?entity=building&entityId=${selectedResidence?.building?.id}`);
+      if (!response.ok) throw new Error('Failed to fetch building contacts');
+      return response.json();
+    },
+    enabled: !!selectedResidence?.building?.id,
+  });
+
 
   const contactForm = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -651,6 +662,52 @@ export default function MyResidence() {
                     </div>
                   ) : (
                     <p className='text-gray-500 text-center py-8'>No contacts found for this residence.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Building Contacts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <Building className='w-5 h-5' />
+                    Building Contacts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {buildingContactsLoading ? (
+                    <p>Loading building contacts...</p>
+                  ) : buildingContacts && buildingContacts.length > 0 ? (
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                      {buildingContacts.map((contact) => (
+                        <div key={contact.id} className='border rounded-lg p-4 space-y-2 bg-gray-50'>
+                          <div className='flex items-center justify-between'>
+                            <Badge variant='outline' className='capitalize'>
+                              {contact.contactCategory}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className='font-semibold'>
+                              {contact.name}
+                            </p>
+                            {contact.email && (
+                              <p className='text-sm text-gray-600 flex items-center gap-1'>
+                                <Mail className='w-3 h-3' />
+                                {contact.email}
+                              </p>
+                            )}
+                            {contact.phone && (
+                              <p className='text-sm text-gray-600 flex items-center gap-1'>
+                                <Phone className='w-3 h-3' />
+                                {contact.phone}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className='text-gray-500 text-center py-8'>No building contacts available.</p>
                   )}
                 </CardContent>
               </Card>
