@@ -822,7 +822,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [deletedSuggestion] = await db
           .delete(schema.improvementSuggestions)
           .where(eq(schema.improvementSuggestions.id, req.params.id))
-          .returning();
+          .returning({
+            id: schema.improvementSuggestions.id,
+            title: schema.improvementSuggestions.title,
+            description: schema.improvementSuggestions.description,
+            category: schema.improvementSuggestions.category,
+            priority: schema.improvementSuggestions.priority,
+            status: schema.improvementSuggestions.status
+          });
 
         if (!deletedSuggestion) {
           return res.status(404).json({ message: 'Suggestion not found' });
