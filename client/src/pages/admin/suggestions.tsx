@@ -49,6 +49,8 @@ export default function OwnerSuggestions() {
   const { toast } = useToast();
   const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
+    refetchInterval: 30000, // Refetch every 30 seconds to ensure fresh data
+    staleTime: 0, // Data is always considered stale
   });
 
   // Group suggestions by category and take 2 from each
