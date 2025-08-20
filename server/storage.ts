@@ -68,6 +68,22 @@ export interface IStorage {
    * @returns {Promise<User | undefined>} User record or undefined if not found.
    */
   getUser(_id: string): Promise<User | undefined>;
+
+  /**
+   * Retrieves organizations for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @returns {Promise<Array<{organizationId: string}>>} Array of organization IDs the user belongs to.
+   */
+  getUserOrganizations(_userId: string): Promise<Array<{organizationId: string}>>;
+
+  /**
+   * Retrieves residences for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @returns {Promise<Array<{residenceId: string}>>} Array of residence IDs the user is associated with.
+   */
+  getUserResidences(_userId: string): Promise<Array<{residenceId: string}>>;
   
   /**
    * Retrieves a user by their email address.
@@ -973,6 +989,34 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  /**
+   * Retrieves organizations for a specific user.
+   *
+   * @param {string} userId - The unique user identifier.
+   * @returns {Promise<Array<{organizationId: string}>>} Array of organization IDs the user belongs to.
+   */
+  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+    const user = this.users.get(userId);
+    if (!user || !user.organizationId) {
+      return [];
+    }
+    return [{ organizationId: user.organizationId }];
+  }
+
+  /**
+   * Retrieves residences for a specific user.
+   *
+   * @param {string} userId - The unique user identifier.
+   * @returns {Promise<Array<{residenceId: string}>>} Array of residence IDs the user is associated with.
+   */
+  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+    const user = this.users.get(userId);
+    if (!user || !user.assignedResidenceId) {
+      return [];
+    }
+    return [{ residenceId: user.assignedResidenceId }];
   }
 
   // Organization operations

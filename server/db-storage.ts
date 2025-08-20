@@ -111,6 +111,36 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   * Retrieves organizations for a specific user.
+   * @param userId - The unique user identifier.
+   * @returns Promise that resolves to array of organization IDs the user belongs to.
+   */
+  @trackPerformance('getUserOrganizations')
+  @cached('users', (userId: string) => `user_orgs:${userId}`)
+  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+    const user = await this.getUser(userId);
+    if (!user || !user.organizationId) {
+      return [];
+    }
+    return [{ organizationId: user.organizationId }];
+  }
+
+  /**
+   * Retrieves residences for a specific user.
+   * @param userId - The unique user identifier.
+   * @returns Promise that resolves to array of residence IDs the user is associated with.
+   */
+  @trackPerformance('getUserResidences')
+  @cached('users', (userId: string) => `user_residences:${userId}`)
+  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+    const user = await this.getUser(userId);
+    if (!user || !user.assignedResidenceId) {
+      return [];
+    }
+    return [{ residenceId: user.assignedResidenceId }];
+  }
+
   // Organization operations
   /**
    * Retrieves all organizations with caching and performance tracking.

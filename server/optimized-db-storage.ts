@@ -340,6 +340,44 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   * Retrieves organizations for a specific user.
+   * @param userId
+   */
+  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+    return this.withOptimizations(
+      'getUserOrganizations',
+      `user_orgs:${userId}`,
+      'users',
+      async () => {
+        const user = await this.getUser(userId);
+        if (!user || !user.organizationId) {
+          return [];
+        }
+        return [{ organizationId: user.organizationId }];
+      }
+    );
+  }
+
+  /**
+   * Retrieves residences for a specific user.
+   * @param userId
+   */
+  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+    return this.withOptimizations(
+      'getUserResidences',
+      `user_residences:${userId}`,
+      'users',
+      async () => {
+        const user = await this.getUser(userId);
+        if (!user || !user.assignedResidenceId) {
+          return [];
+        }
+        return [{ residenceId: user.assignedResidenceId }];
+      }
+    );
+  }
+
   // Organization operations with optimization
 
   /**
@@ -1530,6 +1568,118 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.permissions.isActive, true))
         .orderBy(schema.userPermissions.userId)
     );
+  }
+
+  // Document operations
+
+  /**
+   * Gets documents for user based on role and permissions.
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param residenceIds
+   */
+  async getDocumentsForUser(
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<any[]> {
+    // For now return empty array until documents table is available
+    return this.withOptimizations(
+      'getDocumentsForUser',
+      `user_docs:${userId}:${userRole}`,
+      'documents',
+      async () => {
+        // This would implement role-based document filtering
+        // Admin: all documents
+        // Manager: organization documents
+        // Resident/Tenant: only their building/residence documents
+        return [];
+      }
+    );
+  }
+
+  /**
+   * Gets specific document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param residenceIds
+   */
+  async getDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<any | undefined> {
+    return this.withOptimizations(
+      'getDocument',
+      `document:${id}:${userId}`,
+      'documents',
+      async () => {
+        // This would implement permission check for specific document
+        return undefined;
+      }
+    );
+  }
+
+  /**
+   * Creates document.
+   * @param document
+   */
+  async createDocument(document: any): Promise<any> {
+    // For now return mock document until documents table is available
+    return dbPerformanceMonitor.trackQuery('createDocument', async () => {
+      return {
+        id: `doc_${Date.now()}`,
+        ...document,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    });
+  }
+
+  /**
+   * Updates document with permission check.
+   * @param id
+   * @param updates
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async updateDocument(
+    id: string, 
+    updates: any, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<any | undefined> {
+    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
+      // This would implement permission check and update
+      return undefined;
+    });
+  }
+
+  /**
+   * Deletes document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async deleteDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<boolean> {
+    return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
+      // This would implement permission check and deletion
+      return false;
+    });
   }
 
   // Password reset operations
