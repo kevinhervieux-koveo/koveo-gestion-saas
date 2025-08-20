@@ -177,52 +177,46 @@ export default function OwnerRoadmap() {
   const { data: features = [], isLoading, error } = useQuery({
     queryKey: ['/api/features', 'roadmap'],
     queryFn: async () => {
-      console.log('🟡 Making features API request...');
       const res = await fetch('/api/features?roadmap=true', { 
         credentials: 'include',
       });
-      console.log('🟡 API response status:', res.status, res.statusText);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      const data = await res.json();
-      return data;
+      return res.json();
     },
   });
 
-  // Debug logging
-  console.log('Features fetched:', features.length, features.slice(0, 3));
-  console.log('Query error:', error);
-  console.log('Loading state:', isLoading);
+  // Minimal debug logging only for actual errors
+  if (error) {
+    console.error('Features query error:', error);
+  }
 
   /**
    * Fetches actionable items for a specific feature.
    * @param featureId
    */
   const fetchActionableItems = useCallback(async (featureId: string) => {
+    // Check if already fetched to prevent duplicate requests
     setActionableItems(prev => {
-      if (prev[featureId]) {return prev;} // Already fetched, don't update state
-      
-      // Immediately set as loading/empty to prevent duplicate requests
-      const newState = { ...prev, [featureId]: [] };
-      
-      // Fetch data asynchronously
-      fetch(`/api/features/${featureId}/actionable-items`)
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error('Failed to fetch');
-        })
-        .then(items => {
-          setActionableItems(current => ({ ...current, [featureId]: items }));
-        })
-        .catch(error => {
-          console.error('Failed to fetch actionable items:', error);
-        });
-      
-      return newState;
+      if (prev[featureId]) {
+        return prev; // Already fetched, don't update state
+      }
+      // Set as loading/empty to prevent duplicate requests
+      return { ...prev, [featureId]: [] };
     });
+    
+    try {
+      const response = await fetch(`/api/features/${featureId}/actionable-items`);
+      if (response.ok) {
+        const items = await response.json();
+        setActionableItems(current => ({ ...current, [featureId]: items }));
+      } else {
+        console.error('Failed to fetch actionable items:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to fetch actionable items:', error);
+    }
   }, []);
 
   /**
@@ -278,7 +272,7 @@ export default function OwnerRoadmap() {
         return [...prev, featureId];
       }
     });
-  }, []); // Empty dependency array since fetchActionableItems doesn't depend on changing values
+  }, [fetchActionableItems]);
 
   /**
    * Analyzes features for duplicates and similarities.
