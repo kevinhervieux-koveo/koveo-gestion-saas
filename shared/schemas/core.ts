@@ -171,7 +171,7 @@ export const resourceTypeEnum = pgEnum('resource_type', [
   'improvement_suggestion'
 ]);
 
-export const permissionActionEnum = pgEnum('permission_action', [
+export const actionEnum = pgEnum('action', [
   'read',
   'create', 
   'update',
@@ -194,7 +194,7 @@ export const permissions = pgTable('permissions', {
   displayName: text('display_name').notNull(),
   description: text('description'),
   resourceType: resourceTypeEnum('resource_type').notNull(),
-  action: permissionActionEnum('permission_action').notNull(),
+  action: actionEnum('action').notNull(),
   conditions: text('conditions', { mode: 'json' }),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
