@@ -65,14 +65,28 @@ export function registerDocumentRoutes(app: Express): void {
       const userRole = user.role;
       const userId = user.id;
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
+      const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       
       // Get user's organization and residences for filtering
       const organizations = await storage.getUserOrganizations(userId);
-      const residences = await storage.getUserResidences(userId);
+      const userResidences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
       
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map(ur => ur.residenceId);
+      
+      // If specific residence ID provided, filter to only that residence
+      let residenceIds: string[];
+      if (specificResidenceId) {
+        // Verify user has access to this specific residence
+        const hasAccess = userResidences.some(ur => ur.residenceId === specificResidenceId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: 'Access denied to this residence' });
+        }
+        residenceIds = [specificResidenceId];
+      } else {
+        residenceIds = userResidences.map(ur => ur.residenceId);
+      }
+      
       const buildingIds = buildings.map(b => b.id);
       
       const allDocuments: any[] = [];
