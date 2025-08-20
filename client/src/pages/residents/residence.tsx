@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { ObjectUploader } from '@/components/ObjectUploader';
+import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
   Home, 
@@ -89,16 +91,17 @@ interface Document {
   updatedAt: string;
 }
 
+// Residence-specific document categories
 const DOCUMENT_CATEGORIES = [
   { value: 'lease', label: 'Lease Documents' },
   { value: 'inspection', label: 'Inspections' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'legal', label: 'Legal' },
+  { value: 'maintenance', label: 'Maintenance Requests' },
+  { value: 'financial', label: 'Financial Records' },
+  { value: 'insurance', label: 'Insurance Documents' },
   { value: 'correspondence', label: 'Correspondence' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'utilities', label: 'Utilities' },
+  { value: 'utilities', label: 'Utility Bills' },
+  { value: 'renovation', label: 'Renovation/Modification' },
+  { value: 'inventory', label: 'Inventory Lists' },
   { value: 'other', label: 'Other' },
 ] as const;
 
@@ -111,7 +114,7 @@ const contactSchema = z.object({
 
 const documentSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
-  type: z.enum(['lease', 'inspection', 'maintenance', 'financial', 'insurance', 'legal', 'correspondence', 'permits', 'utilities', 'other']),
+  type: z.enum(['lease', 'inspection', 'maintenance', 'financial', 'insurance', 'correspondence', 'utilities', 'renovation', 'inventory', 'other']),
   dateReference: z.string().refine((dateStr) => {
     const date = new Date(dateStr);
     return !isNaN(date.getTime());
@@ -134,6 +137,8 @@ export default function MyResidence() {
   const [isViewingDocument, setIsViewingDocument] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<any>(null);
   const { toast } = useToast();
 
   // Get user's residences
@@ -284,21 +289,79 @@ export default function MyResidence() {
     }
   };
 
+  // File upload handlers
+  const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
+    setIsUploadingNewFile(true);
+    
+    if (!selectedResidence) {
+      setIsUploadingNewFile(false);
+      throw new Error('No residence selected');
+    }
+
+    const response = await fetch('/api/documents/upload-url', { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        organizationId: selectedResidence.building?.organizationId,
+        buildingId: selectedResidence.building?.id,
+        residenceId: selectedResidence.id,
+        documentType: 'residence'
+      })
+    });
+    
+    if (!response.ok) {
+      setIsUploadingNewFile(false);
+      throw new Error('Failed to get upload URL');
+    }
+    
+    const data = await response.json();
+    return { method: "PUT" as const, url: data.uploadURL };
+  };
+
+  const handleNewDocumentUploadComplete = (result: any) => {
+    setIsUploadingNewFile(false);
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      setUploadedFile({
+        fileUrl: uploadedFile.uploadURL,
+        fileName: uploadedFile.name,
+        fileSize: uploadedFile.size || 0,
+        mimeType: uploadedFile.type || 'application/octet-stream',
+      });
+      toast({
+        title: "File ready",
+        description: "File uploaded! Now create the document to save it.",
+      });
+    }
+  };
+
   const handleAddDocument = async (data: DocumentFormData) => {
     if (!selectedResidence) return;
 
     try {
+      const documentData = {
+        name: data.name,
+        type: data.type,
+        dateReference: data.dateReference,
+        residenceId: selectedResidence.id,
+        isVisibleToTenants: data.isVisibleToTenants,
+        uploadedBy: 'current-user', // Will be set properly by the server
+        documentType: 'resident',
+        ...(uploadedFile && {
+          fileUrl: uploadedFile.fileUrl,
+          fileName: uploadedFile.fileName,
+          fileSize: uploadedFile.fileSize,
+          mimeType: uploadedFile.mimeType,
+        }),
+      };
+
       const response = await fetch('/api/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          type: data.type,
-          dateReference: data.dateReference,
-          residenceId: selectedResidence.id,
-          uploadedBy: 'current-user', // Will be set properly by the server
-          documentType: 'resident'
-        }),
+        body: JSON.stringify(documentData),
       });
 
       if (!response.ok) throw new Error('Failed to add document');
@@ -308,11 +371,12 @@ export default function MyResidence() {
       });
 
       setIsDocumentDialogOpen(false);
+      setUploadedFile(null);
       documentForm.reset();
-      toast({ title: 'Document added successfully' });
+      toast({ title: 'Document created successfully' });
     } catch (error) {
       toast({ 
-        title: 'Error adding document', 
+        title: 'Error creating document', 
         description: 'Please try again later',
         variant: 'destructive' 
       });
@@ -747,17 +811,66 @@ export default function MyResidence() {
                       <FileText className='w-5 h-5' />
                       Documents
                     </CardTitle>
-                    <Dialog open={isDocumentDialogOpen} onOpenChange={setIsDocumentDialogOpen}>
+                    <Dialog open={isDocumentDialogOpen} onOpenChange={(open) => {
+                      setIsDocumentDialogOpen(open);
+                      if (!open) {
+                        setUploadedFile(null);
+                        documentForm.reset();
+                      }
+                    }}>
                       <DialogTrigger asChild>
                         <Button variant='outline' size='sm'>
                           <Plus className='w-4 h-4 mr-2' />
                           Add Document
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Add New Document</DialogTitle>
+                          <DialogDescription>
+                            Upload a file or create a document entry for this residence.
+                          </DialogDescription>
                         </DialogHeader>
+                        
+                        {/* File Upload Section */}
+                        {!uploadedFile ? (
+                          <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+                            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Document File</h3>
+                            <p className="text-gray-500 mb-4">Select a file to upload for this document (optional)</p>
+                            <ObjectUploader
+                              maxNumberOfFiles={1}
+                              maxFileSize={50 * 1024 * 1024} // 50MB
+                              onGetUploadParameters={handleNewDocumentUpload}
+                              onComplete={handleNewDocumentUploadComplete}
+                              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                              disabled={isUploadingNewFile}
+                            >
+                              {isUploadingNewFile ? 'Uploading...' : 'Select File'}
+                            </ObjectUploader>
+                          </div>
+                        ) : (
+                          <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+                            <div className="flex items-center">
+                              <FileText className="h-8 w-8 text-green-600 mr-3" />
+                              <div className="flex-1">
+                                <p className="font-medium text-green-800">{uploadedFile.fileName}</p>
+                                <p className="text-sm text-green-600">
+                                  File ready to attach ({(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB)
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setUploadedFile(null)}
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
                         <Form {...documentForm}>
                           <form onSubmit={documentForm.handleSubmit(handleAddDocument)} className='space-y-4'>
                             <FormField
@@ -773,16 +886,17 @@ export default function MyResidence() {
                                 </FormItem>
                               )}
                             />
+                            
                             <FormField
                               control={documentForm.control}
                               name='type'
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Document Type</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormLabel>Category</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                       <SelectTrigger>
-                                        <SelectValue />
+                                        <SelectValue placeholder="Select category" />
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -797,6 +911,7 @@ export default function MyResidence() {
                                 </FormItem>
                               )}
                             />
+
                             <FormField
                               control={documentForm.control}
                               name='dateReference'
@@ -804,12 +919,13 @@ export default function MyResidence() {
                                 <FormItem>
                                   <FormLabel>Reference Date</FormLabel>
                                   <FormControl>
-                                    <Input type='date' {...field} />
+                                    <Input {...field} type="date" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
+                            
                             <FormField
                               control={documentForm.control}
                               name='isVisibleToTenants'
@@ -832,11 +948,14 @@ export default function MyResidence() {
                                 </FormItem>
                               )}
                             />
-                            <div className='flex justify-end gap-2'>
+                            
+                            <div className='flex justify-end gap-2 pt-4'>
                               <Button type='button' variant='outline' onClick={() => setIsDocumentDialogOpen(false)}>
                                 Cancel
                               </Button>
-                              <Button type='submit'>Add Document</Button>
+                              <Button type='submit'>
+                                Create Document
+                              </Button>
                             </div>
                           </form>
                         </Form>
