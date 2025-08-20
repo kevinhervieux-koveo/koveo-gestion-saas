@@ -184,12 +184,18 @@ export default function ResidenceDocuments() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
+      console.log("Creating document with user ID:", user.id); // Debug log
+      
       const documentData: any = {
         name: data.name,
         type: data.type, // This is the document category (lease, inspection, etc.)
         dateReference: data.dateReference, // Send as YYYY-MM-DD string
         residenceId: data.residenceId,
-        uploadedBy: user?.id, // Add user ID
+        uploadedBy: user.id, // Add user ID (now checked above)
       };
       
       // Add file data if uploaded
@@ -200,6 +206,7 @@ export default function ResidenceDocuments() {
         documentData.mimeType = uploadedFile.mimeType;
       }
       
+      console.log("Document data being sent:", documentData); // Debug log
       return apiRequest("POST", "/api/documents", documentData);
     },
     onSuccess: () => {
