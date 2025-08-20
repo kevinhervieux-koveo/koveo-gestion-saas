@@ -947,26 +947,13 @@ export default function ResidenceDocuments() {
               </CardContent>
             </Card>
           ) : (
-            <Tabs defaultValue={DOCUMENT_CATEGORIES[0].value} className="w-full">
-              <TabsList className="grid grid-cols-5 lg:grid-cols-10 mb-6 w-full overflow-x-auto">
-                {DOCUMENT_CATEGORIES.map((category) => (
-                  <TabsTrigger 
-                    key={category.value} 
-                    value={category.value}
-                    className="text-xs px-2 py-1 whitespace-nowrap min-w-0 flex-shrink-0"
-                    title={`${category.label} (${documentsByCategory[category.value]?.length || 0})`}
-                  >
-                    <span className="truncate">{category.label}</span>
-                    <Badge variant="outline" className="ml-1 text-xs flex-shrink-0">
-                      {documentsByCategory[category.value]?.length || 0}
-                    </Badge>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {DOCUMENT_CATEGORIES.map((category) => (
-                <TabsContent key={category.value} value={category.value}>
-                  <div className="space-y-4">
+            <div className="w-full space-y-6">
+              {DOCUMENT_CATEGORIES.map((category) => {
+                const categoryDocuments = documentsByCategory[category.value] || [];
+                if (categoryDocuments.length === 0) return null;
+                
+                return (
+                  <div key={category.value} className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium flex items-center">
                         <FileText className="h-5 w-5 mr-2" />
@@ -987,7 +974,7 @@ export default function ResidenceDocuments() {
                       </Card>
                     ) : (
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {documentsByCategory[category.value]?.map((document) => (
+                        {categoryDocuments.map((document) => (
                           <Card 
                             key={document.id} 
                             className="hover:shadow-md transition-shadow cursor-pointer"
@@ -1063,9 +1050,9 @@ export default function ResidenceDocuments() {
                       </div>
                     )}
                   </div>
-                </TabsContent>
-              ))}
-            </Tabs>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
