@@ -282,18 +282,28 @@ export function registerOrganizationRoutes(app: Express): void {
           eq(residences.isActive, true)
         ));
 
-      // Count documents associated with this organization, its buildings, or residences
-      const documentsCount = await db
+      // Count documents associated with this organization
+      const orgDocumentsCount = await db
         .select({ count: count() })
         .from(documents)
-        .leftJoin(buildings, eq(documents.buildingId, buildings.id))
-        .leftJoin(residences, eq(documents.residenceId, residences.id))
-        .leftJoin(buildings as any, eq(residences.buildingId, buildings.id))
-        .where(or(
-          eq(documents.organizationId, organizationId),
-          and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)),
-          and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true))
-        ));
+        .where(eq(documents.organizationId, organizationId));
+
+      // Count documents associated with buildings in this organization
+      const buildingDocumentsCount = await db
+        .select({ count: count() })
+        .from(documents)
+        .innerJoin(buildings, eq(documents.buildingId, buildings.id))
+        .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+
+      // Count documents associated with residences in buildings of this organization  
+      const residenceDocumentsCount = await db
+        .select({ count: count() })
+        .from(documents)
+        .innerJoin(residences, eq(documents.residenceId, residences.id))
+        .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+        .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true), eq(residences.isActive, true)));
+
+      const totalDocuments = (orgDocumentsCount[0]?.count || 0) + (buildingDocumentsCount[0]?.count || 0) + (residenceDocumentsCount[0]?.count || 0);
 
       // Count users who will become orphaned (only belong to this organization)
       const potentialOrphansCount = await db
@@ -310,7 +320,7 @@ export function registerOrganizationRoutes(app: Express): void {
         organization: organization[0],
         buildings: buildingsCount[0]?.count || 0,
         residences: residencesCount[0]?.count || 0,
-        documents: documentsCount[0]?.count || 0,
+        documents: totalDocuments,
         potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0
       };
 
