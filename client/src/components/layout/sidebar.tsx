@@ -10,8 +10,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-// Logo will be shown as text for now to avoid asset loading issues
-// import koveoLogo from '@assets/Koveo_logo (1)_1755288554223.jpg';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
 
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
@@ -150,7 +149,11 @@ export function Sidebar() {
           <div className='flex items-center space-x-3'>
             <Link href="/dashboard" onClick={handleNavItemClick}>
               <div className="h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <h1 className="text-xl font-bold text-koveo-navy">Koveo Gestion</h1>
+                <img 
+                  src={koveoLogo} 
+                  alt="Koveo Gestion" 
+                  className="h-10 w-auto object-contain"
+                />
               </div>
             </Link>
           </div>
