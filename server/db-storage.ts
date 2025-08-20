@@ -134,11 +134,17 @@ export class DatabaseStorage implements IStorage {
   @trackPerformance('getUserResidences')
   @cached('users', (userId: string) => `user_residences:${userId}`)
   async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
-    const user = await this.getUser(userId);
-    if (!user || !user.assignedResidenceId) {
-      return [];
-    }
-    return [{ residenceId: user.assignedResidenceId }];
+    const result = await db
+      .select({
+        residenceId: schema.userResidences.residenceId,
+      })
+      .from(schema.userResidences)
+      .where(and(
+        eq(schema.userResidences.userId, userId),
+        eq(schema.userResidences.isActive, true)
+      ));
+    
+    return result;
   }
 
   // Organization operations
