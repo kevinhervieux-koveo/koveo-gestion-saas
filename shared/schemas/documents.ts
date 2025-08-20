@@ -65,6 +65,7 @@ export const insertDocumentBuildingSchema = createInsertSchema(documentsBuilding
   uploadedBy: true,
 }).extend({
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID
 });
 
 export const insertDocumentResidentSchema = createInsertSchema(documentsResidents).pick({
@@ -79,6 +80,7 @@ export const insertDocumentResidentSchema = createInsertSchema(documentsResident
   uploadedBy: true,
 }).extend({
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID
 });
 
 // Types

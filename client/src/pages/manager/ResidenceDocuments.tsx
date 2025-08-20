@@ -188,17 +188,15 @@ export default function ResidenceDocuments() {
         throw new Error("User not authenticated");
       }
       
-      // Clean user ID - extract valid UUID format (36 chars: 8-4-4-4-12)
-      const uuidMatch = user.id.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
-      const cleanUserId = uuidMatch ? uuidMatch[0] : user.id.substring(0, 36);
-      console.log("Creating document with cleaned user ID:", cleanUserId, "(length:", cleanUserId.length, ")"); // Debug log
+      // Use full user ID as string (backend now accepts any string)
+      console.log("Creating document with user ID:", user.id, "(length:", user.id.length, ")"); // Debug log
       
       const documentData: any = {
         name: data.name,
         type: data.type, // This is the document category (lease, inspection, etc.)
         dateReference: data.dateReference, // Send as YYYY-MM-DD string
         residenceId: data.residenceId,
-        uploadedBy: cleanUserId, // Use cleaned user ID
+        uploadedBy: user.id, // Use full user ID
       };
       
       // Add file data if uploaded
@@ -239,9 +237,7 @@ export default function ResidenceDocuments() {
       if (data.type) updateData.type = data.type;
       if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
       if (data.residenceId) updateData.residenceId = data.residenceId;
-      // Clean user ID properly
-      const uuidMatch = user?.id?.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
-      updateData.uploadedBy = uuidMatch ? uuidMatch[0] : user?.id?.substring(0, 36); // Use cleaned user ID
+      updateData.uploadedBy = user?.id; // Use full user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
     onSuccess: () => {
