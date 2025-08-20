@@ -93,6 +93,7 @@ export default function BuildingDocuments() {
     fileSize: number;
     mimeType: string;
   } | null>(null);
+  const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -309,6 +310,7 @@ export default function BuildingDocuments() {
 
   // Handle file upload for new document
   const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
+    setIsUploadingNewFile(true); // Start upload tracking
     const response = await fetch('/api/documents/upload-url', { 
       method: 'POST',
       credentials: 'include'
@@ -318,6 +320,7 @@ export default function BuildingDocuments() {
   };
 
   const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
+    setIsUploadingNewFile(false); // Upload finished
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       setUploadedFile({
@@ -515,7 +518,13 @@ export default function BuildingDocuments() {
                       <div className="space-y-3">
                         <Label>Document File (Optional)</Label>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                          {!uploadedFile ? (
+                          {isUploadingNewFile ? (
+                            <div className="flex flex-col items-center space-y-2">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                              <p className="text-sm text-gray-600">Uploading file...</p>
+                              <p className="text-xs text-gray-500">Please wait before creating the document</p>
+                            </div>
+                          ) : !uploadedFile ? (
                             <ObjectUploader
                               onGetUploadParameters={handleNewDocumentUpload}
                               onComplete={handleNewDocumentUploadComplete}
@@ -550,9 +559,18 @@ export default function BuildingDocuments() {
                       </div>
 
                       <DialogFooter>
-                        <Button type="submit" disabled={createDocumentMutation.isPending}>
-                          {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
+                        <Button 
+                          type="submit" 
+                          disabled={createDocumentMutation.isPending || isUploadingNewFile}
+                        >
+                          {createDocumentMutation.isPending ? "Creating..." : 
+                           isUploadingNewFile ? "Wait for upload..." : "Create Document"}
                         </Button>
+                        {isUploadingNewFile && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            ⚠️ File upload in progress. Please wait before creating the document.
+                          </p>
+                        )}
                       </DialogFooter>
                     </form>
                   </Form>
