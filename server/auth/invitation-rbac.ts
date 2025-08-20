@@ -4,7 +4,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
 import { permissions, checkPermission, hasRoleOrHigher } from '../../config';
-import { createInvitationAuditLog } from '../routes';
+// Note: createInvitationAuditLog will be defined locally or imported when needed
 import ws from 'ws';
 
 neonConfig.webSocketConstructor = ws;
@@ -258,34 +258,32 @@ export class InvitationPermissionValidator {
       return { valid: false, reason: 'Insufficient role privileges to invite users' };
     }
 
-    // Manager restrictions: can only invite tenant roles
+    // Manager restrictions: can invite managers and admins within their organization
     if (inviterRole === 'manager') {
-      if (!['tenant'].includes(targetRole)) {
-        return { valid: false, reason: 'Managers can only invite tenants' };
+      // Managers can only invite managers and admins
+      if (!['manager', 'admin'].includes(targetRole)) {
+        return { valid: false, reason: 'Managers can only invite managers and admins' };
       }
-    }
 
-    // Admin restrictions: can invite managers and tenants
-    if (inviterRole === 'admin') {
-      if (targetRole !== 'tenant') {
-        return { valid: false, reason: 'Admins can only invite tenants' };
-      }
-      
-      // Admins can only invite to their own buildings
-      if (buildingId) {
-        const ownerBuilding = await db.select()
-          .from(schema.userResidences)
-          .leftJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+      // Organization validation - managers can only invite within their organization
+      if (organizationId) {
+        // Check if the inviter belongs to the specified organization
+        const inviterOrganization = await db.select()
+          .from(schema.users)
+          .leftJoin(schema.buildings, eq(schema.buildings.organizationId, organizationId))
+          .leftJoin(schema.residences, eq(schema.residences.buildingId, schema.buildings.id))
+          .leftJoin(schema.userResidences, eq(schema.userResidences.residenceId, schema.residences.id))
           .where(and(
-            eq(schema.userResidences.userId, inviterId),
-            eq(schema.residences.buildingId, buildingId),
-            eq(schema.userResidences.relationshipType, 'owner')
+            eq(schema.users.id, inviterId),
+            eq(schema.userResidences.userId, inviterId)
           ))
           .limit(1);
 
-        if (ownerBuilding.length === 0) {
-          return { valid: false, reason: 'Admins can only invite to buildings they own units in' };
+        if (inviterOrganization.length === 0) {
+          return { valid: false, reason: 'Managers can only invite users to their own organization' };
         }
+      } else {
+        return { valid: false, reason: 'Organization ID is required for manager invitations' };
       }
     }
 
