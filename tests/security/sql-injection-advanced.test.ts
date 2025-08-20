@@ -1,5 +1,5 @@
 /**
- * @file Advanced SQL Injection Security Tests
+ * @file Advanced SQL Injection Security Tests.
  * @description Advanced testing for SQL injection vulnerabilities including 
  * raw SQL usage, complex attack vectors, and edge cases.
  */
@@ -107,9 +107,9 @@ describe('Advanced SQL Injection Security Tests', () => {
   describe('Unicode and Encoding Attack Tests', () => {
     it('should handle Unicode SQL injection attempts', async () => {
       const unicodePayloads = [
-        "test\u0027 OR \u00271\u0027=\u00271",  // Unicode single quotes
-        "test\uFF07 UNION SELECT \u002A FROM users\uFF07",  // Fullwidth quotation marks
-        "test\u2019 OR 1=1\u2013\u2013",  // Smart quotes and em dash
+        "test\u0027 OR \u00271\u0027=\u00271", // Unicode single quotes
+        "test\uFF07 UNION SELECT \u002A FROM users\uFF07", // Fullwidth quotation marks
+        "test\u2019 OR 1=1\u2013\u2013", // Smart quotes and em dash
       ];
 
       for (const payload of unicodePayloads) {
@@ -130,8 +130,8 @@ describe('Advanced SQL Injection Security Tests', () => {
 
     it('should handle double-encoded injection attempts', async () => {
       const doubleEncodedPayloads = [
-        "%2527%20OR%20%2527%31%2527%3D%2527%31",  // Double URL encoded ' OR '1'='1
-        "%2527%20UNION%20SELECT%20%2A%20FROM%20users%2527",  // Double encoded UNION
+        "%2527%20OR%20%2527%31%2527%3D%2527%31", // Double URL encoded ' OR '1'='1
+        "%2527%20UNION%20SELECT%20%2A%20FROM%20users%2527", // Double encoded UNION
       ];
 
       for (const payload of doubleEncodedPayloads) {
@@ -242,7 +242,7 @@ describe('Advanced SQL Injection Security Tests', () => {
       const columnEnumerationPayloads = [
         "' AND (SELECT 1 FROM information_schema.columns WHERE column_name='password') = 1 --",
         "' UNION SELECT column_name FROM information_schema.columns WHERE table_name='users' --",
-        "' ORDER BY 999 --",  // Column count enumeration
+        "' ORDER BY 999 --", // Column count enumeration
       ];
 
       for (const payload of columnEnumerationPayloads) {

@@ -1,5 +1,5 @@
 /**
- * @file SQL Injection Security Summary Tests
+ * @file SQL Injection Security Summary Tests.
  * @description Summary of SQL injection protection verification results for Koveo Gestion.
  * This file provides a comprehensive overview of the security testing results.
  */
@@ -159,7 +159,7 @@ describe('SQL Injection Security Summary', () => {
 
 /**
  * Security Test Results Summary
- * ============================
+ * ============================.
  * 
  * ✅ EXCELLENT PROTECTION AGAINST:
  * - Basic SQL injection attacks
@@ -168,11 +168,11 @@ describe('SQL Injection Security Summary', () => {
  * - Boolean and time-based blind injection
  * - Unicode and special character attacks
  * - Privilege escalation attempts
- * - Large payload and buffer overflow attacks
+ * - Large payload and buffer overflow attacks.
  * 
  * ⚠️ AREAS FOR IMPROVEMENT:
  * - Error message sanitization needed
- * - Consider adding injection attempt monitoring
+ * - Consider adding injection attempt monitoring.
  * 
  * 🏆 OVERALL ASSESSMENT: 
  * The application demonstrates strong SQL injection protection through

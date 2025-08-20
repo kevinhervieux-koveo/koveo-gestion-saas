@@ -34,6 +34,7 @@ import {
 
 /**
  * Registers refactored building routes with improved modularity and maintainability.
+ * @param app
  */
 export function registerBuildingRoutesRefactored(app: Express): void {
   

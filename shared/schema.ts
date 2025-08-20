@@ -1,5 +1,5 @@
 /**
- * Koveo Gestion Database Schema
+ * Koveo Gestion Database Schema.
  * 
  * This is the main schema file that re-exports all domain-specific schemas.
  * The schemas are organized by domain for better maintainability:
@@ -10,7 +10,7 @@
  * - operations: Maintenance requests and notifications
  * - documents: Document management and file storage
  * - development: Features, improvement suggestions, and development tracking
- * - monitoring: Quality metrics, predictions, and AI monitoring
+ * - monitoring: Quality metrics, predictions, and AI monitoring.
  */
 
 // Re-export all enums

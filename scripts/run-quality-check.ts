@@ -139,6 +139,7 @@ interface Law25ComplianceResult {
  * @param translationCoverage
  * @param accessibility
  * @param componentCoverage
+ * @param law25Compliance
  */
 async function generateSuggestions(
   complexity: ComplexityResult,
@@ -962,6 +963,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
  * @param translationCoverage
  * @param accessibility
  * @param componentCoverage
+ * @param law25Compliance
  * @returns Boolean indicating if all thresholds are met.
  */
 function validateQuality(
@@ -1099,6 +1101,7 @@ function validateQuality(
  * @param translationCoverage - Translation coverage results.
  * @param accessibility - Accessibility results.
  * @param componentCoverage - Component coverage results.
+ * @param law25Compliance
  */
 async function verifyQualityMetricsAPI(
   complexity: ComplexityResult,

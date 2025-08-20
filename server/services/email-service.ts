@@ -13,7 +13,7 @@ class EmailService {
    * Initializes the EmailService with SendGrid configuration.
    * Validates that the SENDGRID_API_KEY environment variable is set.
    * 
-   * @throws {Error} When SENDGRID_API_KEY environment variable is not set
+   * @throws {Error} When SENDGRID_API_KEY environment variable is not set.
    * 
    * @example
    * ```typescript
@@ -35,13 +35,13 @@ class EmailService {
    * Uses professional templates with security warnings and privacy disclaimers.
    * Link tracking is disabled for direct URL access as required by security protocols.
    * 
-   * @param {string} to - Recipient email address
-   * @param {string} userName - User's display name for personalization
-   * @param {string} resetUrl - Complete password reset URL with token
-   * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec)
-   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully
+   * @param {string} to - Recipient email address.
+   * @param {string} userName - User's display name for personalization.
+   * @param {string} resetUrl - Complete password reset URL with token.
+   * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec).
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
    * 
-   * @throws {Error} When SendGrid API fails or invalid parameters provided
+   * @throws {Error} When SendGrid API fails or invalid parameters provided.
    * 
    * @example
    * ```typescript
@@ -241,8 +241,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
    * Sends a test email to verify SendGrid configuration and connectivity.
    * Used for troubleshooting email delivery issues and validating API setup.
    * 
-   * @param {string} to - Recipient email address for the test email
-   * @returns {Promise<boolean>} Promise resolving to true if test email sent successfully
+   * @param {string} to - Recipient email address for the test email.
+   * @returns {Promise<boolean>} Promise resolving to true if test email sent successfully.
    * 
    * @example
    * ```typescript

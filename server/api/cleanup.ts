@@ -7,7 +7,7 @@ import { isNotNull } from 'drizzle-orm';
 const router = Router();
 
 /**
- * Clean up orphaned files in object storage that are not referenced in the database
+ * Clean up orphaned files in object storage that are not referenced in the database.
  */
 router.post('/cleanup-storage', async (req, res) => {
   try {
@@ -53,7 +53,7 @@ router.post('/cleanup-storage', async (req, res) => {
     const [files] = await bucket.getFiles({ prefix: prefixPath });
     
     let deletedCount = 0;
-    let totalFilesInStorage = files.length;
+    const totalFilesInStorage = files.length;
     const deletedFiles: string[] = [];
 
     // Check each file in storage across the hierarchical structure
@@ -113,7 +113,7 @@ router.post('/cleanup-storage', async (req, res) => {
 });
 
 /**
- * Get storage statistics
+ * Get storage statistics.
  */
 router.get('/storage-stats', async (req, res) => {
   try {
@@ -147,7 +147,7 @@ router.get('/storage-stats', async (req, res) => {
 });
 
 /**
- * Auto-cleanup endpoint that runs automatically
+ * Auto-cleanup endpoint that runs automatically.
  */
 router.post('/auto-cleanup', async (req, res) => {
   try {

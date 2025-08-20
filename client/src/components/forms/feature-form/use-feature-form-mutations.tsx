@@ -5,6 +5,8 @@ import type { FeatureFormData } from './use-feature-form-data';
 
 /**
  * Hook for managing feature form mutations.
+ * @param feature
+ * @param onClose
  */
 export function useFeatureFormMutations(
   feature: Feature | null,
@@ -106,6 +108,7 @@ export function useFeatureFormMutations(
 
   /**
    * Handles form submission - either creates new feature or shows already exists message.
+   * @param formData
    */
   const handleSubmit = (formData: FeatureFormData) => {
     if (!feature) {
@@ -138,6 +141,8 @@ export function useFeatureFormMutations(
 
   /**
    * Saves the generated prompt as an actionable item.
+   * @param prompt
+   * @param title
    */
   const handleSavePrompt = (prompt: string, title: string) => {
     if (!feature?.id) {

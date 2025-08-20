@@ -79,13 +79,13 @@ function rateLimitInvitations(limit: number) {
 /**
  * Creates an audit log entry for invitation actions.
  * 
- * @param {string} invitationId - The invitation ID to log
- * @param {string} action - The action performed
- * @param {string} [performedBy] - User who performed the action
- * @param {any} [req] - Express request object for IP/user agent
- * @param {string} [previousStatus] - Previous invitation status
- * @param {string} [newStatus] - New invitation status
- * @param {any} [details] - Additional details
+ * @param {string} invitationId - The invitation ID to log.
+ * @param {string} action - The action performed.
+ * @param {string} [performedBy] - User who performed the action.
+ * @param {any} [req] - Express request object for IP/user agent.
+ * @param {string} [previousStatus] - Previous invitation status.
+ * @param {string} [newStatus] - New invitation status.
+ * @param {any} [details] - Additional details.
  */
 async function createInvitationAuditLog(
   invitationId: string,

@@ -25,6 +25,7 @@ export interface UserAccess {
 
 /**
  * Determines if a user has access to buildings based on their role and associations.
+ * @param userId
  */
 export async function getUserBuildingAccess(userId: string): Promise<UserAccess> {
   // Get user organizations
@@ -56,6 +57,9 @@ export async function getUserBuildingAccess(userId: string): Promise<UserAccess>
 
 /**
  * Checks if a user has access to a specific building.
+ * @param userId
+ * @param buildingId
+ * @param userRole
  */
 export async function checkBuildingAccess(
   userId: string, 
@@ -130,6 +134,8 @@ export async function checkBuildingAccess(
 
 /**
  * Gets all buildings accessible to a user based on their role and associations.
+ * @param userId
+ * @param userRole
  */
 export async function getAccessibleBuildingIds(
   userId: string, 

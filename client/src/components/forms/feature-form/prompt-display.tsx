@@ -19,6 +19,12 @@ interface PromptDisplayProps {
 
 /**
  * Component for displaying and managing generated development prompts.
+ * @param root0
+ * @param root0.prompt
+ * @param root0.feature
+ * @param root0.onSavePrompt
+ * @param root0.onCopyToClipboard
+ * @param root0.isSaving
  */
 export function PromptDisplay({ 
   prompt, 

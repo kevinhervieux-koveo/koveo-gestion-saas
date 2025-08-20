@@ -310,28 +310,76 @@ export const insertUserPermissionSchema = createInsertSchema(userPermissions).pi
 });
 
 // Types
+/**
+ *
+ */
 export type InsertUser = z.infer<typeof insertUserSchema>;
+/**
+ *
+ */
 export type User = typeof users.$inferSelect;
 
+/**
+ *
+ */
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+/**
+ *
+ */
 export type Organization = typeof organizations.$inferSelect;
 
+/**
+ *
+ */
 export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+/**
+ *
+ */
 export type UserOrganization = typeof userOrganizations.$inferSelect;
 
+/**
+ *
+ */
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+/**
+ *
+ */
 export type Invitation = typeof invitations.$inferSelect;
 
+/**
+ *
+ */
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+/**
+ *
+ */
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
+/**
+ *
+ */
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+/**
+ *
+ */
 export type Permission = typeof permissions.$inferSelect;
 
+/**
+ *
+ */
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+/**
+ *
+ */
 export type RolePermission = typeof rolePermissions.$inferSelect;
 
+/**
+ *
+ */
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+/**
+ *
+ */
 export type UserPermission = typeof userPermissions.$inferSelect;
 
 // Relations

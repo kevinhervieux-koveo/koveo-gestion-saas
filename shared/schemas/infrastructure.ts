@@ -76,7 +76,13 @@ export const insertSslCertificateSchema = createInsertSchema(sslCertificates).pi
 });
 
 // Types
+/**
+ *
+ */
 export type InsertSslCertificate = z.infer<typeof insertSslCertificateSchema>;
+/**
+ *
+ */
 export type SslCertificate = typeof sslCertificates.$inferSelect;
 
 // Relations

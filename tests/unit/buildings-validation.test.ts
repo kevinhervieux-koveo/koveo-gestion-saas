@@ -36,22 +36,25 @@ const buildingSearchSchema = z.object({
 });
 
 describe('Building Validation Tests', () => {
+  // Move validBuildingData to top level so all tests can access it
+  const validBuildingData = {
+    name: 'Maple Heights Condominiums',
+    organizationId: 'org-123e4567-e89b-12d3-a456-426614174000',
+    address: '123 Rue Sainte-Catherine Est',
+    city: 'Montréal',
+    province: 'QC' as const,
+    postalCode: 'H2X 1L4',
+    buildingType: 'condo' as const,
+    yearBuilt: 2020,
+    totalUnits: 50,
+    totalFloors: 10,
+    parkingSpaces: 30,
+    storageSpaces: 25,
+    managementCompany: 'Gestion Immobilière Koveo',
+  };
+
   describe('Building Form Schema Validation', () => {
-    const validBuildingData = {
-      name: 'Maple Heights Condominiums',
-      organizationId: 'org-123e4567-e89b-12d3-a456-426614174000',
-      address: '123 Rue Sainte-Catherine Est',
-      city: 'Montréal',
-      province: 'QC' as const,
-      postalCode: 'H2X 1L4',
-      buildingType: 'condo' as const,
-      yearBuilt: 2020,
-      totalUnits: 50,
-      totalFloors: 10,
-      parkingSpaces: 30,
-      storageSpaces: 25,
-      managementCompany: 'Gestion Immobilière Koveo',
-    };
+    // validBuildingData moved to top level
 
     describe('Required Fields', () => {
       it('should validate correct building data', () => {

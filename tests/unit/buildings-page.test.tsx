@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Buildings from '@/pages/manager/buildings';
@@ -16,7 +16,7 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: any) => (
+  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -26,7 +26,7 @@ jest.mock('wouter', () => ({
 // Mock API requests
 const mockApiRequest = jest.fn();
 jest.mock('@/lib/queryClient', () => ({
-  apiRequest: (...args: any[]) => mockApiRequest(...args),
+  apiRequest: (...args: unknown[]) => mockApiRequest(...args),
   queryClient: new QueryClient({
     defaultOptions: {
       queries: { retry: false },

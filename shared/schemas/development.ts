@@ -288,25 +288,67 @@ export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfigura
 });
 
 // Types
+/**
+ *
+ */
 export type InsertImprovementSuggestion = z.infer<typeof insertImprovementSuggestionSchema>;
+/**
+ *
+ */
 export type ImprovementSuggestion = typeof improvementSuggestions.$inferSelect;
 
+/**
+ *
+ */
 export type InsertFeature = z.infer<typeof insertFeatureSchema>;
+/**
+ *
+ */
 export type Feature = typeof features.$inferSelect;
 
+/**
+ *
+ */
 export type InsertActionableItem = z.infer<typeof insertActionableItemSchema>;
+/**
+ *
+ */
 export type ActionableItem = typeof actionableItems.$inferSelect;
 
+/**
+ *
+ */
 export type InsertPillar = z.infer<typeof insertPillarSchema>;
+/**
+ *
+ */
 export type Pillar = typeof developmentPillars.$inferSelect;
 
+/**
+ *
+ */
 export type InsertWorkspaceStatus = z.infer<typeof insertWorkspaceStatusSchema>;
+/**
+ *
+ */
 export type WorkspaceStatus = typeof workspaceStatus.$inferSelect;
 
+/**
+ *
+ */
 export type InsertQualityMetric = z.infer<typeof insertQualityMetricSchema>;
+/**
+ *
+ */
 export type QualityMetric = typeof qualityMetrics.$inferSelect;
 
+/**
+ *
+ */
 export type InsertFrameworkConfiguration = z.infer<typeof insertFrameworkConfigSchema>;
+/**
+ *
+ */
 export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
 
 // Relations

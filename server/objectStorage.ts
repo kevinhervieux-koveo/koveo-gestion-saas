@@ -151,7 +151,12 @@ export class ObjectStorageService {
   /**
    * Creates upload URL following the hierarchy:
    * .private/organization-{id}/building-{id}/buildings_documents/{file}
-   * .private/organization-{id}/building-{id}/residence-{id}/{file}
+   * .private/organization-{id}/building-{id}/residence-{id}/{file}.
+   * @param options
+   * @param options.organizationId
+   * @param options.buildingId
+   * @param options.residenceId
+   * @param options.documentType
    */
   async getObjectEntityUploadURL(options: {
     organizationId: string;
@@ -199,7 +204,8 @@ export class ObjectStorageService {
   /**
    * Retrieves files from hierarchical paths:
    * /objects/organization-{id}/building-{id}/buildings_documents/{file}
-   * /objects/organization-{id}/building-{id}/residence-{id}/{file}
+   * /objects/organization-{id}/building-{id}/residence-{id}/{file}.
+   * @param objectPath
    */
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
@@ -229,7 +235,8 @@ export class ObjectStorageService {
   }
 
   /**
-   * Normalizes hierarchical object paths from URLs to /objects/... format
+   * Normalizes hierarchical object paths from URLs to /objects/... Format.
+   * @param rawPath
    */
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
@@ -266,7 +273,8 @@ export class ObjectStorageService {
 
   // Create hierarchical directory structure for organization
   /**
-   * Creates directory structure for an organization
+   * Creates directory structure for an organization.
+   * @param organizationId
    */
   async createOrganizationHierarchy(organizationId: string): Promise<void> {
     try {
@@ -287,7 +295,9 @@ export class ObjectStorageService {
 
   // Create hierarchical directory structure for building
   /**
-   * Creates directory structure for a building under an organization
+   * Creates directory structure for a building under an organization.
+   * @param organizationId
+   * @param buildingId
    */
   async createBuildingHierarchy(organizationId: string, buildingId: string): Promise<void> {
     try {
@@ -310,7 +320,10 @@ export class ObjectStorageService {
 
   // Create hierarchical directory structure for residence
   /**
-   * Creates directory structure for a residence under a building
+   * Creates directory structure for a residence under a building.
+   * @param organizationId
+   * @param buildingId
+   * @param residenceId
    */
   async createResidenceHierarchy(organizationId: string, buildingId: string, residenceId: string): Promise<void> {
     try {
@@ -332,7 +345,8 @@ export class ObjectStorageService {
 
   // Delete hierarchical directory structure (with safety checks)
   /**
-   * Safely deletes directory structure and all contents for an organization
+   * Safely deletes directory structure and all contents for an organization.
+   * @param organizationId
    */
   async deleteOrganizationHierarchy(organizationId: string): Promise<void> {
     try {
@@ -358,7 +372,9 @@ export class ObjectStorageService {
 
   // Delete hierarchical directory structure for building
   /**
-   * Safely deletes directory structure and all contents for a building
+   * Safely deletes directory structure and all contents for a building.
+   * @param organizationId
+   * @param buildingId
    */
   async deleteBuildingHierarchy(organizationId: string, buildingId: string): Promise<void> {
     try {
@@ -384,7 +400,10 @@ export class ObjectStorageService {
 
   // Delete hierarchical directory structure for residence
   /**
-   * Safely deletes directory structure and all contents for a residence
+   * Safely deletes directory structure and all contents for a residence.
+   * @param organizationId
+   * @param buildingId
+   * @param residenceId
    */
   async deleteResidenceHierarchy(organizationId: string, buildingId: string, residenceId: string): Promise<void> {
     try {

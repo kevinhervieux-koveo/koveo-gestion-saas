@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Building data interface for display and editing
+ * Building data interface for display and editing.
  */
 export interface BuildingData {
   id: string;
@@ -26,7 +26,7 @@ export interface BuildingData {
 }
 
 /**
- * Organization interface for building assignment
+ * Organization interface for building assignment.
  */
 export interface Organization {
   id: string;
@@ -35,7 +35,7 @@ export interface Organization {
 }
 
 /**
- * Building form schema - only name and organization are required
+ * Building form schema - only name and organization are required.
  */
 export const buildingFormSchema = z.object({
   name: z.string().min(1, 'Building name is required'),
@@ -54,6 +54,6 @@ export const buildingFormSchema = z.object({
 });
 
 /**
- * Form data type for building creation and editing
+ * Form data type for building creation and editing.
  */
 export type BuildingFormData = z.infer<typeof buildingFormSchema>;

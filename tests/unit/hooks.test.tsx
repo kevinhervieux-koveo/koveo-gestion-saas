@@ -216,7 +216,7 @@ describe('Quebec Property Management Hooks', () => {
       }
 
       // Capture console errors during this test
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* silence console errors for this test */ });
       
       expect(() => render(<ComponentWithoutProvider />)).toThrow(
         'useLanguage must be used within a LanguageProvider'

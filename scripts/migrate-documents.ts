@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
 /**
- * Document Migration Script
+ * Document Migration Script.
  * 
  * This script migrates existing documents from the legacy documents table
  * to the new separate documents_buildings and documents_residents tables.
  * 
- * Usage: npm run migrate:documents
+ * Usage: npm run migrate:documents.
  */
 
 import { drizzle } from 'drizzle-orm/neon-http';
@@ -15,6 +15,9 @@ import { eq } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 
 // Types for the migration
+/**
+ *
+ */
 type LegacyDocument = {
   id: string;
   name: string;
@@ -30,7 +33,8 @@ const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
 /**
- * Determines the migration target for a document based on its boolean flags
+ * Determines the migration target for a document based on its boolean flags.
+ * @param doc
  */
 function determineDocumentTarget(doc: LegacyDocument): 'building' | 'resident' | 'both' | 'skip' {
   const isBuilding = doc.buildings === 'true';
@@ -49,7 +53,7 @@ function determineDocumentTarget(doc: LegacyDocument): 'building' | 'resident' |
 }
 
 /**
- * Gets building IDs from the database
+ * Gets building IDs from the database.
  */
 async function getBuildingIds(): Promise<string[]> {
   const buildings = await db.select({ id: schema.buildings.id }).from(schema.buildings);
@@ -57,7 +61,7 @@ async function getBuildingIds(): Promise<string[]> {
 }
 
 /**
- * Gets residence IDs from the database
+ * Gets residence IDs from the database.
  */
 async function getResidenceIds(): Promise<string[]> {
   const residences = await db.select({ id: schema.residences.id }).from(schema.residences);
@@ -65,7 +69,10 @@ async function getResidenceIds(): Promise<string[]> {
 }
 
 /**
- * Creates building documents from legacy documents
+ * Creates building documents from legacy documents.
+ * @param doc
+ * @param buildingId
+ * @param uploadedBy
  */
 async function createBuildingDocument(doc: LegacyDocument, buildingId: string, uploadedBy: string) {
   return {
@@ -83,7 +90,10 @@ async function createBuildingDocument(doc: LegacyDocument, buildingId: string, u
 }
 
 /**
- * Creates resident documents from legacy documents
+ * Creates resident documents from legacy documents.
+ * @param doc
+ * @param residenceId
+ * @param uploadedBy
  */
 async function createResidentDocument(doc: LegacyDocument, residenceId: string, uploadedBy: string) {
   return {
@@ -101,7 +111,7 @@ async function createResidentDocument(doc: LegacyDocument, residenceId: string, 
 }
 
 /**
- * Main migration function
+ * Main migration function.
  */
 async function migrateDocuments() {
   console.log('🚀 Starting document migration...');
@@ -228,7 +238,7 @@ async function migrateDocuments() {
 }
 
 /**
- * Rollback function to undo the migration
+ * Rollback function to undo the migration.
  */
 async function rollbackMigration() {
   console.log('🔄 Rolling back document migration...');

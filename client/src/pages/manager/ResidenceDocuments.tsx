@@ -22,8 +22,12 @@ import { Header } from "@/components/layout/header";
 import type { UploadResult } from "@uppy/core";
 
 // Utility function to convert raw object storage URLs to server routes
+/**
+ *
+ * @param fileUrl
+ */
 function getDisplayableFileUrl(fileUrl: string): string {
-  if (!fileUrl) return '';
+  if (!fileUrl) {return '';}
   
   // If it's already a proper server route, return as-is
   if (fileUrl.startsWith('/objects/') || fileUrl.startsWith('/public-objects/')) {
@@ -77,15 +81,28 @@ const documentFormSchema = z.object({
   residenceId: z.string().min(1, "Residence ID is required"),
 });
 
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
 // Edit Document Form Component
+/**
+ *
+ */
 interface EditDocumentFormProps {
   document: ResidenceDocument;
   onSave: (updatedDocument: ResidenceDocument) => void;
   onCancel: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.document
+ * @param root0.onSave
+ * @param root0.onCancel
+ */
 function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -207,6 +224,9 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
   );
 }
 
+/**
+ *
+ */
 interface ResidenceDocument {
   id: string;
   name: string;
@@ -220,12 +240,18 @@ interface ResidenceDocument {
   fileUrl?: string;
 }
 
+/**
+ *
+ */
 interface User {
   id: string;
   role: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -234,6 +260,9 @@ interface Residence {
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -241,6 +270,9 @@ interface Building {
   [key: string]: any;
 }
 
+/**
+ *
+ */
 export default function ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -287,9 +319,9 @@ export default function ResidenceDocuments() {
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", "residence", residenceId],
     queryFn: async () => {
-      if (!residenceId) return {documents: []};
+      if (!residenceId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
-      if (!response.ok) throw new Error('Failed to fetch documents');
+      if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
     enabled: !!residenceId,
@@ -393,10 +425,10 @@ export default function ResidenceDocuments() {
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
       const updateData: any = {};
-      if (data.name) updateData.name = data.name;
-      if (data.type) updateData.type = data.type;
-      if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
-      if (data.residenceId) updateData.residenceId = data.residenceId;
+      if (data.name) {updateData.name = data.name;}
+      if (data.type) {updateData.type = data.type;}
+      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string
+      if (data.residenceId) {updateData.residenceId = data.residenceId;}
       updateData.uploadedBy = user?.id; // Use full user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
@@ -552,7 +584,7 @@ export default function ResidenceDocuments() {
   const handleDownloadDocument = async (document: ResidenceDocument) => {
     try {
       const response = await fetch(`/api/documents/${document.id}/download`);
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) {throw new Error('Download failed');}
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -980,7 +1012,7 @@ export default function ResidenceDocuments() {
             <div className="w-full space-y-6">
               {DOCUMENT_CATEGORIES.map((category) => {
                 const categoryDocuments = documentsByCategory[category.value] || [];
-                if (categoryDocuments.length === 0) return null;
+                if (categoryDocuments.length === 0) {return null;}
                 
                 return (
                   <div key={category.value} className="space-y-4">

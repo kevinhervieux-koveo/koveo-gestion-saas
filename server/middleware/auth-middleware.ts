@@ -7,9 +7,9 @@ import { Request, Response, NextFunction } from 'express';
  * Express middleware to require user authentication for protected routes.
  * Checks for valid user session and blocks access if not authenticated.
  * 
- * @param {Request} req - Express request object with session data
- * @param {Response} res - Express response object for sending errors
- * @param {NextFunction} next - Express next function to continue to route handler
+ * @param {Request} req - Express request object with session data.
+ * @param {Response} res - Express response object for sending errors.
+ * @param {NextFunction} next - Express next function to continue to route handler.
  * 
  * @example
  * ```typescript
@@ -31,8 +31,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
  * Returns middleware that restricts access to users with specific roles.
  * Must be used after requireAuth middleware.
  * 
- * @param {string[]} roles - Array of allowed roles (e.g., ['admin', 'manager'])
- * @returns {Function} Express middleware function for role validation
+ * @param {string[]} roles - Array of allowed roles (e.g., ['admin', 'manager']).
+ * @returns {Function} Express middleware function for role validation.
  * 
  * @example
  * ```typescript

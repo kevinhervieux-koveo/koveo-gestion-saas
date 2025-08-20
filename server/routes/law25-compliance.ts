@@ -143,7 +143,7 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
 
 /**
  * GET /api/law25-compliance
- * Returns Quebec Law 25 compliance status and violations
+ * Returns Quebec Law 25 compliance status and violations.
  */
 router.get('/', (req, res) => {
   try {

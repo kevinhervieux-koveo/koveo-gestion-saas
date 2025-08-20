@@ -8,7 +8,7 @@ import * as path from 'path';
 import { glob } from 'glob';
 
 /**
- *
+ * Represents contextual information about a file in the workspace.
  */
 export interface FileContext {
   path: string;
@@ -23,7 +23,7 @@ export interface FileContext {
 }
 
 /**
- *
+ * Represents the current workspace context and related files.
  */
 export interface WorkspaceContext {
   recentFiles: FileContext[];
@@ -34,7 +34,7 @@ export interface WorkspaceContext {
 }
 
 /**
- *
+ * Represents a context suggestion for improving workflow.
  */
 export interface ContextSuggestion {
   type: 'file' | 'directory' | 'pattern' | 'feature';
@@ -53,8 +53,8 @@ export class SmartContextManager {
   private workspaceContext: WorkspaceContext;
 
   /**
-   *
-   * @param projectRoot
+   * Creates a new SmartContextManager instance.
+   * @param projectRoot - The root directory of the project to analyze.
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -63,6 +63,7 @@ export class SmartContextManager {
 
   /**
    * Initialize workspace context.
+   * @returns The initialized workspace context with default values.
    */
   private initializeContext(): WorkspaceContext {
     return {
@@ -76,7 +77,8 @@ export class SmartContextManager {
 
   /**
    * Analyze file and extract context information.
-   * @param filePath
+   * @param filePath - The relative path to the file to analyze.
+   * @returns The extracted file context information.
    */
   private analyzeFile(filePath: string): FileContext {
     const fullPath = path.join(this.projectRoot, filePath);
@@ -101,8 +103,9 @@ export class SmartContextManager {
 
   /**
    * Determine file type based on path and content.
-   * @param filePath
-   * @param content
+   * @param filePath - The file path to analyze.
+   * @param content - The file content to analyze.
+   * @returns The determined file type category.
    */
   private determineFileType(filePath: string, content: string): FileContext['type'] {
     if (filePath.includes('.test.') || filePath.includes('.spec.')) {return 'test';}
@@ -122,8 +125,9 @@ export class SmartContextManager {
   }
 
   /**
-   * Extract file dependencies.
-   * @param content
+   * Extract file dependencies from file content.
+   * @param content - The file content to analyze for dependencies.
+   * @returns Array of dependency file paths.
    */
   private extractDependencies(content: string): string[] {
     const dependencies: string[] = [];
@@ -141,7 +145,8 @@ export class SmartContextManager {
 
   /**
    * Extract exports from file.
-   * @param content
+   * @param content - The file content to analyze for exports.
+   * @returns Array of exported identifiers.
    */
   private extractExports(content: string): string[] {
     const exports: string[] = [];
@@ -170,7 +175,8 @@ export class SmartContextManager {
 
   /**
    * Extract imports from file.
-   * @param content
+   * @param content - The file content to analyze for imports.
+   * @returns Array of imported identifiers.
    */
   private extractImports(content: string): string[] {
     const imports: string[] = [];
@@ -193,7 +199,8 @@ export class SmartContextManager {
 
   /**
    * Calculate file complexity score.
-   * @param content
+   * @param content - The file content to analyze.
+   * @returns Numeric complexity score.
    */
   private calculateComplexity(content: string): number {
     let complexity = 0;
@@ -217,8 +224,9 @@ export class SmartContextManager {
 
   /**
    * Calculate file importance score.
-   * @param filePath
-   * @param content
+   * @param filePath - The file path to analyze.
+   * @param content - The file content to analyze.
+   * @returns Numeric importance score.
    */
   private calculateImportance(filePath: string, content: string): number {
     let importance = 0;

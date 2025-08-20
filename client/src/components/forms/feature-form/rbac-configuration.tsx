@@ -14,6 +14,10 @@ interface RBACConfigurationProps {
 
 /**
  * Component for configuring Role-Based Access Control (RBAC) settings.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @param root0.onUpdateRBACRole
  */
 export function RBACConfiguration({
   formData,

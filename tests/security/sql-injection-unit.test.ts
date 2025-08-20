@@ -1,5 +1,5 @@
 /**
- * @file SQL Injection Unit Security Tests
+ * @file SQL Injection Unit Security Tests.
  * @description Unit tests to verify SQL injection protection in database query functions.
  * These tests focus on the core database operations without requiring full app setup.
  */
@@ -253,8 +253,8 @@ describe('SQL Injection Unit Security Tests', () => {
   describe('Unicode and Special Character Tests', () => {
     it('should handle Unicode injection attempts safely', async () => {
       const unicodePayloads = [
-        "test\u0027 OR \u00271\u0027=\u00271",  // Unicode single quotes
-        "test\uFF07 UNION SELECT * FROM users\uFF07",  // Fullwidth quotation marks
+        "test\u0027 OR \u00271\u0027=\u00271", // Unicode single quotes
+        "test\uFF07 UNION SELECT * FROM users\uFF07", // Fullwidth quotation marks
       ];
 
       for (const payload of unicodePayloads) {

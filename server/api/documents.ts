@@ -75,7 +75,7 @@ export function registerDocumentRoutes(app: Express): void {
       const residenceIds = residences.map(ur => ur.residenceId);
       const buildingIds = buildings.map(b => b.id);
       
-      let allDocuments: any[] = [];
+      const allDocuments: any[] = [];
       
       // Fetch documents based on type parameter
       // Check if storage supports new document methods

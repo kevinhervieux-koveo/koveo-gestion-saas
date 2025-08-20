@@ -15,6 +15,9 @@ interface FormSectionProps {
 
 /**
  * Basic Information section component.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
  */
 export function BasicInformationSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -92,6 +95,9 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
 
 /**
  * Business Requirements section component.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
  */
 export function BusinessRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -165,6 +171,9 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
 
 /**
  * Technical Requirements section component.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
  */
 export function TechnicalRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -238,6 +247,9 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
 
 /**
  * User Experience section component.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
  */
 export function UserExperienceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -281,6 +293,9 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
 
 /**
  * Quality & Performance section component.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
  */
 export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (

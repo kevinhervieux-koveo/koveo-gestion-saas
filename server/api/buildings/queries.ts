@@ -81,6 +81,7 @@ export async function getAllBuildingsWithOrg(): Promise<BuildingWithOrg[]> {
 
 /**
  * Gets buildings by organization IDs.
+ * @param organizationIds
  */
 export async function getBuildingsByOrganizations(organizationIds: string[]): Promise<BuildingWithOrg[]> {
   return await db
@@ -119,6 +120,7 @@ export async function getBuildingsByOrganizations(organizationIds: string[]): Pr
 
 /**
  * Gets buildings by user residences.
+ * @param userId
  */
 export async function getBuildingsByUserResidences(userId: string): Promise<BuildingWithOrg[]> {
   return await db
@@ -160,6 +162,7 @@ export async function getBuildingsByUserResidences(userId: string): Promise<Buil
 
 /**
  * Gets a specific building by ID with organization information.
+ * @param buildingId
  */
 export async function getBuildingById(buildingId: string): Promise<BuildingWithOrg | null> {
   const result = await db
@@ -200,6 +203,7 @@ export async function getBuildingById(buildingId: string): Promise<BuildingWithO
 
 /**
  * Gets statistics for a building.
+ * @param buildingId
  */
 export async function getBuildingStatistics(buildingId: string): Promise<BuildingStatistics> {
   // Get residence count
@@ -235,6 +239,7 @@ export async function getBuildingStatistics(buildingId: string): Promise<Buildin
 
 /**
  * Gets deletion impact analysis for a building.
+ * @param buildingId
  */
 export async function getBuildingDeletionImpact(buildingId: string) {
   // Get building residences

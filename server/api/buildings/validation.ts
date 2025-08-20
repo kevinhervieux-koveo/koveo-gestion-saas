@@ -49,6 +49,7 @@ export const BuildingIdSchema = z.object({
 
 /**
  * Validates building creation data.
+ * @param data
  */
 export function validateBuildingCreate(data: unknown) {
   return CreateBuildingSchema.parse(data);
@@ -56,6 +57,7 @@ export function validateBuildingCreate(data: unknown) {
 
 /**
  * Validates building update data.
+ * @param data
  */
 export function validateBuildingUpdate(data: unknown) {
   return UpdateBuildingSchema.parse(data);
@@ -63,6 +65,7 @@ export function validateBuildingUpdate(data: unknown) {
 
 /**
  * Validates building ID parameter.
+ * @param id
  */
 export function validateBuildingId(id: string) {
   return BuildingIdSchema.parse({ id });
@@ -70,6 +73,8 @@ export function validateBuildingId(id: string) {
 
 /**
  * Checks if user has permission for building operations.
+ * @param userRole
+ * @param operation
  */
 export function validateBuildingPermissions(userRole: string, operation: 'read' | 'create' | 'update' | 'delete'): boolean {
   switch (operation) {
@@ -96,6 +101,7 @@ export function validateBuildingPermissions(userRole: string, operation: 'read' 
 
 /**
  * Validates user authentication for building operations.
+ * @param req
  */
 export function validateUserAuth(req: any): { user: any; isValid: boolean; error?: string } {
   const user = req.user || req.session?.user;

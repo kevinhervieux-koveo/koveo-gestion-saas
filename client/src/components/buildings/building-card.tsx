@@ -5,6 +5,9 @@ import { Building, MapPin, Calendar, Users, Car, Package, Edit3, Trash2, FileTex
 import { useLocation } from 'wouter';
 import { BuildingData } from './types';
 
+/**
+ *
+ */
 interface BuildingCardProps {
   building: BuildingData;
   userRole?: string;
@@ -13,7 +16,12 @@ interface BuildingCardProps {
 }
 
 /**
- * Building card component for displaying building information
+ * Building card component for displaying building information.
+ * @param root0
+ * @param root0.building
+ * @param root0.userRole
+ * @param root0.onEdit
+ * @param root0.onDelete
  */
 export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
   const [, navigate] = useLocation();

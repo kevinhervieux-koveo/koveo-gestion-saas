@@ -267,19 +267,49 @@ export const insertQualityIssueSchema = createInsertSchema(qualityIssues).pick({
 });
 
 // Types
+/**
+ *
+ */
 export type InsertMetricEffectivenessTracking = z.infer<typeof insertMetricEffectivenessTrackingSchema>;
+/**
+ *
+ */
 export type MetricEffectivenessTracking = typeof metricEffectivenessTracking.$inferSelect;
 
+/**
+ *
+ */
 export type InsertMetricPrediction = z.infer<typeof insertMetricPredictionSchema>;
+/**
+ *
+ */
 export type MetricPrediction = typeof metricPredictions.$inferSelect;
 
+/**
+ *
+ */
 export type InsertPredictionValidation = z.infer<typeof insertPredictionValidationSchema>;
+/**
+ *
+ */
 export type PredictionValidation = typeof predictionValidations.$inferSelect;
 
+/**
+ *
+ */
 export type InsertMetricCalibrationData = z.infer<typeof insertMetricCalibrationDataSchema>;
+/**
+ *
+ */
 export type MetricCalibrationData = typeof metricCalibrationData.$inferSelect;
 
+/**
+ *
+ */
 export type InsertQualityIssue = z.infer<typeof insertQualityIssueSchema>;
+/**
+ *
+ */
 export type QualityIssue = typeof qualityIssues.$inferSelect;
 
 // Relations

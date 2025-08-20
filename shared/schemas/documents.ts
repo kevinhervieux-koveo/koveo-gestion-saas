@@ -84,9 +84,21 @@ export const insertDocumentResidentSchema = createInsertSchema(documentsResident
 });
 
 // Types
+/**
+ *
+ */
 export type InsertDocumentBuilding = z.infer<typeof insertDocumentBuildingSchema>;
+/**
+ *
+ */
 export type DocumentBuilding = typeof documentsBuildings.$inferSelect;
+/**
+ *
+ */
 export type InsertDocumentResident = z.infer<typeof insertDocumentResidentSchema>;
+/**
+ *
+ */
 export type DocumentResident = typeof documentsResidents.$inferSelect;
 
 // Legacy document table (kept for migration purposes)
@@ -113,5 +125,11 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   tenant: true,
 });
 
+/**
+ *
+ */
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+/**
+ *
+ */
 export type Document = typeof documents.$inferSelect;

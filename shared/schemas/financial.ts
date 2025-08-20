@@ -122,10 +122,22 @@ export const insertBudgetSchema = createInsertSchema(budgets).pick({
 });
 
 // Types
+/**
+ *
+ */
 export type InsertBill = z.infer<typeof insertBillSchema>;
+/**
+ *
+ */
 export type Bill = typeof bills.$inferSelect;
 
+/**
+ *
+ */
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+/**
+ *
+ */
 export type Budget = typeof budgets.$inferSelect;
 
 // Relations

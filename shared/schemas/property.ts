@@ -142,13 +142,31 @@ export const insertUserResidenceSchema = createInsertSchema(userResidences).pick
 });
 
 // Types
+/**
+ *
+ */
 export type InsertBuilding = z.infer<typeof insertBuildingSchema>;
+/**
+ *
+ */
 export type Building = typeof buildings.$inferSelect;
 
+/**
+ *
+ */
 export type InsertResidence = z.infer<typeof insertResidenceSchema>;
+/**
+ *
+ */
 export type Residence = typeof residences.$inferSelect;
 
+/**
+ *
+ */
 export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
+/**
+ *
+ */
 export type UserResidence = typeof userResidences.$inferSelect;
 
 // Relations

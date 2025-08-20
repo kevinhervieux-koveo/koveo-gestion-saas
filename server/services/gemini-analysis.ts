@@ -24,12 +24,12 @@ interface AnalysisResult {
  * Provides detailed actionable items, technical recommendations, and effort estimates
  * specific to the Koveo Gestion property management platform architecture.
  * 
- * @param {Feature} feature - The feature object containing name, description, priority, and other details
- * @param {string} documentationContext - System architecture and technical context for AI analysis
- * @returns {Promise<AnalysisResult>} Promise resolving to structured analysis with actionable items
+ * @param {Feature} feature - The feature object containing name, description, priority, and other details.
+ * @param {string} documentationContext - System architecture and technical context for AI analysis.
+ * @returns {Promise<AnalysisResult>} Promise resolving to structured analysis with actionable items.
  * 
- * @throws {Error} When GEMINI_API_KEY environment variable is not configured
- * @throws {Error} When Gemini API request fails or returns invalid response
+ * @throws {Error} When GEMINI_API_KEY environment variable is not configured.
+ * @throws {Error} When Gemini API request fails or returns invalid response.
  * 
  * @example
  * ```typescript
@@ -208,9 +208,9 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
  * Maps Gemini analysis results to the ActionableItem schema structure,
  * setting appropriate defaults and order indices for persistence.
  * 
- * @param {string} featureId - UUID of the feature these actionable items belong to
- * @param {AnalysisResult} analysisResult - Structured analysis result from Gemini AI
- * @returns {Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[]} Array of database-ready actionable items
+ * @param {string} featureId - UUID of the feature these actionable items belong to.
+ * @param {AnalysisResult} analysisResult - Structured analysis result from Gemini AI.
+ * @returns {Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[]} Array of database-ready actionable items.
  * 
  * @example
  * ```typescript
@@ -247,7 +247,7 @@ export function formatActionableItemsForDatabase(
  *   - Database schema overview and key entities
  *   - API patterns and security considerations
  *   - UI/UX guidelines and accessibility requirements
- *   - Quebec regulatory compliance requirements
+ *   - Quebec regulatory compliance requirements.
  * 
  * @example
  * ```typescript

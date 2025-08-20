@@ -11,8 +11,8 @@ export const phoneSchema = z.string().regex(/^\+?[\d\s\-\(\)]+$/);
  * Validates if a string is a properly formatted UUID v4.
  * Uses Zod schema validation for consistent error handling.
  * 
- * @param {string} value - String to validate as UUID
- * @returns {boolean} True if value is a valid UUID, false otherwise
+ * @param {string} value - String to validate as UUID.
+ * @returns {boolean} True if value is a valid UUID, false otherwise.
  * 
  * @example
  * ```typescript
@@ -33,8 +33,8 @@ export function isValidUUID(value: string): boolean {
  * Validates if a string is a properly formatted email address.
  * Uses Zod schema validation with RFC-compliant email regex.
  * 
- * @param {string} value - String to validate as email address
- * @returns {boolean} True if value is a valid email, false otherwise
+ * @param {string} value - String to validate as email address.
+ * @returns {boolean} True if value is a valid email, false otherwise.
  * 
  * @example
  * ```typescript

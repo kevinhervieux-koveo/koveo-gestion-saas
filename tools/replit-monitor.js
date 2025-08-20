@@ -6,15 +6,14 @@
  */
 
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+// Removed unused imports: fs and path
 
 /**
- *
+ * Replit Environment Monitor class for tracking system metrics.
  */
 class ReplitMonitor {
   /**
-   *
+   * Initialize the monitor with default metrics.
    */
   constructor() {
     this.startTime = Date.now();
@@ -29,6 +28,7 @@ class ReplitMonitor {
 
   /**
    * Collect system metrics.
+   * @returns The collected metrics object.
    */
   collectMetrics() {
     try {
@@ -43,8 +43,8 @@ class ReplitMonitor {
       if (process.platform !== 'win32') {
         try {
           const diskUsage = execSync('df -h .').toString();
-          console.log('Disk Usage:', diskUsage.split('\n')[1]);
-        } catch (e) {
+          console.warn('Disk Usage:', diskUsage.split('\n')[1]);
+        } catch (_e) {
           // Silent fail for disk usage
         }
       }
@@ -58,24 +58,25 @@ class ReplitMonitor {
 
   /**
    * Start monitoring loop.
+   * @returns void
    */
   start() {
-    console.log('🔍 Starting Replit Environment Monitor...');
-    console.log('Monitoring started at:', new Date().toISOString());
+    console.warn('🔍 Starting Replit Environment Monitor...');
+    console.warn('Monitoring started at:', new Date().toISOString());
     
     // Display metrics every 30 seconds
     setInterval(() => {
       const metrics = this.collectMetrics();
-      console.log(`[${new Date().toLocaleTimeString()}] Memory: ${metrics.memoryUsage}MB | Uptime: ${metrics.uptime}s`);
+      console.warn(`[${new Date().toLocaleTimeString()}] Memory: ${metrics.memoryUsage}MB | Uptime: ${metrics.uptime}s`);
     }, 30000);
     
     // Handle graceful shutdown
     process.on('SIGINT', () => {
-      console.log('\n🛑 Monitoring stopped');
+      console.warn('\n🛑 Monitoring stopped');
       process.exit(0);
     });
     
-    console.log('Monitor running... Press Ctrl+C to stop');
+    console.warn('Monitor running... Press Ctrl+C to stop');
   }
 }
 

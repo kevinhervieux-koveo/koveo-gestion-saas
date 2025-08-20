@@ -42,6 +42,7 @@ export interface BuildingWithStatistics {
 
 /**
  * Adds statistics to a single building.
+ * @param building
  */
 export async function addStatisticsToBuilding(building: any): Promise<BuildingWithStatistics> {
   // Get residence count
@@ -74,6 +75,7 @@ export async function addStatisticsToBuilding(building: any): Promise<BuildingWi
 
 /**
  * Adds statistics to multiple buildings.
+ * @param buildings
  */
 export async function addStatisticsToBuildings(buildings: any[]): Promise<BuildingWithStatistics[]> {
   return await Promise.all(
@@ -83,6 +85,7 @@ export async function addStatisticsToBuildings(buildings: any[]): Promise<Buildi
 
 /**
  * Gets aggregated statistics for multiple buildings.
+ * @param buildingIds
  */
 export async function getAggregatedStatistics(buildingIds: string[]) {
   if (buildingIds.length === 0) {

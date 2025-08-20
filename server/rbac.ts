@@ -13,10 +13,10 @@ const db = drizzle({ client: pool, schema });
  * Used throughout the RBAC system for authorization decisions.
  * 
  * @interface AuthenticatedUser
- * @property {string} id - Unique user identifier (UUID)
- * @property {string} username - User's login username
- * @property {string} email - User's email address
- * @property {string} firstName - User's first name
+ * @property {string} id - Unique user identifier (UUID).
+ * @property {string} username - User's login username.
+ * @property {string} email - User's email address.
+ * @property {string} firstName - User's first name.
  * @property {string} lastName - User's last name  
  * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system
  * @property {boolean} isActive - Whether the user account is active
@@ -41,12 +41,12 @@ export interface AuthenticatedUser {
  * on a specific resource within the property management hierarchy.
  * 
  * @interface AccessContext
- * @property {AuthenticatedUser} user - The authenticated user requesting access
- * @property {string} [organizationId] - Target organization ID for access check
- * @property {string} [buildingId] - Target building ID for access check
- * @property {string} [residenceId] - Target residence ID for access check
- * @property {'organization' | 'building' | 'residence' | 'user' | 'bill' | 'maintenance' | 'document'} resourceType - Type of resource being accessed
- * @property {'create' | 'read' | 'update' | 'delete'} action - Action being performed on the resource
+ * @property {AuthenticatedUser} user - The authenticated user requesting access.
+ * @property {string} [organizationId] - Target organization ID for access check.
+ * @property {string} [buildingId] - Target building ID for access check.
+ * @property {string} [residenceId] - Target residence ID for access check.
+ * @property {'organization' | 'building' | 'residence' | 'user' | 'bill' | 'maintenance' | 'document'} resourceType - Type of resource being accessed.
+ * @property {'create' | 'read' | 'update' | 'delete'} action - Action being performed on the resource.
  */
 export interface AccessContext {
   user: AuthenticatedUser;
@@ -62,8 +62,8 @@ export interface AccessContext {
  * Implements Quebec property management access patterns including Demo organization access
  * for all users and Koveo organization global access privileges.
  * 
- * @param {string} userId - UUID of the user to check organization access for
- * @returns {Promise<string[]>} Promise resolving to array of accessible organization IDs
+ * @param {string} userId - UUID of the user to check organization access for.
+ * @returns {Promise<string[]>} Promise resolving to array of accessible organization IDs.
  * 
  * @example
  * ```typescript
@@ -137,8 +137,8 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
  * Used primarily for tenant and resident roles to determine which specific residences
  * they can view and interact with in the property management system.
  * 
- * @param {string} userId - UUID of the user to check residence access for
- * @returns {Promise<string[]>} Promise resolving to array of accessible residence IDs
+ * @param {string} userId - UUID of the user to check residence access for.
+ * @returns {Promise<string[]>} Promise resolving to array of accessible residence IDs.
  * 
  * @example
  * ```typescript
@@ -167,9 +167,9 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
  * Validates access through user organization memberships, Demo organization access,
  * and Koveo organization global privileges.
  * 
- * @param {string} userId - UUID of the user to check access for
- * @param {string} organizationId - UUID of the organization to check access to
- * @returns {Promise<boolean>} Promise resolving to true if user can access the organization
+ * @param {string} userId - UUID of the user to check access for.
+ * @param {string} organizationId - UUID of the organization to check access to.
+ * @returns {Promise<boolean>} Promise resolving to true if user can access the organization.
  * 
  * @example
  * ```typescript
@@ -188,9 +188,9 @@ export async function canUserAccessOrganization(userId: string, organizationId: 
  * Checks if a user has access to a specific building through organization membership.
  * Buildings are accessible if the user can access the organization that owns the building.
  * 
- * @param {string} userId - UUID of the user to check access for
- * @param {string} buildingId - UUID of the building to check access to
- * @returns {Promise<boolean>} Promise resolving to true if user can access the building
+ * @param {string} userId - UUID of the user to check access for.
+ * @param {string} buildingId - UUID of the building to check access to.
+ * @returns {Promise<boolean>} Promise resolving to true if user can access the building.
  * 
  * @example
  * ```typescript
@@ -220,9 +220,9 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
  * Admin/Manager roles can access residences in their organizations.
  * Tenant/Resident roles can only access their specifically assigned residences.
  * 
- * @param {string} userId - UUID of the user to check access for
- * @param {string} residenceId - UUID of the residence to check access to
- * @returns {Promise<boolean>} Promise resolving to true if user can access the residence
+ * @param {string} userId - UUID of the user to check access for.
+ * @param {string} residenceId - UUID of the residence to check access to.
+ * @returns {Promise<boolean>} Promise resolving to true if user can access the residence.
  * 
  * @example
  * ```typescript

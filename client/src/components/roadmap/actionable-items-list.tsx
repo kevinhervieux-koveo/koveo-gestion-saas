@@ -15,6 +15,11 @@ interface ActionableItemsListProps {
 
 /**
  * Component for displaying and managing actionable items for a feature.
+ * @param root0
+ * @param root0.featureId
+ * @param root0.items
+ * @param root0.onToggleStatus
+ * @param root0.onFetchItems
  */
 export function ActionableItemsList({ 
   featureId, 

@@ -22,8 +22,12 @@ import { Header } from "@/components/layout/header";
 import type { UploadResult } from "@uppy/core";
 
 // Utility function to convert raw object storage URLs to server routes
+/**
+ *
+ * @param fileUrl
+ */
 function getDisplayableFileUrl(fileUrl: string): string {
-  if (!fileUrl) return '';
+  if (!fileUrl) {return '';}
   
   // If it's already a proper server route, return as-is
   if (fileUrl.startsWith('/objects/') || fileUrl.startsWith('/public-objects/')) {
@@ -77,15 +81,28 @@ const documentFormSchema = z.object({
   buildingId: z.string().min(1, "Building ID is required"),
 });
 
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
 // Edit Document Form Component
+/**
+ *
+ */
 interface EditDocumentFormProps {
   document: BuildingDocument;
   onSave: (updatedDocument: BuildingDocument) => void;
   onCancel: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.document
+ * @param root0.onSave
+ * @param root0.onCancel
+ */
 function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -207,6 +224,9 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
   );
 }
 
+/**
+ *
+ */
 interface BuildingDocument {
   id: string;
   name: string;
@@ -220,12 +240,18 @@ interface BuildingDocument {
   fileUrl?: string;
 }
 
+/**
+ *
+ */
 interface User {
   id: string;
   role: string;
   [key: string]: any;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -233,6 +259,9 @@ interface Building {
   [key: string]: any;
 }
 
+/**
+ *
+ */
 export default function BuildingDocuments() {
   // Get buildingId from URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -273,9 +302,9 @@ export default function BuildingDocuments() {
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {
-      if (!buildingId) return {documents: []};
+      if (!buildingId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
-      if (!response.ok) throw new Error('Failed to fetch documents');
+      if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
     enabled: !!buildingId,
@@ -379,10 +408,10 @@ export default function BuildingDocuments() {
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
       const updateData: any = {};
-      if (data.name) updateData.name = data.name;
-      if (data.type) updateData.type = data.type;
-      if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
-      if (data.buildingId) updateData.buildingId = data.buildingId;
+      if (data.name) {updateData.name = data.name;}
+      if (data.type) {updateData.type = data.type;}
+      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string
+      if (data.buildingId) {updateData.buildingId = data.buildingId;}
       updateData.uploadedBy = user?.id; // Use full user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
@@ -537,7 +566,7 @@ export default function BuildingDocuments() {
   const handleDownloadDocument = async (document: BuildingDocument) => {
     try {
       const response = await fetch(`/api/documents/${document.id}/download`);
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) {throw new Error('Download failed');}
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -964,7 +993,7 @@ export default function BuildingDocuments() {
             <div className="w-full space-y-6">
               {DOCUMENT_CATEGORIES.map((category) => {
                 const categoryDocuments = documentsByCategory[category.value] || [];
-                if (categoryDocuments.length === 0) return null;
+                if (categoryDocuments.length === 0) {return null;}
                 
                 return (
                   <div key={category.value} className="space-y-4">

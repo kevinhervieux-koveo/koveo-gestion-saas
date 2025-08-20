@@ -1596,7 +1596,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       `building_docs:${userId}:${userRole}`,
       'building_documents',
       async () => {
-        let query = db.select().from(schema.documentsBuildings);
+        const query = db.select().from(schema.documentsBuildings);
         
         // Role-based filtering
         if (userRole === 'admin') {
@@ -1643,7 +1643,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         const result = await db.select().from(schema.documentsBuildings).where(eq(schema.documentsBuildings.id, id));
         const document = result[0];
         
-        if (!document) return undefined;
+        if (!document) {return undefined;}
         
         // Permission check based on role
         if (userRole === 'admin') {
@@ -1696,7 +1696,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     return dbPerformanceMonitor.trackQuery('updateBuildingDocument', async () => {
       // First check if user has permission to update this document
       const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) return undefined;
+      if (!document) {return undefined;}
       
       const result = await db
         .update(schema.documentsBuildings)
@@ -1727,7 +1727,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     return dbPerformanceMonitor.trackQuery('deleteBuildingDocument', async () => {
       // First check if user has permission to delete this document
       const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) return false;
+      if (!document) {return false;}
       
       const result = await db
         .delete(schema.documentsBuildings)
@@ -1761,7 +1761,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       `resident_docs:${userId}:${userRole}`,
       'resident_documents',
       async () => {
-        let query = db.select().from(schema.documentsResidents);
+        const query = db.select().from(schema.documentsResidents);
         
         // Role-based filtering
         if (userRole === 'admin') {
@@ -1809,7 +1809,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         const result = await db.select().from(schema.documentsResidents).where(eq(schema.documentsResidents.id, id));
         const document = result[0];
         
-        if (!document) return undefined;
+        if (!document) {return undefined;}
         
         // Permission check based on role
         if (userRole === 'admin') {
@@ -1865,7 +1865,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     return dbPerformanceMonitor.trackQuery('updateResidentDocument', async () => {
       // First check if user has permission to update this document
       const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) return undefined;
+      if (!document) {return undefined;}
       
       const result = await db
         .update(schema.documentsResidents)
@@ -1896,7 +1896,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     return dbPerformanceMonitor.trackQuery('deleteResidentDocument', async () => {
       // First check if user has permission to delete this document
       const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) return false;
+      if (!document) {return false;}
       
       const result = await db
         .delete(schema.documentsResidents)

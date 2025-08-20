@@ -47,9 +47,9 @@ export function Law25Compliance() {
   });
 
   const getComplianceStatus = (score: number) => {
-    if (score >= 90) return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-50' };
-    if (score >= 80) return { level: 'Good', color: 'text-blue-600', bg: 'bg-blue-50' };
-    if (score >= 60) return { level: 'Fair', color: 'text-yellow-600', bg: 'bg-yellow-50' };
+    if (score >= 90) {return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-50' };}
+    if (score >= 80) {return { level: 'Good', color: 'text-blue-600', bg: 'bg-blue-50' };}
+    if (score >= 60) {return { level: 'Fair', color: 'text-yellow-600', bg: 'bg-yellow-50' };}
     return { level: 'Poor', color: 'text-red-600', bg: 'bg-red-50' };
   };
 

@@ -1,5 +1,5 @@
 /**
- * @file SQL Injection Security Tests
+ * @file SQL Injection Security Tests.
  * @description Comprehensive tests to verify the application is protected against SQL injection attacks.
  * These tests target API endpoints, authentication, search functionality, and data access controls.
  */

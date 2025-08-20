@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, Circle, AlertTriangle } from 'lucide-react';
 
 /**
  * Gets status icon for a feature.
+ * @param status
  */
 export function getStatusIcon(status: string) {
   switch (status) {
@@ -19,6 +20,7 @@ export function getStatusIcon(status: string) {
 
 /**
  * Gets status badge for a feature.
+ * @param status
  */
 export function getStatusBadge(status: string) {
   switch (status) {
@@ -35,6 +37,7 @@ export function getStatusBadge(status: string) {
 
 /**
  * Gets priority badge for a feature.
+ * @param priority
  */
 export function getPriorityBadge(priority?: string) {
   if (!priority) {
@@ -58,6 +61,7 @@ export function getPriorityBadge(priority?: string) {
 
 /**
  * Gets status icon for actionable items.
+ * @param status
  */
 export function getActionableItemStatusIcon(status: string) {
   switch (status) {
@@ -75,6 +79,7 @@ export function getActionableItemStatusIcon(status: string) {
 
 /**
  * Gets status badge for actionable items.
+ * @param status
  */
 export function getActionableItemStatusBadge(status: string) {
   switch (status) {

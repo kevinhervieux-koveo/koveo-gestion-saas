@@ -200,6 +200,7 @@ export default function OwnerRoadmap() {
 
   /**
    * Copies text to clipboard with toast feedback.
+   * @param prompt
    */
   const handleCopyPrompt = async (prompt: string) => {
     try {
@@ -219,6 +220,7 @@ export default function OwnerRoadmap() {
 
   /**
    * Handles toggling actionable item status between pending and completed.
+   * @param item
    */
   const handleToggleActionableItem = (item: ActionableItem) => {
     const newStatus = item.status === 'completed' ? 'pending' : 'completed';

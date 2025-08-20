@@ -117,10 +117,22 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
 });
 
 // Types
+/**
+ *
+ */
 export type InsertMaintenanceRequest = z.infer<typeof insertMaintenanceRequestSchema>;
+/**
+ *
+ */
 export type MaintenanceRequest = typeof maintenanceRequests.$inferSelect;
 
+/**
+ *
+ */
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+/**
+ *
+ */
 export type Notification = typeof notifications.$inferSelect;
 
 // Relations

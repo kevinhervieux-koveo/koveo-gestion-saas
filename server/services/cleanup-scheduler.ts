@@ -1,14 +1,20 @@
 import cron from 'node-cron';
 
 /**
- * Storage cleanup scheduler that runs automatic cleanup of orphaned files
+ * Storage cleanup scheduler that runs automatic cleanup of orphaned files.
  */
 export class CleanupScheduler {
   private static instance: CleanupScheduler;
   private cleanupJob: cron.ScheduledTask | null = null;
 
+  /**
+   *
+   */
   private constructor() {}
 
+  /**
+   *
+   */
   public static getInstance(): CleanupScheduler {
     if (!CleanupScheduler.instance) {
       CleanupScheduler.instance = new CleanupScheduler();
@@ -18,7 +24,7 @@ export class CleanupScheduler {
 
   /**
    * Start automatic cleanup scheduler
-   * Runs every 6 hours to clean up orphaned files
+   * Runs every 6 hours to clean up orphaned files.
    */
   public startAutoCleanup(): void {
     if (this.cleanupJob) {
@@ -60,7 +66,7 @@ export class CleanupScheduler {
   }
 
   /**
-   * Stop the automatic cleanup scheduler
+   * Stop the automatic cleanup scheduler.
    */
   public stopAutoCleanup(): void {
     if (this.cleanupJob) {
@@ -71,7 +77,7 @@ export class CleanupScheduler {
   }
 
   /**
-   * Run cleanup immediately (for testing or manual triggers)
+   * Run cleanup immediately (for testing or manual triggers).
    */
   public async runCleanupNow(): Promise<any> {
     try {

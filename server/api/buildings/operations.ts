@@ -40,6 +40,7 @@ export interface BuildingUpdateData extends Partial<BuildingCreateData> {
 
 /**
  * Creates a new building with auto-generated residences.
+ * @param buildingData
  */
 export async function createBuilding(buildingData: BuildingCreateData) {
   const buildingId = crypto.randomUUID();
@@ -104,6 +105,8 @@ export async function createBuilding(buildingData: BuildingCreateData) {
 
 /**
  * Updates a building.
+ * @param buildingId
+ * @param buildingData
  */
 export async function updateBuilding(buildingId: string, buildingData: BuildingUpdateData) {
   const updatedBuilding = await db
@@ -133,6 +136,7 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
 
 /**
  * Soft deletes a building.
+ * @param buildingId
  */
 export async function deleteBuilding(buildingId: string) {
   const deletedBuilding = await db
@@ -149,6 +153,7 @@ export async function deleteBuilding(buildingId: string) {
 
 /**
  * Performs cascade delete of a building and all related entities.
+ * @param buildingId
  */
 export async function cascadeDeleteBuilding(buildingId: string) {
   // Check if building exists
@@ -225,6 +230,7 @@ export async function cascadeDeleteBuilding(buildingId: string) {
 
 /**
  * Checks if a building exists and is active.
+ * @param buildingId
  */
 export async function buildingExists(buildingId: string): Promise<boolean> {
   const result = await db

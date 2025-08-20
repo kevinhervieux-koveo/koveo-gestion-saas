@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Document Check Script
+ * Document Check Script.
  * 
  * This script checks the current state of documents in the database
  * and displays information about existing documents and table structure.
@@ -13,6 +13,9 @@ import { neon } from '@neondatabase/serverless';
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);
 
+/**
+ *
+ */
 async function checkDocuments() {
   console.log('🔍 Checking current document status...\n');
 

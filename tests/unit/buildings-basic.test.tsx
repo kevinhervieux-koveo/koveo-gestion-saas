@@ -3,7 +3,7 @@
  * Tests core building operations, validation, and role-based access.
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 // Mock data for testing
 const mockBuildings = [

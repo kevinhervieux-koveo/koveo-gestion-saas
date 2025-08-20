@@ -9,7 +9,7 @@ import { hasRoleOrHigher } from '@/config/navigation';
 import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from '@/components/buildings/types';
 
 /**
- * Custom hook for managing buildings data and operations
+ * Custom hook for managing buildings data and operations.
  */
 export function useBuildings() {
   const { user, isAuthenticated } = useAuth();
