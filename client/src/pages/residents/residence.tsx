@@ -22,7 +22,10 @@ import {
   User, 
   Edit,
   Plus,
-  Trash2
+  Trash2,
+  FileText,
+  Download,
+  Calendar
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -68,6 +71,33 @@ interface UserResidence {
   residenceId: string;
 }
 
+interface Document {
+  id: string;
+  name: string;
+  type: string;
+  dateReference?: string;
+  fileName?: string;
+  fileSize?: string;
+  mimeType?: string;
+  fileUrl?: string;
+  uploadedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const DOCUMENT_CATEGORIES = [
+  { value: 'lease', label: 'Lease Documents' },
+  { value: 'inspection', label: 'Inspections' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'financial', label: 'Financial' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'correspondence', label: 'Correspondence' },
+  { value: 'permits', label: 'Permits' },
+  { value: 'utilities', label: 'Utilities' },
+  { value: 'other', label: 'Other' },
+] as const;
+
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -75,12 +105,27 @@ const contactSchema = z.object({
   contactCategory: z.enum(['resident', 'manager', 'tenant', 'maintenance', 'other']),
 });
 
+const documentSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
+  type: z.enum(['lease', 'inspection', 'maintenance', 'financial', 'insurance', 'legal', 'correspondence', 'permits', 'utilities', 'other']),
+  dateReference: z.string().refine((dateStr) => {
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  }, {
+    message: 'Valid date is required',
+  }),
+});
+
 type ContactFormData = z.infer<typeof contactSchema>;
+type DocumentFormData = z.infer<typeof documentSchema>;
 
 export default function MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isEditingDocument, setIsEditingDocument] = useState(false);
   const { toast } = useToast();
 
   // Get user's residences
@@ -112,6 +157,18 @@ export default function MyResidence() {
     enabled: !!selectedResidence?.id,
   });
 
+  // Get documents for the selected residence
+  const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
+    queryKey: ['/api/documents', 'residence', selectedResidence?.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/documents?residenceId=${selectedResidence?.id}`);
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      const data = await response.json();
+      return data.documents || [];
+    },
+    enabled: !!selectedResidence?.id,
+  });
+
 
   const contactForm = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -120,6 +177,15 @@ export default function MyResidence() {
       email: '',
       phone: '',
       contactCategory: 'resident',
+    },
+  });
+
+  const documentForm = useForm<DocumentFormData>({
+    resolver: zodResolver(documentSchema),
+    defaultValues: {
+      name: '',
+      type: 'other',
+      dateReference: new Date().toISOString().split('T')[0],
     },
   });
 
@@ -178,6 +244,108 @@ export default function MyResidence() {
         variant: 'destructive' 
       });
     }
+  };
+
+  const handleAddDocument = async (data: DocumentFormData) => {
+    if (!selectedResidence) return;
+
+    try {
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          type: data.type,
+          dateReference: data.dateReference,
+          residenceId: selectedResidence.id,
+          uploadedBy: 'current-user', // Will be set properly by the server
+          documentType: 'resident'
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to add document');
+
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/documents', 'residence', selectedResidence.id],
+      });
+
+      setIsDocumentDialogOpen(false);
+      documentForm.reset();
+      toast({ title: 'Document added successfully' });
+    } catch (error) {
+      toast({ 
+        title: 'Error adding document', 
+        description: 'Please try again later',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const handleEditDocument = async (data: DocumentFormData) => {
+    if (!selectedDocument) return;
+
+    try {
+      const response = await fetch(`/api/documents/${selectedDocument.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          type: data.type,
+          dateReference: data.dateReference,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update document');
+
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/documents', 'residence', selectedResidence?.id],
+      });
+
+      setSelectedDocument(null);
+      setIsEditingDocument(false);
+      toast({ title: 'Document updated successfully' });
+    } catch (error) {
+      toast({ 
+        title: 'Error updating document', 
+        description: 'Please try again later',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete document');
+
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/documents', 'residence', selectedResidence?.id],
+      });
+
+      toast({ title: 'Document deleted successfully' });
+    } catch (error) {
+      toast({ 
+        title: 'Error deleting document', 
+        description: 'Please try again later',
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const formatFileSize = (size?: string) => {
+    if (!size) return 'Unknown size';
+    const bytes = parseInt(size);
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No date';
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (residencesLoading) {
@@ -485,6 +653,230 @@ export default function MyResidence() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Documents */}
+              <Card>
+                <CardHeader>
+                  <div className='flex items-center justify-between'>
+                    <CardTitle className='flex items-center gap-2'>
+                      <FileText className='w-5 h-5' />
+                      Documents
+                    </CardTitle>
+                    <Dialog open={isDocumentDialogOpen} onOpenChange={setIsDocumentDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant='outline' size='sm'>
+                          <Plus className='w-4 h-4 mr-2' />
+                          Add Document
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Document</DialogTitle>
+                        </DialogHeader>
+                        <Form {...documentForm}>
+                          <form onSubmit={documentForm.handleSubmit(handleAddDocument)} className='space-y-4'>
+                            <FormField
+                              control={documentForm.control}
+                              name='name'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Document Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder='Enter document name' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={documentForm.control}
+                              name='type'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Document Type</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {DOCUMENT_CATEGORIES.map((category) => (
+                                        <SelectItem key={category.value} value={category.value}>
+                                          {category.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={documentForm.control}
+                              name='dateReference'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Reference Date</FormLabel>
+                                  <FormControl>
+                                    <Input type='date' {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className='flex justify-end gap-2'>
+                              <Button type='button' variant='outline' onClick={() => setIsDocumentDialogOpen(false)}>
+                                Cancel
+                              </Button>
+                              <Button type='submit'>Add Document</Button>
+                            </div>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {documentsLoading ? (
+                    <p>Loading documents...</p>
+                  ) : documents && documents.length > 0 ? (
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                      {documents.map((document) => (
+                        <div key={document.id} className='border rounded-lg p-4 space-y-3'>
+                          <div className='flex items-center justify-between'>
+                            <Badge variant='outline' className='capitalize'>
+                              {DOCUMENT_CATEGORIES.find(cat => cat.value === document.type)?.label || document.type}
+                            </Badge>
+                            <div className='flex gap-1'>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => {
+                                  setSelectedDocument(document);
+                                  setIsEditingDocument(true);
+                                  documentForm.reset({
+                                    name: document.name,
+                                    type: document.type as any,
+                                    dateReference: document.dateReference ? document.dateReference.split('T')[0] : new Date().toISOString().split('T')[0],
+                                  });
+                                }}
+                              >
+                                <Edit className='w-4 h-4' />
+                              </Button>
+                              {document.fileUrl && (
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => window.open(document.fileUrl, '_blank')}
+                                >
+                                  <Download className='w-4 h-4' />
+                                </Button>
+                              )}
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => handleDeleteDocument(document.id)}
+                              >
+                                <Trash2 className='w-4 h-4' />
+                              </Button>
+                            </div>
+                          </div>
+                          <div>
+                            <p className='font-semibold text-sm'>{document.name}</p>
+                            <div className='flex items-center gap-1 text-xs text-gray-600'>
+                              <Calendar className='w-3 h-3' />
+                              {formatDate(document.dateReference)}
+                            </div>
+                            {document.fileName && (
+                              <div className='text-xs text-gray-500 mt-1'>
+                                {document.fileName} • {formatFileSize(document.fileSize)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className='text-gray-500 text-center py-8'>No documents found for this residence.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Edit Document Dialog */}
+              <Dialog open={isEditingDocument} onOpenChange={(open) => {
+                setIsEditingDocument(open);
+                if (!open) {
+                  setSelectedDocument(null);
+                  documentForm.reset();
+                }
+              }}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Document</DialogTitle>
+                  </DialogHeader>
+                  <Form {...documentForm}>
+                    <form onSubmit={documentForm.handleSubmit(handleEditDocument)} className='space-y-4'>
+                      <FormField
+                        control={documentForm.control}
+                        name='name'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Document Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder='Enter document name' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={documentForm.control}
+                        name='type'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Document Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DOCUMENT_CATEGORIES.map((category) => (
+                                  <SelectItem key={category.value} value={category.value}>
+                                    {category.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={documentForm.control}
+                        name='dateReference'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Reference Date</FormLabel>
+                            <FormControl>
+                              <Input type='date' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className='flex justify-end gap-2'>
+                        <Button type='button' variant='outline' onClick={() => setIsEditingDocument(false)}>
+                          Cancel
+                        </Button>
+                        <Button type='submit'>Update Document</Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </>
           )}
         </div>
