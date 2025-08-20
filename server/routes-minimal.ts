@@ -178,6 +178,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     log(`❌ Residence routes failed: ${error}`, 'error');
   }
+
+  // Register features and actionable items API routes
+  try {
+    // GET /api/features - Get all features
+    app.get('/api/features', requireAuth, async (req: any, res: any) => {
+      try {
+        const features = await db
+          .select()
+          .from(schema.features)
+          .orderBy(schema.features.createdAt);
+
+        res.json(features);
+      } catch (error) {
+        console.error('Error fetching features:', error);
+        res.status(500).json({ message: 'Failed to fetch features' });
+      }
+    });
+
+    // GET /api/features/:id/actionable-items - Get actionable items for a feature
+    app.get('/api/features/:id/actionable-items', requireAuth, async (req: any, res: any) => {
+      try {
+        const items = await db
+          .select()
+          .from(schema.actionableItems)
+          .where(eq(schema.actionableItems.featureId, req.params.id))
+          .orderBy(schema.actionableItems.orderIndex);
+
+        res.json(items);
+      } catch (error) {
+        console.error('Error fetching actionable items:', error);
+        res.status(500).json({ message: 'Failed to fetch actionable items' });
+      }
+    });
+
+    // PUT /api/actionable-items/:id - Update an actionable item
+    app.put('/api/actionable-items/:id', requireAuth, async (req: any, res: any) => {
+      try {
+        const [updatedItem] = await db
+          .update(schema.actionableItems)
+          .set({ 
+            ...req.body,
+            updatedAt: new Date() 
+          })
+          .where(eq(schema.actionableItems.id, req.params.id))
+          .returning();
+
+        if (!updatedItem) {
+          return res.status(404).json({ message: 'Actionable item not found' });
+        }
+
+        res.json(updatedItem);
+      } catch (error) {
+        console.error('Error updating actionable item:', error);
+        res.status(500).json({ message: 'Failed to update actionable item' });
+      }
+    });
+
+    log('✅ Features and actionable items routes registered');
+  } catch (error) {
+    log(`❌ Features and actionable items routes failed: ${error}`, 'error');
+  }
   
   // Register invitation routes
   try {
