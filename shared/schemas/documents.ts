@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   uuid,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -27,6 +28,7 @@ export const documentsBuildings = pgTable('documents_buildings', {
   fileSize: text('file_size'),
   mimeType: text('mime_type'),
   uploadedBy: uuid('uploaded_by').notNull(),
+  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -48,6 +50,7 @@ export const documentsResidents = pgTable('documents_residents', {
   fileSize: text('file_size'),
   mimeType: text('mime_type'),
   uploadedBy: uuid('uploaded_by').notNull(),
+  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -63,6 +66,7 @@ export const insertDocumentBuildingSchema = createInsertSchema(documentsBuilding
   fileSize: true,
   mimeType: true,
   uploadedBy: true,
+  isVisibleToTenants: true,
 }).extend({
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
   uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID
@@ -78,6 +82,7 @@ export const insertDocumentResidentSchema = createInsertSchema(documentsResident
   fileSize: true,
   mimeType: true,
   uploadedBy: true,
+  isVisibleToTenants: true,
 }).extend({
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
   uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID

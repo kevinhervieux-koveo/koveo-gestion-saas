@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
@@ -25,7 +26,9 @@ import {
   Trash2,
   FileText,
   Download,
-  Calendar
+  Calendar,
+  Eye,
+  Filter
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -81,6 +84,7 @@ interface Document {
   mimeType?: string;
   fileUrl?: string;
   uploadedBy: string;
+  isVisibleToTenants?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,6 +118,7 @@ const documentSchema = z.object({
   }, {
     message: 'Valid date is required',
   }),
+  isVisibleToTenants: z.boolean().default(false),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -126,6 +131,9 @@ export default function MyResidence() {
   const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isEditingDocument, setIsEditingDocument] = useState(false);
+  const [isViewingDocument, setIsViewingDocument] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>('all');
   const { toast } = useToast();
 
   // Get user's residences
@@ -161,13 +169,31 @@ export default function MyResidence() {
   const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ['/api/documents', 'residence', selectedResidence?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/documents?residenceId=${selectedResidence?.id}`);
+      const response = await fetch(`/api/documents?type=resident`);
       if (!response.ok) throw new Error('Failed to fetch documents');
       const data = await response.json();
-      return data.documents || [];
+      // Filter to only documents for the selected residence
+      const residenceDocuments = data.documents?.filter((doc: any) => 
+        doc.entityType === 'residence' && doc.entityId === selectedResidence?.id
+      ) || [];
+      return residenceDocuments;
     },
     enabled: !!selectedResidence?.id,
   });
+
+  // Filter documents by category and year
+  const filteredDocuments = documents?.filter(doc => {
+    const categoryMatch = categoryFilter === 'all' || doc.type === categoryFilter;
+    const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().toString() : '';
+    const yearMatch = yearFilter === 'all' || docYear === yearFilter;
+    return categoryMatch && yearMatch;
+  }) || [];
+
+  // Get unique years from documents for year filter
+  const availableYears = Array.from(new Set(
+    documents?.map(doc => doc.dateReference ? new Date(doc.dateReference).getFullYear().toString() : '')
+      .filter(year => year !== '') || []
+  )).sort((a, b) => parseInt(b) - parseInt(a));
 
   // Get building contacts for the selected residence's building
   const { data: buildingContacts, isLoading: buildingContactsLoading } = useQuery<Contact[]>({
@@ -197,6 +223,7 @@ export default function MyResidence() {
       name: '',
       type: 'other',
       dateReference: new Date().toISOString().split('T')[0],
+      isVisibleToTenants: false,
     },
   });
 
@@ -783,6 +810,28 @@ export default function MyResidence() {
                                 </FormItem>
                               )}
                             />
+                            <FormField
+                              control={documentForm.control}
+                              name='isVisibleToTenants'
+                              render={({ field }) => (
+                                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm'>
+                                  <div className='space-y-0.5'>
+                                    <FormLabel className='text-base'>
+                                      Available For Tenants
+                                    </FormLabel>
+                                    <p className='text-sm text-muted-foreground'>
+                                      Allow tenants to view this document
+                                    </p>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
                             <div className='flex justify-end gap-2'>
                               <Button type='button' variant='outline' onClick={() => setIsDocumentDialogOpen(false)}>
                                 Cancel
@@ -795,12 +844,61 @@ export default function MyResidence() {
                     </Dialog>
                   </div>
                 </CardHeader>
+                
+                {/* Document Filters */}
+                <div className='px-6 pb-4 border-b'>
+                  <div className='flex flex-wrap items-center gap-4'>
+                    <div className='flex items-center gap-2'>
+                      <Filter className='w-4 h-4 text-gray-500' />
+                      <Label className='text-sm font-medium'>Filter by:</Label>
+                    </div>
+                    
+                    <div className='flex items-center gap-2'>
+                      <Label className='text-sm'>Category:</Label>
+                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className='w-32'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='all'>All</SelectItem>
+                          {DOCUMENT_CATEGORIES.map((category) => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className='flex items-center gap-2'>
+                      <Label className='text-sm'>Year:</Label>
+                      <Select value={yearFilter} onValueChange={setYearFilter}>
+                        <SelectTrigger className='w-24'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='all'>All</SelectItem>
+                          {availableYears.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className='text-sm text-gray-500'>
+                      {filteredDocuments.length} of {documents?.length || 0} documents
+                    </div>
+                  </div>
+                </div>
+                
                 <CardContent>
                   {documentsLoading ? (
                     <p>Loading documents...</p>
-                  ) : documents && documents.length > 0 ? (
+                  ) : filteredDocuments && filteredDocuments.length > 0 ? (
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                      {documents.map((document) => (
+                      {filteredDocuments.map((document) => (
                         <div key={document.id} className='border rounded-lg p-4 space-y-3'>
                           <div className='flex items-center justify-between'>
                             <Badge variant='outline' className='capitalize'>
@@ -812,13 +910,26 @@ export default function MyResidence() {
                                 size='sm'
                                 onClick={() => {
                                   setSelectedDocument(document);
+                                  setIsViewingDocument(true);
+                                }}
+                                title='View Details'
+                              >
+                                <Eye className='w-4 h-4' />
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => {
+                                  setSelectedDocument(document);
                                   setIsEditingDocument(true);
                                   documentForm.reset({
                                     name: document.name,
                                     type: document.type as any,
                                     dateReference: document.dateReference ? document.dateReference.split('T')[0] : new Date().toISOString().split('T')[0],
+                                    isVisibleToTenants: document.isVisibleToTenants || false,
                                   });
                                 }}
+                                title='Edit Document'
                               >
                                 <Edit className='w-4 h-4' />
                               </Button>
@@ -827,6 +938,7 @@ export default function MyResidence() {
                                   variant='ghost'
                                   size='sm'
                                   onClick={() => window.open(document.fileUrl, '_blank')}
+                                  title='Download File'
                                 >
                                   <Download className='w-4 h-4' />
                                 </Button>
@@ -835,6 +947,7 @@ export default function MyResidence() {
                                 variant='ghost'
                                 size='sm'
                                 onClick={() => handleDeleteDocument(document.id)}
+                                title='Delete Document'
                               >
                                 <Trash2 className='w-4 h-4' />
                               </Button>
@@ -850,6 +963,11 @@ export default function MyResidence() {
                               <div className='text-xs text-gray-500 mt-1'>
                                 {document.fileName} • {formatFileSize(document.fileSize)}
                               </div>
+                            )}
+                            {document.isVisibleToTenants && (
+                              <Badge variant="secondary" className="text-xs mt-2">
+                                Available to Tenants
+                              </Badge>
                             )}
                           </div>
                         </div>
@@ -925,6 +1043,28 @@ export default function MyResidence() {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={documentForm.control}
+                        name='isVisibleToTenants'
+                        render={({ field }) => (
+                          <FormItem className='flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm'>
+                            <div className='space-y-0.5'>
+                              <FormLabel className='text-base'>
+                                Available For Tenants
+                              </FormLabel>
+                              <p className='text-sm text-muted-foreground'>
+                                Allow tenants to view this document
+                              </p>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                       <div className='flex justify-end gap-2'>
                         <Button type='button' variant='outline' onClick={() => setIsEditingDocument(false)}>
                           Cancel
@@ -933,6 +1073,79 @@ export default function MyResidence() {
                       </div>
                     </form>
                   </Form>
+                </DialogContent>
+              </Dialog>
+
+              {/* View Document Dialog */}
+              <Dialog open={isViewingDocument} onOpenChange={(open) => {
+                setIsViewingDocument(open);
+                if (!open) {
+                  setSelectedDocument(null);
+                }
+              }}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Document Details</DialogTitle>
+                  </DialogHeader>
+                  {selectedDocument && (
+                    <div className='space-y-4'>
+                      <div>
+                        <Label className='text-sm font-medium'>Document Name</Label>
+                        <p className='text-sm text-gray-600 mt-1'>{selectedDocument.name}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className='text-sm font-medium'>Category</Label>
+                        <Badge variant='outline' className='ml-2 capitalize'>
+                          {DOCUMENT_CATEGORIES.find(cat => cat.value === selectedDocument.type)?.label || selectedDocument.type}
+                        </Badge>
+                      </div>
+                      
+                      <div>
+                        <Label className='text-sm font-medium'>Reference Date</Label>
+                        <p className='text-sm text-gray-600 mt-1'>
+                          {formatDate(selectedDocument.dateReference)}
+                        </p>
+                      </div>
+                      
+                      {selectedDocument.fileName && (
+                        <div>
+                          <Label className='text-sm font-medium'>File Information</Label>
+                          <div className='text-sm text-gray-600 mt-1'>
+                            <p><strong>Name:</strong> {selectedDocument.fileName}</p>
+                            <p><strong>Size:</strong> {formatFileSize(selectedDocument.fileSize)}</p>
+                            <p><strong>Type:</strong> {selectedDocument.mimeType}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <Label className='text-sm font-medium'>Upload Date</Label>
+                        <p className='text-sm text-gray-600 mt-1'>
+                          {formatDate(selectedDocument.createdAt)}
+                        </p>
+                      </div>
+                      
+                      <div className='flex items-center gap-2'>
+                        <Label className='text-sm font-medium'>Available to Tenants:</Label>
+                        <Badge variant={selectedDocument.isVisibleToTenants ? 'default' : 'secondary'}>
+                          {selectedDocument.isVisibleToTenants ? 'Yes' : 'No'}
+                        </Badge>
+                      </div>
+                      
+                      {selectedDocument.fileUrl && (
+                        <div className='flex justify-end'>
+                          <Button
+                            onClick={() => window.open(selectedDocument.fileUrl, '_blank')}
+                            className='flex items-center gap-2'
+                          >
+                            <Download className='w-4 h-4' />
+                            Download File
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
             </>
