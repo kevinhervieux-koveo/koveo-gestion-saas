@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,7 @@ interface Building {
  *
  */
 export default function Residences() {
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
@@ -315,7 +317,7 @@ export default function Residences() {
                         variant='outline' 
                         size='sm' 
                         className='flex-1'
-                        onClick={() => window.location.href = `/documents?residenceId=${residence.id}`}
+                        onClick={() => navigate(`/documents?residenceId=${residence.id}`)}
                         title='Manage residence documents'
                       >
                         <FileText className='w-3 h-3 mr-1' />

@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 // Remove LoadingSpinner import as it doesn't exist, use a simple loading state instead
 import { hasRoleOrHigher } from '@/config/navigation';
 
@@ -81,6 +82,7 @@ type BuildingFormData = z.infer<typeof buildingFormSchema>;
  */
 export default function Buildings() {
   const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -980,7 +982,7 @@ export default function Buildings() {
                             <Button
                               variant='ghost'
                               size='sm'
-                              onClick={() => window.location.href = `/documents?buildingId=${building.id}`}
+                              onClick={() => navigate(`/documents?buildingId=${building.id}`)}
                               className='h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                               title='Manage building documents'
                             >
