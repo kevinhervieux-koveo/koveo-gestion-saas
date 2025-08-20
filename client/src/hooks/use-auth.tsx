@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                        window.location.pathname === '/';
 
   // Query to get current user (always enabled, but we handle public pages differently)
-  const { data: userData, isLoading } = useQuery<User | null>({
+  const { data: userData, isLoading, isError } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
     enabled: true, // Always run auth query to prevent reload redirects
     queryFn: async () => {
@@ -70,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches on focus
+    refetchOnMount: true, // Always check on mount to handle page refreshes
   });
 
   useEffect(() => {

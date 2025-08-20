@@ -181,11 +181,8 @@ function Router() {
   if (!isAuthenticated) {
     // Only redirect to home if we're certain the user is not authenticated
     // and we're not in a loading state
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <HomeRedirect />
-      </Suspense>
-    );
+    // IMPORTANT: Don't redirect immediately - show loading to prevent F5 redirect issue
+    return <LoadingSpinner />;
   }
 
   return (
