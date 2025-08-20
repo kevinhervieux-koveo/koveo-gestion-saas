@@ -152,7 +152,7 @@ export default function Documents() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
-      return apiRequest("/api/documents", "POST", data);
+      return apiRequest("POST", "/api/documents", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -174,7 +174,7 @@ export default function Documents() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      return apiRequest(`/api/documents/${id}`, "PUT", data);
+      return apiRequest("PUT", `/api/documents/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -196,7 +196,7 @@ export default function Documents() {
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/documents/${id}`, "DELETE");
+      return apiRequest("DELETE", `/api/documents/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -217,7 +217,7 @@ export default function Documents() {
   // Update document file mutation
   const uploadFileMutation = useMutation({
     mutationFn: async ({ id, fileData }: { id: string; fileData: { fileUrl: string; fileName: string; fileSize: number; mimeType: string } }) => {
-      return apiRequest(`/api/documents/${id}/upload`, "POST", fileData);
+      return apiRequest("POST", `/api/documents/${id}/upload`, fileData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });

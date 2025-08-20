@@ -95,6 +95,12 @@ export default function ResidenceDocuments() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<ResidenceDocument | null>(null);
   const [uploadingDocumentId, setUploadingDocumentId] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+  } | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -178,14 +184,20 @@ export default function ResidenceDocuments() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
-      return apiRequest("/api/documents", "POST", { ...data, type: "resident" });
+      const documentData = { ...data, type: "resident" };
+      if (uploadedFile) {
+        Object.assign(documentData, uploadedFile);
+      }
+      return apiRequest("POST", "/api/documents", documentData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
       setIsCreateDialogOpen(false);
+      setUploadedFile(null);
+      form.reset();
       toast({
         title: "Success",
-        description: "Document created successfully. Now upload the file.",
+        description: uploadedFile ? "Document and file uploaded successfully!" : "Document created successfully.",
       });
     },
     onError: (error: any) => {
@@ -200,7 +212,7 @@ export default function ResidenceDocuments() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      return apiRequest(`/api/documents/${id}`, "PUT", { ...data, type: "resident" });
+      return apiRequest("PUT", `/api/documents/${id}`, { ...data, type: "resident" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
@@ -222,7 +234,7 @@ export default function ResidenceDocuments() {
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/documents/${id}`, "DELETE", { type: "resident" });
+      return apiRequest("DELETE", `/api/documents/${id}`, { type: "resident" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
@@ -243,7 +255,7 @@ export default function ResidenceDocuments() {
   // Upload file mutation
   const uploadFileMutation = useMutation({
     mutationFn: async ({ id, fileData }: { id: string; fileData: { fileUrl: string; fileName: string; fileSize: number; mimeType: string } }) => {
-      return apiRequest(`/api/documents/${id}/upload`, "POST", { ...fileData, type: "resident" });
+      return apiRequest("POST", `/api/documents/${id}/upload`, { ...fileData, type: "resident" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents", "residence", residenceId] });
@@ -276,6 +288,32 @@ export default function ResidenceDocuments() {
 
   const handleCreateDocument = (data: DocumentFormData) => {
     createDocumentMutation.mutate(data);
+  };
+
+  // Handle file upload for new document
+  const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
+    const response = await fetch('/api/documents/upload-url', { 
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    return { method: "PUT" as const, url: data.uploadURL };
+  };
+
+  const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      setUploadedFile({
+        fileUrl: uploadedFile.uploadURL,
+        fileName: uploadedFile.name,
+        fileSize: uploadedFile.size || 0,
+        mimeType: uploadedFile.type || 'application/octet-stream',
+      });
+      toast({
+        title: "File ready",
+        description: "File uploaded! Now create the document to save it.",
+      });
+    }
   };
 
   const handleDeleteDocument = (document: ResidenceDocument) => {
@@ -455,6 +493,44 @@ export default function ResidenceDocuments() {
                           </FormItem>
                         )}
                       />
+
+                      {/* File Upload Section */}
+                      <div className="space-y-3">
+                        <Label>Document File (Optional)</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                          {!uploadedFile ? (
+                            <ObjectUploader
+                              onGetUploadParameters={handleNewDocumentUpload}
+                              onComplete={handleNewDocumentUploadComplete}
+                              buttonClassName="w-full"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Document File
+                            </ObjectUploader>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <FileText className="h-4 w-4 text-green-600" />
+                                <span className="text-sm font-medium">{uploadedFile.fileName}</span>
+                                <Badge variant="secondary">
+                                  {(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB
+                                </Badge>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUploadedFile(null)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Upload a file to attach to this document. You can also upload it later.
+                        </p>
+                      </div>
 
                       <DialogFooter>
                         <Button type="submit" disabled={createDocumentMutation.isPending}>

@@ -1,0 +1,115 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+react-dom_client.js?v=9e36b6e9:17995 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+react-dom_client.js?v=9e36b6e9:11645 [Violation] 'setTimeout' handler took 118ms
+memory-monitor.ts:137 Memory usage high: 102MB (98%)
+checkAndCleanup @ memory-monitor.ts:137
+(anonymous) @ memory-monitor.ts:77
+setInterval
+start @ memory-monitor.ts:76
+(anonymous) @ App.tsx:310
+react_stack_bottom_frame @ react-dom_client.js?v=9e36b6e9:17486
+runWithFiberInDEV @ react-dom_client.js?v=9e36b6e9:1485
+commitHookEffectListMount @ react-dom_client.js?v=9e36b6e9:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=9e36b6e9:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=9e36b6e9:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9899
+flushPassiveEffects @ react-dom_client.js?v=9e36b6e9:11302
+flushPendingEffects @ react-dom_client.js?v=9e36b6e9:11276
+performSyncWorkOnRoot @ react-dom_client.js?v=9e36b6e9:11632
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=9e36b6e9:11536
+flushSpawnedWork @ react-dom_client.js?v=9e36b6e9:11254
+commitRoot @ react-dom_client.js?v=9e36b6e9:11081
+commitRootWhenReady @ react-dom_client.js?v=9e36b6e9:10512
+performWorkOnRoot @ react-dom_client.js?v=9e36b6e9:10457
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=9e36b6e9:11623
+performWorkUntilDeadline @ react-dom_client.js?v=9e36b6e9:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=09bbd1fa:250
+(anonymous) @ main.tsx:5
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+memory-monitor.ts:137 Memory usage high: 104MB (96%)
+checkAndCleanup @ memory-monitor.ts:137
+(anonymous) @ memory-monitor.ts:77
+setInterval
+start @ memory-monitor.ts:76
+(anonymous) @ App.tsx:310
+react_stack_bottom_frame @ react-dom_client.js?v=9e36b6e9:17486
+runWithFiberInDEV @ react-dom_client.js?v=9e36b6e9:1485
+commitHookEffectListMount @ react-dom_client.js?v=9e36b6e9:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=9e36b6e9:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=9e36b6e9:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9899
+flushPassiveEffects @ react-dom_client.js?v=9e36b6e9:11302
+flushPendingEffects @ react-dom_client.js?v=9e36b6e9:11276
+performSyncWorkOnRoot @ react-dom_client.js?v=9e36b6e9:11632
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=9e36b6e9:11536
+flushSpawnedWork @ react-dom_client.js?v=9e36b6e9:11254
+commitRoot @ react-dom_client.js?v=9e36b6e9:11081
+commitRootWhenReady @ react-dom_client.js?v=9e36b6e9:10512
+performWorkOnRoot @ react-dom_client.js?v=9e36b6e9:10457
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=9e36b6e9:11623
+performWorkUntilDeadline @ react-dom_client.js?v=9e36b6e9:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=09bbd1fa:250
+(anonymous) @ main.tsx:5
+memory-monitor.ts:137 Memory usage high: 108MB (94%)
+checkAndCleanup @ memory-monitor.ts:137
+(anonymous) @ memory-monitor.ts:77
+setInterval
+start @ memory-monitor.ts:76
+(anonymous) @ App.tsx:310
+react_stack_bottom_frame @ react-dom_client.js?v=9e36b6e9:17486
+runWithFiberInDEV @ react-dom_client.js?v=9e36b6e9:1485
+commitHookEffectListMount @ react-dom_client.js?v=9e36b6e9:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=9e36b6e9:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=9e36b6e9:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=9e36b6e9:9899
+flushPassiveEffects @ react-dom_client.js?v=9e36b6e9:11302
+flushPendingEffects @ react-dom_client.js?v=9e36b6e9:11276
+performSyncWorkOnRoot @ react-dom_client.js?v=9e36b6e9:11632
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=9e36b6e9:11536
+flushSpawnedWork @ react-dom_client.js?v=9e36b6e9:11254
+commitRoot @ react-dom_client.js?v=9e36b6e9:11081
+commitRootWhenReady @ react-dom_client.js?v=9e36b6e9:10512
+performWorkOnRoot @ react-dom_client.js?v=9e36b6e9:10457
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=9e36b6e9:11623
+performWorkUntilDeadline @ react-dom_client.js?v=9e36b6e9:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=09bbd1fa:250
+(anonymous) @ main.tsx:5
+memory-monitor.ts:137 Memory usage high: 108MB (96%)
+checkAndCleanup @ memory-monitor.ts:137
+(anonymous) @ memory-monitor.ts:77
+queryClient.ts:105 Mutation error: TypeError: Failed to execute 'fetch' on 'Window': '/api/documents' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:32:21)
+    at Object.mutationFn (BuildingDocuments.tsx:167:14)
+    at Object.fn (@tanstack_react-query.js?v=0e0a401e:1197:29)
+    at run (@tanstack_react-query.js?v=0e0a401e:491:49)
+    at Object.start (@tanstack_react-query.js?v=0e0a401e:533:9)
+    at Mutation.execute (@tanstack_react-query.js?v=0e0a401e:1232:40)
+onError @ queryClient.ts:105
+execute @ @tanstack_react-query.js?v=0e0a401e:1252
+await in execute
+mutate @ @tanstack_react-query.js?v=0e0a401e:2637
+(anonymous) @ @tanstack_react-query.js?v=0e0a401e:3351
+handleCreateDocument @ BuildingDocuments.tsx:264
+(anonymous) @ chunk-JYNBG5WP.js?v=526f986c:1506
+await in (anonymous)
+executeDispatch @ react-dom_client.js?v=9e36b6e9:11736
+runWithFiberInDEV @ react-dom_client.js?v=9e36b6e9:1485
+processDispatchQueue @ react-dom_client.js?v=9e36b6e9:11772
+(anonymous) @ react-dom_client.js?v=9e36b6e9:12182
+batchedUpdates$1 @ react-dom_client.js?v=9e36b6e9:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=9e36b6e9:11877
+dispatchEvent @ react-dom_client.js?v=9e36b6e9:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=9e36b6e9:14773
