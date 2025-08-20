@@ -202,13 +202,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // GET /api/features/:id/actionable-items - Get actionable items for a feature
     app.get('/api/features/:id/actionable-items', requireAuth, async (req: any, res: any) => {
       try {
-        const items = await db
-          .select()
-          .from(schema.actionableItems)
-          .where(eq(schema.actionableItems.featureId, req.params.id))
-          .orderBy(schema.actionableItems.createdAt);
+        // Use raw SQL to query the correct column names that exist in the database
+        const items = await db.execute(sql`
+          SELECT id, feature_id, title, description, technical_details, 
+                 implementation_prompt, testing_requirements, estimated_effort, 
+                 dependencies, status, completed_at, order_index, created_at, updated_at
+          FROM actionable_items 
+          WHERE feature_id = ${req.params.id}
+          ORDER BY created_at ASC
+        `);
 
-        res.json(items);
+        res.json(items.rows);
       } catch (error) {
         console.error('Error fetching actionable items:', error);
         res.status(500).json({ message: 'Failed to fetch actionable items' });
@@ -218,20 +222,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // PUT /api/actionable-items/:id - Update an actionable item
     app.put('/api/actionable-items/:id', requireAuth, async (req: any, res: any) => {
       try {
-        const [updatedItem] = await db
-          .update(schema.actionableItems)
-          .set({ 
-            ...req.body,
-            updatedAt: new Date() 
-          })
-          .where(eq(schema.actionableItems.id, req.params.id))
-          .returning();
+        // Use raw SQL to update the correct column names that exist in the database
+        const result = await db.execute(sql`
+          UPDATE actionable_items 
+          SET status = ${req.body.status || 'pending'},
+              completed_at = ${req.body.status === 'completed' ? new Date() : null},
+              updated_at = ${new Date()}
+          WHERE id = ${req.params.id}
+          RETURNING id, feature_id, title, description, technical_details, 
+                    implementation_prompt, testing_requirements, estimated_effort, 
+                    dependencies, status, completed_at, order_index, created_at, updated_at
+        `);
 
-        if (!updatedItem) {
+        if (!result.rows[0]) {
           return res.status(404).json({ message: 'Actionable item not found' });
         }
 
-        res.json(updatedItem);
+        res.json(result.rows[0]);
       } catch (error) {
         console.error('Error updating actionable item:', error);
         res.status(500).json({ message: 'Failed to update actionable item' });
