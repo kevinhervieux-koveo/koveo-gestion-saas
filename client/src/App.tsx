@@ -187,14 +187,6 @@ function Router() {
       </Suspense>
     );
   }
-  
-  if (isHomePage) {
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <HomePage />
-      </Suspense>
-    );
-  }
 
   return (
     <div className='h-full flex bg-gray-50 font-inter'>

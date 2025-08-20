@@ -245,6 +245,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
+    // POST /api/features/:id/toggle-strategic - Toggle strategic path for feature
+    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: any, res: any) => {
+      try {
+        const { isStrategicPath } = req.body;
+        
+        if (typeof isStrategicPath !== 'boolean') {
+          return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
+        }
+
+        const [feature] = await db
+          .update(schema.features)
+          .set({ isStrategicPath, updatedAt: new Date() })
+          .where(eq(schema.features.id, req.params.id))
+          .returning();
+
+        if (!feature) {
+          return res.status(404).json({ message: 'Feature not found' });
+        }
+        
+        res.json(feature);
+      } catch (error) {
+        console.error('Error updating strategic path:', error);
+        res.status(500).json({ message: 'Failed to update strategic path' });
+      }
+    });
+
     log('✅ Features and actionable items routes registered');
   } catch (error) {
     log(`❌ Features and actionable items routes failed: ${error}`, 'error');
