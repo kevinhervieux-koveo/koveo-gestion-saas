@@ -9,6 +9,28 @@ import { requireAuth } from '../auth/index.js';
  * @param app
  */
 export function registerResidenceRoutes(app: Express) {
+  // Get user's residences
+  app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = req.user;
+
+      const userResidencesList = await db
+        .select({
+          residenceId: userResidences.residenceId,
+        })
+        .from(userResidences)
+        .where(and(
+          eq(userResidences.userId, user.id),
+          eq(userResidences.isActive, true)
+        ));
+
+      res.json(userResidencesList);
+    } catch (error) {
+      console.error('Error fetching user residences:', error);
+      res.status(500).json({ message: 'Failed to fetch user residences' });
+    }
+  });
+
   // Get all residences with filtering and search
   app.get('/api/residences', requireAuth, async (req: any, res: any) => {
     try {

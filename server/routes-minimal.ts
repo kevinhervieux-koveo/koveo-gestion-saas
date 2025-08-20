@@ -6,6 +6,7 @@ import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
+import { registerContactRoutes } from './api/contacts';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
@@ -190,6 +191,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Residence routes registered');
   } catch (error) {
     log(`❌ Residence routes failed: ${error}`, 'error');
+  }
+
+  // Register contact API routes
+  try {
+    registerContactRoutes(app);
+    log('✅ Contact routes registered');
+  } catch (error) {
+    log(`❌ Contact routes failed: ${error}`, 'error');
   }
 
   // Register features and actionable items API routes

@@ -23,6 +23,20 @@ export const buildingTypeEnum = pgEnum('building_type', [
   'rental',
 ]);
 
+export const contactEntityEnum = pgEnum('contact_entity', [
+  'organization',
+  'building',
+  'residence',
+]);
+
+export const contactCategoryEnum = pgEnum('contact_category', [
+  'resident',
+  'manager', 
+  'tenant',
+  'maintenance',
+  'other',
+]);
+
 // Property tables
 /**
  * Buildings table storing properties managed by organizations.
@@ -101,6 +115,25 @@ export const userResidences = pgTable('user_residences', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Contacts table storing contact information for organizations, buildings, and residences.
+ * Allows tracking various types of contacts like residents, managers, tenants, maintenance, etc.
+ */
+export const contacts = pgTable('contacts', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  entity: contactEntityEnum('entity').notNull(),
+  entityId: uuid('entity_id').notNull(),
+  contactCategory: contactCategoryEnum('contact_category').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertBuildingSchema = createInsertSchema(buildings).pick({
   organizationId: true,
@@ -141,6 +174,13 @@ export const insertUserResidenceSchema = createInsertSchema(userResidences).pick
   endDate: true,
 });
 
+export const insertContactSchema = createInsertSchema(contacts).pick({
+  userId: true,
+  entity: true,
+  entityId: true,
+  contactCategory: true,
+});
+
 // Types
 /**
  *
@@ -169,6 +209,15 @@ export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
  */
 export type UserResidence = typeof userResidences.$inferSelect;
 
+/**
+ *
+ */
+export type InsertContact = z.infer<typeof insertContactSchema>;
+/**
+ *
+ */
+export type Contact = typeof contacts.$inferSelect;
+
 // Relations
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   organization: one(organizations, {
@@ -194,5 +243,12 @@ export const userResidencesRelations = relations(userResidences, ({ one }) => ({
   residence: one(residences, {
     fields: [userResidences.residenceId],
     references: [residences.id],
+  }),
+}));
+
+export const contactsRelations = relations(contacts, ({ one }) => ({
+  user: one(users, {
+    fields: [contacts.userId],
+    references: [users.id],
   }),
 }));

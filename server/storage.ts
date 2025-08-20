@@ -7,6 +7,8 @@ import {
   type InsertBuilding,
   type Residence,
   type InsertResidence,
+  type Contact,
+  type InsertContact,
   type Document,
   type InsertDocument,
   type DocumentBuilding,
@@ -287,6 +289,56 @@ export interface IStorage {
    * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
    */
   deleteResidence(_id: string): Promise<boolean>;
+
+  // Contact operations
+  /**
+   * Retrieves all contacts from storage.
+   *
+   * @returns {Promise<Contact[]>} Array of all contact records.
+   */
+  getContacts(): Promise<Contact[]>;
+  
+  /**
+   * Retrieves contacts for a specific entity.
+   *
+   * @param {string} _entityId - The unique entity identifier.
+   * @param {'organization' | 'building' | 'residence'} _entity - The entity type.
+   * @returns {Promise<Contact[]>} Array of contacts for the specified entity.
+   */
+  getContactsByEntity(_entityId: string, _entity: 'organization' | 'building' | 'residence'): Promise<Contact[]>;
+  
+  /**
+   * Retrieves contacts for a specific residence with user details.
+   *
+   * @param {string} _residenceId - The unique residence identifier.
+   * @returns {Promise<Array<Contact & { user: User }>>} Array of contacts with user information.
+   */
+  getContactsForResidence(_residenceId: string): Promise<Array<Contact & { user: User }>>;
+  
+  /**
+   * Creates a new contact in the storage system.
+   *
+   * @param {InsertContact} _contact - Contact data for creation.
+   * @returns {Promise<Contact>} The created contact record with generated ID.
+   */
+  createContact(_contact: InsertContact): Promise<Contact>;
+  
+  /**
+   * Updates an existing contact's information.
+   *
+   * @param {string} _id - The unique contact identifier.
+   * @param {Partial<Contact>} _updates - Partial contact data containing fields to update.
+   * @returns {Promise<Contact | undefined>} Updated contact record or undefined if not found.
+   */
+  updateContact(_id: string, _updates: Partial<Contact>): Promise<Contact | undefined>;
+  
+  /**
+   * Deletes a contact from storage.
+   *
+   * @param {string} _id - The unique contact identifier.
+   * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
+   */
+  deleteContact(_id: string): Promise<boolean>;
 
   // Development Pillar operations
   /**

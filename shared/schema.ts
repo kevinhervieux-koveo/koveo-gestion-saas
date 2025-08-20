@@ -49,6 +49,8 @@ export type {
   InsertResidence,
   UserResidence,
   InsertUserResidence,
+  Contact,
+  InsertContact,
 } from './schemas/property';
 
 export type {
