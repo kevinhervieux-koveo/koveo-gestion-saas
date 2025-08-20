@@ -132,7 +132,7 @@ export class DatabaseStorage implements IStorage {
    * @returns Promise that resolves to array of residence IDs the user is associated with.
    */
   @trackPerformance('getUserResidences')
-  @cached('users', (userId: string) => `user_residences:${userId}`)
+  @cached('residences', (userId: string) => `user_residences:${userId}`)
   async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
     const result = await db
       .select({

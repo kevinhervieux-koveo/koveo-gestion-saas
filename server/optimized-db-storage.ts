@@ -373,13 +373,20 @@ export class OptimizedDatabaseStorage implements IStorage {
     return this.withOptimizations(
       'getUserResidences',
       `user_residences:${userId}`,
-      'users',
+      'residences',
       async () => {
-        const user = await this.getUser(userId);
-        if (!user || !user.assignedResidenceId) {
-          return [];
-        }
-        return [{ residenceId: user.assignedResidenceId }];
+        const result = await db
+          .select({
+            residenceId: schema.userResidences.residenceId,
+          })
+          .from(schema.userResidences)
+          .where(
+            and(
+              eq(schema.userResidences.userId, userId),
+              eq(schema.userResidences.isActive, true)
+            )
+          );
+        return result;
       }
     );
   }
@@ -550,13 +557,13 @@ export class OptimizedDatabaseStorage implements IStorage {
   // Additional optimized methods for frequently accessed data
 
   /**
-   * Gets user residences with caching - frequently accessed in property management.
+   * Gets user residences with full details - for complex residence views.
    * @param userId
    */
-  async getUserResidences(userId: string): Promise<any[]> {
+  async getUserResidencesWithDetails(userId: string): Promise<any[]> {
     return this.withOptimizations(
-      'getUserResidences',
-      `user_residences:${userId}`,
+      'getUserResidencesWithDetails',
+      `user_residences_details:${userId}`,
       'residences',
       () => db
         .select({
