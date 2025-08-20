@@ -174,14 +174,16 @@ export default function BuildingDocuments() {
         throw new Error("User not authenticated");
       }
       
-      console.log("Creating document with user ID:", user.id); // Debug log
+      // Clean user ID - take only first 36 characters to make valid UUID
+      const cleanUserId = user.id.substring(0, 36);
+      console.log("Creating document with cleaned user ID:", cleanUserId); // Debug log
       
       const documentData: any = {
         name: data.name,
         type: data.type, // This is the document category (bylaw, financial, etc.)
         dateReference: data.dateReference, // Send as YYYY-MM-DD string
         buildingId: data.buildingId,
-        uploadedBy: user.id, // Add user ID (now checked above)
+        uploadedBy: cleanUserId, // Use cleaned user ID
       };
       
       // Add file data if uploaded
@@ -222,7 +224,7 @@ export default function BuildingDocuments() {
       if (data.type) updateData.type = data.type;
       if (data.dateReference) updateData.dateReference = data.dateReference; // Send as YYYY-MM-DD string
       if (data.buildingId) updateData.buildingId = data.buildingId;
-      updateData.uploadedBy = user?.id; // Add user ID
+      updateData.uploadedBy = user?.id?.substring(0, 36); // Use cleaned user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
     },
     onSuccess: () => {
