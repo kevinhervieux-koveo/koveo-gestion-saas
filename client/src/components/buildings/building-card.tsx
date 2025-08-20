@@ -42,7 +42,7 @@ export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingC
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/documents?buildingId=${building.id}`)}
+                  onClick={() => navigate(`/manager/buildings/documents?buildingId=${building.id}`)}
                   className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                   title="Manage building documents"
                 >

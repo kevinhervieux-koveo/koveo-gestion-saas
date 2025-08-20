@@ -125,9 +125,11 @@ export default function Documents() {
   });
 
   // Get documents
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
+  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: Document[]}>({
     queryKey: ["/api/documents"],
   });
+  
+  const documents = documentsResponse?.documents || [];
 
   // Get buildings for assignment
   const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
@@ -294,8 +296,8 @@ export default function Documents() {
 
   // Filter documents
   const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (doc.title && doc.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = !selectedCategory || selectedCategory === "all" || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

@@ -317,7 +317,7 @@ export default function Residences() {
                         variant='outline' 
                         size='sm' 
                         className='flex-1'
-                        onClick={() => navigate(`/documents?residenceId=${residence.id}`)}
+                        onClick={() => navigate(`/manager/residences/documents?residenceId=${residence.id}`)}
                         title='Manage residence documents'
                       >
                         <FileText className='w-3 h-3 mr-1' />
