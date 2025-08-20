@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +28,9 @@ import {
   ArrowLeft,
   Home,
   Building,
-  MapPin
+  MapPin,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
@@ -116,6 +118,8 @@ export default function ResidenceDocuments() {
     mimeType: string;
   } | null>(null);
   const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,6 +177,17 @@ export default function ResidenceDocuments() {
       return matchesSearch && matchesCategory && matchesYear;
     });
   }, [documents, searchTerm, selectedCategory, selectedYear]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedDocuments = filteredDocuments.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedYear]);
 
   // Form setup
   const form = useForm<z.infer<typeof documentSchema>>({
@@ -596,7 +611,7 @@ export default function ResidenceDocuments() {
             
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <div className="text-sm text-gray-600">
-                {filteredDocuments.length} of {documents.length} documents
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredDocuments.length)} of {filteredDocuments.length} documents
               </div>
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-400" />
@@ -634,7 +649,7 @@ export default function ResidenceDocuments() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {filteredDocuments.map((document) => (
+                {paginatedDocuments.map((document) => (
                   <div
                     key={document.id}
                     className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
@@ -725,6 +740,37 @@ export default function ResidenceDocuments() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {filteredDocuments.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+                <div className="text-sm text-gray-500">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
