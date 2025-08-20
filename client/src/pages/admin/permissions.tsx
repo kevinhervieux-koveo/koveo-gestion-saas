@@ -337,6 +337,7 @@ export default function Permissions() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy"></div>
                     </div>
                   ) : (
+                    <>
                     <div className="space-y-4">
                       {currentUsers.map(user => {
                         const userSpecificPermissions = userPermissions?.filter(up => up.userId === user.id) || [];
@@ -557,6 +558,8 @@ export default function Permissions() {
                         </div>
                       </div>
                     )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
