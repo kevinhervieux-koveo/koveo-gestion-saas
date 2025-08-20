@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -108,10 +108,7 @@ export default function OwnerRoadmap() {
         description: 'Actionable item status has been updated successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-      // Refetch actionable items for all expanded features
-      expandedFeatures.forEach(featureId => {
-        queryClient.invalidateQueries({ queryKey: ['/api/features', featureId, 'actionable-items'] });
-      });
+      // Note: Individual actionable items will invalidate their own queries
     },
     onError: () => {
       toast({
@@ -202,19 +199,31 @@ export default function OwnerRoadmap() {
    * Fetches actionable items for a specific feature.
    * @param featureId
    */
-  const fetchActionableItems = async (featureId: string) => {
-    if (actionableItems[featureId]) {return;} // Already fetched
-    
-    try {
-      const response = await fetch(`/api/features/${featureId}/actionable-items`);
-      if (response.ok) {
-        const items = await response.json();
-        setActionableItems(prev => ({ ...prev, [featureId]: items }));
-      }
-    } catch (_error) {
-      console.error('Failed to fetch actionable items:', _error);
-    }
-  };
+  const fetchActionableItems = useCallback(async (featureId: string) => {
+    setActionableItems(prev => {
+      if (prev[featureId]) {return prev;} // Already fetched, don't update state
+      
+      // Immediately set as loading/empty to prevent duplicate requests
+      const newState = { ...prev, [featureId]: [] };
+      
+      // Fetch data asynchronously
+      fetch(`/api/features/${featureId}/actionable-items`)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('Failed to fetch');
+        })
+        .then(items => {
+          setActionableItems(current => ({ ...current, [featureId]: items }));
+        })
+        .catch(error => {
+          console.error('Failed to fetch actionable items:', error);
+        });
+      
+      return newState;
+    });
+  }, []);
 
   /**
    * Copies the implementation prompt to clipboard.
@@ -258,7 +267,7 @@ export default function OwnerRoadmap() {
    * Toggles feature expansion and fetches actionable items if needed.
    * @param featureId
    */
-  const toggleFeatureExpansion = (featureId: string) => {
+  const toggleFeatureExpansion = useCallback((featureId: string) => {
     setExpandedFeatures(prev => {
       const isExpanded = prev.includes(featureId);
       if (isExpanded) {
@@ -269,7 +278,7 @@ export default function OwnerRoadmap() {
         return [...prev, featureId];
       }
     });
-  };
+  }, []); // Empty dependency array since fetchActionableItems doesn't depend on changing values
 
   /**
    * Analyzes features for duplicates and similarities.
