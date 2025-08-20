@@ -104,16 +104,18 @@ export default function BuildingDocuments() {
   const building = buildingsResponse?.buildings?.find(b => b.id === buildingId);
 
   // Get documents for this specific building
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<BuildingDocument[]>({
+  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {
-      if (!buildingId) return [];
+      if (!buildingId) return {documents: []};
       const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
       if (!response.ok) throw new Error('Failed to fetch documents');
       return response.json();
     },
     enabled: !!buildingId,
   });
+  
+  const documents = documentsResponse?.documents || [];
 
   // Get available years from documents
   const availableYears = useMemo(() => {

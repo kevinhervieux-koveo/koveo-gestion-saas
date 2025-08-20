@@ -118,16 +118,18 @@ export default function ResidenceDocuments() {
   const building = buildingsResponse?.buildings?.find(b => b.id === residence?.buildingId);
 
   // Get documents for this specific residence
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<ResidenceDocument[]>({
+  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", "residence", residenceId],
     queryFn: async () => {
-      if (!residenceId) return [];
+      if (!residenceId) return {documents: []};
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
       if (!response.ok) throw new Error('Failed to fetch documents');
       return response.json();
     },
     enabled: !!residenceId,
   });
+  
+  const documents = documentsResponse?.documents || [];
 
   // Get available years from documents
   const availableYears = useMemo(() => {
