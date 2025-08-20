@@ -88,6 +88,8 @@ export default function Permissions() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [showNewPermissionForm, setShowNewPermissionForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Fetch permissions matrix (includes all permission data grouped by resource)
   const { data: permissionsMatrix, isLoading: matrixLoading } = useQuery<{
@@ -143,6 +145,24 @@ export default function Permissions() {
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
   }) || [];
+
+  // Pagination calculations
+  const totalUsers = filteredUsers.length;
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFilterRole(value);
+    setCurrentPage(1);
+  };
   
   // Filter permissions by category
   const filteredPermissions = permissions?.filter(permission => {
@@ -284,12 +304,12 @@ export default function Permissions() {
                         <Input
                           placeholder="Search users..."
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onChange={(e) => handleSearchChange(e.target.value)}
                           className="pl-10"
                         />
                       </div>
                     </div>
-                    <Select value={filterRole} onValueChange={setFilterRole}>
+                    <Select value={filterRole} onValueChange={handleRoleChange}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Filter by role" />
                       </SelectTrigger>
@@ -310,7 +330,7 @@ export default function Permissions() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {filteredUsers.map(user => {
+                      {currentUsers.map(user => {
                         const userSpecificPermissions = userPermissions?.filter(up => up.userId === user.id) || [];
                         const rolePermissionsCount = permissionsByRole[user.role]?.length || 0;
                         const totalPermissions = rolePermissionsCount + userSpecificPermissions.filter(up => up.granted).length;
@@ -476,6 +496,59 @@ export default function Permissions() {
                         </div>
                       )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className='flex justify-center items-center gap-4 mt-6'>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        
+                        <div className='flex items-center gap-2'>
+                          <span className='text-sm text-gray-600'>Page</span>
+                          <Input
+                            type='number'
+                            min='1'
+                            max={totalPages}
+                            value={currentPage}
+                            onChange={(e) => {
+                              const page = parseInt(e.target.value);
+                              if (page >= 1 && page <= totalPages) {
+                                setCurrentPage(page);
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const page = parseInt(e.target.value);
+                              if (isNaN(page) || page < 1) {
+                                setCurrentPage(1);
+                              } else if (page > totalPages) {
+                                setCurrentPage(totalPages);
+                              }
+                            }}
+                            className='w-16 text-center'
+                          />
+                          <span className='text-sm text-gray-600'>of {totalPages}</span>
+                        </div>
+                        
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                        
+                        <div className='text-sm text-gray-600'>
+                          Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+                        </div>
+                      </div>
+                    )}
                   )}
                 </CardContent>
               </Card>
