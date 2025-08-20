@@ -194,7 +194,7 @@ export function Sidebar() {
         <div className='flex items-center space-x-3'>
           <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
             <span className="text-white text-sm font-medium">
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              {user?.firstName?.charAt(0).toUpperCase()}{user?.lastName?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div>
