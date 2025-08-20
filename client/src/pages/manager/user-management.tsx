@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserPlus, Shield, Mail } from 'lucide-react';
 import type { User } from '@shared/schema';
@@ -24,6 +25,10 @@ export default function UserManagement() {
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
 
   // Fetch users
   const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
@@ -90,10 +95,16 @@ export default function UserManagement() {
     setInvitationDialogOpen(false);
   };
 
-  // Calculate stats
+  // Calculate stats and pagination
   const totalUsers = users?.length || 0;
   const activeUsers = users?.filter((user: User) => user.isActive).length || 0;
   const adminUsers = users?.filter((user: User) => user.role === 'admin').length || 0;
+  
+  // Pagination calculations
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const currentUsers = users?.slice(startIndex, endIndex) || [];
 
   if (usersError) {
     return (
@@ -201,7 +212,7 @@ export default function UserManagement() {
             <Card>
               <CardContent className="p-0">
                 <UserListComponent
-                  users={users || []}
+                  users={currentUsers}
                   selectedUsers={selectedUsers}
                   onSelectionChange={setSelectedUsers}
                   onBulkAction={handleBulkAction}
@@ -209,6 +220,59 @@ export default function UserManagement() {
                 />
               </CardContent>
             </Card>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className='flex justify-center items-center gap-4 mt-6'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                
+                <div className='flex items-center gap-2'>
+                  <span className='text-sm text-gray-600'>Page</span>
+                  <Input
+                    type='number'
+                    min='1'
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const page = parseInt(e.target.value);
+                      if (page >= 1 && page <= totalPages) {
+                        setCurrentPage(page);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const page = parseInt(e.target.value);
+                      if (isNaN(page) || page < 1) {
+                        setCurrentPage(1);
+                      } else if (page > totalPages) {
+                        setCurrentPage(totalPages);
+                      }
+                    }}
+                    className='w-16 text-center'
+                  />
+                  <span className='text-sm text-gray-600'>of {totalPages}</span>
+                </div>
+                
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+                
+                <div className='text-sm text-gray-600'>
+                  Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="invitations" className="space-y-6">
