@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Download, FileText, Search, Calendar, Building, ArrowLeft } from "lucide-react";
+import { Download, FileText, Search, Calendar, Building, ArrowLeft, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { useLocation } from "wouter";
 
@@ -35,6 +35,7 @@ interface BuildingDocument {
   fileSize?: number;
   mimeType?: string;
   fileUrl?: string;
+  isVisibleToTenants?: boolean;
 }
 
 interface Building {
@@ -73,6 +74,9 @@ export default function ResidentsBuildingDocuments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedVisibility, setSelectedVisibility] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   
   const { toast } = useToast();
 
@@ -107,7 +111,7 @@ export default function ResidentsBuildingDocuments() {
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [documents]);
 
-  // Filter documents based on search, category, and year
+  // Filter documents based on search, category, year, and visibility
   const filteredDocuments = useMemo(() => {
     let filtered = documents;
 
@@ -127,19 +131,43 @@ export default function ResidentsBuildingDocuments() {
       );
     }
 
-    return filtered;
-  }, [documents, searchTerm, selectedCategory, selectedYear]);
+    if (selectedVisibility !== "all") {
+      filtered = filtered.filter(doc => {
+        if (selectedVisibility === "visible") {
+          return doc.isVisibleToTenants === true;
+        } else if (selectedVisibility === "hidden") {
+          return doc.isVisibleToTenants === false || doc.isVisibleToTenants === undefined;
+        }
+        return true;
+      });
+    }
 
-  // Group documents by category for display
+    return filtered;
+  }, [documents, searchTerm, selectedCategory, selectedYear, selectedVisibility]);
+
+
+  // Paginate filtered documents
+  const paginatedDocuments = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredDocuments.slice(startIndex, endIndex);
+  }, [filteredDocuments, currentPage, ITEMS_PER_PAGE]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredDocuments.length / ITEMS_PER_PAGE);
+  const startItem = filteredDocuments.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredDocuments.length);
+
+  // Group paginated documents by category for display
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, BuildingDocument[]> = {};
     
     DOCUMENT_CATEGORIES.forEach(category => {
-      grouped[category.value] = filteredDocuments.filter(doc => doc.type === category.value);
+      grouped[category.value] = paginatedDocuments.filter(doc => doc.type === category.value);
     });
 
     return grouped;
-  }, [filteredDocuments]);
+  }, [paginatedDocuments]);
 
   const handleDownloadDocument = async (document: BuildingDocument) => {
     try {
@@ -159,6 +187,28 @@ export default function ResidentsBuildingDocuments() {
       toast({
         title: "Download failed",
         description: "Failed to download document",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewDocument = async (document: BuildingDocument) => {
+    try {
+      if (document.fileUrl) {
+        window.open(document.fileUrl, '_blank');
+      } else {
+        const response = await fetch(`/api/documents/${document.id}/view`);
+        if (!response.ok) throw new Error('Failed to get document view URL');
+        
+        const data = await response.json();
+        if (data.viewUrl) {
+          window.open(data.viewUrl, '_blank');
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "View failed",
+        description: "Failed to open document for viewing",
         variant: "destructive",
       });
     }
@@ -242,13 +292,26 @@ export default function ResidentsBuildingDocuments() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={selectedVisibility} onValueChange={setSelectedVisibility}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Tenant visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Documents</SelectItem>
+                  <SelectItem value="visible">Visible to Tenants</SelectItem>
+                  <SelectItem value="hidden">Hidden from Tenants</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Results summary */}
             <div className="text-sm text-muted-foreground mb-4">
-              Showing {filteredDocuments.length} of {documents.length} documents
+              Showing {startItem}-{endItem} of {filteredDocuments.length} documents
               {selectedCategory !== 'all' && ` in ${getCategoryLabel(selectedCategory)}`}
               {selectedYear !== 'all' && ` from ${selectedYear}`}
+              {selectedVisibility === 'visible' && ` (visible to tenants)`}
+              {selectedVisibility === 'hidden' && ` (hidden from tenants)`}
             </div>
           </div>
 
@@ -320,16 +383,33 @@ export default function ResidentsBuildingDocuments() {
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2 flex-shrink-0">
-                                    {document.fileUrl && (
+                                    <div className="flex items-center gap-2">
+                                      {document.isVisibleToTenants !== undefined && (
+                                        <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
+                                          {document.isVisibleToTenants ? "Visible to Tenants" : "Hidden from Tenants"}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleDownloadDocument(document)}
+                                        onClick={() => handleViewDocument(document)}
                                       >
-                                        <Download className="w-4 h-4 mr-1" />
-                                        Download
+                                        <Eye className="w-4 h-4 mr-1" />
+                                        View
                                       </Button>
-                                    )}
+                                      {document.fileUrl && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => handleDownloadDocument(document)}
+                                        >
+                                          <Download className="w-4 h-4 mr-1" />
+                                          Download
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -352,7 +432,7 @@ export default function ResidentsBuildingDocuments() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {filteredDocuments.map((document) => (
+                          {paginatedDocuments.map((document) => (
                             <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3">
@@ -375,16 +455,33 @@ export default function ResidentsBuildingDocuments() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
-                                {document.fileUrl && (
+                                <div className="flex items-center gap-2">
+                                  {document.isVisibleToTenants !== undefined && (
+                                    <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
+                                      {document.isVisibleToTenants ? "Visible to Tenants" : "Hidden from Tenants"}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1">
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleDownloadDocument(document)}
+                                    onClick={() => handleViewDocument(document)}
                                   >
-                                    <Download className="w-4 h-4 mr-1" />
-                                    Download
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    View
                                   </Button>
-                                )}
+                                  {document.fileUrl && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDownloadDocument(document)}
+                                    >
+                                      <Download className="w-4 h-4 mr-1" />
+                                      Download
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -392,6 +489,52 @@ export default function ResidentsBuildingDocuments() {
                       </CardContent>
                     </Card>
                   )}
+                </div>
+              )}
+              
+              {/* Pagination Controls */}
+              {filteredDocuments.length > 0 && totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Page {currentPage} of {totalPages}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                        if (pageNum > totalPages) return null;
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === currentPage ? "default" : "outline"}
+                            size="sm"
+                            className="w-8 h-8 p-0"
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
                 </div>
               )}
             </>
