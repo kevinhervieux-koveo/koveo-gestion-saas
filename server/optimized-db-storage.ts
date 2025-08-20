@@ -16,6 +16,12 @@ import type {
   InsertBuilding,
   Residence,
   InsertResidence,
+  Document,
+  InsertDocument,
+  DocumentBuilding,
+  InsertDocumentBuilding,
+  DocumentResident,
+  InsertDocumentResident,
   DevelopmentPillar,
   InsertPillar,
   WorkspaceStatus,
@@ -1570,10 +1576,344 @@ export class OptimizedDatabaseStorage implements IStorage {
     );
   }
 
-  // Document operations
+  // Building Document operations
 
   /**
-   * Gets documents for user based on role and permissions.
+   * Gets building documents for user based on role and permissions.
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param buildingIds
+   */
+  async getBuildingDocumentsForUser(
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    buildingIds?: string[]
+  ): Promise<DocumentBuilding[]> {
+    return this.withOptimizations(
+      'getBuildingDocumentsForUser',
+      `building_docs:${userId}:${userRole}`,
+      'building_documents',
+      async () => {
+        let query = db.select().from(schema.documentsBuildings);
+        
+        // Role-based filtering
+        if (userRole === 'admin') {
+          // Admin can see all building documents
+          return await query.orderBy(desc(schema.documentsBuildings.uploadDate));
+        } else if (userRole === 'manager' && organizationId) {
+          // Manager can see documents for buildings in their organization
+          return await query
+            .innerJoin(schema.buildings, eq(schema.documentsBuildings.buildingId, schema.buildings.id))
+            .where(eq(schema.buildings.organizationId, organizationId))
+            .orderBy(desc(schema.documentsBuildings.uploadDate));
+        } else if ((userRole === 'resident' || userRole === 'tenant') && buildingIds && buildingIds.length > 0) {
+          // Residents/tenants can see documents for their buildings
+          return await query
+            .where(inArray(schema.documentsBuildings.buildingId, buildingIds))
+            .orderBy(desc(schema.documentsBuildings.uploadDate));
+        }
+        
+        return [];
+      }
+    );
+  }
+
+  /**
+   * Gets specific building document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param buildingIds
+   */
+  async getBuildingDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    buildingIds?: string[]
+  ): Promise<DocumentBuilding | undefined> {
+    return this.withOptimizations(
+      'getBuildingDocument',
+      `building_doc:${id}:${userId}`,
+      'building_documents',
+      async () => {
+        const result = await db.select().from(schema.documentsBuildings).where(eq(schema.documentsBuildings.id, id));
+        const document = result[0];
+        
+        if (!document) return undefined;
+        
+        // Permission check based on role
+        if (userRole === 'admin') {
+          return document;
+        } else if (userRole === 'manager' && organizationId) {
+          // Check if document belongs to manager's organization
+          const building = await this.getBuilding(document.buildingId);
+          if (building && building.organizationId === organizationId) {
+            return document;
+          }
+        } else if ((userRole === 'resident' || userRole === 'tenant') && buildingIds && buildingIds.includes(document.buildingId)) {
+          return document;
+        }
+        
+        return undefined;
+      }
+    );
+  }
+
+  /**
+   * Creates building document.
+   * @param document
+   */
+  async createBuildingDocument(document: InsertDocumentBuilding): Promise<DocumentBuilding> {
+    return dbPerformanceMonitor.trackQuery('createBuildingDocument', async () => {
+      const result = await db.insert(schema.documentsBuildings).values(document).returning();
+      
+      // Invalidate building document caches
+      queryCache.invalidate('building_documents');
+      
+      return result[0];
+    });
+  }
+
+  /**
+   * Updates building document with permission check.
+   * @param id
+   * @param updates
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async updateBuildingDocument(
+    id: string, 
+    updates: Partial<InsertDocumentBuilding>, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<DocumentBuilding | undefined> {
+    return dbPerformanceMonitor.trackQuery('updateBuildingDocument', async () => {
+      // First check if user has permission to update this document
+      const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
+      if (!document) return undefined;
+      
+      const result = await db
+        .update(schema.documentsBuildings)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(schema.documentsBuildings.id, id))
+        .returning();
+      
+      // Invalidate building document caches
+      queryCache.invalidate('building_documents');
+      
+      return result[0];
+    });
+  }
+
+  /**
+   * Deletes building document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async deleteBuildingDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<boolean> {
+    return dbPerformanceMonitor.trackQuery('deleteBuildingDocument', async () => {
+      // First check if user has permission to delete this document
+      const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
+      if (!document) return false;
+      
+      const result = await db
+        .delete(schema.documentsBuildings)
+        .where(eq(schema.documentsBuildings.id, id))
+        .returning();
+      
+      // Invalidate building document caches
+      queryCache.invalidate('building_documents');
+      
+      return result.length > 0;
+    });
+  }
+
+  // Resident Document operations
+
+  /**
+   * Gets resident documents for user based on role and permissions.
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param residenceIds
+   */
+  async getResidentDocumentsForUser(
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<DocumentResident[]> {
+    return this.withOptimizations(
+      'getResidentDocumentsForUser',
+      `resident_docs:${userId}:${userRole}`,
+      'resident_documents',
+      async () => {
+        let query = db.select().from(schema.documentsResidents);
+        
+        // Role-based filtering
+        if (userRole === 'admin') {
+          // Admin can see all resident documents
+          return await query.orderBy(desc(schema.documentsResidents.uploadDate));
+        } else if (userRole === 'manager' && organizationId) {
+          // Manager can see documents for residences in their organization
+          return await query
+            .innerJoin(schema.residences, eq(schema.documentsResidents.residenceId, schema.residences.id))
+            .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+            .where(eq(schema.buildings.organizationId, organizationId))
+            .orderBy(desc(schema.documentsResidents.uploadDate));
+        } else if ((userRole === 'resident' || userRole === 'tenant') && residenceIds && residenceIds.length > 0) {
+          // Residents/tenants can see documents for their residences
+          return await query
+            .where(inArray(schema.documentsResidents.residenceId, residenceIds))
+            .orderBy(desc(schema.documentsResidents.uploadDate));
+        }
+        
+        return [];
+      }
+    );
+  }
+
+  /**
+   * Gets specific resident document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   * @param residenceIds
+   */
+  async getResidentDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string, 
+    residenceIds?: string[]
+  ): Promise<DocumentResident | undefined> {
+    return this.withOptimizations(
+      'getResidentDocument',
+      `resident_doc:${id}:${userId}`,
+      'resident_documents',
+      async () => {
+        const result = await db.select().from(schema.documentsResidents).where(eq(schema.documentsResidents.id, id));
+        const document = result[0];
+        
+        if (!document) return undefined;
+        
+        // Permission check based on role
+        if (userRole === 'admin') {
+          return document;
+        } else if (userRole === 'manager' && organizationId) {
+          // Check if document belongs to manager's organization
+          const residence = await this.getResidence(document.residenceId);
+          if (residence) {
+            const building = await this.getBuilding(residence.buildingId);
+            if (building && building.organizationId === organizationId) {
+              return document;
+            }
+          }
+        } else if ((userRole === 'resident' || userRole === 'tenant') && residenceIds && residenceIds.includes(document.residenceId)) {
+          return document;
+        }
+        
+        return undefined;
+      }
+    );
+  }
+
+  /**
+   * Creates resident document.
+   * @param document
+   */
+  async createResidentDocument(document: InsertDocumentResident): Promise<DocumentResident> {
+    return dbPerformanceMonitor.trackQuery('createResidentDocument', async () => {
+      const result = await db.insert(schema.documentsResidents).values(document).returning();
+      
+      // Invalidate resident document caches
+      queryCache.invalidate('resident_documents');
+      
+      return result[0];
+    });
+  }
+
+  /**
+   * Updates resident document with permission check.
+   * @param id
+   * @param updates
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async updateResidentDocument(
+    id: string, 
+    updates: Partial<InsertDocumentResident>, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<DocumentResident | undefined> {
+    return dbPerformanceMonitor.trackQuery('updateResidentDocument', async () => {
+      // First check if user has permission to update this document
+      const document = await this.getResidentDocument(id, userId, userRole, organizationId);
+      if (!document) return undefined;
+      
+      const result = await db
+        .update(schema.documentsResidents)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(schema.documentsResidents.id, id))
+        .returning();
+      
+      // Invalidate resident document caches
+      queryCache.invalidate('resident_documents');
+      
+      return result[0];
+    });
+  }
+
+  /**
+   * Deletes resident document with permission check.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async deleteResidentDocument(
+    id: string, 
+    userId: string, 
+    userRole: string, 
+    organizationId?: string
+  ): Promise<boolean> {
+    return dbPerformanceMonitor.trackQuery('deleteResidentDocument', async () => {
+      // First check if user has permission to delete this document
+      const document = await this.getResidentDocument(id, userId, userRole, organizationId);
+      if (!document) return false;
+      
+      const result = await db
+        .delete(schema.documentsResidents)
+        .where(eq(schema.documentsResidents.id, id))
+        .returning();
+      
+      // Invalidate resident document caches
+      queryCache.invalidate('resident_documents');
+      
+      return result.length > 0;
+    });
+  }
+
+  // Legacy Document operations (kept for migration purposes)
+
+  /**
+   * Gets legacy documents for user.
    * @param userId
    * @param userRole
    * @param organizationId
@@ -1584,24 +1924,19 @@ export class OptimizedDatabaseStorage implements IStorage {
     userRole: string, 
     organizationId?: string, 
     residenceIds?: string[]
-  ): Promise<any[]> {
-    // For now return empty array until documents table is available
+  ): Promise<Document[]> {
     return this.withOptimizations(
       'getDocumentsForUser',
-      `user_docs:${userId}:${userRole}`,
+      `legacy_docs:${userId}:${userRole}`,
       'documents',
       async () => {
-        // This would implement role-based document filtering
-        // Admin: all documents
-        // Manager: organization documents
-        // Resident/Tenant: only their building/residence documents
-        return [];
+        return await db.select().from(schema.documents).orderBy(desc(schema.documents.uploadDate));
       }
     );
   }
 
   /**
-   * Gets specific document with permission check.
+   * Gets specific legacy document with permission check.
    * @param id
    * @param userId
    * @param userRole
@@ -1614,36 +1949,34 @@ export class OptimizedDatabaseStorage implements IStorage {
     userRole: string, 
     organizationId?: string, 
     residenceIds?: string[]
-  ): Promise<any | undefined> {
+  ): Promise<Document | undefined> {
     return this.withOptimizations(
       'getDocument',
-      `document:${id}:${userId}`,
+      `legacy_doc:${id}:${userId}`,
       'documents',
       async () => {
-        // This would implement permission check for specific document
-        return undefined;
+        const result = await db.select().from(schema.documents).where(eq(schema.documents.id, id));
+        return result[0];
       }
     );
   }
 
   /**
-   * Creates document.
+   * Creates legacy document.
    * @param document
    */
-  async createDocument(document: any): Promise<any> {
-    // For now return mock document until documents table is available
+  async createDocument(document: InsertDocument): Promise<Document> {
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
-      return {
-        id: `doc_${Date.now()}`,
-        ...document,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const result = await db.insert(schema.documents).values(document).returning();
+      
+      queryCache.invalidate('documents');
+      
+      return result[0];
     });
   }
 
   /**
-   * Updates document with permission check.
+   * Updates legacy document with permission check.
    * @param id
    * @param updates
    * @param userId
@@ -1652,19 +1985,26 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async updateDocument(
     id: string, 
-    updates: any, 
+    updates: Partial<InsertDocument>, 
     userId: string, 
     userRole: string, 
     organizationId?: string
-  ): Promise<any | undefined> {
+  ): Promise<Document | undefined> {
     return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
-      // This would implement permission check and update
-      return undefined;
+      const result = await db
+        .update(schema.documents)
+        .set(updates)
+        .where(eq(schema.documents.id, id))
+        .returning();
+      
+      queryCache.invalidate('documents');
+      
+      return result[0];
     });
   }
 
   /**
-   * Deletes document with permission check.
+   * Deletes legacy document with permission check.
    * @param id
    * @param userId
    * @param userRole
@@ -1677,8 +2017,14 @@ export class OptimizedDatabaseStorage implements IStorage {
     organizationId?: string
   ): Promise<boolean> {
     return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
-      // This would implement permission check and deletion
-      return false;
+      const result = await db
+        .delete(schema.documents)
+        .where(eq(schema.documents.id, id))
+        .returning();
+      
+      queryCache.invalidate('documents');
+      
+      return result.length > 0;
     });
   }
 

@@ -9,6 +9,10 @@ import {
   type InsertResidence,
   type Document,
   type InsertDocument,
+  type DocumentBuilding,
+  type InsertDocumentBuilding,
+  type DocumentResident,
+  type InsertDocumentResident,
   type DevelopmentPillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -554,7 +558,161 @@ export interface IStorage {
    */
   deleteActionableItemsByFeature(_featureId: string): Promise<boolean>;
 
-  // Document operations
+  // Document operations - Building Documents
+  /**
+   * Retrieves building documents with role-based filtering for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_buildingIds] - Array of building IDs the user has access to (optional).
+   * @returns {Promise<DocumentBuilding[]>} Array of building documents the user can access.
+   */
+  getBuildingDocumentsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[]
+  ): Promise<DocumentBuilding[]>;
+
+  /**
+   * Retrieves a specific building document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_buildingIds] - Array of building IDs the user has access to (optional).
+   * @returns {Promise<DocumentBuilding | undefined>} Building document record or undefined if not found or access denied.
+   */
+  getBuildingDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _buildingIds?: string[]
+  ): Promise<DocumentBuilding | undefined>;
+
+  /**
+   * Creates a new building document in the storage system.
+   *
+   * @param {InsertDocumentBuilding} _document - Building document data for creation.
+   * @returns {Promise<DocumentBuilding>} The created building document record with generated ID and timestamps.
+   */
+  createBuildingDocument(_document: InsertDocumentBuilding): Promise<DocumentBuilding>;
+
+  /**
+   * Updates an existing building document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {Partial<InsertDocumentBuilding>} _updates - Partial document data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<DocumentBuilding | undefined>} Updated building document record or undefined if not found or access denied.
+   */
+  updateBuildingDocument(
+    _id: string,
+    _updates: Partial<InsertDocumentBuilding>,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<DocumentBuilding | undefined>;
+
+  /**
+   * Deletes a building document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteBuildingDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<boolean>;
+
+  // Document operations - Resident Documents
+  /**
+   * Retrieves resident documents with role-based filtering for a specific user.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<DocumentResident[]>} Array of resident documents the user can access.
+   */
+  getResidentDocumentsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _residenceIds?: string[]
+  ): Promise<DocumentResident[]>;
+
+  /**
+   * Retrieves a specific resident document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @param {string[]} [_residenceIds] - Array of residence IDs the user has access to (optional).
+   * @returns {Promise<DocumentResident | undefined>} Resident document record or undefined if not found or access denied.
+   */
+  getResidentDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
+    _residenceIds?: string[]
+  ): Promise<DocumentResident | undefined>;
+
+  /**
+   * Creates a new resident document in the storage system.
+   *
+   * @param {InsertDocumentResident} _document - Resident document data for creation.
+   * @returns {Promise<DocumentResident>} The created resident document record with generated ID and timestamps.
+   */
+  createResidentDocument(_document: InsertDocumentResident): Promise<DocumentResident>;
+
+  /**
+   * Updates an existing resident document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {Partial<InsertDocumentResident>} _updates - Partial document data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<DocumentResident | undefined>} Updated resident document record or undefined if not found or access denied.
+   */
+  updateResidentDocument(
+    _id: string,
+    _updates: Partial<InsertDocumentResident>,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<DocumentResident | undefined>;
+
+  /**
+   * Deletes a resident document with permission check.
+   *
+   * @param {string} _id - The unique document identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteResidentDocument(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<boolean>;
+
+  // Legacy Document operations (kept for migration purposes)
   /**
    * Retrieves documents with role-based filtering for a specific user.
    *
