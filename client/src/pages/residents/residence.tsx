@@ -886,6 +886,3 @@ export default function MyResidence() {
     </div>
   );
 }
-                      {filteredDocuments.length} of {documents?.length || 0} documents
-                    </div>
-                  </div>
