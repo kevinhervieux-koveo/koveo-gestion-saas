@@ -673,9 +673,12 @@ export default function ResidenceDocuments() {
                                 ) : (
                                   <ObjectUploader
                                     onGetUploadParameters={async () => {
-                                      const response = await fetch(`/api/documents/${document.id}/upload-url`);
+                                      const response = await fetch('/api/documents/upload-url', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                      });
                                       const data = await response.json();
-                                      return { method: "PUT", url: data.uploadUrl };
+                                      return { method: "PUT", url: data.uploadURL };
                                     }}
                                     onComplete={handleFileUploadComplete(document.id)}
                                     buttonClassName="flex-1"
