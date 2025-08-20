@@ -2329,40 +2329,17 @@ export class MemStorage implements IStorage {
     const allDocuments = Array.from(this.documents.values());
     
     return allDocuments.filter(doc => {
-      // Admin can see all documents
-      if (userRole === 'admin') return true;
+      // Admin and Manager can see all documents
+      if (userRole === 'admin' || userRole === 'manager') return true;
       
-      // Manager can see all documents in their organization
-      if (userRole === 'manager' && organizationId) {
-        return doc.organizationId === organizationId || 
-               (doc.buildingId && this.buildings.get(doc.buildingId)?.organizationId === organizationId);
-      }
-      
-      // Resident can see documents assigned to their residences or buildings
-      if (userRole === 'resident' && residenceIds) {
-        if (doc.residenceId && residenceIds.includes(doc.residenceId)) return true;
-        if (doc.buildingId) {
-          const building = this.buildings.get(doc.buildingId);
-          return residenceIds.some(resId => {
-            const residence = this.residences.get(resId);
-            return residence?.buildingId === building?.id;
-          });
-        }
-        return false;
+      // Resident can see building and residence documents
+      if (userRole === 'resident') {
+        return doc.buildings || doc.residence;
       }
       
       // Tenant can only see documents marked as visible to tenants
-      if (userRole === 'tenant' && residenceIds) {
-        if (!doc.isVisibleToTenants) return false;
-        if (doc.residenceId && residenceIds.includes(doc.residenceId)) return true;
-        if (doc.buildingId) {
-          const building = this.buildings.get(doc.buildingId);
-          return residenceIds.some(resId => {
-            const residence = this.residences.get(resId);
-            return residence?.buildingId === building?.id;
-          });
-        }
-        return false;
+      if (userRole === 'tenant') {
+        return doc.tenant;
       }
       
       return false;
@@ -2394,9 +2371,9 @@ export class MemStorage implements IStorage {
     const newDocument: Document = {
       id,
       ...document,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as Document;
+      uploadDate: new Date(),
+      dateReference: document.dateReference || null,
+    };
     this.documents.set(id, newDocument);
     return newDocument;
   }
@@ -2414,25 +2391,17 @@ export class MemStorage implements IStorage {
     const document = this.documents.get(id);
     if (!document) return undefined;
     
-    // Check permissions - admin and manager in same org can edit
-    if (userRole === 'admin') {
-      // Admin can edit any document
-    } else if (userRole === 'manager' && organizationId) {
-      const canEdit = document.organizationId === organizationId || 
-                     (document.buildingId && this.buildings.get(document.buildingId)?.organizationId === organizationId);
-      if (!canEdit) return undefined;
-    } else if (userRole === 'resident') {
-      // Resident can only edit documents they uploaded
-      if (document.uploadedBy !== userId) return undefined;
+    // Admin and Manager can edit any document
+    if (userRole === 'admin' || userRole === 'manager') {
+      // Allow editing
     } else {
-      // Tenant cannot edit documents
+      // Resident and Tenant cannot edit documents in simplified model
       return undefined;
     }
     
     const updatedDocument = {
       ...document,
       ...updates,
-      updatedAt: new Date(),
     };
     this.documents.set(id, updatedDocument);
     return updatedDocument;
@@ -2450,22 +2419,13 @@ export class MemStorage implements IStorage {
     const document = this.documents.get(id);
     if (!document) return false;
     
-    // Check permissions - admin and manager in same org can delete
-    if (userRole === 'admin') {
-      // Admin can delete any document
-    } else if (userRole === 'manager' && organizationId) {
-      const canDelete = document.organizationId === organizationId || 
-                       (document.buildingId && this.buildings.get(document.buildingId)?.organizationId === organizationId);
-      if (!canDelete) return false;
-    } else if (userRole === 'resident') {
-      // Resident can only delete documents they uploaded
-      if (document.uploadedBy !== userId) return false;
+    // Admin and Manager can delete any document
+    if (userRole === 'admin' || userRole === 'manager') {
+      return this.documents.delete(id);
     } else {
-      // Tenant cannot delete documents
+      // Resident and Tenant cannot delete documents in simplified model
       return false;
     }
-    
-    return this.documents.delete(id);
   }
 
   // Password reset operations - Memory storage implementation

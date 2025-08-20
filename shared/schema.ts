@@ -436,24 +436,13 @@ export const documents = pgTable('documents', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: uuid('organization_id').references(() => organizations.id),
-  buildingId: uuid('building_id').references(() => buildings.id),
-  residenceId: uuid('residence_id').references(() => residences.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  category: text('category').notNull(), // 'bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes'
-  fileUrl: text('file_url').notNull(),
-  fileName: text('file_name').notNull(),
-  fileSize: integer('file_size'),
-  mimeType: text('mime_type'),
-  isPublic: boolean('is_public').notNull().default(false),
-  // New fields for tenant visibility control
-  isVisibleToTenants: boolean('is_visible_to_tenants').notNull().default(false),
-  uploadedBy: uuid('uploaded_by')
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  name: text('name').notNull(),
+  uploadDate: timestamp('upload_date').defaultNow().notNull(),
+  dateReference: timestamp('date_reference'),
+  type: text('type').notNull(),
+  buildings: boolean('buildings').notNull().default(false),
+  residence: boolean('residence').notNull().default(false),
+  tenant: boolean('tenant').notNull().default(false),
 });
 
 export const notifications = pgTable('notifications', {
@@ -792,18 +781,12 @@ export const insertBudgetSchema = createInsertSchema(budgets).pick({
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
-  organizationId: true,
-  buildingId: true,
-  residenceId: true,
-  title: true,
-  description: true,
-  category: true,
-  fileUrl: true,
-  fileName: true,
-  fileSize: true,
-  mimeType: true,
-  isPublic: true,
-  uploadedBy: true,
+  name: true,
+  dateReference: true,
+  type: true,
+  buildings: true,
+  residence: true,
+  tenant: true,
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).pick({
@@ -823,6 +806,10 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   ipAddress: true,
   userAgent: true,
 });
+
+// Document types
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
 
 export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
   name: true,
@@ -1033,16 +1020,6 @@ export type InsertBudget = z.infer<typeof insertBudgetSchema>;
  */
 export type Budget = typeof budgets.$inferSelect;
 
-/**
- * Type for creating new document records with validation.
- * Derived from the insertDocumentSchema for type-safe document creation.
- */
-export type InsertDocument = z.infer<typeof insertDocumentSchema>;
-/**
- * Type representing a complete document record from the database.
- * Inferred from the documents table schema for type safety.
- */
-export type Document = typeof documents.$inferSelect;
 
 /**
  * Type for creating new notification records with validation.
@@ -1551,24 +1528,7 @@ export const budgetsRelations = relations(budgets, ({ one }) => ({
   }),
 }));
 
-export const documentsRelations = relations(documents, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [documents.organizationId],
-    references: [organizations.id],
-  }),
-  building: one(buildings, {
-    fields: [documents.buildingId],
-    references: [buildings.id],
-  }),
-  residence: one(residences, {
-    fields: [documents.residenceId],
-    references: [residences.id],
-  }),
-  uploadedBy: one(users, {
-    fields: [documents.uploadedBy],
-    references: [users.id],
-  }),
-}));
+// Documents are now simplified with boolean flags instead of foreign keys
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
