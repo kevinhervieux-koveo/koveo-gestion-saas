@@ -62,8 +62,8 @@ function formatDate(dateString: string): string {
 }
 
 function getCategoryLabel(value: string): string {
-  const category = DOCUMENT_CATEGORIES.find(cat => cat.value === value);
-  return category ? category.label : value;
+  // Return the actual document type as a formatted label
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 export default function ResidentsBuildingDocuments() {
@@ -102,6 +102,13 @@ export default function ResidentsBuildingDocuments() {
   
   const documents = documentsResponse?.documents || [];
   
+
+  // Get available categories from documents for this building
+  const availableCategories = useMemo(() => {
+    const buildingDocs = documents.filter(doc => doc.buildingId === buildingId);
+    const categories = Array.from(new Set(buildingDocs.map(doc => doc.type || 'other')));
+    return categories.sort();
+  }, [documents, buildingId]);
 
   // Get available years from documents
   const availableYears = useMemo(() => {
@@ -169,12 +176,17 @@ export default function ResidentsBuildingDocuments() {
   const startItem = filteredDocuments.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredDocuments.length);
 
-  // Group paginated documents by category for display
+  // Group paginated documents by their actual types for display
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, BuildingDocument[]> = {};
     
-    DOCUMENT_CATEGORIES.forEach(category => {
-      grouped[category.value] = paginatedDocuments.filter(doc => doc.type === category.value);
+    // Group documents by their actual type values
+    paginatedDocuments.forEach(doc => {
+      const type = doc.type || 'other';
+      if (!grouped[type]) {
+        grouped[type] = [];
+      }
+      grouped[type].push(doc);
     });
 
     return grouped;
@@ -282,9 +294,9 @@ export default function ResidentsBuildingDocuments() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {DOCUMENT_CATEGORIES.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  {availableCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {getCategoryLabel(category)}
                     </SelectItem>
                   ))}
                 </SelectContent>
