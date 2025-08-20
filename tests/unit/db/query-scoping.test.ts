@@ -149,7 +149,7 @@ describe('Database Query Scoping Tests', () => {
         role: 'admin'
       };
 
-      const scopedQuery = await scopeQuery(mockQuery, adminContext, 'bills');
+      const _scopedQuery = await scopeQuery(mockQuery, adminContext, 'bills');
       
       expect(_scopedQuery).toBe(mockQuery);
       expect(mockQuery.where).not.toHaveBeenCalled();
