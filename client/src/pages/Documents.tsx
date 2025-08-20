@@ -342,8 +342,7 @@ export default function Documents() {
             </DialogHeader>
             
             <Form {...form}>
-              <div className="max-h-[60vh] overflow-y-auto pr-2">
-                <form id="create-document-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form id="create-document-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="title"
@@ -499,13 +498,12 @@ export default function Documents() {
                   )}
                 />
 
-                </form>
-              </div>
-              <DialogFooter className="mt-4">
-                <Button type="submit" form="create-document-form" disabled={createDocumentMutation.isPending}>
-                  {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
-                </Button>
-              </DialogFooter>
+                <DialogFooter className="mt-4">
+                  <Button type="submit" disabled={createDocumentMutation.isPending}>
+                    {createDocumentMutation.isPending ? "Creating..." : "Create Document"}
+                  </Button>
+                </DialogFooter>
+              </form>
             </Form>
           </DialogContent>
         </Dialog>
@@ -687,8 +685,7 @@ export default function Documents() {
           </DialogHeader>
 
           <Form {...updateForm}>
-            <div className="max-h-[60vh] overflow-y-auto pr-2">
-              <form id="update-document-form" onSubmit={updateForm.handleSubmit(onUpdate)} className="space-y-4">
+            <form id="update-document-form" onSubmit={updateForm.handleSubmit(onUpdate)} className="space-y-4">
               <FormField
                 control={updateForm.control}
                 name="title"
@@ -763,13 +760,12 @@ export default function Documents() {
                 )}
               />
 
-              </form>
-            </div>
-            <DialogFooter className="mt-4">
-              <Button type="submit" form="update-document-form" disabled={updateDocumentMutation.isPending}>
-                {updateDocumentMutation.isPending ? "Updating..." : "Update Document"}
-              </Button>
-            </DialogFooter>
+              <DialogFooter className="mt-4">
+                <Button type="submit" disabled={updateDocumentMutation.isPending}>
+                  {updateDocumentMutation.isPending ? "Updating..." : "Update Document"}
+                </Button>
+              </DialogFooter>
+            </form>
           </Form>
         </DialogContent>
       </Dialog>
