@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Building, Calendar, Filter } from "lucide-react";
+import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Building, Calendar, Filter, Eye } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import type { UploadResult } from "@uppy/core";
 
@@ -85,7 +85,9 @@ export default function BuildingDocuments() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<BuildingDocument | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [uploadingDocumentId, setUploadingDocumentId] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<{
     fileUrl: string;
@@ -576,6 +578,161 @@ export default function BuildingDocuments() {
                   </Form>
                 </DialogContent>
               </Dialog>
+
+              {/* View/Edit Document Dialog */}
+              <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {isEditMode ? "Edit Document" : "View Document"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isEditMode ? "Modify document details below." : "Document information and actions."}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {selectedDocument && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Name</Label>
+                          <p className="text-sm text-gray-600">{selectedDocument.name}</p>
+                        </div>
+                        <div>
+                          <Label>Category</Label>
+                          <p className="text-sm text-gray-600">
+                            {DOCUMENT_CATEGORIES.find(c => c.value === selectedDocument.type)?.label}
+                          </p>
+                        </div>
+                        <div>
+                          <Label>Date Reference</Label>
+                          <p className="text-sm text-gray-600">
+                            {new Date(selectedDocument.dateReference).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <Label>Upload Date</Label>
+                          <p className="text-sm text-gray-600">
+                            {new Date(selectedDocument.uploadDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* File Information */}
+                      {selectedDocument.fileUrl && (
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                          <h4 className="font-medium mb-2">File Information</h4>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {selectedDocument.fileName && (
+                              <div>
+                                <Label>File Name</Label>
+                                <p className="text-gray-600">{selectedDocument.fileName}</p>
+                              </div>
+                            )}
+                            {selectedDocument.fileSize && (
+                              <div>
+                                <Label>File Size</Label>
+                                <p className="text-gray-600">
+                                  {(selectedDocument.fileSize / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            )}
+                            {selectedDocument.mimeType && (
+                              <div>
+                                <Label>File Type</Label>
+                                <p className="text-gray-600">{selectedDocument.mimeType}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex flex-wrap gap-2 pt-4 border-t">
+                        {selectedDocument.fileUrl ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = selectedDocument.fileUrl!;
+                              link.download = selectedDocument.fileName || 'document';
+                              link.click();
+                            }}
+                            className="flex-1"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download File
+                          </Button>
+                        ) : (
+                          <div className="flex-1">
+                            <ObjectUploader
+                              onGetUploadParameters={async () => {
+                                const response = await fetch('/api/documents/upload-url', {
+                                  method: 'POST',
+                                  credentials: 'include'
+                                });
+                                const data = await response.json();
+                                return { method: "PUT", url: data.uploadURL };
+                              }}
+                              onComplete={async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+                                try {
+                                  const uploadedFile = result.successful[0];
+                                  if (uploadedFile?.uploadURL) {
+                                    await apiRequest('POST', `/api/documents/${selectedDocument.id}/upload`, {
+                                      fileUrl: uploadedFile.uploadURL,
+                                      fileName: uploadedFile.name,
+                                      fileSize: uploadedFile.size,
+                                      mimeType: uploadedFile.type
+                                    });
+                                    
+                                    toast({
+                                      title: "File uploaded successfully",
+                                      description: `${uploadedFile.name} has been uploaded to the document.`,
+                                    });
+                                    
+                                    // Refresh the documents list
+                                    const queryClient = useQueryClient();
+                                    await queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+                                    
+                                    // Update the selected document in the dialog
+                                    const updatedDocument = {
+                                      ...selectedDocument,
+                                      fileUrl: uploadedFile.uploadURL,
+                                      fileName: uploadedFile.name,
+                                      fileSize: uploadedFile.size,
+                                      mimeType: uploadedFile.type
+                                    };
+                                    setSelectedDocument(updatedDocument);
+                                  }
+                                } catch (error) {
+                                  toast({
+                                    title: "Upload failed",
+                                    description: "Failed to upload file. Please try again.",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                              buttonClassName="w-full"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload File
+                            </ObjectUploader>
+                          </div>
+                        )}
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsEditMode(!isEditMode);
+                          }}
+                        >
+                          {isEditMode ? "Cancel Edit" : "Edit Document"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -588,15 +745,16 @@ export default function BuildingDocuments() {
             </Card>
           ) : (
             <Tabs defaultValue={DOCUMENT_CATEGORIES[0].value} className="w-full">
-              <TabsList className="grid grid-cols-5 lg:grid-cols-10 mb-6">
+              <TabsList className="grid grid-cols-5 lg:grid-cols-10 mb-6 w-full overflow-x-auto">
                 {DOCUMENT_CATEGORIES.map((category) => (
                   <TabsTrigger 
                     key={category.value} 
                     value={category.value}
-                    className="text-xs"
+                    className="text-xs px-2 py-1 whitespace-nowrap min-w-0 flex-shrink-0"
+                    title={`${category.label} (${documentsByCategory[category.value]?.length || 0})`}
                   >
-                    {category.label}
-                    <Badge variant="outline" className="ml-1 text-xs">
+                    <span className="truncate">{category.label}</span>
+                    <Badge variant="outline" className="ml-1 text-xs flex-shrink-0">
                       {documentsByCategory[category.value]?.length || 0}
                     </Badge>
                   </TabsTrigger>
@@ -627,7 +785,15 @@ export default function BuildingDocuments() {
                     ) : (
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {documentsByCategory[category.value]?.map((document) => (
-                          <Card key={document.id} className="hover:shadow-md transition-shadow">
+                          <Card 
+                            key={document.id} 
+                            className="hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => {
+                              setSelectedDocument(document);
+                              setIsEditMode(false);
+                              setIsViewDialogOpen(true);
+                            }}
+                          >
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
@@ -646,38 +812,43 @@ export default function BuildingDocuments() {
                             </CardHeader>
                             <CardContent className="pt-0">
                               <div className="flex flex-wrap gap-2">
-                                {document.fileUrl ? (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleDownloadDocument(document)}
-                                    className="flex-1"
-                                  >
-                                    <Download className="h-3 w-3 mr-1" />
-                                    Download
-                                  </Button>
-                                ) : (
-                                  <ObjectUploader
-                                    onGetUploadParameters={async () => {
-                                      const response = await fetch('/api/documents/upload-url', {
-                                        method: 'POST',
-                                        credentials: 'include'
-                                      });
-                                      const data = await response.json();
-                                      return { method: "PUT", url: data.uploadURL };
-                                    }}
-                                    onComplete={handleFileUploadComplete(document.id)}
-                                    buttonClassName="flex-1"
-                                  >
-                                    <Upload className="h-3 w-3 mr-1" />
-                                    Upload File
-                                  </ObjectUploader>
-                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDocument(document);
+                                    setIsEditMode(false);
+                                    setIsViewDialogOpen(true);
+                                  }}
+                                  className="flex-1"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
+                                
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDocument(document);
+                                    setIsEditMode(true);
+                                    setIsViewDialogOpen(true);
+                                  }}
+                                  className="flex-1"
+                                >
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
                                 
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleDeleteDocument(document)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteDocument(document);
+                                  }}
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-3 w-3" />
