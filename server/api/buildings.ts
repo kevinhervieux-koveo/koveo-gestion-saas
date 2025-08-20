@@ -859,8 +859,8 @@ export function registerBuildingRoutes(app: Express): void {
         .select({ count: sql<number>`count(*)` })
         .from(documents)
         .where(or(
-          eq(documents.buildings, true),
-          eq(documents.residence, true)
+          eq(documents.buildings, buildingId),
+          sql`${documents.residence} IN (SELECT id FROM residences WHERE building_id = ${buildingId})`
         ));
 
       // Count users who will become orphaned (only have relationships with residences in this building)
@@ -946,8 +946,8 @@ export function registerBuildingRoutes(app: Express): void {
           // 2. Delete documents associated with building or its residences
           await tx.delete(documents)
             .where(or(
-              eq(documents.buildings, true),
-              eq(documents.residence, true)
+              eq(documents.buildings, buildingId),
+              inArray(documents.residence, residenceIds)
             ));
 
           // 3. Soft delete user-residence relationships
@@ -987,7 +987,7 @@ export function registerBuildingRoutes(app: Express): void {
         } else {
           // Still delete documents associated directly with the building
           await tx.delete(documents)
-            .where(eq(documents.buildings, true));
+            .where(eq(documents.buildings, buildingId));
         }
 
         // 6. Finally, soft delete the building

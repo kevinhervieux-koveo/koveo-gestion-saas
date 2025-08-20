@@ -2,19 +2,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// Textarea component removed (unused)
 import { Button } from '@/components/ui/button';
 import { UseFormReturn } from 'react-hook-form';
 import { BuildingFormData, Organization } from './types';
 
 /**
- *
+ * Interface for BuildingForm component props.
  */
 interface BuildingFormProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   form: UseFormReturn<BuildingFormData>;
-  onSubmit: (data: BuildingFormData) => void;
+  onSubmit: (_data: BuildingFormData) => void;
   organizations: Organization[];
   isSubmitting?: boolean;
   title: string;
@@ -23,15 +23,16 @@ interface BuildingFormProps {
 
 /**
  * Reusable building form component for creating and editing buildings.
- * @param root0
- * @param root0.isOpen
- * @param root0.onOpenChange
- * @param root0.form
- * @param root0.onSubmit
- * @param root0.organizations
- * @param root0.isSubmitting
- * @param root0.title
- * @param root0.submitLabel
+ * @param root0 - Building form component props
+ * @param root0.isOpen - Whether the dialog is open
+ * @param root0.onOpenChange - Callback when dialog open state changes
+ * @param root0.form - React Hook Form instance
+ * @param root0.onSubmit - Form submission handler
+ * @param root0.organizations - Available organizations for selection
+ * @param root0.isSubmitting - Whether form is currently submitting
+ * @param root0.title - Dialog title text
+ * @param root0.submitLabel - Submit button text
+ * @returns JSX element for the building form dialog
  */
 export function BuildingForm({
   isOpen,

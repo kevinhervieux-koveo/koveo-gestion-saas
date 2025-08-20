@@ -6,22 +6,23 @@ import { useLocation } from 'wouter';
 import { BuildingData } from './types';
 
 /**
- *
+ * Interface for BuildingCard component props.
  */
 interface BuildingCardProps {
   building: BuildingData;
   userRole?: string;
-  onEdit: (building: BuildingData) => void;
-  onDelete: (building: BuildingData) => void;
+  onEdit: (_building: BuildingData) => void;
+  onDelete: (_building: BuildingData) => void;
 }
 
 /**
  * Building card component for displaying building information.
- * @param root0
- * @param root0.building
- * @param root0.userRole
- * @param root0.onEdit
- * @param root0.onDelete
+ * @param root0 - Building card component props.
+ * @param root0.building - Building data to display.
+ * @param root0.userRole - Current user's role for permission checking.
+ * @param root0.onEdit - Callback function when edit button is clicked.
+ * @param root0.onDelete - Callback function when delete button is clicked.
+ * @returns JSX element for the building card.
  */
 export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
   const [, navigate] = useLocation();

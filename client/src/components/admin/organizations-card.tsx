@@ -47,7 +47,6 @@ interface OrganizationsCardProps {
 /**
  * Organizations Card component displays and manages organization data.
  * @param root0 - Component props.
- * @returns JSX element for organizations management card.
  * @param root0.className - Optional CSS class name for styling.
  * @returns JSX element for the organizations card component.
  */

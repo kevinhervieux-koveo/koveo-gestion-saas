@@ -42,7 +42,7 @@ export function TokenValidationStep({
   const [validationResult, setValidationResult] = useState<TokenValidationData | null>(data as unknown as TokenValidationData || null);
 
   const validateToken = async (token: string) => {
-    console.log('🔍 Starting token validation for:', token.substring(0, 8) + '...');
+    console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
     setIsValidating(true);
     
     try {
@@ -54,9 +54,9 @@ export function TokenValidationStep({
         body: JSON.stringify({ token })
       });
 
-      console.log('📡 API response status:', response.status);
+      console.warn('📡 API response status:', response.status);
       const result = await response.json();
-      console.log('📄 API response data:', result);
+      console.warn('📄 API response data:', result);
 
       if (response.ok && result.isValid) {
         const validationData: TokenValidationData = {
@@ -112,17 +112,17 @@ export function TokenValidationStep({
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
     const token = urlParams.get('token') || urlParams.get('invitation');
-    console.log('🔍 Checking URL for token:', { 
+    console.warn('🔍 Checking URL for token:', { 
       token: token ? `${token.substring(0, 8)}...` : 'not found',
       url: window.location.search,
       hasValidationResult: !!validationResult 
     });
     
     if (token) {
-      console.log('✅ Found token, starting validation...');
+      console.warn('✅ Found token, starting validation...');
       validateToken(token);
     } else {
-      console.log('❌ No token found in URL parameters');
+      console.warn('❌ No token found in URL parameters');
     }
   }, []); // Remove validationResult dependency to ensure it runs on mount
 

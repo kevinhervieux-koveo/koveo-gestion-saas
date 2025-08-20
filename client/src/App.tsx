@@ -165,7 +165,7 @@ const InvitationAcceptancePage = createOptimizedLoader(
  * @returns JSX element for the router component.
  */
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
 
   // Show loading spinner while authentication is being determined
@@ -284,20 +284,7 @@ function LoginRedirect() {
   return <LoadingSpinner />;
 }
 
-/**
- * Home redirect component for unauthenticated users.
- * Redirects unauthenticated users from protected routes to home page.
- * @returns JSX element that shows loading while redirecting.
- */
-function HomeRedirect() {
-  const [, setLocation] = useLocation();
-  
-  useEffect(() => {
-    setLocation('/');
-  }, [setLocation]);
-  
-  return <LoadingSpinner />;
-}
+// HomeRedirect component removed as it's not currently used
 
 /**
  * Main App component with authentication integration.

@@ -33,7 +33,7 @@ import {
   FormLabel, 
   FormMessage 
 } from '@/components/ui/form';
-import { Checkbox } from '@/components/ui/checkbox';
+// Checkbox component import removed (unused)
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,7 +41,6 @@ import {
   UserPlus, 
   Users, 
   Mail, 
-  Building, 
   X,
   Plus,
   Shield
@@ -214,19 +213,19 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch organizations (filtered by user access)
-  const { data: organizations, error: orgError, isLoading: orgLoading } = useQuery<Organization[]>({
+  const { data: organizations } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
-      console.log('Fetching organizations...');
+      console.warn('Fetching organizations...');
       const response = await apiRequest('GET', '/api/users/me/organizations');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      console.warn('Response status:', response.status);
+      console.warn('Response headers:', response.headers);
       const text = await response.text();
-      console.log('Raw response text:', text);
+      console.warn('Raw response text:', text);
       
       try {
         const data = JSON.parse(text);
-        console.log('Organizations parsed successfully:', data);
+        console.warn('Organizations parsed successfully:', data);
         return data;
       } catch (e) {
         console.error('Failed to parse organizations JSON:', e);
@@ -260,11 +259,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
     if (!organizations || !Array.isArray(organizations)) {
-      console.log('No organizations available');
+      console.warn('No organizations available');
       return [];
     }
     
-    console.log('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
+    console.warn('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
     
     // Filter out any invalid organizations with detailed logging
     const validOrgs = organizations.filter(org => {
