@@ -183,7 +183,7 @@ interface InflationConfig {
 export default function Budget() {
   const { language } = useLanguage();
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
-  const [viewType, setViewType] = useState<'yearly' | 'monthly'>('monthly');
+  const [viewType, setViewType] = useState<'yearly' | 'monthly'>('yearly');
   const [showCategories, setShowCategories] = useState(false);
   const [bankAccountDialog, setBankAccountDialog] = useState(false);
   const [minimumBalancesDialog, setMinimumBalancesDialog] = useState(false);
@@ -1096,7 +1096,13 @@ export default function Budget() {
                         dataKey='date' 
                         tickFormatter={(value) => {
                           const [year, month] = value.split('-');
-                          return `${year}-${month}`;
+                          if (viewType === 'yearly') {
+                            // For yearly view, only show year (and only for January dates)
+                            return month === '01' ? year : '';
+                          } else {
+                            // For monthly view, show year-month
+                            return `${year}-${month}`;
+                          }
                         }}
                       />
                       <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />

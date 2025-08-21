@@ -101,7 +101,8 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
         
         // Generate sample data for the requested year range
         for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
-          const monthsInYear = year === start ? [1, 6, 12] : [1, 6, 12]; // Sample months
+          // For yearly view, show only January 1st of each year, for monthly show sample months
+          const monthsInYear = groupBy === 'yearly' ? [1] : [1, 6, 12];
           
           monthsInYear.forEach(month => {
             sampleData.push({
@@ -183,9 +184,10 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     if (summaryData.length === 0) {
       const sampleSummary = [];
       
-      // Generate sample data for the requested year range
+      // Generate sample data for the requested year range  
       for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
-        const monthsInYear = year === start ? [1, 6, 12] : [1, 6, 12]; // Sample months
+        // For yearly view, show only January 1st of each year, for monthly show sample months
+        const monthsInYear = [1]; // Always January 1st for summary data
         
         monthsInYear.forEach(month => {
           sampleSummary.push({
