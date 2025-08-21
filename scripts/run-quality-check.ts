@@ -501,6 +501,7 @@ async function generateSuggestions(
 
 /**
  * Checks JSDoc documentation coverage.
+ * @returns Promise resolving to JSDoc coverage count
  */
 async function checkJSDocCoverage(): Promise<number> {
   try {
@@ -518,6 +519,7 @@ async function checkJSDocCoverage(): Promise<number> {
 
 /**
  * Checks build performance.
+ * @returns Promise resolving to build time in milliseconds
  */
 async function checkBuildPerformance(): Promise<number> {
   try {
@@ -648,8 +650,8 @@ async function analyzeCoverage(): Promise<CoverageResult> {
       lineCoverage: totalCoverage.lines.pct,
       uncoveredFiles,
     };
-  } catch (error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${error}${COLORS.RESET}`);
+  } catch (_error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${_error}${COLORS.RESET}`);
     return {
       totalCoverage: 0,
       branchCoverage: 0,
@@ -662,6 +664,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
 
 /**
  * Analyzes translation coverage across all UI components.
+ * @returns Promise resolving to translation coverage analysis results
  */
 async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> {
   try {
@@ -865,8 +868,8 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
       coveragePercentage: Math.round((testedComponents / componentFiles.length) * 100),
       untestedComponents,
     };
-  } catch (error) {
-    console.warn(`🧩 Component coverage analysis failed: ${error}`);
+  } catch (_error) {
+    console.warn(`🧩 Component coverage analysis failed: ${_error}`);
     return {
       totalComponents: 0,
       testedComponents: 0,
@@ -921,8 +924,8 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
       }),
       totalVulnerabilities: vulnerabilities.length,
     };
-  } catch (error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${error}${COLORS.RESET}`);
+  } catch (_error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${_error}${COLORS.RESET}`);
     return {
       vulnerabilities: [],
       totalVulnerabilities: 0,
@@ -1000,8 +1003,8 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
       duplicatePatterns,
       refactoringSuggestions,
     };
-  } catch (error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${error}${COLORS.RESET}`);
+  } catch (_error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${_error}${COLORS.RESET}`);
     return {
       totalComponents: 0,
       componentsWithRedundancy: 0,
@@ -1019,6 +1022,7 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
  * Extracts numeric value from test output using regex.
  * @param output
  * @param regex
+ * @returns Extracted number or null if not found
  */
 function extractNumberFromOutput(output: string, regex: RegExp): number | null {
   const match = output.match(regex);
@@ -1027,6 +1031,7 @@ function extractNumberFromOutput(output: string, regex: RegExp): number | null {
 
 /**
  * Analyzes Quebec Law 25 compliance using Semgrep.
+ * @returns Promise resolving to Law 25 compliance analysis results
  */
 async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
   try {
@@ -1322,7 +1327,7 @@ async function verifyQualityMetricsAPI(
     console.warn('\n🔍 Verifying quality metrics are correctly updated in /owner/quality...');
     
     // Make a request to the quality metrics API
-    const response = await fetch('http://localhost:5000/api/quality-metrics', {
+    const _response = await fetch('http://localhost:5000/api/quality-metrics', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -1404,6 +1409,7 @@ async function verifyQualityMetricsAPI(
 
 /**
  * Main function to execute quality checks and save to database.
+ * @returns Promise that resolves when quality analysis is complete
  */
 async function main(): Promise<void> {
   console.warn(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);
