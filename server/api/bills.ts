@@ -127,15 +127,40 @@ export function registerBillRoutes(app: Express) {
   app.get('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
       const filters = billFilterSchema.parse(req.query);
+      const user = req.user;
       
-      // Get building name for mock data
+      // Check if user has access to the requested building
       const building = await db
-        .select({ name: buildings.name })
+        .select({ 
+          id: buildings.id,
+          name: buildings.name, 
+          organizationId: buildings.organizationId 
+        })
         .from(buildings)
         .where(eq(buildings.id, filters.buildingId))
         .limit(1);
       
-      const buildingName = building[0]?.name || 'Unknown Building';
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+      
+      // Role-based access control:
+      // - Admin role: can access all buildings
+      // - Manager role: can only access buildings from their organizations
+      // - Others: no access to bills management
+      const canAccessBuilding = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+      
+      if (!canAccessBuilding) {
+        return res.status(403).json({ 
+          message: 'Access denied to this building',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+      
+      const buildingName = building[0].name;
       
       // Filter mock bills
       let filteredBills = mockBills.map(bill => ({
@@ -189,6 +214,34 @@ export function registerBillRoutes(app: Express) {
   app.post('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
       const data = createBillSchema.parse(req.body);
+      const user = req.user;
+      
+      // Check if user has access to create bills for this building
+      const building = await db
+        .select({ 
+          id: buildings.id,
+          organizationId: buildings.organizationId 
+        })
+        .from(buildings)
+        .where(eq(buildings.id, data.buildingId))
+        .limit(1);
+      
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+      
+      // Role-based access control for bill creation
+      const canCreateBill = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+      
+      if (!canCreateBill) {
+        return res.status(403).json({ 
+          message: 'Access denied to create bills for this building',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
       
       // Generate bill number
       const billNumber = `BILL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -224,10 +277,36 @@ export function registerBillRoutes(app: Express) {
     try {
       const billId = req.params.id;
       const data = createBillSchema.partial().parse(req.body);
+      const user = req.user;
       
       const billIndex = mockBills.findIndex(b => b.id === billId);
       if (billIndex === -1) {
         return res.status(404).json({ message: 'Bill not found' });
+      }
+      
+      // Check if user has access to update this bill
+      const billBuildingId = mockBills[billIndex].buildingId;
+      const building = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, billBuildingId))
+        .limit(1);
+      
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found for this bill' });
+      }
+      
+      // Role-based access control for bill updates
+      const canUpdateBill = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+      
+      if (!canUpdateBill) {
+        return res.status(403).json({ 
+          message: 'Access denied to update this bill',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
       }
 
       // Update mock bill
@@ -252,10 +331,36 @@ export function registerBillRoutes(app: Express) {
   app.delete('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
       const billId = req.params.id;
+      const user = req.user;
       const billIndex = mockBills.findIndex(b => b.id === billId);
       
       if (billIndex === -1) {
         return res.status(404).json({ message: 'Bill not found' });
+      }
+      
+      // Check if user has access to delete this bill
+      const billBuildingId = mockBills[billIndex].buildingId;
+      const building = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, billBuildingId))
+        .limit(1);
+      
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found for this bill' });
+      }
+      
+      // Role-based access control for bill deletion
+      const canDeleteBill = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+      
+      if (!canDeleteBill) {
+        return res.status(403).json({ 
+          message: 'Access denied to delete this bill',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
       }
 
       res.json({ message: 'Bill deleted successfully' });

@@ -20,6 +20,113 @@ import crypto from 'crypto';
  */
 export function registerBuildingRoutes(app: Express): void {
   /**
+   * GET /api/buildings - Retrieves buildings based on user role and organization access.
+   * Used by bills page and other components.
+   * 
+   * Access Control Logic:
+   * - Admin: Can see all buildings if they have global access, or buildings in their organizations
+   * - Manager: Can see only buildings in their organizations
+   * - Others: No access to buildings list
+   */
+  app.get('/api/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Role-based access control for buildings
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          message: 'Access denied. Admin or Manager role required.',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      console.log(`📊 Fetching buildings for user ${user.id} with role ${user.role}`);
+
+      let buildingsQuery;
+
+      if (user.role === 'admin' && user.canAccessAllOrganizations) {
+        // Admin with global access can see all buildings
+        buildingsQuery = db
+          .select({
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+            city: buildings.city,
+            province: buildings.province,
+            postalCode: buildings.postalCode,
+            buildingType: buildings.buildingType,
+            yearBuilt: buildings.yearBuilt,
+            totalUnits: buildings.totalUnits,
+            totalFloors: buildings.totalFloors,
+            parkingSpaces: buildings.parkingSpaces,
+            storageSpaces: buildings.storageSpaces,
+            organizationId: buildings.organizationId,
+            isActive: buildings.isActive,
+            createdAt: buildings.createdAt,
+            organizationName: organizations.name
+          })
+          .from(buildings)
+          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+          .where(eq(buildings.isActive, true))
+          .orderBy(organizations.name, buildings.name);
+      } else {
+        // Manager or admin without global access: only buildings from their organizations
+        if (!user.organizations || user.organizations.length === 0) {
+          return res.json([]); // No organizations = no buildings
+        }
+
+        buildingsQuery = db
+          .select({
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+            city: buildings.city,
+            province: buildings.province,
+            postalCode: buildings.postalCode,
+            buildingType: buildings.buildingType,
+            yearBuilt: buildings.yearBuilt,
+            totalUnits: buildings.totalUnits,
+            totalFloors: buildings.totalFloors,
+            parkingSpaces: buildings.parkingSpaces,
+            storageSpaces: buildings.storageSpaces,
+            organizationId: buildings.organizationId,
+            isActive: buildings.isActive,
+            createdAt: buildings.createdAt,
+            organizationName: organizations.name
+          })
+          .from(buildings)
+          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+          .where(
+            and(
+              eq(buildings.isActive, true),
+              inArray(buildings.organizationId, user.organizations)
+            )
+          )
+          .orderBy(organizations.name, buildings.name);
+      }
+
+      const result = await buildingsQuery;
+      
+      console.log(`✅ Found ${result.length} buildings for user ${user.id}`);
+      res.json(result);
+
+    } catch (error) {
+      console.error('❌ Error fetching buildings:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch buildings'
+      });
+    }
+  });
+
+  /**
    * GET /api/manager/buildings - Retrieves buildings based on user role and associations.
    * 
    * Access Control Logic:
