@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
 import { Header } from '@/components/layout/header';
@@ -16,6 +16,124 @@ import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, Chevron
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
+
+// Category translation mapping - moved outside component for performance
+const categoryTranslations: Record<string, { en: string; fr: string }> = {
+  // Income categories
+  'monthly_fees': { en: 'Monthly Fees', fr: 'Frais mensuels' },
+  'parking_fees': { en: 'Parking Fees', fr: 'Frais de stationnement' },
+  'other_income': { en: 'Other Income', fr: 'Autres revenus' },
+  'special_assessment': { en: 'Special Assessment', fr: 'Cotisation spéciale' },
+  'interest_income': { en: 'Interest Income', fr: "Revenus d'intérêts" },
+  'rental_income': { en: 'Rental Income', fr: 'Revenus de location' },
+  
+  // Expense categories
+  'maintenance_expense': { en: 'Maintenance', fr: 'Entretien' },
+  'utilities': { en: 'Utilities', fr: 'Services publics' },
+  'insurance': { en: 'Insurance', fr: 'Assurance' },
+  'administrative_expense': { en: 'Administration', fr: 'Administration' },
+  'cleaning': { en: 'Cleaning', fr: 'Nettoyage' },
+  'professional_services': { en: 'Professional Services', fr: 'Services professionnels' },
+  'bill_payment': { en: 'Bill Payment', fr: 'Paiement de factures' },
+  'repairs': { en: 'Repairs', fr: 'Réparations' },
+  'landscaping': { en: 'Landscaping', fr: 'Aménagement paysager' },
+  'snow_removal': { en: 'Snow Removal', fr: 'Déneigement' },
+  'security': { en: 'Security', fr: 'Sécurité' },
+  'legal_fees': { en: 'Legal Fees', fr: 'Frais juridiques' },
+};
+
+// Translation function moved outside component
+const translateCategory = (category: string, language: 'en' | 'fr') => {
+  const translation = categoryTranslations[category];
+  if (translation) {
+    return language === 'fr' ? translation.fr : translation.en;
+  }
+  // Fallback: capitalize and replace underscores
+  return category.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+};
+
+// Bank account translations moved outside component for performance
+const getBankAccountTranslations = (language: 'en' | 'fr') => ({
+  title: language === 'fr' ? 'Gestion du compte bancaire' : 'Bank Account Management',
+  currentAccount: language === 'fr' ? 'Compte actuel:' : 'Current Account:',
+  lastNote: language === 'fr' ? 'Dernière note:' : 'Last Note:',
+  updated: language === 'fr' ? 'Mis à jour:' : 'Updated:',
+  startDate: language === 'fr' ? 'Date de début:' : 'Start Date:',
+  startAmount: language === 'fr' ? 'Solde initial:' : 'Starting Balance:',
+  minimumBalances: language === 'fr' ? 'Soldes minimums:' : 'Minimum Balances:',
+  noAccount: language === 'fr' ? 'Aucun compte bancaire défini pour ce bâtiment' : 'No bank account set for this building',
+  updateAccount: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
+  setAccount: language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account',
+  manageMinimums: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
+  dialogTitle: language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account',
+  minimumDialogTitle: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
+  dialogDescription: language === 'fr' ? 
+    'Mettre à jour les informations du compte bancaire pour ce bâtiment.' :
+    'Update the bank account information for this building.',
+  minimumDialogDescription: language === 'fr' ? 
+    'Gérer les soldes minimums requis pour ce compte bancaire.' :
+    'Manage required minimum balances for this bank account.',
+  accountNumber: language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number',
+  accountNumberPlaceholder: language === 'fr' ? 'Saisir le numéro de compte' : 'Enter account number',
+  reconciliationNote: language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note',
+  reconciliationNotePlaceholder: language === 'fr' ? 'Note pour ce changement...' : 'Note for this change...',
+  startDateLabel: language === 'fr' ? 'Date de début du suivi' : 'Tracking Start Date',
+  startAmountLabel: language === 'fr' ? 'Solde initial ($)' : 'Starting Balance ($)',
+  startAmountPlaceholder: language === 'fr' ? 'Montant initial' : 'Initial amount',
+  minimumBalancesLabel: language === 'fr' ? 'Soldes minimums requis' : 'Required Minimum Balances',
+  addMinimum: language === 'fr' ? 'Ajouter un minimum' : 'Add Minimum',
+  amount: language === 'fr' ? 'Montant' : 'Amount',
+  description: language === 'fr' ? 'Description' : 'Description',
+  descriptionPlaceholder: language === 'fr' ? 'Ex: Fonds d\'urgence' : 'e.g., Emergency fund',
+  cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+  updating: language === 'fr' ? 'Mise à jour...' : 'Updating...',
+  updateButton: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
+});
+
+// Contribution translations moved outside component for performance
+const getContributionTranslations = (language: 'en' | 'fr') => ({
+  title: language === 'fr' ? 'Répartition des contributions spéciales' : 'Special Contribution Breakdown',
+  subtitle: language === 'fr' ? 'Montant requis par propriété selon le pourcentage de copropriété' : 'Required amount per property based on ownership percentage',
+  noContribution: language === 'fr' ? 'Aucune contribution spéciale requise - flux de trésorerie positif' : 'No special contribution required - positive cash flow',
+  totalRequired: language === 'fr' ? 'Total requis:' : 'Total required:',
+  unit: language === 'fr' ? 'Unité' : 'Unit',
+  ownership: language === 'fr' ? 'Propriété (%)' : 'Ownership (%)',
+  contribution: language === 'fr' ? 'Contribution ($)' : 'Contribution ($)',
+  floor: language === 'fr' ? 'Étage' : 'Floor',
+  page: language === 'fr' ? 'Page' : 'Page',
+  of: language === 'fr' ? 'de' : 'of',
+  previous: language === 'fr' ? 'Précédent' : 'Previous',
+  next: language === 'fr' ? 'Suivant' : 'Next',
+});
+
+// Inflation translations moved outside component for performance
+const getInflationTranslations = (language: 'en' | 'fr') => ({
+  title: language === 'fr' ? 'Gestion de l\'inflation' : 'Inflation Management',
+  manageInflation: language === 'fr' ? 'Gérer l\'inflation' : 'Manage Inflation',
+  dialogTitle: language === 'fr' ? 'Paramètres d\'inflation' : 'Inflation Settings',
+  dialogDescription: language === 'fr' ? 'Configurer les taux d\'inflation pour les revenus et dépenses.' : 'Configure inflation rates for income and expenses.',
+  generalSettings: language === 'fr' ? 'Paramètres généraux' : 'General Settings',
+  generalIncome: language === 'fr' ? 'Inflation générale des revenus (%)' : 'General Income Inflation (%)',
+  generalExpense: language === 'fr' ? 'Inflation générale des dépenses (%)' : 'General Expense Inflation (%)',
+  splitByCategory: language === 'fr' ? 'Diviser par catégorie' : 'Split by Category',
+  incomeByCategory: language === 'fr' ? 'Revenus par catégorie' : 'Income by Category',
+  expenseByCategory: language === 'fr' ? 'Dépenses par catégorie' : 'Expense by Category',
+  addIncome: language === 'fr' ? 'Ajouter revenu' : 'Add Income',
+  addExpense: language === 'fr' ? 'Ajouter dépense' : 'Add Expense',
+  category: language === 'fr' ? 'Catégorie' : 'Category',
+  rate: language === 'fr' ? 'Taux (%)' : 'Rate (%)',
+  mode: language === 'fr' ? 'Mode' : 'Mode',
+  yearly: language === 'fr' ? 'Annuel' : 'Yearly',
+  oneTime: language === 'fr' ? 'Unique' : 'One-time',
+  targetYear: language === 'fr' ? 'Année cible' : 'Target Year',
+  description: language === 'fr' ? 'Description' : 'Description',
+  descriptionPlaceholder: language === 'fr' ? 'Ex: Ajustement salarial' : 'e.g., Salary adjustment',
+  cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+  save: language === 'fr' ? 'Sauvegarder' : 'Save Changes',
+  saving: language === 'fr' ? 'Sauvegarde...' : 'Saving...',
+});
 
 interface BudgetData {
   year: number;
@@ -184,69 +302,36 @@ export default function Budget() {
     }).sort((a: BudgetData, b: BudgetData) => a.date.localeCompare(b.date));
   }, [budgetSummary]);
 
-  // Find minimum balance for chart visualization
+  // Find minimum balance for chart visualization - optimized
   const minimumBalanceForChart = useMemo(() => {
-    if (minimumBalanceSettings.length === 0) return null;
+    if (!minimumBalanceSettings?.length) return null;
     return Math.min(...minimumBalanceSettings.map(m => m.amount));
-  }, [minimumBalanceSettings]);
+  }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
   // Special contribution and property calculations are now defined after filteredChartData
 
-  // Category translation mapping
-  const categoryTranslations: Record<string, { en: string; fr: string }> = {
-    // Income categories
-    'monthly_fees': { en: 'Monthly Fees', fr: 'Frais mensuels' },
-    'parking_fees': { en: 'Parking Fees', fr: 'Frais de stationnement' },
-    'other_income': { en: 'Other Income', fr: 'Autres revenus' },
-    'special_assessment': { en: 'Special Assessment', fr: 'Cotisation spéciale' },
-    'interest_income': { en: 'Interest Income', fr: "Revenus d'intérêts" },
-    'rental_income': { en: 'Rental Income', fr: 'Revenus de location' },
-    
-    // Expense categories
-    'maintenance_expense': { en: 'Maintenance', fr: 'Entretien' },
-    'utilities': { en: 'Utilities', fr: 'Services publics' },
-    'insurance': { en: 'Insurance', fr: 'Assurance' },
-    'administrative_expense': { en: 'Administration', fr: 'Administration' },
-    'cleaning': { en: 'Cleaning', fr: 'Nettoyage' },
-    'professional_services': { en: 'Professional Services', fr: 'Services professionnels' },
-    'bill_payment': { en: 'Bill Payment', fr: 'Paiement de factures' },
-    'repairs': { en: 'Repairs', fr: 'Réparations' },
-    'landscaping': { en: 'Landscaping', fr: 'Aménagement paysager' },
-    'snow_removal': { en: 'Snow Removal', fr: 'Déneigement' },
-    'security': { en: 'Security', fr: 'Sécurité' },
-    'legal_fees': { en: 'Legal Fees', fr: 'Frais juridiques' },
-  };
+  // Category translation function now uses the moved constant
   
-  const translateCategory = (category: string) => {
-    const translation = categoryTranslations[category];
-    if (translation) {
-      return language === 'fr' ? translation.fr : translation.en;
-    }
-    // Fallback: capitalize and replace underscores
-    return category.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
-  };
-  
-  // Get all available categories with translations
+  // Get all available categories with translations - optimized to avoid recalculation
   const availableCategories = useMemo(() => {
+    if (!chartData?.length) return [];
     const categories = new Set<string>();
     chartData.forEach((item) => {
-      Object.keys(item.incomeByCategory).forEach(cat => {
-        const translated = translateCategory(cat);
+      Object.keys(item.incomeByCategory || {}).forEach(cat => {
+        const translated = translateCategory(cat, language);
         categories.add(`${language === 'fr' ? 'Revenus' : 'Income'}: ${translated}`);
       });
-      Object.keys(item.expensesByCategory).forEach(cat => {
-        const translated = translateCategory(cat);
+      Object.keys(item.expensesByCategory || {}).forEach(cat => {
+        const translated = translateCategory(cat, language);
         categories.add(`${language === 'fr' ? 'Dépenses' : 'Expense'}: ${translated}`);
       });
     });
     return Array.from(categories).sort();
-  }, [chartData, language]);
+  }, [chartData?.length, language]);
 
-  // Filter data by selected categories
+  // Filter data by selected categories - optimized with better dependency tracking
   const filteredChartData = useMemo(() => {
-    if (selectedCategories.length === 0) return chartData;
+    if (!chartData?.length || selectedCategories.length === 0) return chartData || [];
     
     return chartData.map(item => {
       let filteredIncome = 0;
@@ -260,7 +345,7 @@ export default function Budget() {
           const translatedCatName = category.replace(incomePrefix, '');
           // Find original category name from translation
           const originalCatName = Object.keys(item.incomeByCategory).find(key => {
-            return translateCategory(key) === translatedCatName;
+            return translateCategory(key, language) === translatedCatName;
           });
           if (originalCatName) {
             filteredIncome += item.incomeByCategory[originalCatName] || 0;
@@ -269,7 +354,7 @@ export default function Budget() {
           const translatedCatName = category.replace(expensePrefix, '');
           // Find original category name from translation
           const originalCatName = Object.keys(item.expensesByCategory).find(key => {
-            return translateCategory(key) === translatedCatName;
+            return translateCategory(key, language) === translatedCatName;
           });
           if (originalCatName) {
             filteredExpenses += item.expensesByCategory[originalCatName] || 0;
@@ -285,31 +370,31 @@ export default function Budget() {
                      (selectedCategories.length ? filteredExpenses : item.totalExpenses),
       };
     });
-  }, [chartData, selectedCategories]);
+  }, [chartData, selectedCategories.join(','), language]);
 
-  // Calculate special contribution and property breakdown
+  // Calculate special contribution and property breakdown - optimized
   const specialContribution = useMemo(() => {
+    if (!filteredChartData?.length) return 0;
     const netCashFlow = filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0);
     return Math.abs(Math.min(0, netCashFlow));
   }, [filteredChartData]);
 
-  // Get residences for selected building and calculate contributions
+  // Get residences for selected building and calculate contributions - optimized
   const propertyContributions = useMemo(() => {
-    if (!selectedBuilding || !residences || specialContribution === 0) return [];
+    if (!selectedBuilding || !residences?.length || specialContribution === 0) return [];
     
-    // Filter residences for selected building
-    const buildingResidences = residences.filter((residence: any) => 
-      residence.building_id === selectedBuilding
-    );
-    
-    return buildingResidences.map((residence: any) => ({
-      id: residence.id,
-      unitNumber: residence.unit_number,
-      ownershipPercentage: residence.ownership_percentage || 0,
-      contribution: (specialContribution * (residence.ownership_percentage || 0)) / 100,
-      floor: residence.floor,
-    })).sort((a: any, b: any) => a.unitNumber.localeCompare(b.unitNumber));
-  }, [selectedBuilding, residences, specialContribution]);
+    // Filter and map in single pass for better performance
+    return residences
+      .filter((residence: any) => residence.building_id === selectedBuilding)
+      .map((residence: any) => ({
+        id: residence.id,
+        unitNumber: residence.unit_number,
+        ownershipPercentage: residence.ownership_percentage || 0,
+        contribution: (specialContribution * (residence.ownership_percentage || 0)) / 100,
+        floor: residence.floor,
+      }))
+      .sort((a: any, b: any) => a.unitNumber.localeCompare(b.unitNumber));
+  }, [selectedBuilding, residences?.length, specialContribution]);
 
   // Pagination for property contributions
   const totalContributionPages = Math.ceil(propertyContributions.length / contributionsPerPage);
@@ -318,7 +403,8 @@ export default function Budget() {
     contributionPage * contributionsPerPage
   );
 
-  const chartConfig = {
+  // Chart config memoized to prevent recreation
+  const chartConfig = useMemo(() => ({
     totalIncome: {
       label: language === 'fr' ? 'Revenus Totaux' : 'Total Income',
       color: 'hsl(120, 70%, 50%)',
@@ -331,88 +417,16 @@ export default function Budget() {
       label: language === 'fr' ? 'Solde Minimum' : 'Minimum Balance',
       color: 'hsl(0, 80%, 60%)',
     },
-  };
+  }), [language]);
 
-  // Bank account translations
-  const bankAccountTranslations = {
-    title: language === 'fr' ? 'Gestion du compte bancaire' : 'Bank Account Management',
-    currentAccount: language === 'fr' ? 'Compte actuel:' : 'Current Account:',
-    lastNote: language === 'fr' ? 'Dernière note:' : 'Last Note:',
-    updated: language === 'fr' ? 'Mis à jour:' : 'Updated:',
-    startDate: language === 'fr' ? 'Date de début:' : 'Start Date:',
-    startAmount: language === 'fr' ? 'Solde initial:' : 'Starting Balance:',
-    minimumBalances: language === 'fr' ? 'Soldes minimums:' : 'Minimum Balances:',
-    noAccount: language === 'fr' ? 'Aucun compte bancaire défini pour ce bâtiment' : 'No bank account set for this building',
-    updateAccount: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
-    setAccount: language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account',
-    manageMinimums: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
-    dialogTitle: language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account',
-    minimumDialogTitle: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
-    dialogDescription: language === 'fr' ? 
-      'Mettre à jour les informations du compte bancaire pour ce bâtiment.' :
-      'Update the bank account information for this building.',
-    minimumDialogDescription: language === 'fr' ? 
-      'Gérer les soldes minimums requis pour ce compte bancaire.' :
-      'Manage required minimum balances for this bank account.',
-    accountNumber: language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number',
-    accountNumberPlaceholder: language === 'fr' ? 'Saisir le numéro de compte' : 'Enter account number',
-    reconciliationNote: language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note',
-    reconciliationNotePlaceholder: language === 'fr' ? 'Note pour ce changement...' : 'Note for this change...',
-    startDateLabel: language === 'fr' ? 'Date de début du suivi' : 'Tracking Start Date',
-    startAmountLabel: language === 'fr' ? 'Solde initial ($)' : 'Starting Balance ($)',
-    startAmountPlaceholder: language === 'fr' ? 'Montant initial' : 'Initial amount',
-    minimumBalancesLabel: language === 'fr' ? 'Soldes minimums requis' : 'Required Minimum Balances',
-    addMinimum: language === 'fr' ? 'Ajouter un minimum' : 'Add Minimum',
-    amount: language === 'fr' ? 'Montant' : 'Amount',
-    description: language === 'fr' ? 'Description' : 'Description',
-    descriptionPlaceholder: language === 'fr' ? 'Ex: Fonds d\'urgence' : 'e.g., Emergency fund',
-    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
-    updating: language === 'fr' ? 'Mise à jour...' : 'Updating...',
-    updateButton: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
-  };
+  // Use optimized translation functions
+  const bankAccountTranslations = getBankAccountTranslations(language);
 
-  // Property contribution translations
-  const contributionTranslations = {
-    title: language === 'fr' ? 'Répartition des contributions spéciales' : 'Special Contribution Breakdown',
-    subtitle: language === 'fr' ? 'Montant requis par propriété selon le pourcentage de copropriété' : 'Required amount per property based on ownership percentage',
-    noContribution: language === 'fr' ? 'Aucune contribution spéciale requise - flux de trésorerie positif' : 'No special contribution required - positive cash flow',
-    totalRequired: language === 'fr' ? 'Total requis:' : 'Total required:',
-    unit: language === 'fr' ? 'Unité' : 'Unit',
-    ownership: language === 'fr' ? 'Propriété (%)' : 'Ownership (%)',
-    contribution: language === 'fr' ? 'Contribution ($)' : 'Contribution ($)',
-    floor: language === 'fr' ? 'Étage' : 'Floor',
-    page: language === 'fr' ? 'Page' : 'Page',
-    of: language === 'fr' ? 'de' : 'of',
-    previous: language === 'fr' ? 'Précédent' : 'Previous',
-    next: language === 'fr' ? 'Suivant' : 'Next',
-  };
+  // Use optimized translation functions
+  const contributionTranslations = getContributionTranslations(language);
 
-  // Inflation management translations
-  const inflationTranslations = {
-    title: language === 'fr' ? 'Gestion de l\'inflation' : 'Inflation Management',
-    manageInflation: language === 'fr' ? 'Gérer l\'inflation' : 'Manage Inflation',
-    dialogTitle: language === 'fr' ? 'Paramètres d\'inflation' : 'Inflation Settings',
-    dialogDescription: language === 'fr' ? 'Configurer les taux d\'inflation pour les revenus et dépenses.' : 'Configure inflation rates for income and expenses.',
-    generalSettings: language === 'fr' ? 'Paramètres généraux' : 'General Settings',
-    generalIncome: language === 'fr' ? 'Inflation générale des revenus (%)' : 'General Income Inflation (%)',
-    generalExpense: language === 'fr' ? 'Inflation générale des dépenses (%)' : 'General Expense Inflation (%)',
-    splitByCategory: language === 'fr' ? 'Diviser par catégorie' : 'Split by Category',
-    incomeByCategory: language === 'fr' ? 'Revenus par catégorie' : 'Income by Category',
-    expenseByCategory: language === 'fr' ? 'Dépenses par catégorie' : 'Expense by Category',
-    addIncome: language === 'fr' ? 'Ajouter revenu' : 'Add Income',
-    addExpense: language === 'fr' ? 'Ajouter dépense' : 'Add Expense',
-    category: language === 'fr' ? 'Catégorie' : 'Category',
-    rate: language === 'fr' ? 'Taux (%)' : 'Rate (%)',
-    mode: language === 'fr' ? 'Mode' : 'Mode',
-    yearly: language === 'fr' ? 'Annuel' : 'Yearly',
-    oneTime: language === 'fr' ? 'Unique' : 'One-time',
-    targetYear: language === 'fr' ? 'Année cible' : 'Target Year',
-    description: language === 'fr' ? 'Description' : 'Description',
-    descriptionPlaceholder: language === 'fr' ? 'Ex: Ajustement salarial' : 'e.g., Salary adjustment',
-    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
-    save: language === 'fr' ? 'Sauvegarder' : 'Save Changes',
-    saving: language === 'fr' ? 'Sauvegarde...' : 'Saving...',
-  };
+  // Use optimized translation functions
+  const inflationTranslations = getInflationTranslations(language);
 
   // Update bank account mutation
   const updateBankAccount = useMutation({
@@ -466,28 +480,28 @@ export default function Budget() {
     }
   });
 
-  // Helper functions for minimum balance management
-  const addMinimumBalance = () => {
+  // Helper functions for minimum balance management - optimized with useCallback
+  const addMinimumBalance = useCallback(() => {
     const newMinimum: MinimumBalanceSetting = {
       id: `min_${Date.now()}`,
       amount: 0,
       description: '',
     };
-    setMinimumBalances([...minimumBalances, newMinimum]);
-  };
+    setMinimumBalances(prev => [...prev, newMinimum]);
+  }, []);
 
-  const updateMinimumBalance = (id: string, field: 'amount' | 'description', value: string | number) => {
-    setMinimumBalances(minimumBalances.map(min => 
+  const updateMinimumBalance = useCallback((id: string, field: 'amount' | 'description', value: string | number) => {
+    setMinimumBalances(prev => prev.map(min => 
       min.id === id ? { ...min, [field]: value } : min
     ));
-  };
+  }, []);
 
-  const removeMinimumBalance = (id: string) => {
-    setMinimumBalances(minimumBalances.filter(min => min.id !== id));
-  };
+  const removeMinimumBalance = useCallback((id: string) => {
+    setMinimumBalances(prev => prev.filter(min => min.id !== id));
+  }, []);
 
-  // Inflation helper functions
-  const addInflationSetting = (type: 'income' | 'expense') => {
+  // Inflation helper functions - optimized with useCallback
+  const addInflationSetting = useCallback((type: 'income' | 'expense') => {
     const availableCategories = type === 'income' 
       ? Array.from(new Set(chartData?.flatMap(item => Object.keys(item.incomeByCategory || {})) || []))
       : Array.from(new Set(chartData?.flatMap(item => Object.keys(item.expensesByCategory || {})) || []));
@@ -500,18 +514,18 @@ export default function Budget() {
       applicationMode: 'yearly',
       description: ''
     };
-    setInflationSettings([...inflationSettings, newSetting]);
-  };
+    setInflationSettings(prev => [...prev, newSetting]);
+  }, [chartData]);
 
-  const updateInflationSetting = (id: string, field: keyof InflationSetting, value: any) => {
+  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, value: any) => {
     setInflationSettings(prev => prev.map(setting => 
       setting.id === id ? { ...setting, [field]: value } : setting
     ));
-  };
+  }, []);
 
-  const removeInflationSetting = (id: string) => {
+  const removeInflationSetting = useCallback((id: string) => {
     setInflationSettings(prev => prev.filter(setting => setting.id !== id));
-  };
+  }, []);
 
   // Initialize dialog with existing data
   const initializeDialog = () => {
@@ -541,7 +555,8 @@ export default function Budget() {
     }
   };
 
-  const handleUpdateBankAccount = () => {
+  // Optimized with useCallback to prevent recreation
+  const handleUpdateBankAccount = useCallback(() => {
     if (!selectedBuilding || !bankAccountNumber.trim()) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -561,7 +576,7 @@ export default function Budget() {
       startAmount: bankAccountStartAmount,
       minimumBalances,
     });
-  };
+  }, [selectedBuilding, bankAccountNumber, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -1243,37 +1258,13 @@ export default function Budget() {
                             {minimumBalances.length > 0 ? (
                               <div className='space-y-2 max-h-32 overflow-y-auto border rounded p-2'>
                                 {minimumBalances.map((minimum, index) => (
-                                  <div key={minimum.id} className='grid grid-cols-12 gap-2 items-center'>
-                                    <div className='col-span-4'>
-                                      <Input
-                                        placeholder={bankAccountTranslations.amount}
-                                        type='number'
-                                        step='0.01'
-                                        value={minimum.amount || ''}
-                                        onChange={(e) => updateMinimumBalance(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
-                                        className='text-xs'
-                                      />
-                                    </div>
-                                    <div className='col-span-7'>
-                                      <Input
-                                        placeholder={bankAccountTranslations.descriptionPlaceholder}
-                                        value={minimum.description}
-                                        onChange={(e) => updateMinimumBalance(minimum.id, 'description', e.target.value)}
-                                        className='text-xs'
-                                      />
-                                    </div>
-                                    <div className='col-span-1'>
-                                      <Button
-                                        type='button'
-                                        variant='ghost'
-                                        size='sm'
-                                        onClick={() => removeMinimumBalance(minimum.id)}
-                                        className='h-8 w-8 p-0 text-destructive hover:text-destructive'
-                                      >
-                                        <Trash2 className='w-3 h-3' />
-                                      </Button>
-                                    </div>
-                                  </div>
+                                  <MinimumBalanceRow 
+                                    key={minimum.id} 
+                                    minimum={minimum} 
+                                    bankAccountTranslations={bankAccountTranslations}
+                                    onUpdate={updateMinimumBalance}
+                                    onRemove={removeMinimumBalance}
+                                  />
                                 ))}
                               </div>
                             ) : (
@@ -1329,6 +1320,7 @@ export default function Budget() {
                     </Dialog>
                   )}
                 </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -1377,16 +1369,7 @@ export default function Budget() {
                           
                           <div className='divide-y'>
                             {paginatedContributions.map((property: any) => (
-                              <div key={property.id} className='px-4 py-3 hover:bg-muted/50'>
-                                <div className='grid grid-cols-4 gap-4 text-sm'>
-                                  <div className='font-medium'>{property.unitNumber}</div>
-                                  <div className='text-muted-foreground'>{property.floor}</div>
-                                  <div className='text-right'>{property.ownershipPercentage.toFixed(2)}%</div>
-                                  <div className='text-right font-medium text-red-600'>
-                                    ${property.contribution.toFixed(2)}
-                                  </div>
-                                </div>
-                              </div>
+                              <PropertyContributionRow key={`${property.id}-${property.unitNumber}`} property={property} />
                             ))}
                           </div>
                         </div>
@@ -1435,3 +1418,61 @@ export default function Budget() {
     </div>
   );
 }
+
+// Optimized components for better performance and maintainability
+const PropertyContributionRow = memo(({ property }: { property: any }) => (
+  <div className='px-4 py-3 hover:bg-muted/50'>
+    <div className='grid grid-cols-4 gap-4 text-sm'>
+      <div className='font-medium'>{property.unitNumber}</div>
+      <div className='text-muted-foreground'>{property.floor}</div>
+      <div className='text-right'>{property.ownershipPercentage.toFixed(2)}%</div>
+      <div className='text-right font-medium text-red-600'>
+        ${property.contribution.toFixed(2)}
+      </div>
+    </div>
+  </div>
+));
+
+const MinimumBalanceRow = memo(({ 
+  minimum, 
+  bankAccountTranslations, 
+  onUpdate, 
+  onRemove 
+}: {
+  minimum: MinimumBalanceSetting;
+  bankAccountTranslations: any;
+  onUpdate: (id: string, field: 'amount' | 'description', value: string | number) => void;
+  onRemove: (id: string) => void;
+}) => (
+  <div className='grid grid-cols-12 gap-2 items-center'>
+    <div className='col-span-4'>
+      <Input
+        placeholder={bankAccountTranslations.amount}
+        type='number'
+        step='0.01'
+        value={minimum.amount || ''}
+        onChange={(e) => onUpdate(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
+        className='text-xs'
+      />
+    </div>
+    <div className='col-span-7'>
+      <Input
+        placeholder={bankAccountTranslations.descriptionPlaceholder}
+        value={minimum.description}
+        onChange={(e) => onUpdate(minimum.id, 'description', e.target.value)}
+        className='text-xs'
+      />
+    </div>
+    <div className='col-span-1'>
+      <Button
+        type='button'
+        variant='ghost'
+        size='sm'
+        onClick={() => onRemove(minimum.id)}
+        className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+      >
+        <Trash2 className='w-3 h-3' />
+      </Button>
+    </div>
+  </div>
+));
