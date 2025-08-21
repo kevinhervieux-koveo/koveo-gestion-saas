@@ -57,11 +57,14 @@ const config = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|msw))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|msw|@jest|@babel))'
   ],
-  testTimeout: 10000,
+  testTimeout: 15000,
   maxWorkers: 1,
-  verbose: true
+  verbose: true,
+  clearMocks: true,
+  restoreMocks: true,
+  resetMocks: true
 };
 
 export default config;

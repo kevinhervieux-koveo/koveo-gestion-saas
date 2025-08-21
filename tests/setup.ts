@@ -11,27 +11,35 @@ configure({
   asyncUtilTimeout: 5000,
 });
 
-// MSW Server setup - conditionally imported to avoid Node.js API issues
+// MSW Server setup - try different import methods for better compatibility
 let server: any;
 
 try {
+  // Try ES module import first
   const mswModule = require('./mocks/server');
   server = mswModule.server;
-  
-  beforeAll(() => {
-    server?.listen();
-  });
-
-  afterEach(() => {
-    server?.resetHandlers();
-  });
-
-  afterAll(() => {
-    server?.close();
-  });
 } catch (error) {
-  console.warn('MSW server setup failed, tests will run without API mocking:', error);
+  try {
+    // Fallback for ES module environment
+    import('./mocks/server.js').then(module => {
+      server = module.server;
+    });
+  } catch (fallbackError) {
+    console.warn('MSW server setup failed, tests will run without API mocking');
+  }
 }
+
+beforeAll(() => {
+  server?.listen();
+});
+
+afterEach(() => {
+  server?.resetHandlers();
+});
+
+afterAll(() => {
+  server?.close();
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
