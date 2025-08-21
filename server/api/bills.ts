@@ -1,11 +1,11 @@
 import type { Express } from 'express';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
 
-const { buildings } = schema;
+const { buildings, bills } = schema;
 
 // Mock data for now - will be replaced with real database when tables are created
 const mockBills = [
@@ -427,28 +427,72 @@ export function registerBillRoutes(app: Express) {
       
       const buildingName = building[0].name;
       
-      // Filter mock bills
-      let filteredBills = mockBills.map(bill => ({
-        ...bill,
-        buildingId: filters.buildingId,
-        buildingName
-      }));
+      // Query real bills from database
+      let query = db
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
+        .from(bills)
+        .where(eq(bills.buildingId, filters.buildingId));
       
-      if (filters.category) {
-        filteredBills = filteredBills.filter(bill => bill.category === filters.category);
+      // Apply additional filters
+      const conditions = [eq(bills.buildingId, filters.buildingId)];
+      
+      if (filters.category && filters.category !== 'all') {
+        conditions.push(eq(bills.category, filters.category));
       }
       
-      if (filters.status) {
-        filteredBills = filteredBills.filter(bill => bill.status === filters.status);
+      if (filters.status && filters.status !== 'all') {
+        conditions.push(eq(bills.status, filters.status));
       }
       
       if (filters.year) {
-        filteredBills = filteredBills.filter(bill => 
-          bill.startDate.startsWith(filters.year!)
-        );
+        conditions.push(sql`EXTRACT(YEAR FROM ${bills.startDate}) = ${filters.year}`);
       }
       
-      res.json(filteredBills);
+      const result = await db
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
+        .from(bills)
+        .where(and(...conditions))
+        .orderBy(desc(bills.createdAt));
+      
+      // Add building name to each bill
+      const billsWithBuildingName = result.map(bill => ({
+        ...bill,
+        buildingName
+      }));
+      
+      res.json(billsWithBuildingName);
     } catch (error) {
       console.error('Error fetching bills:', error);
       res.status(400).json({ 
