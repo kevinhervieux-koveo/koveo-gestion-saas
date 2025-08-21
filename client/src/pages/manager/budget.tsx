@@ -822,7 +822,7 @@ export default function Budget() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                                {Array.from({ length: 5 }, (_, i) => currentYear + i).map((year) => (
                                   <SelectItem key={year} value={year.toString()}>
                                     {year}
                                   </SelectItem>
@@ -857,7 +857,7 @@ export default function Budget() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                              {Array.from({ length: 5 }, (_, i) => currentYear + i).map((year) => (
                                 <SelectItem key={year} value={year.toString()}>
                                   {year}
                                 </SelectItem>
