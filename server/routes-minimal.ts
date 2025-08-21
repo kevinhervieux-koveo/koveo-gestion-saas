@@ -1,4 +1,4 @@
-import type { Express } from 'express';
+import type { Express, Request, Response } from 'express';
 import { createServer, type Server } from 'http';
 import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } from './auth';
 import { registerPermissionsRoutes } from './api/permissions';
@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register features and actionable items API routes
   try {
     // GET /api/features - Get all features
-    app.get('/api/features', requireAuth, async (req: unknown, res: unknown) => {
+    app.get('/api/features', requireAuth, async (req: any, res: any) => {
       try {
         const features = await db
           .select()
@@ -303,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // GET /api/features/:id/actionable-items - Get actionable items for a feature
-    app.get('/api/features/:id/actionable-items', requireAuth, async (req: unknown, res: unknown) => {
+    app.get('/api/features/:id/actionable-items', requireAuth, async (req: any, res: any) => {
       try {
         // Use raw SQL to query the correct column names that exist in the database
         const items = await db.execute(sql`
@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // PUT /api/actionable-items/:id - Update an actionable item
-    app.put('/api/actionable-items/:id', requireAuth, async (req: unknown, res: unknown) => {
+    app.put('/api/actionable-items/:id', requireAuth, async (req: any, res: any) => {
       try {
         // Use raw SQL to update the correct column names that exist in the database
         const result = await db.execute(sql`
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/features/:id/toggle-strategic - Toggle strategic path for feature
-    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: unknown, res: unknown) => {
+    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: any, res: any) => {
       try {
         const { isStrategicPath } = req.body;
         
@@ -381,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register quality metrics API route
   try {
-    app.get('/api/quality-metrics', requireAuth, async (req: unknown, res: unknown) => {
+    app.get('/api/quality-metrics', requireAuth, async (req: any, res: any) => {
       try {
         // Generate mock quality metrics data that matches the expected format
         const metrics = {
@@ -416,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       requireAuth, 
       authorize('create:user'),
       rateLimitInvitations(10),
-      async (req: unknown, res: unknown) => {
+      async (req: any, res: any) => {
         try {
           console.log('📥 Single invitation route reached with data:', req.body);
           const currentUser = req.user;
@@ -603,7 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // GET /api/invitations - List invitations
-    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: unknown, res: unknown) => {
+    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: any, res: any) => {
       try {
         const invitationList = await db.select().from(invitations);
         res.json(invitationList);
@@ -614,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/invitations/validate - Validate invitation token
-    app.post('/api/invitations/validate', async (req: unknown, res: unknown) => {
+    app.post('/api/invitations/validate', async (req: any, res: any) => {
       try {
         const { token } = req.body;
         console.log('🔍 Validating invitation token:', { 
@@ -750,7 +750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/invitations/accept/:token - Accept invitation and create user account
-    app.post('/api/invitations/accept/:token', async (req: unknown, res: unknown) => {
+    app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
       try {
         const { token } = req.params;
         const { password, firstName, lastName, phone, address, city, province, postalCode, language, dateOfBirth, dataCollectionConsent, marketingConsent, analyticsConsent, thirdPartyConsent, acknowledgedRights } = req.body;
@@ -909,7 +909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register improvement suggestions routes
   try {
     // GET /api/pillars/suggestions - Get improvement suggestions
-    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: unknown, res: unknown) => {
+    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: any, res: any) => {
       try {
         // Fetch only the columns that exist in the database
         const suggestions = await db
@@ -933,7 +933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/pillars/suggestions/:id/acknowledge - Acknowledge a suggestion
-    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req: unknown, res: unknown) => {
+    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req: any, res: any) => {
       try {
         // Update directly in database
         const [suggestion] = await db
@@ -953,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/pillars/suggestions/:id/complete - Complete a suggestion (delete it)
-    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req: unknown, res: unknown) => {
+    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req: any, res: any) => {
       try {
         // Delete the suggestion from database
         const [deletedSuggestion] = await db

@@ -362,7 +362,7 @@ async function initializeApplication() {
       
       // Add the user organizations route AFTER session middleware is set up
       const { requireAuth } = await import('./auth');
-      app.get('/api/users/me/organizations', requireAuth, async (req: unknown, res: unknown) => {
+      app.get('/api/users/me/organizations', requireAuth, async (req: any, res: any) => {
         try {
           const { getUserAccessibleOrganizations } = await import('./rbac');
           const { Pool, neonConfig } = await import('@neondatabase/serverless');

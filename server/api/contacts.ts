@@ -17,7 +17,7 @@ import { insertContactSchema } from '../../shared/schemas/property';
  */
 export function registerContactRoutes(app: Express) {
   // Get contacts for a specific entity
-  app.get('/api/contacts/:entity/:entityId', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/contacts/:entity/:entityId', requireAuth, async (req: any, res: any) => {
     try {
       const { entity, entityId } = req.params;
       const user = req.user;
@@ -45,7 +45,7 @@ export function registerContactRoutes(app: Express) {
   });
 
   // Get contacts for a residence with access control
-  app.get('/api/residences/:residenceId/contacts', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/residences/:residenceId/contacts', requireAuth, async (req: any, res: any) => {
     try {
       const { residenceId } = req.params;
       const user = req.user;
@@ -85,7 +85,7 @@ export function registerContactRoutes(app: Express) {
   });
 
   // Get contacts with filtering by entity and entityId
-  app.get('/api/contacts', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/contacts', requireAuth, async (req: any, res: any) => {
     try {
       const { entity, entityId } = req.query;
       const user = req.user;
@@ -129,7 +129,7 @@ export function registerContactRoutes(app: Express) {
   });
 
   // Create a new contact
-  app.post('/api/contacts', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/contacts', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const validatedData = insertContactSchema.parse(req.body);
@@ -182,7 +182,7 @@ export function registerContactRoutes(app: Express) {
   });
 
   // Update a contact
-  app.patch('/api/contacts/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.patch('/api/contacts/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -224,7 +224,7 @@ export function registerContactRoutes(app: Express) {
   });
 
   // Delete a contact
-  app.delete('/api/contacts/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.delete('/api/contacts/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;

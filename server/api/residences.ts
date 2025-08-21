@@ -16,7 +16,7 @@ import { delayedUpdateService } from '../services/delayed-update-service.js';
  */
 export function registerResidenceRoutes(app: Express) {
   // Get user's residences
-  app.get('/api/user/residences', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
 
@@ -38,7 +38,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Get assigned users for a specific residence
-  app.get('/api/residences/:residenceId/assigned-users', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/residences/:residenceId/assigned-users', requireAuth, async (req: any, res: any) => {
     try {
       const { residenceId } = req.params;
       const currentUser = req.user;
@@ -72,7 +72,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Update assigned user information
-  app.put('/api/residences/:residenceId/assigned-users/:userId', requireAuth, async (req: unknown, res: unknown) => {
+  app.put('/api/residences/:residenceId/assigned-users/:userId', requireAuth, async (req: any, res: any) => {
     try {
       const { userId } = req.params;
       const { firstName, lastName, email, phone } = req.body;
@@ -98,7 +98,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Get all residences with filtering and search
-  app.get('/api/residences', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/residences', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
@@ -197,7 +197,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Get a specific residence by ID
-  app.get('/api/residences/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/residences/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -271,7 +271,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Update a residence
-  app.put('/api/residences/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.put('/api/residences/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const updateData = req.body;
@@ -311,7 +311,7 @@ export function registerResidenceRoutes(app: Express) {
   });
 
   // Create residences when a building is created (called internally)
-  app.post('/api/buildings/:buildingId/generate-residences', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/buildings/:buildingId/generate-residences', requireAuth, async (req: any, res: any) => {
     try {
       const { buildingId } = req.params;
 

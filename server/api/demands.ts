@@ -26,7 +26,7 @@ import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/sche
  */
 export function registerDemandRoutes(app: Express) {
   // Get demands for a user (residents and managers)
-  app.get('/api/demands', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/demands', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { buildingId, residenceId, type, status, search } = req.query;
@@ -158,7 +158,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Get a specific demand
-  app.get('/api/demands/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/demands/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -254,7 +254,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Create a new demand
-  app.post('/api/demands', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/demands', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const demandData = req.body;
@@ -304,7 +304,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Update a demand
-  app.put('/api/demands/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.put('/api/demands/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -375,7 +375,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Delete a demand
-  app.delete('/api/demands/:id', requireAuth, async (req: unknown, res: unknown) => {
+  app.delete('/api/demands/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -432,7 +432,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Get comments for a demand
-  app.get('/api/demands/:id/comments', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/demands/:id/comments', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -479,7 +479,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Create a comment on a demand
-  app.post('/api/demands/:id/comments', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/demands/:id/comments', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const user = req.user;

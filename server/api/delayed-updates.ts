@@ -15,7 +15,7 @@ import { delayedUpdateService } from '../services/delayed-update-service';
 export function registerDelayedUpdateRoutes(app: Express) {
   
   // Get delayed update status and pending updates
-  app.get('/api/delayed-updates/status', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/delayed-updates/status', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       
@@ -52,7 +52,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Force immediate update for a specific bill (for testing)
-  app.post('/api/delayed-updates/force-bill', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/delayed-updates/force-bill', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { billId } = req.body;
@@ -93,7 +93,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Force immediate update for a specific residence (for testing)
-  app.post('/api/delayed-updates/force-residence', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/delayed-updates/force-residence', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { residenceId } = req.body;
@@ -134,7 +134,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Health check for delayed update system
-  app.get('/api/delayed-updates/health', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/delayed-updates/health', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       

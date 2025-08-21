@@ -25,7 +25,7 @@ const generateForResidenceSchema = z.object({
 export function registerMoneyFlowRoutes(app: Express) {
   
   // Get money flow automation status and statistics
-  app.get('/api/money-flow/status', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/money-flow/status', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       
@@ -59,7 +59,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Manually trigger full money flow regeneration
-  app.post('/api/money-flow/regenerate', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/money-flow/regenerate', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       
@@ -93,7 +93,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Generate money flow entries for a specific bill
-  app.post('/api/money-flow/generate-bill', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/money-flow/generate-bill', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { billId } = generateForBillSchema.parse(req.body);
@@ -129,7 +129,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Generate money flow entries for a specific residence
-  app.post('/api/money-flow/generate-residence', requireAuth, async (req: unknown, res: unknown) => {
+  app.post('/api/money-flow/generate-residence', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       const { residenceId } = generateForResidenceSchema.parse(req.body);
@@ -165,7 +165,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Get detailed money flow statistics
-  app.get('/api/money-flow/statistics', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/money-flow/statistics', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       
@@ -201,7 +201,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Test endpoint to verify money flow automation is working
-  app.get('/api/money-flow/health', requireAuth, async (req: unknown, res: unknown) => {
+  app.get('/api/money-flow/health', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       
