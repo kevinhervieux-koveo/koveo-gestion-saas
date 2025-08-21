@@ -21,15 +21,12 @@ export default function HomePage() {
       {/* Navigation Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center">
             <img 
               src={koveoLogo} 
               alt="Koveo Gestion" 
               className="h-10 w-10 rounded-lg object-cover"
             />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Koveo Gestion</h1>
-            </div>
           </div>
           <div className="flex items-center space-x-3">
             <LanguageSwitcher />
@@ -246,15 +243,12 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+            <div className="flex items-center mb-4 md:mb-0">
               <img 
                 src={koveoLogo} 
                 alt="Koveo Gestion" 
                 className="h-8 w-8 rounded object-cover"
               />
-              <div>
-                <h3 className="font-semibold">Koveo Gestion</h3>
-              </div>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <Shield className="h-4 w-4" />
