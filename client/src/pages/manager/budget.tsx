@@ -1538,11 +1538,22 @@ export default function Budget() {
                                   </Label>
                                   <Input
                                     id="generalIncomeInflation"
-                                    type="number"
-                                    step="0.1"
-                                    value={generalIncomeInflation}
-                                    onChange={(e) => setGeneralIncomeInflation(parseFloat(e.target.value) || 0)}
-                                    placeholder={language === 'fr' ? '2.5 ou -1.0' : '2.5 or -1.0'}
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={generalIncomeInflation.toString()}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      // Allow typing negative signs, decimal points (both . and ,), and numbers
+                                      if (value === '' || value === '-' || /^-?\d*[.,]?\d*$/.test(value)) {
+                                        // Convert comma to dot for parsing
+                                        const normalizedValue = value.replace(',', '.');
+                                        const numValue = normalizedValue === '' || normalizedValue === '-' ? 0 : parseFloat(normalizedValue);
+                                        if (!isNaN(numValue)) {
+                                          setGeneralIncomeInflation(numValue);
+                                        }
+                                      }
+                                    }}
+                                    placeholder={language === 'fr' ? '2,5 ou -1,0' : '2.5 or -1.0'}
                                   />
                                 </div>
                                 <div className="space-y-2">
@@ -1554,11 +1565,22 @@ export default function Budget() {
                                   </Label>
                                   <Input
                                     id="generalExpenseInflation"
-                                    type="number"
-                                    step="0.1"
-                                    value={generalExpenseInflation}
-                                    onChange={(e) => setGeneralExpenseInflation(parseFloat(e.target.value) || 0)}
-                                    placeholder={language === 'fr' ? '3.0 ou -2.0' : '3.0 or -2.0'}
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={generalExpenseInflation.toString()}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      // Allow typing negative signs, decimal points (both . and ,), and numbers
+                                      if (value === '' || value === '-' || /^-?\d*[.,]?\d*$/.test(value)) {
+                                        // Convert comma to dot for parsing
+                                        const normalizedValue = value.replace(',', '.');
+                                        const numValue = normalizedValue === '' || normalizedValue === '-' ? 0 : parseFloat(normalizedValue);
+                                        if (!isNaN(numValue)) {
+                                          setGeneralExpenseInflation(numValue);
+                                        }
+                                      }
+                                    }}
+                                    placeholder={language === 'fr' ? '3,0 ou -2,0' : '3.0 or -2.0'}
                                   />
                                 </div>
                               </div>
