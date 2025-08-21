@@ -49,6 +49,7 @@ export default function Budget() {
   const [viewType, setViewType] = useState<'yearly' | 'monthly'>('monthly');
   const [showCategories, setShowCategories] = useState(false);
   const [bankAccountDialog, setBankAccountDialog] = useState(false);
+  const [minimumBalancesDialog, setMinimumBalancesDialog] = useState(false);
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [reconciliationNote, setReconciliationNote] = useState('');
   const [bankAccountStartDate, setBankAccountStartDate] = useState('');
@@ -320,10 +321,15 @@ export default function Budget() {
     noAccount: language === 'fr' ? 'Aucun compte bancaire défini pour ce bâtiment' : 'No bank account set for this building',
     updateAccount: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
     setAccount: language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account',
+    manageMinimums: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
     dialogTitle: language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account',
+    minimumDialogTitle: language === 'fr' ? 'Gérer les soldes minimums' : 'Manage Minimum Balances',
     dialogDescription: language === 'fr' ? 
       'Mettre à jour les informations du compte bancaire pour ce bâtiment.' :
       'Update the bank account information for this building.',
+    minimumDialogDescription: language === 'fr' ? 
+      'Gérer les soldes minimums requis pour ce compte bancaire.' :
+      'Manage required minimum balances for this bank account.',
     accountNumber: language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number',
     accountNumberPlaceholder: language === 'fr' ? 'Saisir le numéro de compte' : 'Enter account number',
     reconciliationNote: language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note',
@@ -985,25 +991,27 @@ export default function Budget() {
                     </div>
                   )}
                   
-                  <Dialog 
-                    open={bankAccountDialog} 
-                    onOpenChange={(open) => {
-                      if (open) {
-                        initializeDialog();
-                      }
-                      setBankAccountDialog(open);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button className='w-full' variant='outline'>
-                        <Banknote className='w-4 h-4 mr-2' />
-                        {bankAccountInfo?.bankAccountNumber ? 
-                          bankAccountTranslations.updateAccount : 
-                          bankAccountTranslations.setAccount
+                  {/* Bank Account Dialog */}
+                  <div className='space-y-2'>
+                    <Dialog 
+                      open={bankAccountDialog} 
+                      onOpenChange={(open) => {
+                        if (open) {
+                          initializeDialog();
                         }
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
+                        setBankAccountDialog(open);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className='w-full' variant='outline'>
+                          <Banknote className='w-4 h-4 mr-2' />
+                          {bankAccountInfo?.bankAccountNumber ? 
+                            bankAccountTranslations.updateAccount : 
+                            bankAccountTranslations.setAccount
+                          }
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
                       <DialogHeader>
                         <DialogTitle>{bankAccountTranslations.dialogTitle}</DialogTitle>
                         <DialogDescription>{bankAccountTranslations.dialogDescription}</DialogDescription>
@@ -1043,64 +1051,6 @@ export default function Budget() {
                           />
                         </div>
                         
-                        <div className='space-y-3'>
-                          <div className='flex items-center justify-between'>
-                            <Label>{bankAccountTranslations.minimumBalancesLabel}</Label>
-                            <Button
-                              type='button'
-                              variant='outline'
-                              size='sm'
-                              onClick={addMinimumBalance}
-                              className='flex items-center gap-1'
-                            >
-                              <Plus className='w-3 h-3' />
-                              {bankAccountTranslations.addMinimum}
-                            </Button>
-                          </div>
-                          
-                          {minimumBalances.length > 0 ? (
-                            <div className='space-y-2 max-h-32 overflow-y-auto border rounded p-2'>
-                              {minimumBalances.map((minimum, index) => (
-                                <div key={minimum.id} className='grid grid-cols-12 gap-2 items-center'>
-                                  <div className='col-span-4'>
-                                    <Input
-                                      placeholder={bankAccountTranslations.amount}
-                                      type='number'
-                                      step='0.01'
-                                      value={minimum.amount || ''}
-                                      onChange={(e) => updateMinimumBalance(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
-                                      className='text-xs'
-                                    />
-                                  </div>
-                                  <div className='col-span-7'>
-                                    <Input
-                                      placeholder={bankAccountTranslations.descriptionPlaceholder}
-                                      value={minimum.description}
-                                      onChange={(e) => updateMinimumBalance(minimum.id, 'description', e.target.value)}
-                                      className='text-xs'
-                                    />
-                                  </div>
-                                  <div className='col-span-1'>
-                                    <Button
-                                      type='button'
-                                      variant='ghost'
-                                      size='sm'
-                                      onClick={() => removeMinimumBalance(minimum.id)}
-                                      className='h-8 w-8 p-0 text-destructive hover:text-destructive'
-                                    >
-                                      <Trash2 className='w-3 h-3' />
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className='text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded'>
-                              {language === 'fr' ? 'Aucun solde minimum défini' : 'No minimum balances set'}
-                            </div>
-                          )}
-                        </div>
-                        
                         <div className='space-y-2'>
                           <Label htmlFor='reconciliationNote'>{bankAccountTranslations.reconciliationNote}</Label>
                           <Textarea
@@ -1137,6 +1087,136 @@ export default function Budget() {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  
+                  {/* Minimum Balances Management Button - Only show if bank account exists */}
+                  {bankAccountInfo?.bankAccountNumber && (
+                    <Dialog 
+                      open={minimumBalancesDialog} 
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setMinimumBalances(minimumBalanceSettings.map(m => ({ ...m })));
+                        }
+                        setMinimumBalancesDialog(open);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className='w-full' variant='outline'>
+                          <Settings className='w-4 h-4 mr-2' />
+                          {bankAccountTranslations.manageMinimums}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{bankAccountTranslations.minimumDialogTitle}</DialogTitle>
+                          <DialogDescription>{bankAccountTranslations.minimumDialogDescription}</DialogDescription>
+                        </DialogHeader>
+                        <div className='space-y-4 max-h-96 overflow-y-auto'>
+                          <div className='space-y-3'>
+                            <div className='flex items-center justify-between'>
+                              <Label>{bankAccountTranslations.minimumBalancesLabel}</Label>
+                              <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                onClick={addMinimumBalance}
+                                className='flex items-center gap-1'
+                              >
+                                <Plus className='w-3 h-3' />
+                                {bankAccountTranslations.addMinimum}
+                              </Button>
+                            </div>
+                            
+                            {minimumBalances.length > 0 ? (
+                              <div className='space-y-2 max-h-32 overflow-y-auto border rounded p-2'>
+                                {minimumBalances.map((minimum, index) => (
+                                  <div key={minimum.id} className='grid grid-cols-12 gap-2 items-center'>
+                                    <div className='col-span-4'>
+                                      <Input
+                                        placeholder={bankAccountTranslations.amount}
+                                        type='number'
+                                        step='0.01'
+                                        value={minimum.amount || ''}
+                                        onChange={(e) => updateMinimumBalance(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
+                                        className='text-xs'
+                                      />
+                                    </div>
+                                    <div className='col-span-7'>
+                                      <Input
+                                        placeholder={bankAccountTranslations.descriptionPlaceholder}
+                                        value={minimum.description}
+                                        onChange={(e) => updateMinimumBalance(minimum.id, 'description', e.target.value)}
+                                        className='text-xs'
+                                      />
+                                    </div>
+                                    <div className='col-span-1'>
+                                      <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='sm'
+                                        onClick={() => removeMinimumBalance(minimum.id)}
+                                        className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+                                      >
+                                        <Trash2 className='w-3 h-3' />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className='text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded'>
+                                {language === 'fr' ? 'Aucun solde minimum défini' : 'No minimum balances set'}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className='flex justify-end space-x-2 pt-4 border-t'>
+                            <Button variant='outline' onClick={() => setMinimumBalancesDialog(false)}>
+                              {bankAccountTranslations.cancel}
+                            </Button>
+                            <Button 
+                              onClick={async () => {
+                                try {
+                                  await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, {
+                                    method: 'PUT',
+                                    body: {
+                                      bankAccountMinimums: JSON.stringify(minimumBalances),
+                                    },
+                                  });
+                                  
+                                  queryClient.invalidateQueries({
+                                    queryKey: ['/api/budgets', selectedBuilding, 'bank-account']
+                                  });
+                                  
+                                  toast({
+                                    title: language === 'fr' ? 'Soldes minimums mis à jour' : 'Minimum balances updated',
+                                    description: language === 'fr' ? 
+                                      'Les paramètres de soldes minimums ont été sauvegardés.' : 
+                                      'Minimum balance settings have been saved.'
+                                  });
+                                  
+                                  setMinimumBalancesDialog(false);
+                                } catch (error) {
+                                  toast({
+                                    title: language === 'fr' ? 'Erreur' : 'Error',
+                                    description: language === 'fr' ? 
+                                      'Erreur lors de la mise à jour des soldes minimums' : 
+                                      'Error updating minimum balances',
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}
+                              disabled={updateBankAccount.isPending}
+                            >
+                              {updateBankAccount.isPending ? 
+                                bankAccountTranslations.updating : 
+                                (language === 'fr' ? 'Sauvegarder' : 'Save Changes')
+                              }
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </CardContent>
             </Card>
