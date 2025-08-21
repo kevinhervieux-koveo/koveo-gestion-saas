@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle, ChevronLeft, ChevronRight, Users, Percent } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
@@ -35,12 +35,30 @@ interface BankAccountInfo {
   bankAccountStartDate: string | null;
   bankAccountStartAmount: number | null;
   bankAccountMinimums: string | null; // JSON string of minimum settings
+  inflationSettings: string | null; // JSON string of inflation settings
 }
 
 interface MinimumBalanceSetting {
   id: string;
   amount: number;
   description: string;
+}
+
+interface InflationSetting {
+  id: string;
+  category: string;
+  type: 'income' | 'expense';
+  rate: number; // percentage
+  applicationMode: 'yearly' | 'one-time';
+  targetYear?: number; // For one-time applications
+  description: string;
+}
+
+interface InflationConfig {
+  incomeSettings: InflationSetting[];
+  expenseSettings: InflationSetting[];
+  generalIncome: number; // General income inflation rate
+  generalExpense: number; // General expense inflation rate
 }
 
 export default function Budget() {
@@ -50,6 +68,12 @@ export default function Budget() {
   const [showCategories, setShowCategories] = useState(false);
   const [bankAccountDialog, setBankAccountDialog] = useState(false);
   const [minimumBalancesDialog, setMinimumBalancesDialog] = useState(false);
+  const [inflationDialog, setInflationDialog] = useState(false);
+  const [inflationSettings, setInflationSettings] = useState<InflationSetting[]>([]);
+  const [generalIncomeInflation, setGeneralIncomeInflation] = useState<number>(0);
+  const [generalExpenseInflation, setGeneralExpenseInflation] = useState<number>(0);
+  const [splitIncomeByCategory, setSplitIncomeByCategory] = useState(false);
+  const [splitExpenseByCategory, setSplitExpenseByCategory] = useState(false);
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [reconciliationNote, setReconciliationNote] = useState('');
   const [bankAccountStartDate, setBankAccountStartDate] = useState('');
@@ -363,6 +387,33 @@ export default function Budget() {
     next: language === 'fr' ? 'Suivant' : 'Next',
   };
 
+  // Inflation management translations
+  const inflationTranslations = {
+    title: language === 'fr' ? 'Gestion de l\'inflation' : 'Inflation Management',
+    manageInflation: language === 'fr' ? 'Gérer l\'inflation' : 'Manage Inflation',
+    dialogTitle: language === 'fr' ? 'Paramètres d\'inflation' : 'Inflation Settings',
+    dialogDescription: language === 'fr' ? 'Configurer les taux d\'inflation pour les revenus et dépenses.' : 'Configure inflation rates for income and expenses.',
+    generalSettings: language === 'fr' ? 'Paramètres généraux' : 'General Settings',
+    generalIncome: language === 'fr' ? 'Inflation générale des revenus (%)' : 'General Income Inflation (%)',
+    generalExpense: language === 'fr' ? 'Inflation générale des dépenses (%)' : 'General Expense Inflation (%)',
+    splitByCategory: language === 'fr' ? 'Diviser par catégorie' : 'Split by Category',
+    incomeByCategory: language === 'fr' ? 'Revenus par catégorie' : 'Income by Category',
+    expenseByCategory: language === 'fr' ? 'Dépenses par catégorie' : 'Expense by Category',
+    addIncome: language === 'fr' ? 'Ajouter revenu' : 'Add Income',
+    addExpense: language === 'fr' ? 'Ajouter dépense' : 'Add Expense',
+    category: language === 'fr' ? 'Catégorie' : 'Category',
+    rate: language === 'fr' ? 'Taux (%)' : 'Rate (%)',
+    mode: language === 'fr' ? 'Mode' : 'Mode',
+    yearly: language === 'fr' ? 'Annuel' : 'Yearly',
+    oneTime: language === 'fr' ? 'Unique' : 'One-time',
+    targetYear: language === 'fr' ? 'Année cible' : 'Target Year',
+    description: language === 'fr' ? 'Description' : 'Description',
+    descriptionPlaceholder: language === 'fr' ? 'Ex: Ajustement salarial' : 'e.g., Salary adjustment',
+    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+    save: language === 'fr' ? 'Sauvegarder' : 'Save Changes',
+    saving: language === 'fr' ? 'Sauvegarde...' : 'Saving...',
+  };
+
   // Update bank account mutation
   const updateBankAccount = useMutation({
     mutationFn: async (data: { 
@@ -433,6 +484,33 @@ export default function Budget() {
 
   const removeMinimumBalance = (id: string) => {
     setMinimumBalances(minimumBalances.filter(min => min.id !== id));
+  };
+
+  // Inflation helper functions
+  const addInflationSetting = (type: 'income' | 'expense') => {
+    const availableCategories = type === 'income' 
+      ? Array.from(new Set(chartData?.flatMap(item => Object.keys(item.incomeByCategory || {})) || []))
+      : Array.from(new Set(chartData?.flatMap(item => Object.keys(item.expensesByCategory || {})) || []));
+    
+    const newSetting: InflationSetting = {
+      id: Date.now().toString(),
+      category: availableCategories[0] || 'General',
+      type,
+      rate: 0,
+      applicationMode: 'yearly',
+      description: ''
+    };
+    setInflationSettings([...inflationSettings, newSetting]);
+  };
+
+  const updateInflationSetting = (id: string, field: keyof InflationSetting, value: any) => {
+    setInflationSettings(prev => prev.map(setting => 
+      setting.id === id ? { ...setting, [field]: value } : setting
+    ));
+  };
+
+  const removeInflationSetting = (id: string) => {
+    setInflationSettings(prev => prev.filter(setting => setting.id !== id));
   };
 
   // Initialize dialog with existing data
@@ -748,7 +826,7 @@ export default function Budget() {
           ) : (
             <>
               {/* Summary Cards */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'>
                 <Card>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-sm font-medium'>
@@ -815,6 +893,42 @@ export default function Budget() {
                     <p className='text-xs text-muted-foreground mt-1'>
                       {language === 'fr' ? 'Contribution requise' : 'Required contribution'}
                     </p>
+                  </CardContent>
+                </Card>
+                
+                {/* Inflation Management Card */}
+                <Card>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='text-sm font-medium'>
+                      {inflationTranslations.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className='space-y-2'>
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-muted-foreground'>{inflationTranslations.generalIncome}</span>
+                        <span className={`font-semibold ${generalIncomeInflation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {generalIncomeInflation > 0 ? '+' : ''}{generalIncomeInflation}%
+                        </span>
+                      </div>
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-muted-foreground'>{inflationTranslations.generalExpense}</span>
+                        <span className={`font-semibold ${generalExpenseInflation >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {generalExpenseInflation > 0 ? '+' : ''}{generalExpenseInflation}%
+                        </span>
+                      </div>
+                    </div>
+                    <Dialog 
+                      open={inflationDialog} 
+                      onOpenChange={setInflationDialog}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className='w-full mt-3' variant='outline' size='sm'>
+                          <Percent className='w-3 h-3 mr-1' />
+                          {inflationTranslations.manageInflation}
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
                   </CardContent>
                 </Card>
               </div>
@@ -1176,11 +1290,8 @@ export default function Budget() {
                             <Button 
                               onClick={async () => {
                                 try {
-                                  await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, {
-                                    method: 'PUT',
-                                    body: {
-                                      bankAccountMinimums: JSON.stringify(minimumBalances),
-                                    },
+                                  await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, 'PUT', {
+                                    bankAccountMinimums: JSON.stringify(minimumBalances),
                                   });
                                   
                                   queryClient.invalidateQueries({

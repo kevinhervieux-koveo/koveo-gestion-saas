@@ -70,6 +70,7 @@ export const buildings = pgTable('buildings', {
   bankAccountStartDate: timestamp('bank_account_start_date'), // Date when account started tracking
   bankAccountStartAmount: numeric('bank_account_start_amount', { precision: 10, scale: 2 }), // Starting balance
   bankAccountMinimums: text('bank_account_minimums'), // JSON string of minimum balance settings
+  inflationSettings: text('inflation_settings'), // JSON string of inflation configuration by category
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
