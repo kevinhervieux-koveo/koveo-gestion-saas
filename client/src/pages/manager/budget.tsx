@@ -1519,25 +1519,35 @@ export default function Budget() {
                               
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor="generalIncomeInflation">{inflationTranslations.generalIncome}</Label>
+                                  <Label htmlFor="generalIncomeInflation">
+                                    {inflationTranslations.generalIncome}
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                      ({language === 'fr' ? 'Ex: 2.5 (inflation) ou -1.0 (déflation)' : 'e.g., 2.5 (inflation) or -1.0 (deflation)'})
+                                    </span>
+                                  </Label>
                                   <Input
                                     id="generalIncomeInflation"
                                     type="number"
                                     step="0.1"
                                     value={generalIncomeInflation}
                                     onChange={(e) => setGeneralIncomeInflation(parseFloat(e.target.value) || 0)}
-                                    placeholder="0.0"
+                                    placeholder={language === 'fr' ? '2.5 ou -1.0' : '2.5 or -1.0'}
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="generalExpenseInflation">{inflationTranslations.generalExpense}</Label>
+                                  <Label htmlFor="generalExpenseInflation">
+                                    {inflationTranslations.generalExpense}
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                      ({language === 'fr' ? 'Ex: 3.0 (inflation) ou -2.0 (déflation)' : 'e.g., 3.0 (inflation) or -2.0 (deflation)'})
+                                    </span>
+                                  </Label>
                                   <Input
                                     id="generalExpenseInflation"
                                     type="number"
                                     step="0.1"
                                     value={generalExpenseInflation}
                                     onChange={(e) => setGeneralExpenseInflation(parseFloat(e.target.value) || 0)}
-                                    placeholder="0.0"
+                                    placeholder={language === 'fr' ? '3.0 ou -2.0' : '3.0 or -2.0'}
                                   />
                                 </div>
                               </div>
