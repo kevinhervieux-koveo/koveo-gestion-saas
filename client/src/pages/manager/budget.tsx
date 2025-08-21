@@ -142,15 +142,57 @@ export default function Budget() {
     }).sort((a: BudgetData, b: BudgetData) => a.date.localeCompare(b.date));
   }, [budgetSummary]);
 
-  // Get all available categories
+  // Category translation mapping
+  const categoryTranslations: Record<string, { en: string; fr: string }> = {
+    // Income categories
+    'monthly_fees': { en: 'Monthly Fees', fr: 'Frais mensuels' },
+    'parking_fees': { en: 'Parking Fees', fr: 'Frais de stationnement' },
+    'other_income': { en: 'Other Income', fr: 'Autres revenus' },
+    'special_assessment': { en: 'Special Assessment', fr: 'Cotisation spéciale' },
+    'interest_income': { en: 'Interest Income', fr: "Revenus d'intérêts" },
+    'rental_income': { en: 'Rental Income', fr: 'Revenus de location' },
+    
+    // Expense categories
+    'maintenance_expense': { en: 'Maintenance', fr: 'Entretien' },
+    'utilities': { en: 'Utilities', fr: 'Services publics' },
+    'insurance': { en: 'Insurance', fr: 'Assurance' },
+    'administrative_expense': { en: 'Administration', fr: 'Administration' },
+    'cleaning': { en: 'Cleaning', fr: 'Nettoyage' },
+    'professional_services': { en: 'Professional Services', fr: 'Services professionnels' },
+    'bill_payment': { en: 'Bill Payment', fr: 'Paiement de factures' },
+    'repairs': { en: 'Repairs', fr: 'Réparations' },
+    'landscaping': { en: 'Landscaping', fr: 'Aménagement paysager' },
+    'snow_removal': { en: 'Snow Removal', fr: 'Déneigement' },
+    'security': { en: 'Security', fr: 'Sécurité' },
+    'legal_fees': { en: 'Legal Fees', fr: 'Frais juridiques' },
+  };
+  
+  const translateCategory = (category: string) => {
+    const translation = categoryTranslations[category];
+    if (translation) {
+      return language === 'fr' ? translation.fr : translation.en;
+    }
+    // Fallback: capitalize and replace underscores
+    return category.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+  
+  // Get all available categories with translations
   const availableCategories = useMemo(() => {
     const categories = new Set<string>();
     chartData.forEach((item) => {
-      Object.keys(item.incomeByCategory).forEach(cat => categories.add(`Income: ${cat}`));
-      Object.keys(item.expensesByCategory).forEach(cat => categories.add(`Expense: ${cat}`));
+      Object.keys(item.incomeByCategory).forEach(cat => {
+        const translated = translateCategory(cat);
+        categories.add(`${language === 'fr' ? 'Revenus' : 'Income'}: ${translated}`);
+      });
+      Object.keys(item.expensesByCategory).forEach(cat => {
+        const translated = translateCategory(cat);
+        categories.add(`${language === 'fr' ? 'Dépenses' : 'Expense'}: ${translated}`);
+      });
     });
     return Array.from(categories).sort();
-  }, [chartData]);
+  }, [chartData, language]);
 
   // Filter data by selected categories
   const filteredChartData = useMemo(() => {
@@ -161,12 +203,27 @@ export default function Budget() {
       let filteredExpenses = 0;
       
       selectedCategories.forEach(category => {
-        if (category.startsWith('Income: ')) {
-          const catName = category.replace('Income: ', '');
-          filteredIncome += item.incomeByCategory[catName] || 0;
-        } else if (category.startsWith('Expense: ')) {
-          const catName = category.replace('Expense: ', '');
-          filteredExpenses += item.expensesByCategory[catName] || 0;
+        const incomePrefix = language === 'fr' ? 'Revenus: ' : 'Income: ';
+        const expensePrefix = language === 'fr' ? 'Dépenses: ' : 'Expense: ';
+        
+        if (category.startsWith(incomePrefix)) {
+          const translatedCatName = category.replace(incomePrefix, '');
+          // Find original category name from translation
+          const originalCatName = Object.keys(item.incomeByCategory).find(key => {
+            return translateCategory(key) === translatedCatName;
+          });
+          if (originalCatName) {
+            filteredIncome += item.incomeByCategory[originalCatName] || 0;
+          }
+        } else if (category.startsWith(expensePrefix)) {
+          const translatedCatName = category.replace(expensePrefix, '');
+          // Find original category name from translation
+          const originalCatName = Object.keys(item.expensesByCategory).find(key => {
+            return translateCategory(key) === translatedCatName;
+          });
+          if (originalCatName) {
+            filteredExpenses += item.expensesByCategory[originalCatName] || 0;
+          }
         }
       });
       
