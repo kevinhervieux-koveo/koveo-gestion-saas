@@ -320,7 +320,7 @@ describe('SQL Injection Unit Security Tests', () => {
           // This test found that error messages expose SQL queries and table/column names
           // This is a security concern that should be addressed in production
           console.warn('⚠️ Security Issue Found: Error messages expose database schema details');
-          console.warn('Error message:', error.message);
+          console.warn('Error message:', __error.message);
           
           // For now, we'll expect this to fail as it reveals a real security issue
           expect(__error.message).toMatch(/information_schema|users/i);

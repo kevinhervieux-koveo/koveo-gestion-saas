@@ -308,7 +308,7 @@ export function authorize(permission: string) {
  * @param app
  * @returns Function result.
  */
-export function setupAuthRoutes(app: unknown) {
+export function setupAuthRoutes(app: any) {
   // Login route
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
@@ -507,7 +507,7 @@ export function setupAuthRoutes(app: unknown) {
         expiresAt: expiresAt,
         ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown',
-      });
+      } as any);
 
       // Send password reset email
       const frontendUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;

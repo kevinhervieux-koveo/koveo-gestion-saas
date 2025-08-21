@@ -68,7 +68,7 @@ const invitationRateLimit = new Map();
  * @returns Function result.
  */
 function rateLimitInvitations(limit: number) {
-  return (req: unknown, res: unknown, next: unknown) => {
+  return (req: any, res: any, next: any) => {
     const userId = req.user?.id;
     const key = `invitation_${userId}`;
     const now = Date.now();
@@ -142,7 +142,7 @@ async function createInvitationAuditLog(
       timestamp: new Date().toISOString()
     });
   } catch (__error) {
-    console.error('Failed to create audit log:', error);
+    console.error('Failed to create audit log:', __error);
   }
 }
 
@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use(sessionConfig);
     log('✅ Session middleware configured');
   } catch (__error) {
-    log(`❌ Session setup failed: ${error}`, 'error');
+    log(`❌ Session setup failed: ${__error}`, 'error');
   }
   
   // Setup authentication routes
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     setupAuthRoutes(app);
     log('✅ Auth routes registered');
   } catch (__error) {
-    log(`❌ Auth routes failed: ${error}`, 'error');
+    log(`❌ Auth routes failed: ${__error}`, 'error');
   }
   
   // Register permissions API routes
@@ -177,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerPermissionsRoutes(app);
     log('✅ Permissions routes registered');
   } catch (__error) {
-    log(`❌ Permissions routes failed: ${error}`, 'error');
+    log(`❌ Permissions routes failed: ${__error}`, 'error');
   }
   
   // Register organization API routes
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerOrganizationRoutes(app);
     log('✅ Organization routes registered');
   } catch (__error) {
-    log(`❌ Organization routes failed: ${error}`, 'error');
+    log(`❌ Organization routes failed: ${__error}`, 'error');
   }
   
   // Register user API routes
@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerUserRoutes(app);
     log('✅ User routes registered');
   } catch (__error) {
-    log(`❌ User routes failed: ${error}`, 'error');
+    log(`❌ User routes failed: ${__error}`, 'error');
   }
   
   // Register building API routes
@@ -201,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerBuildingRoutes(app);
     log('✅ Building routes registered');
   } catch (__error) {
-    log(`❌ Building routes failed: ${error}`, 'error');
+    log(`❌ Building routes failed: ${__error}`, 'error');
   }
 
   // Register document API routes
@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerDocumentRoutes(app);
     log('✅ Document routes registered');
   } catch (__error) {
-    log(`❌ Document routes failed: ${error}`, 'error');
+    log(`❌ Document routes failed: ${__error}`, 'error');
   }
 
   // Register budget API routes
@@ -217,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/budgets', budgetRoutes);
     log('✅ Budget routes registered');
   } catch (__error) {
-    log(`❌ Budget routes failed: ${error}`, 'error');
+    log(`❌ Budget routes failed: ${__error}`, 'error');
   }
 
   // Register dynamic budget API routes (replaces money_flow with real-time calculations)
@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/dynamic-budgets', dynamicBudgetRoutes);
     log('✅ Dynamic budget routes registered');
   } catch (__error) {
-    log(`❌ Dynamic budget routes failed: ${error}`, 'error');
+    log(`❌ Dynamic budget routes failed: ${__error}`, 'error');
   }
 
   // Register cleanup API routes
@@ -233,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/admin', cleanupRoutes);
     log('✅ Cleanup routes registered');
   } catch (__error) {
-    log(`❌ Cleanup routes failed: ${error}`, 'error');
+    log(`❌ Cleanup routes failed: ${__error}`, 'error');
   }
 
   // Register residence API routes
@@ -242,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerResidenceRoutes(app);
     log('✅ Residence routes registered');
   } catch (__error) {
-    log(`❌ Residence routes failed: ${error}`, 'error');
+    log(`❌ Residence routes failed: ${__error}`, 'error');
   }
 
   // Register contact API routes
@@ -250,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerContactRoutes(app);
     log('✅ Contact routes registered');
   } catch (__error) {
-    log(`❌ Contact routes failed: ${error}`, 'error');
+    log(`❌ Contact routes failed: ${__error}`, 'error');
   }
 
   // Register demand API routes
@@ -258,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerDemandRoutes(app);
     log('✅ Demand routes registered');
   } catch (__error) {
-    log(`❌ Demand routes failed: ${error}`, 'error');
+    log(`❌ Demand routes failed: ${__error}`, 'error');
   }
 
   // Register bills API routes
@@ -266,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerBillRoutes(app);
     log('✅ Bills routes registered');
   } catch (__error) {
-    log(`❌ Bills routes failed: ${error}`, 'error');
+    log(`❌ Bills routes failed: ${__error}`, 'error');
   }
 
   // Register money flow automation routes
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerMoneyFlowRoutes(app);
     log('✅ Money flow automation routes registered');
   } catch (__error) {
-    log(`❌ Money flow automation routes failed: ${error}`, 'error');
+    log(`❌ Money flow automation routes failed: ${__error}`, 'error');
   }
 
   // Register delayed update monitoring routes
@@ -282,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     registerDelayedUpdateRoutes(app);
     log('✅ Delayed update monitoring routes registered');
   } catch (__error) {
-    log(`❌ Delayed update monitoring routes failed: ${error}`, 'error');
+    log(`❌ Delayed update monitoring routes failed: ${__error}`, 'error');
   }
 
   // Register features and actionable items API routes
@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(features);
       } catch (__error) {
-        console.error('Error fetching features:', error);
+        console.error('Error fetching features:', __error);
         res.status(500).json({ message: 'Failed to fetch features' });
       }
     });
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(items.rows);
       } catch (__error) {
-        console.error('Error fetching actionable items:', error);
+        console.error('Error fetching actionable items:', __error);
         res.status(500).json({ message: 'Failed to fetch actionable items' });
       }
     });
@@ -343,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(result.rows[0]);
       } catch (__error) {
-        console.error('Error updating actionable item:', error);
+        console.error('Error updating actionable item:', __error);
         res.status(500).json({ message: 'Failed to update actionable item' });
       }
     });
@@ -369,14 +369,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json(feature);
       } catch (__error) {
-        console.error('Error updating strategic path:', error);
+        console.error('Error updating strategic path:', __error);
         res.status(500).json({ message: 'Failed to update strategic path' });
       }
     });
 
     log('✅ Features and actionable items routes registered');
   } catch (__error) {
-    log(`❌ Features and actionable items routes failed: ${error}`, 'error');
+    log(`❌ Features and actionable items routes failed: ${__error}`, 'error');
   }
 
   // Register quality metrics API route
@@ -399,14 +399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json(metrics);
       } catch (__error) {
-        console.error('Error fetching quality metrics:', error);
+        console.error('Error fetching quality metrics:', __error);
         res.status(500).json({ message: 'Failed to fetch quality metrics' });
       }
     });
     
     log('✅ Quality metrics routes registered');
   } catch (__error) {
-    log(`❌ Quality metrics routes failed: ${error}`, 'error');
+    log(`❌ Quality metrics routes failed: ${__error}`, 'error');
   }
   
   // Register invitation routes
@@ -582,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.log(`✅ Invitation email sent successfully to ${email}`);
           } catch (__emailError) {
-            console.error('❌ Failed to send invitation email:', emailError);
+            console.error('❌ Failed to send invitation email:', __emailError);
             // Don't fail the entire request if email fails, just log it
           }
           
@@ -596,7 +596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
         } catch (__error) {
-          console.error('Error creating invitation:', error);
+          console.error('Error creating invitation:', __error);
           res.status(500).json({ message: 'Failed to create invitation' });
         }
       }
@@ -608,7 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const invitationList = await db.select().from(invitations);
         res.json(invitationList);
       } catch (__error) {
-        console.error('Error fetching invitations:', error);
+        console.error('Error fetching invitations:', __error);
         res.status(500).json({ message: 'Failed to fetch invitations' });
       }
     });
@@ -741,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
       } catch (__error) {
-        console.error('Error validating invitation:', error);
+        console.error('Error validating invitation:', __error);
         res.status(500).json({ 
           message: 'Failed to validate invitation',
           isValid: false 
@@ -893,7 +893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
       } catch (__error) {
-        console.error('Error accepting invitation:', error);
+        console.error('Error accepting invitation:', __error);
         res.status(500).json({ 
           message: 'Failed to create account',
           code: 'ACCOUNT_CREATION_FAILED'
@@ -903,7 +903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     log('✅ Invitation routes registered');
   } catch (__error) {
-    log(`❌ Invitation routes failed: ${error}`, 'error');
+    log(`❌ Invitation routes failed: ${__error}`, 'error');
   }
 
   // Register improvement suggestions routes
@@ -927,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .orderBy(desc(schema.improvementSuggestions.createdAt));
         res.json(suggestions);
       } catch (__error) {
-        console.error('Error fetching suggestions:', error);
+        console.error('Error fetching suggestions:', __error);
         res.status(500).json({ message: 'Failed to fetch improvement suggestions' });
       }
     });
@@ -947,7 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         res.json(suggestion);
       } catch (__error) {
-        console.error('Error acknowledging suggestion:', error);
+        console.error('Error acknowledging suggestion:', __error);
         res.status(500).json({ message: 'Failed to update suggestion status' });
       }
     });
@@ -988,14 +988,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({ message: 'Suggestion completed and deleted successfully' });
       } catch (__error) {
-        console.error('Error completing suggestion:', error);
+        console.error('Error completing suggestion:', __error);
         res.status(500).json({ message: 'Failed to complete suggestion' });
       }
     });
 
     log('✅ Improvement suggestions routes registered');
   } catch (__error) {
-    log(`❌ Improvement suggestions routes failed: ${error}`, 'error');
+    log(`❌ Improvement suggestions routes failed: ${__error}`, 'error');
   }
 
   // Register Law 25 compliance routes
@@ -1006,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     log('✅ Law 25 compliance routes registered');
   } catch (__error) {
-    log(`❌ Law 25 compliance routes failed: ${error}`, 'error');
+    log(`❌ Law 25 compliance routes failed: ${__error}`, 'error');
   }
   
   // Test route
@@ -1033,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     cleanupScheduler.startAutoCleanup();
     log('✅ Storage cleanup scheduler initialized');
   } catch (__error) {
-    log(`❌ Cleanup scheduler failed: ${error}`, 'error');
+    log(`❌ Cleanup scheduler failed: ${__error}`, 'error');
   }
 
   // Create and return HTTP server
