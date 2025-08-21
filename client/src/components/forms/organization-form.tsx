@@ -45,7 +45,7 @@ const organizationFormSchema = z.object({
   type: z.string().min(1, 'Organization type is required'),
   address: z.string().min(1, 'Address is required').max(300, 'Address must be 300 characters or less'),
   city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
-  province: z.string().default('QC'),
+  province: z.string().min(1, 'Province is required').default('QC'),
   postalCode: z.string()
     .min(1, 'Postal code is required')
     .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/, 'Invalid Canadian postal code format'),
@@ -73,7 +73,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<OrganizationFormData>({
+  const form = useForm({
     resolver: zodResolver(organizationFormSchema),
     defaultValues: {
       name: '',

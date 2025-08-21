@@ -90,4 +90,9 @@ declare module 'wouter/memory' {
   export { memoryLocation };
 }
 
+/**
+ * Jest DOM matcher declarations.
+ */
+import '@testing-library/jest-dom';
+
 export {};

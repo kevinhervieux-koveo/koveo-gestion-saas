@@ -48,7 +48,7 @@ describe('Demands API Unit Tests', () => {
     // Setup test application
     app = express();
     app.use(express.json());
-    registerDemandRoutes(app);
+    registerDemandRoutes(app as any);
 
     // Create test data
     await setupTestData();
@@ -143,11 +143,11 @@ describe('Demands API Unit Tests', () => {
         city: 'Montreal',
         province: 'QC',
         postalCode: 'H1B 1B1',
-        buildingType: 'Apartment',
+        buildingType: 'apartment',
         totalUnits: 10,
         yearBuilt: 2020,
-        parkingSpaces: ['P1', 'P2'],
-        storageSpaces: ['S1', 'S2']
+        parkingSpaces: 2,
+        storageSpaces: 2
       }).returning();
       testBuildings.push(building1);
 
@@ -158,22 +158,22 @@ describe('Demands API Unit Tests', () => {
           buildingId: building1.id,
           unitNumber: '101',
           floor: 1,
-          squareFootage: 800,
+          squareFootage: '800',
           bedrooms: 2,
-          bathrooms: 1,
-          parkingSpots: ['P1'],
-          storageSpaces: ['S1']
+          bathrooms: '1.0',
+          parkingSpaceNumbers: ['P1'],
+          storageSpaceNumbers: ['S1']
         },
         {
           id: 'test-residence-2',
           buildingId: building1.id,
           unitNumber: '102',
           floor: 1,
-          squareFootage: 900,
+          squareFootage: '900',
           bedrooms: 2,
-          bathrooms: 1,
-          parkingSpots: ['P2'],
-          storageSpaces: ['S2']
+          bathrooms: '1.0',
+          parkingSpaceNumbers: ['P2'],
+          storageSpaceNumbers: ['S2']
         }
       ];
 
@@ -187,12 +187,14 @@ describe('Demands API Unit Tests', () => {
         {
           userId: testUsers[2].id, // resident
           residenceId: testResidences[0].id,
-          residenceRole: 'owner'
+          relationshipType: 'owner',
+          startDate: '2024-01-01'
         },
         {
           userId: testUsers[3].id, // tenant
           residenceId: testResidences[1].id,
-          residenceRole: 'tenant'
+          relationshipType: 'tenant',
+          startDate: '2024-01-01'
         }
       ]);
 
@@ -205,7 +207,7 @@ describe('Demands API Unit Tests', () => {
           description: 'Faucet is leaking in kitchen',
           residenceId: testResidences[0].id,
           buildingId: building1.id,
-          status: 'pending' as const
+          status: 'submitted' as const
         },
         {
           id: 'test-demand-2',
@@ -579,7 +581,7 @@ describe('Demands API Unit Tests', () => {
         description: 'Test demand to delete',
         residenceId: testResidences[0].id,
         buildingId: testBuildings[0].id,
-        status: 'pending'
+        status: 'submitted'
       }).returning();
 
       const response = await request(app)
@@ -625,7 +627,7 @@ describe('Demands API Unit Tests', () => {
         description: 'Admin deletion test',
         residenceId: testResidences[1].id,
         buildingId: testBuildings[0].id,
-        status: 'pending'
+        status: 'submitted'
       }).returning();
 
       const response = await request(app)
@@ -652,9 +654,9 @@ describe('Demands API Unit Tests', () => {
       // First create a comment
       const [comment] = await db.insert(demandComments).values({
         demandId: testDemands[0].id,
-        authorId: testUsers[1].id,
-        content: 'This needs immediate attention',
-        isInternal: false
+        createdBy: testUsers[1].id,
+        comment: 'This needs immediate attention',
+        orderIndex: '1.0'
       }).returning();
 
       const response = await request(app)

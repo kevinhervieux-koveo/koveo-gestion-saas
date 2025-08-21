@@ -353,7 +353,7 @@ const billFilterSchema = z.object({
   buildingId: z.string().uuid(),
   category: z.string().optional(),
   year: z.string().optional(),
-  status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']).optional()
+  status: z.enum(['all', 'draft', 'sent', 'overdue', 'paid', 'cancelled']).optional()
 });
 
 const createBillSchema = z.object({
@@ -462,9 +462,10 @@ export function registerBillRoutes(app: Express) {
       
       if (filters.status && filters.status !== 'all') {
         // Only add status filter if it's a valid enum value
-        const validStatuses = ['draft', 'sent', 'overdue', 'paid', 'cancelled'];
-        if (validStatuses.includes(filters.status)) {
-          conditions.push(eq(bills.status, filters.status as any));
+        const validStatuses = ['draft', 'sent', 'overdue', 'paid', 'cancelled'] as const;
+        type ValidStatus = typeof validStatuses[number];
+        if (validStatuses.includes(filters.status as ValidStatus)) {
+          conditions.push(eq(bills.status, filters.status as ValidStatus));
         }
       }
       

@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Edit2, Save, X, Send, Trash2, ArrowUp } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -101,7 +101,7 @@ const editDemandSchema = z.object({
   reviewNotes: z.string().optional(),
 });
 
-const commentSchema = z.object({
+const _commentSchema = z.object({
   comment: z.string().min(1, 'Comment cannot be empty'),
 });
 
@@ -112,7 +112,7 @@ type EditDemandFormData = z.infer<typeof editDemandSchema>;
 /**
  *
  */
-type CommentFormData = z.infer<typeof commentSchema>;
+type _CommentFormData = z.infer<typeof _commentSchema>;
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',

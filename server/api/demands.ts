@@ -123,9 +123,11 @@ export function registerDemandRoutes(app: Express) {
       if (status) {conditions.push(eq(demands.status, status));}
 
       // Apply conditions to query if any exist
-      let finalQuery = query;
+      let finalQuery;
       if (conditions.length > 0) {
         finalQuery = query.where(and(...conditions));
+      } else {
+        finalQuery = query;
       }
 
       const results = await finalQuery.orderBy(desc(demands.createdAt));
@@ -256,7 +258,7 @@ export function registerDemandRoutes(app: Express) {
       const validatedData = insertDemandSchema.parse(demandData);
 
       // Create demand data with submitter set to current user
-      const demandInsertData = {
+      const demandInsertData: any = {
         ...validatedData,
         submitterId: user.id,
       };
@@ -283,7 +285,7 @@ export function registerDemandRoutes(app: Express) {
 
       const newDemand = await db
         .insert(demands)
-        .values(demandInsertData)
+        .values([demandInsertData])
         .returning();
 
       res.status(201).json(newDemand[0]);

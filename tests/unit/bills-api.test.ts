@@ -4,16 +4,15 @@ import express from 'express';
 import { registerBillRoutes } from '../../server/api/bills';
 
 // Mock dependencies
+const mockDb = {
+  select: jest.fn(),
+  insert: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn()
+} as any;
+
 jest.mock('../../server/db', () => ({
-  db: {
-    select: jest.fn().mockReturnValue({
-      from: jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockResolvedValue([{ name: 'Test Building' }])
-        })
-      })
-    })
-  }
+  db: mockDb
 }));
 
 jest.mock('../../server/auth', () => ({
@@ -24,7 +23,7 @@ jest.mock('../../server/auth', () => ({
 }));
 
 describe('Bills API', () => {
-  let app: express.Application;
+  let app: express.Express;
 
   beforeEach(() => {
     app = express();

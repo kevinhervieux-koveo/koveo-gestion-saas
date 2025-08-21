@@ -19,11 +19,7 @@
     "workspaceContext": {
       "workingFiles": 3,
       "focusArea": "demo",
-      "recentActivity": [
-        "package.json",
-        "tsconfig.json",
-        "vite.config.ts"
-      ]
+      "recentActivity": ["package.json", "tsconfig.json", "vite.config.ts"]
     },
     "recommendations": {
       "priority": 1,

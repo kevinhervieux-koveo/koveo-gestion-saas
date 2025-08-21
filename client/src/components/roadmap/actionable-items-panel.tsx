@@ -224,7 +224,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                       <div className="text-left">
                         <div className="font-medium">{item.title}</div>
                         <div className="text-sm text-gray-600">
-                          {item.estimatedEffort} • Item {index + 1} of {items.length}
+                          Item {index + 1} of {items.length}
                         </div>
                       </div>
                     </div>
@@ -242,20 +242,20 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                     </div>
 
                     {/* Technical Details */}
-                    {item.technicalDetails && (
+                    {item.implementation_notes && (
                       <div>
-                        <h4 className="font-semibold mb-1">Technical Details</h4>
+                        <h4 className="font-semibold mb-1">Implementation Notes</h4>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                          {item.technicalDetails}
+                          {item.implementation_notes}
                         </p>
                       </div>
                     )}
 
-                    {/* Testing Requirements */}
-                    {item.testingRequirements && (
+                    {/* Acceptance Criteria */}
+                    {item.acceptanceCriteria && (
                       <div>
-                        <h4 className="font-semibold mb-1">Testing Requirements</h4>
-                        <p className="text-sm text-gray-700">{String(item.testingRequirements)}</p>
+                        <h4 className="font-semibold mb-1">Acceptance Criteria</h4>
+                        <p className="text-sm text-gray-700">{String(item.acceptanceCriteria)}</p>
                       </div>
                     )}
 
@@ -270,8 +270,8 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                           variant="outline"
                           size="sm"
                           onClick={() => copyImplementationPrompt(
-                            item.implementationPrompt || 
-                            `Implement: ${item.title}\n\nDescription: ${item.description}\n\nTechnical Details: ${item.technicalDetails || 'No specific technical details provided'}\n\nEstimated Effort: ${item.estimatedEffort || 'Unknown'}`
+                            item.implementation_notes || 
+                            `Implement: ${item.title}\n\nDescription: ${item.description}\n\nImplementation Notes: ${item.implementation_notes || 'No specific implementation notes provided'}\n\nEstimated Hours: ${item.estimatedHours || 'Unknown'}`
                           )}
                           className="text-blue-600 border-blue-200 hover:bg-blue-50"
                         >
@@ -281,13 +281,13 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                       </div>
                       <div className="bg-slate-900 text-green-400 p-4 rounded-lg border border-slate-700 shadow-inner">
                         <pre className="whitespace-pre-wrap text-sm leading-relaxed">
-{item.implementationPrompt || `Implement: ${item.title}
+{item.implementation_notes || `Implement: ${item.title}
 
 Description: ${item.description}
 
-Technical Details: ${item.technicalDetails || 'No specific technical details provided'}
+Implementation Notes: ${item.implementation_notes || 'No specific implementation notes provided'}
 
-Estimated Effort: ${item.estimatedEffort || 'Unknown'}
+Estimated Hours: ${item.estimatedHours || 'Unknown'}
 
 Please implement this feature following best practices and ensuring proper error handling, testing, and documentation.`}
                         </pre>
