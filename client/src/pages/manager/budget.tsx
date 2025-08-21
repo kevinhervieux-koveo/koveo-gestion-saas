@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter } from 'lucide-react';
+import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
@@ -43,6 +43,7 @@ export default function Budget() {
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [reconciliationNote, setReconciliationNote] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   
   // Year range controls
   const currentYear = new Date().getFullYear();
@@ -314,127 +315,189 @@ export default function Budget() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-6 gap-4'>
-                <div className='space-y-2'>
-                  <Label>{language === 'fr' ? 'Bâtiment' : 'Building'}</Label>
-                  <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner un bâtiment' : 'Select a building'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.isArray(buildings) && buildings.map((building: any) => (
-                        <SelectItem key={building.id} value={building.id}>
-                          {building.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className='space-y-2'>
-                  <Label>{language === 'fr' ? 'Type de vue' : 'View Type'}</Label>
-                  <Select value={viewType} onValueChange={(value: 'yearly' | 'monthly') => setViewType(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='monthly'>{language === 'fr' ? 'Vue mensuelle' : 'Monthly View'}</SelectItem>
-                      <SelectItem value='yearly'>{language === 'fr' ? 'Vue annuelle' : 'Yearly View'}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className='space-y-2'>
-                  <Label>{language === 'fr' ? 'Année de début' : 'Start Year'}</Label>
-                  <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className='space-y-2'>
-                  <Label>{language === 'fr' ? 'Année de fin' : 'End Year'}</Label>
-                  <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className='flex flex-col justify-end space-y-2'>
+              {/* Collapsible Filter Toggle */}
+              <div className='flex items-center justify-between mb-4'>
+                <div className='flex items-center gap-4'>
                   <Button 
                     variant='outline' 
-                    onClick={() => setShowCategories(!showCategories)}
+                    onClick={() => setFiltersExpanded(!filtersExpanded)}
                     className='flex items-center gap-2'
                   >
                     <Filter className='w-4 h-4' />
-                    {showCategories ? 
-                      (language === 'fr' ? 'Masquer catégories' : 'Hide Categories') : 
-                      (language === 'fr' ? 'Afficher catégories' : 'Show Categories')
-                    }
+                    {language === 'fr' ? 'Filtres' : 'Filters'}
+                    {filtersExpanded ? <ChevronUp className='w-4 h-4' /> : <ChevronDown className='w-4 h-4' />}
                   </Button>
-                </div>
-                
-                <div className='flex flex-col justify-end space-y-2'>
-                  <Button 
-                    variant='outline' 
-                    onClick={() => {
-                      setStartYear(currentYear - 3);
-                      setEndYear(currentYear + 25);
-                    }}
-                    className='flex items-center gap-2'
-                  >
-                    {language === 'fr' ? 'Réinitialiser plage' : 'Reset Range'}
-                  </Button>
-                </div>
-              </div>
-              
-              {showCategories && (
-                <div className='mt-4 space-y-2'>
-                  <Label>{language === 'fr' ? 'Filtrer par catégories' : 'Filter by Categories'}</Label>
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto'>
-                    {availableCategories.map((category) => (
-                      <label key={category} className='flex items-center space-x-2 text-sm'>
-                        <input
-                          type='checkbox'
-                          checked={selectedCategories.includes(category)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCategories([...selectedCategories, category]);
-                            } else {
-                              setSelectedCategories(selectedCategories.filter(c => c !== category));
-                            }
-                          }}
-                          className='rounded'
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {selectedCategories.length > 0 && (
+                  
+                  {/* Filter Actions */}
+                  <div className='flex items-center gap-2'>
                     <Button 
                       variant='outline' 
-                      size='sm' 
-                      onClick={() => setSelectedCategories([])}
+                      size='sm'
+                      onClick={() => {
+                        setStartYear(currentYear - 3);
+                        setEndYear(currentYear + 25);
+                      }}
+                      className='flex items-center gap-1'
                     >
-                      {language === 'fr' ? 'Effacer tous les filtres' : 'Clear All Filters'}
+                      <Settings className='w-3 h-3' />
+                      {language === 'fr' ? 'Réinitialiser' : 'Reset'}
                     </Button>
-                  )}
+                    
+                    <Button 
+                      variant='outline' 
+                      size='sm'
+                      onClick={() => setShowCategories(!showCategories)}
+                      className={`flex items-center gap-1 ${showCategories ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}`}
+                    >
+                      <Filter className='w-3 h-3' />
+                      {language === 'fr' ? 'Catégories' : 'Categories'}
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Active Filters Count */}
+                {(selectedCategories.length > 0 || startYear !== (currentYear - 3) || endYear !== (currentYear + 25)) && (
+                  <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                    <span>
+                      {language === 'fr' ? 'Filtres actifs:' : 'Active filters:'}
+                    </span>
+                    <div className='flex gap-1'>
+                      {selectedCategories.length > 0 && (
+                        <span className='px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs'>
+                          {selectedCategories.length} {language === 'fr' ? 'catégories' : 'categories'}
+                        </span>
+                      )}
+                      {(startYear !== (currentYear - 3) || endYear !== (currentYear + 25)) && (
+                        <span className='px-2 py-1 bg-green-100 text-green-700 rounded text-xs'>
+                          {startYear} - {endYear}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Expandable Filter Controls */}
+              {filtersExpanded && (
+                <div className='space-y-4 border-t pt-4'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+                    <div className='space-y-2'>
+                      <Label className='text-sm font-medium'>{language === 'fr' ? 'Bâtiment' : 'Building'}</Label>
+                      <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+                        <SelectTrigger className='h-9'>
+                          <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.isArray(buildings) && buildings.map((building: any) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {building.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className='space-y-2'>
+                      <Label className='text-sm font-medium'>{language === 'fr' ? 'Type de vue' : 'View Type'}</Label>
+                      <Select value={viewType} onValueChange={(value: 'yearly' | 'monthly') => setViewType(value)}>
+                        <SelectTrigger className='h-9'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='monthly'>{language === 'fr' ? 'Mensuelle' : 'Monthly'}</SelectItem>
+                          <SelectItem value='yearly'>{language === 'fr' ? 'Annuelle' : 'Yearly'}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className='space-y-2'>
+                      <Label className='text-sm font-medium'>{language === 'fr' ? 'De' : 'From'}</Label>
+                      <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                        <SelectTrigger className='h-9'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className='space-y-2'>
+                      <Label className='text-sm font-medium'>{language === 'fr' ? 'À' : 'To'}</Label>
+                      <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                        <SelectTrigger className='h-9'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Category Filters */}
+              {showCategories && (
+                <div className='mt-4 space-y-3 border-t pt-4'>
+                  <div className='flex items-center justify-between'>
+                    <Label className='text-sm font-medium'>
+                      {language === 'fr' ? 'Filtrer par catégories' : 'Filter by Categories'}
+                    </Label>
+                    <div className='flex items-center gap-2'>
+                      {selectedCategories.length > 0 && (
+                        <span className='text-xs text-muted-foreground'>
+                          {selectedCategories.length} {language === 'fr' ? 'sélectionnées' : 'selected'}
+                        </span>
+                      )}
+                      <Button 
+                        variant='ghost' 
+                        size='sm' 
+                        onClick={() => setSelectedCategories([])}  
+                        disabled={selectedCategories.length === 0}
+                        className='h-6 px-2 text-xs'
+                      >
+                        <X className='w-3 h-3 mr-1' />
+                        {language === 'fr' ? 'Effacer' : 'Clear'}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className='max-h-40 overflow-y-auto border rounded-md p-3'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2'>
+                      {availableCategories.map((category) => (
+                        <label key={category} className='flex items-center space-x-2 text-sm hover:bg-muted/50 p-1 rounded cursor-pointer'>
+                          <input
+                            type='checkbox'
+                            checked={selectedCategories.includes(category)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCategories([...selectedCategories, category]);
+                              } else {
+                                setSelectedCategories(selectedCategories.filter(c => c !== category));
+                              }
+                            }}
+                            className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2'
+                          />
+                          <span className='truncate'>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    {availableCategories.length === 0 && (
+                      <div className='text-center py-4 text-sm text-muted-foreground'>
+                        {language === 'fr' ? 'Aucune catégorie disponible' : 'No categories available'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>
