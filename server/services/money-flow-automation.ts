@@ -202,10 +202,9 @@ export class MoneyFlowAutomationService {
       
       entries.push({
         buildingId: bill.buildingId,
-        residenceId: undefined, // Bills are building-level
         billId: bill.id,
-        type: 'expense',
-        category: this.mapBillCategoryToMoneyFlowCategory(bill.category) as any,
+        type: 'expense' as const,
+        category: this.mapBillCategoryToMoneyFlowCategory(bill.category),
         description: `${bill.title} - ${this.formatScheduleDescription(bill.schedulePayment)}`,
         amount: cost,
         transactionDate: currentDate.toISOString().split('T')[0],
@@ -266,9 +265,8 @@ export class MoneyFlowAutomationService {
       entries.push({
         buildingId: residence.buildingId,
         residenceId: residence.id,
-        billId: undefined, // This is residence income, not bill-related
-        type: 'income',
-        category: 'monthly_fees',
+        type: 'income' as const,
+        category: 'monthly_fees' as const,
         description: `Monthly fees - Unit ${residence.unitNumber}`,
         amount: residence.monthlyFees,
         transactionDate: currentDate.toISOString().split('T')[0],
@@ -355,8 +353,8 @@ export class MoneyFlowAutomationService {
    * Map bill category to money flow category.
    * @param billCategory
    */
-  private mapBillCategoryToMoneyFlowCategory(billCategory: string): 'monthly_fees' | 'special_assessment' | 'late_fees' | 'parking_fees' | 'utility_reimbursement' | 'insurance_claim' | 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_income' | 'other_expense' {
-    const mapping: Record<string, 'monthly_fees' | 'special_assessment' | 'late_fees' | 'parking_fees' | 'utility_reimbursement' | 'insurance_claim' | 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_income' | 'other_expense'> = {
+  private mapBillCategoryToMoneyFlowCategory(billCategory: string): 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_expense' {
+    const mapping: Record<string, 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_expense'> = {
       'insurance': 'other_expense',
       'maintenance': 'maintenance_expense', 
       'salary': 'administrative_expense',
