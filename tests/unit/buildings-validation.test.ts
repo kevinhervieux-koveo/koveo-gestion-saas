@@ -551,7 +551,7 @@ describe('Building Validation Tests', () => {
     it('should handle null and undefined values appropriately', () => {
       const nullData = {
         name: 'Test Building',
-        organizationId: 'org-123',
+        organizationId: '123e4567-e89b-12d3-a456-426614174000',
         address: null,
         yearBuilt: undefined,
         totalUnits: null,

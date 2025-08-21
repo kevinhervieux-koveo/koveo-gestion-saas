@@ -15,14 +15,14 @@ describe('Demands Schema Validation Tests', () => {
   describe('insertDemandSchema', () => {
     it('should validate a valid demand object', () => {
       const validDemand = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: 'Faucet is leaking in the kitchen sink',
-        residenceId: 'residence-456',
-        buildingId: 'building-789',
-        assignationResidenceId: 'residence-456',
-        assignationBuildingId: 'building-789',
-        status: 'pending'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
+        assignationResidenceId: '223e4567-e89b-12d3-a456-426614174001',
+        assignationBuildingId: '323e4567-e89b-12d3-a456-426614174002',
+        status: 'submitted'
       };
 
       expect(() => insertDemandSchema.parse(validDemand)).not.toThrow();
@@ -44,11 +44,11 @@ describe('Demands Schema Validation Tests', () => {
       
       validTypes.forEach(type => {
         const demand = {
-          submitterId: 'user-123',
+          submitterId: '123e4567-e89b-12d3-a456-426614174000',
           type,
           description: 'Test description',
-          residenceId: 'residence-456',
-          buildingId: 'building-789'
+          residenceId: '223e4567-e89b-12d3-a456-426614174001',
+          buildingId: '323e4567-e89b-12d3-a456-426614174002'
         };
         
         expect(() => insertDemandSchema.parse(demand)).not.toThrow();
@@ -57,11 +57,11 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should reject invalid demand type', () => {
       const invalidDemand = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'invalid_type',
         description: 'Test description',
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -69,10 +69,10 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should require description', () => {
       const invalidDemand = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -83,19 +83,19 @@ describe('Demands Schema Validation Tests', () => {
       const longDescription = 'a'.repeat(2001);
       
       const demandWithShortDesc = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: shortDescription,
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       const demandWithLongDesc = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: longDescription,
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       expect(() => insertDemandSchema.parse(demandWithShortDesc)).toThrow();
@@ -104,13 +104,13 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should accept optional fields', () => {
       const demandWithOptionals = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: 'Test description with optional fields',
-        residenceId: 'residence-456',
-        buildingId: 'building-789',
-        assignationResidenceId: 'residence-789',
-        assignationBuildingId: 'building-456',
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
+        assignationResidenceId: '223e4567-e89b-12d3-a456-426614174001',
+        assignationBuildingId: '323e4567-e89b-12d3-a456-426614174002',
         reviewNotes: 'Initial review notes'
       };
 
@@ -121,10 +121,10 @@ describe('Demands Schema Validation Tests', () => {
   describe('insertDemandCommentSchema', () => {
     it('should validate a valid comment object', () => {
       const validComment = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: 'This is a valid comment about the demand',
-        isInternal: false
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        comment: 'This is a valid comment about the demand',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
       expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
@@ -132,9 +132,9 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should require demandId', () => {
       const invalidComment = {
-        authorId: 'user-456',
-        content: 'Missing demand ID',
-        isInternal: false
+        orderIndex: '1.0',
+        comment: 'Missing demand ID',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -142,9 +142,9 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should require authorId', () => {
       const invalidComment = {
-        demandId: 'demand-123',
-        content: 'Missing author ID',
-        isInternal: false
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        comment: 'Missing author ID'
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -152,9 +152,9 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should require content', () => {
       const invalidComment = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        isInternal: false
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -165,51 +165,50 @@ describe('Demands Schema Validation Tests', () => {
       const longContent = 'a'.repeat(2001);
       
       const commentWithShortContent = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: shortContent,
-        isInternal: false
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        comment: shortContent,
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
       const commentWithLongContent = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: longContent,
-        isInternal: false
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        comment: longContent,
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
       expect(() => insertDemandCommentSchema.parse(commentWithShortContent)).toThrow();
       expect(() => insertDemandCommentSchema.parse(commentWithLongContent)).toThrow();
     });
 
-    it('should default isInternal to false', () => {
+    it('should accept valid comment data', () => {
       const comment = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: 'Comment without isInternal specified'
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.0',
+        comment: 'Valid comment data',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
-      const result = insertDemandCommentSchema.parse(comment);
-      expect(result.isInternal).toBe(false);
+      expect(() => insertDemandCommentSchema.parse(comment)).not.toThrow();
     });
 
-    it('should accept both internal and external comments', () => {
-      const internalComment = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: 'Internal team comment',
-        isInternal: true
+    it('should validate order index', () => {
+      const validComment = {
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        orderIndex: '1.5',
+        comment: 'Comment with decimal order index',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
-      const externalComment = {
-        demandId: 'demand-123',
-        authorId: 'user-456',
-        content: 'External resident comment',
-        isInternal: false
+      const invalidComment = {
+        demandId: '423e4567-e89b-12d3-a456-426614174003',
+        comment: 'Comment without order index',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
       };
 
-      expect(() => insertDemandCommentSchema.parse(internalComment)).not.toThrow();
-      expect(() => insertDemandCommentSchema.parse(externalComment)).not.toThrow();
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
     });
   });
 

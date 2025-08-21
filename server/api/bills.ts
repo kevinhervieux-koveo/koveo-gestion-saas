@@ -457,7 +457,11 @@ export function registerBillRoutes(app: Express) {
       }
       
       if (filters.status && filters.status !== 'all') {
-        conditions.push(eq(bills.status, filters.status as any));
+        // Only add status filter if it's a valid enum value
+        const validStatuses = ['draft', 'sent', 'overdue', 'paid', 'cancelled'];
+        if (validStatuses.includes(filters.status)) {
+          conditions.push(eq(bills.status, filters.status as any));
+        }
       }
       
       if (filters.year) {

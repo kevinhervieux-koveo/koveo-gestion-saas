@@ -40,17 +40,17 @@ export interface Organization {
 export const buildingFormSchema = z.object({
   name: z.string().min(1, 'Building name is required'),
   organizationId: z.string().min(1, 'Organization is required'),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  province: z.string().optional(),
-  postalCode: z.string().optional(),
-  buildingType: z.enum(['condo', 'rental']).optional(),
-  yearBuilt: z.number().optional(),
-  totalUnits: z.number().optional(),
-  totalFloors: z.number().optional(),
-  parkingSpaces: z.number().optional(),
-  storageSpaces: z.number().optional(),
-  managementCompany: z.string().optional(),
+  address: z.string().nullish(),
+  city: z.string().nullish(),
+  province: z.string().nullish(),
+  postalCode: z.string().nullish(),
+  buildingType: z.enum(['condo', 'rental']).nullish(),
+  yearBuilt: z.number().nullish(),
+  totalUnits: z.number().nullish(),
+  totalFloors: z.number().nullish(),
+  parkingSpaces: z.number().nullish(),
+  storageSpaces: z.number().nullish(),
+  managementCompany: z.string().nullish(),
 });
 
 /**

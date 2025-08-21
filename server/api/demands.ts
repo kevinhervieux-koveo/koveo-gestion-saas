@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { db } from '../db.js';
+import { db } from '../db';
 import { 
   demands, 
   demandComments, 
@@ -9,10 +9,10 @@ import {
   userResidences,
   userOrganizations,
   organizations
-} from '../../shared/schema.js';
+} from '../../shared/schema';
 import { eq, and, or, inArray, desc, asc } from 'drizzle-orm';
-import { requireAuth } from '../auth/index.js';
-import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations.js';
+import { requireAuth } from '../auth/index';
+import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
 
 /**
  * Register demand routes for managing resident demands and complaints.
@@ -122,11 +122,13 @@ export function registerDemandRoutes(app: Express) {
       if (type) {conditions.push(eq(demands.type, type));}
       if (status) {conditions.push(eq(demands.status, status));}
 
+      // Apply conditions to query if any exist
+      let finalQuery = query;
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        finalQuery = query.where(and(...conditions));
       }
 
-      const results = await query.orderBy(desc(demands.createdAt));
+      const results = await finalQuery.orderBy(desc(demands.createdAt));
 
       // Filter by search term if provided
       let filteredResults = results;

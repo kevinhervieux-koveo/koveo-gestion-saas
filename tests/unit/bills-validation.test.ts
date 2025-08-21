@@ -33,7 +33,7 @@ const createBillSchema = z.object({
   paymentType: paymentTypeSchema,
   schedulePayment: schedulePaymentSchema.optional(),
   scheduleCustom: z.array(z.string()).optional(),
-  costs: z.array(z.number().positive()),
+  costs: z.array(z.number().positive()).min(1),
   totalAmount: z.number().positive(),
   startDate: z.string(),
   endDate: z.string().optional(),
