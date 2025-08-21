@@ -1,10 +1,11 @@
 import type { Express } from 'express';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
+import { billGenerationService } from '../services/bill-generation-service';
 
 const { buildings, bills } = schema;
 
@@ -746,5 +747,200 @@ export function registerBillRoutes(app: Express) {
       message: 'Money flow tracking coming soon',
       note: 'This feature will be available once the database migration is complete'
     });
+  });
+
+  // Advanced Bill Generation Endpoints
+
+  /**
+   * Generate future bill instances for a recurrent bill
+   * POST /api/bills/:id/generate-future
+   */
+  app.post('/api/bills/:id/generate-future', requireAuth, async (req: any, res: any) => {
+    try {
+      const billId = req.params.id;
+      const user = req.user;
+
+      // Check if bill exists and user has access
+      const billIndex = mockBills.findIndex(b => b.id === billId);
+      if (billIndex === -1) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const bill = mockBills[billIndex];
+
+      // Check building access
+      const building = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, bill.buildingId))
+        .limit(1);
+
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found for this bill' });
+      }
+
+      // Check permissions (Admin/Manager only)
+      const canGenerateBills = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+
+      if (!canGenerateBills) {
+        return res.status(403).json({ 
+          message: 'Access denied to generate future bills',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // Validate bill is recurrent
+      if (bill.paymentType !== 'recurrent') {
+        return res.status(400).json({ 
+          message: 'Only recurrent bills can generate future instances' 
+        });
+      }
+
+      // Generate future bills
+      const result = await billGenerationService.generateFutureBillInstances(bill as any);
+
+      res.json({
+        message: 'Future bills generated successfully',
+        billsCreated: result.billsCreated,
+        generatedUntil: result.generatedUntil,
+        parentBill: {
+          id: bill.id,
+          title: bill.title,
+          paymentType: bill.paymentType,
+          schedulePayment: bill.schedulePayment
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error generating future bills:', error);
+      res.status(500).json({ 
+        message: 'Failed to generate future bills',
+        error: error.message 
+      });
+    }
+  });
+
+  /**
+   * Mark a bill as paid with payment confirmation
+   * POST /api/bills/:id/mark-paid
+   */
+  app.post('/api/bills/:id/mark-paid', requireAuth, async (req: any, res: any) => {
+    try {
+      const billId = req.params.id;
+      const { paymentDate, notes } = req.body;
+      const user = req.user;
+
+      // Find bill
+      const billIndex = mockBills.findIndex(b => b.id === billId);
+      if (billIndex === -1) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const bill = mockBills[billIndex];
+      const building = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, bill.buildingId))
+        .limit(1);
+
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+
+      const canMarkPaid = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        (user.role === 'manager' && user.organizations?.includes(building[0].organizationId));
+
+      if (!canMarkPaid) {
+        return res.status(403).json({ 
+          message: 'Access denied to mark bill as paid' 
+        });
+      }
+
+      // Mark bill as paid
+      await billGenerationService.markBillAsPaid(billId, paymentDate ? new Date(paymentDate) : undefined);
+
+      // Update mock bill for now
+      mockBills[billIndex].status = 'paid';
+      if (notes) {
+        mockBills[billIndex].notes = notes;
+      }
+
+      res.json({
+        message: 'Bill marked as paid successfully',
+        billId,
+        paymentDate: paymentDate || new Date().toISOString(),
+        status: 'paid'
+      });
+
+    } catch (error: any) {
+      console.error('Error marking bill as paid:', error);
+      res.status(500).json({ 
+        message: 'Failed to mark bill as paid',
+        error: error.message 
+      });
+    }
+  });
+
+  /**
+   * Get statistics for auto-generated bills from a parent bill
+   * GET /api/bills/:id/generated-stats
+   */
+  app.get('/api/bills/:id/generated-stats', requireAuth, async (req: any, res: any) => {
+    try {
+      const billId = req.params.id;
+      const user = req.user;
+
+      const billIndex = mockBills.findIndex(b => b.id === billId);
+      if (billIndex === -1) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const bill = mockBills[billIndex];
+      const building = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, bill.buildingId))
+        .limit(1);
+
+      if (!building[0]) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+
+      const hasAccess = 
+        user.role === 'admin' || 
+        user.canAccessAllOrganizations ||
+        user.organizations?.includes(building[0].organizationId);
+
+      if (!hasAccess) {
+        return res.status(403).json({ 
+          message: 'Access denied to view bill statistics' 
+        });
+      }
+
+      const stats = await billGenerationService.getGeneratedBillsStats(billId);
+
+      res.json({
+        parentBill: {
+          id: bill.id,
+          title: bill.title,
+          paymentType: bill.paymentType,
+          schedulePayment: bill.schedulePayment,
+          totalAmount: bill.totalAmount
+        },
+        generatedBills: stats
+      });
+
+    } catch (error: any) {
+      console.error('Error getting generated bills stats:', error);
+      res.status(500).json({ 
+        message: 'Failed to get generated bills statistics',
+        error: error.message 
+      });
+    }
   });
 }

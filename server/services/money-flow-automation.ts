@@ -7,6 +7,7 @@ import type {
   Residence,
   Building 
 } from '@shared/schema';
+import { billGenerationService } from './bill-generation-service';
 
 const { 
   moneyFlow, 
