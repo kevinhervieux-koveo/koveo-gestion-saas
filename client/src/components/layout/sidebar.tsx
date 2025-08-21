@@ -5,7 +5,6 @@ import {
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
@@ -99,8 +98,6 @@ export function Sidebar() {
     );
   };
 
-
-
   const renderMenuSection = (section: NavigationSection) => {
     const isExpanded = expandedMenus.includes(section.key);
 
@@ -143,69 +140,69 @@ export function Sidebar() {
         md:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-      {/* Logo Header */}
-      <div className='p-6 border-b border-gray-200'>
-        <div className='flex items-center justify-between'>
+        {/* Logo Header */}
+        <div className='p-6 border-b border-gray-200'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-3'>
+              <Link href="/dashboard" onClick={handleNavItemClick}>
+                <div className="h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                  <img 
+                    src={koveoLogo} 
+                    alt="Koveo Gestion" 
+                    className="h-10 w-auto object-contain"
+                  />
+                </div>
+              </Link>
+            </div>
+            {/* Mobile close button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={closeMobileMenu}
+              aria-label="Close navigation menu"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className='flex-1 px-6 py-4'>
+          {/* Navigation sections */}
+          <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
+
+          {/* Logout Button */}
+          <div className='mt-6 pt-4 border-t border-gray-200'>
+            <button
+              onClick={handleLogout}
+              className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
+            >
+              <LogOut className='w-5 h-5' />
+              <span>Logout</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* User Profile */}
+        <div className='p-6 border-t border-gray-200'>
           <div className='flex items-center space-x-3'>
-            <Link href="/dashboard" onClick={handleNavItemClick}>
-              <div className="h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <img 
-                  src={koveoLogo} 
-                  alt="Koveo Gestion" 
-                  className="h-10 w-auto object-contain"
-                />
-              </div>
-            </Link>
-          </div>
-          {/* Mobile close button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={closeMobileMenu}
-            aria-label="Close navigation menu"
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Navigation */
-      <nav className='flex-1 px-6 py-4'>
-        {/* Navigation sections */}
-        <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
-
-        {/* Logout Button */}
-        <div className='mt-6 pt-4 border-t border-gray-200'>
-          <button
-            onClick={handleLogout}
-            className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
-          >
-            <LogOut className='w-5 h-5' />
-            <span>Logout</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* User Profile */}
-      <div className='p-6 border-t border-gray-200'>
-        <div className='flex items-center space-x-3'>
-          <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
-            <span className="text-white text-sm font-medium">
-              {user?.firstName?.charAt(0).toUpperCase()}{user?.lastName?.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <p className='text-sm font-medium text-gray-900'>
-              {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
-            </p>
-            <p className='text-xs text-gray-500'>
-              {user?.role || 'User'}
-            </p>
+            <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
+              <span className="text-white text-sm font-medium">
+                {user?.firstName?.charAt(0).toUpperCase()}{user?.lastName?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <p className='text-sm font-medium text-gray-900'>
+                {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
+              </p>
+              <p className='text-xs text-gray-500'>
+                {user?.role || 'User'}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 }
