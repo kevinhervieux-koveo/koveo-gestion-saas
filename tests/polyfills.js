@@ -74,6 +74,9 @@ global.sessionStorage = sessionStorageMock;
 // React 19 specific polyfills
 // Mock scheduler for React 19 concurrent features
 global.MessageChannel = global.MessageChannel || class MessageChannel {
+  /**
+   *
+   */
   constructor() {
     this.port1 = { postMessage: jest.fn(), onmessage: null };
     this.port2 = { postMessage: jest.fn(), onmessage: null };

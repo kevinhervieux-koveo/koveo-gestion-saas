@@ -78,15 +78,15 @@ declare module 'wouter/memory' {
   /**
    * Hook return value type for wouter memory location.
    */
-  type HookReturnValue = [string, (path: string) => void];
+  type HookReturnValue = [string, (_path: string) => void];
   
   /**
    * Memory location hook for testing.
-   * @param options - Configuration options for memory location.
-   * @param options.path - Initial path value for memory location.
+   * @param _options - Configuration options for memory location.
+   * @param _options.path - Initial path value for memory location.
    * @returns Combined hook return value and stub history.
    */
-  function memoryLocation(options: { path: string }): HookReturnValue & StubHistory;
+  function memoryLocation(_options: { path: string }): HookReturnValue & StubHistory;
   export { memoryLocation };
 }
 

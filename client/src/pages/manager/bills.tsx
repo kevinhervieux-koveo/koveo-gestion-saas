@@ -45,12 +45,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: 'Other'
 };
 
+/**
+ *
+ */
 interface BillFilters {
   buildingId: string;
   category: string;
   year: string;
 }
 
+/**
+ *
+ */
 export default function Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
@@ -70,9 +76,9 @@ export default function Bills() {
     queryKey: ['/api/bills', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (filters.buildingId) params.set('buildingId', filters.buildingId);
-      if (filters.category && filters.category !== 'all') params.set('category', filters.category);
-      if (filters.year) params.set('year', filters.year);
+      if (filters.buildingId) {params.set('buildingId', filters.buildingId);}
+      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}
+      if (filters.year) {params.set('year', filters.year);}
       
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url, { credentials: 'include' });
@@ -89,7 +95,7 @@ export default function Bills() {
   // Group bills by category
   const billsByCategory = bills.reduce((acc: Record<string, Bill[]>, bill: Bill) => {
     const category = bill.category || 'other';
-    if (!acc[category]) acc[category] = [];
+    if (!acc[category]) {acc[category] = [];}
     acc[category].push(bill);
     return acc;
   }, {});
@@ -252,6 +258,13 @@ export default function Bills() {
 }
 
 // Component for displaying bills in a category
+/**
+ *
+ * @param root0
+ * @param root0.category
+ * @param root0.bills
+ * @param root0.onBillUpdate
+ */
 function BillCategorySection({ 
   category, 
   bills, 
@@ -284,6 +297,12 @@ function BillCategorySection({
 }
 
 // Component for individual bill cards
+/**
+ *
+ * @param root0
+ * @param root0.bill
+ * @param root0.onUpdate
+ */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
@@ -340,6 +359,12 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 }
 
 // Bill creation form component (placeholder for now)
+/**
+ *
+ * @param root0
+ * @param root0.buildingId
+ * @param root0.onSuccess
+ */
 function BillCreateForm({ 
   buildingId, 
   onSuccess 

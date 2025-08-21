@@ -26,7 +26,7 @@ export function registerBuildingRoutes(app: Express): void {
    * Access Control Logic:
    * - Admin: Can see all buildings if they have global access, or buildings in their organizations
    * - Manager: Can see only buildings in their organizations
-   * - Others: No access to buildings list
+   * - Others: No access to buildings list.
    */
   app.get('/api/buildings', requireAuth, async (req: any, res) => {
     try {

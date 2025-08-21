@@ -9,7 +9,6 @@ import express from 'express';
 import request from 'supertest';
 import { db } from '../../../server/db';
 import { registerDemandRoutes } from '../../../server/api/demands';
-import { requireAuth } from '../../../server/auth/index';
 import { 
   demands, 
   demandComments, 

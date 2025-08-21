@@ -275,27 +275,39 @@ export const insertBudgetSchema = createInsertSchema(budgets).pick({
 
 // Types
 /**
- * Money flow insert and select types
+ * Money flow insert and select types.
  */
 export type InsertMoneyFlow = z.infer<typeof insertMoneyFlowSchema>;
+/**
+ *
+ */
 export type MoneyFlow = typeof moneyFlow.$inferSelect;
 
 /**
- * Bills insert and select types
+ * Bills insert and select types.
  */
 export type InsertBill = z.infer<typeof insertBillSchema>;
+/**
+ *
+ */
 export type Bill = typeof bills.$inferSelect;
 
 /**
- * Legacy bills types for backward compatibility
+ * Legacy bills types for backward compatibility.
  */
 export type InsertOldBill = z.infer<typeof insertOldBillSchema>;
+/**
+ *
+ */
 export type OldBill = typeof oldBills.$inferSelect;
 
 /**
- * Budget insert and select types
+ * Budget insert and select types.
  */
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+/**
+ *
+ */
 export type Budget = typeof budgets.$inferSelect;
 
 // Relations

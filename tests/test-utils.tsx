@@ -7,10 +7,18 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 
 // Create a test utility for rendering with all providers
+/**
+ *
+ */
 interface AllProvidersProps {
   children: ReactNode;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function AllProviders({ children }: AllProvidersProps) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -39,6 +47,9 @@ function AllProviders({ children }: AllProvidersProps) {
   );
 }
 
+/**
+ *
+ */
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   wrapper?: React.ComponentType<{ children: React.ReactNode }>;
 }

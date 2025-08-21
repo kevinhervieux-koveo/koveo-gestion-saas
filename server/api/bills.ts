@@ -387,6 +387,10 @@ const createBillSchema = z.object({
   notes: z.string().optional()
 });
 
+/**
+ *
+ * @param app
+ */
 export function registerBillRoutes(app: Express) {
   // Get bills with filtering
   app.get('/api/bills', requireAuth, async (req: any, res: any) => {
@@ -428,7 +432,7 @@ export function registerBillRoutes(app: Express) {
       const buildingName = building[0].name;
       
       // Query real bills from database
-      let query = db
+      const query = db
         .select({
           id: bills.id,
           buildingId: bills.buildingId,
