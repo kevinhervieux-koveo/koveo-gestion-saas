@@ -68,6 +68,21 @@ export default function Bills() {
   // Fetch bills based on filters
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.buildingId) params.set('buildingId', filters.buildingId);
+      if (filters.category && filters.category !== 'all') params.set('category', filters.category);
+      if (filters.year) params.set('year', filters.year);
+      
+      const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await fetch(url, { credentials: 'include' });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bills: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
     enabled: !!filters.buildingId
   });
 
