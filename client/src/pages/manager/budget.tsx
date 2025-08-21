@@ -77,6 +77,15 @@ export default function Budget() {
   // Get residences for selected building
   const { data: residences = [] } = useQuery({
     queryKey: ['/api/residences', selectedBuilding],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedBuilding) {
+        params.append('buildingId', selectedBuilding);
+      }
+      const response = await fetch(`/api/residences?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch residences');
+      return response.json();
+    },
     enabled: !!selectedBuilding,
   });
 
