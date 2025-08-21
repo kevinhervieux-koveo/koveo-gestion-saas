@@ -93,23 +93,23 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
   const bulkActions: BulkAction[] = [
     {
       type: 'activate',
-      label: t('users.bulk.activate') || 'Activate Users',
-      description: t('users.bulk.activate_desc') || 'Activate selected users',
+      label: 'Activate Users',
+      description: 'Activate selected users',
       icon: UserCheck,
       requiresConfirmation: true,
     },
     {
       type: 'deactivate',
-      label: t('users.bulk.deactivate') || 'Deactivate Users',
-      description: t('users.bulk.deactivate_desc') || 'Deactivate selected users',
+      label: 'Deactivate Users',
+      description: 'Deactivate selected users',
       icon: UserX,
       variant: 'destructive',
       requiresConfirmation: true,
     },
     {
       type: 'change_role',
-      label: t('users.bulk.change_role') || 'Change Role',
-      description: t('users.bulk.change_role_desc') || 'Change role for selected users',
+      label: 'Change Role',
+      description: 'Change role for selected users',
       icon: Shield,
       requiresData: true,
       schema: roleChangeSchema,
@@ -130,28 +130,28 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
     },
     {
       type: 'send_password_reset',
-      label: t('users.bulk.password_reset') || 'Send Password Reset',
-      description: t('users.bulk.password_reset_desc') || 'Send password reset emails',
+      label: 'Send Password Reset',
+      description: 'Send password reset emails',
       icon: Mail,
       requiresConfirmation: true,
     },
     {
       type: 'send_welcome_email',
-      label: t('users.bulk.welcome_email') || 'Send Welcome Email',
-      description: t('users.bulk.welcome_email_desc') || 'Send welcome emails to selected users',
+      label: 'Send Welcome Email',
+      description: 'Send welcome emails to selected users',
       icon: Mail,
       requiresConfirmation: true,
     },
     {
       type: 'export',
-      label: t('users.bulk.export') || 'Export Users',
-      description: t('users.bulk.export_desc') || 'Export selected users data',
+      label: 'Export Users',
+      description: 'Export selected users data',
       icon: Download,
     },
     {
       type: 'delete',
-      label: t('users.bulk.delete') || 'Delete Users',
-      description: t('users.bulk.delete_desc') || 'Permanently delete selected users',
+      label: 'Delete Users',
+      description: 'Permanently delete selected users',
       icon: Trash2,
       variant: 'destructive',
       requiresConfirmation: true,
@@ -196,7 +196,7 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm font-medium">
-                {selectedCount} {t('users.selected') || 'user(s) selected'}
+                {selectedCount} user(s) selected
               </span>
               <Badge variant="secondary">{selectedCount}</Badge>
             </div>
@@ -230,14 +230,14 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
         footerContent={
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
-              {t('common.cancel') || 'Cancel'}
+              Cancel
             </Button>
             <Button
               variant={currentAction?.variant || 'default'}
               onClick={() => currentAction && handleAction(currentAction)}
               disabled={isLoading}
             >
-              {isLoading ? 'Processing...' : (t('common.confirm') || 'Confirm')}
+              {isLoading ? 'Processing...' : 'Confirm'}
             </Button>
           </div>
         }
@@ -269,7 +269,7 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
           showFooter={false}
         >
           <StandardForm
-            schema={currentAction.schema}
+            schema={currentAction.schema as z.ZodSchema<Record<string, unknown>>}
             fields={currentAction.formFields}
             onSubmit={(data) => handleAction(currentAction, data)}
             isLoading={isLoading}
