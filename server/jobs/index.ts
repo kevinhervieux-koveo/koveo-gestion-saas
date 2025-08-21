@@ -4,6 +4,7 @@
  */
 
 import { sslRenewalJob } from './ssl_renewal_job';
+import { moneyFlowJob } from './money_flow_job';
 
 /**
  * Start all background jobs.
@@ -14,6 +15,9 @@ export async function startJobs(): Promise<void> {
     
     // Start SSL renewal job
     await sslRenewalJob.start();
+    
+    // Start Money Flow automation job
+    await moneyFlowJob.start();
     
     console.log('All background jobs started successfully');
   } catch (_error) {
@@ -29,6 +33,7 @@ export function stopJobs(): void {
   console.log('Stopping background jobs...');
   
   sslRenewalJob.stop();
+  moneyFlowJob.stop();
   
   console.log('All background jobs stopped');
 }
@@ -38,7 +43,8 @@ export function stopJobs(): void {
  */
 export function getJobsStatus(): Record<string, any> {
   return {
-    sslRenewal: sslRenewalJob.getStatus()
+    sslRenewal: sslRenewalJob.getStatus(),
+    moneyFlow: moneyFlowJob.getStatus()
   };
 }
 

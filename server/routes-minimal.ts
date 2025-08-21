@@ -9,6 +9,7 @@ import { registerDocumentRoutes } from './api/documents';
 import { registerContactRoutes } from './api/contacts';
 import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
+import { registerMoneyFlowRoutes } from './api/money-flow';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
@@ -217,6 +218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Bills routes registered');
   } catch (error) {
     log(`❌ Bills routes failed: ${error}`, 'error');
+  }
+
+  // Register money flow automation routes
+  try {
+    registerMoneyFlowRoutes(app);
+    log('✅ Money flow automation routes registered');
+  } catch (error) {
+    log(`❌ Money flow automation routes failed: ${error}`, 'error');
   }
 
   // Register features and actionable items API routes

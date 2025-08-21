@@ -4,6 +4,7 @@ import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
+import { moneyFlowJob } from '../jobs/money_flow_job';
 
 const { buildings, bills } = schema;
 
@@ -583,6 +584,16 @@ export function registerBillRoutes(app: Express) {
       };
 
       // For now, just return the new bill (in real implementation, this would be saved to database)
+      // In the future when bills are actually saved to database, trigger money flow generation:
+      // if (data.paymentType === 'recurrent') {
+      //   try {
+      //     await moneyFlowJob.generateForBill(newBill.id);
+      //   } catch (error) {
+      //     console.error('Failed to generate money flow for new bill:', error);
+      //     // Don't fail the bill creation if money flow generation fails
+      //   }
+      // }
+      
       res.status(201).json(newBill);
     } catch (error) {
       console.error('Error creating bill:', error);
@@ -637,6 +648,16 @@ export function registerBillRoutes(app: Express) {
         costs: data.costs ? data.costs.map(c => c.toString()) : mockBills[billIndex].costs,
         totalAmount: data.totalAmount ? data.totalAmount.toString() : mockBills[billIndex].totalAmount
       };
+
+      // In the future when bills are actually updated in database, trigger money flow regeneration:
+      // if (updatedBill.paymentType === 'recurrent') {
+      //   try {
+      //     await moneyFlowJob.generateForBill(billId);
+      //   } catch (error) {
+      //     console.error('Failed to regenerate money flow for updated bill:', error);
+      //     // Don't fail the bill update if money flow generation fails
+      //   }
+      // }
 
       res.json(updatedBill);
     } catch (error) {
