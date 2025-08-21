@@ -1384,6 +1384,117 @@ export default function Budget() {
                             {inflationTranslations.manageInflation}
                           </Button>
                         </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>{inflationTranslations.dialogTitle}</DialogTitle>
+                            <DialogDescription>{inflationTranslations.dialogDescription}</DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="space-y-6">
+                            {/* General Settings */}
+                            <div className="space-y-4">
+                              <h4 className="text-lg font-medium">{inflationTranslations.generalSettings}</h4>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="generalIncomeInflation">{inflationTranslations.generalIncome}</Label>
+                                  <Input
+                                    id="generalIncomeInflation"
+                                    type="number"
+                                    step="0.1"
+                                    value={generalIncomeInflation}
+                                    onChange={(e) => setGeneralIncomeInflation(parseFloat(e.target.value) || 0)}
+                                    placeholder="0.0"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="generalExpenseInflation">{inflationTranslations.generalExpense}</Label>
+                                  <Input
+                                    id="generalExpenseInflation"
+                                    type="number"
+                                    step="0.1"
+                                    value={generalExpenseInflation}
+                                    onChange={(e) => setGeneralExpenseInflation(parseFloat(e.target.value) || 0)}
+                                    placeholder="0.0"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Category Specific Settings */}
+                            <div className="space-y-4">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id="splitIncomeByCategory"
+                                  checked={splitIncomeByCategory}
+                                  onChange={(e) => setSplitIncomeByCategory(e.target.checked)}
+                                  className="rounded"
+                                />
+                                <Label htmlFor="splitIncomeByCategory" className="text-sm font-medium">
+                                  {inflationTranslations.splitByCategory} - {inflationTranslations.incomeByCategory}
+                                </Label>
+                              </div>
+                              
+                              {splitIncomeByCategory && (
+                                <div className="ml-6 p-4 border rounded-lg space-y-3">
+                                  <p className="text-sm text-muted-foreground">{inflationTranslations.incomeByCategory}</p>
+                                  {/* Income category specific controls would go here */}
+                                  <p className="text-xs text-muted-foreground">
+                                    {language === 'fr' ? 'Configuration spécifique par catégorie à venir.' : 'Category-specific configuration coming soon.'}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id="splitExpenseByCategory"
+                                  checked={splitExpenseByCategory}
+                                  onChange={(e) => setSplitExpenseByCategory(e.target.checked)}
+                                  className="rounded"
+                                />
+                                <Label htmlFor="splitExpenseByCategory" className="text-sm font-medium">
+                                  {inflationTranslations.splitByCategory} - {inflationTranslations.expenseByCategory}
+                                </Label>
+                              </div>
+                              
+                              {splitExpenseByCategory && (
+                                <div className="ml-6 p-4 border rounded-lg space-y-3">
+                                  <p className="text-sm text-muted-foreground">{inflationTranslations.expenseByCategory}</p>
+                                  {/* Expense category specific controls would go here */}
+                                  <p className="text-xs text-muted-foreground">
+                                    {language === 'fr' ? 'Configuration spécifique par catégorie à venir.' : 'Category-specific configuration coming soon.'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex justify-end gap-2 pt-4">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setInflationDialog(false)}
+                              >
+                                {language === 'fr' ? 'Annuler' : 'Cancel'}
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Here you would save the inflation settings
+                                  // For now, just close the dialog
+                                  setInflationDialog(false);
+                                  toast({
+                                    title: language === 'fr' ? 'Paramètres sauvegardés' : 'Settings Saved',
+                                    description: language === 'fr' ? 'Les paramètres d\'inflation ont été mis à jour.' : 'Inflation settings have been updated.',
+                                  });
+                                }}
+                              >
+                                {language === 'fr' ? 'Sauvegarder' : 'Save'}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
                       </Dialog>
                     </div>
                   </div>
