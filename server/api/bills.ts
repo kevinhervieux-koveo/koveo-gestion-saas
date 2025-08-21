@@ -6,6 +6,11 @@ import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
+import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
+import { ObjectStorageService } from '../objectStorage';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const { buildings, bills } = schema;
 
@@ -54,6 +59,22 @@ const createBillSchema = z.object({
 });
 
 const updateBillSchema = createBillSchema.partial();
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: '/tmp/uploads/',
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and PDF files are allowed'));
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
 
 export function registerBillRoutes(app: Express) {
   /**
@@ -200,9 +221,12 @@ export function registerBillRoutes(app: Express) {
           category: billData.category,
           vendor: billData.vendor,
           paymentType: billData.paymentType,
+          schedulePayment: billData.schedulePayment,
+          scheduleCustom: billData.scheduleCustom,
           costs: billData.costs.map(cost => parseFloat(cost)),
           totalAmount: parseFloat(billData.totalAmount),
           startDate: billData.startDate,
+          endDate: billData.endDate,
           status: billData.status,
           notes: billData.notes,
           createdBy: req.user.id
@@ -367,6 +391,166 @@ export function registerBillRoutes(app: Express) {
       console.error('Error deleting bill:', error);
       res.status(500).json({ 
         message: 'Failed to delete bill',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * Upload and analyze bill document with Gemini AI
+   * POST /api/bills/:id/upload-document
+   */
+  app.post('/api/bills/:id/upload-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      // Upload to object storage
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      
+      // Read the uploaded file
+      const fileBuffer = fs.readFileSync(req.file.path);
+      
+      // Upload to object storage
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: fileBuffer.buffer,
+        headers: {
+          'Content-Type': req.file.mimetype,
+        }
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to object storage');
+      }
+
+      // Get the object path
+      const documentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+
+      // Analyze document with Gemini AI (only for images)
+      let analysisResult = null;
+      if (req.file.mimetype.startsWith('image/')) {
+        try {
+          analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+          console.log('🤖 Gemini analysis completed:', analysisResult);
+        } catch (error) {
+          console.error('AI analysis failed:', error);
+          // Continue without AI analysis
+        }
+      }
+
+      // Update bill with document info and AI analysis
+      const updateData: any = {
+        documentPath,
+        documentName: req.file.originalname,
+        isAiAnalyzed: !!analysisResult,
+        aiAnalysisData: analysisResult,
+        updatedAt: new Date()
+      };
+
+      const updatedBill = await db
+        .update(bills)
+        .set(updateData)
+        .where(eq(bills.id, id))
+        .returning();
+
+      // Clean up temporary file
+      fs.unlinkSync(req.file.path);
+
+      res.json({
+        message: 'Document uploaded and analyzed successfully',
+        bill: updatedBill[0],
+        analysisResult
+      });
+
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      
+      // Clean up temporary file if it exists
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up temp file:', cleanupError);
+        }
+      }
+      
+      res.status(500).json({ 
+        message: 'Failed to upload document',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * Apply AI analysis to bill form data
+   * POST /api/bills/:id/apply-ai-analysis
+   */
+  app.post('/api/bills/:id/apply-ai-analysis', requireAuth, async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+      
+      // Get the bill with AI analysis data
+      const bill = await db
+        .select()
+        .from(bills)
+        .where(eq(bills.id, id))
+        .limit(1);
+
+      if (bill.length === 0) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const billData = bill[0];
+      
+      if (!billData.isAiAnalyzed || !billData.aiAnalysisData) {
+        return res.status(400).json({ message: 'No AI analysis data available for this bill' });
+      }
+
+      const analysis = billData.aiAnalysisData as any;
+      
+      // Get payment schedule suggestion
+      const scheduleSignestion = await geminiBillAnalyzer.suggestPaymentSchedule(
+        analysis.category, 
+        parseFloat(analysis.totalAmount)
+      );
+
+      // Update bill with AI-extracted data
+      const updateData: any = {
+        title: analysis.title,
+        vendor: analysis.vendor,
+        totalAmount: parseFloat(analysis.totalAmount),
+        category: analysis.category,
+        description: analysis.description,
+        paymentType: scheduleSignestion.paymentType,
+        schedulePayment: scheduleSignestion.schedulePayment,
+        costs: [parseFloat(analysis.totalAmount)],
+        startDate: analysis.issueDate || analysis.dueDate || billData.startDate,
+        notes: `AI-analyzed document. Original bill number: ${analysis.billNumber || 'N/A'}. Confidence: ${(analysis.confidence * 100).toFixed(1)}%. ${scheduleSignestion.reasoning}`,
+        updatedAt: new Date()
+      };
+
+      const updatedBill = await db
+        .update(bills)
+        .set(updateData)
+        .where(eq(bills.id, id))
+        .returning();
+
+      res.json({
+        message: 'AI analysis applied successfully',
+        bill: updatedBill[0],
+        analysis,
+        scheduleSignestion
+      });
+
+    } catch (error) {
+      console.error('Error applying AI analysis:', error);
+      res.status(500).json({ 
+        message: 'Failed to apply AI analysis',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

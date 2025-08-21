@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag, ChevronDown } from 'lucide-react';
+import { BillEditForm } from '@/components/BillEditForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
@@ -599,6 +600,8 @@ function BillDetail({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [endDate, setEndDate] = useState(bill.endDate || '');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const queryClient = useQueryClient();
 
   const updateBillMutation = useMutation({
@@ -628,6 +631,65 @@ function BillDetail({
     if (endDate) {
       updateBillMutation.mutate({ endDate });
     }
+  };
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      
+      const response = await fetch(`/api/bills/${bill.id}/upload-document`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      setUploadedFile(null);
+      onSuccess();
+    }
+  });
+
+  const applyAiAnalysisMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/bills/${bill.id}/apply-ai-analysis`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to apply AI analysis');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      onSuccess();
+    }
+  });
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setIsAnalyzing(true);
+      uploadDocumentMutation.mutate(file);
+    }
+  };
+
+  const handleApplyAiAnalysis = () => {
+    applyAiAnalysisMutation.mutate();
   };
 
   return (
@@ -727,12 +789,91 @@ function BillDetail({
         </div>
       )}
 
+      {/* Document Upload Section */}
+      <div className='border-t pt-4'>
+        <Label className='text-sm font-medium'>Document Upload & AI Analysis</Label>
+        <div className='mt-2 space-y-3'>
+          {/* Current document info */}
+          {bill.documentPath && (
+            <div className='flex items-center gap-2 p-3 bg-gray-50 rounded-lg'>
+              <FileText className='w-4 h-4 text-blue-600' />
+              <span className='text-sm'>{bill.documentName}</span>
+              {bill.isAiAnalyzed && (
+                <Badge variant='outline' className='text-xs'>
+                  AI Analyzed
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* File upload */}
+          <div className='flex items-center gap-2'>
+            <Input
+              type='file'
+              accept='image/*,.pdf'
+              onChange={handleFileUpload}
+              disabled={uploadDocumentMutation.isPending}
+              className='flex-1'
+            />
+            {uploadDocumentMutation.isPending && (
+              <div className='text-sm text-gray-500'>Uploading & analyzing...</div>
+            )}
+          </div>
+
+          {/* AI Analysis Actions */}
+          {bill.isAiAnalyzed && bill.aiAnalysisData && (
+            <div className='space-y-2'>
+              <div className='p-3 bg-blue-50 rounded-lg'>
+                <div className='text-sm font-medium text-blue-800'>AI Analysis Available</div>
+                <div className='text-xs text-blue-600 mt-1'>
+                  Confidence: {((bill.aiAnalysisData as any).confidence * 100).toFixed(1)}%
+                </div>
+              </div>
+              <Button 
+                onClick={handleApplyAiAnalysis}
+                disabled={applyAiAnalysisMutation.isPending}
+                variant='outline'
+                size='sm'
+                className='w-full'
+              >
+                {applyAiAnalysisMutation.isPending ? 'Applying...' : 'Apply AI Analysis to Form'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Edit Mode Toggle */}
+      <div className='border-t pt-4'>
+        <div className='flex items-center justify-between'>
+          <Label className='text-sm font-medium'>Edit Bill Information</Label>
+          <Button 
+            onClick={() => setIsEditing(!isEditing)}
+            variant='outline'
+            size='sm'
+          >
+            {isEditing ? 'Cancel Edit' : 'Edit Bill'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Full Edit Form */}
+      {isEditing && (
+        <BillEditForm 
+          bill={bill}
+          onSuccess={() => {
+            setIsEditing(false);
+            onSuccess();
+          }}
+          onCancel={() => setIsEditing(false)}
+        />
+      )}
+
       {/* Actions */}
       <div className='flex justify-end gap-2 pt-4 border-t'>
         <Button variant='outline' onClick={onCancel}>
           Close
         </Button>
-        {/* Future: Add edit functionality */}
       </div>
     </div>
   );
