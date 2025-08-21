@@ -1,5 +1,19 @@
 // Import jest-dom matchers for React Testing Library
 import '@testing-library/jest-dom';
+
+// Extend Jest matchers globally
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+      toBeDisabled(): R;
+      toBeEnabled(): R;
+      toBeVisible(): R;
+      toHaveClass(className: string): R;
+      toHaveTextContent(text: string): R;
+    }
+  }
+}
 import { jest } from '@jest/globals';
 
 // React 19 compatibility - configure React testing environment

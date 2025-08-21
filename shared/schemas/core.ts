@@ -117,11 +117,12 @@ export const invitations = pgTable('invitations', {
     .default(sql`gen_random_uuid()`),
   organizationId: text('organization_id'),
   buildingId: text('building_id'),
+  residenceId: text('residence_id'),
   email: text('email').notNull(),
   token: text('token').notNull().unique(),
   role: userRoleEnum('role').notNull(),
   status: invitationStatusEnum('status').notNull().default('pending'),
-  invitedBy: text('invited_by_user_id')
+  invitedByUserId: text('invited_by_user_id')
     .notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   tokenHash: text('token_hash').notNull(),
@@ -296,7 +297,7 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   email: true,
   role: true,
   token: true,
-  invitedBy: true,
+  invitedByUserId: true,
   expiresAt: true,
 });
 
@@ -426,7 +427,7 @@ export type InvitationAuditLog = typeof invitationAuditLog.$inferSelect;
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userOrganizations: many(userOrganizations),
-  sentInvitations: many(invitations, { relationName: 'invitedBy' }),
+  sentInvitations: many(invitations, { relationName: 'invitedByUserId' }),
   acceptedInvitations: many(invitations, { relationName: 'acceptedBy' }),
   passwordResetTokens: many(passwordResetTokens),
 }));
@@ -452,10 +453,10 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
     fields: [invitations.organizationId],
     references: [organizations.id],
   }),
-  invitedBy: one(users, {
-    fields: [invitations.invitedBy],
+  invitedByUserId: one(users, {
+    fields: [invitations.invitedByUserId],
     references: [users.id],
-    relationName: 'invitedBy',
+    relationName: 'invitedByUserId',
   }),
   acceptedBy: one(users, {
     fields: [invitations.acceptedBy],

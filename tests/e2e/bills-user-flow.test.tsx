@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '../test-utils';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Router } from 'wouter';
 import Bills from '@/pages/manager/bills';
 
 // Mock data
@@ -89,16 +87,9 @@ const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
 describe('Bills User Flow End-to-End Tests', () => {
-  let queryClient: QueryClient;
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
     user = userEvent.setup();
     jest.clearAllMocks();
   });
@@ -108,13 +99,7 @@ describe('Bills User Flow End-to-End Tests', () => {
   });
 
   const renderBillsPage = () => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Bills />
-        </Router>
-      </QueryClientProvider>
-    );
+    return render(<Bills />);
   };
 
   describe('Complete Bills Management User Journey', () => {

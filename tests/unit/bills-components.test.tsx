@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Router } from 'wouter';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
 import Bills from '@/pages/manager/bills';
 
 // Mock the API calls
@@ -52,26 +50,12 @@ const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
 describe('Bills Component', () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
     jest.clearAllMocks();
   });
 
   const renderComponent = () => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Bills />
-        </Router>
-      </QueryClientProvider>
-    );
+    return render(<Bills />);
   };
 
   it('should render the bills page with correct title', () => {
