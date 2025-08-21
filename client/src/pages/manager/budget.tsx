@@ -557,12 +557,12 @@ export default function Budget() {
 
   // Optimized with useCallback to prevent recreation
   const handleUpdateBankAccount = useCallback(() => {
-    if (!selectedBuilding || !bankAccountNumber.trim()) {
+    if (!selectedBuilding) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 
-          'Veuillez saisir un numéro de compte bancaire.' : 
-          'Please enter a bank account number.',
+          'Bâtiment non sélectionné.' : 
+          'No building selected.',
         variant: 'destructive',
       });
       return;
@@ -570,13 +570,13 @@ export default function Budget() {
 
     updateBankAccount.mutate({
       buildingId: selectedBuilding,
-      bankAccountNumber: bankAccountNumber.trim(),
+      bankAccountNumber: '',
       notes: reconciliationNote.trim(),
       startDate: bankAccountStartDate,
       startAmount: bankAccountStartAmount,
       minimumBalances,
     });
-  }, [selectedBuilding, bankAccountNumber, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);
+  }, [selectedBuilding, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -1111,17 +1111,7 @@ export default function Budget() {
                         <DialogDescription>{bankAccountTranslations.dialogDescription}</DialogDescription>
                       </DialogHeader>
                       <div className='space-y-4 max-h-96 overflow-y-auto'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                          <div className='space-y-2'>
-                            <Label htmlFor='bankAccount'>{bankAccountTranslations.accountNumber}</Label>
-                            <Input
-                              id='bankAccount'
-                              value={bankAccountNumber}
-                              onChange={(e) => setBankAccountNumber(e.target.value)}
-                              placeholder={bankAccountTranslations.accountNumberPlaceholder}
-                            />
-                          </div>
-                          
+                        <div className='space-y-4'>
                           <div className='space-y-2'>
                             <Label htmlFor='startDate'>{bankAccountTranslations.startDateLabel}</Label>
                             <Input
