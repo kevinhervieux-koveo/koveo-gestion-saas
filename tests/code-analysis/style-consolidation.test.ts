@@ -405,7 +405,7 @@ describe('Style Consolidation Analysis Tests', () => {
       const spacingScale = ['1', '2', '3', '4', '6', '8', '12', '16', '20', '24', '32'];
       spacingScale.forEach(size => {
         const usage = spacingUsage.get(size) || 0;
-        console.log(`- --spacing-${size}: ${size * 0.25}rem (used ${usage} times)`);
+        console.log(`- --spacing-${size}: ${parseInt(size) * 0.25}rem (used ${usage} times)`);
       });
       
       expect(spacingPatterns.length).toBeGreaterThan(0);
