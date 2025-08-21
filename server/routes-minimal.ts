@@ -12,6 +12,7 @@ import { registerBillRoutes } from './api/bills';
 import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
 import budgetRoutes from './api/budgets';
+import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
@@ -187,6 +188,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Budget routes registered');
   } catch (error) {
     log(`❌ Budget routes failed: ${error}`, 'error');
+  }
+
+  // Register dynamic budget API routes (replaces money_flow with real-time calculations)
+  try {
+    app.use('/api/dynamic-budgets', dynamicBudgetRoutes);
+    log('✅ Dynamic budget routes registered');
+  } catch (error) {
+    log(`❌ Dynamic budget routes failed: ${error}`, 'error');
   }
 
   // Register cleanup API routes
