@@ -181,7 +181,7 @@ describe('Budget API Integration Tests', () => {
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
 
-      expect(budgetCount[0].count).toBe(300); // 25 years * 12 months
+      expect(budgetCount[0].count).toBe(36); // 3 years * 12 months
     });
 
     it('should return error for missing billId', async () => {
@@ -230,7 +230,7 @@ describe('Budget API Integration Tests', () => {
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
 
-      expect(budgetCount[0].count).toBe(300); // 25 years * 12 months
+      expect(budgetCount[0].count).toBe(36); // 3 years * 12 months
     });
 
     it('should return error for missing residenceId', async () => {
@@ -367,12 +367,12 @@ describe('Budget API Integration Tests', () => {
         );
       }
 
-      // Verify 25-year span
+      // Verify 3-year span
       const firstBudget = budgets[0];
       const lastBudget = budgets[budgets.length - 1];
       
       expect(firstBudget.budgetMonth.getFullYear()).toBe(2022);
-      expect(lastBudget.budgetMonth.getFullYear()).toBe(2046);
+      expect(lastBudget.budgetMonth.getFullYear()).toBe(2024);
     });
 
     it('should handle budget repopulation correctly', async () => {

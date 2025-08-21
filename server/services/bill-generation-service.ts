@@ -12,7 +12,7 @@ import type { Bill } from '../../shared/schema';
  * - Creating future bill instances (not just money flow entries)
  * - Multiple payment plans (60% now, 40% later, etc.)
  * - Recurrence patterns with auto-generated bill chains
- * - 25-year projection of future bills
+ * - 3-year projection of future bills
  * - Parent-child bill relationships.
  */
 export class BillGenerationService {
@@ -58,7 +58,7 @@ export class BillGenerationService {
   }
   
   /**
-   * Generate future bill instances for a recurrent bill up to 25 years.
+   * Generate future bill instances for a recurrent bill up to 3 years.
    * Creates actual bill records that users can interact with individually.
    * @param parentBill
    */
@@ -82,8 +82,8 @@ export class BillGenerationService {
       console.log(`📅 Using bill endDate: ${endDate.toISOString()}`);
     } else {
       endDate = new Date();
-      endDate.setFullYear(endDate.getFullYear() + 25); // 25 years from now
-      console.log(`📅 Using default 25-year projection: ${endDate.toISOString()}`);
+      endDate.setFullYear(endDate.getFullYear() + 3); // 3 years from now
+      console.log(`📅 Using default 3-year projection: ${endDate.toISOString()}`);
     }
 
     // Check if there are already auto-generated bills to avoid duplicates

@@ -287,13 +287,13 @@ describe('Delayed Update Service', () => {
       
       expect(moneyFlowCount[0].count).toBeGreaterThan(0);
       
-      // Verify budgets were generated (should be 25 years * 12 months = 300)
+      // Verify budgets were generated (should be 3 years * 12 months = 36)
       const budgetCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
       
-      expect(budgetCount[0].count).toBe(300);
+      expect(budgetCount[0].count).toBe(36);
     });
 
     it('should trigger complete update chain for residences', async () => {
@@ -308,13 +308,13 @@ describe('Delayed Update Service', () => {
       
       expect(moneyFlowCount[0].count).toBeGreaterThan(0);
       
-      // Verify budgets were generated (should be 25 years * 12 months = 300)
+      // Verify budgets were generated (should be 3 years * 12 months = 36)
       const budgetCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
       
-      expect(budgetCount[0].count).toBe(300);
+      expect(budgetCount[0].count).toBe(36);
     });
 
     it('should maintain data consistency across updates', async () => {

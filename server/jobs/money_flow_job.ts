@@ -14,7 +14,7 @@ interface MoneyFlowJobConfig {
 
 /**
  * Money Flow automation job that runs daily to maintain money_flow entries
- * for bills and residence monthly fees up to 25 years in the future.
+ * for bills and residence monthly fees up to 3 years in the future.
  */
 class MoneyFlowJob {
   private config: MoneyFlowJobConfig;

@@ -15,7 +15,7 @@ import { db } from '../db';
  */
 async function main() {
   console.log('🚀 Starting monthly budget population script...');
-  console.log('This will create budget entries for all buildings from construction date to 25 years in the future.');
+  console.log('This will create budget entries for all buildings from construction date to 3 years in the future.');
   
   try {
     // First, show some statistics

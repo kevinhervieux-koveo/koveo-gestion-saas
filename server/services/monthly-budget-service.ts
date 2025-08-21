@@ -16,15 +16,15 @@ const {
 
 /**
  * Service for populating and managing monthly budget entries.
- * Creates budget entries for each building from construction date to 25 years in the future.
+ * Creates budget entries for each building from construction date to 3 years in the future.
  * Populates with aggregated income and expense data from money_flow table.
  */
 export class MonthlyBudgetService {
-  private readonly YEARS_TO_PROJECT = 25;
+  private readonly YEARS_TO_PROJECT = 3;
 
   /**
    * Populate monthly budget entries for all buildings.
-   * Creates entries from construction date to 25 years in the future.
+   * Creates entries from construction date to 3 years in the future.
    */
   async populateAllMonthlyBudgets(): Promise<{
     budgetsCreated: number;

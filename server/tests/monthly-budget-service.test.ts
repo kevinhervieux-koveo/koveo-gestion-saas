@@ -59,18 +59,18 @@ describe('Monthly Budget Service', () => {
   });
 
   describe('populateBudgetsForBuilding', () => {
-    it('should create budget entries for 25 years from construction date', async () => {
+    it('should create budget entries for 3 years from construction date', async () => {
       const result = await monthlyBudgetService.populateBudgetsForBuilding(testBuildingId);
       
       expect(result).toBeGreaterThan(0);
       
-      // Should create 25 years * 12 months = 300 entries
+      // Should create 3 years * 12 months = 36 entries
       const budgetCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
       
-      expect(budgetCount[0].count).toBe(300); // 25 years * 12 months
+      expect(budgetCount[0].count).toBe(36); // 3 years * 12 months
     });
 
     it('should create budgets starting from construction date', async () => {
@@ -87,7 +87,7 @@ describe('Monthly Budget Service', () => {
       expect(firstBudget[0].budgetMonth.getMonth()).toBe(0); // January = 0
     });
 
-    it('should create budgets ending 25 years after construction', async () => {
+    it('should create budgets ending 3 years after construction', async () => {
       await monthlyBudgetService.populateBudgetsForBuilding(testBuildingId);
       
       const lastBudget = await db
@@ -97,7 +97,7 @@ describe('Monthly Budget Service', () => {
         .orderBy(sql`${monthlyBudgets.budgetMonth} DESC`)
         .limit(1);
       
-      expect(lastBudget[0].budgetMonth.getFullYear()).toBe(2044);
+      expect(lastBudget[0].budgetMonth.getFullYear()).toBe(2022);
       expect(lastBudget[0].budgetMonth.getMonth()).toBe(11); // December = 11
     });
 
@@ -111,8 +111,8 @@ describe('Monthly Budget Service', () => {
         .from(monthlyBudgets)
         .where(eq(monthlyBudgets.buildingId, testBuildingId));
       
-      // Should still be 300, not 600
-      expect(budgetCount[0].count).toBe(300);
+      // Should still be 36, not 72
+      expect(budgetCount[0].count).toBe(36);
     });
 
     it('should set all budgets as not approved by default', async () => {
@@ -253,7 +253,7 @@ describe('Monthly Budget Service', () => {
       
       const budgets = await monthlyBudgetService.getBudgetsByBuilding(testBuildingId);
       
-      expect(budgets.length).toBe(300);
+      expect(budgets.length).toBe(36);
       expect(budgets[0].buildingId).toBe(testBuildingId);
     });
 
