@@ -203,8 +203,8 @@ export default function Budget() {
   
   // Year range controls
   const currentYear = new Date().getFullYear();
-  const [startYear, setStartYear] = useState(currentYear - 3);
-  const [endYear, setEndYear] = useState(currentYear + 25);
+  const [startYear, setStartYear] = useState(currentYear);
+  const [endYear, setEndYear] = useState(currentYear + 3);
   
   // Property contribution pagination
   const [contributionPage, setContributionPage] = useState(1);
@@ -652,8 +652,8 @@ export default function Budget() {
                       variant='outline' 
                       size='sm'
                       onClick={() => {
-                        setStartYear(currentYear - 3);
-                        setEndYear(currentYear + 25);
+                        setStartYear(currentYear);
+                        setEndYear(currentYear + 3);
                       }}
                       className='flex items-center gap-1'
                     >
@@ -674,7 +674,7 @@ export default function Budget() {
                 </div>
                 
                 {/* Active Filters Count */}
-                {(selectedCategories.length > 0 || startYear !== (currentYear - 3) || endYear !== (currentYear + 25)) && (
+                {(selectedCategories.length > 0 || startYear !== currentYear || endYear !== (currentYear + 3)) && (
                   <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                     <span>
                       {language === 'fr' ? 'Filtres actifs:' : 'Active filters:'}
@@ -685,7 +685,7 @@ export default function Budget() {
                           {selectedCategories.length} {language === 'fr' ? 'catégories' : 'categories'}
                         </span>
                       )}
-                      {(startYear !== (currentYear - 3) || endYear !== (currentYear + 25)) && (
+                      {(startYear !== currentYear || endYear !== (currentYear + 3)) && (
                         <span className='px-2 py-1 bg-green-100 text-green-700 rounded text-xs'>
                           {startYear} - {endYear}
                         </span>
@@ -981,7 +981,7 @@ export default function Budget() {
                       <ChartTooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
-                            const [year, month] = label.split('-');
+                            const [year, month] = String(label).split('-');
                             return (
                               <div className="bg-white p-3 border rounded shadow-lg">
                                 <p className="font-medium mb-2">{`${year}-${month}`}</p>
