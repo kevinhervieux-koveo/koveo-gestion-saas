@@ -404,7 +404,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
           
-          const { email, role, organizationId, buildingId, residenceId, personalMessage } = validation.data;
+          const { email, role, organizationId } = validation.data;
+          const { buildingId, residenceId, personalMessage } = invitationData; // Extract from raw data since not in schema
           
           // Role-based access control for roles
           if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {

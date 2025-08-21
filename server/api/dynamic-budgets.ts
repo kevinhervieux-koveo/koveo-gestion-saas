@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dynamicFinancialCalculator } from '../services/dynamic-financial-calculator';
-import { requireAuth, requireRole } from '../middleware/auth';
+import { requireAuth, requireRole } from '../auth';
 
 const router = Router();
 
