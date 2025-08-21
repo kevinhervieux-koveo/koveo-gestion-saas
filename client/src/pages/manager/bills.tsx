@@ -84,6 +84,7 @@ export default function Bills() {
     months: []
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showAllYears, setShowAllYears] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch buildings for filter dropdown
@@ -152,6 +153,27 @@ export default function Bills() {
     return `${filters.months.length} months`;
   };
 
+  // Get building creation year for minimum year calculation
+  const selectedBuilding = buildings.find(b => b.id === filters.buildingId);
+  const buildingCreationYear = selectedBuilding?.createdAt ? new Date(selectedBuilding.createdAt).getFullYear() : new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+
+  // Generate year options based on show all years state
+  const getYearOptions = () => {
+    if (showAllYears) {
+      // Show all years from building creation to 25 years forward
+      const endYear = currentYear + 25;
+      const totalYears = endYear - buildingCreationYear + 1;
+      return Array.from({ length: totalYears }, (_, i) => buildingCreationYear + i);
+    } else {
+      // Show current year ±3 years, but respect building creation year as minimum
+      const startYear = Math.max(currentYear - 3, buildingCreationYear);
+      const endYear = currentYear + 3;
+      const totalYears = endYear - startYear + 1;
+      return Array.from({ length: totalYears }, (_, i) => startYear + i);
+    }
+  };
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
@@ -212,24 +234,47 @@ export default function Bills() {
                     <Calendar className='w-4 h-4' />
                     Year
                   </Label>
-                  <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                    <SelectTrigger id='year-filter'>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className='max-h-[300px] overflow-y-auto'>
-                      {Array.from({ length: 27 }, (_, i) => {
-                        const year = new Date().getFullYear() - 2 + i; // 2 years back to 25 years forward
-                        return (
+                  <div className='space-y-2'>
+                    <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                      <SelectTrigger id='year-filter'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-[300px] overflow-y-auto'>
+                        {getYearOptions().map((year) => (
                           <SelectItem key={year} value={year.toString()}>
                             {year}
-                            {year === new Date().getFullYear() && (
+                            {year === currentYear && (
                               <span className='ml-2 text-xs text-blue-500'>(Current)</span>
                             )}
                           </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                        {!showAllYears && (
+                          <div className='border-t border-gray-200 mt-2 pt-2'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              className='w-full text-left justify-start text-xs'
+                              onClick={() => setShowAllYears(true)}
+                            >
+                              Show more years ({buildingCreationYear} - {currentYear + 25})
+                            </Button>
+                          </div>
+                        )}
+                        {showAllYears && (
+                          <div className='border-t border-gray-200 mt-2 pt-2'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              className='w-full text-left justify-start text-xs'
+                              onClick={() => setShowAllYears(false)}
+                            >
+                              Show fewer years ({currentYear - 3} - {currentYear + 3})
+                            </Button>
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className='space-y-2'>
