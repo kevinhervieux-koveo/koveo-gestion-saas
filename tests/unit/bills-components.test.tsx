@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'wouter';
-import Bills from '../../client/src/pages/manager/bills';
+import { Router } from 'wouter';
+import Bills from '@/pages/manager/bills';
 
 // Mock the API calls
 const mockBuildings = [
@@ -48,9 +48,8 @@ const mockBills = [
 ];
 
 // Mock the fetch function
-global.fetch = jest.fn();
-
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+global.fetch = mockFetch;
 
 describe('Bills Component', () => {
   let queryClient: QueryClient;
@@ -68,9 +67,9 @@ describe('Bills Component', () => {
   const renderComponent = () => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
+        <Router>
           <Bills />
-        </MemoryRouter>
+        </Router>
       </QueryClientProvider>
     );
   };

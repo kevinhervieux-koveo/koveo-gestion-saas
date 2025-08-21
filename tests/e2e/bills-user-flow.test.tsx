@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'wouter';
-import Bills from '../../client/src/pages/manager/bills';
+import { Router } from 'wouter';
+import Bills from '@/pages/manager/bills';
 
 // Mock data
 const mockBuildings = [
@@ -85,8 +85,8 @@ const mockBills = [
 ];
 
 // Mock fetch
-global.fetch = jest.fn();
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+global.fetch = mockFetch;
 
 describe('Bills User Flow End-to-End Tests', () => {
   let queryClient: QueryClient;
@@ -110,9 +110,9 @@ describe('Bills User Flow End-to-End Tests', () => {
   const renderBillsPage = () => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
+        <Router>
           <Bills />
-        </MemoryRouter>
+        </Router>
       </QueryClientProvider>
     );
   };
