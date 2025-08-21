@@ -37,6 +37,7 @@ export interface FeatureFormData {
 
 /**
  * Initial form data with default values.
+ * @returns Initial feature form data object with default values.
  */
 const getInitialFormData = (): FeatureFormData => ({
   featureName: '',

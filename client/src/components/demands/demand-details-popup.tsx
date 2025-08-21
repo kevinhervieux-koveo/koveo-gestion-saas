@@ -147,12 +147,12 @@ const statusLabels = {
  * Displays detailed information about a demand in a popup dialog with edit functionality.
  * 
  * @param root0 - The props object.
- * @param root0.demand - The demand object to display
- * @param root0.isOpen - Whether the popup is open
- * @param root0.onClose - Function to close the popup
- * @param root0.user - The current user object
- * @param root0.onDemandUpdated - Callback when demand is updated
- * @returns JSX element for the demand details popup
+ * @param root0.demand - The demand object to display.
+ * @param root0.isOpen - Whether the popup is open.
+ * @param root0.onClose - Function to close the popup.
+ * @param root0.user - The current user object.
+ * @param root0.onDemandUpdated - Callback when demand is updated.
+ * @returns JSX element for the demand details popup.
  */
 export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDemandUpdated }: DemandDetailsPopupProps) {
   const { toast } = useToast();

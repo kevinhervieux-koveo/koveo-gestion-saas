@@ -76,6 +76,7 @@ export function FilterSort({
   search,
   onAddFilter,
   onRemoveFilter,
+  onFilterUpdate: _onFilterUpdate,
   onClearFilters,
   onSetSort,
   onToggleSort,
