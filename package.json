@@ -94,6 +94,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.0",
+    "@google/genai": "^1.15.0",
     "@hookform/resolvers": "^5.2.1",
     "@jest/globals": "^30.0.5",
     "@radix-ui/react-accordion": "^1.2.12",
