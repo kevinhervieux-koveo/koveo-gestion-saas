@@ -302,10 +302,10 @@ export default function Budget() {
     }).sort((a: BudgetData, b: BudgetData) => a.date.localeCompare(b.date));
   }, [budgetSummary]);
 
-  // Find minimum balance for chart visualization - optimized
+  // Find total minimum balance for chart visualization - optimized
   const minimumBalanceForChart = useMemo(() => {
     if (!minimumBalanceSettings?.length) return null;
-    return Math.min(...minimumBalanceSettings.map(m => m.amount));
+    return minimumBalanceSettings.reduce((sum, m) => sum + m.amount, 0);
   }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
   // Special contribution and property calculations are now defined after filteredChartData
