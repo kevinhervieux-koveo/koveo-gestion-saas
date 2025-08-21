@@ -186,3 +186,94 @@ rules:
     metadata:
       category: security
       law25: secure-transmission
+
+  # Additional Security Rules
+  - id: sql-injection-prevention
+    pattern-either:
+      - pattern: |
+          `SELECT * FROM ${$TABLE} WHERE id = '${$ID}'`
+      - pattern: |
+          "INSERT INTO " + $TABLE + " VALUES (" + $VALUES + ")"
+      - pattern: |
+          db.query($QUERY + $USER_INPUT)
+    message: "SQL injection vulnerability - use parameterized queries instead"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+
+  - id: xss-prevention-react
+    pattern-either:
+      - pattern: |
+          <div dangerouslySetInnerHTML={{__html: $HTML}} />
+      - pattern: |
+          React.createElement("div", {dangerouslySetInnerHTML: {__html: $HTML}})
+    message: "XSS risk - sanitize HTML content before using dangerouslySetInnerHTML"
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-79: Cross-site Scripting"
+
+  - id: weak-crypto-usage
+    pattern-either:
+      - pattern: |
+          crypto.createHash("md5")
+      - pattern: |
+          crypto.createHash("sha1")
+      - pattern: |
+          bcrypt.hash($PWD, 1)
+      - pattern: |
+          bcrypt.hash($PWD, $ROUNDS)
+    metavariable-comparison:
+      comparison: $ROUNDS < 10
+      metavariable: $ROUNDS
+    message: "Weak cryptographic algorithm - use SHA-256 or bcrypt with rounds >= 10"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-327: Weak Cryptography"
+
+  - id: insecure-random-generation
+    pattern-either:
+      - pattern: Math.random()
+      - pattern: new Date().getTime()
+      - pattern: Date.now()
+    message: "Insecure random number generation - use crypto.randomBytes() for security-sensitive operations"
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-338: Weak PRNG"
+
+  - id: command-injection-risk
+    pattern-either:
+      - pattern: |
+          exec($CMD + $USER_INPUT)
+      - pattern: |
+          spawn($CMD, [$USER_INPUT])
+      - pattern: |
+          execSync(`${$CMD} ${$USER_INPUT}`)
+    message: "Command injection risk - sanitize user input before executing shell commands"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: Command Injection"
+
+  - id: directory-traversal-prevention
+    pattern-either:
+      - pattern: |
+          fs.readFile($USER_INPUT, ...)
+      - pattern: |
+          fs.writeFile($USER_INPUT, ...)
+      - pattern: |
+          require($USER_INPUT)
+    message: "Directory traversal vulnerability - validate and sanitize file paths"
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-22: Path Traversal"

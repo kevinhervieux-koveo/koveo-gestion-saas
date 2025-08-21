@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "security:scan": "semgrep --config=.semgrep.yml --json --quiet . > reports/semgrep-results.json",
+    "security:test": "jest tests/security/semgrep-security.test.js --verbose",
+    "security:full": "bash scripts/run-security-tests.sh",
+    "security:owasp": "semgrep --config=p/owasp-top-ten --json . > reports/owasp-results.json",
+    "security:audit": "semgrep --config=p/security-audit --json . > reports/security-audit-results.json",
+    "security:react": "semgrep --config=p/react --json . > reports/react-security-results.json"
+  }
+}
