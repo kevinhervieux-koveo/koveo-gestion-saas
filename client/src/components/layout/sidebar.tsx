@@ -170,12 +170,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Language Switcher */}
-      <div className='px-6 py-4 border-b border-gray-200'>
-        <LanguageSwitcher />
-      </div>
-
-      {/* Navigation */}
+      {/* Navigation */
       <nav className='flex-1 px-6 py-4'>
         {/* Navigation sections */}
         <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>

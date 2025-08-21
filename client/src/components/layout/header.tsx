@@ -70,10 +70,6 @@ export function Header({ title, subtitle }: HeaderProps) {
         </div>
         <div className='flex items-center space-x-4'>
           <LanguageSwitcher />
-          <div className='flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm'>
-            <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-            <span>{t('workspaceActive')}</span>
-          </div>
         </div>
       </div>
     </header>
