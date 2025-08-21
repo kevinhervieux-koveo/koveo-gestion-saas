@@ -1308,6 +1308,17 @@ export default function Budget() {
                       <div className='space-y-4 max-h-96 overflow-y-auto'>
                         <div className='space-y-4'>
                           <div className='space-y-2'>
+                            <Label htmlFor='bankAccountNumber'>{bankAccountTranslations.accountNumber}</Label>
+                            <Input
+                              id='bankAccountNumber'
+                              type='text'
+                              value={bankAccountNumber}
+                              onChange={(e) => setBankAccountNumber(e.target.value)}
+                              placeholder={bankAccountTranslations.accountNumberPlaceholder}
+                            />
+                          </div>
+                          
+                          <div className='space-y-2'>
                             <Label htmlFor='startDate'>{bankAccountTranslations.startDateLabel}</Label>
                             <Input
                               id='startDate'
