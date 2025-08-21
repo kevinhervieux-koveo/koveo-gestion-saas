@@ -258,11 +258,11 @@ export class InvitationPermissionValidator {
       return { valid: false, reason: 'Insufficient role privileges to invite users' };
     }
 
-    // Manager restrictions: can invite managers and admins within their organization
+    // Manager restrictions: can invite resident, manager, tenant within their organization
     if (inviterRole === 'manager') {
-      // Managers can only invite managers and admins
-      if (!['manager', 'admin'].includes(targetRole)) {
-        return { valid: false, reason: 'Managers can only invite managers and admins' };
+      // Managers can invite resident, manager, tenant (but not admin)
+      if (!['resident', 'manager', 'tenant'].includes(targetRole)) {
+        return { valid: false, reason: 'Managers can only invite resident, manager, and tenant roles' };
       }
 
       // Organization validation - managers can only invite within their organization
