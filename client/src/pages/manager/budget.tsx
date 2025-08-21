@@ -201,10 +201,13 @@ export default function Budget() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   
-  // Year range controls
+  // Year and Month range controls
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // 1-12
   const [startYear, setStartYear] = useState(currentYear);
   const [endYear, setEndYear] = useState(currentYear + 3);
+  const [startMonth, setStartMonth] = useState(currentMonth);
+  const [endMonth, setEndMonth] = useState(12);
   
   // Property contribution pagination
   const [contributionPage, setContributionPage] = useState(1);
@@ -235,15 +238,40 @@ export default function Budget() {
 
   // Get budget data
   const { data: budgetData, isLoading: budgetLoading } = useQuery({
-    queryKey: ['/api/budgets', selectedBuilding, startYear, endYear, viewType],
-    queryFn: () => fetch(`/api/budgets/${selectedBuilding}?startYear=${startYear}&endYear=${endYear}&groupBy=${viewType}`).then(res => res.json()),
+    queryKey: ['/api/budgets', selectedBuilding, startYear, endYear, viewType, startMonth, endMonth],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        startYear: startYear.toString(),
+        endYear: endYear.toString(),
+        groupBy: viewType
+      });
+      
+      if (viewType === 'monthly') {
+        params.append('startMonth', startMonth.toString());
+        params.append('endMonth', endMonth.toString());
+      }
+      
+      return fetch(`/api/budgets/${selectedBuilding}?${params.toString()}`).then(res => res.json());
+    },
     enabled: !!selectedBuilding,
   });
 
   // Get budget summary
   const { data: budgetSummary, isLoading: summaryLoading } = useQuery({
-    queryKey: ['/api/budgets', selectedBuilding, 'summary', startYear, endYear],
-    queryFn: () => fetch(`/api/budgets/${selectedBuilding}/summary?startYear=${startYear}&endYear=${endYear}`).then(res => res.json()),
+    queryKey: ['/api/budgets', selectedBuilding, 'summary', startYear, endYear, startMonth, endMonth, viewType],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        startYear: startYear.toString(),
+        endYear: endYear.toString()
+      });
+      
+      if (viewType === 'monthly') {
+        params.append('startMonth', startMonth.toString());
+        params.append('endMonth', endMonth.toString());
+      }
+      
+      return fetch(`/api/budgets/${selectedBuilding}/summary?${params.toString()}`).then(res => res.json());
+    },
     enabled: !!selectedBuilding,
   });
 
@@ -654,6 +682,8 @@ export default function Budget() {
                       onClick={() => {
                         setStartYear(currentYear);
                         setEndYear(currentYear + 3);
+                        setStartMonth(currentMonth);
+                        setEndMonth(12);
                       }}
                       className='flex items-center gap-1'
                     >
@@ -674,7 +704,7 @@ export default function Budget() {
                 </div>
                 
                 {/* Active Filters Count */}
-                {(selectedCategories.length > 0 || startYear !== currentYear || endYear !== (currentYear + 3)) && (
+                {(selectedCategories.length > 0 || startYear !== currentYear || endYear !== (currentYear + 3) || (viewType === 'monthly' && (startMonth !== currentMonth || endMonth !== 12))) && (
                   <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                     <span>
                       {language === 'fr' ? 'Filtres actifs:' : 'Active filters:'}
@@ -685,9 +715,12 @@ export default function Budget() {
                           {selectedCategories.length} {language === 'fr' ? 'catégories' : 'categories'}
                         </span>
                       )}
-                      {(startYear !== currentYear || endYear !== (currentYear + 3)) && (
+                      {(startYear !== currentYear || endYear !== (currentYear + 3) || (viewType === 'monthly' && (startMonth !== currentMonth || endMonth !== 12))) && (
                         <span className='px-2 py-1 bg-green-100 text-green-700 rounded text-xs'>
-                          {startYear} - {endYear}
+                          {viewType === 'monthly' 
+                            ? `${startMonth}/${startYear} - ${endMonth}/${endYear}`
+                            : `${startYear} - ${endYear}`
+                          }
                         </span>
                       )}
                     </div>
@@ -728,37 +761,109 @@ export default function Budget() {
                       </Select>
                     </div>
                     
-                    <div className='space-y-2'>
-                      <Label className='text-sm font-medium'>{language === 'fr' ? 'De' : 'From'}</Label>
-                      <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
-                        <SelectTrigger className='h-9'>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className='space-y-2'>
-                      <Label className='text-sm font-medium'>{language === 'fr' ? 'À' : 'To'}</Label>
-                      <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
-                        <SelectTrigger className='h-9'>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {viewType === 'monthly' ? (
+                      <>
+                        <div className='space-y-2'>
+                          <Label className='text-sm font-medium'>{language === 'fr' ? 'De (Mois/Année)' : 'From (Month/Year)'}</Label>
+                          <div className='grid grid-cols-2 gap-2'>
+                            <Select value={startMonth.toString()} onValueChange={(value) => setStartMonth(parseInt(value))}>
+                              <SelectTrigger className='h-9'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                  <SelectItem key={month} value={month.toString()}>
+                                    {language === 'fr' ? 
+                                      ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'][month - 1] :
+                                      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1]
+                                    }
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                              <SelectTrigger className='h-9'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className='space-y-2'>
+                          <Label className='text-sm font-medium'>{language === 'fr' ? 'À (Mois/Année)' : 'To (Month/Year)'}</Label>
+                          <div className='grid grid-cols-2 gap-2'>
+                            <Select value={endMonth.toString()} onValueChange={(value) => setEndMonth(parseInt(value))}>
+                              <SelectTrigger className='h-9'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                  <SelectItem key={month} value={month.toString()}>
+                                    {language === 'fr' ? 
+                                      ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'][month - 1] :
+                                      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1]
+                                    }
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                              <SelectTrigger className='h-9'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className='space-y-2'>
+                          <Label className='text-sm font-medium'>{language === 'fr' ? 'De' : 'From'}</Label>
+                          <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                            <SelectTrigger className='h-9'>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className='space-y-2'>
+                          <Label className='text-sm font-medium'>{language === 'fr' ? 'À' : 'To'}</Label>
+                          <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                            <SelectTrigger className='h-9'>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
