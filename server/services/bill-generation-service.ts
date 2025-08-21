@@ -18,6 +18,43 @@ import type { Bill } from '../../shared/schema';
 export class BillGenerationService {
   
   /**
+   * Get bills by reference (auto-generated bills linked to a parent).
+   */
+  private async getBillsByReference(parentBillId: string): Promise<Bill[]> {
+    try {
+      const existingBills = await db
+        .select()
+        .from(bills)
+        .where(eq(bills.reference, parentBillId));
+      
+      return existingBills;
+    } catch (error) {
+      console.error(`❌ Error fetching bills by reference:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Set end date for a recurrent bill (stops future auto-generation).
+   */
+  async setRecurrenceEndDate(billId: string, endDate: Date): Promise<void> {
+    try {
+      await db
+        .update(bills)
+        .set({ 
+          endDate: endDate.toISOString().split('T')[0],
+          updatedAt: new Date()
+        })
+        .where(eq(bills.id, billId));
+      
+      console.log(`📅 Set recurrence end date for bill ${billId}: ${endDate.toISOString()}`);
+    } catch (error) {
+      console.error(`❌ Error setting recurrence end date:`, error);
+      throw error;
+    }
+  }
+  
+  /**
    * Generate future bill instances for a recurrent bill up to 25 years.
    * Creates actual bill records that users can interact with individually.
    */
@@ -31,13 +68,29 @@ export class BillGenerationService {
 
     console.log(`🔄 Generating future bills for ${parentBill.title} (${parentBill.id})`);
 
-    // Calculate projection period (25 years from start date)
+    // Calculate projection period - respect endDate if set
     const startDate = new Date(parentBill.startDate);
-    const endDate = parentBill.endDate ? new Date(parentBill.endDate) : new Date();
-    endDate.setFullYear(startDate.getFullYear() + 25);
+    startDate.setFullYear(startDate.getFullYear() + 1); // Start from next year
+    
+    let endDate: Date;
+    if (parentBill.endDate) {
+      endDate = new Date(parentBill.endDate);
+      console.log(`📅 Using bill endDate: ${endDate.toISOString()}`);
+    } else {
+      endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 25); // 25 years from now
+      console.log(`📅 Using default 25-year projection: ${endDate.toISOString()}`);
+    }
 
-    // Clean up existing auto-generated bills for this parent
-    await this.cleanupExistingGeneratedBills(parentBill.id);
+    // Check if there are already auto-generated bills to avoid duplicates
+    const existingBills = await this.getBillsByReference(parentBill.id);
+    if (existingBills.length > 0) {
+      console.log(`⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`);
+      return {
+        billsCreated: 0,
+        generatedUntil: endDate.toISOString().split('T')[0]
+      };
+    }
 
     const generatedBills: any[] = [];
     let currentDate = new Date(startDate);

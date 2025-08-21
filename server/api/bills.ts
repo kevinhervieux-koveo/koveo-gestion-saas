@@ -194,7 +194,7 @@ export function registerBillRoutes(app: Express) {
         .insert(bills)
         .values({
           buildingId: billData.buildingId,
-          billNumber: billData.billNumber || `BILL-${Date.now()}`,
+          billNumber: `BILL-${Date.now()}`,
           title: billData.title,
           description: billData.description,
           category: billData.category,
@@ -227,7 +227,61 @@ export function registerBillRoutes(app: Express) {
   });
 
   /**
-   * Update a bill
+   * Update a bill (PATCH)
+   * PATCH /api/bills/:id
+   */
+  app.patch('/api/bills/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+      const validation = updateBillSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid bill data',
+          errors: validation.error.issues
+        });
+      }
+
+      const billData = validation.data;
+      
+      const updateData: any = {};
+      if (billData.title) updateData.title = billData.title;
+      if (billData.description) updateData.description = billData.description;
+      if (billData.category) updateData.category = billData.category;
+      if (billData.vendor) updateData.vendor = billData.vendor;
+      if (billData.paymentType) updateData.paymentType = billData.paymentType;
+      if (billData.costs) updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
+      if (billData.totalAmount) updateData.totalAmount = parseFloat(billData.totalAmount);
+      if (billData.startDate) updateData.startDate = billData.startDate;
+      if (billData.endDate) updateData.endDate = billData.endDate;
+      if (billData.status) updateData.status = billData.status;
+      if (billData.notes) updateData.notes = billData.notes;
+      updateData.updatedAt = new Date();
+
+      const updatedBill = await db
+        .update(bills)
+        .set(updateData)
+        .where(eq(bills.id, id))
+        .returning();
+
+      if (updatedBill.length === 0) {
+        return res.status(404).json({ 
+          message: 'Bill not found' 
+        });
+      }
+
+      res.json(updatedBill[0]);
+    } catch (error) {
+      console.error('Error updating bill:', error);
+      res.status(500).json({ 
+        message: 'Failed to update bill',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * Update a bill (PUT)
    * PUT /api/bills/:id
    */
   app.put('/api/bills/:id', requireAuth, async (req: any, res: any) => {

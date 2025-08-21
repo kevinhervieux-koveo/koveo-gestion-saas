@@ -455,6 +455,8 @@ function BillCategorySection({
  * @param root0.onUpdate
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
     sent: 'bg-blue-100 text-blue-800',
@@ -464,48 +466,75 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   };
 
   return (
-    <Card className='hover:shadow-md transition-shadow'>
-      <CardContent className='p-4'>
-        <div className='space-y-3'>
-          <div className='flex items-start justify-between'>
-            <div>
-              <h4 className='font-semibold text-sm'>{bill.title}</h4>
-              <p className='text-xs text-gray-500'>#{bill.billNumber}</p>
+    <>
+      <Card 
+        className='hover:shadow-md transition-shadow cursor-pointer'
+        onClick={() => setShowDetailDialog(true)}
+      >
+        <CardContent className='p-4'>
+          <div className='space-y-3'>
+            <div className='flex items-start justify-between'>
+              <div>
+                <h4 className='font-semibold text-sm'>{bill.title}</h4>
+                <p className='text-xs text-gray-500'>#{bill.billNumber}</p>
+              </div>
+              <Badge className={statusColors[bill.status as keyof typeof statusColors]}>
+                {bill.status}
+              </Badge>
             </div>
-            <Badge className={statusColors[bill.status as keyof typeof statusColors]}>
-              {bill.status}
-            </Badge>
-          </div>
-          
-          {bill.description && (
-            <p className='text-sm text-gray-600 line-clamp-2'>{bill.description}</p>
-          )}
-          
-          <div className='flex items-center justify-between text-sm'>
-            <span className='font-medium'>${Number(bill.totalAmount).toLocaleString()}</span>
-            <span className='text-gray-500'>{bill.paymentType}</span>
-          </div>
-          
-          {bill.vendor && (
-            <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>
-          )}
-          
-          <div className='flex items-center gap-2 pt-2'>
-            {bill.documentPath && (
-              <Badge variant='outline' className='text-xs'>
-                <FileText className='w-3 h-3 mr-1' />
-                Document
-              </Badge>
+            
+            {bill.description && (
+              <p className='text-sm text-gray-600 line-clamp-2'>{bill.description}</p>
             )}
-            {bill.isAiAnalyzed && (
-              <Badge variant='outline' className='text-xs'>
-                AI Analyzed
-              </Badge>
+            
+            <div className='flex items-center justify-between text-sm'>
+              <span className='font-medium'>${Number(bill.totalAmount).toLocaleString()}</span>
+              <span className='text-gray-500'>{bill.paymentType}</span>
+            </div>
+            
+            {bill.vendor && (
+              <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>
             )}
+            
+            <div className='flex items-center gap-2 pt-2'>
+              {bill.documentPath && (
+                <Badge variant='outline' className='text-xs'>
+                  <FileText className='w-3 h-3 mr-1' />
+                  Document
+                </Badge>
+              )}
+              {bill.isAiAnalyzed && (
+                <Badge variant='outline' className='text-xs'>
+                  AI Analyzed
+                </Badge>
+              )}
+              {bill.notes?.includes('Auto-generated from:') && (
+                <Badge variant='outline' className='text-xs'>
+                  Auto-Generated
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Bill Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle>Bill Details</DialogTitle>
+          </DialogHeader>
+          <BillDetail 
+            bill={bill}
+            onSuccess={() => {
+              setShowDetailDialog(false);
+              onUpdate();
+            }}
+            onCancel={() => setShowDetailDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -547,6 +576,164 @@ function BillCreateForm({
           </div>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Bill detail and edit form
+/**
+ *
+ * @param root0
+ * @param root0.bill
+ * @param root0.onSuccess
+ * @param root0.onCancel
+ */
+function BillDetail({ 
+  bill, 
+  onSuccess, 
+  onCancel 
+}: { 
+  bill: Bill; 
+  onSuccess: () => void; 
+  onCancel: () => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [endDate, setEndDate] = useState(bill.endDate || '');
+  const queryClient = useQueryClient();
+
+  const updateBillMutation = useMutation({
+    mutationFn: async (updates: Partial<Bill>) => {
+      const response = await fetch(`/api/bills/${bill.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updates)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update bill');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      onSuccess();
+    }
+  });
+
+  const handleSetEndDate = () => {
+    if (endDate) {
+      updateBillMutation.mutate({ endDate });
+    }
+  };
+
+  return (
+    <div className='space-y-6'>
+      {/* Bill Information */}
+      <div className='grid grid-cols-2 gap-4'>
+        <div>
+          <Label className='text-sm font-medium'>Bill Number</Label>
+          <p className='text-sm text-gray-600'>{bill.billNumber}</p>
+        </div>
+        <div>
+          <Label className='text-sm font-medium'>Status</Label>
+          <p className='text-sm text-gray-600 capitalize'>{bill.status}</p>
+        </div>
+        <div>
+          <Label className='text-sm font-medium'>Category</Label>
+          <p className='text-sm text-gray-600 capitalize'>{bill.category}</p>
+        </div>
+        <div>
+          <Label className='text-sm font-medium'>Payment Type</Label>
+          <p className='text-sm text-gray-600 capitalize'>{bill.paymentType}</p>
+        </div>
+        <div>
+          <Label className='text-sm font-medium'>Total Amount</Label>
+          <p className='text-sm text-gray-600'>${Number(bill.totalAmount).toLocaleString()}</p>
+        </div>
+        <div>
+          <Label className='text-sm font-medium'>Start Date</Label>
+          <p className='text-sm text-gray-600'>{bill.startDate}</p>
+        </div>
+      </div>
+
+      {/* Title and Description */}
+      <div>
+        <Label className='text-sm font-medium'>Title</Label>
+        <p className='text-sm text-gray-600'>{bill.title}</p>
+      </div>
+
+      {bill.description && (
+        <div>
+          <Label className='text-sm font-medium'>Description</Label>
+          <p className='text-sm text-gray-600'>{bill.description}</p>
+        </div>
+      )}
+
+      {bill.vendor && (
+        <div>
+          <Label className='text-sm font-medium'>Vendor</Label>
+          <p className='text-sm text-gray-600'>{bill.vendor}</p>
+        </div>
+      )}
+
+      {bill.notes && (
+        <div>
+          <Label className='text-sm font-medium'>Notes</Label>
+          <p className='text-sm text-gray-600'>{bill.notes}</p>
+        </div>
+      )}
+
+      {/* End Date Management for Recurrent Bills */}
+      {bill.paymentType === 'recurrent' && (
+        <div className='border-t pt-4'>
+          <Label className='text-sm font-medium'>Recurrence End Date</Label>
+          <div className='flex items-center gap-2 mt-2'>
+            <Input
+              type='date'
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className='w-48'
+            />
+            <Button 
+              onClick={handleSetEndDate}
+              disabled={updateBillMutation.isPending}
+              size='sm'
+            >
+              {updateBillMutation.isPending ? 'Setting...' : 'Set End Date'}
+            </Button>
+          </div>
+          <p className='text-xs text-gray-500 mt-1'>
+            Setting an end date will stop auto-generation of future bills after this date.
+          </p>
+        </div>
+      )}
+
+      {/* Costs Breakdown */}
+      {bill.costs && bill.costs.length > 1 && (
+        <div>
+          <Label className='text-sm font-medium'>Payment Breakdown</Label>
+          <div className='space-y-1 mt-1'>
+            {bill.costs.map((cost, index) => (
+              <div key={index} className='flex justify-between text-sm'>
+                <span>Payment {index + 1}:</span>
+                <span>${Number(cost).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className='flex justify-end gap-2 pt-4 border-t'>
+        <Button variant='outline' onClick={onCancel}>
+          Close
+        </Button>
+        {/* Future: Add edit functionality */}
+      </div>
     </div>
   );
 }
