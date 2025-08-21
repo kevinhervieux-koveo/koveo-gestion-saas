@@ -136,7 +136,10 @@ export default function ResidentDemandsPage() {
   });
 
   // Provide default user to prevent type errors
-  const defaultUser = currentUser || { id: '', role: 'tenant' as const, email: '' };
+  const defaultUser: { id: string; role: string; email: string; firstName?: string; lastName?: string } = 
+    (currentUser && typeof currentUser === 'object' && 'id' in currentUser && 'role' in currentUser && 'email' in currentUser)
+      ? currentUser as { id: string; role: string; email: string; firstName?: string; lastName?: string }
+      : { id: '', role: 'tenant', email: '' };
 
   // Create demand mutation
   const createDemandMutation = useMutation({
