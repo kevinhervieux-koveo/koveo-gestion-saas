@@ -1,12 +1,20 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🔍 Running pre-commit quality checks..."
+echo "🔍 Running pre-commit validation checks..."
 
-# Run staged file linting and formatting
-npx lint-staged
-
-# Run quick validation (type check, lint, format check)  
+# Run the pre-commit validation script
+echo "📝 Checking code formatting, linting, and types..."
 npm run validate:pre-commit
 
-echo "✅ Pre-commit checks passed!"
+if [ $? -ne 0 ]; then
+    echo "❌ Pre-commit validation failed!"
+    echo "Fix the issues above before committing."
+    echo "You can run the following commands to fix most issues:"
+    echo "  npm run format:write  # Fix formatting"
+    echo "  npm run lint:fix      # Fix linting issues" 
+    echo "  npm run typecheck     # Check types"
+    exit 1
+fi
+
+echo "✅ All pre-commit checks passed! Proceeding with commit..."
