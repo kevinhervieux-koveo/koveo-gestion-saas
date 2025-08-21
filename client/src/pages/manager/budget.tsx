@@ -1238,13 +1238,19 @@ export default function Budget() {
                                   console.log('Saving minimum balances:', minimumBalances);
                                   console.log('Bank account info:', bankAccountInfo);
                                   
-                                  const response = await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, 'PUT', {
-                                    bankAccountNumber: bankAccountInfo?.bankAccountNumber || '',
-                                    bankAccountNotes: bankAccountInfo?.bankAccountNotes || '',
-                                    bankAccountStartDate: bankAccountInfo?.bankAccountStartDate || null,
-                                    bankAccountStartAmount: bankAccountInfo?.bankAccountStartAmount || null,
-                                    bankAccountMinimums: JSON.stringify(minimumBalances),
-                                  });
+                                  const response = await apiRequest(
+                                    'PUT',
+                                    `/api/budgets/${selectedBuilding}/bank-account`,
+                                    {
+                                      bankAccountNumber: bankAccountInfo?.bankAccountNumber || '',
+                                      bankAccountNotes: bankAccountInfo?.bankAccountNotes || '',
+                                      bankAccountStartDate: bankAccountInfo?.bankAccountStartDate || null,
+                                      bankAccountStartAmount: bankAccountInfo?.bankAccountStartAmount || null,
+                                      bankAccountMinimums: JSON.stringify(minimumBalances),
+                                    }
+                                  );
+
+                                  const responseData = await response.json();
                                   
                                   console.log('Response:', response);
                                   
