@@ -1,6 +1,6 @@
 /**
- * @file Card Text Formatting Tests
- * @description Tests for text formatting, overflow handling, and layout issues in demand cards
+ * @file Card Text Formatting Tests.
+ * @description Tests for text formatting, overflow handling, and layout issues in demand cards.
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -84,6 +84,10 @@ const DemandCard = ({ demand }: { demand: any }) => {
 };
 
 // Helper function for status styles
+/**
+ *
+ * @param status
+ */
 function getStatusStyles(status: string) {
   const styles = {
     submitted: 'bg-blue-100 text-blue-800',

@@ -1,6 +1,6 @@
 /**
- * @file Database Query Performance Tests
- * @description Tests for database query optimization and performance monitoring
+ * @file Database Query Performance Tests.
+ * @description Tests for database query optimization and performance monitoring.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -20,12 +20,15 @@ import { eq, and, or, inArray, desc, like, count, avg, sum, gt } from 'drizzle-o
 
 // Performance thresholds in milliseconds
 const QUERY_THRESHOLDS = {
-  FAST: 50,      // < 50ms - excellent
-  MEDIUM: 200,   // < 200ms - acceptable
-  SLOW: 500,     // < 500ms - needs optimization
-  TIMEOUT: 2000  // > 2000ms - unacceptable
+  FAST: 50, // < 50ms - excellent
+  MEDIUM: 200, // < 200ms - acceptable
+  SLOW: 500, // < 500ms - needs optimization
+  TIMEOUT: 2000 // > 2000ms - unacceptable
 };
 
+/**
+ *
+ */
 interface QueryResult {
   duration: number;
   rowCount: number;
@@ -51,7 +54,7 @@ describe('Database Query Performance Tests', () => {
   });
 
   /**
-   * Setup a large dataset for performance testing
+   * Setup a large dataset for performance testing.
    */
   async function setupLargeTestDataset() {
     const startTime = performance.now();
@@ -189,7 +192,7 @@ describe('Database Query Performance Tests', () => {
   }
 
   /**
-   * Cleanup all test data
+   * Cleanup all test data.
    */
   async function cleanupTestData() {
     if (testData) {
@@ -205,7 +208,9 @@ describe('Database Query Performance Tests', () => {
   }
 
   /**
-   * Execute query and measure performance
+   * Execute query and measure performance.
+   * @param queryName
+   * @param queryFn
    */
   async function measureQuery<T>(
     queryName: string,
@@ -226,7 +231,9 @@ describe('Database Query Performance Tests', () => {
   }
 
   /**
-   * Assert query performance meets threshold
+   * Assert query performance meets threshold.
+   * @param result
+   * @param threshold
    */
   function assertQueryPerformance(result: QueryResult, threshold: number) {
     console.log(`${result.queryName}: ${result.duration.toFixed(2)}ms (${result.rowCount} rows)`);

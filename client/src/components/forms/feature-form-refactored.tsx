@@ -78,7 +78,7 @@ export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFo
 
   /**
    * Handles copying text to clipboard.
-   * @param text - The text content to copy to clipboard
+   * @param text - The text content to copy to clipboard.
    */
   const handleCopyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
@@ -95,7 +95,7 @@ export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFo
 
   /**
    * Handles dialog close with draft saving.
-   * @param open - Whether the dialog should be open or closed
+   * @param open - Whether the dialog should be open or closed.
    */
   const handleClose = (open: boolean) => {
     if (!open) {

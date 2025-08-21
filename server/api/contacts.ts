@@ -8,7 +8,7 @@ import { insertContactSchema } from '../../shared/schemas/property.js';
 /**
  * Register contact routes for managing entity contacts.
  * 
- * @param app - Express application instance
+ * @param app - Express application instance.
  */
 export function registerContactRoutes(app: Express) {
   // Get contacts for a specific entity

@@ -1,6 +1,6 @@
 /**
- * @file Style Consolidation Analysis Tests
- * @description Tests to identify and consolidate CSS classes, design tokens, and styling patterns
+ * @file Style Consolidation Analysis Tests.
+ * @description Tests to identify and consolidate CSS classes, design tokens, and styling patterns.
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -8,6 +8,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Types for style analysis
+/**
+ *
+ */
 interface StylePattern {
   pattern: string;
   occurrences: number;
@@ -15,6 +18,9 @@ interface StylePattern {
   category: 'color' | 'spacing' | 'typography' | 'layout' | 'effects' | 'responsive';
 }
 
+/**
+ *
+ */
 interface DesignToken {
   name: string;
   value: string;
@@ -23,6 +29,9 @@ interface DesignToken {
   files: string[];
 }
 
+/**
+ *
+ */
 interface ConsolidationRecommendation {
   type: 'utility-class' | 'component-style' | 'design-token' | 'css-variable';
   name: string;
@@ -431,7 +440,7 @@ describe('Style Consolidation Analysis Tests', () => {
       
       // Group tokens by category
       const tokensByCategory = designTokens.reduce((acc, token) => {
-        if (!acc[token.category]) acc[token.category] = [];
+        if (!acc[token.category]) {acc[token.category] = [];}
         acc[token.category].push(token);
         return acc;
       }, {} as Record<string, DesignToken[]>);

@@ -1,6 +1,6 @@
 /**
- * @file Language Validation Tests
- * @description Tests for French and English language support validation
+ * @file Language Validation Tests.
+ * @description Tests for French and English language support validation.
  */
 
 import { describe, it, expect } from '@jest/globals';

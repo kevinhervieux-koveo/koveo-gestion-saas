@@ -1,6 +1,6 @@
 /**
- * @file Content Display Internationalization E2E Tests
- * @description End-to-end tests for French and English content display across the application
+ * @file Content Display Internationalization E2E Tests.
+ * @description End-to-end tests for French and English content display across the application.
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';

@@ -1,6 +1,6 @@
 /**
- * @file Demands Workflow Integration Tests
- * @description Integration tests for complete demands workflow from creation to completion
+ * @file Demands Workflow Integration Tests.
+ * @description Integration tests for complete demands workflow from creation to completion.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -56,6 +56,9 @@ describe('Demands Workflow Integration Tests', () => {
     await cleanupTestData();
   });
 
+  /**
+   *
+   */
   async function setupTestData() {
     // Create organization
     const [org] = await db.insert(organizations).values({
@@ -172,6 +175,9 @@ describe('Demands Workflow Integration Tests', () => {
     };
   }
 
+  /**
+   *
+   */
   async function cleanupTestData() {
     if (testData) {
       await db.delete(demandComments);

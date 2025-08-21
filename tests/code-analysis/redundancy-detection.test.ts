@@ -1,6 +1,6 @@
 /**
- * @file Code Redundancy Detection Tests
- * @description Tests to identify and reduce redundancies in forms, buttons, cards, and formatting
+ * @file Code Redundancy Detection Tests.
+ * @description Tests to identify and reduce redundancies in forms, buttons, cards, and formatting.
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -474,11 +474,11 @@ describe('Code Redundancy Detection Tests', () => {
       // Identify common action types
       const actionTypes = new Map<string, number>();
       actionPatterns.forEach(action => {
-        if (action.includes('handleSubmit')) actionTypes.set('submit', (actionTypes.get('submit') || 0) + 1);
-        if (action.includes('handleCancel')) actionTypes.set('cancel', (actionTypes.get('cancel') || 0) + 1);
-        if (action.includes('handleDelete')) actionTypes.set('delete', (actionTypes.get('delete') || 0) + 1);
-        if (action.includes('handleEdit')) actionTypes.set('edit', (actionTypes.get('edit') || 0) + 1);
-        if (action.includes('handleCreate')) actionTypes.set('create', (actionTypes.get('create') || 0) + 1);
+        if (action.includes('handleSubmit')) {actionTypes.set('submit', (actionTypes.get('submit') || 0) + 1);}
+        if (action.includes('handleCancel')) {actionTypes.set('cancel', (actionTypes.get('cancel') || 0) + 1);}
+        if (action.includes('handleDelete')) {actionTypes.set('delete', (actionTypes.get('delete') || 0) + 1);}
+        if (action.includes('handleEdit')) {actionTypes.set('edit', (actionTypes.get('edit') || 0) + 1);}
+        if (action.includes('handleCreate')) {actionTypes.set('create', (actionTypes.get('create') || 0) + 1);}
       });
       
       console.log('\nCommon action types:');

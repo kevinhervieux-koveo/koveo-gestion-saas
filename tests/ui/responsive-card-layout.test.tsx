@@ -1,6 +1,6 @@
 /**
- * @file Responsive Card Layout Tests
- * @description Tests for card layout responsiveness and text adaptation across different screen sizes
+ * @file Responsive Card Layout Tests.
+ * @description Tests for card layout responsiveness and text adaptation across different screen sizes.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
@@ -9,9 +9,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../../client/src/contexts/LanguageContext';
 
 // Mock ResizeObserver for testing
+/**
+ *
+ */
 class MockResizeObserver {
+  /**
+   *
+   */
   observe() {}
+  /**
+   *
+   */
   unobserve() {}
+  /**
+   *
+   */
   disconnect() {}
 }
 
@@ -148,6 +160,10 @@ const ResponsiveDemandCard = ({ demand, className = '' }: { demand: any; classNa
 };
 
 // Responsive status styles helper
+/**
+ *
+ * @param status
+ */
 function getResponsiveStatusStyles(status: string) {
   const baseStyles = 'bg-opacity-10 border border-opacity-20';
   const statusColors = {
@@ -394,9 +410,9 @@ describe('Responsive Card Layout Tests', () => {
 
       // Test on multiple screen sizes
       const screenSizes = [
-        { width: 375, height: 667 },   // Mobile
-        { width: 768, height: 1024 },  // Tablet  
-        { width: 1920, height: 1080 }  // Desktop
+        { width: 375, height: 667 }, // Mobile
+        { width: 768, height: 1024 }, // Tablet  
+        { width: 1920, height: 1080 } // Desktop
       ];
 
       screenSizes.forEach(({ width, height }) => {

@@ -1,6 +1,6 @@
 /**
- * @file Visual Regression Tests for Card Text Overflow
- * @description Tests to prevent text overflow and formatting issues as seen in the provided screenshot
+ * @file Visual Regression Tests for Card Text Overflow.
+ * @description Tests to prevent text overflow and formatting issues as seen in the provided screenshot.
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';

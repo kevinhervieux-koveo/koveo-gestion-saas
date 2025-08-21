@@ -1,6 +1,6 @@
 /**
- * @file Demands End-to-End User Flow Tests
- * @description E2E tests simulating real user interactions with the demands system
+ * @file Demands End-to-End User Flow Tests.
+ * @description E2E tests simulating real user interactions with the demands system.
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';

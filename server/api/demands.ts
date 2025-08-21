@@ -17,7 +17,7 @@ import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/sche
 /**
  * Register demand routes for managing resident demands and complaints.
  * 
- * @param app - Express application instance
+ * @param app - Express application instance.
  */
 export function registerDemandRoutes(app: Express) {
   // Get demands for a user (residents and managers)
@@ -65,6 +65,10 @@ export function registerDemandRoutes(app: Express) {
         .innerJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
+      // Declare variables outside the conditions to fix scope issues
+      let orgIds: string[] = [];
+      let residenceIds: string[] = [];
+
       // Apply role-based filtering
       if (user.role === 'admin') {
         // Admin can see all demands
@@ -75,7 +79,7 @@ export function registerDemandRoutes(app: Express) {
           .from(userOrganizations)
           .where(eq(userOrganizations.userId, user.id));
         
-        const orgIds = userOrgs.map(org => org.organizationId);
+        orgIds = userOrgs.map(org => org.organizationId);
         
         if (orgIds.length > 0) {
           query = query.innerJoin(organizations, eq(buildings.organizationId, organizations.id));
@@ -90,29 +94,16 @@ export function registerDemandRoutes(app: Express) {
           .from(userResidences)
           .where(eq(userResidences.userId, user.id));
         
-        const residenceIds = userResidenceData.map(ur => ur.residenceId);
-        
-        if (residenceIds.length > 0) {
-          // Add residence filter later with other conditions
-        } else {
-          // Add submitter filter later with other conditions
-        }
+        residenceIds = userResidenceData.map(ur => ur.residenceId);
       }
 
       // Apply filters
       const conditions = [];
       
       // Add role-based conditions
-      if (user.role === 'manager' && orgIds && orgIds.length > 0) {
+      if (user.role === 'manager' && orgIds.length > 0) {
         conditions.push(inArray(buildings.organizationId, orgIds));
       } else if (user.role !== 'admin') {
-        const userResidenceData = await db
-          .select({ residenceId: userResidences.residenceId })
-          .from(userResidences)
-          .where(eq(userResidences.userId, user.id));
-        
-        const residenceIds = userResidenceData.map(ur => ur.residenceId);
-        
         if (residenceIds.length > 0) {
           conditions.push(
             or(
@@ -126,10 +117,10 @@ export function registerDemandRoutes(app: Express) {
       }
       
       // Add filter conditions
-      if (buildingId) conditions.push(eq(demands.buildingId, buildingId));
-      if (residenceId) conditions.push(eq(demands.residenceId, residenceId));
-      if (type) conditions.push(eq(demands.type, type));
-      if (status) conditions.push(eq(demands.status, status));
+      if (buildingId) {conditions.push(eq(demands.buildingId, buildingId));}
+      if (residenceId) {conditions.push(eq(demands.residenceId, residenceId));}
+      if (type) {conditions.push(eq(demands.type, type));}
+      if (status) {conditions.push(eq(demands.status, status));}
 
       if (conditions.length > 0) {
         query = query.where(and(...conditions));
@@ -262,11 +253,14 @@ export function registerDemandRoutes(app: Express) {
       // Validate input
       const validatedData = insertDemandSchema.parse(demandData);
 
-      // Set submitter to current user
-      validatedData.submitterId = user.id;
+      // Create demand data with submitter set to current user
+      const demandInsertData = {
+        ...validatedData,
+        submitterId: user.id,
+      };
 
       // Auto-populate residence and building from user's primary residence if not provided
-      if (!validatedData.residenceId || !validatedData.buildingId) {
+      if (!demandInsertData.residenceId || !demandInsertData.buildingId) {
         const userResidenceData = await db
           .select({ 
             residenceId: userResidences.residenceId,
@@ -281,22 +275,13 @@ export function registerDemandRoutes(app: Express) {
           return res.status(400).json({ message: 'User must be assigned to a residence to create demands' });
         }
 
-        validatedData.residenceId = validatedData.residenceId || userResidenceData[0].residenceId;
-        validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
+        demandInsertData.residenceId = demandInsertData.residenceId || userResidenceData[0].residenceId;
+        demandInsertData.buildingId = demandInsertData.buildingId || userResidenceData[0].buildingId;
       }
 
       const newDemand = await db
         .insert(demands)
-        .values({
-          submitterId: validatedData.submitterId,
-          type: validatedData.type,
-          assignationResidenceId: validatedData.assignationResidenceId || null,
-          assignationBuildingId: validatedData.assignationBuildingId || null,
-          description: validatedData.description,
-          residenceId: validatedData.residenceId,
-          buildingId: validatedData.buildingId,
-          status: validatedData.status || 'draft'
-        })
+        .values(demandInsertData)
         .returning();
 
       res.status(201).json(newDemand[0]);

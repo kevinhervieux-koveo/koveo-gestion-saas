@@ -1,6 +1,6 @@
 /**
- * @file Component Extraction Analysis Tests
- * @description Tests to identify extractable components and generate reusable component suggestions
+ * @file Component Extraction Analysis Tests.
+ * @description Tests to identify extractable components and generate reusable component suggestions.
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -8,6 +8,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Component pattern analysis types
+/**
+ *
+ */
 interface ComponentPattern {
   type: 'button' | 'form' | 'card' | 'modal' | 'table' | 'input';
   pattern: string;
@@ -17,6 +20,9 @@ interface ComponentPattern {
   complexityScore: number;
 }
 
+/**
+ *
+ */
 interface ExtractableComponent {
   name: string;
   description: string;
@@ -31,15 +37,15 @@ const analyzeComponentComplexity = (pattern: string): number => {
   let complexity = 0;
   
   // Add complexity for various features
-  if (pattern.includes('useState')) complexity += 2;
-  if (pattern.includes('useEffect')) complexity += 2;
-  if (pattern.includes('onClick')) complexity += 1;
-  if (pattern.includes('onChange')) complexity += 1;
-  if (pattern.includes('className')) complexity += 1;
-  if (pattern.includes('style=')) complexity += 1;
-  if (pattern.includes('conditional')) complexity += 2;
-  if (pattern.match(/\?\s*:/) || pattern.includes('&&')) complexity += 1; // Conditional rendering
-  if (pattern.match(/map\(/)) complexity += 1; // List rendering
+  if (pattern.includes('useState')) {complexity += 2;}
+  if (pattern.includes('useEffect')) {complexity += 2;}
+  if (pattern.includes('onClick')) {complexity += 1;}
+  if (pattern.includes('onChange')) {complexity += 1;}
+  if (pattern.includes('className')) {complexity += 1;}
+  if (pattern.includes('style=')) {complexity += 1;}
+  if (pattern.includes('conditional')) {complexity += 2;}
+  if (pattern.match(/\?\s*:/) || pattern.includes('&&')) {complexity += 1;} // Conditional rendering
+  if (pattern.match(/map\(/)) {complexity += 1;} // List rendering
   
   return complexity;
 };
@@ -861,7 +867,7 @@ describe('Component Extraction Analysis Tests', () => {
           const props = extractProps(pattern);
           
           // Skip very simple divs
-          if (pattern.length < 100) return;
+          if (pattern.length < 100) {return;}
           
           const existingPattern = cardPatterns.find(p => p.pattern === pattern);
           if (existingPattern) {
@@ -972,7 +978,7 @@ describe('Component Extraction Analysis Tests', () => {
           const props = extractProps(pattern);
           
           // Skip very simple patterns
-          if (pattern.length < 200) return;
+          if (pattern.length < 200) {return;}
           
           const existingPattern = modalPatterns.find(p => p.pattern === pattern);
           if (existingPattern) {

@@ -1,6 +1,6 @@
 /**
- * @file Quebec Law 25 Compliance and French Language Tests
- * @description Tests for Quebec-specific requirements including Law 25 compliance and French language quality
+ * @file Quebec Law 25 Compliance and French Language Tests.
+ * @description Tests for Quebec-specific requirements including Law 25 compliance and French language quality.
  */
 
 import { describe, it, expect } from '@jest/globals';

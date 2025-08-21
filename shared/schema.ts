@@ -40,6 +40,8 @@ export type {
   InsertInvitation,
   PasswordResetToken,
   InsertPasswordResetToken,
+  InvitationAuditLog,
+  InsertInvitationAuditLog,
 } from './schemas/core';
 
 export type {

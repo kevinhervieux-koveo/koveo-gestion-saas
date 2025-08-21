@@ -17,6 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 
 // Types
+/**
+ *
+ */
 interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
@@ -50,6 +53,9 @@ interface Demand {
   };
 }
 
+/**
+ *
+ */
 interface DemandComment {
   id: string;
   demandId: string;
@@ -65,6 +71,9 @@ interface DemandComment {
   };
 }
 
+/**
+ *
+ */
 interface User {
   id: string;
   role: string;
@@ -73,6 +82,9 @@ interface User {
   email: string;
 }
 
+/**
+ *
+ */
 interface DemandDetailsPopupProps {
   demand: Demand | null;
   isOpen: boolean;
@@ -93,7 +105,13 @@ const commentSchema = z.object({
   comment: z.string().min(1, 'Comment cannot be empty'),
 });
 
+/**
+ *
+ */
 type EditDemandFormData = z.infer<typeof editDemandSchema>;
+/**
+ *
+ */
 type CommentFormData = z.infer<typeof commentSchema>;
 
 const statusColors = {
@@ -125,6 +143,15 @@ const statusLabels = {
   cancelled: 'Cancelled',
 };
 
+/**
+ *
+ * @param root0
+ * @param root0.demand
+ * @param root0.isOpen
+ * @param root0.onClose
+ * @param root0.user
+ * @param root0.onDemandUpdated
+ */
 export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDemandUpdated }: DemandDetailsPopupProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -304,7 +331,7 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
     }
   };
 
-  if (!demand) return null;
+  if (!demand) {return null;}
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

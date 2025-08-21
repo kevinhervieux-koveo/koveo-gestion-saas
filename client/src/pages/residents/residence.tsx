@@ -40,6 +40,9 @@ import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -61,6 +64,9 @@ interface Residence {
   };
 }
 
+/**
+ *
+ */
 interface Contact {
   id: string;
   name: string;
@@ -74,6 +80,9 @@ interface Contact {
   updatedAt: string;
 }
 
+/**
+ *
+ */
 interface AssignedUser {
   id: string;
   username: string;
@@ -87,10 +96,16 @@ interface AssignedUser {
   isActive: boolean;
 }
 
+/**
+ *
+ */
 interface UserResidence {
   residenceId: string;
 }
 
+/**
+ *
+ */
 interface Document {
   id: string;
   name: string;
@@ -139,9 +154,18 @@ const documentSchema = z.object({
   isVisibleToTenants: z.boolean().default(false),
 });
 
+/**
+ *
+ */
 type ContactFormData = z.infer<typeof contactSchema>;
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentSchema>;
 
+/**
+ *
+ */
 export default function MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -191,7 +215,7 @@ export default function MyResidence() {
     queryKey: ['/api/residences', selectedResidence?.id, 'assigned-users'],
     queryFn: async () => {
       const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);
-      if (!response.ok) throw new Error('Failed to fetch assigned users');
+      if (!response.ok) {throw new Error('Failed to fetch assigned users');}
       return response.json();
     },
     enabled: !!selectedResidence?.id,
@@ -202,7 +226,7 @@ export default function MyResidence() {
     queryKey: ['/api/documents', 'residence', selectedResidence?.id],
     queryFn: async () => {
       const response = await fetch(`/api/documents?type=resident&residenceId=${selectedResidence?.id}`);
-      if (!response.ok) throw new Error('Failed to fetch documents');
+      if (!response.ok) {throw new Error('Failed to fetch documents');}
       const data = await response.json();
       return data.documents || [];
     },
@@ -228,7 +252,7 @@ export default function MyResidence() {
     queryKey: ['/api/contacts', 'building', selectedResidence?.building?.id],
     queryFn: async () => {
       const response = await fetch(`/api/contacts?entity=building&entityId=${selectedResidence?.building?.id}`);
-      if (!response.ok) throw new Error('Failed to fetch building contacts');
+      if (!response.ok) {throw new Error('Failed to fetch building contacts');}
       return response.json();
     },
     enabled: !!selectedResidence?.building?.id,
@@ -268,7 +292,7 @@ export default function MyResidence() {
   };
 
   const handleAddContact = async (data: ContactFormData) => {
-    if (!selectedResidence) return;
+    if (!selectedResidence) {return;}
 
     try {
       if (editingContact) {
@@ -284,7 +308,7 @@ export default function MyResidence() {
           }),
         });
         
-        if (!response.ok) throw new Error('Failed to update contact');
+        if (!response.ok) {throw new Error('Failed to update contact');}
         toast({ title: 'Contact updated successfully' });
       } else {
         // Add new contact
@@ -301,7 +325,7 @@ export default function MyResidence() {
           }),
         });
         
-        if (!response.ok) throw new Error('Failed to add contact');
+        if (!response.ok) {throw new Error('Failed to add contact');}
         toast({ title: 'Contact added successfully' });
       }
 
@@ -327,7 +351,7 @@ export default function MyResidence() {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete contact');
+      if (!response.ok) {throw new Error('Failed to delete contact');}
 
       await queryClient.invalidateQueries({
         queryKey: ['/api/residences', selectedResidence?.id, 'contacts'],
@@ -393,7 +417,7 @@ export default function MyResidence() {
   };
 
   const handleAddDocument = async (data: DocumentFormData) => {
-    if (!selectedResidence) return;
+    if (!selectedResidence) {return;}
 
     try {
       const documentData = {
@@ -418,7 +442,7 @@ export default function MyResidence() {
         body: JSON.stringify(documentData),
       });
 
-      if (!response.ok) throw new Error('Failed to add document');
+      if (!response.ok) {throw new Error('Failed to add document');}
 
       await queryClient.invalidateQueries({
         queryKey: ['/api/documents', 'residence', selectedResidence.id],
@@ -438,7 +462,7 @@ export default function MyResidence() {
   };
 
   const handleEditDocument = async (data: DocumentFormData) => {
-    if (!selectedDocument) return;
+    if (!selectedDocument) {return;}
 
     try {
       const response = await fetch(`/api/documents/${selectedDocument.id}`, {
@@ -451,7 +475,7 @@ export default function MyResidence() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to update document');
+      if (!response.ok) {throw new Error('Failed to update document');}
 
       await queryClient.invalidateQueries({
         queryKey: ['/api/documents', 'residence', selectedResidence?.id],
@@ -475,7 +499,7 @@ export default function MyResidence() {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete document');
+      if (!response.ok) {throw new Error('Failed to delete document');}
 
       await queryClient.invalidateQueries({
         queryKey: ['/api/documents', 'residence', selectedResidence?.id],
@@ -492,15 +516,15 @@ export default function MyResidence() {
   };
 
   const formatFileSize = (size?: string) => {
-    if (!size) return 'Unknown size';
+    if (!size) {return 'Unknown size';}
     const bytes = parseInt(size);
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {return `${bytes} B`;}
+    if (bytes < 1048576) {return `${(bytes / 1024).toFixed(1)} KB`;}
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'No date';
+    if (!dateString) {return 'No date';}
     return new Date(dateString).toLocaleDateString();
   };
 

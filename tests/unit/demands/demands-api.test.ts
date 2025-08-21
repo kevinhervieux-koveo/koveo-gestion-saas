@@ -1,5 +1,5 @@
 /**
- * @file Demands API Unit Tests
+ * @file Demands API Unit Tests.
  * @description Comprehensive unit tests for the demands API functionality
  * including CRUD operations, role-based access control, and filtering.
  */
@@ -39,11 +39,11 @@ jest.mock('../../../server/auth/index', () => ({
 
 describe('Demands API Unit Tests', () => {
   let app: express.Application;
-  let testUsers: any[] = [];
-  let testOrganizations: any[] = [];
-  let testBuildings: any[] = [];
-  let testResidences: any[] = [];
-  let testDemands: any[] = [];
+  const testUsers: any[] = [];
+  const testOrganizations: any[] = [];
+  const testBuildings: any[] = [];
+  const testResidences: any[] = [];
+  const testDemands: any[] = [];
 
   beforeAll(async () => {
     // Setup test application

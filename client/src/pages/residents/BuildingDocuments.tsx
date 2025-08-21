@@ -24,6 +24,9 @@ const DOCUMENT_CATEGORIES = [
   { value: 'other', label: 'Other' },
 ] as const;
 
+/**
+ *
+ */
 interface BuildingDocument {
   id: string;
   name: string;
@@ -38,6 +41,9 @@ interface BuildingDocument {
   isVisibleToTenants?: boolean;
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -45,14 +51,22 @@ interface Building {
   [key: string]: any;
 }
 
+/**
+ *
+ * @param bytes
+ */
 function formatFileSize(bytes?: number): string {
-  if (!bytes) return 'Unknown size';
+  if (!bytes) {return 'Unknown size';}
   
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
 }
 
+/**
+ *
+ * @param dateString
+ */
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -61,11 +75,18 @@ function formatDate(dateString: string): string {
   });
 }
 
+/**
+ *
+ * @param value
+ */
 function getCategoryLabel(value: string): string {
   // Return the actual document type as a formatted label
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+/**
+ *
+ */
 export default function ResidentsBuildingDocuments() {
   const [, navigate] = useLocation();
   const urlParams = new URLSearchParams(window.location.search);
@@ -92,9 +113,9 @@ export default function ResidentsBuildingDocuments() {
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {
-      if (!buildingId) return {documents: []};
+      if (!buildingId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
-      if (!response.ok) throw new Error('Failed to fetch documents');
+      if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
     enabled: !!buildingId,
@@ -195,7 +216,7 @@ export default function ResidentsBuildingDocuments() {
   const handleDownloadDocument = async (document: BuildingDocument) => {
     try {
       const response = await fetch(`/api/documents/${document.id}/download`);
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) {throw new Error('Download failed');}
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -221,7 +242,7 @@ export default function ResidentsBuildingDocuments() {
         window.open(document.fileUrl, '_blank');
       } else {
         const response = await fetch(`/api/documents/${document.id}/view`);
-        if (!response.ok) throw new Error('Failed to get document view URL');
+        if (!response.ok) {throw new Error('Failed to get document view URL');}
         
         const data = await response.json();
         if (data.viewUrl) {
@@ -368,7 +389,7 @@ export default function ResidentsBuildingDocuments() {
                   {/* Show documents grouped by category if no specific category is selected */}
                   {selectedCategory === 'all' ? (
                     Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {
-                      if (categoryDocuments.length === 0) return null;
+                      if (categoryDocuments.length === 0) {return null;}
                       
                       return (
                         <Card key={categoryValue}>
@@ -534,7 +555,7 @@ export default function ResidentsBuildingDocuments() {
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                        if (pageNum > totalPages) return null;
+                        if (pageNum > totalPages) {return null;}
                         return (
                           <Button
                             key={pageNum}

@@ -58,7 +58,7 @@ class ReplitMonitor {
 
   /**
    * Start monitoring loop.
-   * @returns void
+   * @returns Void.
    */
   start() {
     console.warn('🔍 Starting Replit Environment Monitor...');

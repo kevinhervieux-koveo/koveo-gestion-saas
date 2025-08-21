@@ -9,6 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, ChevronDown } from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
 
+/**
+ *
+ */
 interface BuildingWithStats extends BuildingType {
   organizationName: string;
   organizationType: string;
@@ -18,6 +21,9 @@ interface BuildingWithStats extends BuildingType {
   vacantUnits: number;
 }
 
+/**
+ *
+ */
 export default function MyBuilding() {
   const [, navigate] = useLocation();
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
@@ -41,9 +47,9 @@ export default function MyBuilding() {
   const { data: contacts, isLoading: isLoadingContacts } = useQuery({
     queryKey: ['/api/contacts/building', selectedBuildingId],
     queryFn: async () => {
-      if (!selectedBuildingId) return [];
+      if (!selectedBuildingId) {return [];}
       const response = await fetch(`/api/contacts/building/${selectedBuildingId}`);
-      if (!response.ok) return [];
+      if (!response.ok) {return [];}
       return response.json();
     },
     enabled: !!selectedBuildingId,

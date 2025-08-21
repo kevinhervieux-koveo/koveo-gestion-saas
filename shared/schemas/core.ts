@@ -161,6 +161,27 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * Invitation audit log table for tracking invitation operations and security events.
+ * Provides comprehensive logging for invitation lifecycle and security monitoring.
+ */
+export const invitationAuditLog = pgTable('invitation_audit_log', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  invitationId: text('invitation_id')
+    .references(() => invitations.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(),
+  performedBy: uuid('performed_by')
+    .references(() => users.id),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  details: json('details'),
+  previousStatus: invitationStatusEnum('previous_status'),
+  newStatus: invitationStatusEnum('new_status'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
   'user',
@@ -288,6 +309,17 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   userAgent: true,
 });
 
+export const insertInvitationAuditLogSchema = createInsertSchema(invitationAuditLog).pick({
+  invitationId: true,
+  action: true,
+  performedBy: true,
+  ipAddress: true,
+  userAgent: true,
+  details: true,
+  previousStatus: true,
+  newStatus: true,
+});
+
 export const insertPermissionSchema = createInsertSchema(permissions).pick({
   name: true,
   displayName: true,
@@ -381,6 +413,15 @@ export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
  *
  */
 export type UserPermission = typeof userPermissions.$inferSelect;
+
+/**
+ *
+ */
+export type InsertInvitationAuditLog = z.infer<typeof insertInvitationAuditLogSchema>;
+/**
+ *
+ */
+export type InvitationAuditLog = typeof invitationAuditLog.$inferSelect;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

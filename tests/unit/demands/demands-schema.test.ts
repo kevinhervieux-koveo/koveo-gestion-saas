@@ -1,6 +1,6 @@
 /**
- * @file Demands Schema Validation Tests
- * @description Tests for demand and comment schema validation using Zod schemas
+ * @file Demands Schema Validation Tests.
+ * @description Tests for demand and comment schema validation using Zod schemas.
  */
 
 import { describe, it, expect } from '@jest/globals';

@@ -36,6 +36,9 @@ import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
+/**
+ *
+ */
 interface User {
   id: string;
   email: string;
@@ -44,6 +47,9 @@ interface User {
   role: 'admin' | 'manager' | 'resident' | 'tenant';
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -53,6 +59,9 @@ interface Building {
   organizationId: string;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -63,6 +72,9 @@ interface Residence {
   buildingId: string;
 }
 
+/**
+ *
+ */
 interface ResidenceDocument {
   id: string;
   name: string;
@@ -99,6 +111,9 @@ const documentSchema = z.object({
   isVisibleToTenants: z.boolean().optional(),
 });
 
+/**
+ *
+ */
 export default function ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -245,7 +260,7 @@ export default function ResidenceDocuments() {
 
   // Handle document update
   const handleUpdateDocument = async (data: z.infer<typeof documentSchema>) => {
-    if (!selectedDocument) return;
+    if (!selectedDocument) {return;}
 
     try {
       const updateData = {
@@ -285,7 +300,7 @@ export default function ResidenceDocuments() {
 
   // Handle document deletion
   const handleDeleteDocument = async (documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
+    if (!confirm('Are you sure you want to delete this document?')) {return;}
 
     try {
       const response = await fetch(`/api/documents/${documentId}`, {

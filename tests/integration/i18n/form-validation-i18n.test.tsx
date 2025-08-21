@@ -1,6 +1,6 @@
 /**
- * @file Form Validation Internationalization Tests
- * @description Tests for French and English form validation messages and user experience
+ * @file Form Validation Internationalization Tests.
+ * @description Tests for French and English form validation messages and user experience.
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -129,16 +129,16 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
       case 'type':
         return !value ? validation.required : '';
       case 'description':
-        if (!value) return validation.required;
-        if (value.length < 10) return validation.minLength(10);
-        if (value.length > 2000) return validation.maxLength(2000);
+        if (!value) {return validation.required;}
+        if (value.length < 10) {return validation.minLength(10);}
+        if (value.length > 2000) {return validation.maxLength(2000);}
         return '';
       case 'contactEmail':
-        if (!value) return validation.required;
+        if (!value) {return validation.required;}
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return !emailRegex.test(value) ? validation.email : '';
       case 'contactPhone':
-        if (!value) return validation.required;
+        if (!value) {return validation.required;}
         // Quebec phone format: 514-555-0123 or (514) 555-0123
         const phoneRegex = /^(\(\d{3}\)\s?|\d{3}[-.]?)\d{3}[-.]?\d{4}$/;
         return !phoneRegex.test(value) ? validation.phoneQuebec : '';
@@ -148,8 +148,8 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
         if (value) {
           const date = new Date(value);
           const now = new Date();
-          if (isNaN(date.getTime())) return validation.invalidDate;
-          if (date < now) return validation.futureDate;
+          if (isNaN(date.getTime())) {return validation.invalidDate;}
+          if (date < now) {return validation.futureDate;}
         }
         return '';
       default:
@@ -164,7 +164,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
     const newErrors: Record<string, string> = {};
     Object.keys(formData).forEach(key => {
       const error = validateField(key, formData[key as keyof typeof formData] as string);
-      if (error) newErrors[key] = error;
+      if (error) {newErrors[key] = error;}
     });
     
     setErrors(newErrors);

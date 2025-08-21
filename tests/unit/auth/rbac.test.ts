@@ -1,6 +1,6 @@
 /**
- * @file Role-Based Access Control (RBAC) Unit Tests
- * @description Tests for the RBAC system ensuring proper permission enforcement
+ * @file Role-Based Access Control (RBAC) Unit Tests.
+ * @description Tests for the RBAC system ensuring proper permission enforcement.
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -97,14 +97,21 @@ const ROLE_PERMISSIONS = {
 } as const;
 
 /**
- * Check if a user with given role has a specific permission
+ * Check if a user with given role has a specific permission.
+ * @param role
+ * @param permission
  */
 function hasPermission(role: keyof typeof ROLES, permission: string): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission as any) ?? false;
 }
 
 /**
- * Check if user can access resource based on role and ownership
+ * Check if user can access resource based on role and ownership.
+ * @param userRole
+ * @param resourceType
+ * @param isOwner
+ * @param isInSameOrganization
+ * @param isInSameBuilding
  */
 function canAccessResource(
   userRole: keyof typeof ROLES,
@@ -114,10 +121,10 @@ function canAccessResource(
   isInSameBuilding: boolean = false
 ): boolean {
   // Admin can access everything
-  if (userRole === ROLES.ADMIN) return true;
+  if (userRole === ROLES.ADMIN) {return true;}
   
   // Manager can access resources in their organization
-  if (userRole === ROLES.MANAGER && isInSameOrganization) return true;
+  if (userRole === ROLES.MANAGER && isInSameOrganization) {return true;}
   
   // Resident can access their own resources and building-level resources
   if (userRole === ROLES.RESIDENT) {

@@ -1,6 +1,6 @@
 /**
- * @file API Security Integration Tests
- * @description Tests for API security, authentication, and authorization
+ * @file API Security Integration Tests.
+ * @description Tests for API security, authentication, and authorization.
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
@@ -82,6 +82,9 @@ describe('API Security Integration Tests', () => {
     jest.clearAllMocks();
   });
 
+  /**
+   *
+   */
   async function setupTestData() {
     // Create test organization
     const [org] = await db.insert(organizations).values({
@@ -180,6 +183,9 @@ describe('API Security Integration Tests', () => {
     };
   }
 
+  /**
+   *
+   */
   async function cleanupTestData() {
     if (testData) {
       await db.delete(demands);
@@ -192,6 +198,10 @@ describe('API Security Integration Tests', () => {
     }
   }
 
+  /**
+   *
+   * @param app
+   */
   function registerSecurityTestRoutes(app: express.Application) {
     // Mock protected routes for testing
     app.get('/api/admin-only', (req: any, res: any) => {

@@ -136,7 +136,7 @@ export class InvitationSecurityMonitor {
       .where(and(
         eq(schema.invitationAuditLog.performedBy, userId),
         eq(schema.invitationAuditLog.action, action),
-        gte(schema.invitationAuditLog.timestamp, new Date(windowStart))
+        gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
       ));
 
     const actionCount = recentActions[0]?.count || 0;
@@ -172,7 +172,7 @@ export class InvitationSecurityMonitor {
         .where(and(
           eq(schema.invitationAuditLog.ipAddress, ipAddress),
           eq(schema.invitationAuditLog.action, action),
-          gte(schema.invitationAuditLog.timestamp, new Date(windowStart))
+          gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
         ));
 
       const ipActionCount = ipActions[0]?.count || 0;
@@ -317,7 +317,7 @@ export class InvitationPermissionValidator {
     }
 
     // Users can only manage their own invitations
-    if (invitation.invitedByUserId !== userId) {
+    if (invitation.invitedBy !== userId) {
       return { valid: false, reason: 'Can only manage own invitations' };
     }
 

@@ -19,6 +19,9 @@ import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { Header } from '@/components/layout/header';
 
 // Types
+/**
+ *
+ */
 interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
@@ -50,11 +53,17 @@ interface Demand {
   };
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   name: string;
@@ -71,6 +80,9 @@ const demandSchema = z.object({
   assignationResidenceId: z.string().optional(),
 });
 
+/**
+ *
+ */
 type DemandFormData = z.infer<typeof demandSchema>;
 
 const statusColors = {
@@ -91,6 +103,9 @@ const typeLabels = {
   other: 'Other',
 };
 
+/**
+ *
+ */
 export default function ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,6 +135,9 @@ export default function ManagerDemandsPage() {
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
   });
+
+  // Provide default user to prevent type errors
+  const defaultUser = currentUser || { id: '', role: 'tenant' as const, email: '' };
 
   // Create demand mutation
   const createDemandMutation = useMutation({
@@ -489,7 +507,7 @@ export default function ManagerDemandsPage() {
             demand={selectedDemand}
             isOpen={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
-            user={currentUser}
+            user={defaultUser}
             onDemandUpdated={handleDemandUpdated}
           />
         </div>

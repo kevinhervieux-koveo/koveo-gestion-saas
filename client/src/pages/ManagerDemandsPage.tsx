@@ -18,6 +18,9 @@ import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 // Types
+/**
+ *
+ */
 interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
@@ -39,11 +42,17 @@ interface Demand {
   };
 }
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   name: string;
@@ -58,6 +67,9 @@ const reviewSchema = z.object({
   assignationResidenceId: z.string().optional(),
 });
 
+/**
+ *
+ */
 type ReviewFormData = z.infer<typeof reviewSchema>;
 
 const statusColors = {
@@ -87,6 +99,9 @@ const statusLabels = {
   completed: 'Completed',
 };
 
+/**
+ *
+ */
 export default function ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
