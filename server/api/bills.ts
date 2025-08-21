@@ -6,6 +6,7 @@ import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
+import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
 import { ObjectStorageService } from '../objectStorage';
 import multer from 'multer';
@@ -233,12 +234,14 @@ export function registerBillRoutes(app: Express) {
         })
         .returning();
 
-      // In the future when bills are actually saved to database, trigger money flow generation:
-      // try {
-      //     await moneyFlowJob.generateForBill(newBill.id);
-      // } catch (error) {
-      //     console.error('Failed to generate money flow for new bill:', error);
-      // }
+      // Schedule delayed money flow and budget update for the new bill
+      try {
+        delayedUpdateService.scheduleBillUpdate(newBill[0].id);
+        console.log(`💰 Scheduled delayed update for new bill ${newBill[0].id}`);
+      } catch (error) {
+        console.error('Failed to schedule delayed update for new bill:', error);
+        // Don't fail the bill creation if scheduling fails
+      }
 
       res.status(201).json(newBill[0]);
     } catch (error) {
@@ -347,12 +350,14 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      // In the future when bills are actually updated in database, trigger money flow regeneration:
-      // try {
-      //     await moneyFlowJob.generateForBill(billId);
-      // } catch (error) {
-      //     console.error('Failed to regenerate money flow for updated bill:', error);
-      // }
+      // Schedule delayed money flow and budget update for the updated bill
+      try {
+        delayedUpdateService.scheduleBillUpdate(id);
+        console.log(`💰 Scheduled delayed update for updated bill ${id}`);
+      } catch (error) {
+        console.error('Failed to schedule delayed update for updated bill:', error);
+        // Don't fail the bill update if scheduling fails
+      }
 
       res.json(updatedBill[0]);
     } catch (error) {

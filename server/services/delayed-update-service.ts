@@ -1,0 +1,228 @@
+import { moneyFlowAutomationService } from './money-flow-automation';
+import { monthlyBudgetService } from './monthly-budget-service';
+
+/**
+ * Service to handle delayed updates to money_flow and budget tables.
+ * Waits 15 minutes after a dependency update before triggering regeneration.
+ */
+class DelayedUpdateService {
+  private static instance: DelayedUpdateService;
+  private readonly DELAY_MINUTES = 15;
+  private readonly DELAY_MS = this.DELAY_MINUTES * 60 * 1000; // 15 minutes in milliseconds
+  
+  // Track pending updates to avoid duplicates
+  private pendingBillUpdates = new Set<string>();
+  private pendingResidenceUpdates = new Set<string>();
+  private pendingBuildingBudgetUpdates = new Set<string>();
+
+  private constructor() {
+    console.log(`🕐 Delayed Update Service initialized with ${this.DELAY_MINUTES}-minute delay`);
+  }
+
+  static getInstance(): DelayedUpdateService {
+    if (!DelayedUpdateService.instance) {
+      DelayedUpdateService.instance = new DelayedUpdateService();
+    }
+    return DelayedUpdateService.instance;
+  }
+
+  /**
+   * Schedule money flow update for a bill after 15-minute delay.
+   */
+  scheduleBillUpdate(billId: string): void {
+    // Avoid duplicate updates for the same bill
+    if (this.pendingBillUpdates.has(billId)) {
+      console.log(`📋 Bill ${billId} already has a pending update, skipping duplicate`);
+      return;
+    }
+
+    this.pendingBillUpdates.add(billId);
+    console.log(`⏰ Scheduling money flow update for bill ${billId} in ${this.DELAY_MINUTES} minutes`);
+
+    setTimeout(async () => {
+      try {
+        console.log(`🔄 Executing delayed money flow update for bill ${billId}`);
+        
+        // Generate money flow entries for the bill
+        const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
+        console.log(`💰 Generated ${moneyFlowEntries} money flow entries for bill ${billId}`);
+
+        // Get the building ID from the bill to update budgets
+        const buildingId = await this.getBuildingIdFromBill(billId);
+        if (buildingId) {
+          await this.scheduleBudgetUpdate(buildingId);
+        }
+
+      } catch (error) {
+        console.error(`❌ Failed delayed money flow update for bill ${billId}:`, error);
+      } finally {
+        this.pendingBillUpdates.delete(billId);
+      }
+    }, this.DELAY_MS);
+  }
+
+  /**
+   * Schedule money flow update for a residence after 15-minute delay.
+   */
+  scheduleResidenceUpdate(residenceId: string): void {
+    // Avoid duplicate updates for the same residence
+    if (this.pendingResidenceUpdates.has(residenceId)) {
+      console.log(`🏠 Residence ${residenceId} already has a pending update, skipping duplicate`);
+      return;
+    }
+
+    this.pendingResidenceUpdates.add(residenceId);
+    console.log(`⏰ Scheduling money flow update for residence ${residenceId} in ${this.DELAY_MINUTES} minutes`);
+
+    setTimeout(async () => {
+      try {
+        console.log(`🔄 Executing delayed money flow update for residence ${residenceId}`);
+        
+        // Generate money flow entries for the residence
+        const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+        console.log(`💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`);
+
+        // Get the building ID from the residence to update budgets
+        const buildingId = await this.getBuildingIdFromResidence(residenceId);
+        if (buildingId) {
+          await this.scheduleBudgetUpdate(buildingId);
+        }
+
+      } catch (error) {
+        console.error(`❌ Failed delayed money flow update for residence ${residenceId}:`, error);
+      } finally {
+        this.pendingResidenceUpdates.delete(residenceId);
+      }
+    }, this.DELAY_MS);
+  }
+
+  /**
+   * Schedule budget update for a building after money flow changes.
+   * This is called internally after money flow updates complete.
+   */
+  private async scheduleBudgetUpdate(buildingId: string): Promise<void> {
+    // Avoid duplicate updates for the same building
+    if (this.pendingBuildingBudgetUpdates.has(buildingId)) {
+      console.log(`🏢 Building ${buildingId} already has a pending budget update, skipping duplicate`);
+      return;
+    }
+
+    this.pendingBuildingBudgetUpdates.add(buildingId);
+    console.log(`⏰ Scheduling budget update for building ${buildingId} in ${this.DELAY_MINUTES} minutes`);
+
+    setTimeout(async () => {
+      try {
+        console.log(`🔄 Executing delayed budget update for building ${buildingId}`);
+        
+        // Repopulate budget entries for the building
+        const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
+        console.log(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
+
+      } catch (error) {
+        console.error(`❌ Failed delayed budget update for building ${buildingId}:`, error);
+      } finally {
+        this.pendingBuildingBudgetUpdates.delete(buildingId);
+      }
+    }, this.DELAY_MS);
+  }
+
+  /**
+   * Get building ID from bill ID.
+   */
+  private async getBuildingIdFromBill(billId: string): Promise<string | null> {
+    try {
+      const { db } = await import('../db');
+      const { bills } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      const result = await db
+        .select({ buildingId: bills.buildingId })
+        .from(bills)
+        .where(eq(bills.id, billId))
+        .limit(1);
+
+      return result.length > 0 ? result[0].buildingId : null;
+    } catch (error) {
+      console.error(`❌ Failed to get building ID for bill ${billId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get building ID from residence ID.
+   */
+  private async getBuildingIdFromResidence(residenceId: string): Promise<string | null> {
+    try {
+      const { db } = await import('../db');
+      const { residences } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      const result = await db
+        .select({ buildingId: residences.buildingId })
+        .from(residences)
+        .where(eq(residences.id, residenceId))
+        .limit(1);
+
+      return result.length > 0 ? result[0].buildingId : null;
+    } catch (error) {
+      console.error(`❌ Failed to get building ID for residence ${residenceId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Force immediate update (for testing or urgent updates).
+   */
+  async forceImmediateBillUpdate(billId: string): Promise<void> {
+    console.log(`⚡ Force immediate update for bill ${billId}`);
+    
+    // Generate money flow entries for the bill
+    const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
+    console.log(`💰 Generated ${moneyFlowEntries} money flow entries for bill ${billId}`);
+
+    // Update budget immediately
+    const buildingId = await this.getBuildingIdFromBill(billId);
+    if (buildingId) {
+      const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
+      console.log(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
+    }
+  }
+
+  /**
+   * Force immediate update (for testing or urgent updates).
+   */
+  async forceImmediateResidenceUpdate(residenceId: string): Promise<void> {
+    console.log(`⚡ Force immediate update for residence ${residenceId}`);
+    
+    // Generate money flow entries for the residence
+    const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+    console.log(`💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`);
+
+    // Update budget immediately
+    const buildingId = await this.getBuildingIdFromResidence(residenceId);
+    if (buildingId) {
+      const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
+      console.log(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
+    }
+  }
+
+  /**
+   * Get current status of pending updates.
+   */
+  getStatus(): {
+    delayMinutes: number;
+    pendingBillUpdates: number;
+    pendingResidenceUpdates: number;
+    pendingBudgetUpdates: number;
+  } {
+    return {
+      delayMinutes: this.DELAY_MINUTES,
+      pendingBillUpdates: this.pendingBillUpdates.size,
+      pendingResidenceUpdates: this.pendingResidenceUpdates.size,
+      pendingBudgetUpdates: this.pendingBuildingBudgetUpdates.size
+    };
+  }
+}
+
+// Export singleton instance
+export const delayedUpdateService = DelayedUpdateService.getInstance();

@@ -3,6 +3,7 @@ import { db } from '../db.js';
 import { residences, buildings, organizations, userResidences, users } from '../../shared/schema.js';
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index.js';
+import { delayedUpdateService } from '../services/delayed-update-service.js';
 
 /**
  *
@@ -286,6 +287,15 @@ export function registerResidenceRoutes(app: Express) {
 
       if (updated.length === 0) {
         return res.status(404).json({ message: 'Residence not found' });
+      }
+
+      // Schedule delayed money flow and budget update for the updated residence
+      try {
+        delayedUpdateService.scheduleResidenceUpdate(id);
+        console.log(`🏠 Scheduled delayed update for updated residence ${id}`);
+      } catch (error) {
+        console.error('Failed to schedule delayed update for updated residence:', error);
+        // Don't fail the residence update if scheduling fails
       }
 
       res.json(updated[0]);
