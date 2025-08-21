@@ -1236,6 +1236,10 @@ export default function Budget() {
                               onClick={async () => {
                                 try {
                                   await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, 'PUT', {
+                                    bankAccountNumber: bankAccountInfo?.bankAccountNumber || '',
+                                    bankAccountNotes: bankAccountInfo?.bankAccountNotes || '',
+                                    bankAccountStartDate: bankAccountInfo?.bankAccountStartDate || null,
+                                    bankAccountStartAmount: bankAccountInfo?.bankAccountStartAmount || null,
                                     bankAccountMinimums: JSON.stringify(minimumBalances),
                                   });
                                   
