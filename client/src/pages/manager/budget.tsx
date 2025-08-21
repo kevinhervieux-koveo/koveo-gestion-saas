@@ -911,41 +911,6 @@ export default function Budget() {
                   </CardContent>
                 </Card>
                 
-                {/* Inflation Management Card */}
-                <Card>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>
-                      {inflationTranslations.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className='space-y-2'>
-                      <div className='flex items-center justify-between text-xs'>
-                        <span className='text-muted-foreground'>{inflationTranslations.generalIncome}</span>
-                        <span className={`font-semibold ${generalIncomeInflation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {generalIncomeInflation > 0 ? '+' : ''}{generalIncomeInflation}%
-                        </span>
-                      </div>
-                      <div className='flex items-center justify-between text-xs'>
-                        <span className='text-muted-foreground'>{inflationTranslations.generalExpense}</span>
-                        <span className={`font-semibold ${generalExpenseInflation >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                          {generalExpenseInflation > 0 ? '+' : ''}{generalExpenseInflation}%
-                        </span>
-                      </div>
-                    </div>
-                    <Dialog 
-                      open={inflationDialog} 
-                      onOpenChange={setInflationDialog}
-                    >
-                      <DialogTrigger asChild>
-                        <Button className='w-full mt-3' variant='outline' size='sm'>
-                          <Percent className='w-3 h-3 mr-1' />
-                          {inflationTranslations.manageInflation}
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
-                  </CardContent>
-                </Card>
               </div>
 
               {/* Area Chart */}
@@ -1317,6 +1282,39 @@ export default function Budget() {
                         </div>
                       </DialogContent>
                     </Dialog>
+                  </div>
+
+                  {/* Inflation Management Section */}
+                  <div className='mt-6 pt-6 border-t'>
+                    <div className='flex items-center gap-2 mb-4'>
+                      <Percent className='w-5 h-5' />
+                      <h3 className='text-lg font-semibold'>{inflationTranslations.title}</h3>
+                    </div>
+                    <div className='space-y-3'>
+                      <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
+                        <span className='text-sm font-medium'>{inflationTranslations.generalIncome}</span>
+                        <span className={`font-semibold ${generalIncomeInflation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {generalIncomeInflation > 0 ? '+' : ''}{generalIncomeInflation}%
+                        </span>
+                      </div>
+                      <div className='flex items-center justify-between p-3 bg-muted rounded-lg'>
+                        <span className='text-sm font-medium'>{inflationTranslations.generalExpense}</span>
+                        <span className={`font-semibold ${generalExpenseInflation >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {generalExpenseInflation > 0 ? '+' : ''}{generalExpenseInflation}%
+                        </span>
+                      </div>
+                      <Dialog 
+                        open={inflationDialog} 
+                        onOpenChange={setInflationDialog}
+                      >
+                        <DialogTrigger asChild>
+                          <Button className='w-full' variant='outline'>
+                            <Percent className='w-4 h-4 mr-2' />
+                            {inflationTranslations.manageInflation}
+                          </Button>
+                        </DialogTrigger>
+                      </Dialog>
+                    </div>
                   </div>
                 </div>
               </CardContent>
