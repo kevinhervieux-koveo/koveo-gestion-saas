@@ -128,7 +128,7 @@ export default function Bills() {
                       <SelectValue placeholder='All categories' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value=''>All categories</SelectItem>
+                      <SelectItem value='all'>All categories</SelectItem>
                       {BILL_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
                           {CATEGORY_LABELS[category]}
