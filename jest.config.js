@@ -12,10 +12,13 @@ const config = {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
+    '^@/lib/db$': '<rootDir>/server/db.ts',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
     'wouter/memory': '<rootDir>/tests/mocks/wouter-memory-mock.js',
-    '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js'
+    '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js',
+    '^../vite$': '<rootDir>/tests/mocks/viteMock.js',
+    '^./vite$': '<rootDir>/tests/mocks/viteMock.js'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',

@@ -1,6 +1,5 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { validatePermissions, validatePermissionsWithFallback, validatePermissionNaming } from './permissions-schema';
 
 /**
@@ -30,8 +29,14 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
 
   try {
     // Read and parse the permissions.json file with fallback paths
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
+    let __dirname: string;
+    try {
+      // Try CommonJS approach for Jest
+      __dirname = dirname(require.resolve('./permissions.json'));
+    } catch {
+      // Fallback to current working directory for ES modules
+      __dirname = process.cwd() + '/config';
+    }
     
     const possiblePaths = [
       join(__dirname, 'permissions.json'),
@@ -161,8 +166,14 @@ export async function validatePermissionsFile(): Promise<{
 
   try {
     // Read and parse the permissions.json file with fallback paths
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
+    let __dirname: string;
+    try {
+      // Try CommonJS approach for Jest
+      __dirname = dirname(require.resolve('./permissions.json'));
+    } catch {
+      // Fallback to current working directory for ES modules
+      __dirname = process.cwd() + '/config';
+    }
     
     // Try multiple possible locations for the permissions.json file
     const possiblePaths = [
@@ -296,7 +307,12 @@ async function runCLI() {
   }
 }
 
-// Check if this module is being run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runCLI();
+// Check if this module is being run directly - handle both ES modules and CommonJS
+try {
+  // CommonJS check for Jest
+  if (typeof require !== 'undefined' && require.main === module) {
+    runCLI();
+  }
+} catch {
+  // ES module environment - skip CLI execution
 }

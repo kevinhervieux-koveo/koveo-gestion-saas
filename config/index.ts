@@ -38,10 +38,16 @@ export { validatePermissionsFile } from './validate-permissions';
 // Export the actual permissions configuration
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
-// Get the current directory - use require.resolve as CommonJS-compatible approach
-const configDirname = dirname(require.resolve('./permissions.json'));
+// Get the current directory - handle both CommonJS and ES modules
+let configDirname: string;
+try {
+  // Try CommonJS approach for Jest
+  configDirname = dirname(require.resolve('./permissions.json'));
+} catch {
+  // Fallback to current working directory for ES modules
+  configDirname = process.cwd() + '/config';
+}
 
 /**
  * Load permissions data with fallback for production and development environments.
