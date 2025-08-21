@@ -235,19 +235,15 @@ export const insertFeatureSchema = createInsertSchema(features).pick({
   category: true,
   status: true,
   priority: true,
+  requestedBy: true,
+  assignedTo: true,
+  estimatedHours: true,
   businessObjective: true,
   targetUsers: true,
   successMetrics: true,
   technicalComplexity: true,
   dependencies: true,
   userFlow: true,
-  acceptanceCriteria: true,
-  estimatedHours: true,
-  quebecComplianceNotes: true,
-  submittedBy: true,
-  assignedTo: true,
-  showOnRoadmap: true,
-  roadmapOrder: true,
 });
 
 export const insertActionableItemSchema = createInsertSchema(actionableItems).pick({

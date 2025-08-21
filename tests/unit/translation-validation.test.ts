@@ -1,4 +1,4 @@
-import { LanguageValidator, validateText, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS } from './language-validation.test';
+import { testLanguageValidator, validateText, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS } from './language-validation.test';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { glob } from 'glob';
@@ -16,7 +16,7 @@ describe('Translation Files Language Validation', () => {
    * Test to find and validate all JSON translation files.
    */
   it('should validate all JSON translation files', async () => {
-    const validator = new LanguageValidator();
+    const validator = testLanguageValidator;
     
     // Look for common translation file patterns
     const translationPatterns = [
@@ -73,7 +73,7 @@ describe('Translation Files Language Validation', () => {
    * Test to validate hardcoded strings in React components.
    */
   it('should identify hardcoded strings in React components that need translation', async () => {
-    const validator = new LanguageValidator();
+    const validator = testLanguageValidator;
     
     try {
       const componentFiles = await glob('client/src/**/*.{tsx,jsx}', { cwd: process.cwd() });
@@ -342,7 +342,7 @@ describe('Translation Files Language Validation', () => {
  * Export utility functions for use in other tests.
  */
 export {
-  LanguageValidator,
+  testLanguageValidator,
   validateText,
   PREFERRED_TERMS,
   QUEBEC_LEGAL_TERMS
