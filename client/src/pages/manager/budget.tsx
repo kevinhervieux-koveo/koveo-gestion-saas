@@ -42,12 +42,13 @@ export default function Budget() {
   const [reconciliationNote, setReconciliationNote] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
+  // Year range controls
+  const currentYear = new Date().getFullYear();
+  const [startYear, setStartYear] = useState(currentYear - 3);
+  const [endYear, setEndYear] = useState(currentYear + 25);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 3;
-  const endYear = currentYear + 25;
 
   // Get buildings for selection
   const { data: buildings = [] } = useQuery({
@@ -220,7 +221,7 @@ export default function Budget() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-6 gap-4'>
                 <div className='space-y-2'>
                   <Label>Building</Label>
                   <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
@@ -250,6 +251,38 @@ export default function Budget() {
                   </Select>
                 </div>
                 
+                <div className='space-y-2'>
+                  <Label>Start Year</Label>
+                  <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className='space-y-2'>
+                  <Label>End Year</Label>
+                  <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 30 }, (_, i) => currentYear + i).map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className='flex flex-col justify-end space-y-2'>
                   <Button 
                     variant='outline' 
@@ -262,61 +295,16 @@ export default function Budget() {
                 </div>
                 
                 <div className='flex flex-col justify-end space-y-2'>
-                  <Dialog open={bankAccountDialog} onOpenChange={setBankAccountDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant='outline' className='flex items-center gap-2'>
-                        <Banknote className='w-4 h-4' />
-                        Bank Account
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Update Bank Account</DialogTitle>
-                        <DialogDescription>
-                          Update the bank account number for this building. This will override the previous number and add a reconciliation note.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className='space-y-4'>
-                        <div className='space-y-2'>
-                          <Label htmlFor='bankAccount'>Bank Account Number</Label>
-                          <Input
-                            id='bankAccount'
-                            value={bankAccountNumber}
-                            onChange={(e) => setBankAccountNumber(e.target.value)}
-                            placeholder='Enter bank account number'
-                          />
-                        </div>
-                        <div className='space-y-2'>
-                          <Label htmlFor='reconciliationNote'>Reconciliation Note</Label>
-                          <Textarea
-                            id='reconciliationNote'
-                            value={reconciliationNote}
-                            onChange={(e) => setReconciliationNote(e.target.value)}
-                            placeholder='Enter reconciliation note for this change...'
-                            rows={3}
-                          />
-                        </div>
-                        {bankAccountInfo?.bankAccountNumber && (
-                          <div className='p-3 bg-muted rounded-lg'>
-                            <p className='text-sm'><strong>Current:</strong> {bankAccountInfo.bankAccountNumber}</p>
-                            {bankAccountInfo.bankAccountNotes && (
-                              <p className='text-sm text-muted-foreground mt-1'>
-                                <strong>Last Note:</strong> {bankAccountInfo.bankAccountNotes}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        <div className='flex justify-end space-x-2'>
-                          <Button variant='outline' onClick={() => setBankAccountDialog(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleUpdateBankAccount} disabled={updateBankAccount.isPending}>
-                            {updateBankAccount.isPending ? 'Updating...' : 'Update Account'}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button 
+                    variant='outline' 
+                    onClick={() => {
+                      setStartYear(currentYear - 3);
+                      setEndYear(currentYear + 25);
+                    }}
+                    className='flex items-center gap-2'
+                  >
+                    Reset Range
+                  </Button>
                 </div>
               </div>
               
@@ -381,6 +369,98 @@ export default function Budget() {
             </Card>
           ) : (
             <>
+              {/* Bank Account Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <Banknote className='w-5 h-5' />
+                    Bank Account Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className='space-y-4'>
+                    {bankAccountInfo?.bankAccountNumber ? (
+                      <div className='p-4 bg-muted rounded-lg'>
+                        <div className='flex items-center justify-between mb-2'>
+                          <span className='font-medium'>Current Account:</span>
+                          <span className='font-mono'>{bankAccountInfo.bankAccountNumber}</span>
+                        </div>
+                        {bankAccountInfo.bankAccountNotes && (
+                          <div className='text-sm text-muted-foreground'>
+                            <strong>Last Note:</strong> {bankAccountInfo.bankAccountNotes}
+                          </div>
+                        )}
+                        {bankAccountInfo.bankAccountUpdatedAt && (
+                          <div className='text-xs text-muted-foreground mt-1'>
+                            Updated: {new Date(bankAccountInfo.bankAccountUpdatedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className='p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground'>
+                        No bank account set for this building
+                      </div>
+                    )}
+                    
+                    <Dialog open={bankAccountDialog} onOpenChange={setBankAccountDialog}>
+                      <DialogTrigger asChild>
+                        <Button className='w-full' variant='outline'>
+                          <Banknote className='w-4 h-4 mr-2' />
+                          {bankAccountInfo?.bankAccountNumber ? 'Update Account' : 'Set Bank Account'}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Update Bank Account</DialogTitle>
+                          <DialogDescription>
+                            Update the bank account number for this building. This will override the previous number and add a reconciliation note.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className='space-y-4'>
+                          <div className='space-y-2'>
+                            <Label htmlFor='bankAccount'>Bank Account Number</Label>
+                            <Input
+                              id='bankAccount'
+                              value={bankAccountNumber}
+                              onChange={(e) => setBankAccountNumber(e.target.value)}
+                              placeholder='Enter bank account number'
+                            />
+                          </div>
+                          <div className='space-y-2'>
+                            <Label htmlFor='reconciliationNote'>Reconciliation Note</Label>
+                            <Textarea
+                              id='reconciliationNote'
+                              value={reconciliationNote}
+                              onChange={(e) => setReconciliationNote(e.target.value)}
+                              placeholder='Enter reconciliation note for this change...'
+                              rows={3}
+                            />
+                          </div>
+                          {bankAccountInfo?.bankAccountNumber && (
+                            <div className='p-3 bg-muted rounded-lg'>
+                              <p className='text-sm'><strong>Current:</strong> {bankAccountInfo.bankAccountNumber}</p>
+                              {bankAccountInfo.bankAccountNotes && (
+                                <p className='text-sm text-muted-foreground mt-1'>
+                                  <strong>Last Note:</strong> {bankAccountInfo.bankAccountNotes}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          <div className='flex justify-end space-x-2'>
+                            <Button variant='outline' onClick={() => setBankAccountDialog(false)}>
+                              Cancel
+                            </Button>
+                            <Button onClick={handleUpdateBankAccount} disabled={updateBankAccount.isPending}>
+                              {updateBankAccount.isPending ? 'Updating...' : 'Update Account'}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Summary Cards */}
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <Card>
