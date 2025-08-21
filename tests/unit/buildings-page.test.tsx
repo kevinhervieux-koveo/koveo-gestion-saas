@@ -8,6 +8,8 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LanguageProvider } from '@/hooks/use-language';
+import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 import Buildings from '@/pages/manager/buildings';
 
 // Mock wouter router
@@ -32,6 +34,31 @@ jest.mock('@/lib/queryClient', () => ({
       queries: { retry: false },
       mutations: { retry: false },
     },
+  }),
+}));
+
+// Mock the buildings hook
+const mockUseBuildings = jest.fn();
+const mockCreateMutation = jest.fn();
+const mockUpdateMutation = jest.fn();
+const mockDeleteMutation = jest.fn();
+
+jest.mock('@/hooks/use-buildings', () => ({
+  useBuildings: () => mockUseBuildings(),
+}));
+
+// Mock mutation hooks from TanStack Query directly
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useMutation: () => ({
+    mutate: jest.fn(),
+    isPending: false,
+    error: null,
+  }),
+  useQuery: () => ({
+    data: { buildings: mockBuildings },
+    isLoading: false,
+    error: null,
   }),
 }));
 
@@ -113,7 +140,11 @@ describe('Buildings Management Page', () => {
 
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
-        {children}
+        <LanguageProvider>
+          <MobileMenuProvider>
+            {children}
+          </MobileMenuProvider>
+        </LanguageProvider>
       </QueryClientProvider>
     );
   };
@@ -123,6 +154,70 @@ describe('Buildings Management Page', () => {
     jest.clearAllMocks();
     mockToast.mockClear();
     mockApiRequest.mockClear();
+    mockUseBuildings.mockClear();
+    mockCreateMutation.mockClear();
+    mockUpdateMutation.mockClear();
+    mockDeleteMutation.mockClear();
+    
+    // Default successful mock for buildings hook - match the actual hook interface
+    mockUseBuildings.mockReturnValue({
+      buildings: mockBuildings,
+      organizations: mockOrganizations,
+      isLoading: false,
+      error: null,
+      form: { 
+        reset: jest.fn(),
+        handleSubmit: jest.fn(() => jest.fn()),
+        control: {},
+        formState: { errors: {} },
+        setValue: jest.fn(),
+        getValues: jest.fn(),
+        watch: jest.fn()
+      },
+      editForm: { 
+        reset: jest.fn(),
+        handleSubmit: jest.fn(() => jest.fn()),
+        control: {},
+        formState: { errors: {} },
+        setValue: jest.fn(),
+        getValues: jest.fn(),
+        watch: jest.fn()
+      },
+      isAddDialogOpen: false,
+      setIsAddDialogOpen: jest.fn(),
+      isEditDialogOpen: false, 
+      setIsEditDialogOpen: jest.fn(),
+      editingBuilding: null,
+      deletingBuilding: null,
+      setDeletingBuilding: jest.fn(),
+      createBuildingMutation: { isPending: false, mutate: jest.fn() },
+      updateBuildingMutation: { isPending: false, mutate: jest.fn() },
+      deleteBuildingMutation: { isPending: false, mutate: jest.fn() },
+      handleCreateBuilding: jest.fn(),
+      handleEditBuilding: jest.fn(),
+      handleUpdateBuilding: jest.fn(),
+      handleDeleteBuilding: jest.fn(),
+      confirmDeleteBuilding: jest.fn(),
+    });
+
+    // Mock mutation hooks
+    mockCreateMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      error: null,
+    });
+
+    mockUpdateMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      error: null,
+    });
+
+    mockDeleteMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      error: null,
+    });
   });
 
   describe('Role-based Access Control', () => {
@@ -139,8 +234,8 @@ describe('Buildings Management Page', () => {
 
       render(<Buildings />, { wrapper: createWrapper() });
 
-      expect(screen.getByText('Access Denied')).toBeInTheDocument();
-      expect(screen.getByText(/You don't have permission to access this page/)).toBeInTheDocument();
+      expect(screen.getByText('Access Restricted')).toBeInTheDocument();
+      expect(screen.getByText(/This page is only available to managers and administrators/)).toBeInTheDocument();
     });
 
     it('should show access denied for tenant users', () => {
@@ -156,7 +251,7 @@ describe('Buildings Management Page', () => {
 
       render(<Buildings />, { wrapper: createWrapper() });
 
-      expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      expect(screen.getByText('Access Restricted')).toBeInTheDocument();
     });
 
     it('should allow access for admin users', async () => {
@@ -178,7 +273,8 @@ describe('Buildings Management Page', () => {
       render(<Buildings />, { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(screen.getByText('Buildings Management')).toBeInTheDocument();
+        expect(screen.getByText('Buildings')).toBeInTheDocument();
+        expect(screen.getByText(/Manage \d+ building/)).toBeInTheDocument();
       });
     });
 
@@ -201,7 +297,8 @@ describe('Buildings Management Page', () => {
       render(<Buildings />, { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(screen.getByText('Buildings Management')).toBeInTheDocument();
+        expect(screen.getByText('Buildings')).toBeInTheDocument();
+        expect(screen.getByText(/Manage \d+ building/)).toBeInTheDocument();
       });
     });
   });
@@ -329,7 +426,8 @@ describe('Buildings Management Page', () => {
       render(<Buildings />, { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(screen.getByText('Buildings Management')).toBeInTheDocument();
+        expect(screen.getByText('Buildings')).toBeInTheDocument();
+        expect(screen.getByText(/Manage \d+ building/)).toBeInTheDocument();
       });
 
       expect(screen.queryByText('Add New Building')).not.toBeInTheDocument();
