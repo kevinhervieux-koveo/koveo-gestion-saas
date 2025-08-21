@@ -979,15 +979,50 @@ export default function Budget() {
                       />
                       <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                       <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        labelFormatter={(value) => {
-                          const [year, month] = value.split('-');
-                          return `${year}-${month}`;
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            const [year, month] = label.split('-');
+                            return (
+                              <div className="bg-white p-3 border rounded shadow-lg">
+                                <p className="font-medium mb-2">{`${year}-${month}`}</p>
+                                {payload.map((entry, index) => {
+                                  let name = '';
+                                  let color = entry.color;
+                                  
+                                  if (entry.dataKey === 'totalIncome') {
+                                    name = language === 'fr' ? 'Revenus totaux' : 'Total Income';
+                                    color = 'hsl(120, 70%, 50%)';
+                                  } else if (entry.dataKey === 'totalExpenses') {
+                                    name = language === 'fr' ? 'Dépenses totales' : 'Total Expenses';
+                                    color = 'hsl(0, 70%, 50%)';
+                                  } else if (entry.dataKey === 'bankBalance') {
+                                    name = language === 'fr' ? 'Solde bancaire' : 'Bank Balance';
+                                    color = 'hsl(200, 80%, 60%)';
+                                  } else if (typeof entry.value === 'number' && entry.value === minimumBalanceForChart) {
+                                    name = language === 'fr' ? 'Solde minimum requis' : 'Required Minimum Balance';
+                                    color = 'hsl(0, 80%, 60%)';
+                                  }
+                                  
+                                  if (name) {
+                                    return (
+                                      <div key={index} className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 flex-shrink-0"
+                                          style={{ backgroundColor: color }}
+                                        />
+                                        <span className="text-sm">
+                                          {`$${typeof entry.value === 'number' ? entry.value.toLocaleString() : '0'} ${name}`}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </div>
+                            );
+                          }
+                          return null;
                         }}
-                        formatter={(value: number, name: string) => [
-                          `$${value.toLocaleString()}`,
-                          chartConfig[name as keyof typeof chartConfig]?.label || name
-                        ]}
                       />
                       <Area
                         type='monotone'
