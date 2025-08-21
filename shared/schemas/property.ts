@@ -63,6 +63,9 @@ export const buildings = pgTable('buildings', {
   storageSpaces: integer('storage_spaces'),
   amenities: jsonb('amenities'), // Array of amenities
   managementCompany: text('management_company'),
+  bankAccountNumber: text('bank_account_number'),
+  bankAccountNotes: text('bank_account_notes'), // For reconciliation notes when updating account number
+  bankAccountUpdatedAt: timestamp('bank_account_updated_at'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -151,6 +154,8 @@ export const insertBuildingSchema = createInsertSchema(buildings).pick({
   storageSpaces: true,
   amenities: true,
   managementCompany: true,
+  bankAccountNumber: true,
+  bankAccountNotes: true,
 });
 
 export const insertResidenceSchema = createInsertSchema(residences).pick({

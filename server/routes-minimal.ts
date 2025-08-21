@@ -11,6 +11,7 @@ import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
 import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
+import budgetRoutes from './api/budgets';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import { log } from './vite';
@@ -178,6 +179,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Document routes registered');
   } catch (error) {
     log(`❌ Document routes failed: ${error}`, 'error');
+  }
+
+  // Register budget API routes
+  try {
+    app.use('/api/budgets', budgetRoutes);
+    log('✅ Budget routes registered');
+  } catch (error) {
+    log(`❌ Budget routes failed: ${error}`, 'error');
   }
 
   // Register cleanup API routes
