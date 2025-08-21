@@ -1552,16 +1552,16 @@ export default function Budget() {
                                   </Label>
                                   <Input
                                     id="generalIncomeInflation"
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={generalIncomeInflation.toString()}
+                                    type="number"
+                                    step="any"
+                                    value={generalIncomeInflation}
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      // Allow typing negative signs, decimal points (both . and ,), and numbers
-                                      if (value === '' || value === '-' || /^-?\d*[.,]?\d*$/.test(value)) {
-                                        // Convert comma to dot for parsing
-                                        const normalizedValue = value.replace(',', '.');
-                                        const numValue = normalizedValue === '' || normalizedValue === '-' ? 0 : parseFloat(normalizedValue);
+                                      // Allow empty string or valid decimal numbers (including negative)
+                                      if (value === '') {
+                                        setGeneralIncomeInflation(0);
+                                      } else {
+                                        const numValue = parseFloat(value);
                                         if (!isNaN(numValue)) {
                                           setGeneralIncomeInflation(numValue);
                                         }
@@ -1579,16 +1579,16 @@ export default function Budget() {
                                   </Label>
                                   <Input
                                     id="generalExpenseInflation"
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={generalExpenseInflation.toString()}
+                                    type="number"
+                                    step="any"
+                                    value={generalExpenseInflation}
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      // Allow typing negative signs, decimal points (both . and ,), and numbers
-                                      if (value === '' || value === '-' || /^-?\d*[.,]?\d*$/.test(value)) {
-                                        // Convert comma to dot for parsing
-                                        const normalizedValue = value.replace(',', '.');
-                                        const numValue = normalizedValue === '' || normalizedValue === '-' ? 0 : parseFloat(normalizedValue);
+                                      // Allow empty string or valid decimal numbers (including negative)
+                                      if (value === '') {
+                                        setGeneralExpenseInflation(0);
+                                      } else {
+                                        const numValue = parseFloat(value);
                                         if (!isNaN(numValue)) {
                                           setGeneralExpenseInflation(numValue);
                                         }
