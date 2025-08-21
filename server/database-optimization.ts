@@ -366,7 +366,7 @@ export class QueryOptimizer {
         await sql`${indexQuery}`;
         console.log(`✓ Applied: ${indexQuery}`);
       } catch (___error) {
-        console.warn(`⚠ Failed to apply index: ${indexQuery}`, _error);
+        console.warn(`⚠ Failed to apply index: ${indexQuery}`, ___error);
       }
     }
     
@@ -376,7 +376,7 @@ export class QueryOptimizer {
         await sql`${indexQuery}`;
         console.log(`✓ Applied covering index: ${indexQuery}`);
       } catch (___error) {
-        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, _error);
+        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, ___error);
       }
     }
     
@@ -386,7 +386,7 @@ export class QueryOptimizer {
         await sql`${viewQuery}`;
         console.log(`✓ Created materialized view`);
       } catch (___error) {
-        console.warn(`⚠ Failed to create materialized view`, _error);
+        console.warn(`⚠ Failed to create materialized view`, ___error);
       }
     }
     
@@ -427,7 +427,7 @@ export class QueryOptimizer {
       console.log('Index usage statistics:', indexUsage);
       
     } catch (__error) {
-      console.warn('Query performance analysis failed:', error);
+      console.warn('Query performance analysis failed:', __error);
     }
   }
   
@@ -493,7 +493,7 @@ export class QueryOptimizer {
         await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`;
         console.log(`✓ Refreshed: ${view}`);
       } catch (__error) {
-        console.warn(`⚠ Failed to refresh ${view}:`, error);
+        console.warn(`⚠ Failed to refresh ${view}:`, __error);
       }
     }
   }
@@ -528,7 +528,7 @@ export class DatabaseMaintenance {
       console.log('✓ Refreshed materialized views');
       
     } catch (__error) {
-      console.warn('Database maintenance completed with warnings:', error);
+      console.warn('Database maintenance completed with warnings:', __error);
     }
     
     console.log('Database maintenance complete');
@@ -561,7 +561,7 @@ export class DatabaseMaintenance {
       return metrics;
       
     } catch (__error) {
-      console.warn('Failed to get performance metrics:', error);
+      console.warn('Failed to get performance metrics:', __error);
       return [];
     }
   }

@@ -201,7 +201,7 @@ app.get('/api/features', async (req, res) => {
       res.json([]);
     }
   } catch (__error) {
-    console.error('Features API error:', error);
+    console.error('Features API error:', __error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -254,7 +254,7 @@ app.post('/api/features/:id/update-status', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.json(feature);
   } catch (__error) {
-    console.error('Feature status update error:', error);
+    console.error('Feature status update error:', __error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -281,8 +281,8 @@ try {
 
   // Handle server errors gracefully without crashing in production
   server.on('error', (error: unknown) => {
-    log(`Server error: ${error.message}`, 'error');
-    if (error.code === 'EADDRINUSE') {
+    log(`Server error: ${(error as any)?.message || error}`, 'error');
+    if ((error as any)?.code === 'EADDRINUSE') {
       log(`Port ${port} is already in use`, 'error');
       // Don't exit in production to maintain uptime
       if (process.env.NODE_ENV !== 'production') {
@@ -294,7 +294,7 @@ try {
   });
 
 } catch (__error) {
-  log(`Failed to start server: ${error}`, 'error');
+  log(`Failed to start server: ${__error}`, 'error');
   // Don't exit in production to maintain uptime
   if (process.env.NODE_ENV !== 'production') {
     process.exit(1);
@@ -326,8 +326,8 @@ async function initializeApplication() {
           const objectFile = await objectStorageService.getObjectEntityFile(req.path);
           await objectStorageService.downloadObject(objectFile, res);
         } catch (__error) {
-          console.error('Error serving private object:', error);
-          if (error instanceof ObjectNotFoundError) {
+          console.error('Error serving private object:', __error);
+          if (__error instanceof ObjectNotFoundError) {
             return res.status(404).json({ error: 'File not found' });
           }
           return res.status(500).json({ error: 'Internal server error' });
@@ -345,14 +345,14 @@ async function initializeApplication() {
           }
           await objectStorageService.downloadObject(file, res);
         } catch (__error) {
-          console.error('Error serving public object:', error);
+          console.error('Error serving public object:', __error);
           return res.status(500).json({ error: 'Internal server error' });
         }
       });
 
       log('✅ Object storage routes registered');
     } catch (__error) {
-      log(`❌ Object storage routes setup failed: ${error}`, 'error');
+      log(`❌ Object storage routes setup failed: ${__error}`, 'error');
     }
 
     // Register API routes FIRST to ensure they take precedence over static serving
@@ -390,14 +390,14 @@ async function initializeApplication() {
           
           res.json(organizations);
         } catch (__error) {
-          console.error('Error fetching user organizations:', error);
+          console.error('Error fetching user organizations:', __error);
           res.status(500).json({ message: 'Failed to fetch user organizations' });
         }
       });
       log('✅ User organizations route registered');
       
     } catch (__error) {
-      log(`❌ Route registration failed: ${error}`, 'error');
+      log(`❌ Route registration failed: ${__error}`, 'error');
       // Skip route registration but continue with Vite setup
     }
 
@@ -411,7 +411,7 @@ async function initializeApplication() {
         await setupVite(app, server);
         log('✅ Vite development server started');
       } catch (__error) {
-        log(`❌ Vite setup failed: ${error}`, 'error');
+        log(`❌ Vite setup failed: ${__error}`, 'error');
         log('⚠️ Falling back to React build serving', 'error');
         
         // Try to serve the built React app if available
@@ -557,7 +557,7 @@ async function initializeApplication() {
     }, 100);
     
   } catch (__error) {
-    log(`⚠️ Application initialization failed: ${error}`, 'error');
+    log(`⚠️ Application initialization failed: ${__error}`, 'error');
     // Don't crash - health checks will still work
   }
 }
@@ -574,7 +574,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
     log('📧 Email service is ready (on-demand initialization)');
     // Email service will initialize on first use - no need for upfront initialization
   } catch (__error) {
-    log('⚠️ Email service initialization failed:', String(error));
+    log('⚠️ Email service initialization failed:', String(__error));
     // Continue running - don't crash the server
   }
 }
@@ -603,7 +603,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
       await Promise.race([optimizationPromise, timeoutPromise]);
       log('🚀 Database optimizations initialized successfully');
     } catch (__error) {
-      log('⚠️ Database optimization initialization failed:', String(error));
+      log('⚠️ Database optimization initialization failed:', String(__error));
       // Continue running - don't crash the server
     }
   }
@@ -627,7 +627,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
       await Promise.race([startJobs(), timeoutPromise]);
       log('🔄 Background jobs initialized successfully');
     } catch (__error) {
-      log('⚠️ Background job initialization failed:', String(error));
+      log('⚠️ Background job initialization failed:', String(__error));
       // Continue running - don't crash the server
     }
   }
