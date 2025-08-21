@@ -94,7 +94,24 @@ export function registerBillRoutes(app: Express) {
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
       const billsList = await db
-        .select()
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdBy: bills.createdBy,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
         .from(bills)
         .where(whereClause)
         .orderBy(desc(bills.startDate));
@@ -118,7 +135,24 @@ export function registerBillRoutes(app: Express) {
       const { id } = req.params;
 
       const bill = await db
-        .select()
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdBy: bills.createdBy,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
@@ -159,10 +193,19 @@ export function registerBillRoutes(app: Express) {
       const newBill = await db
         .insert(bills)
         .values({
-          ...billData,
-          createdBy: req.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          buildingId: billData.buildingId,
+          billNumber: billData.billNumber || `BILL-${Date.now()}`,
+          title: billData.title,
+          description: billData.description,
+          category: billData.category,
+          vendor: billData.vendor,
+          paymentType: billData.paymentType,
+          costs: billData.costs.map(cost => parseFloat(cost)),
+          totalAmount: parseFloat(billData.totalAmount),
+          startDate: billData.startDate,
+          status: billData.status,
+          notes: billData.notes,
+          createdBy: req.user.id
         })
         .returning();
 
@@ -201,12 +244,22 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
       
+      const updateData: any = {};
+      if (billData.title) updateData.title = billData.title;
+      if (billData.description) updateData.description = billData.description;
+      if (billData.category) updateData.category = billData.category;
+      if (billData.vendor) updateData.vendor = billData.vendor;
+      if (billData.paymentType) updateData.paymentType = billData.paymentType;
+      if (billData.costs) updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
+      if (billData.totalAmount) updateData.totalAmount = parseFloat(billData.totalAmount);
+      if (billData.startDate) updateData.startDate = billData.startDate;
+      if (billData.status) updateData.status = billData.status;
+      if (billData.notes) updateData.notes = billData.notes;
+      updateData.updatedAt = new Date();
+
       const updatedBill = await db
         .update(bills)
-        .set({
-          ...billData,
-          updatedAt: new Date()
-        })
+        .set(updateData)
         .where(eq(bills.id, id))
         .returning();
 
@@ -274,7 +327,24 @@ export function registerBillRoutes(app: Express) {
       const { id } = req.params;
 
       const bill = await db
-        .select()
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdBy: bills.createdBy,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
@@ -287,7 +357,11 @@ export function registerBillRoutes(app: Express) {
 
       // Check if user has access to this bill's building
       const building = await db
-        .select()
+        .select({
+          id: buildings.id,
+          name: buildings.name,
+          organizationId: buildings.organizationId
+        })
         .from(buildings)
         .where(eq(buildings.id, bill[0].buildingId))
         .limit(1);
@@ -365,7 +439,24 @@ export function registerBillRoutes(app: Express) {
       const { id } = req.params;
 
       const bill = await db
-        .select()
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdBy: bills.createdBy,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
@@ -376,11 +467,28 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      // Find all bills generated from this parent bill
+      // Find all bills generated from this parent bill (look for auto-generated bills)
       const generatedBills = await db
-        .select()
+        .select({
+          id: bills.id,
+          buildingId: bills.buildingId,
+          billNumber: bills.billNumber,
+          title: bills.title,
+          description: bills.description,
+          category: bills.category,
+          vendor: bills.vendor,
+          paymentType: bills.paymentType,
+          costs: bills.costs,
+          totalAmount: bills.totalAmount,
+          startDate: bills.startDate,
+          status: bills.status,
+          notes: bills.notes,
+          createdBy: bills.createdBy,
+          createdAt: bills.createdAt,
+          updatedAt: bills.updatedAt
+        })
         .from(bills)
-        .where(eq(bills.reference, id))
+        .where(sql`bills.notes LIKE '%Auto-generated from:%'`)
         .orderBy(bills.startDate);
 
       const stats = generatedBills.map(genBill => ({
