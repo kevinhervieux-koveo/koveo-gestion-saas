@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag, ChevronDown } from 'lucide-react';
 import { BillEditForm } from '@/components/BillEditForm';
 import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
+import { BillCreateForm } from '@/components/BillCreateForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
@@ -537,47 +538,6 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   );
 }
 
-// Bill creation form component (placeholder for now)
-/**
- *
- * @param root0
- * @param root0.buildingId
- * @param root0.onSuccess
- */
-function BillCreateForm({ 
-  buildingId, 
-  onSuccess 
-}: { 
-  buildingId: string; 
-  onSuccess: () => void; 
-}) {
-  return (
-    <div className='space-y-4'>
-      <Tabs defaultValue='manual' className='w-full'>
-        <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='manual'>Create Manually</TabsTrigger>
-          <TabsTrigger value='upload'>Upload & Analyze</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value='manual' className='space-y-4'>
-          <div className='p-6 text-center border-2 border-dashed border-gray-200 rounded-lg'>
-            <FileText className='w-12 h-12 mx-auto text-gray-400 mb-4' />
-            <p className='text-gray-600'>Manual bill creation form</p>
-            <p className='text-sm text-gray-500'>Coming next...</p>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value='upload' className='space-y-4'>
-          <div className='p-6 text-center border-2 border-dashed border-gray-200 rounded-lg'>
-            <Upload className='w-12 h-12 mx-auto text-gray-400 mb-4' />
-            <p className='text-gray-600'>Upload bill document for AI analysis</p>
-            <p className='text-sm text-gray-500'>Coming next...</p>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
 
 // Bill detail and edit form
 /**
