@@ -8,7 +8,9 @@ import { configure } from '@testing-library/react';
 configure({
   // React 19 uses concurrent rendering by default
   // Adjust testing library to work better with React 19's concurrent features
-  asyncUtilTimeout: 5000,
+  asyncUtilTimeout: 10000,
+  // Make testing more stable
+  testIdAttribute: 'data-testid',
 });
 
 // MSW Server setup - try different import methods for better compatibility

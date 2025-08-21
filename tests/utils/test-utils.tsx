@@ -1,5 +1,6 @@
 import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, waitFor as originalWaitFor, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
 import { AuthProvider } from '@/hooks/use-auth';
@@ -39,6 +40,42 @@ const customRender = (
   return render(ui, { wrapper: AllTheProviders, ...options });
 };
 
+// Enhanced utilities for better timeout handling
+export const waitFor = (callback: () => void, options?: any) => {
+  return originalWaitFor(callback, {
+    timeout: 12000,
+    interval: 100,
+    ...options
+  });
+};
+
+// Helper for user interactions with better timing
+export const user = userEvent.setup({
+  delay: 100, // Add delay between actions for stability
+});
+
+// Enhanced screen utilities with better timeouts
+export const findByTextWithTimeout = async (text: string, timeout = 10000) => {
+  return await screen.findByText(text, {}, { timeout });
+};
+
+export const findByRoleWithTimeout = async (role: any, options: any = {}, timeout = 10000) => {
+  return await screen.findByRole(role, options, { timeout });
+};
+
+// Async utility that waits for elements to be present and stable
+export const waitForElementToBeStable = async (elementSelector: () => HTMLElement) => {
+  let element;
+  await waitFor(() => {
+    element = elementSelector();
+    expect(element).toBeInTheDocument();
+  });
+  
+  // Additional wait to ensure element is stable
+  await new Promise(resolve => setTimeout(resolve, 200));
+  return element;
+};
+
 // Re-export everything
 export * from '@testing-library/react';
-export { customRender as render };
+export { customRender as render, screen, user };

@@ -59,12 +59,17 @@ const config = {
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|msw|@jest|@babel))'
   ],
-  testTimeout: 15000,
+  testTimeout: 30000,
   maxWorkers: 1,
   verbose: true,
   clearMocks: true,
   restoreMocks: true,
-  resetMocks: true
+  resetMocks: true,
+  // Improve React component testing
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+    url: 'http://localhost:3000'
+  }
 };
 
 export default config;

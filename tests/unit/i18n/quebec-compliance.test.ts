@@ -224,7 +224,7 @@ const validateLaw25Terminology = (enText: string, frText: string): {
   suggestions: string[];
 } => {
   const mismatches: string[] = [];
-  const suggestions: string[];
+  const suggestions: string[] = [];
   
   // Check if critical Law 25 terms are consistently translated
   Object.entries(quebecComplianceTerms.en).forEach(([key, enTerm]) => {
