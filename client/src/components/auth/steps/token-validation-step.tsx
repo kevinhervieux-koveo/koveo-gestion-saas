@@ -124,7 +124,7 @@ export function TokenValidationStep({
     } else {
       console.warn('❌ No token found in URL parameters');
     }
-  }, []); // Remove validationResult dependency to ensure it runs on mount
+  }, [validateToken, validationResult]); // Include all dependencies
 
   const getTimeRemaining = (expiresAt: string) => {
     const now = new Date();

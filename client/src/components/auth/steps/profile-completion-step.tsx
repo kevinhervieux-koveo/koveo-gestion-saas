@@ -69,7 +69,7 @@ export function ProfileCompletionStep({
     const updatedData = { ...formData, isValid };
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData.firstName, formData.lastName, formData.phone, formData.language]);
+  }, [formData, onDataChange, onValidationChange]);
 
   const validatePhone = (phone: string) => {
     if (!phone) {return false;}

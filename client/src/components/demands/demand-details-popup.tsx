@@ -144,13 +144,15 @@ const statusLabels = {
 };
 
 /**
- *
- * @param root0
- * @param root0.demand
- * @param root0.isOpen
- * @param root0.onClose
- * @param root0.user
- * @param root0.onDemandUpdated
+ * Displays detailed information about a demand in a popup dialog with edit functionality.
+ * 
+ * @param root0 - The props object.
+ * @param root0.demand - The demand object to display
+ * @param root0.isOpen - Whether the popup is open
+ * @param root0.onClose - Function to close the popup
+ * @param root0.user - The current user object
+ * @param root0.onDemandUpdated - Callback when demand is updated
+ * @returns JSX element for the demand details popup
  */
 export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDemandUpdated }: DemandDetailsPopupProps) {
   const { toast } = useToast();
@@ -298,7 +300,7 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this demand?')) {
+    if (window.confirm('Are you sure you want to delete this demand?')) {
       deleteDemandMutation.mutate();
     }
   };

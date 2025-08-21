@@ -56,7 +56,7 @@ jest.mock('@tanstack/react-query', () => ({
     error: null,
   }),
   useQuery: () => ({
-    data: { buildings: mockBuildings },
+    data: { buildings: [] },
     isLoading: false,
     error: null,
   }),
@@ -824,7 +824,9 @@ describe('Buildings Management Page', () => {
       });
 
       // Mock pending API request
-      mockApiRequest.mockImplementation(() => new Promise(() => {}));
+      mockApiRequest.mockImplementation(() => new Promise(() => {
+        // Intentionally empty to simulate pending state
+      }));
 
       render(<Buildings />, { wrapper: createWrapper() });
 
@@ -845,7 +847,9 @@ describe('Buildings Management Page', () => {
       mockApiRequest
         .mockResolvedValueOnce({ buildings: mockBuildings })
         .mockResolvedValueOnce({ organizations: mockOrganizations })
-        .mockImplementation(() => new Promise(() => {})); // Pending create request
+        .mockImplementation(() => new Promise(() => {
+          // Intentionally empty to simulate pending create request
+        }));
 
       render(<Buildings />, { wrapper: createWrapper() });
 

@@ -463,6 +463,9 @@ export function registerBillRoutes(app: Express) {
       if (filters.status && filters.status !== 'all') {
         // Only add status filter if it's a valid enum value
         const validStatuses = ['draft', 'sent', 'overdue', 'paid', 'cancelled'] as const;
+        /**
+         *
+         */
         type ValidStatus = typeof validStatuses[number];
         if (validStatuses.includes(filters.status as ValidStatus)) {
           conditions.push(eq(bills.status, filters.status as ValidStatus));

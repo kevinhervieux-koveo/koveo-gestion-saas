@@ -69,7 +69,6 @@ Success Metrics: ${feature.successMetrics || 'Not specified'}
 Technical Complexity: ${feature.technicalComplexity || 'Not specified'}
 Dependencies: ${feature.dependencies || 'None specified'}
 User Flow: ${feature.userFlow || 'Not specified'}
-Quebec Compliance Notes: ${feature.quebecComplianceNotes || 'Not specified'}
 
 Actionable Items Count: ${actionableItems.length}`;
 
@@ -180,7 +179,7 @@ Please provide a complete implementation with both frontend and backend code.`;
                 <div className='flex items-center gap-2'>
                   <Switch
                     id={`strategic-${feature.id}`}
-                    checked={feature.showOnRoadmap || false}
+                    checked={feature.isStrategicPath || false}
                     onCheckedChange={(checked) => onToggleStrategic(feature.id, checked)}
                   />
                   <Label htmlFor={`strategic-${feature.id}`}>Strategic Path</Label>
