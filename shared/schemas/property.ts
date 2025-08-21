@@ -9,6 +9,7 @@ import {
   boolean,
   integer,
   decimal,
+  numeric,
   date,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
@@ -66,6 +67,9 @@ export const buildings = pgTable('buildings', {
   bankAccountNumber: text('bank_account_number'),
   bankAccountNotes: text('bank_account_notes'), // For reconciliation notes when updating account number
   bankAccountUpdatedAt: timestamp('bank_account_updated_at'),
+  bankAccountStartDate: timestamp('bank_account_start_date'), // Date when account started tracking
+  bankAccountStartAmount: numeric('bank_account_start_amount', { precision: 10, scale: 2 }), // Starting balance
+  bankAccountMinimums: text('bank_account_minimums'), // JSON string of minimum balance settings
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -156,6 +160,9 @@ export const insertBuildingSchema = createInsertSchema(buildings).pick({
   managementCompany: true,
   bankAccountNumber: true,
   bankAccountNotes: true,
+  bankAccountStartDate: true,
+  bankAccountStartAmount: true,
+  bankAccountMinimums: true,
 });
 
 export const insertResidenceSchema = createInsertSchema(residences).pick({

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
@@ -32,6 +32,15 @@ interface BankAccountInfo {
   bankAccountNumber: string | null;
   bankAccountNotes: string | null;
   bankAccountUpdatedAt: string | null;
+  bankAccountStartDate: string | null;
+  bankAccountStartAmount: number | null;
+  bankAccountMinimums: string | null; // JSON string of minimum settings
+}
+
+interface MinimumBalanceSetting {
+  id: string;
+  amount: number;
+  description: string;
 }
 
 export default function Budget() {
@@ -42,6 +51,9 @@ export default function Budget() {
   const [bankAccountDialog, setBankAccountDialog] = useState(false);
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [reconciliationNote, setReconciliationNote] = useState('');
+  const [bankAccountStartDate, setBankAccountStartDate] = useState('');
+  const [bankAccountStartAmount, setBankAccountStartAmount] = useState('');
+  const [minimumBalances, setMinimumBalances] = useState<MinimumBalanceSetting[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   
@@ -78,6 +90,16 @@ export default function Budget() {
     queryFn: () => fetch(`/api/budgets/${selectedBuilding}/bank-account`).then(res => res.json()),
     enabled: !!selectedBuilding,
   });
+
+  // Parse minimum balance settings
+  const minimumBalanceSettings = useMemo(() => {
+    if (!bankAccountInfo?.bankAccountMinimums) return [];
+    try {
+      return JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
+    } catch {
+      return [];
+    }
+  }, [bankAccountInfo?.bankAccountMinimums]);
 
   // Transform raw data into chart-friendly format
   const chartData: BudgetData[] = useMemo(() => {
@@ -117,6 +139,12 @@ export default function Budget() {
       };
     }).sort((a: BudgetData, b: BudgetData) => a.date.localeCompare(b.date));
   }, [budgetSummary]);
+
+  // Find minimum balance for chart visualization
+  const minimumBalanceForChart = useMemo(() => {
+    if (minimumBalanceSettings.length === 0) return null;
+    return Math.min(...minimumBalanceSettings.map(m => m.amount));
+  }, [minimumBalanceSettings]);
 
   // Category translation mapping
   const categoryTranslations: Record<string, { en: string; fr: string }> = {
@@ -222,11 +250,55 @@ export default function Budget() {
       label: language === 'fr' ? 'Dépenses Totales' : 'Total Expenses', 
       color: 'hsl(0, 70%, 50%)',
     },
+    minimumBalance: {
+      label: language === 'fr' ? 'Solde Minimum' : 'Minimum Balance',
+      color: 'hsl(0, 80%, 60%)',
+    },
+  };
+
+  // Bank account translations
+  const bankAccountTranslations = {
+    title: language === 'fr' ? 'Gestion du compte bancaire' : 'Bank Account Management',
+    currentAccount: language === 'fr' ? 'Compte actuel:' : 'Current Account:',
+    lastNote: language === 'fr' ? 'Dernière note:' : 'Last Note:',
+    updated: language === 'fr' ? 'Mis à jour:' : 'Updated:',
+    startDate: language === 'fr' ? 'Date de début:' : 'Start Date:',
+    startAmount: language === 'fr' ? 'Solde initial:' : 'Starting Balance:',
+    minimumBalances: language === 'fr' ? 'Soldes minimums:' : 'Minimum Balances:',
+    noAccount: language === 'fr' ? 'Aucun compte bancaire défini pour ce bâtiment' : 'No bank account set for this building',
+    updateAccount: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
+    setAccount: language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account',
+    dialogTitle: language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account',
+    dialogDescription: language === 'fr' ? 
+      'Mettre à jour les informations du compte bancaire pour ce bâtiment.' :
+      'Update the bank account information for this building.',
+    accountNumber: language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number',
+    accountNumberPlaceholder: language === 'fr' ? 'Saisir le numéro de compte' : 'Enter account number',
+    reconciliationNote: language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note',
+    reconciliationNotePlaceholder: language === 'fr' ? 'Note pour ce changement...' : 'Note for this change...',
+    startDateLabel: language === 'fr' ? 'Date de début du suivi' : 'Tracking Start Date',
+    startAmountLabel: language === 'fr' ? 'Solde initial ($)' : 'Starting Balance ($)',
+    startAmountPlaceholder: language === 'fr' ? 'Montant initial' : 'Initial amount',
+    minimumBalancesLabel: language === 'fr' ? 'Soldes minimums requis' : 'Required Minimum Balances',
+    addMinimum: language === 'fr' ? 'Ajouter un minimum' : 'Add Minimum',
+    amount: language === 'fr' ? 'Montant' : 'Amount',
+    description: language === 'fr' ? 'Description' : 'Description',
+    descriptionPlaceholder: language === 'fr' ? 'Ex: Fonds d\'urgence' : 'e.g., Emergency fund',
+    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
+    updating: language === 'fr' ? 'Mise à jour...' : 'Updating...',
+    updateButton: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
   };
 
   // Update bank account mutation
   const updateBankAccount = useMutation({
-    mutationFn: async (data: { buildingId: string; bankAccountNumber: string; notes: string }) => {
+    mutationFn: async (data: { 
+      buildingId: string; 
+      bankAccountNumber: string; 
+      notes: string; 
+      startDate: string;
+      startAmount: string;
+      minimumBalances: MinimumBalanceSetting[];
+    }) => {
       const response = await fetch(`/api/budgets/${data.buildingId}/bank-account`, {
         method: 'PUT',
         headers: {
@@ -235,6 +307,9 @@ export default function Budget() {
         body: JSON.stringify({
           bankAccountNumber: data.bankAccountNumber,
           bankAccountNotes: data.notes,
+          bankAccountStartDate: data.startDate || null,
+          bankAccountStartAmount: data.startAmount ? parseFloat(data.startAmount) : null,
+          bankAccountMinimums: JSON.stringify(data.minimumBalances),
         }),
       });
       if (!response.ok) throw new Error('Failed to update bank account');
@@ -245,11 +320,14 @@ export default function Budget() {
       setBankAccountDialog(false);
       setBankAccountNumber('');
       setReconciliationNote('');
+      setBankAccountStartDate('');
+      setBankAccountStartAmount('');
+      setMinimumBalances([]);
       toast({
         title: language === 'fr' ? 'Compte bancaire mis à jour' : 'Bank account updated',
         description: language === 'fr' ? 
-          'Le numéro de compte bancaire a été mis à jour avec succès.' : 
-          'Bank account number has been updated successfully.',
+          'Les informations du compte bancaire ont été mises à jour avec succès.' : 
+          'Bank account information has been updated successfully.',
       });
     },
     onError: () => {
@@ -263,10 +341,58 @@ export default function Budget() {
     }
   });
 
+  // Helper functions for minimum balance management
+  const addMinimumBalance = () => {
+    const newMinimum: MinimumBalanceSetting = {
+      id: `min_${Date.now()}`,
+      amount: 0,
+      description: '',
+    };
+    setMinimumBalances([...minimumBalances, newMinimum]);
+  };
+
+  const updateMinimumBalance = (id: string, field: 'amount' | 'description', value: string | number) => {
+    setMinimumBalances(minimumBalances.map(min => 
+      min.id === id ? { ...min, [field]: value } : min
+    ));
+  };
+
+  const removeMinimumBalance = (id: string) => {
+    setMinimumBalances(minimumBalances.filter(min => min.id !== id));
+  };
+
+  // Initialize dialog with existing data
+  const initializeDialog = () => {
+    if (bankAccountInfo) {
+      setBankAccountNumber(bankAccountInfo.bankAccountNumber || '');
+      setReconciliationNote('');
+      setBankAccountStartDate(bankAccountInfo.bankAccountStartDate || '');
+      setBankAccountStartAmount(bankAccountInfo.bankAccountStartAmount?.toString() || '');
+      
+      // Parse existing minimum balances
+      if (bankAccountInfo.bankAccountMinimums) {
+        try {
+          const existingMinimums = JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
+          setMinimumBalances(existingMinimums);
+        } catch {
+          setMinimumBalances([]);
+        }
+      } else {
+        setMinimumBalances([]);
+      }
+    } else {
+      setBankAccountNumber('');
+      setReconciliationNote('');
+      setBankAccountStartDate('');
+      setBankAccountStartAmount('');
+      setMinimumBalances([]);
+    }
+  };
+
   const handleUpdateBankAccount = () => {
     if (!selectedBuilding || !bankAccountNumber.trim()) {
       toast({
-        title: language === 'fr' ? 'Champs requis' : 'Required fields',
+        title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 
           'Veuillez saisir un numéro de compte bancaire.' : 
           'Please enter a bank account number.',
@@ -279,6 +405,9 @@ export default function Budget() {
       buildingId: selectedBuilding,
       bankAccountNumber: bankAccountNumber.trim(),
       notes: reconciliationNote.trim(),
+      startDate: bankAccountStartDate,
+      startAmount: bankAccountStartAmount,
+      minimumBalances,
     });
   };
 
@@ -660,6 +789,27 @@ export default function Budget() {
                         fill='url(#colorExpenses)'
                         strokeWidth={2}
                       />
+                      {/* Minimum Balance Line */}
+                      {minimumBalanceForChart && (
+                        <>
+                          <defs>
+                            <linearGradient id="colorMinimum" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(0, 80%, 60%)" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="hsl(0, 80%, 60%)" stopOpacity={0.1}/>
+                            </linearGradient>
+                          </defs>
+                          <Area
+                            type="monotone"
+                            dataKey={() => minimumBalanceForChart}
+                            stroke="hsl(0, 80%, 60%)"
+                            strokeWidth={2}
+                            strokeDasharray="5,5"
+                            fill="url(#colorMinimum)"
+                            dot={false}
+                            activeDot={false}
+                          />
+                        </>
+                      )}
                     </AreaChart>
                   </ChartContainer>
                 </CardContent>
@@ -673,89 +823,203 @@ export default function Budget() {
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Banknote className='w-5 h-5' />
-                  {language === 'fr' ? 'Gestion du compte bancaire' : 'Bank Account Management'}
+                  {bankAccountTranslations.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className='space-y-4'>
                   {bankAccountInfo?.bankAccountNumber ? (
-                    <div className='p-4 bg-muted rounded-lg'>
-                      <div className='flex items-center justify-between mb-2'>
-                        <span className='font-medium'>
-                          {language === 'fr' ? 'Compte actuel:' : 'Current Account:'}
-                        </span>
-                        <span className='font-mono'>{bankAccountInfo.bankAccountNumber}</span>
-                      </div>
-                      {bankAccountInfo.bankAccountNotes && (
-                        <div className='text-sm text-muted-foreground'>
-                          <strong>{language === 'fr' ? 'Dernière note:' : 'Last Note:'}</strong> {bankAccountInfo.bankAccountNotes}
+                    <div className='space-y-4'>
+                      <div className='p-4 bg-muted rounded-lg'>
+                        <div className='flex items-center justify-between mb-2'>
+                          <span className='font-medium'>{bankAccountTranslations.currentAccount}</span>
+                          <span className='font-mono'>{bankAccountInfo.bankAccountNumber}</span>
                         </div>
-                      )}
-                      {bankAccountInfo.bankAccountUpdatedAt && (
-                        <div className='text-xs text-muted-foreground mt-1'>
-                          {language === 'fr' ? 'Mis à jour: ' : 'Updated: '}
-                          {new Date(bankAccountInfo.bankAccountUpdatedAt).toLocaleDateString()}
+                        
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3 mt-3'>
+                          {bankAccountInfo.bankAccountStartDate && (
+                            <div className='text-sm'>
+                              <strong className='text-muted-foreground'>{bankAccountTranslations.startDate}</strong>
+                              <div className='flex items-center gap-1 mt-1'>
+                                <Calendar className='w-3 h-3' />
+                                {new Date(bankAccountInfo.bankAccountStartDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {bankAccountInfo.bankAccountStartAmount && (
+                            <div className='text-sm'>
+                              <strong className='text-muted-foreground'>{bankAccountTranslations.startAmount}</strong>
+                              <div className='font-semibold text-green-600 mt-1'>
+                                ${Number(bankAccountInfo.bankAccountStartAmount).toLocaleString()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {bankAccountInfo.bankAccountNotes && (
+                          <div className='text-sm text-muted-foreground mt-3'>
+                            <strong>{bankAccountTranslations.lastNote}</strong> {bankAccountInfo.bankAccountNotes}
+                          </div>
+                        )}
+                        
+                        {bankAccountInfo.bankAccountUpdatedAt && (
+                          <div className='text-xs text-muted-foreground mt-2'>
+                            {bankAccountTranslations.updated}
+                            {new Date(bankAccountInfo.bankAccountUpdatedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Minimum Balance Settings Display */}
+                      {minimumBalanceSettings.length > 0 && (
+                        <div className='p-4 border rounded-lg'>
+                          <div className='flex items-center gap-2 mb-3'>
+                            <AlertTriangle className='w-4 h-4 text-yellow-600' />
+                            <span className='font-medium text-sm'>{bankAccountTranslations.minimumBalances}</span>
+                          </div>
+                          <div className='space-y-2'>
+                            {minimumBalanceSettings.map((minimum) => (
+                              <div key={minimum.id} className='flex items-center justify-between text-sm p-2 bg-yellow-50 rounded'>
+                                <span className='text-muted-foreground'>{minimum.description}</span>
+                                <span className='font-semibold text-yellow-700'>
+                                  ${minimum.amount.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className='p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground'>
-                      {language === 'fr' ? 
-                        'Aucun compte bancaire défini pour ce bâtiment' :
-                        'No bank account set for this building'
-                      }
+                      {bankAccountTranslations.noAccount}
                     </div>
                   )}
                   
-                  <Dialog open={bankAccountDialog} onOpenChange={setBankAccountDialog}>
+                  <Dialog 
+                    open={bankAccountDialog} 
+                    onOpenChange={(open) => {
+                      if (open) {
+                        initializeDialog();
+                      }
+                      setBankAccountDialog(open);
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button className='w-full' variant='outline'>
                         <Banknote className='w-4 h-4 mr-2' />
                         {bankAccountInfo?.bankAccountNumber ? 
-                          (language === 'fr' ? 'Mettre à jour le compte' : 'Update Account') : 
-                          (language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account')
+                          bankAccountTranslations.updateAccount : 
+                          bankAccountTranslations.setAccount
                         }
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>
-                          {language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account'}
-                        </DialogTitle>
-                        <DialogDescription>
-                          {language === 'fr' ? 
-                            'Mettre à jour le numéro de compte bancaire pour ce bâtiment. Ceci remplacera le numéro précédent et ajoutera une note de rapprochement.' :
-                            'Update the bank account number for this building. This will override the previous number and add a reconciliation note.'
-                          }
-                        </DialogDescription>
+                        <DialogTitle>{bankAccountTranslations.dialogTitle}</DialogTitle>
+                        <DialogDescription>{bankAccountTranslations.dialogDescription}</DialogDescription>
                       </DialogHeader>
-                      <div className='space-y-4'>
+                      <div className='space-y-4 max-h-96 overflow-y-auto'>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                          <div className='space-y-2'>
+                            <Label htmlFor='bankAccount'>{bankAccountTranslations.accountNumber}</Label>
+                            <Input
+                              id='bankAccount'
+                              value={bankAccountNumber}
+                              onChange={(e) => setBankAccountNumber(e.target.value)}
+                              placeholder={bankAccountTranslations.accountNumberPlaceholder}
+                            />
+                          </div>
+                          
+                          <div className='space-y-2'>
+                            <Label htmlFor='startDate'>{bankAccountTranslations.startDateLabel}</Label>
+                            <Input
+                              id='startDate'
+                              type='date'
+                              value={bankAccountStartDate}
+                              onChange={(e) => setBankAccountStartDate(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        
                         <div className='space-y-2'>
-                          <Label htmlFor='bankAccount'>
-                            {language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number'}
-                          </Label>
+                          <Label htmlFor='startAmount'>{bankAccountTranslations.startAmountLabel}</Label>
                           <Input
-                            id='bankAccount'
-                            value={bankAccountNumber}
-                            onChange={(e) => setBankAccountNumber(e.target.value)}
-                            placeholder={language === 'fr' ? 
-                              'Saisir le numéro de compte bancaire' : 
-                              'Enter bank account number'
-                            }
+                            id='startAmount'
+                            type='number'
+                            step='0.01'
+                            value={bankAccountStartAmount}
+                            onChange={(e) => setBankAccountStartAmount(e.target.value)}
+                            placeholder={bankAccountTranslations.startAmountPlaceholder}
                           />
                         </div>
+                        
+                        <div className='space-y-3'>
+                          <div className='flex items-center justify-between'>
+                            <Label>{bankAccountTranslations.minimumBalancesLabel}</Label>
+                            <Button
+                              type='button'
+                              variant='outline'
+                              size='sm'
+                              onClick={addMinimumBalance}
+                              className='flex items-center gap-1'
+                            >
+                              <Plus className='w-3 h-3' />
+                              {bankAccountTranslations.addMinimum}
+                            </Button>
+                          </div>
+                          
+                          {minimumBalances.length > 0 ? (
+                            <div className='space-y-2 max-h-32 overflow-y-auto border rounded p-2'>
+                              {minimumBalances.map((minimum, index) => (
+                                <div key={minimum.id} className='grid grid-cols-12 gap-2 items-center'>
+                                  <div className='col-span-4'>
+                                    <Input
+                                      placeholder={bankAccountTranslations.amount}
+                                      type='number'
+                                      step='0.01'
+                                      value={minimum.amount || ''}
+                                      onChange={(e) => updateMinimumBalance(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
+                                      className='text-xs'
+                                    />
+                                  </div>
+                                  <div className='col-span-7'>
+                                    <Input
+                                      placeholder={bankAccountTranslations.descriptionPlaceholder}
+                                      value={minimum.description}
+                                      onChange={(e) => updateMinimumBalance(minimum.id, 'description', e.target.value)}
+                                      className='text-xs'
+                                    />
+                                  </div>
+                                  <div className='col-span-1'>
+                                    <Button
+                                      type='button'
+                                      variant='ghost'
+                                      size='sm'
+                                      onClick={() => removeMinimumBalance(minimum.id)}
+                                      className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+                                    >
+                                      <Trash2 className='w-3 h-3' />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className='text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded'>
+                              {language === 'fr' ? 'Aucun solde minimum défini' : 'No minimum balances set'}
+                            </div>
+                          )}
+                        </div>
+                        
                         <div className='space-y-2'>
-                          <Label htmlFor='reconciliationNote'>
-                            {language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note'}
-                          </Label>
+                          <Label htmlFor='reconciliationNote'>{bankAccountTranslations.reconciliationNote}</Label>
                           <Textarea
                             id='reconciliationNote'
                             value={reconciliationNote}
                             onChange={(e) => setReconciliationNote(e.target.value)}
-                            placeholder={language === 'fr' ? 
-                              'Saisir la note de rapprochement pour ce changement...' : 
-                              'Enter reconciliation note for this change...'
-                            }
+                            placeholder={bankAccountTranslations.reconciliationNotePlaceholder}
                             rows={3}
                           />
                         </div>
@@ -771,14 +1035,14 @@ export default function Budget() {
                             )}
                           </div>
                         )}
-                        <div className='flex justify-end space-x-2'>
+                        <div className='flex justify-end space-x-2 pt-4 border-t'>
                           <Button variant='outline' onClick={() => setBankAccountDialog(false)}>
-                            {language === 'fr' ? 'Annuler' : 'Cancel'}
+                            {bankAccountTranslations.cancel}
                           </Button>
                           <Button onClick={handleUpdateBankAccount} disabled={updateBankAccount.isPending}>
                             {updateBankAccount.isPending ? 
-                              (language === 'fr' ? 'Mise à jour...' : 'Updating...') : 
-                              (language === 'fr' ? 'Mettre à jour le compte' : 'Update Account')
+                              bankAccountTranslations.updating : 
+                              bankAccountTranslations.updateButton
                             }
                           </Button>
                         </div>
