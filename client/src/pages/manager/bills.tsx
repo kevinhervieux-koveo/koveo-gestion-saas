@@ -8,9 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag, ChevronDown } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
 import type { Building, Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
@@ -45,6 +48,21 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: 'Other'
 };
 
+const MONTHS = [
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' }
+];
+
 /**
  *
  */
@@ -52,6 +70,7 @@ interface BillFilters {
   buildingId: string;
   category: string;
   year: string;
+  months: string[];
 }
 
 /**
@@ -61,7 +80,8 @@ export default function Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
-    year: new Date().getFullYear().toString()
+    year: new Date().getFullYear().toString(),
+    months: []
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -79,6 +99,7 @@ export default function Bills() {
       if (filters.buildingId) {params.set('buildingId', filters.buildingId);}
       if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}
       if (filters.year) {params.set('year', filters.year);}
+      if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
       
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url, { credentials: 'include' });
@@ -100,8 +121,35 @@ export default function Bills() {
     return acc;
   }, {});
 
-  const handleFilterChange = (key: keyof BillFilters, value: string) => {
+  const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleMonthToggle = (monthValue: string) => {
+    setFilters(prev => ({
+      ...prev,
+      months: prev.months.includes(monthValue)
+        ? prev.months.filter(m => m !== monthValue)
+        : [...prev.months, monthValue]
+    }));
+  };
+
+  const handleAllMonthsToggle = () => {
+    const allMonthValues = MONTHS.map(m => m.value);
+    setFilters(prev => ({
+      ...prev,
+      months: prev.months.length === allMonthValues.length ? [] : allMonthValues
+    }));
+  };
+
+  const getMonthsDisplayText = () => {
+    if (filters.months.length === 0) return 'All months';
+    if (filters.months.length === MONTHS.length) return 'All months';
+    if (filters.months.length === 1) {
+      const month = MONTHS.find(m => m.value === filters.months[0]);
+      return month?.label || 'All months';
+    }
+    return `${filters.months.length} months`;
   };
 
   return (
@@ -119,7 +167,7 @@ export default function Bills() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
                 <div className='space-y-2'>
                   <Label htmlFor='building-filter' className='flex items-center gap-2'>
                     <BuildingIcon className='w-4 h-4' />
@@ -168,17 +216,75 @@ export default function Bills() {
                     <SelectTrigger id='year-filter'>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 5 }, (_, i) => {
-                        const year = new Date().getFullYear() - i;
+                    <SelectContent className='max-h-[300px] overflow-y-auto'>
+                      {Array.from({ length: 27 }, (_, i) => {
+                        const year = new Date().getFullYear() - 2 + i; // 2 years back to 25 years forward
                         return (
                           <SelectItem key={year} value={year.toString()}>
                             {year}
+                            {year === new Date().getFullYear() && (
+                              <span className='ml-2 text-xs text-blue-500'>(Current)</span>
+                            )}
                           </SelectItem>
                         );
                       })}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label className='flex items-center gap-2'>
+                    <Calendar className='w-4 h-4' />
+                    Months
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant='outline'
+                        className={cn(
+                          'w-full justify-between',
+                          filters.months.length === 0 && 'text-muted-foreground'
+                        )}
+                      >
+                        {getMonthsDisplayText()}
+                        <ChevronDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className='w-64 p-0' align='start'>
+                      <div className='border-b p-3'>
+                        <div className='flex items-center space-x-2'>
+                          <Checkbox
+                            id='all-months'
+                            checked={filters.months.length === MONTHS.length}
+                            onCheckedChange={handleAllMonthsToggle}
+                          />
+                          <Label
+                            htmlFor='all-months'
+                            className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                          >
+                            All Months
+                          </Label>
+                        </div>
+                      </div>
+                      <div className='grid grid-cols-2 gap-2 p-3'>
+                        {MONTHS.map((month) => (
+                          <div key={month.value} className='flex items-center space-x-2'>
+                            <Checkbox
+                              id={`month-${month.value}`}
+                              checked={filters.months.includes(month.value)}
+                              onCheckedChange={() => handleMonthToggle(month.value)}
+                            />
+                            <Label
+                              htmlFor={`month-${month.value}`}
+                              className='text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                            >
+                              {month.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className='space-y-2'>

@@ -355,7 +355,8 @@ const billFilterSchema = z.object({
   buildingId: z.string().uuid(),
   category: z.string().optional(),
   year: z.string().optional(),
-  status: z.enum(['all', 'draft', 'sent', 'overdue', 'paid', 'cancelled']).optional()
+  status: z.enum(['all', 'draft', 'sent', 'overdue', 'paid', 'cancelled']).optional(),
+  months: z.string().optional() // Comma-separated month numbers (e.g., "1,3,6,12")
 });
 
 const createBillSchema = z.object({
@@ -476,6 +477,14 @@ export function registerBillRoutes(app: Express) {
       
       if (filters.year) {
         conditions.push(sql`EXTRACT(YEAR FROM ${bills.startDate}) = ${filters.year}`);
+      }
+      
+      if (filters.months) {
+        // Parse comma-separated month numbers
+        const monthNumbers = filters.months.split(',').map(m => parseInt(m.trim(), 10)).filter(m => m >= 1 && m <= 12);
+        if (monthNumbers.length > 0) {
+          conditions.push(sql`EXTRACT(MONTH FROM ${bills.startDate}) = ANY(${monthNumbers})`);
+        }
       }
       
       const result = await db
