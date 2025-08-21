@@ -3,6 +3,9 @@ const config = {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js'],
   moduleNameMapper: {
@@ -41,13 +44,15 @@ const config = {
       useESM: true,
       tsconfig: {
         jsx: 'react-jsx',
+        jsxImportSource: 'react',
         module: 'ESNext',
-        moduleResolution: 'node',
+        moduleResolution: 'bundler',
         allowSyntheticDefaultImports: true,
         esModuleInterop: true,
-        target: 'es2020',
-        lib: ['es2020', 'dom', 'dom.iterable'],
-        isolatedModules: true
+        target: 'es2022',
+        lib: ['es2022', 'dom', 'dom.iterable'],
+        isolatedModules: true,
+        skipLibCheck: true
       }
     }]
   },
