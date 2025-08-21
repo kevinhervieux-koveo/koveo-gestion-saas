@@ -168,10 +168,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error in delayed update health check:', error);
+      console.error('Error in delayed update health check:', __error);
       res.status(500).json({ 
         status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: __error instanceof Error ? __error.message : 'Unknown error',
         message: 'Delayed update system encountered an error'
       });
     }

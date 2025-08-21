@@ -87,7 +87,7 @@ export function registerMoneyFlowRoutes(app: Express) {
       console.error('Error triggering money flow regeneration:', __error);
       res.status(500).json({ 
         message: 'Failed to trigger money flow regeneration',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -120,10 +120,10 @@ export function registerMoneyFlowRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error generating money flow for bill:', error);
+      console.error('Error generating money flow for bill:', __error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -156,10 +156,10 @@ export function registerMoneyFlowRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error generating money flow for residence:', error);
+      console.error('Error generating money flow for residence:', __error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for residence',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -192,10 +192,10 @@ export function registerMoneyFlowRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error getting money flow statistics:', error);
+      console.error('Error getting money flow statistics:', __error);
       res.status(500).json({ 
         message: 'Failed to get money flow statistics',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -232,10 +232,10 @@ export function registerMoneyFlowRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error in money flow health check:', error);
+      console.error('Error in money flow health check:', __error);
       res.status(500).json({ 
         status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: __error instanceof Error ? __error.message : 'Unknown error',
         message: 'Money flow automation system encountered an error'
       });
     }

@@ -171,7 +171,7 @@ export class AIAgentToolkit {
         ));
       });
     } catch (__error) {
-      console.warn('Error scanning for TODOs:', error);
+      console.warn('Error scanning for TODOs:', __error);
     }
 
     return tasks;
@@ -198,7 +198,7 @@ export class AIAgentToolkit {
       });
       analysis.typeScriptErrors = (tscOutput.match(/error TS\d+:/g) || []).length;
     } catch (_error: unknown) {
-      const errorOutput = error.stdout || error.message;
+      const errorOutput = (_error as any).stdout || (_error as any).message;
       analysis.typeScriptErrors = (errorOutput.match(/error TS\d+:/g) || []).length;
     }
 
@@ -209,15 +209,15 @@ export class AIAgentToolkit {
         cwd: this.projectRoot 
       });
       const lintResults = JSON.parse(lintOutput);
-      analysis.lintWarnings = lintResults.reduce((total: number, file: unknown) => 
-        total + file.warningCount + file.errorCount, 0);
+      analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+        total + (file.warningCount || 0) + (file.errorCount || 0), 0);
     } catch (_error: unknown) {
       try {
-        const errorOutput = error.stdout || '';
+        const errorOutput = (_error as any).stdout || '';
         if (errorOutput) {
           const lintResults = JSON.parse(errorOutput);
-          analysis.lintWarnings = lintResults.reduce((total: number, file: unknown) => 
-            total + file.warningCount + file.errorCount, 0);
+          analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+            total + (file.warningCount || 0) + (file.errorCount || 0), 0);
         }
       } catch {
         analysis.lintWarnings = 0;

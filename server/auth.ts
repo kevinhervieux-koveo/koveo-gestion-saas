@@ -170,7 +170,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     
     next();
   } catch (__error) {
-    console.error('Authentication error:', error);
+    console.error('Authentication error:', __error);
     return res.status(500).json({ 
       message: 'Authentication error',
       code: 'AUTH_ERROR' 
@@ -274,7 +274,7 @@ export function authorize(permission: string) {
 
       next();
     } catch (__error) {
-      console.error('Authorization error:', error);
+      console.error('Authorization error:', __error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR'
@@ -384,7 +384,7 @@ export function setupAuthRoutes(app: unknown) {
       });
 
     } catch (__error) {
-      console.error('Login error:', error);
+      console.error('Login error:', __error);
       res.status(500).json({ 
         message: 'Login failed',
         code: 'LOGIN_ERROR' 
@@ -463,7 +463,7 @@ export function setupAuthRoutes(app: unknown) {
       });
 
     } catch (__error) {
-      console.error('Registration error:', error);
+      console.error('Registration error:', __error);
       res.status(500).json({ 
         message: 'Registration failed',
         code: 'REGISTRATION_ERROR' 
@@ -536,7 +536,7 @@ export function setupAuthRoutes(app: unknown) {
       });
 
     } catch (__error) {
-      console.error('Password reset request error:', error);
+      console.error('Password reset request error:', __error);
       res.status(500).json({ 
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR' 
@@ -640,7 +640,7 @@ export function setupAuthRoutes(app: unknown) {
       });
 
     } catch (__error) {
-      console.error('Password reset error:', error);
+      console.error('Password reset error:', __error);
       res.status(500).json({ 
         message: 'Password reset failed',
         code: 'PASSWORD_RESET_ERROR' 
