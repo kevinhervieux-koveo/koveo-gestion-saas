@@ -47,6 +47,8 @@ export const billCategoryEnum = pgEnum('bill_category', [
   'repairs',
   'supplies',
   'taxes',
+  'technology',
+  'reserves',
   'other',
 ]);
 
