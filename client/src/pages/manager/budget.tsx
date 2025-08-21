@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/hooks/use-language';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ interface BankAccountInfo {
 }
 
 export default function Budget() {
+  const { language } = useLanguage();
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
   const [viewType, setViewType] = useState<'yearly' | 'monthly'>('monthly');
   const [showCategories, setShowCategories] = useState(false);
@@ -76,42 +78,15 @@ export default function Budget() {
     enabled: !!selectedBuilding,
   });
 
-  // Update bank account mutation
-  const updateBankAccount = useMutation({
-    mutationFn: async (data: { bankAccountNumber: string; reconciliationNote: string }) => {
-      const response = await fetch(`/api/budgets/${selectedBuilding}/bank-account`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update bank account');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: 'Bank account updated successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/budgets', selectedBuilding, 'bank-account'] });
-      setBankAccountDialog(false);
-      setBankAccountNumber('');
-      setReconciliationNote('');
-    },
-    onError: () => {
-      toast({ title: 'Failed to update bank account', variant: 'destructive' });
-    },
-  });
-
-  // Process chart data
-  const chartData = useMemo(() => {
-    if (!budgetSummary || !Array.isArray((budgetSummary as any)?.summary)) return [];
+  // Transform raw data into chart-friendly format
+  const chartData: BudgetData[] = useMemo(() => {
+    if (!budgetSummary?.summary) return [];
     
-    return ((budgetSummary as any).summary as any[]).map((item: any) => {
-      const totalIncome = item.incomes?.reduce((sum: number, income: string) => 
-        sum + parseFloat(income || '0'), 0) || 0;
-      const totalExpenses = item.spendings?.reduce((sum: number, expense: string) => 
-        sum + parseFloat(expense || '0'), 0) || 0;
+    return budgetSummary.summary.map((item: any) => {
+      const totalIncome = item.incomes ? 
+        item.incomes.reduce((sum: number, income: string) => sum + parseFloat(income || '0'), 0) : 0;
+      const totalExpenses = item.spendings ? 
+        item.spendings.reduce((sum: number, expense: string) => sum + parseFloat(expense || '0'), 0) : 0;
       
       // Build income and expense categories
       const incomeByCategory: { [key: string]: number } = {};
@@ -239,51 +214,112 @@ export default function Budget() {
 
   const chartConfig = {
     totalIncome: {
-      label: 'Income',
+      label: language === 'fr' ? 'Revenus Totaux' : 'Total Income',
       color: 'hsl(120, 70%, 50%)',
     },
     totalExpenses: {
-      label: 'Expenses', 
+      label: language === 'fr' ? 'Dépenses Totales' : 'Total Expenses', 
       color: 'hsl(0, 70%, 50%)',
-    },
-    netCashFlow: {
-      label: 'Net Cash Flow',
-      color: 'hsl(210, 70%, 50%)',
     },
   };
 
+  // Update bank account mutation
+  const updateBankAccount = useMutation({
+    mutationFn: async (data: { buildingId: string; bankAccountNumber: string; notes: string }) => {
+      const response = await fetch(`/api/budgets/${data.buildingId}/bank-account`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bankAccountNumber: data.bankAccountNumber,
+          bankAccountNotes: data.notes,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to update bank account');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/budgets', selectedBuilding, 'bank-account'] });
+      setBankAccountDialog(false);
+      setBankAccountNumber('');
+      setReconciliationNote('');
+      toast({
+        title: language === 'fr' ? 'Compte bancaire mis à jour' : 'Bank account updated',
+        description: language === 'fr' ? 
+          'Le numéro de compte bancaire a été mis à jour avec succès.' : 
+          'Bank account number has been updated successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 
+          'Impossible de mettre à jour le compte bancaire.' : 
+          'Failed to update bank account.',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const handleUpdateBankAccount = () => {
-    if (!bankAccountNumber.trim()) {
-      toast({ title: 'Please enter a bank account number', variant: 'destructive' });
+    if (!selectedBuilding || !bankAccountNumber.trim()) {
+      toast({
+        title: language === 'fr' ? 'Champs requis' : 'Required fields',
+        description: language === 'fr' ? 
+          'Veuillez saisir un numéro de compte bancaire.' : 
+          'Please enter a bank account number.',
+        variant: 'destructive',
+      });
       return;
     }
-    updateBankAccount.mutate({ 
-      bankAccountNumber: bankAccountNumber.trim(), 
-      reconciliationNote: reconciliationNote.trim() 
+
+    updateBankAccount.mutate({
+      buildingId: selectedBuilding,
+      bankAccountNumber: bankAccountNumber.trim(),
+      notes: reconciliationNote.trim(),
     });
   };
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Budget Dashboard' subtitle='Monitor financial performance and cash flow' />
+    <div className='min-h-screen bg-gray-50'>
+      <Header 
+        title={language === 'fr' ? 'Tableau de bord budgétaire' : 'Budget Dashboard'}
+        subtitle={language === 'fr' ? 
+          'Surveillez les performances financières et les flux de trésorerie' :
+          'Monitor financial performance and cash flow'
+        }
+      />
+      <div className='max-w-7xl mx-auto p-6 space-y-6'>
+        <div className='flex items-center justify-between'>
+          <div>
+            <h1 className='text-2xl font-semibold text-gray-900'>
+              {language === 'fr' ? 'Tableau de bord budgétaire' : 'Budget Dashboard'}
+            </h1>
+            <p className='text-gray-600'>
+              {language === 'fr' ? 
+                'Surveillez les performances financières et les flux de trésorerie' :
+                'Monitor financial performance and cash flow'
+              }
+            </p>
+          </div>
+        </div>
 
-      <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Controls */}
+        <div className='space-y-6'>
           <Card>
-            <CardHeader>
+            <CardHeader className='pb-4'>
               <CardTitle className='flex items-center gap-2'>
                 <Settings className='w-5 h-5' />
-                Dashboard Controls
+                {language === 'fr' ? 'Contrôles du tableau de bord' : 'Dashboard Controls'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-6 gap-4'>
                 <div className='space-y-2'>
-                  <Label>Building</Label>
+                  <Label>{language === 'fr' ? 'Bâtiment' : 'Building'}</Label>
                   <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
                     <SelectTrigger>
-                      <SelectValue placeholder='Select a building' />
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner un bâtiment' : 'Select a building'} />
                     </SelectTrigger>
                     <SelectContent>
                       {Array.isArray(buildings) && buildings.map((building: any) => (
@@ -296,20 +332,20 @@ export default function Budget() {
                 </div>
                 
                 <div className='space-y-2'>
-                  <Label>View Type</Label>
+                  <Label>{language === 'fr' ? 'Type de vue' : 'View Type'}</Label>
                   <Select value={viewType} onValueChange={(value: 'yearly' | 'monthly') => setViewType(value)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='monthly'>Monthly View</SelectItem>
-                      <SelectItem value='yearly'>Yearly View</SelectItem>
+                      <SelectItem value='monthly'>{language === 'fr' ? 'Vue mensuelle' : 'Monthly View'}</SelectItem>
+                      <SelectItem value='yearly'>{language === 'fr' ? 'Vue annuelle' : 'Yearly View'}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className='space-y-2'>
-                  <Label>Start Year</Label>
+                  <Label>{language === 'fr' ? 'Année de début' : 'Start Year'}</Label>
                   <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -325,7 +361,7 @@ export default function Budget() {
                 </div>
                 
                 <div className='space-y-2'>
-                  <Label>End Year</Label>
+                  <Label>{language === 'fr' ? 'Année de fin' : 'End Year'}</Label>
                   <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -347,7 +383,10 @@ export default function Budget() {
                     className='flex items-center gap-2'
                   >
                     <Filter className='w-4 h-4' />
-                    {showCategories ? 'Hide' : 'Show'} Categories
+                    {showCategories ? 
+                      (language === 'fr' ? 'Masquer catégories' : 'Hide Categories') : 
+                      (language === 'fr' ? 'Afficher catégories' : 'Show Categories')
+                    }
                   </Button>
                 </div>
                 
@@ -360,14 +399,14 @@ export default function Budget() {
                     }}
                     className='flex items-center gap-2'
                   >
-                    Reset Range
+                    {language === 'fr' ? 'Réinitialiser plage' : 'Reset Range'}
                   </Button>
                 </div>
               </div>
               
               {showCategories && (
                 <div className='mt-4 space-y-2'>
-                  <Label>Filter by Categories</Label>
+                  <Label>{language === 'fr' ? 'Filtrer par catégories' : 'Filter by Categories'}</Label>
                   <div className='grid grid-cols-2 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto'>
                     {availableCategories.map((category) => (
                       <label key={category} className='flex items-center space-x-2 text-sm'>
@@ -393,7 +432,7 @@ export default function Budget() {
                       size='sm' 
                       onClick={() => setSelectedCategories([])}
                     >
-                      Clear All Filters
+                      {language === 'fr' ? 'Effacer tous les filtres' : 'Clear All Filters'}
                     </Button>
                   )}
                 </div>
@@ -405,58 +444,80 @@ export default function Budget() {
             <Card>
               <CardContent className='p-8 text-center'>
                 <DollarSign className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>Select a Building</h3>
-                <p className='text-gray-500'>Choose a building above to view its budget dashboard</p>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  {language === 'fr' ? 'Sélectionnez un bâtiment' : 'Select a Building'}
+                </h3>
+                <p className='text-gray-500'>
+                  {language === 'fr' ? 
+                    'Choisissez un bâtiment ci-dessus pour voir son tableau de bord budgétaire' :
+                    'Choose a building above to view its budget dashboard'
+                  }
+                </p>
               </CardContent>
             </Card>
           ) : budgetLoading || summaryLoading ? (
             <Card>
               <CardContent className='p-8 text-center'>
                 <div className='animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4'></div>
-                <p className='text-gray-500'>Loading budget data...</p>
+                <p className='text-gray-500'>
+                  {language === 'fr' ? 'Chargement des données budgétaires...' : 'Loading budget data...'}
+                </p>
               </CardContent>
             </Card>
           ) : chartData.length === 0 ? (
             <Card>
               <CardContent className='p-8 text-center'>
                 <TrendingUp className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Budget Data</h3>
-                <p className='text-gray-500'>No budget data available for the selected time period</p>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  {language === 'fr' ? 'Aucune donnée budgétaire' : 'No Budget Data'}
+                </h3>
+                <p className='text-gray-500'>
+                  {language === 'fr' ? 
+                    'Aucune donnée budgétaire disponible pour la période sélectionnée' :
+                    'No budget data available for the selected time period'
+                  }
+                </p>
               </CardContent>
             </Card>
           ) : (
             <>
-              {/* Summary Cards */
+              {/* Summary Cards */}
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <Card>
                   <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>Total Income</CardTitle>
+                    <CardTitle className='text-sm font-medium'>
+                      {language === 'fr' ? 'Revenus totaux' : 'Total Income'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className='text-2xl font-bold text-green-600'>
                       ${filteredChartData.reduce((sum, item) => sum + item.totalIncome, 0).toLocaleString()}
                     </div>
                     <p className='text-xs text-muted-foreground mt-1'>
-                      Across {filteredChartData.length} months
+                      {language === 'fr' ? `Sur ${filteredChartData.length} mois` : `Across ${filteredChartData.length} months`}
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>Total Expenses</CardTitle>
+                    <CardTitle className='text-sm font-medium'>
+                      {language === 'fr' ? 'Dépenses totales' : 'Total Expenses'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className='text-2xl font-bold text-red-600'>
                       ${filteredChartData.reduce((sum, item) => sum + item.totalExpenses, 0).toLocaleString()}
                     </div>
                     <p className='text-xs text-muted-foreground mt-1'>
-                      Across {filteredChartData.length} months
+                      {language === 'fr' ? `Sur ${filteredChartData.length} mois` : `Across ${filteredChartData.length} months`}
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-medium'>Net Cash Flow</CardTitle>
+                    <CardTitle className='text-sm font-medium'>
+                      {language === 'fr' ? 'Flux de trésorerie net' : 'Net Cash Flow'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className={`text-2xl font-bold ${
@@ -466,7 +527,7 @@ export default function Budget() {
                       ${filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0).toLocaleString()}
                     </div>
                     <p className='text-xs text-muted-foreground mt-1'>
-                      Net position
+                      {language === 'fr' ? 'Position nette' : 'Net position'}
                     </p>
                   </CardContent>
                 </Card>
@@ -477,11 +538,15 @@ export default function Budget() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <TrendingUp className='w-5 h-5' />
-                    Financial Trends ({startYear} - {endYear})
+                    {language === 'fr' ? 
+                      `Tendances financières (${startYear} - ${endYear})` : 
+                      `Financial Trends (${startYear} - ${endYear})`
+                    }
                   </CardTitle>
                   {selectedCategories.length > 0 && (
                     <div className='text-sm text-muted-foreground'>
-                      Filtered by: {selectedCategories.join(', ')}
+                      {language === 'fr' ? 'Filtré par: ' : 'Filtered by: '}
+                      {selectedCategories.join(', ')}
                     </div>
                   )}
                 </CardHeader>
@@ -545,7 +610,7 @@ export default function Budget() {
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Banknote className='w-5 h-5' />
-                  Bank Account Management
+                  {language === 'fr' ? 'Gestion du compte bancaire' : 'Bank Account Management'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -553,23 +618,29 @@ export default function Budget() {
                   {bankAccountInfo?.bankAccountNumber ? (
                     <div className='p-4 bg-muted rounded-lg'>
                       <div className='flex items-center justify-between mb-2'>
-                        <span className='font-medium'>Current Account:</span>
+                        <span className='font-medium'>
+                          {language === 'fr' ? 'Compte actuel:' : 'Current Account:'}
+                        </span>
                         <span className='font-mono'>{bankAccountInfo.bankAccountNumber}</span>
                       </div>
                       {bankAccountInfo.bankAccountNotes && (
                         <div className='text-sm text-muted-foreground'>
-                          <strong>Last Note:</strong> {bankAccountInfo.bankAccountNotes}
+                          <strong>{language === 'fr' ? 'Dernière note:' : 'Last Note:'}</strong> {bankAccountInfo.bankAccountNotes}
                         </div>
                       )}
                       {bankAccountInfo.bankAccountUpdatedAt && (
                         <div className='text-xs text-muted-foreground mt-1'>
-                          Updated: {new Date(bankAccountInfo.bankAccountUpdatedAt).toLocaleDateString()}
+                          {language === 'fr' ? 'Mis à jour: ' : 'Updated: '}
+                          {new Date(bankAccountInfo.bankAccountUpdatedAt).toLocaleDateString()}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className='p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground'>
-                      No bank account set for this building
+                      {language === 'fr' ? 
+                        'Aucun compte bancaire défini pour ce bâtiment' :
+                        'No bank account set for this building'
+                      }
                     </div>
                   )}
                   
@@ -577,52 +648,75 @@ export default function Budget() {
                     <DialogTrigger asChild>
                       <Button className='w-full' variant='outline'>
                         <Banknote className='w-4 h-4 mr-2' />
-                        {bankAccountInfo?.bankAccountNumber ? 'Update Account' : 'Set Bank Account'}
+                        {bankAccountInfo?.bankAccountNumber ? 
+                          (language === 'fr' ? 'Mettre à jour le compte' : 'Update Account') : 
+                          (language === 'fr' ? 'Définir le compte bancaire' : 'Set Bank Account')
+                        }
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Update Bank Account</DialogTitle>
+                        <DialogTitle>
+                          {language === 'fr' ? 'Mettre à jour le compte bancaire' : 'Update Bank Account'}
+                        </DialogTitle>
                         <DialogDescription>
-                          Update the bank account number for this building. This will override the previous number and add a reconciliation note.
+                          {language === 'fr' ? 
+                            'Mettre à jour le numéro de compte bancaire pour ce bâtiment. Ceci remplacera le numéro précédent et ajoutera une note de rapprochement.' :
+                            'Update the bank account number for this building. This will override the previous number and add a reconciliation note.'
+                          }
                         </DialogDescription>
                       </DialogHeader>
                       <div className='space-y-4'>
                         <div className='space-y-2'>
-                          <Label htmlFor='bankAccount'>Bank Account Number</Label>
+                          <Label htmlFor='bankAccount'>
+                            {language === 'fr' ? 'Numéro de compte bancaire' : 'Bank Account Number'}
+                          </Label>
                           <Input
                             id='bankAccount'
                             value={bankAccountNumber}
                             onChange={(e) => setBankAccountNumber(e.target.value)}
-                            placeholder='Enter bank account number'
+                            placeholder={language === 'fr' ? 
+                              'Saisir le numéro de compte bancaire' : 
+                              'Enter bank account number'
+                            }
                           />
                         </div>
                         <div className='space-y-2'>
-                          <Label htmlFor='reconciliationNote'>Reconciliation Note</Label>
+                          <Label htmlFor='reconciliationNote'>
+                            {language === 'fr' ? 'Note de rapprochement' : 'Reconciliation Note'}
+                          </Label>
                           <Textarea
                             id='reconciliationNote'
                             value={reconciliationNote}
                             onChange={(e) => setReconciliationNote(e.target.value)}
-                            placeholder='Enter reconciliation note for this change...'
+                            placeholder={language === 'fr' ? 
+                              'Saisir la note de rapprochement pour ce changement...' : 
+                              'Enter reconciliation note for this change...'
+                            }
                             rows={3}
                           />
                         </div>
                         {bankAccountInfo?.bankAccountNumber && (
                           <div className='p-3 bg-muted rounded-lg'>
-                            <p className='text-sm'><strong>Current:</strong> {bankAccountInfo.bankAccountNumber}</p>
+                            <p className='text-sm'>
+                              <strong>{language === 'fr' ? 'Actuel:' : 'Current:'}</strong> {bankAccountInfo.bankAccountNumber}
+                            </p>
                             {bankAccountInfo.bankAccountNotes && (
                               <p className='text-sm text-muted-foreground mt-1'>
-                                <strong>Last Note:</strong> {bankAccountInfo.bankAccountNotes}
+                                <strong>{language === 'fr' ? 'Dernière note:' : 'Last Note:'}</strong> {bankAccountInfo.bankAccountNotes}
                               </p>
                             )}
                           </div>
                         )}
                         <div className='flex justify-end space-x-2'>
                           <Button variant='outline' onClick={() => setBankAccountDialog(false)}>
-                            Cancel
+                            {language === 'fr' ? 'Annuler' : 'Cancel'}
                           </Button>
                           <Button onClick={handleUpdateBankAccount} disabled={updateBankAccount.isPending}>
-                            {updateBankAccount.isPending ? 'Updating...' : 'Update Account'}
+                            {updateBankAccount.isPending ? 
+                              (language === 'fr' ? 'Mise à jour...' : 'Updating...') : 
+                              (language === 'fr' ? 'Mettre à jour le compte' : 'Update Account')
+                            }
                           </Button>
                         </div>
                       </div>
