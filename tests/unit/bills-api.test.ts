@@ -9,15 +9,15 @@ const mockDb = {
   insert: jest.fn(),
   update: jest.fn(),
   delete: jest.fn()
-} as any;
+} as unknown;
 
 jest.mock('../../server/db', () => ({
   db: mockDb
 }));
 
 jest.mock('../../server/auth', () => ({
-  requireAuth: (req: any, res: any, next: any) => {
-    req.user = { id: 'test-user-id', role: 'manager' };
+  requireAuth: (req: Express.Request, res: Express.Response, next: () => void) => {
+    (req as any).user = { id: 'test-user-id', role: 'manager' };
     next();
   }
 }));

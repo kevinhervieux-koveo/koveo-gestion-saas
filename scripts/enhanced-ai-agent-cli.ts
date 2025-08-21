@@ -184,9 +184,9 @@ program
         console.log(report);
       }
       
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to generate report');
-      console.error(chalk.red('Error:'), error);
+      console.error(chalk.red('Error:'), _error);
       process.exit(1);
     }
   });

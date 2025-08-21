@@ -29,12 +29,12 @@ describe('Database Query Scoping Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Setup default mock chain - use any to bypass TypeScript restrictions
-    (mockDb as any).select.mockReturnValue(mockDb);
-    (mockDb as any).from.mockReturnValue(mockDb);
-    (mockDb as any).where.mockReturnValue(mockDb);
-    (mockDb as any).innerJoin.mockReturnValue(mockDb);
-    (mockDb as any).orderBy.mockReturnValue(mockDb);
+    // Setup default mock chain
+    (mockDb.select as jest.Mock).mockReturnValue(mockDb);
+    (mockDb.from as jest.Mock).mockReturnValue(mockDb);
+    (mockDb.where as jest.Mock).mockReturnValue(mockDb);
+    (mockDb.innerJoin as jest.Mock).mockReturnValue(mockDb);
+    (mockDb.orderBy as jest.Mock).mockReturnValue(mockDb);
   });
 
   describe('UserContext Building', () => {
@@ -67,7 +67,7 @@ describe('Database Query Scoping Tests', () => {
             })
           })
         })
-      }) as any);
+      }) as unknown);
 
       const userContext = await buildUserContext('tenant-123', 'tenant');
       
@@ -93,7 +93,7 @@ describe('Database Query Scoping Tests', () => {
           { id: 'residence-2' },
           { id: 'residence-3' }
         ])
-      }) as any);
+      }) as unknown);
 
       const residenceIds = await getUserAccessibleResidenceIds(adminContext);
       
@@ -114,7 +114,7 @@ describe('Database Query Scoping Tests', () => {
             { residenceId: 'residence-1' }
           ])
         })
-      }) as any);
+      }) as unknown);
 
       const residenceIds = await getUserAccessibleResidenceIds(tenantContext);
       
@@ -168,7 +168,7 @@ describe('Database Query Scoping Tests', () => {
             { residenceId: 'residence-1' }
           ])
         })
-      }) as any);
+      }) as unknown);
 
       const _scopedQuery = await scopeQuery(mockQuery, tenantContext, 'bills');
       
@@ -188,7 +188,7 @@ describe('Database Query Scoping Tests', () => {
             { residenceId: 'residence-1' }
           ])
         })
-      }) as any);
+      }) as unknown);
 
       const _scopedQuery = await scopeQuery(mockQuery, tenantContext, 'maintenanceRequests');
       
@@ -230,7 +230,7 @@ describe('Database Query Scoping Tests', () => {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([])
         })
-      }) as any);
+      }) as unknown);
 
       const _scopedQuery = await scopeQuery(mockQuery, isolatedUserContext, 'bills');
       
@@ -265,7 +265,7 @@ describe('Database Query Scoping Tests', () => {
             { residenceId: 'residence-2' }
           ])
         })
-      }) as any);
+      }) as unknown);
 
       const _scopedQuery = await scopeQuery(mockQuery, ownerContext, 'documents');
       
@@ -325,7 +325,7 @@ describe('Database Query Scoping Tests', () => {
                 { residenceId: 'residence-1' }
               ])
             })
-          }) as any);
+          }) as unknown);
         }
 
         const _scopedQuery = await scopeQuery(mockQuery, testCase.context, 'bills');
@@ -376,7 +376,7 @@ describe('Database Query Scoping Tests', () => {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([])
         })
-      }) as any);
+      }) as unknown);
 
       const _scopedQuery = await scopeQuery(mockQuery, incompleteContext, 'buildings');
       

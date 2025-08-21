@@ -49,8 +49,8 @@ export class ReplitIntegrationEnhancer {
   private deploymentInfo: DeploymentInfo | null = null;
 
   /**
-   *
-   * @param projectRoot
+   * Initialize Replit integration enhancer.
+   * @param projectRoot The root directory of the project to analyze.
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -62,7 +62,7 @@ export class ReplitIntegrationEnhancer {
    */
   private detectReplitEnvironment(): void {
     try {
-      const replitConfig = this.loadReplitConfig();
+      const _replitConfig = this.loadReplitConfig();
       
       this.environment = {
         replId: process.env.REPL_ID || 'unknown',
@@ -77,16 +77,16 @@ export class ReplitIntegrationEnhancer {
         databases: this.detectDatabases()
       };
       
-      console.log('🔧 Replit environment detected:', this.environment.replId);
-    } catch (error) {
-      console.warn('⚠️ Could not fully detect Replit environment:', error);
+      console.warn('🔧 Replit environment detected:', this.environment.replId);
+    } catch (_error) {
+      console.warn('⚠️ Could not fully detect Replit environment:', _error);
     }
   }
 
   /**
    * Load .replit configuration.
    */
-  private loadReplitConfig(): any {
+  private loadReplitConfig(): Record<string, unknown> {
     const replitFile = path.join(this.projectRoot, '.replit');
     if (fs.existsSync(replitFile)) {
       const content = fs.readFileSync(replitFile, 'utf-8');

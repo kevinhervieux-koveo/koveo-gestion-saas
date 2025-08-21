@@ -49,10 +49,10 @@ export interface FormFieldConfig {
  * Props for the StandardForm component
  */
 interface StandardFormProps {
-  schema: z.ZodType<any>;
+  schema: z.ZodType<Record<string, unknown>>;
   fields: FormFieldConfig[];
-  onSubmit: (_data: any) => void | Promise<void>;
-  defaultValues?: Record<string, any>;
+  onSubmit: (_data: Record<string, unknown>) => void | Promise<void>;
+  defaultValues?: Record<string, unknown>;
   submitText?: string;
   cancelText?: string;
   onCancel?: () => void;

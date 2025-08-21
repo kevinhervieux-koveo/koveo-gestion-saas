@@ -27,7 +27,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Authentication provider component that wraps the application.
  * Manages user authentication state and provides authentication actions.
  * 
- * @param children.children
  * @param children - Child components to wrap with authentication context.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
