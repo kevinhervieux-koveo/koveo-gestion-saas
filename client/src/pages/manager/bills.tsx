@@ -164,8 +164,8 @@ export default function Bills() {
   // Generate year options based on show all years state
   const getYearOptions = () => {
     if (showAllYears) {
-      // Show all years from 3 years before building construction to 25 years forward
-      const startYear = buildingConstructionYear - 3;
+      // Show all years from building construction year to 25 years forward
+      const startYear = buildingConstructionYear;
       const endYear = currentYear + 25;
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
@@ -260,7 +260,7 @@ export default function Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(true)}
                             >
-                              Show more years ({buildingConstructionYear - 3} - {currentYear + 25})
+                              Show more years ({buildingConstructionYear} - {currentYear + 25})
                             </Button>
                           </div>
                         )}
