@@ -51,7 +51,7 @@ class ReplitMonitor {
       
       return this.metrics;
     } catch (_error) {
-      console.error('Error collecting metrics:', error.message);
+      console.error('Error collecting metrics:', _error.message);
       return this.metrics;
     }
   }

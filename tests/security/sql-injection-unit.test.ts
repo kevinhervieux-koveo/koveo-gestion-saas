@@ -35,7 +35,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(result.length).toBe(0);
       } catch (__error) {
         // If it throws, it should not reveal database internals
-        expect(error.message).not.toMatch(/syntax error|table.*does not exist|constraint/i);
+        expect(__error.message).not.toMatch(/syntax error|table.*does not exist|constraint/i);
       }
     });
 
@@ -51,7 +51,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
+        expect(__error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
 
@@ -67,7 +67,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (__error) {
-        expect(error.message).not.toMatch(/invalid input value for enum|syntax error/i);
+        expect(__error.message).not.toMatch(/invalid input value for enum|syntax error/i);
       }
     });
   });
@@ -91,7 +91,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|invalid input|constraint/i);
+        expect(__error.message).not.toMatch(/syntax error|invalid input|constraint/i);
       }
     });
 
@@ -113,7 +113,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
+        expect(__error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
 
@@ -138,7 +138,7 @@ describe('SQL Injection Unit Security Tests', () => {
           expect(org.id).not.toContain('SELECT');
         });
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
+        expect(__error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
   });
@@ -169,7 +169,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(countResult)).toBe(true);
       } catch (__error) {
-        expect(error.message).not.toMatch(/table.*users.*does not exist/i);
+        expect(__error.message).not.toMatch(/table.*users.*does not exist/i);
       }
     });
 
@@ -204,7 +204,7 @@ describe('SQL Injection Unit Security Tests', () => {
         // Cleanup
         await db.delete(schema.users).where(eq(schema.users.id, testUser.id));
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|constraint violation/i);
+        expect(__error.message).not.toMatch(/syntax error|constraint violation/i);
       }
     });
 
@@ -245,7 +245,7 @@ describe('SQL Injection Unit Security Tests', () => {
         // Cleanup
         await db.delete(schema.users).where(eq(schema.users.id, testUser.id));
       } catch (__error) {
-        expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
+        expect(__error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
   });
@@ -267,7 +267,7 @@ describe('SQL Injection Unit Security Tests', () => {
           expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
         } catch (__error) {
-          expect(error.message).not.toMatch(/syntax error|unicode|encoding/i);
+          expect(__error.message).not.toMatch(/syntax error|unicode|encoding/i);
         }
       }
     });
@@ -289,7 +289,7 @@ describe('SQL Injection Unit Security Tests', () => {
           expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
         } catch (__error) {
-          expect(error.message).not.toMatch(/null byte|invalid byte sequence/i);
+          expect(__error.message).not.toMatch(/null byte|invalid byte sequence/i);
         }
       }
     });
@@ -323,7 +323,7 @@ describe('SQL Injection Unit Security Tests', () => {
           console.warn('Error message:', error.message);
           
           // For now, we'll expect this to fail as it reveals a real security issue
-          expect(error.message).toMatch(/information_schema|users/i);
+          expect(__error.message).toMatch(/information_schema|users/i);
         }
       }
     });
@@ -342,7 +342,7 @@ describe('SQL Injection Unit Security Tests', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (__error) {
-        expect(error.message).not.toMatch(/input too long|buffer overflow|memory/i);
+        expect(__error.message).not.toMatch(/input too long|buffer overflow|memory/i);
       }
     });
   });

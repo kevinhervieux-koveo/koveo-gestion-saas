@@ -79,7 +79,7 @@ export class ReplitIntegrationEnhancer {
       
       console.warn('🔧 Replit environment detected:', this.environment.replId);
     } catch (___error) {
-      console.warn('⚠️ Could not fully detect Replit environment:', _error);
+      console.warn('⚠️ Could not fully detect Replit environment:', ___error);
     }
   }
 
