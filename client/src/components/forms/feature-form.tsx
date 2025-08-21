@@ -88,7 +88,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       // Close the dialog
       handleClose(false);
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast({
         title: 'Integration Failed',
         description: 'Failed to add the feature to the roadmap. Please try again.',
@@ -129,7 +129,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'The development prompt has been saved as an actionable item.',
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast({
         title: 'Save Failed',
         description: 'Failed to save the prompt as an actionable item.',

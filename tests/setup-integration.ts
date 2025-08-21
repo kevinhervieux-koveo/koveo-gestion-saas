@@ -7,7 +7,7 @@ process.env.TEST_ENV = 'integration';
 // Mock database optimization functions to prevent them from running
 jest.mock('../server/database-optimization.ts', () => ({
   QueryOptimizer: {
-    applyCoreOptimizations: jest.fn().mockResolvedValue(undefined),
+    applyCoreOptimizations: jest.fn(),
   },
   DatabaseOptimization: {
     coreIndexes: [],
@@ -21,16 +21,16 @@ jest.mock('../server/database-optimization.ts', () => ({
 
 // Mock optimized database storage to use simple storage
 jest.mock('../server/optimized-db-storage.ts', () => {
-  const actual = jest.requireActual('../server/db-storage.ts');
+  const actual = jest.requireActual('../server/db-storage.ts') as any;
   return {
-    OptimizedDatabaseStorage: actual.DatabaseStorage,
+    OptimizedDatabaseStorage: actual.DatabaseStorage || class MockStorage {},
   };
 });
 
 // Mock performance monitoring
 jest.mock('../server/performance-monitoring.ts', () => ({
   dbPerformanceMonitor: {
-    trackQuery: jest.fn().mockImplementation(async (name, fn) => await fn()),
+    trackQuery: jest.fn().mockImplementation(async (_name: string, fn: () => Promise<any>) => await fn()),
     getSlowQueries: jest.fn().mockReturnValue([]),
   },
   queryCache: {

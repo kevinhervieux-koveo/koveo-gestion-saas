@@ -59,8 +59,8 @@ declare module 'wouter/memory' {
   
   /**
    * Memory location hook for testing.
-   * @param _options - Configuration options.
-   * @param _options._path - Initial path value for memory location.
+   * @param options - Configuration options for memory location.
+   * @param options.path - Initial path value for memory location.
    * @returns Combined hook return value and stub history.
    */
   function memoryLocation(options: { path: string }): HookReturnValue & StubHistory;

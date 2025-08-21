@@ -251,7 +251,8 @@ export class SmartContextManager {
 
   /**
    * Get files related to current working set.
-   * @param targetFiles
+   * @param targetFiles - Array of target file paths to find related files for
+   * @returns Array of related file contexts
    */
   public getRelatedFiles(targetFiles: string[]): FileContext[] {
     const related: Map<string, FileContext> = new Map();
@@ -285,8 +286,9 @@ export class SmartContextManager {
 
   /**
    * Check if two files share dependencies.
-   * @param file1
-   * @param file2
+   * @param file1 - First file context to compare
+   * @param file2 - Second file context to compare
+   * @returns True if files share at least 2 dependencies
    */
   private sharesDependencies(file1: FileContext, file2: FileContext): boolean {
     const shared = file1.dependencies.filter(dep => file2.dependencies.includes(dep));
@@ -295,7 +297,8 @@ export class SmartContextManager {
 
   /**
    * Get file context (cached or analyze).
-   * @param filePath
+   * @param filePath - Path to the file to get context for
+   * @returns File context object or null if file doesn't exist
    */
   public getFileContext(filePath: string): FileContext | null {
     if (this.fileCache.has(filePath)) {

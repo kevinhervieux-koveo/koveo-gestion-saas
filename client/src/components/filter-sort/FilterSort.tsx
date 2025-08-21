@@ -35,7 +35,7 @@ interface FilterSortProps {
   search: string;
   onAddFilter: (_filter: FilterValue) => void;
   onRemoveFilter: (_field: string) => void;
-  onUpdateFilter: (_field: string, _filter: FilterValue) => void;
+  onFilterUpdate: (_field: string, _filter: FilterValue) => void;
   onClearFilters: () => void;
   onSetSort: (_sort: SortValue | null) => void;
   onToggleSort: (_field: string) => void;
@@ -57,7 +57,7 @@ interface FilterSortProps {
  * @param props.search - Current search query string.
  * @param props.onAddFilter - Callback to add a new filter.
  * @param props.onRemoveFilter - Callback to remove a filter by field.
- * @param props.onUpdateFilter - Callback to update an existing filter.
+ * @param props.onFilterUpdate - Callback to update an existing filter.
  * @param props.onClearFilters - Callback to clear all active filters.
  * @param props.onSetSort - Callback to set sort configuration.
  * @param props.onToggleSort - Callback to toggle sort direction for a field.

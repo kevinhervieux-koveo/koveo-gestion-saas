@@ -70,7 +70,8 @@ const getInitialFormData = (): FeatureFormData => ({
 
 /**
  * Hook for managing feature form data with draft functionality.
- * @param feature
+ * @param feature - The feature being edited or null for new features
+ * @returns Object containing form data state and management functions
  */
 export function useFeatureFormData(feature: Feature | null) {
   const { toast } = useToast();
@@ -80,6 +81,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Gets the localStorage key for drafts.
+   * @returns The localStorage key for the current feature draft
    */
   const getDraftKey = useCallback(() => {
     const baseKey = 'koveo-feature-draft';
@@ -88,6 +90,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Saves form data to localStorage.
+   * @returns void
    */
   const saveDraft = useCallback(() => {
     try {
@@ -136,6 +139,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Clears the saved draft.
+   * @returns void
    */
   const clearDraft = useCallback(() => {
     try {
@@ -154,6 +158,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Updates form data when input values change.
+   * @returns void
    */
   const updateFormData = useCallback((field: string, value: string | boolean | unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -162,6 +167,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Updates RBAC role permissions.
+   * @returns void
    */
   const updateRBACRole = useCallback((role: string, field: string, value: boolean | string) => {
     setFormData(prev => ({
@@ -179,6 +185,7 @@ export function useFeatureFormData(feature: Feature | null) {
 
   /**
    * Resets form to initial state.
+   * @returns void
    */
   const resetForm = useCallback(() => {
     setFormData(getInitialFormData());
