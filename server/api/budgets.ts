@@ -192,6 +192,58 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
 /**
  * Update building bank account number with reconciliation note
  */
+router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
+  try {
+    const { buildingId } = req.params;
+    const { 
+      bankAccountNumber, 
+      bankAccountNotes, 
+      bankAccountStartDate, 
+      bankAccountStartAmount, 
+      bankAccountMinimums 
+    } = req.body;
+
+    // Validate building exists
+    const building = await db.query.buildings.findFirst({
+      where: eq(buildings.id, buildingId),
+      columns: { id: true },
+    });
+
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    // Update building with bank account info
+    await db
+      .update(buildings)
+      .set({
+        bankAccountNumber,
+        bankAccountNotes,
+        bankAccountStartDate,
+        bankAccountStartAmount,
+        bankAccountMinimums,
+        bankAccountUpdatedAt: new Date()
+      })
+      .where(eq(buildings.id, buildingId));
+
+    res.json({ 
+      message: 'Bank account updated successfully',
+      bankAccountNumber,
+      bankAccountNotes,
+      bankAccountStartDate,
+      bankAccountStartAmount,
+      bankAccountMinimums,
+      bankAccountUpdatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating bank account:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update building bank account number with reconciliation note (PATCH method for backwards compatibility)
+ */
 router.patch('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     // TODO: Enable when bank account columns are added to database
@@ -209,21 +261,31 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
 
-    // Validate building exists
+    // Validate building exists and get bank account info
     const building = await db.query.buildings.findFirst({
       where: eq(buildings.id, buildingId),
-      columns: { id: true },
+      columns: { 
+        id: true,
+        bankAccountNumber: true,
+        bankAccountNotes: true,
+        bankAccountStartDate: true,
+        bankAccountStartAmount: true,
+        bankAccountMinimums: true,
+        bankAccountUpdatedAt: true
+      },
     });
 
     if (!building) {
       return res.status(404).json({ error: 'Building not found' });
     }
 
-    // TODO: Return actual bank account data when columns are added
     res.json({
-      bankAccountNumber: null,
-      bankAccountNotes: null,
-      bankAccountUpdatedAt: null,
+      bankAccountNumber: building.bankAccountNumber,
+      bankAccountNotes: building.bankAccountNotes,
+      bankAccountStartDate: building.bankAccountStartDate,
+      bankAccountStartAmount: building.bankAccountStartAmount,
+      bankAccountMinimums: building.bankAccountMinimums,
+      bankAccountUpdatedAt: building.bankAccountUpdatedAt,
     });
   } catch (error) {
     console.error('Error fetching bank account info:', error);
