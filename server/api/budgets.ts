@@ -13,11 +13,14 @@ const router = express.Router();
 router.get('/:buildingId', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
-    const { startYear, endYear, groupBy = 'monthly' } = req.query;
+    const { startYear, endYear, startMonth, endMonth, groupBy = 'monthly' } = req.query;
     
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
     const end = endYear ? parseInt(endYear as string) : currentYear + 25;
+    const startMo = startMonth ? parseInt(startMonth as string) : 1;
+    const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
     // Validate building access
     const building = await db.query.buildings.findFirst({
@@ -55,7 +58,29 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 
       return res.json({ budgets: yearlyBudgets, type: 'yearly' });
     } else {
-      // Get monthly budget data
+      // Get monthly budget data with month filtering
+      let whereConditions = [
+        eq(monthlyBudgets.buildingId, buildingId)
+      ];
+
+      // Add year and month filtering
+      if (groupBy === 'monthly' && (startMonth || endMonth)) {
+        // For monthly filtering, handle year-month combinations
+        const startYearMonth = start * 100 + startMo; // e.g., 202508
+        const endYearMonth = end * 100 + endMo; // e.g., 202512
+        
+        whereConditions.push(
+          gte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
+          lte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
+        );
+      } else {
+        // Standard year-only filtering
+        whereConditions.push(
+          gte(monthlyBudgets.year, start),
+          lte(monthlyBudgets.year, end)
+        );
+      }
+
       const monthlyBudgetData = await db
         .select({
           year: monthlyBudgets.year,
@@ -67,13 +92,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
           approved: monthlyBudgets.approved,
         })
         .from(monthlyBudgets)
-        .where(
-          and(
-            eq(monthlyBudgets.buildingId, buildingId),
-            gte(monthlyBudgets.year, start),
-            lte(monthlyBudgets.year, end)
-          )
-        )
+        .where(and(...whereConditions))
         .orderBy(asc(monthlyBudgets.year), asc(monthlyBudgets.month));
 
       // If no data exists, provide sample data to demonstrate the dashboard
@@ -124,13 +143,38 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 router.get('/:buildingId/summary', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
-    const { startYear, endYear } = req.query;
+    const { startYear, endYear, startMonth, endMonth } = req.query;
     
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
     const end = endYear ? parseInt(endYear as string) : currentYear + 25;
+    const startMo = startMonth ? parseInt(startMonth as string) : 1;
+    const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
-    // Get monthly budget data with proper structure
+    // Get monthly budget data with proper structure and month filtering
+    let whereConditions = [
+      eq(monthlyBudgets.buildingId, buildingId)
+    ];
+
+    // Add year and month filtering if month parameters are provided
+    if (startMonth || endMonth) {
+      // For monthly filtering, handle year-month combinations
+      const startYearMonth = start * 100 + startMo; // e.g., 202508
+      const endYearMonth = end * 100 + endMo; // e.g., 202512
+      
+      whereConditions.push(
+        gte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
+        lte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
+      );
+    } else {
+      // Standard year-only filtering
+      whereConditions.push(
+        gte(monthlyBudgets.year, start),
+        lte(monthlyBudgets.year, end)
+      );
+    }
+
     const summaryData = await db
       .select({
         year: monthlyBudgets.year,
@@ -142,13 +186,7 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
         approved: monthlyBudgets.approved,
       })
       .from(monthlyBudgets)
-      .where(
-        and(
-          eq(monthlyBudgets.buildingId, buildingId),
-          gte(monthlyBudgets.year, start),
-          lte(monthlyBudgets.year, end)
-        )
-      )
+      .where(and(...whereConditions))
       .orderBy(asc(monthlyBudgets.year), asc(monthlyBudgets.month));
 
     // If no data exists, provide sample data to demonstrate the dashboard
