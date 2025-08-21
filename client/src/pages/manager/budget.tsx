@@ -57,18 +57,21 @@ export default function Budget() {
   // Get budget data
   const { data: budgetData, isLoading: budgetLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, startYear, endYear, viewType],
+    queryFn: () => fetch(`/api/budgets/${selectedBuilding}?startYear=${startYear}&endYear=${endYear}&groupBy=${viewType}`).then(res => res.json()),
     enabled: !!selectedBuilding,
   });
 
   // Get budget summary
   const { data: budgetSummary, isLoading: summaryLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, 'summary', startYear, endYear],
+    queryFn: () => fetch(`/api/budgets/${selectedBuilding}/summary?startYear=${startYear}&endYear=${endYear}`).then(res => res.json()),
     enabled: !!selectedBuilding,
   });
 
   // Get bank account info
   const { data: bankAccountInfo } = useQuery<BankAccountInfo>({
     queryKey: ['/api/budgets', selectedBuilding, 'bank-account'],
+    queryFn: () => fetch(`/api/budgets/${selectedBuilding}/bank-account`).then(res => res.json()),
     enabled: !!selectedBuilding,
   });
 
