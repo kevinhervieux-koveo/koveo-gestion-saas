@@ -1235,13 +1235,18 @@ export default function Budget() {
                             <Button 
                               onClick={async () => {
                                 try {
-                                  await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, 'PUT', {
+                                  console.log('Saving minimum balances:', minimumBalances);
+                                  console.log('Bank account info:', bankAccountInfo);
+                                  
+                                  const response = await apiRequest(`/api/budgets/${selectedBuilding}/bank-account`, 'PUT', {
                                     bankAccountNumber: bankAccountInfo?.bankAccountNumber || '',
                                     bankAccountNotes: bankAccountInfo?.bankAccountNotes || '',
                                     bankAccountStartDate: bankAccountInfo?.bankAccountStartDate || null,
                                     bankAccountStartAmount: bankAccountInfo?.bankAccountStartAmount || null,
                                     bankAccountMinimums: JSON.stringify(minimumBalances),
                                   });
+                                  
+                                  console.log('Response:', response);
                                   
                                   queryClient.invalidateQueries({
                                     queryKey: ['/api/budgets', selectedBuilding, 'bank-account']
@@ -1256,6 +1261,7 @@ export default function Budget() {
                                   
                                   setMinimumBalancesDialog(false);
                                 } catch (error) {
+                                  console.error('Minimum balance update error:', error);
                                   toast({
                                     title: language === 'fr' ? 'Erreur' : 'Error',
                                     description: language === 'fr' ? 
