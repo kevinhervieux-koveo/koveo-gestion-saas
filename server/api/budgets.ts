@@ -214,16 +214,15 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
     }
 
     // Update building with bank account info
-    const updatedAt = new Date();
     await db
       .update(buildings)
       .set({
         bankAccountNumber,
         bankAccountNotes,
-        bankAccountStartDate,
+        bankAccountStartDate: bankAccountStartDate ? new Date(bankAccountStartDate) : null,
         bankAccountStartAmount,
         bankAccountMinimums,
-        bankAccountUpdatedAt: updatedAt
+        bankAccountUpdatedAt: new Date()
       })
       .where(eq(buildings.id, buildingId));
 
@@ -231,10 +230,10 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       message: 'Bank account updated successfully',
       bankAccountNumber,
       bankAccountNotes,
-      bankAccountStartDate,
+      bankAccountStartDate: bankAccountStartDate ? new Date(bankAccountStartDate) : null,
       bankAccountStartAmount,
       bankAccountMinimums,
-      bankAccountUpdatedAt: updatedAt
+      bankAccountUpdatedAt: new Date()
     });
   } catch (error) {
     console.error('Error updating bank account:', error);
