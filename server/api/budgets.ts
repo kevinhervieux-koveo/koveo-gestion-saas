@@ -22,6 +22,10 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     // Validate building access
     const building = await db.query.buildings.findFirst({
       where: eq(buildings.id, buildingId),
+      columns: {
+        id: true,
+        name: true,
+      },
     });
 
     if (!building) {
