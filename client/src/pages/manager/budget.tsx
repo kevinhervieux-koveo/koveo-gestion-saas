@@ -341,13 +341,16 @@ export default function Budget() {
   const chartDataWithBalance = useMemo(() => {
     if (!chartData?.length) return [];
     
-    const startingBalance = bankAccountInfo?.bankAccountStartAmount || 0;
+    // Use starting balance if available, otherwise start with 0 and build from cash flow
+    const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
     
     return chartData.map((item, index) => {
       if (index === 0) {
+        // For the first month, add net cash flow to starting balance
         runningBalance = startingBalance + item.netCashFlow;
       } else {
+        // For subsequent months, add net cash flow to running balance
         runningBalance += item.netCashFlow;
       }
       
@@ -1196,6 +1199,19 @@ export default function Budget() {
                 <div className='space-y-4'>
                   {bankAccountInfo?.bankAccountNumber ? (
                     <div className='space-y-4'>
+                      {!bankAccountInfo.bankAccountStartAmount && (
+                        <div className='p-3 bg-orange-50 border border-orange-200 rounded-lg'>
+                          <div className='flex items-center gap-2 text-orange-800'>
+                            <AlertTriangle className='w-4 h-4' />
+                            <span className='text-sm font-medium'>
+                              {language === 'fr' ? 
+                                'Attention: Le solde initial du compte bancaire n\'est pas défini. Cliquez sur "Mettre à jour le compte" pour le configurer.' :
+                                'Warning: Bank account starting balance is not set. Click "Update Account" to configure it.'
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       <div className='p-4 bg-muted rounded-lg'>
                         <div className='flex items-center justify-between mb-2'>
                           <span className='font-medium'>{bankAccountTranslations.currentAccount}</span>
@@ -1213,14 +1229,15 @@ export default function Budget() {
                             </div>
                           )}
                           
-                          {bankAccountInfo.bankAccountStartAmount && (
-                            <div className='text-sm'>
-                              <strong className='text-muted-foreground'>{bankAccountTranslations.startAmount}</strong>
-                              <div className='font-semibold text-green-600 mt-1'>
-                                ${Number(bankAccountInfo.bankAccountStartAmount).toLocaleString()}
-                              </div>
+                          <div className='text-sm'>
+                            <strong className='text-muted-foreground'>{bankAccountTranslations.startAmount}</strong>
+                            <div className={`font-semibold mt-1 ${bankAccountInfo.bankAccountStartAmount ? 'text-green-600' : 'text-orange-600'}`}>
+                              {bankAccountInfo.bankAccountStartAmount 
+                                ? `$${Number(bankAccountInfo.bankAccountStartAmount).toLocaleString()}`
+                                : (language === 'fr' ? 'Non défini - requis pour le calcul du solde' : 'Not set - required for balance calculation')
+                              }
                             </div>
-                          )}
+                          </div>
                         </div>
                         
                         {bankAccountInfo.bankAccountNotes && (
