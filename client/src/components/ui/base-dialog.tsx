@@ -28,6 +28,7 @@ interface BaseDialogProps {
   confirmDisabled?: boolean;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showFooter?: boolean;
+  footerContent?: React.ReactNode;
   className?: string;
 }
 
@@ -54,6 +55,7 @@ export function BaseDialog({
   confirmDisabled = false,
   maxWidth = 'md',
   showFooter = true,
+  footerContent,
   className = ''
 }: BaseDialogProps) {
   const { t } = useLanguage();
@@ -90,30 +92,34 @@ export function BaseDialog({
 
         {showFooter && (
           <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              {cancelText || t('cancel')}
-            </Button>
-            
-            {onConfirm && (
-              <Button
-                type="button"
-                onClick={onConfirm}
-                disabled={confirmDisabled || isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    {t('processing')}
-                  </>
-                ) : (
-                  confirmText || t('confirm')
+            {footerContent || (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                >
+                  {cancelText || t('cancel')}
+                </Button>
+                
+                {onConfirm && (
+                  <Button
+                    type="button"
+                    onClick={onConfirm}
+                    disabled={confirmDisabled || isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        {t('processing')}
+                      </>
+                    ) : (
+                      confirmText || t('confirm')
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </>
             )}
           </DialogFooter>
         )}

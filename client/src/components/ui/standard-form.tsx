@@ -42,6 +42,7 @@ export interface FormFieldConfig {
   rows?: number;
   disabled?: boolean;
   className?: string;
+  required?: boolean;
 }
 
 /**
@@ -57,8 +58,10 @@ interface StandardFormProps {
   onCancel?: () => void;
   isLoading?: boolean;
   showCancel?: boolean;
+  showCancelButton?: boolean;
   className?: string;
   children?: React.ReactNode;
+  layout?: string;
 }
 
 /**

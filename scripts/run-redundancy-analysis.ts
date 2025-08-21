@@ -1,13 +1,16 @@
 #!/usr/bin/env npx tsx
 
 /**
- * @file Redundancy Analysis Script
- * @description Runs comprehensive redundancy detection tests as part of validation pipeline
+ * @file Redundancy Analysis Script.
+ * @description Runs comprehensive redundancy detection tests as part of validation pipeline.
  */
 
 import { spawn } from 'child_process';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface TestResult {
   passed: boolean;
   output: string;
@@ -15,7 +18,7 @@ interface TestResult {
 }
 
 /**
- * Run redundancy analysis tests
+ * Run redundancy analysis tests.
  */
 const runRedundancyTests = (): Promise<TestResult> => {
   return new Promise((resolve) => {
@@ -80,7 +83,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
 };
 
 /**
- * Run style consolidation analysis
+ * Run style consolidation analysis.
  */
 const runStyleAnalysis = (): Promise<TestResult> => {
   return new Promise((resolve) => {
@@ -135,7 +138,9 @@ const runStyleAnalysis = (): Promise<TestResult> => {
 };
 
 /**
- * Generate redundancy report summary
+ * Generate redundancy report summary.
+ * @param redundancyResult
+ * @param styleResult
  */
 const generateSummary = (redundancyResult: TestResult, styleResult: TestResult) => {
   console.log('\n' + chalk.bold('📊 REDUNDANCY ANALYSIS SUMMARY'));
@@ -173,7 +178,8 @@ const generateSummary = (redundancyResult: TestResult, styleResult: TestResult) 
 };
 
 /**
- * Extract metrics from test output
+ * Extract metrics from test output.
+ * @param output
  */
 const extractMetrics = (output: string) => {
   const metrics = {
@@ -184,19 +190,19 @@ const extractMetrics = (output: string) => {
   
   // Extract metrics using regex patterns
   const totalMatch = output.match(/Total Components.*?(\d+)/i);
-  if (totalMatch) metrics.totalComponents = parseInt(totalMatch[1]);
+  if (totalMatch) {metrics.totalComponents = parseInt(totalMatch[1]);}
   
   const redundancyMatch = output.match(/(\d+)%\)/i);
-  if (redundancyMatch) metrics.redundancyPercentage = parseInt(redundancyMatch[1]);
+  if (redundancyMatch) {metrics.redundancyPercentage = parseInt(redundancyMatch[1]);}
   
   const highPriorityMatch = output.match(/High-Priority.*?(\d+)/i);
-  if (highPriorityMatch) metrics.highPriorityComponents = parseInt(highPriorityMatch[1]);
+  if (highPriorityMatch) {metrics.highPriorityComponents = parseInt(highPriorityMatch[1]);}
   
   return metrics;
 };
 
 /**
- * Main execution
+ * Main execution.
  */
 async function main() {
   console.log(chalk.bold.blue('🚀 Starting Redundancy Analysis Pipeline\n'));

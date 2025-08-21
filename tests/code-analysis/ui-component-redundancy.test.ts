@@ -7,6 +7,9 @@ import { describe, it, expect } from '@jest/globals';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ *
+ */
 interface ComponentAnalysis {
   name: string;
   filePath: string;
@@ -17,6 +20,9 @@ interface ComponentAnalysis {
   similarComponents: string[];
 }
 
+/**
+ *
+ */
 interface RedundancyResult {
   componentName: string;
   redundancyScore: number;
@@ -202,7 +208,7 @@ const generateRefactorSuggestion = (component: ComponentAnalysis): string => {
 
 describe('Enhanced UI Component Redundancy Detection', () => {
   const clientDir = './client/src/components';
-  let componentFiles: string[] = [];
+  const componentFiles: string[] = [];
   let componentAnalyses: ComponentAnalysis[] = [];
 
   beforeAll(() => {

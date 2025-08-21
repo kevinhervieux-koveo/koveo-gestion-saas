@@ -14,6 +14,9 @@ import { useCreateMutation } from '@/hooks/use-api-handler';
 import { cn } from '@/lib/utils';
 
 // Types
+/**
+ *
+ */
 interface CertificateStatus {
   isValid: boolean;
   isExpiring: boolean;
@@ -21,6 +24,9 @@ interface CertificateStatus {
   statusLabel: string;
 }
 
+/**
+ *
+ */
 interface SslCertificateData {
   domain: string;
   issuer: string;
@@ -41,6 +47,9 @@ interface SslCertificateData {
   certificateStatus: CertificateStatus;
 }
 
+/**
+ *
+ */
 interface SslApiResponse {
   success: boolean;
   data: SslCertificateData;
@@ -57,11 +66,14 @@ const domainFormSchema = z.object({
     )
 });
 
+/**
+ *
+ */
 type DomainFormData = z.infer<typeof domainFormSchema>;
 
 /**
  * SSL Certificate Info Component - Refactored using reusable components
- * Reduced from 469+ lines to ~240 lines by leveraging StandardForm and BaseDialog
+ * Reduced from 469+ lines to ~240 lines by leveraging StandardForm and BaseDialog.
  */
 export function SslCertificateInfo() {
   const { user } = useAuth();
@@ -293,11 +305,20 @@ export function SslCertificateInfo() {
 }
 
 // Certificate info card helper component
+/**
+ *
+ */
 interface CertificateInfoCardProps {
   title: string;
   items: { label: string; value: string | number }[];
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.title
+ * @param root0.items
+ */
 function CertificateInfoCard({ title, items }: CertificateInfoCardProps) {
   return (
     <Card>
@@ -317,6 +338,9 @@ function CertificateInfoCard({ title, items }: CertificateInfoCardProps) {
 }
 
 // Loading skeleton component
+/**
+ *
+ */
 function SslCertificateInfoSkeleton() {
   return (
     <Card>

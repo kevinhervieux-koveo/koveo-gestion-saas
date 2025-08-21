@@ -1017,6 +1017,8 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
 
 /**
  * Extracts numeric value from test output using regex.
+ * @param output
+ * @param regex
  */
 function extractNumberFromOutput(output: string, regex: RegExp): number | null {
   const match = output.match(regex);
@@ -1150,6 +1152,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
  * @param accessibility
  * @param componentCoverage
  * @param law25Compliance
+ * @param redundancy
  * @returns Boolean indicating if all thresholds are met.
  */
 function validateQuality(

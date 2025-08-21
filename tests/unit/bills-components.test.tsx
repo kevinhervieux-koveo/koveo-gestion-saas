@@ -292,7 +292,7 @@ describe('Bills Component', () => {
 
   it('should handle loading state correctly', () => {
     mockFetch
-      .mockImplementationOnce(() => new Promise(() => {})); // Never resolves to simulate loading
+      .mockImplementationOnce(() => new Promise(() => {/* Never resolves to simulate loading */}));
 
     renderComponent();
 

@@ -25,6 +25,8 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * Column configuration for the data table
  */
+export interface ColumnConfig<T> extends TableColumn<T> {}
+
 export interface TableColumn<T> {
   key: string;
   label: string;

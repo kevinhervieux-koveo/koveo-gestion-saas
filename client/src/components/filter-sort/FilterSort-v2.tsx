@@ -26,12 +26,18 @@ import {
 import { cn } from '@/lib/utils';
 
 // Types
+/**
+ *
+ */
 export interface FilterOption {
   id: string;
   label: string;
   value: string | number | boolean;
 }
 
+/**
+ *
+ */
 export interface SortOption {
   id: string;
   label: string;
@@ -39,6 +45,9 @@ export interface SortOption {
   direction?: 'asc' | 'desc';
 }
 
+/**
+ *
+ */
 export interface FilterConfig {
   id: string;
   label: string;
@@ -46,6 +55,9 @@ export interface FilterConfig {
   options?: FilterOption[];
 }
 
+/**
+ *
+ */
 export interface FilterSortState {
   search: string;
   filters: Record<string, any>;
@@ -55,6 +67,9 @@ export interface FilterSortState {
   } | null;
 }
 
+/**
+ *
+ */
 interface FilterSortProps {
   searchPlaceholder?: string;
   filterConfigs?: FilterConfig[];
@@ -69,7 +84,17 @@ interface FilterSortProps {
 
 /**
  * Filter and Sort Component - Refactored using reusable patterns
- * Reduced from 386+ lines to ~200 lines with better maintainability
+ * Reduced from 386+ lines to ~200 lines with better maintainability.
+ * @param root0
+ * @param root0.searchPlaceholder
+ * @param root0.filterConfigs
+ * @param root0.sortOptions
+ * @param root0.state
+ * @param root0.onChange
+ * @param root0.className
+ * @param root0.showSearch
+ * @param root0.showFilters
+ * @param root0.showSort
  */
 export function FilterSort({
   searchPlaceholder = 'Search...',
@@ -259,7 +284,7 @@ export function FilterSort({
             
             {Object.entries(state.filters).map(([filterId, value]) => {
               const config = filterConfigs.find(f => f.id === filterId);
-              if (!config) return null;
+              if (!config) {return null;}
               
               let displayValue = value;
               if (config.type === 'select' && config.options) {
@@ -287,12 +312,22 @@ export function FilterSort({
 }
 
 // Individual filter field component
+/**
+ *
+ */
 interface FilterFieldProps {
   config: FilterConfig;
   value: any;
   onChange: (value: any) => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.config
+ * @param root0.value
+ * @param root0.onChange
+ */
 function FilterField({ config, value, onChange }: FilterFieldProps) {
   switch (config.type) {
     case 'select':

@@ -24,6 +24,9 @@ import { BaseDialog } from '@/components/ui/base-dialog';
 import { cn } from '@/lib/utils';
 
 // Types
+/**
+ *
+ */
 interface SystemMetrics {
   cpu: number;
   memory: number;
@@ -33,7 +36,10 @@ interface SystemMetrics {
   uptime: number;
 }
 
-interface AlertItem {
+/**
+ *
+ */
+interface AlertItem extends Record<string, unknown> {
   id: string;
   level: 'info' | 'warning' | 'error' | 'critical';
   message: string;
@@ -42,6 +48,9 @@ interface AlertItem {
   component: string;
 }
 
+/**
+ *
+ */
 interface PerformanceData {
   timestamp: string;
   responseTime: number;
@@ -49,6 +58,9 @@ interface PerformanceData {
   errorRate: number;
 }
 
+/**
+ *
+ */
 interface MonitoringData {
   status: 'healthy' | 'degraded' | 'unhealthy';
   metrics: SystemMetrics;
@@ -59,7 +71,7 @@ interface MonitoringData {
 
 /**
  * Replit AI Monitoring Component - Refactored using reusable components
- * Reduced from 441+ lines to ~220 lines by leveraging DataTable and BaseDialog
+ * Reduced from 441+ lines to ~220 lines by leveraging DataTable and BaseDialog.
  */
 export function ReplitAiMonitoring() {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
@@ -276,10 +288,18 @@ export function ReplitAiMonitoring() {
 }
 
 // System metrics grid component
+/**
+ *
+ */
 interface SystemMetricsGridProps {
   metrics: SystemMetrics;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.metrics
+ */
 function SystemMetricsGrid({ metrics }: SystemMetricsGridProps) {
   const metricCards = [
     { label: 'CPU Usage', value: metrics.cpu, icon: Zap, unit: '%', max: 100 },
@@ -309,10 +329,18 @@ function SystemMetricsGrid({ metrics }: SystemMetricsGridProps) {
 }
 
 // Performance charts placeholder
+/**
+ *
+ */
 interface PerformanceChartsProps {
   data: PerformanceData[];
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.data
+ */
 function PerformanceCharts({ data }: PerformanceChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -348,12 +376,34 @@ function PerformanceCharts({ data }: PerformanceChartsProps) {
 }
 
 // Alert details component
+/**
+ *
+ */
 interface AlertDetailsProps {
   alert: AlertItem;
 }
 
+/**
+ * Alert details component.
+ * @param root0
+ * @param root0.alert
+ */
 function AlertDetails({ alert }: AlertDetailsProps) {
-  const config = getAlertConfig(alert.level);
+  // Local alert configuration since getAlertConfig is not in scope
+  const getLocalAlertConfig = (level: string) => {
+    switch (level) {
+      case 'critical':
+        return { variant: 'destructive' as const, icon: AlertTriangle };
+      case 'error':
+        return { variant: 'destructive' as const, icon: AlertTriangle };
+      case 'warning':
+        return { variant: 'warning' as const, icon: AlertTriangle };
+      default:
+        return { variant: 'secondary' as const, icon: Activity };
+    }
+  };
+  
+  const config = getLocalAlertConfig(alert.level);
 
   return (
     <div className="space-y-4">
@@ -388,6 +438,9 @@ function AlertDetails({ alert }: AlertDetailsProps) {
 }
 
 // Loading skeleton
+/**
+ *
+ */
 function MonitoringSkeleton() {
   return (
     <div className="space-y-6">

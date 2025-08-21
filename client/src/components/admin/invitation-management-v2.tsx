@@ -23,6 +23,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
 // Interface for invitation data
+/**
+ *
+ */
 interface Invitation {
   id: string;
   email: string;
@@ -40,6 +43,9 @@ interface Invitation {
   securityLevel: string;
 }
 
+/**
+ *
+ */
 interface InvitationManagementProps {
   invitations: Invitation[];
   onSendReminder: (_invitationId: string) => void;
@@ -48,7 +54,11 @@ interface InvitationManagementProps {
 
 /**
  * Invitation Management Component - Refactored using reusable components
- * Reduced from 439+ lines to ~220 lines by leveraging DataTable and API hooks
+ * Reduced from 439+ lines to ~220 lines by leveraging DataTable and API hooks.
+ * @param root0
+ * @param root0.invitations
+ * @param root0.onSendReminder
+ * @param root0.onRefresh
  */
 export function InvitationManagement({ 
   invitations, 
@@ -288,6 +298,9 @@ export function InvitationManagement({
 }
 
 // Actions dropdown component for individual invitations
+/**
+ *
+ */
 interface InvitationActionsProps {
   invitation: Invitation;
   onCancel: (id: string) => void;
@@ -297,6 +310,16 @@ interface InvitationActionsProps {
   canEdit: boolean;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.invitation
+ * @param root0.onCancel
+ * @param root0.onDelete
+ * @param root0.onResend
+ * @param root0.onCopyLink
+ * @param root0.canEdit
+ */
 function InvitationActions({
   invitation,
   onCancel,

@@ -12,6 +12,9 @@ import { StandardForm, type FormFieldConfig } from '@/components/ui/standard-for
 import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/use-api-handler';
 
 // Types
+/**
+ *
+ */
 interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
@@ -45,6 +48,9 @@ interface Demand {
   };
 }
 
+/**
+ *
+ */
 interface DemandComment {
   id: string;
   demandId: string;
@@ -60,6 +66,9 @@ interface DemandComment {
   };
 }
 
+/**
+ *
+ */
 interface DemandDetailsPopupProps {
   demandId: string | null;
   open: boolean;
@@ -83,13 +92,26 @@ const updateDemandSchema = z.object({
   assignationResidenceId: z.string().optional(),
 });
 
+/**
+ *
+ */
 type UpdateStatusData = z.infer<typeof updateStatusSchema>;
+/**
+ *
+ */
 type AddCommentData = z.infer<typeof addCommentSchema>;
+/**
+ *
+ */
 type UpdateDemandData = z.infer<typeof updateDemandSchema>;
 
 /**
  * Demand Details Popup - Refactored using reusable components
- * Reduced from 590+ lines to ~300 lines by leveraging BaseDialog, StandardForm, and API hooks
+ * Reduced from 590+ lines to ~300 lines by leveraging BaseDialog, StandardForm, and API hooks.
+ * @param root0
+ * @param root0.demandId
+ * @param root0.open
+ * @param root0.onOpenChange
  */
 export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetailsPopupProps) {
   const [isEditing, setIsEditing] = useState(false);

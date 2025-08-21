@@ -49,7 +49,12 @@ interface EditUserDialogProps {
 }
 
 /**
- * Edit User Dialog Component - Now using BaseDialog and StandardForm
+ * Edit User Dialog Component - Now using BaseDialog and StandardForm.
+ * @param root0
+ * @param root0.user
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
  */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
@@ -85,7 +90,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
     },
   ];
 
-  if (!user) return null;
+  if (!user) {return null;}
 
   return (
     <BaseDialog
@@ -113,7 +118,13 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
 }
 
 /**
- * User List Component - Now using reusable DataTable
+ * User List Component - Now using reusable DataTable.
+ * @param root0
+ * @param root0.users
+ * @param root0.selectedUsers
+ * @param root0.onSelectionChange
+ * @param root0.onBulkAction
+ * @param root0.isLoading
  */
 export function UserListComponent({ 
   users, 
@@ -148,7 +159,7 @@ export function UserListComponent({
   const canDeleteUser = hasRole(['admin']);
 
   const formatDate = (date: Date | string | null) => {
-    if (!date) return 'Never';
+    if (!date) {return 'Never';}
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return dateObj.toLocaleDateString();
   };

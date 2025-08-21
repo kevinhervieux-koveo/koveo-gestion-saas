@@ -25,12 +25,18 @@ import { StandardForm, type FormFieldConfig } from '@/components/ui/standard-for
 import { z } from 'zod';
 
 // Types
+/**
+ *
+ */
 interface BulkActionsBarProps {
   selectedCount: number;
   onBulkAction: (action: string, data?: Record<string, unknown>) => Promise<void>;
   isLoading?: boolean;
 }
 
+/**
+ *
+ */
 type BulkActionType = 
   | 'activate'
   | 'deactivate'
@@ -40,6 +46,9 @@ type BulkActionType =
   | 'export'
   | 'send_welcome_email';
 
+/**
+ *
+ */
 interface BulkAction {
   type: BulkActionType;
   label: string;
@@ -49,12 +58,16 @@ interface BulkAction {
   requiresConfirmation?: boolean;
   requiresData?: boolean;
   formFields?: FormFieldConfig[];
-  schema?: z.ZodSchema<any>;
+  schema?: z.ZodSchema<unknown>;
 }
 
 /**
  * Bulk Actions Bar Component - Refactored using reusable components
- * Reduced from 358+ lines to ~150 lines by leveraging BaseDialog and StandardForm
+ * Reduced from 358+ lines to ~150 lines by leveraging BaseDialog and StandardForm.
+ * @param root0
+ * @param root0.selectedCount
+ * @param root0.onBulkAction
+ * @param root0.isLoading
  */
 export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkActionsBarProps) {
   const { t } = useLanguage();
@@ -64,7 +77,7 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
   // Role change schema and form fields
   const roleChangeSchema = z.object({
     newRole: z.enum(['admin', 'manager', 'resident', 'tenant'], {
-      required_error: 'Please select a role',
+      errorMap: () => ({ message: 'Please select a role' }),
     }),
   });
 
@@ -97,7 +110,7 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
           name: 'newRole',
           label: 'New Role',
           type: 'select',
-          required: true,
+          // required: true,
           options: [
             { value: 'admin', label: 'Administrator' },
             { value: 'manager', label: 'Manager' },

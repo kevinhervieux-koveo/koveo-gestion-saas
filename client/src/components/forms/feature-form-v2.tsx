@@ -39,8 +39,14 @@ const featureFormSchema = z.object({
   rbacRequired: z.boolean().default(false),
 });
 
+/**
+ *
+ */
 type FeatureFormData = z.infer<typeof featureFormSchema>;
 
+/**
+ *
+ */
 interface FeatureFormProps {
   feature: Feature | null;
   open: boolean;
@@ -49,7 +55,11 @@ interface FeatureFormProps {
 
 /**
  * Feature Form Component - Refactored using reusable components
- * Reduced from 1,080+ lines to ~400 lines by leveraging BaseDialog, StandardForm, and API hooks
+ * Reduced from 1,080+ lines to ~400 lines by leveraging BaseDialog, StandardForm, and API hooks.
+ * @param root0
+ * @param root0.feature
+ * @param root0.open
+ * @param root0.onOpenChange
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();

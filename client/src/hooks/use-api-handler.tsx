@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
- * Configuration for API mutation hooks
+ * Configuration for API mutation hooks.
  */
 interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -18,13 +18,13 @@ interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> 
 }
 
 /**
- * Custom hook for standardized API mutations
+ * Custom hook for standardized API mutations.
  * 
  * Provides consistent error handling, success messages, cache invalidation,
  * and loading states across all API operations to reduce boilerplate code.
  * 
- * @param config - API mutation configuration
- * @returns Mutation hook with standardized behavior
+ * @param config - API mutation configuration.
+ * @returns Mutation hook with standardized behavior.
  */
 export function useApiMutation<TData = unknown, TError = Error, TVariables = void>(
   config: ApiMutationConfig<TData, TError, TVariables>
@@ -105,14 +105,14 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
 }
 
 /**
- * Pre-configured mutation hooks for common operations
+ * Pre-configured mutation hooks for common operations.
  */
 
 /**
- * Hook for create operations
- * @param endpoint - API endpoint for creation
- * @param options - Additional configuration options
- * @returns Mutation hook for create operations
+ * Hook for create operations.
+ * @param endpoint - API endpoint for creation.
+ * @param options - Additional configuration options.
+ * @returns Mutation hook for create operations.
  */
 export function useCreateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,
@@ -127,10 +127,10 @@ export function useCreateMutation<TData = unknown, TVariables = unknown>(
 }
 
 /**
- * Hook for update operations
- * @param endpoint - API endpoint for updates
- * @param options - Additional configuration options
- * @returns Mutation hook for update operations
+ * Hook for update operations.
+ * @param endpoint - API endpoint for updates.
+ * @param options - Additional configuration options.
+ * @returns Mutation hook for update operations.
  */
 export function useUpdateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string | ((_variables: TVariables) => string),
@@ -145,10 +145,10 @@ export function useUpdateMutation<TData = unknown, TVariables = unknown>(
 }
 
 /**
- * Hook for delete operations
- * @param endpoint - API endpoint for deletions
- * @param options - Additional configuration options
- * @returns Mutation hook for delete operations
+ * Hook for delete operations.
+ * @param endpoint - API endpoint for deletions.
+ * @param options - Additional configuration options.
+ * @returns Mutation hook for delete operations.
  */
 export function useDeleteMutation<TVariables = string>(
   endpoint: string | ((_id: TVariables) => string),
@@ -163,10 +163,10 @@ export function useDeleteMutation<TVariables = string>(
 }
 
 /**
- * Hook for bulk operations
- * @param endpoint - API endpoint for bulk operations
- * @param options - Additional configuration options
- * @returns Mutation hook for bulk operations
+ * Hook for bulk operations.
+ * @param endpoint - API endpoint for bulk operations.
+ * @param options - Additional configuration options.
+ * @returns Mutation hook for bulk operations.
  */
 export function useBulkMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,

@@ -42,21 +42,36 @@ const bulkInvitationSchema = z.object({
   expiryDays: z.number().min(1).max(30).default(7),
 });
 
+/**
+ *
+ */
 type InvitationFormData = z.infer<typeof invitationSchema>;
+/**
+ *
+ */
 type BulkInvitationFormData = z.infer<typeof bulkInvitationSchema>;
 
+/**
+ *
+ */
 interface SendInvitationDialogProps {
   open: boolean;
   onOpenChange: (_open: boolean) => void;
   onSuccess: () => void;
 }
 
+/**
+ *
+ */
 interface Organization {
   id: string;
   name: string;
   type: string;
 }
 
+/**
+ *
+ */
 interface BuildingType {
   id: string;
   organizationId: string;
@@ -64,6 +79,9 @@ interface BuildingType {
   address: string;
 }
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   buildingId: string;
@@ -73,7 +91,11 @@ interface Residence {
 
 /**
  * Enhanced Send Invitation Dialog - Refactored using reusable components
- * Reduced from 936+ lines to ~400 lines by leveraging BaseDialog, StandardForm, and API hooks
+ * Reduced from 936+ lines to ~400 lines by leveraging BaseDialog, StandardForm, and API hooks.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
@@ -282,7 +304,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   };
 
   const handleBulkInvitationSubmit = (data: Omit<BulkInvitationFormData, 'emails'>) => {
-    if (emailsList.length === 0) return;
+    if (emailsList.length === 0) {return;}
     
     sendBulkInvitationsMutation.mutate({
       ...data,

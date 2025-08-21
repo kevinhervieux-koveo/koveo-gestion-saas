@@ -12,6 +12,9 @@ import { useUpdateMutation } from '@/hooks/use-api-handler';
 import { useToast } from '@/hooks/use-toast';
 
 // Interface for residence data
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -43,8 +46,14 @@ const residenceEditSchema = z.object({
   monthlyFees: z.string().optional(),
 });
 
+/**
+ *
+ */
 type ResidenceEditFormData = z.infer<typeof residenceEditSchema>;
 
+/**
+ *
+ */
 interface ResidenceEditFormProps {
   residence: Residence;
   onSuccess: () => void;
@@ -52,7 +61,10 @@ interface ResidenceEditFormProps {
 
 /**
  * Residence Edit Form Component - Refactored using reusable components
- * Reduced from 347+ lines to ~170 lines by leveraging StandardForm and API hooks
+ * Reduced from 347+ lines to ~170 lines by leveraging StandardForm and API hooks.
+ * @param root0
+ * @param root0.residence
+ * @param root0.onSuccess
  */
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
   const { toast } = useToast();

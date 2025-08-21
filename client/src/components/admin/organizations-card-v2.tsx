@@ -29,13 +29,18 @@ import { useToast } from '@/hooks/use-toast';
 import { OrganizationFormDialog } from './organization-form-dialog';
 import type { Organization } from '@shared/schema';
 
+/**
+ *
+ */
 interface OrganizationsCardProps {
   className?: string;
 }
 
 /**
  * Organizations Card Component - Refactored using reusable components
- * Reduced from 398+ lines to ~200 lines by leveraging DataTable, BaseDialog, and API hooks
+ * Reduced from 398+ lines to ~200 lines by leveraging DataTable, BaseDialog, and API hooks.
+ * @param root0
+ * @param root0.className
  */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();
@@ -231,9 +236,9 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                 title: 'Status',
                 options: statusFilterOptions,
                 filterFn: (row, columnId, value) => {
-                  if (value === 'all') return true;
-                  if (value === 'active') return row.getValue(columnId) === true;
-                  if (value === 'inactive') return row.getValue(columnId) === false;
+                  if (value === 'all') {return true;}
+                  if (value === 'active') {return row.getValue(columnId) === true;}
+                  if (value === 'inactive') {return row.getValue(columnId) === false;}
                   return true;
                 },
               },
@@ -272,6 +277,9 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
 }
 
 // Actions dropdown for individual organizations
+/**
+ *
+ */
 interface OrganizationActionsProps {
   organization: Organization;
   onEdit: (org: Organization) => void;
@@ -279,6 +287,14 @@ interface OrganizationActionsProps {
   onDelete: (id: string) => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.organization
+ * @param root0.onEdit
+ * @param root0.onView
+ * @param root0.onDelete
+ */
 function OrganizationActions({ organization, onEdit, onView, onDelete }: OrganizationActionsProps) {
   const canDelete = organization.type !== 'koveo' && organization.type !== 'demo';
 
@@ -313,10 +329,18 @@ function OrganizationActions({ organization, onEdit, onView, onDelete }: Organiz
 }
 
 // Organization details component for the view dialog
+/**
+ *
+ */
 interface OrganizationDetailsProps {
   organization: Organization;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.organization
+ */
 function OrganizationDetails({ organization }: OrganizationDetailsProps) {
   return (
     <div className="space-y-6">
