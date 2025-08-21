@@ -144,6 +144,7 @@ interface BudgetData {
   incomeByCategory: { [category: string]: number };
   expensesByCategory: { [category: string]: number };
   date: string;
+  bankBalance: number;
 }
 
 interface BankAccountInfo {
@@ -308,6 +309,27 @@ export default function Budget() {
     return minimumBalanceSettings.reduce((sum, m) => sum + m.amount, 0);
   }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
+  // Calculate running bank account balance over time
+  const chartDataWithBalance = useMemo(() => {
+    if (!chartData?.length) return [];
+    
+    const startingBalance = bankAccountInfo?.bankAccountStartAmount || 0;
+    let runningBalance = startingBalance;
+    
+    return chartData.map((item, index) => {
+      if (index === 0) {
+        runningBalance = startingBalance + item.netCashFlow;
+      } else {
+        runningBalance += item.netCashFlow;
+      }
+      
+      return {
+        ...item,
+        bankBalance: runningBalance
+      };
+    });
+  }, [chartData, bankAccountInfo?.bankAccountStartAmount]);
+
   // Special contribution and property calculations are now defined after filteredChartData
 
   // Category translation function now uses the moved constant
@@ -331,9 +353,9 @@ export default function Budget() {
 
   // Filter data by selected categories - optimized with better dependency tracking
   const filteredChartData = useMemo(() => {
-    if (!chartData?.length || selectedCategories.length === 0) return chartData || [];
+    if (!chartDataWithBalance?.length || selectedCategories.length === 0) return chartDataWithBalance || [];
     
-    return chartData.map(item => {
+    return chartDataWithBalance.map(item => {
       let filteredIncome = 0;
       let filteredExpenses = 0;
       
@@ -942,6 +964,10 @@ export default function Budget() {
                           <stop offset='5%' stopColor='hsl(0, 70%, 50%)' stopOpacity={0.8}/>
                           <stop offset='95%' stopColor='hsl(0, 70%, 50%)' stopOpacity={0.1}/>
                         </linearGradient>
+                        <linearGradient id='colorBankBalance' x1='0' y1='0' x2='0' y2='1'>
+                          <stop offset='5%' stopColor='hsl(200, 80%, 60%)' stopOpacity={0.6}/>
+                          <stop offset='95%' stopColor='hsl(200, 80%, 60%)' stopOpacity={0.1}/>
+                        </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray='3 3' />
                       <XAxis 
@@ -977,6 +1003,18 @@ export default function Budget() {
                         fill='url(#colorExpenses)'
                         strokeWidth={2}
                       />
+                      {/* Bank Balance Line */}
+                      <Area
+                        type='monotone'
+                        dataKey='bankBalance'
+                        stroke='hsl(200, 80%, 60%)'
+                        fill='url(#colorBankBalance)'
+                        strokeWidth={3}
+                        strokeDasharray="8,4"
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                      
                       {/* Minimum Balance Line */}
                       {minimumBalanceForChart && (
                         <>
