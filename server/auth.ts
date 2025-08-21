@@ -353,7 +353,7 @@ export function setupAuthRoutes(app: unknown) {
           const { salt, hash } = hashPassword(password);
           const hashedPassword = `${salt}:${hash}`;
           await storage.updateUser(user.id, { password: hashedPassword });
-          console.log(`Password upgraded to hashed format for user: ${user.email}`);
+          console.log(`Password upgraded to hashed format for user: ${user.id}`);
         }
       }
       

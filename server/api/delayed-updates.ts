@@ -43,10 +43,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error getting delayed update status:', error);
+      console.error('Error getting delayed update status:', __error);
       res.status(500).json({ 
         message: 'Failed to get delayed update status',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -71,7 +71,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         });
       }
 
-      console.log(`⚡ Force immediate update for bill ${billId} requested by user ${user.id} (${user.email})`);
+      console.log(`⚡ Force immediate update for bill ${billId} requested by user ${user.id}`);
 
       // Force immediate update
       await delayedUpdateService.forceImmediateBillUpdate(billId);
@@ -79,15 +79,15 @@ export function registerDelayedUpdateRoutes(app: Express) {
       res.json({
         message: 'Immediate update completed for bill',
         billId,
-        triggeredBy: user.email,
+        triggeredBy: user.id,
         timestamp: new Date().toISOString()
       });
 
     } catch (__error) {
-      console.error('Error forcing immediate bill update:', error);
+      console.error('Error forcing immediate bill update:', __error);
       res.status(500).json({ 
         message: 'Failed to force immediate bill update',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -112,7 +112,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         });
       }
 
-      console.log(`⚡ Force immediate update for residence ${residenceId} requested by user ${user.id} (${user.email})`);
+      console.log(`⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`);
 
       // Force immediate update
       await delayedUpdateService.forceImmediateResidenceUpdate(residenceId);
@@ -120,15 +120,15 @@ export function registerDelayedUpdateRoutes(app: Express) {
       res.json({
         message: 'Immediate update completed for residence',
         residenceId,
-        triggeredBy: user.email,
+        triggeredBy: user.id,
         timestamp: new Date().toISOString()
       });
 
     } catch (__error) {
-      console.error('Error forcing immediate residence update:', error);
+      console.error('Error forcing immediate residence update:', __error);
       res.status(500).json({ 
         message: 'Failed to force immediate residence update',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });

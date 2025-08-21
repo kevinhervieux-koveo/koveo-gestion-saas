@@ -50,10 +50,10 @@ export function registerMoneyFlowRoutes(app: Express) {
       });
 
     } catch (__error) {
-      console.error('Error getting money flow status:', error);
+      console.error('Error getting money flow status:', __error);
       res.status(500).json({ 
         message: 'Failed to get money flow status',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: __error instanceof Error ? __error.message : 'Unknown error'
       });
     }
   });
@@ -71,7 +71,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`💰 Manual money flow regeneration triggered by user ${user.id} (${user.email})`);
+      console.log(`💰 Manual money flow regeneration triggered by user ${user.id}`);
 
       // Trigger full regeneration
       const result = await moneyFlowJob.triggerFullRegeneration();
@@ -79,12 +79,12 @@ export function registerMoneyFlowRoutes(app: Express) {
       res.json({
         message: 'Money flow regeneration completed successfully',
         result,
-        triggeredBy: user.email,
+        triggeredBy: user.id,
         timestamp: new Date().toISOString()
       });
 
     } catch (__error) {
-      console.error('Error triggering money flow regeneration:', error);
+      console.error('Error triggering money flow regeneration:', __error);
       res.status(500).json({ 
         message: 'Failed to trigger money flow regeneration',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -106,7 +106,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`💰 Money flow generation for bill ${billId} triggered by user ${user.id} (${user.email})`);
+      console.log(`💰 Money flow generation for bill ${billId} triggered by user ${user.id}`);
 
       // Generate money flow for specific bill
       const entriesCreated = await moneyFlowJob.generateForBill(billId);
@@ -115,7 +115,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         message: 'Money flow generation completed for bill',
         billId,
         entriesCreated,
-        triggeredBy: user.email,
+        triggeredBy: user.id,
         timestamp: new Date().toISOString()
       });
 
@@ -142,7 +142,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id} (${user.email})`);
+      console.log(`🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id}`);
 
       // Generate money flow for specific residence
       const entriesCreated = await moneyFlowJob.generateForResidence(residenceId);
@@ -151,7 +151,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         message: 'Money flow generation completed for residence',
         residenceId,
         entriesCreated,
-        triggeredBy: user.email,
+        triggeredBy: user.id,
         timestamp: new Date().toISOString()
       });
 

@@ -387,7 +387,12 @@ export class AIAgentToolkit {
         });
       } catch (_error: unknown) {
         try {
-          const auditResult = JSON.parse(error.stdout);
+          // Use child_process result instead of eval-like parsing
+          const auditOutput = execSync('npm audit --audit-level=high --json', { 
+            cwd: this.projectRoot,
+            encoding: 'utf-8'
+          });
+          const auditResult = JSON.parse(auditOutput);
           const vulnCount = auditResult.metadata?.vulnerabilities?.total || 0;
           score -= Math.min(vulnCount * 5, 30);
         } catch {
