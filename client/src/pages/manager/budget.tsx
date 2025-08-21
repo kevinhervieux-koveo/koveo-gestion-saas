@@ -1217,24 +1217,23 @@ export default function Budget() {
                     </DialogContent>
                   </Dialog>
                   
-                  {/* Minimum Balances Management Button - Only show if bank account exists */}
-                  {bankAccountInfo?.bankAccountNumber && (
-                    <Dialog 
-                      open={minimumBalancesDialog} 
-                      onOpenChange={(open) => {
-                        if (open) {
-                          setMinimumBalances(minimumBalanceSettings.map(m => ({ ...m })));
-                        }
-                        setMinimumBalancesDialog(open);
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button className='w-full' variant='outline'>
-                          <Settings className='w-4 h-4 mr-2' />
-                          {bankAccountTranslations.manageMinimums}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
+                  {/* Minimum Balances Management Button - Always available */}
+                  <Dialog 
+                    open={minimumBalancesDialog} 
+                    onOpenChange={(open) => {
+                      if (open) {
+                        setMinimumBalances(minimumBalanceSettings.map(m => ({ ...m })));
+                      }
+                      setMinimumBalancesDialog(open);
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button className='w-full' variant='outline'>
+                        <Settings className='w-4 h-4 mr-2' />
+                        {bankAccountTranslations.manageMinimums}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
                         <DialogHeader>
                           <DialogTitle>{bankAccountTranslations.minimumDialogTitle}</DialogTitle>
                           <DialogDescription>{bankAccountTranslations.minimumDialogDescription}</DialogDescription>
@@ -1318,8 +1317,7 @@ export default function Budget() {
                         </div>
                       </DialogContent>
                     </Dialog>
-                  )}
-                </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
