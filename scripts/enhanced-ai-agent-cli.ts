@@ -64,9 +64,9 @@ program
       // Keep the process running
       process.stdin.resume();
       
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to start agent orchestrator');
-      console.error(chalk.red('Error:'), error);
+      console.error(chalk.red('Error:'), _error);
       process.exit(1);
     }
   });
@@ -109,9 +109,9 @@ program
         });
       }
       
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Environment optimization failed');
-      console.error(chalk.red('Error:'), error);
+      console.error(chalk.red('Error:'), _error);
       process.exit(1);
     }
   });
@@ -225,9 +225,9 @@ program
       console.log(chalk.green(`✅ Task "${task}" has been queued for execution`));
       console.log(chalk.gray(`Monitor progress at: http://localhost:8080`));
       
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to queue task');
-      console.error(chalk.red('Error:'), error);
+      console.error(chalk.red('Error:'), _error);
       process.exit(1);
     }
   });
@@ -284,9 +284,9 @@ program
           });
         }
         
-      } catch (error) {
+      } catch (_error) {
         spinner.fail('Workspace analysis failed');
-        console.error(chalk.red('Error:'), error);
+        console.error(chalk.red('Error:'), _error);
       }
     }
     
@@ -315,9 +315,9 @@ program
           }
         });
         
-      } catch (error) {
+      } catch (_error) {
         spinner.fail('Failed to generate suggestions');
-        console.error(chalk.red('Error:'), error);
+        console.error(chalk.red('Error:'), _error);
       }
     }
   });

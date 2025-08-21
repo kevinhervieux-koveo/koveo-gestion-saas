@@ -26,6 +26,9 @@ import {
 import { FileText, Upload, Sparkles } from 'lucide-react';
 
 // Type for AI analysis result
+/**
+ *
+ */
 interface AiAnalysisResult {
   title: string;
   vendor?: string;
@@ -70,10 +73,10 @@ const billCreateSchema = z.object({
 
 /**
  * Bill creation form with manual entry and AI document analysis.
- * @param root0 - The component props
- * @param root0.buildingId - The ID of the building to create the bill for
- * @param root0.onSuccess - Callback function called when bill is successfully created
- * @returns JSX element for bill creation form
+ * @param root0 - The component props.
+ * @param root0.buildingId - The ID of the building to create the bill for.
+ * @param root0.onSuccess - Callback function called when bill is successfully created.
+ * @returns JSX element for bill creation form.
  */
 export function BillCreateForm({ 
   buildingId, 

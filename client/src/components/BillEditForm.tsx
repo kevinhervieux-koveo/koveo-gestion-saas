@@ -45,7 +45,7 @@ const billFormSchema = z.object({
   ]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
-  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly']).optional(),
+  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   totalAmount: z.string().min(1, 'Amount is required'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().optional(),
@@ -55,11 +55,11 @@ const billFormSchema = z.object({
 
 /**
  * Bill editing form component for modifying existing bills.
- * @param root0 - The component props
- * @param root0.bill - The bill object to edit
- * @param root0.onSuccess - Callback function called when bill is successfully updated
- * @param root0.onCancel - Callback function called when editing is cancelled
- * @returns JSX element for bill editing form
+ * @param root0 - The component props.
+ * @param root0.bill - The bill object to edit.
+ * @param root0.onSuccess - Callback function called when bill is successfully updated.
+ * @param root0.onCancel - Callback function called when editing is cancelled.
+ * @returns JSX element for bill editing form.
  */
 export function BillEditForm({ 
   bill, 

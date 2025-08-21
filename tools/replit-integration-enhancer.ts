@@ -735,10 +735,10 @@ export class ReplitIntegrationEnhancer {
       // Check if deployed on Replit
       if (this.environment?.replUrl) {
         try {
-          const response = await axios.get(this.environment.replUrl, { timeout: 5000 });
+          const _response = await axios.get(this.environment.replUrl, { timeout: 5000 });
           this.deploymentInfo.status = 'deployed';
           this.deploymentInfo.url = this.environment.replUrl;
-        } catch (error) {
+        } catch (_error) {
           this.deploymentInfo.status = 'failed';
         }
       }
@@ -749,6 +749,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Get environment information.
+   * @returns The current environment configuration or null if not available.
    */
   public getEnvironment(): ReplitEnvironment | null {
     return this.environment ? { ...this.environment } : null;
@@ -756,6 +757,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Create comprehensive environment report.
+   * @returns A formatted string containing environment information and recommendations.
    */
   public generateEnvironmentReport(): string {
     const env = this.environment;
@@ -794,13 +796,14 @@ ${this.generateRecommendations().join('\n')}
 
   /**
    * Generate environment-specific recommendations.
+   * @returns Array of recommendation strings based on current environment.
    */
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
     
     if (!this.environment) {return recommendations;}
     
-    const { capabilities, secrets, databases } = this.environment;
+    const { capabilities, secrets } = this.environment;
     
     // Database recommendations
     if (!capabilities.includes('database')) {

@@ -193,7 +193,7 @@ describe('Quebec Property Management Hooks', () => {
        */
       function TestMissingKey() {
         const { t } = useLanguage();
-        return <span data-testid="missing-key">{t('nonExistentKey' as any)}</span>;
+        return <span data-testid="missing-key">{t('nonExistentKey' as never)}</span>;
       }
 
       render(

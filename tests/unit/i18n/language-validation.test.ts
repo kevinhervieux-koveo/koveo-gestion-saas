@@ -529,7 +529,7 @@ describe('Language Validation Tests', () => {
 
   describe('Translation Performance and Caching', () => {
     it('should validate translation keys are efficiently structured', () => {
-      const flattenKeys = (obj: any, prefix = ''): string[] => {
+      const flattenKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
         let keys: string[] = [];
         
         for (const key in obj) {

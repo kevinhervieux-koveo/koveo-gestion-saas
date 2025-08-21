@@ -23,7 +23,7 @@ import { eq } from 'drizzle-orm';
 
 // Mock auth middleware for testing
 jest.mock('../../../server/auth/index', () => ({
-  requireAuth: jest.fn((req: any, res: any, next: any) => {
+  requireAuth: jest.fn((req: unknown, res: unknown, next: () => void) => {
     // Add test user to request
     req.user = req.testUser || {
       id: 'test-user-id',
@@ -38,17 +38,17 @@ jest.mock('../../../server/auth/index', () => ({
 
 describe('Demands API Unit Tests', () => {
   let app: express.Application;
-  const testUsers: any[] = [];
-  const testOrganizations: any[] = [];
-  const testBuildings: any[] = [];
-  const testResidences: any[] = [];
-  const testDemands: any[] = [];
+  const testUsers: Record<string, unknown>[] = [];
+  const testOrganizations: Record<string, unknown>[] = [];
+  const testBuildings: Record<string, unknown>[] = [];
+  const testResidences: Record<string, unknown>[] = [];
+  const testDemands: Record<string, unknown>[] = [];
 
   beforeAll(async () => {
     // Setup test application
     app = express();
     app.use(express.json());
-    registerDemandRoutes(app as any);
+    registerDemandRoutes(app as express.Application);
 
     // Create test data
     await setupTestData();
@@ -310,7 +310,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.body.length).toBeGreaterThan(0);
       
       // Verify manager can see demands from their organization
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.building.id).toBe(testBuildings[0].id);
       });
     });
@@ -327,7 +327,7 @@ describe('Demands API Unit Tests', () => {
       expect(Array.isArray(response.body)).toBe(true);
       
       // Verify resident can see relevant demands
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(
           demand.submitterId === testUsers[2].id || 
           demand.buildingId === testResidences[0].buildingId
@@ -347,7 +347,7 @@ describe('Demands API Unit Tests', () => {
       expect(Array.isArray(response.body)).toBe(true);
       
       // Verify tenant can only see their own demands
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.submitterId).toBe(testUsers[3].id);
       });
     });
@@ -363,7 +363,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.type).toBe('maintenance');
       });
     });
@@ -379,7 +379,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.status).toBe('pending');
       });
     });
@@ -395,7 +395,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      response.body.forEach((demand: any) => {
+      response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.buildingId).toBe(testBuildings[0].id);
       });
     });

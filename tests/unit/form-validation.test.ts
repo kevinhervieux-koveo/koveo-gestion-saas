@@ -109,7 +109,7 @@ describe('Schema Validation Tests', () => {
         name: 'Test Feature',
         description: 'Test description',
         category: 'Website' as const,
-        status: 'invalid-status' as any,
+        status: 'invalid-status' as unknown,
         priority: 'high' as const,
       };
 

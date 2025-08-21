@@ -103,12 +103,12 @@ function extractVisibleText(container: HTMLElement): string[] {
    * @param node - The DOM node to traverse.
    */
   function traverse(node: Node) {
-    if (node.nodeType === 3) { // Node.TEXT_NODE
+    if (node.nodeType === Node.TEXT_NODE) { // 3 = TEXT_NODE
       const text = node.textContent?.trim();
       if (text) {
         textNodes.push(text);
       }
-    } else if (node.nodeType === 1) { // Node.ELEMENT_NODE
+    } else if (node.nodeType === Node.ELEMENT_NODE) { // 1 = ELEMENT_NODE
       const element = node as Element;
       // Skip hidden elements
       const htmlElement = element as HTMLElement;
