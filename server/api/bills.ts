@@ -453,11 +453,11 @@ export function registerBillRoutes(app: Express) {
       const conditions = [eq(bills.buildingId, filters.buildingId)];
       
       if (filters.category && filters.category !== 'all') {
-        conditions.push(eq(bills.category, filters.category));
+        conditions.push(eq(bills.category, filters.category as any));
       }
       
       if (filters.status && filters.status !== 'all') {
-        conditions.push(eq(bills.status, filters.status));
+        conditions.push(eq(bills.status, filters.status as any));
       }
       
       if (filters.year) {
