@@ -386,7 +386,10 @@ export default function Budget() {
   const filteredChartData = useMemo(() => {
     if (!chartDataWithBalance?.length || selectedCategories.length === 0) return chartDataWithBalance || [];
     
-    return chartDataWithBalance.map(item => {
+    const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
+    let runningBalance = startingBalance;
+    
+    return chartDataWithBalance.map((item, index) => {
       let filteredIncome = 0;
       let filteredExpenses = 0;
       
@@ -415,15 +418,26 @@ export default function Budget() {
         }
       });
       
+      const newTotalIncome = selectedCategories.length ? filteredIncome : item.totalIncome;
+      const newTotalExpenses = selectedCategories.length ? filteredExpenses : item.totalExpenses;
+      const newNetCashFlow = newTotalIncome - newTotalExpenses;
+      
+      // Recalculate bank balance with the filtered net cash flow
+      if (index === 0) {
+        runningBalance = startingBalance + newNetCashFlow;
+      } else {
+        runningBalance += newNetCashFlow;
+      }
+      
       return {
         ...item,
-        totalIncome: selectedCategories.length ? filteredIncome : item.totalIncome,
-        totalExpenses: selectedCategories.length ? filteredExpenses : item.totalExpenses,
-        netCashFlow: (selectedCategories.length ? filteredIncome : item.totalIncome) - 
-                     (selectedCategories.length ? filteredExpenses : item.totalExpenses),
+        totalIncome: newTotalIncome,
+        totalExpenses: newTotalExpenses,
+        netCashFlow: newNetCashFlow,
+        bankBalance: runningBalance,
       };
     });
-  }, [chartData, selectedCategories.join(','), language]);
+  }, [chartDataWithBalance, selectedCategories.join(','), language, bankAccountInfo?.bankAccountStartAmount]);
 
   // Calculate special contribution and property breakdown - optimized
   const specialContribution = useMemo(() => {
