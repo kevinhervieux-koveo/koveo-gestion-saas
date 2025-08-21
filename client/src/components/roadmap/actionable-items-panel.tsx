@@ -38,6 +38,13 @@ interface ActionableItemsPanelProps {
  * @param root0.feature - The feature containing actionable items.
  * @param root0.onClose - Optional callback when panel is closed.
  */
+/**
+ * ActionableItemsPanel function.
+ * @param root0
+ * @param root0.feature
+ * @param root0.onClose
+ * @returns Function result.
+ */
 export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelProps) {
   const { toast } = useToast();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -124,7 +131,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         title: '🤖 AI Prompt Copied!',
         description: 'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
-    } catch (_error) {
+    } catch (__error) {
       // Fallback to creating a text area and selecting the text
       try {
         const textArea = document.createElement('textarea');
@@ -137,7 +144,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           title: '📋 Prompt Copied!',
           description: 'The implementation prompt has been copied using fallback method.',
         });
-      } catch (_fallbackError) {
+      } catch (__fallbackError) {
         toast({
           title: 'Copy Failed',
           description: 'Failed to copy prompt to clipboard. Please manually select and copy the text.',

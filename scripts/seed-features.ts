@@ -164,6 +164,10 @@ const roadmapData = [
  * Seeds the database with roadmap features data.
  * @returns Promise that resolves when seeding is complete.
  */
+/**
+ * SeedFeatures function.
+ * @returns Function result.
+ */
 async function seedFeatures() {
   console.warn('🌱 Starting to seed features...');
 
@@ -207,7 +211,7 @@ async function seedFeatures() {
       console.warn(`  ${status}: ${count}`);
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error seeding features:', error);
     throw error;
   } finally {

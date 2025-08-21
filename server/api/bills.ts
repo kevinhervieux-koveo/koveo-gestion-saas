@@ -1,7 +1,6 @@
 import type { Express } from 'express';
 import { eq, desc, and, sql, isNull } from 'drizzle-orm';
 import { db } from '../db';
-import * as schema from '../../shared/schema';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
@@ -12,6 +11,7 @@ import { ObjectStorageService } from '../objectStorage';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import * as schema from '@shared/schema';
 
 const { buildings, bills } = schema;
 
@@ -81,12 +81,17 @@ const upload = multer({
  *
  * @param app
  */
+/**
+ * RegisterBillRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerBillRoutes(app: Express) {
   /**
    * Get all bills with optional filtering
    * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6.
    */
-  app.get('/api/bills', requireAuth, async (req: any, res: any) => {
+  app.get('/api/bills', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { buildingId, category, year, status = 'all', months } = req.query;
 
@@ -143,7 +148,7 @@ export function registerBillRoutes(app: Express) {
         .orderBy(desc(bills.startDate));
 
       res.json(billsList);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching bills:', error);
       res.status(500).json({ 
         message: 'Failed to fetch bills',
@@ -156,7 +161,7 @@ export function registerBillRoutes(app: Express) {
    * Get a specific bill by ID
    * GET /api/bills/:id.
    */
-  app.get('/api/bills/:id', requireAuth, async (req: any, res: any) => {
+  app.get('/api/bills/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
 
@@ -190,7 +195,7 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(bill[0]);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching bill:', error);
       res.status(500).json({ 
         message: 'Failed to fetch bill',
@@ -203,7 +208,7 @@ export function registerBillRoutes(app: Express) {
    * Create a new bill
    * POST /api/bills.
    */
-  app.post('/api/bills', requireAuth, async (req: any, res: any) => {
+  app.post('/api/bills', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const validation = createBillSchema.safeParse(req.body);
       
@@ -242,13 +247,13 @@ export function registerBillRoutes(app: Express) {
       try {
         delayedUpdateService.scheduleBillUpdate(newBill[0].id);
         console.log(`💰 Scheduled delayed update for new bill ${newBill[0].id}`);
-      } catch (error) {
+      } catch (__error) {
         console.error('Failed to schedule delayed update for new bill:', error);
         // Don't fail the bill creation if scheduling fails
       }
 
       res.status(201).json(newBill[0]);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error creating bill:', error);
       res.status(500).json({ 
         message: 'Failed to create bill',
@@ -261,7 +266,7 @@ export function registerBillRoutes(app: Express) {
    * Update a bill (PATCH)
    * PATCH /api/bills/:id.
    */
-  app.patch('/api/bills/:id', requireAuth, async (req: any, res: any) => {
+  app.patch('/api/bills/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       const validation = updateBillSchema.safeParse(req.body);
@@ -275,7 +280,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
       
-      const updateData: any = {};
+      const updateData: unknown = {};
       if (billData.title) {updateData.title = billData.title;}
       if (billData.description) {updateData.description = billData.description;}
       if (billData.category) {updateData.category = billData.category;}
@@ -302,7 +307,7 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(updatedBill[0]);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error updating bill:', error);
       res.status(500).json({ 
         message: 'Failed to update bill',
@@ -315,7 +320,7 @@ export function registerBillRoutes(app: Express) {
    * Update a bill (PUT)
    * PUT /api/bills/:id.
    */
-  app.put('/api/bills/:id', requireAuth, async (req: any, res: any) => {
+  app.put('/api/bills/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       const validation = updateBillSchema.safeParse(req.body);
@@ -329,7 +334,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
       
-      const updateData: any = {};
+      const updateData: unknown = {};
       if (billData.title) {updateData.title = billData.title;}
       if (billData.description) {updateData.description = billData.description;}
       if (billData.category) {updateData.category = billData.category;}
@@ -358,13 +363,13 @@ export function registerBillRoutes(app: Express) {
       try {
         delayedUpdateService.scheduleBillUpdate(id);
         console.log(`💰 Scheduled delayed update for updated bill ${id}`);
-      } catch (error) {
+      } catch (__error) {
         console.error('Failed to schedule delayed update for updated bill:', error);
         // Don't fail the bill update if scheduling fails
       }
 
       res.json(updatedBill[0]);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error updating bill:', error);
       res.status(500).json({ 
         message: 'Failed to update bill',
@@ -377,7 +382,7 @@ export function registerBillRoutes(app: Express) {
    * Delete a bill
    * DELETE /api/bills/:id.
    */
-  app.delete('/api/bills/:id', requireAuth, async (req: any, res: any) => {
+  app.delete('/api/bills/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
 
@@ -396,7 +401,7 @@ export function registerBillRoutes(app: Express) {
         message: 'Bill deleted successfully',
         bill: deletedBill[0]
       });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error deleting bill:', error);
       res.status(500).json({ 
         message: 'Failed to delete bill',
@@ -409,7 +414,7 @@ export function registerBillRoutes(app: Express) {
    * Upload and analyze bill document with Gemini AI
    * POST /api/bills/:id/upload-document.
    */
-  app.post('/api/bills/:id/upload-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
+  app.post('/api/bills/:id/upload-document', requireAuth, upload.single('document'), async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       
@@ -446,14 +451,14 @@ export function registerBillRoutes(app: Express) {
         try {
           analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
           console.log('🤖 Gemini analysis completed:', analysisResult);
-        } catch (error) {
+        } catch (__error) {
           console.error('AI analysis failed:', error);
           // Continue without AI analysis
         }
       }
 
       // Update bill with document info and AI analysis
-      const updateData: any = {
+      const updateData: unknown = {
         documentPath,
         documentName: req.file.originalname,
         isAiAnalyzed: !!analysisResult,
@@ -476,14 +481,14 @@ export function registerBillRoutes(app: Express) {
         analysisResult
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error uploading document:', error);
       
       // Clean up temporary file if it exists
       if (req.file?.path) {
         try {
           fs.unlinkSync(req.file.path);
-        } catch (cleanupError) {
+        } catch (__cleanupError) {
           console.error('Error cleaning up temp file:', cleanupError);
         }
       }
@@ -499,7 +504,7 @@ export function registerBillRoutes(app: Express) {
    * Apply AI analysis to bill form data
    * POST /api/bills/:id/apply-ai-analysis.
    */
-  app.post('/api/bills/:id/apply-ai-analysis', requireAuth, async (req: any, res: any) => {
+  app.post('/api/bills/:id/apply-ai-analysis', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       
@@ -529,7 +534,7 @@ export function registerBillRoutes(app: Express) {
       );
 
       // Update bill with AI-extracted data
-      const updateData: any = {
+      const updateData: unknown = {
         title: analysis.title,
         vendor: analysis.vendor,
         totalAmount: parseFloat(analysis.totalAmount),
@@ -556,7 +561,7 @@ export function registerBillRoutes(app: Express) {
         scheduleSignestion
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error applying AI analysis:', error);
       res.status(500).json({ 
         message: 'Failed to apply AI analysis',
@@ -569,7 +574,7 @@ export function registerBillRoutes(app: Express) {
    * Generate future bill instances for a recurrent bill
    * POST /api/bills/:id/generate-future.
    */
-  app.post('/api/bills/:id/generate-future', requireAuth, async (req: any, res: any) => {
+  app.post('/api/bills/:id/generate-future', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
 
@@ -634,7 +639,7 @@ export function registerBillRoutes(app: Express) {
         billsCreated: result.billsCreated,
         generatedUntil: result.generatedUntil,
       });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error generating future bills:', error);
       res.status(500).json({ 
         message: 'Failed to generate future bills',
@@ -647,7 +652,7 @@ export function registerBillRoutes(app: Express) {
    * Get bill categories for filter dropdown
    * GET /api/bills/categories.
    */
-  app.get('/api/bills/categories', requireAuth, async (req: any, res: any) => {
+  app.get('/api/bills/categories', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const categories = [
         'insurance',
@@ -668,7 +673,7 @@ export function registerBillRoutes(app: Express) {
       ];
 
       res.json(categories);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching bill categories:', error);
       res.status(500).json({ 
         message: 'Failed to fetch bill categories',
@@ -681,7 +686,7 @@ export function registerBillRoutes(app: Express) {
    * Get statistics for auto-generated bills from a parent bill
    * GET /api/bills/:id/generated-stats.
    */
-  app.get('/api/bills/:id/generated-stats', requireAuth, async (req: any, res: any) => {
+  app.get('/api/bills/:id/generated-stats', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
 
@@ -751,7 +756,7 @@ export function registerBillRoutes(app: Express) {
         parentBill: bill[0],
         generatedBills: stats
       });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error getting generated bills stats:', error);
       res.status(500).json({ 
         message: 'Failed to get generated bills statistics',

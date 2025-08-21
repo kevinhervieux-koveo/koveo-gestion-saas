@@ -1,6 +1,10 @@
 /**
  * Generates and copies the LLM help form for feature discussions.
  */
+/**
+ * GenerateLLMHelpForm function.
+ * @returns Function result.
+ */
 export function generateLLMHelpForm(): string {
   return `# Koveo Gestion Feature Development Discussion Form
 

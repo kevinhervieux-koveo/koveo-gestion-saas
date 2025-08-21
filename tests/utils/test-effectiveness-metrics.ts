@@ -51,7 +51,7 @@ interface TestSuiteEffectiveness {
   falsePositiveRate: number;
   quebecComplianceRate: number;
   effectiveness: EffectivenessAnalysis;
-  trends: any[];
+  trends: unknown[];
 }
 
 /**
@@ -88,7 +88,9 @@ export class TestEffectivenessTracker {
     actual: boolean,
     confidence: number,
     quebecSpecific: boolean = false,
-    details: any = {}
+    details: unknown = {
+    // No action needed
+  }
   ): string {
     const metric: TestEffectivenessMetric = {
       id: this.generateId(),
@@ -228,7 +230,9 @@ export class TestEffectivenessTracker {
       )
     };
 
-    const categoryAnalysis: any = {};
+    const categoryAnalysis: unknown = {
+    // No action needed
+  };
     for (const [category, metrics] of Object.entries(categories)) {
       if (metrics.length > 0) {
         const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
@@ -297,7 +301,9 @@ export class TestEffectivenessTracker {
     severity: 'low' | 'medium' | 'high' | 'critical',
     detectedByTest: boolean,
     quebecRelated: boolean = false,
-    details: any = {}
+    details: unknown = {
+    // No action needed
+  }
   ): void {
     this.recordMetric(
       testSuite,
@@ -323,7 +329,7 @@ export class TestEffectivenessTracker {
     featureArea: string,
     preventedRegression: boolean,
     quebecFeature: boolean = false,
-    details: any = {}
+    details: unknown = {}
   ): void {
     this.recordMetric(
       testSuite,
@@ -349,7 +355,7 @@ export class TestEffectivenessTracker {
     complianceType: 'privacy' | 'language' | 'taxation' | 'regulations',
     validationPassed: boolean,
     actualCompliance: boolean,
-    details: any = {}
+    details: unknown = {}
   ): void {
     this.recordMetric(
       testSuite,
@@ -372,7 +378,7 @@ export class TestEffectivenessTracker {
       try {
         const data = readFileSync(this.metricsPath, 'utf8');
         this.metrics = JSON.parse(data);
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to load existing metrics, starting fresh');
         this.metrics = [];
       }
@@ -468,7 +474,7 @@ export class TestEffectivenessTracker {
    *
    * @param suiteName
    */
-  private calculateSuiteTrends(suiteName: string): any[] {
+  private calculateSuiteTrends(suiteName: string): unknown[] {
     const suiteMetrics = this.metrics.filter(m => m.testSuite === suiteName);
     const trends = [];
     
@@ -499,7 +505,7 @@ export class TestEffectivenessTracker {
   /**
    *
    */
-  private calculateEffectivenessTrends(): any[] {
+  private calculateEffectivenessTrends(): unknown[] {
     const trends = [];
     const monthlyGroups: Record<string, TestEffectivenessMetric[]> = {};
     
@@ -596,7 +602,7 @@ export class TestEffectivenessTracker {
    * @param overall
    * @param quebec
    */
-  private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: any): string[] {
+  private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: unknown): string[] {
     const recommendations = [...overall.recommendations];
     
     if (quebec.recommendations) {

@@ -18,6 +18,11 @@ import crypto from 'crypto';
  *
  * @param app
  */
+/**
+ * RegisterBuildingRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerBuildingRoutes(app: Express): void {
   /**
    * GET /api/buildings - Retrieves buildings based on user role and organization access.
@@ -117,7 +122,7 @@ export function registerBuildingRoutes(app: Express): void {
       console.log(`✅ Found ${result.length} buildings for user ${user.id}`);
       res.json(result);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error fetching buildings:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -163,7 +168,7 @@ export function registerBuildingRoutes(app: Express): void {
       
       console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
-      const accessibleBuildings: any[] = [];
+      const accessibleBuildings: unknown[] = [];
       const buildingIds = new Set<string>();
 
       // Check if user belongs to Koveo organization (special global access)
@@ -430,7 +435,7 @@ export function registerBuildingRoutes(app: Express): void {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to fetch manager buildings:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -588,7 +593,7 @@ export function registerBuildingRoutes(app: Express): void {
         );
 
       // Get user's residences in this building if any
-      let userResidencesInBuilding: any[] = [];
+      let userResidencesInBuilding: unknown[] = [];
       const userResidenceRecords = await db
         .select({
           residenceId: userResidences.residenceId,
@@ -639,7 +644,7 @@ export function registerBuildingRoutes(app: Express): void {
         residences: (currentUser.role === 'admin' || currentUser.role === 'manager') ? buildingResidences : undefined
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to fetch building details:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -746,7 +751,7 @@ export function registerBuildingRoutes(app: Express): void {
           for (const residence of createdResidences) {
             await objectStorageService.createResidenceHierarchy(buildingData.organizationId, buildingId, residence.id);
           }
-        } catch (residenceError) {
+        } catch (__residenceError) {
           console.error('⚠️ Error auto-generating residences:', residenceError);
           // Don't fail the building creation if residence generation fails
         }
@@ -757,7 +762,7 @@ export function registerBuildingRoutes(app: Express): void {
         building: newBuilding[0]
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error creating building:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -843,7 +848,7 @@ export function registerBuildingRoutes(app: Express): void {
         building: updatedBuilding[0]
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error updating building:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -909,7 +914,7 @@ export function registerBuildingRoutes(app: Express): void {
         message: 'Building deleted successfully'
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error deleting building:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -992,7 +997,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       res.json(impact);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error analyzing building deletion impact:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -1123,7 +1128,7 @@ export function registerBuildingRoutes(app: Express): void {
         deletedBuilding: building[0].name
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error cascading delete building:', error);
       res.status(500).json({
         error: 'Internal server error',

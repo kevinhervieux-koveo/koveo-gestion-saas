@@ -83,6 +83,10 @@ const duplicatePages: DuplicatePage[] = [
 /**
  *
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 function main() {
   console.log('🔧 Starting page organization cleanup...\n');
 
@@ -93,7 +97,7 @@ function main() {
     try {
       unlinkSync(orphanedPillarsPath);
       console.log('✅ Removed: client/src/pages/pillars.tsx\n');
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Failed to remove pillars.tsx:', error);
     }
   }
@@ -122,7 +126,7 @@ function main() {
             unlinkSync(removeFilePath);
             console.log(`  ✅ Removed: ${removeLocation}/${duplicate.fileName}`);
             consolidationReport.push(`REMOVED: ${removeLocation}/${duplicate.fileName} (kept ${keepLocation}/${duplicate.fileName})`);
-          } catch (error) {
+          } catch (__error) {
             console.error(`  ❌ Failed to remove ${removeLocation}/${duplicate.fileName}:`, error);
             consolidationReport.push(`ERROR: Failed to remove ${removeLocation}/${duplicate.fileName}`);
           }

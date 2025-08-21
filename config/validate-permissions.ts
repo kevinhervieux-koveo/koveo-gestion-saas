@@ -6,6 +6,10 @@ import { validatePermissions, validatePermissionsWithFallback, validatePermissio
  * Validates the permissions.json file against the Zod schema.
  * This script can be run to ensure the permissions configuration is valid.
  */
+/**
+ * ValidatePermissionsFile function.
+ * @returns Function result.
+ */
 export async function validatePermissionsFile(): Promise<{
   valid: boolean;
   errors: string[];
@@ -16,6 +20,11 @@ export async function validatePermissionsFile(): Promise<{
  * Validates permissions with fallback for startup resilience.
  * This function is designed for use during application startup to prevent crashes.
  * @param allowFallback
+ */
+/**
+ * ValidatePermissionsForStartup function.
+ * @param allowFallback
+ * @returns Function result.
  */
 export async function validatePermissionsForStartup(allowFallback: boolean = true): Promise<{
   valid: boolean;
@@ -53,7 +62,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
         permissionsContent = readFileSync(path, 'utf-8');
         foundPath = path;
         break;
-      } catch (error) {
+      } catch (__error) {
         continue;
       }
     }
@@ -127,7 +136,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
       usedFallback: validation.usedFallback || false
     };
 
-  } catch (error) {
+  } catch (__error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     
     if (allowFallback) {
@@ -155,6 +164,10 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
 
 /**
  *
+ */
+/**
+ * ValidatePermissionsFile function.
+ * @returns Function result.
  */
 export async function validatePermissionsFile(): Promise<{
   valid: boolean;
@@ -195,7 +208,7 @@ export async function validatePermissionsFile(): Promise<{
         permissionsContent = readFileSync(path, 'utf-8');
         foundPath = path;
         break;
-      } catch (error) {
+      } catch (__error) {
         // Continue to next path
         continue;
       }
@@ -257,7 +270,7 @@ export async function validatePermissionsFile(): Promise<{
       warnings
     };
 
-  } catch (error) {
+  } catch (__error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (errorMessage.includes('ENOENT')) {
       errors.push('permissions.json file not found. Please ensure the file exists in the config directory.');
@@ -273,6 +286,10 @@ export async function validatePermissionsFile(): Promise<{
 /**
  * CLI script to validate permissions if run directly.
  * Note: Removed process.exit() calls to prevent application crashes during startup.
+ */
+/**
+ * RunCLI function.
+ * @returns Function result.
  */
 async function runCLI() {
   try {
@@ -297,7 +314,7 @@ async function runCLI() {
       process.exit(result.valid ? 0 : 1);
     }
     return result.valid;
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Validation failed:', error);
     // Don't exit the process in production to prevent app shutdown
     if (process.env.NODE_ENV !== 'production') {

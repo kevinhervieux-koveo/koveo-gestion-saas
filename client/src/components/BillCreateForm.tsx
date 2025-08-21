@@ -78,6 +78,13 @@ const billCreateSchema = z.object({
  * @param root0.onSuccess - Callback function called when bill is successfully created.
  * @returns JSX element for bill creation form.
  */
+/**
+ * BillCreateForm function.
+ * @param root0
+ * @param root0.buildingId
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 export function BillCreateForm({ 
   buildingId, 
   onSuccess 

@@ -57,6 +57,11 @@ export const SCOPE_CONFIG = {
  * This is used for scoping queries to residence-level data.
  * @param userContext
  */
+/**
+ * GetUserAccessibleResidenceIds function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getUserAccessibleResidenceIds(userContext: UserContext): Promise<string[]> {
   const { userId, role } = userContext;
 
@@ -98,6 +103,11 @@ export async function getUserAccessibleResidenceIds(userContext: UserContext): P
  * Helper function to get user's accessible building IDs based on their role and associations.
  * This is used for scoping queries to building-level data.
  * @param userContext
+ */
+/**
+ * GetUserAccessibleBuildingIds function.
+ * @param userContext
+ * @returns Function result.
  */
 export async function getUserAccessibleBuildingIds(userContext: UserContext): Promise<string[]> {
   const { userId, role } = userContext;
@@ -157,6 +167,13 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
  *   'buildings'
  * );
  * ```
+ */
+/**
+ * ScopeQuery function.
+ * @param query
+ * @param userContext
+ * @param entityType
+ * @returns Function result.
  */
 export async function scopeQuery<T extends PgSelect>(
   query: T,
@@ -278,6 +295,12 @@ export async function scopeQuery<T extends PgSelect>(
  * @param userRole - User role from session/database.
  * @returns Promise resolving to UserContext with populated associations.
  */
+/**
+ * BuildUserContext function.
+ * @param userId
+ * @param userRole
+ * @returns Function result.
+ */
 export async function buildUserContext(userId: string, userRole: string): Promise<UserContext> {
   const role = userRole as UserContext['role'];
   
@@ -305,9 +328,9 @@ export async function buildUserContext(userId: string, userRole: string): Promis
         )
       );
 
-    userContext.residenceIds = Array.from(new Set(userResidenceRecords.map((ur: any) => ur.residenceId)));
-    userContext.buildingIds = Array.from(new Set(userResidenceRecords.map((ur: any) => ur.buildingId)));
-    userContext.organizationIds = Array.from(new Set(userResidenceRecords.map((ur: any) => ur.organizationId)));
+    userContext.residenceIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.residenceId)));
+    userContext.buildingIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.buildingId)));
+    userContext.organizationIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.organizationId)));
   }
 
   return userContext;

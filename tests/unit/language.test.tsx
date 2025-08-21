@@ -7,6 +7,10 @@ import { LanguageProvider, useLanguage } from '../../client/src/hooks/use-langua
  * Test component for language functionality.
  * @returns JSX component for testing language features.
  */
+/**
+ * TestComponent function.
+ * @returns Function result.
+ */
 function TestComponent(): JSX.Element {
   const { language, t, setLanguage } = useLanguage();
   

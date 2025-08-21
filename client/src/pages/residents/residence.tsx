@@ -336,7 +336,7 @@ export default function MyResidence() {
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: editingContact ? 'Error updating contact' : 'Error adding contact', 
         description: 'Please try again later',
@@ -358,7 +358,7 @@ export default function MyResidence() {
       });
 
       toast({ title: 'Contact deleted successfully' });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: 'Error deleting contact', 
         description: 'Please try again later',
@@ -399,7 +399,7 @@ export default function MyResidence() {
     return { method: "PUT" as const, url: data.uploadURL };
   };
 
-  const handleNewDocumentUploadComplete = (result: any) => {
+  const handleNewDocumentUploadComplete = (result: unknown) => {
     setIsUploadingNewFile(false);
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
@@ -452,7 +452,7 @@ export default function MyResidence() {
       setUploadedFile(null);
       documentForm.reset();
       toast({ title: 'Document created successfully' });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: 'Error creating document', 
         description: 'Please try again later',
@@ -484,7 +484,7 @@ export default function MyResidence() {
       setSelectedDocument(null);
       setIsEditingDocument(false);
       toast({ title: 'Document updated successfully' });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: 'Error updating document', 
         description: 'Please try again later',
@@ -506,7 +506,7 @@ export default function MyResidence() {
       });
 
       toast({ title: 'Document deleted successfully' });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: 'Error deleting document', 
         description: 'Please try again later',

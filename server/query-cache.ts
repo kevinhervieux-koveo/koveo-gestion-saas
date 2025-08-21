@@ -205,6 +205,13 @@ export const queryCache = new QueryCacheManager();
  * @param cacheKey
  * @param operation
  */
+/**
+ * WithCache function.
+ * @param cacheType
+ * @param cacheKey
+ * @param operation
+ * @returns Function result.
+ */
 export function withCache<T>(
   cacheType: string,
   cacheKey: string,
@@ -226,7 +233,7 @@ export function withCache<T>(
       queryCache.set(cacheType, cacheKey, result);
       
       resolve(result);
-    } catch (_error) {
+    } catch (___error) {
       reject(_error);
     }
   });
@@ -318,7 +325,7 @@ export class CacheMonitor {
     const stats = queryCache.getStats();
     let totalMemory = 0;
     
-    Object.values(stats).forEach((stat: any) => {
+    Object.values(stats).forEach((stat: unknown) => {
       totalMemory += parseFloat(stat.memoryUsage.replace(' KB', ''));
     });
     
@@ -341,7 +348,7 @@ export class CacheWarmer {
       // This would be implemented with actual database calls
       // Example: Pre-load active users, organizations, etc.
       console.log('Cache warming complete');
-    } catch (error) {
+    } catch (__error) {
       console.warn('Cache warming failed:', error);
     }
   }

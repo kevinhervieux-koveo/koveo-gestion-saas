@@ -13,6 +13,12 @@ const viteLogger = createLogger();
  * @param message
  * @param source
  */
+/**
+ * Log function.
+ * @param message
+ * @param source
+ * @returns Function result.
+ */
 export function log(message: string, source = 'express') {
   const formattedTime = new Date().toLocaleTimeString('en-US', {
     hour: 'numeric',
@@ -28,6 +34,12 @@ export function log(message: string, source = 'express') {
  *
  * @param app
  * @param server
+ */
+/**
+ * SetupVite function.
+ * @param app
+ * @param server
+ * @returns Function result.
  */
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -62,7 +74,7 @@ export async function setupVite(app: Express, server: Server) {
       template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ 'Content-Type': 'text/html' }).end(page);
-    } catch (e) {
+    } catch (__e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }
@@ -72,6 +84,11 @@ export async function setupVite(app: Express, server: Server) {
 /**
  *
  * @param app
+ */
+/**
+ * ServeStatic function.
+ * @param app
+ * @returns Function result.
  */
 export function serveStatic(app: Express) {
   const distPath = path.resolve(import.meta.dirname, 'public');

@@ -72,6 +72,11 @@ interface ValidationResult {
  * Check if a file contains references to removed routes.
  * @param filePath
  */
+/**
+ * CheckFileForRemovedRoutes function.
+ * @param filePath
+ * @returns Function result.
+ */
 async function checkFileForRemovedRoutes(filePath: string): Promise<string[]> {
   const content = await fs.promises.readFile(filePath, 'utf-8');
   const errors: string[] = [];
@@ -102,6 +107,10 @@ async function checkFileForRemovedRoutes(filePath: string): Promise<string[]> {
 
 /**
  * Check source files for route consistency.
+ */
+/**
+ * CheckSourceFiles function.
+ * @returns Function result.
  */
 async function checkSourceFiles(): Promise<ValidationResult> {
   const errors: string[] = [];
@@ -149,6 +158,10 @@ async function checkSourceFiles(): Promise<ValidationResult> {
 /**
  * Check build output for removed routes.
  */
+/**
+ * CheckBuildOutput function.
+ * @returns Function result.
+ */
 async function checkBuildOutput(): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -187,6 +200,10 @@ async function checkBuildOutput(): Promise<ValidationResult> {
 
 /**
  * Main validation function.
+ */
+/**
+ * ValidateRoutes function.
+ * @returns Function result.
  */
 async function validateRoutes(): Promise<void> {
   console.log('🔍 Validating routes in Koveo Gestion...\n');

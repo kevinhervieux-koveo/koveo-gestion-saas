@@ -26,6 +26,11 @@ interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> 
  * @param config - API mutation configuration.
  * @returns Mutation hook with standardized behavior.
  */
+/**
+ * UseApiMutation function.
+ * @param config
+ * @returns Function result.
+ */
 export function useApiMutation<TData = unknown, TError = Error, TVariables = void>(
   config: ApiMutationConfig<TData, TError, TVariables>
 ) {
@@ -114,6 +119,12 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
  * @param options - Additional configuration options.
  * @returns Mutation hook for create operations.
  */
+/**
+ * UseCreateMutation function.
+ * @param endpoint
+ * @param options
+ * @returns Function result.
+ */
 export function useCreateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,
   options?: Partial<ApiMutationConfig<TData, Error, TVariables>>
@@ -131,6 +142,12 @@ export function useCreateMutation<TData = unknown, TVariables = unknown>(
  * @param endpoint - API endpoint for updates.
  * @param options - Additional configuration options.
  * @returns Mutation hook for update operations.
+ */
+/**
+ * UseUpdateMutation function.
+ * @param endpoint
+ * @param options
+ * @returns Function result.
  */
 export function useUpdateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string | ((_variables: TVariables) => string),
@@ -150,6 +167,12 @@ export function useUpdateMutation<TData = unknown, TVariables = unknown>(
  * @param options - Additional configuration options.
  * @returns Mutation hook for delete operations.
  */
+/**
+ * UseDeleteMutation function.
+ * @param endpoint
+ * @param options
+ * @returns Function result.
+ */
 export function useDeleteMutation<TVariables = string>(
   endpoint: string | ((_id: TVariables) => string),
   options?: Partial<ApiMutationConfig<void, Error, TVariables>>
@@ -167,6 +190,12 @@ export function useDeleteMutation<TVariables = string>(
  * @param endpoint - API endpoint for bulk operations.
  * @param options - Additional configuration options.
  * @returns Mutation hook for bulk operations.
+ */
+/**
+ * UseBulkMutation function.
+ * @param endpoint
+ * @param options
+ * @returns Function result.
  */
 export function useBulkMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,

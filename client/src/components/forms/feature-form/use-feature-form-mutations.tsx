@@ -8,6 +8,12 @@ import type { FeatureFormData } from './use-feature-form-data';
  * @param feature
  * @param onClose
  */
+/**
+ * UseFeatureFormMutations function.
+ * @param feature
+ * @param onClose
+ * @returns Function result.
+ */
 export function useFeatureFormMutations(
   feature: Feature | null,
   onClose: () => void

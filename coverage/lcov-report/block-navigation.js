@@ -21,12 +21,28 @@ var jumpToCode = (function init() {
 
     var currentIndex;
 
+    /**
+
+     * toggleClass function
+
+     * @returns Function result
+
+     */
+
     function toggleClass(index) {
         missingCoverageElements
             .item(currentIndex)
             .classList.remove('highlighted');
         missingCoverageElements.item(index).classList.add('highlighted');
     }
+
+    /**
+
+     * makeCurrent function
+
+     * @returns Function result
+
+     */
 
     function makeCurrent(index) {
         toggleClass(index);
@@ -38,6 +54,14 @@ var jumpToCode = (function init() {
         });
     }
 
+    /**
+
+     * goToPrevious function
+
+     * @returns Function result
+
+     */
+
     function goToPrevious() {
         var nextIndex = 0;
         if (typeof currentIndex !== 'number' || currentIndex === 0) {
@@ -48,6 +72,14 @@ var jumpToCode = (function init() {
 
         makeCurrent(nextIndex);
     }
+
+    /**
+
+     * goToNext function
+
+     * @returns Function result
+
+     */
 
     function goToNext() {
         var nextIndex = 0;

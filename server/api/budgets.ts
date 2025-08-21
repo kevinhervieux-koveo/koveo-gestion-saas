@@ -8,7 +8,7 @@ import { and, eq, gte, lte, sql, desc, asc } from 'drizzle-orm';
 const router = express.Router();
 
 /**
- * Get budgets and monthly budgets for a building with date range
+ * Get budgets and monthly budgets for a building with date range.
  */
 router.get('/:buildingId', requireAuth, async (req, res) => {
   try {
@@ -59,7 +59,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       return res.json({ budgets: yearlyBudgets, type: 'yearly' });
     } else {
       // Get monthly budget data with month filtering
-      let whereConditions = [
+      const whereConditions = [
         eq(monthlyBudgets.buildingId, buildingId)
       ];
 
@@ -122,14 +122,14 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       
       return res.json({ budgets: monthlyBudgetData, type: 'monthly' });
     }
-  } catch (error) {
+  } catch (__error) {
     console.error('Error fetching budget data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * Get budget summary with income/expense totals
+ * Get budget summary with income/expense totals.
  */
 router.get('/:buildingId/summary', requireAuth, async (req, res) => {
   try {
@@ -144,7 +144,7 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
     // Get monthly budget data with proper structure and month filtering
-    let whereConditions = [
+    const whereConditions = [
       eq(monthlyBudgets.buildingId, buildingId)
     ];
 
@@ -206,14 +206,14 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     }
     
     return res.json({ summary: summaryData });
-  } catch (error) {
+  } catch (__error) {
     console.error('Error fetching budget summary:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * Update building bank account number with reconciliation note
+ * Update building bank account number with reconciliation note.
  */
 router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
@@ -258,27 +258,27 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountMinimums,
       bankAccountUpdatedAt: new Date()
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Error updating bank account:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * Update building bank account number with reconciliation note (PATCH method for backwards compatibility)
+ * Update building bank account number with reconciliation note (PATCH method for backwards compatibility).
  */
 router.patch('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     // TODO: Enable when bank account columns are added to database
     res.json({ message: 'Bank account update feature coming soon' });
-  } catch (error) {
+  } catch (__error) {
     console.error('Error updating bank account:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * Get building bank account info
+ * Get building bank account info.
  */
 router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
@@ -310,7 +310,7 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountMinimums: building.bankAccountMinimums,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Error fetching bank account info:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

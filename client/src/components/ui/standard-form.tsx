@@ -73,6 +73,10 @@ interface StandardFormProps {
  * @param props - Form configuration and handlers
  * @returns Standardized form component
  */
+/**
+ * StandardForm function
+ * @returns Function result
+ */
 export function StandardForm({
   schema,
   fields,
@@ -93,10 +97,10 @@ export function StandardForm({
     defaultValues,
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: unknown) => {
     try {
       await onSubmit(data);
-    } catch (error) {
+    } catch (_error) {
       console.error('Form submission error:', error);
     }
   };

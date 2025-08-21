@@ -82,7 +82,7 @@ export class SSLService {
 
       // Create account if it doesn't exist
       await this.ensureAccount();
-    } catch (_error) {
+    } catch (___error) {
       throw new Error(`Failed to initialize SSL service: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -132,7 +132,7 @@ export class SSLService {
 
       return certData;
 
-    } catch (_error) {
+    } catch (___error) {
       throw new Error(`Failed to request certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -153,7 +153,7 @@ export class SSLService {
       // For basic validation, just check if domain resolves
       // In production, you might want more sophisticated checks
       return txtRecords !== undefined;
-    } catch (_error) {
+    } catch (___error) {
       console.error(`Domain ownership validation failed for ${domain}:`, _error);
       return false;
     }
@@ -174,7 +174,7 @@ export class SSLService {
       }
 
       return existingCert || await this.requestCertificate(domain);
-    } catch (_error) {
+    } catch (___error) {
       throw new Error(`Failed to rotate certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -203,7 +203,7 @@ export class SSLService {
       ]);
 
       return await this.parseCertificate(certificate, privateKey);
-    } catch (error) {
+    } catch (__error) {
       console.error(`Failed to get certificate for ${domain}:`, error);
       return null;
     }
@@ -222,7 +222,7 @@ export class SSLService {
         }))
       );
       return certificates;
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to list certificates:', error);
       return [];
     }
@@ -247,7 +247,7 @@ export class SSLService {
 
       // Remove from storage
       await this.removeCertificateFromStorage(domain);
-    } catch (error) {
+    } catch (__error) {
       throw new Error(`Failed to revoke certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -290,7 +290,7 @@ export class SSLService {
         termsOfServiceAgreed: true,
         contact: [`mailto:${this.options.email}`]
       });
-    } catch (error) {
+    } catch (__error) {
       // Account might already exist, which is fine
       if (!error || !error.toString().includes('account already exists')) {
         console.warn('Account creation warning:', error);
@@ -381,7 +381,7 @@ export class SSLService {
           console.log('DNS record propagated successfully!');
           return;
         }
-      } catch (error) {
+      } catch (__error) {
         // DNS resolution failed, continue waiting
       }
 
@@ -437,7 +437,7 @@ export class SSLService {
         serialNumber: cert.serialNumber,
         fingerprint: forge.md.sha256.create().update(forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes()).digest().toHex()
       };
-    } catch (error) {
+    } catch (__error) {
       throw new Error(`Failed to parse certificate: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -476,7 +476,7 @@ export class SSLService {
     const domainDir = path.join(this.options.storageDir, domain);
     try {
       await fs.rm(domainDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch (__error) {
       console.warn(`Failed to remove certificate storage for ${domain}:`, error);
     }
   }
@@ -485,6 +485,11 @@ export class SSLService {
 /**
  * Factory function to create and initialize SSL service.
  * @param options
+ */
+/**
+ * CreateSSLService function.
+ * @param options
+ * @returns Function result.
  */
 export async function createSSLService(options: SSLServiceOptions): Promise<SSLService> {
   const service = new SSLService(options);
@@ -495,6 +500,11 @@ export async function createSSLService(options: SSLServiceOptions): Promise<SSLS
 /**
  * Utility function to check certificate status.
  * @param cert
+ */
+/**
+ * GetCertificateStatus function.
+ * @param cert
+ * @returns Function result.
  */
 export function getCertificateStatus(cert: CertificateData): {
   isValid: boolean;

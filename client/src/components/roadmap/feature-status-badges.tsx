@@ -5,6 +5,11 @@ import { CheckCircle2, Clock, Circle, AlertTriangle } from 'lucide-react';
  * Gets status icon for a feature.
  * @param status
  */
+/**
+ * GetStatusIcon function.
+ * @param status
+ * @returns Function result.
+ */
 export function getStatusIcon(status: string) {
   switch (status) {
     case 'completed':
@@ -22,6 +27,11 @@ export function getStatusIcon(status: string) {
  * Gets status badge for a feature.
  * @param status
  */
+/**
+ * GetStatusBadge function.
+ * @param status
+ * @returns Function result.
+ */
 export function getStatusBadge(status: string) {
   switch (status) {
     case 'completed':
@@ -38,6 +48,11 @@ export function getStatusBadge(status: string) {
 /**
  * Gets priority badge for a feature.
  * @param priority
+ */
+/**
+ * GetPriorityBadge function.
+ * @param priority
+ * @returns Function result.
  */
 export function getPriorityBadge(priority?: string) {
   if (!priority) {
@@ -63,6 +78,11 @@ export function getPriorityBadge(priority?: string) {
  * Gets status icon for actionable items.
  * @param status
  */
+/**
+ * GetActionableItemStatusIcon function.
+ * @param status
+ * @returns Function result.
+ */
 export function getActionableItemStatusIcon(status: string) {
   switch (status) {
     case 'completed':
@@ -80,6 +100,11 @@ export function getActionableItemStatusIcon(status: string) {
 /**
  * Gets status badge for actionable items.
  * @param status
+ */
+/**
+ * GetActionableItemStatusBadge function.
+ * @param status
+ * @returns Function result.
  */
 export function getActionableItemStatusBadge(status: string) {
   switch (status) {

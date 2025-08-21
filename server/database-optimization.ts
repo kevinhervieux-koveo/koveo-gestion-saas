@@ -365,7 +365,7 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.log(`✓ Applied: ${indexQuery}`);
-      } catch (_error) {
+      } catch (___error) {
         console.warn(`⚠ Failed to apply index: ${indexQuery}`, _error);
       }
     }
@@ -375,7 +375,7 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.log(`✓ Applied covering index: ${indexQuery}`);
-      } catch (_error) {
+      } catch (___error) {
         console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, _error);
       }
     }
@@ -385,7 +385,7 @@ export class QueryOptimizer {
       try {
         await sql`${viewQuery}`;
         console.log(`✓ Created materialized view`);
-      } catch (_error) {
+      } catch (___error) {
         console.warn(`⚠ Failed to create materialized view`, _error);
       }
     }
@@ -426,7 +426,7 @@ export class QueryOptimizer {
       
       console.log('Index usage statistics:', indexUsage);
       
-    } catch (error) {
+    } catch (__error) {
       console.warn('Query performance analysis failed:', error);
     }
   }
@@ -492,7 +492,7 @@ export class QueryOptimizer {
       try {
         await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`;
         console.log(`✓ Refreshed: ${view}`);
-      } catch (error) {
+      } catch (__error) {
         console.warn(`⚠ Failed to refresh ${view}:`, error);
       }
     }
@@ -527,7 +527,7 @@ export class DatabaseMaintenance {
       await QueryOptimizer.refreshMaterializedViews();
       console.log('✓ Refreshed materialized views');
       
-    } catch (error) {
+    } catch (__error) {
       console.warn('Database maintenance completed with warnings:', error);
     }
     
@@ -560,7 +560,7 @@ export class DatabaseMaintenance {
       
       return metrics;
       
-    } catch (error) {
+    } catch (__error) {
       console.warn('Failed to get performance metrics:', error);
       return [];
     }

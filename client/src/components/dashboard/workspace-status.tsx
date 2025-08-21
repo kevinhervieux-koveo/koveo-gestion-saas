@@ -9,6 +9,10 @@ import { useLanguage } from '@/hooks/use-language';
  * Shows completion status for environment, dependencies, and framework setup.
  * @returns JSX element for the workspace status display.
  */
+/**
+ * WorkspaceStatus function.
+ * @returns Function result.
+ */
 export function WorkspaceStatus() {
   const { t } = useLanguage();
 

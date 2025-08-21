@@ -87,6 +87,10 @@ interface DataTableProps<T> {
  * @param props - Table configuration and data
  * @returns Standardized data table component
  */
+/**
+ * DataTable function
+ * @returns Function result
+ */
 export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,

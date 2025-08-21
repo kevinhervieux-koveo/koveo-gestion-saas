@@ -347,7 +347,7 @@ const runAllTests = () => {
     console.log('✅ Zero values are handled properly in numeric fields');
     console.log('✅ Data integrity checks pass for all building records');
     
-  } catch (error) {
+  } catch (_error) {
     console.error(`\n💥 Test failed: ${error.message}`);
     process.exit(1);
   }

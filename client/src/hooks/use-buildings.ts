@@ -11,6 +11,10 @@ import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from
 /**
  * Custom hook for managing buildings data and operations.
  */
+/**
+ * UseBuildings function.
+ * @returns Function result.
+ */
 export function useBuildings() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -105,7 +109,7 @@ export function useBuildings() {
       setIsAddDialogOpen(false);
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create building.',
@@ -143,7 +147,7 @@ export function useBuildings() {
       setEditingBuilding(null);
       editForm.reset();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update building.',
@@ -174,7 +178,7 @@ export function useBuildings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete building.',

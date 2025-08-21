@@ -32,6 +32,11 @@ const domainSchema = z.object({
  *
  * @param app - Express application instance.
  */
+/**
+ * RegisterSSLRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerSSLRoutes(app: Express): void {
   /**
    * GET /api/ssl/:domain - Retrieves SSL certificate information for a given domain.
@@ -120,7 +125,7 @@ export function registerSSLRoutes(app: Express): void {
         data: responseData
       });
 
-    } catch (_error) {
+    } catch (___error) {
       console.error(`Failed to fetch SSL certificate for domain ${req.params.domain}:`, _error);
       res.status(500).json({
         error: 'Internal Server Error',
@@ -194,7 +199,7 @@ export function registerSSLRoutes(app: Express): void {
         count: certificatesWithStatus.length
       });
 
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to fetch SSL certificates:', _error);
       res.status(500).json({
         error: 'Internal Server Error',
@@ -294,7 +299,7 @@ export function registerSSLRoutes(app: Express): void {
         data: statusInfo
       });
 
-    } catch (_error) {
+    } catch (___error) {
       console.error(`Failed to fetch SSL certificate status for domain ${req.params.domain}:`, _error);
       res.status(500).json({
         error: 'Internal Server Error',

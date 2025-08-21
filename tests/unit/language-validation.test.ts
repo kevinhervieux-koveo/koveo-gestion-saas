@@ -95,12 +95,22 @@ const QUEBEC_LEGAL_TERMS = {
  * @param container - The HTML element to extract text from.
  * @returns Array of visible text strings.
  */
+/**
+ * ExtractVisibleText function.
+ * @param container
+ * @returns Function result.
+ */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
   
   /**
    * Traverses DOM nodes to extract text content.
    * @param node - The DOM node to traverse.
+   */
+  /**
+   * Traverse function.
+   * @param node
+   * @returns Function result.
    */
   function traverse(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) { // 3 = TEXT_NODE
@@ -141,6 +151,12 @@ function extractVisibleText(container: HTMLElement): string[] {
  * @param text - The text to validate.
  * @param context - Context information for the validation.
  * @returns Array of validation violations.
+ */
+/**
+ * ValidateText function.
+ * @param text
+ * @param context
+ * @returns Function result.
  */
 function validateText(text: string, context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -275,6 +291,12 @@ class LanguageValidator {
      * @param obj - Object to extract strings from.
      * @param path - Current path in the object.
      * @returns Array of extracted strings.
+     */
+    /**
+     * ExtractStrings function.
+     * @param obj
+     * @param path
+     * @returns Function result.
      */
     function extractStrings(obj: unknown, path: string = ''): string[] {
       const strings: string[] = [];

@@ -43,12 +43,12 @@ describe('Translation Files Language Validation', () => {
             try {
               const jsonData = JSON.parse(content);
               validator.validateJSON(jsonData, `Translation file: ${file}`);
-            } catch (error) {
+            } catch (__error) {
               console.warn(`Failed to parse JSON file ${file}:`, error);
             }
           }
         }
-      } catch (error) {
+      } catch (__error) {
         // Pattern not found, continue
       }
     }
@@ -81,7 +81,7 @@ describe('Translation Files Language Validation', () => {
         file: string;
         line: number;
         text: string;
-        violations: any[];
+        violations: unknown[];
       }> = [];
       
       for (const file of componentFiles.slice(0, 10)) { // Limit to first 10 files for testing
@@ -133,7 +133,7 @@ describe('Translation Files Language Validation', () => {
       
       expect(hardcodedStrings.length).toBeGreaterThanOrEqual(0);
       
-    } catch (error) {
+    } catch (__error) {
       console.log('❌ Erreur lors de l\'analyse des composants:', error);
     }
   });

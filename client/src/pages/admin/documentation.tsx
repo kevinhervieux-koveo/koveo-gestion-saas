@@ -282,7 +282,7 @@ export default function OwnerDocumentation() {
         title: 'Documentation Refreshed',
         description: 'Documentation data has been updated with the latest information.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         variant: 'destructive',
         title: 'Refresh Failed',
@@ -316,7 +316,7 @@ export default function OwnerDocumentation() {
         title: 'Documentation Exported',
         description: 'Google Suite documentation package has been downloaded successfully.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -342,7 +342,7 @@ export default function OwnerDocumentation() {
         title: 'LLM Documentation Exported',
         description: 'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',

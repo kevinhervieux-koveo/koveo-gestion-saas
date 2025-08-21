@@ -61,6 +61,14 @@ interface FeatureFormProps {
  * @param root0.open
  * @param root0.onOpenChange
  */
+/**
+ * FeatureForm function.
+ * @param root0
+ * @param root0.feature
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @returns Function result.
+ */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<'form' | 'prompt'>('form');
@@ -105,7 +113,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
       setLastSaved(new Date());
       toast({ title: 'Draft Saved', description: 'Your progress has been automatically saved.', duration: 2000 });
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to save draft:', error);
     }
   }, [feature?.id, toast, getDraftKey]);
@@ -118,7 +126,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         return draftData.formData;
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load draft:', error);
     }
     return {};
@@ -129,7 +137,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       toast({ title: 'Draft Cleared', description: 'Saved draft has been removed.' });
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to clear draft:', error);
     }
   }, [getDraftKey, toast]);

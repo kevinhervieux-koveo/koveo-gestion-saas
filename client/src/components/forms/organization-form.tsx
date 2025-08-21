@@ -68,6 +68,13 @@ type OrganizationFormData = z.infer<typeof organizationFormSchema>;
  * @param root0.onOpenChange - Callback to handle dialog open state changes.
  * @returns Organization form dialog component.
  */
+/**
+ * OrganizationForm function.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @returns Function result.
+ */
 export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) {
   const { t: _t } = useLanguage();
   const { toast } = useToast();
@@ -103,7 +110,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       form.reset();
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Create organization error:', error);
       toast({
         title: 'Error',

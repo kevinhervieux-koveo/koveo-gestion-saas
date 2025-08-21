@@ -73,6 +73,10 @@ interface MonitoringData {
  * Replit AI Monitoring Component - Refactored using reusable components
  * Reduced from 441+ lines to ~220 lines by leveraging DataTable and BaseDialog.
  */
+/**
+ * ReplitAiMonitoring function.
+ * @returns Function result.
+ */
 export function ReplitAiMonitoring() {
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -300,6 +304,12 @@ interface SystemMetricsGridProps {
  * @param root0
  * @param root0.metrics
  */
+/**
+ * SystemMetricsGrid function.
+ * @param root0
+ * @param root0.metrics
+ * @returns Function result.
+ */
 function SystemMetricsGrid({ metrics }: SystemMetricsGridProps) {
   const metricCards = [
     { label: 'CPU Usage', value: metrics.cpu, icon: Zap, unit: '%', max: 100 },
@@ -340,6 +350,12 @@ interface PerformanceChartsProps {
  *
  * @param root0
  * @param root0.data
+ */
+/**
+ * PerformanceCharts function.
+ * @param root0
+ * @param root0.data
+ * @returns Function result.
  */
 function PerformanceCharts({ data }: PerformanceChartsProps) {
   return (
@@ -387,6 +403,12 @@ interface AlertDetailsProps {
  * Alert details component.
  * @param root0
  * @param root0.alert
+ */
+/**
+ * AlertDetails function.
+ * @param root0
+ * @param root0.alert
+ * @returns Function result.
  */
 function AlertDetails({ alert }: AlertDetailsProps) {
   // Local alert configuration since getAlertConfig is not in scope
@@ -440,6 +462,10 @@ function AlertDetails({ alert }: AlertDetailsProps) {
 // Loading skeleton
 /**
  *
+ */
+/**
+ * MonitoringSkeleton function.
+ * @returns Function result.
  */
 function MonitoringSkeleton() {
   return (

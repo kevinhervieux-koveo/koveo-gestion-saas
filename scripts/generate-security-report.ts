@@ -99,7 +99,7 @@ class SecurityReportGenerator {
       }
 
       console.warn(`   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`);
-    } catch (error) {
+    } catch (__error) {
       console.warn('   Warning: Could not collect vulnerability data');
     }
   }
@@ -119,7 +119,7 @@ class SecurityReportGenerator {
       
       this.metrics.compliance.quebec_law25 = 'COMPLIANT';
       console.warn('   ✅ Quebec Law 25: COMPLIANT');
-    } catch (error) {
+    } catch (__error) {
       this.metrics.compliance.quebec_law25 = 'NON_COMPLIANT';
       console.warn('   ❌ Quebec Law 25: NON_COMPLIANT');
       this.metrics.recommendations.push('Address Quebec Law 25 compliance issues identified in security check');
@@ -170,7 +170,7 @@ class SecurityReportGenerator {
         console.warn('   ❌ Authentication: NOT_FOUND');
         this.metrics.recommendations.push('Implement proper authentication system');
       }
-    } catch (error) {
+    } catch (__error) {
       this.metrics.compliance.authentication = 'NEEDS_REVIEW';
       console.warn('   ⚠️  Authentication: ASSESSMENT_FAILED');
     }
@@ -213,7 +213,7 @@ class SecurityReportGenerator {
         console.warn('   ❌ Data Protection: NON_COMPLIANT');
         this.metrics.recommendations.push('Implement comprehensive data protection measures');
       }
-    } catch (error) {
+    } catch (__error) {
       this.metrics.compliance.data_protection = 'NEEDS_REVIEW';
       console.warn('   ⚠️  Data Protection: ASSESSMENT_FAILED');
     }

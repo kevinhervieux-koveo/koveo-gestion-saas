@@ -29,6 +29,12 @@ interface LanguageProviderProps {
  * @param {ReactNode} props.children - Child components that will have access to language context.
  * @returns {JSX.Element} Language context provider wrapper.
  */
+/**
+ * LanguageProvider function.
+ * @param root0
+ * @param root0.children
+ * @returns Function result.
+ */
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('en');
 
@@ -55,6 +61,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
  * const title = t('welcome'); // Gets translated text
  * setLanguage('fr'); // Switch to French
  * ```
+ */
+/**
+ * UseLanguage function.
+ * @returns Function result.
  */
 export function useLanguage() {
   const context = useContext(LanguageContext);

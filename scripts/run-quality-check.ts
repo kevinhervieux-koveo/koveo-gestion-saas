@@ -165,6 +165,18 @@ interface RedundancyAnalysisResult {
  * @param law25Compliance
  * @param redundancy
  */
+/**
+ * GenerateSuggestions function.
+ * @param complexity
+ * @param coverage
+ * @param vulnerabilities
+ * @param translationCoverage
+ * @param accessibility
+ * @param componentCoverage
+ * @param law25Compliance
+ * @param redundancy
+ * @returns Function result.
+ */
 async function generateSuggestions(
   complexity: ComplexityResult,
   coverage: CoverageResult,
@@ -503,6 +515,10 @@ async function generateSuggestions(
  * Checks JSDoc documentation coverage.
  * @returns Promise resolving to JSDoc coverage count.
  */
+/**
+ * CheckJSDocCoverage function.
+ * @returns Function result.
+ */
 async function checkJSDocCoverage(): Promise<number> {
   try {
     const output = execSync('npm run lint:check 2>&1 || true', { 
@@ -521,6 +537,10 @@ async function checkJSDocCoverage(): Promise<number> {
  * Checks build performance.
  * @returns Promise resolving to build time in milliseconds.
  */
+/**
+ * CheckBuildPerformance function.
+ * @returns Function result.
+ */
 async function checkBuildPerformance(): Promise<number> {
   try {
     const startTime = Date.now();
@@ -538,6 +558,10 @@ async function checkBuildPerformance(): Promise<number> {
 /**
  * Analyzes code complexity using complexity-report.
  * @returns Promise containing complexity analysis results.
+ */
+/**
+ * AnalyzeComplexity function.
+ * @returns Function result.
  */
 async function analyzeComplexity(): Promise<ComplexityResult> {
   try {
@@ -569,7 +593,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
     const complexFunctions: ComplexityResult['complexFunctions'] = [];
 
     if (complexityData.functions) {
-      complexityData.functions.forEach((func: any) => {
+      complexityData.functions.forEach((func: unknown) => {
         const complexity = func.complexity?.cyclomatic || 0;
         totalComplexity += complexity;
         functionCount++;
@@ -593,7 +617,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
       totalFunctions: functionCount,
       complexFunctions: complexFunctions.sort((a, b) => b.complexity - a.complexity),
     };
-  } catch (error) {
+  } catch (__error) {
     console.warn(`${COLORS.YELLOW}⚠️  Complexity analysis failed: ${error}${COLORS.RESET}`);
     return {
       averageComplexity: 0,
@@ -607,6 +631,10 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
 /**
  * Analyzes test coverage from Jest coverage reports.
  * @returns Promise containing coverage analysis results.
+ */
+/**
+ * AnalyzeCoverage function.
+ * @returns Function result.
  */
 async function analyzeCoverage(): Promise<CoverageResult> {
   try {
@@ -650,7 +678,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
       lineCoverage: totalCoverage.lines.pct,
       uncoveredFiles,
     };
-  } catch (_error) {
+  } catch (___error) {
     console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${_error}${COLORS.RESET}`);
     return {
       totalCoverage: 0,
@@ -665,6 +693,10 @@ async function analyzeCoverage(): Promise<CoverageResult> {
 /**
  * Analyzes translation coverage across all UI components.
  * @returns Promise resolving to translation coverage analysis results.
+ */
+/**
+ * AnalyzeTranslationCoverage function.
+ * @returns Function result.
  */
 async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> {
   try {
@@ -718,7 +750,7 @@ async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> 
       coveragePercentage: Math.round((translatedComponents / componentFiles.length) * 100),
       missingTranslations,
     };
-  } catch (error) {
+  } catch (__error) {
     console.warn(`🌐 Translation analysis failed: ${error}`);
     return {
       totalComponents: 0,
@@ -731,6 +763,10 @@ async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> 
 
 /**
  * Analyzes accessibility compliance across components.
+ */
+/**
+ * AnalyzeAccessibility function.
+ * @returns Function result.
  */
 async function analyzeAccessibility(): Promise<AccessibilityResult> {
   try {
@@ -793,7 +829,7 @@ async function analyzeAccessibility(): Promise<AccessibilityResult> {
       coveragePercentage: Math.round((accessibleComponents / componentFiles.length) * 100),
       missingAccessibility,
     };
-  } catch (error) {
+  } catch (__error) {
     console.warn(`♿ Accessibility analysis failed: ${error}`);
     return {
       totalComponents: 0,
@@ -806,6 +842,10 @@ async function analyzeAccessibility(): Promise<AccessibilityResult> {
 
 /**
  * Analyzes component test coverage.
+ */
+/**
+ * AnalyzeComponentCoverage function.
+ * @returns Function result.
  */
 async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
   try {
@@ -868,7 +908,7 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
       coveragePercentage: Math.round((testedComponents / componentFiles.length) * 100),
       untestedComponents,
     };
-  } catch (_error) {
+  } catch (___error) {
     console.warn(`🧩 Component coverage analysis failed: ${_error}`);
     return {
       totalComponents: 0,
@@ -882,6 +922,10 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
 /**
  * Analyzes security vulnerabilities using npm audit.
  * @returns Promise containing vulnerability analysis results.
+ */
+/**
+ * AnalyzeVulnerabilities function.
+ * @returns Function result.
  */
 async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
   try {
@@ -905,7 +949,7 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
     const vulnerabilities: VulnerabilityResult['vulnerabilities'] = [];
     
     if (auditData.vulnerabilities) {
-      Object.values(auditData.vulnerabilities).forEach((vuln: any) => {
+      Object.values(auditData.vulnerabilities).forEach((vuln: unknown) => {
         if (vuln.severity && ['critical', 'high', 'moderate', 'low'].includes(vuln.severity)) {
           vulnerabilities.push({
             severity: vuln.severity,
@@ -924,7 +968,7 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
       }),
       totalVulnerabilities: vulnerabilities.length,
     };
-  } catch (_error) {
+  } catch (___error) {
     console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${_error}${COLORS.RESET}`);
     return {
       vulnerabilities: [],
@@ -935,6 +979,10 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
 
 /**
  * Analyzes code redundancy patterns across UI components.
+ */
+/**
+ * AnalyzeRedundancy function.
+ * @returns Function result.
  */
 async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
   try {
@@ -1003,7 +1051,7 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
       duplicatePatterns,
       refactoringSuggestions,
     };
-  } catch (_error) {
+  } catch (___error) {
     console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${_error}${COLORS.RESET}`);
     return {
       totalComponents: 0,
@@ -1024,6 +1072,12 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
  * @param regex
  * @returns Extracted number or null if not found.
  */
+/**
+ * ExtractNumberFromOutput function.
+ * @param output
+ * @param regex
+ * @returns Function result.
+ */
 function extractNumberFromOutput(output: string, regex: RegExp): number | null {
   const match = output.match(regex);
   return match ? parseInt(match[1]) : null;
@@ -1032,6 +1086,10 @@ function extractNumberFromOutput(output: string, regex: RegExp): number | null {
 /**
  * Analyzes Quebec Law 25 compliance using Semgrep.
  * @returns Promise resolving to Law 25 compliance analysis results.
+ */
+/**
+ * AnalyzeLaw25Compliance function.
+ * @returns Function result.
  */
 async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
   try {
@@ -1056,7 +1114,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
       dataSubjectRights: 0
     };
     
-    const processedViolations = violations.map((violation: any) => {
+    const processedViolations = violations.map((violation: unknown) => {
       const metadata = violation.extra?.metadata || {};
       const law25Aspect = metadata.law25 || 'general';
       const severity = violation.extra?.severity || 'info';
@@ -1127,7 +1185,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
       categories
     };
     
-  } catch (error) {
+  } catch (__error) {
     console.warn(`${COLORS.YELLOW}⚠️  Law 25 compliance analysis failed: ${error}${COLORS.RESET}`);
     console.warn(`   This might be due to missing Semgrep configuration or network issues.`);
     
@@ -1159,6 +1217,18 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
  * @param law25Compliance
  * @param redundancy
  * @returns Boolean indicating if all thresholds are met.
+ */
+/**
+ * ValidateQuality function.
+ * @param complexity
+ * @param coverage
+ * @param vulnerabilities
+ * @param translationCoverage
+ * @param accessibility
+ * @param componentCoverage
+ * @param law25Compliance
+ * @param redundancy
+ * @returns Function result.
  */
 function validateQuality(
   complexity: ComplexityResult, 
@@ -1314,6 +1384,17 @@ function validateQuality(
  * @param componentCoverage - Component coverage results.
  * @param law25Compliance
  */
+/**
+ * VerifyQualityMetricsAPI function.
+ * @param complexity
+ * @param coverage
+ * @param vulnerabilities
+ * @param translationCoverage
+ * @param accessibility
+ * @param componentCoverage
+ * @param law25Compliance
+ * @returns Function result.
+ */
 async function verifyQualityMetricsAPI(
   complexity: ComplexityResult,
   coverage: CoverageResult,
@@ -1399,7 +1480,7 @@ async function verifyQualityMetricsAPI(
       return false;
     }
     
-  } catch (error) {
+  } catch (__error) {
     console.warn(`${COLORS.RED}❌ Error verifying quality metrics API: ${error}${COLORS.RESET}`);
     console.warn(`   The analysis completed but API verification failed.`);
     console.warn(`   This could be due to server connectivity or authentication issues.`);
@@ -1410,6 +1491,10 @@ async function verifyQualityMetricsAPI(
 /**
  * Main function to execute quality checks and save to database.
  * @returns Promise that resolves when quality analysis is complete.
+ */
+/**
+ * Main function.
+ * @returns Function result.
  */
 async function main(): Promise<void> {
   console.warn(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);
@@ -1496,7 +1581,7 @@ async function main(): Promise<void> {
       process.exit(1);
     }
     
-  } catch (error) {
+  } catch (__error) {
     console.error(`${COLORS.RED}💥 Auditor failed with error: ${error}${COLORS.RESET}`);
     process.exit(1);
   }

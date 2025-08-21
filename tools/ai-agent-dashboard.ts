@@ -98,7 +98,7 @@ export class AIAgentDashboard {
       try {
         const data = fs.readFileSync(historyPath, 'utf-8');
         this.metricsHistory = JSON.parse(data);
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to load metrics history:', error);
         this.metricsHistory = [];
       }
@@ -186,7 +186,7 @@ export class AIAgentDashboard {
     return {
       workingFiles: context.workingSet || 0,
       focusArea: context.focusArea || 'general',
-      recentActivity: context.recentFiles?.map((f: any) => f.path).slice(0, 5) || []
+      recentActivity: context.recentFiles?.map((f: unknown) => f.path).slice(0, 5) || []
     };
   }
 
@@ -194,9 +194,9 @@ export class AIAgentDashboard {
    * Get recommendations summary.
    */
   private async getRecommendations(): Promise<{
-    priority: any[];
-    exploratory: any[];
-    maintenance: any[];
+    priority: unknown[];
+    exploratory: unknown[];
+    maintenance: unknown[];
   }> {
     return contextManager.getSmartRecommendations();
   }

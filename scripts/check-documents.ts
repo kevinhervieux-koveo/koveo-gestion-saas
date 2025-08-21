@@ -16,6 +16,10 @@ const db = drizzle(sql);
 /**
  *
  */
+/**
+ * CheckDocuments function.
+ * @returns Function result.
+ */
 async function checkDocuments() {
   console.log('🔍 Checking current document status...\n');
 
@@ -40,7 +44,7 @@ async function checkDocuments() {
           console.log(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (error) {
+    } catch (__error) {
       console.log('   ❌ Legacy documents table does not exist');
     }
 
@@ -64,7 +68,7 @@ async function checkDocuments() {
           console.log(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (error) {
+    } catch (__error) {
       console.log('   ❌ documents_buildings table does not exist');
     }
 
@@ -88,7 +92,7 @@ async function checkDocuments() {
           console.log(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (error) {
+    } catch (__error) {
       console.log('   ❌ documents_residents table does not exist');
     }
 
@@ -97,20 +101,20 @@ async function checkDocuments() {
     try {
       const buildings = await db.execute('SELECT COUNT(*) as count FROM buildings WHERE is_active = true');
       console.log(`   Active buildings: ${buildings.rows[0]?.count || 0}`);
-    } catch (error) {
+    } catch (__error) {
       console.log('   ❌ Cannot check buildings table');
     }
 
     try {
       const residences = await db.execute('SELECT COUNT(*) as count FROM residences WHERE is_active = true');
       console.log(`   Active residences: ${residences.rows[0]?.count || 0}`);
-    } catch (error) {
+    } catch (__error) {
       console.log('   ❌ Cannot check residences table');
     }
 
     console.log('\n✅ Document check completed');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error checking documents:', error);
   }
 }

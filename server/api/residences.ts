@@ -9,9 +9,14 @@ import { delayedUpdateService } from '../services/delayed-update-service.js';
  *
  * @param app
  */
+/**
+ * RegisterResidenceRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerResidenceRoutes(app: Express) {
   // Get user's residences
-  app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
+  app.get('/api/user/residences', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
 
@@ -26,14 +31,14 @@ export function registerResidenceRoutes(app: Express) {
         ));
 
       res.json(userResidencesList);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching user residences:', error);
       res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
 
   // Get assigned users for a specific residence
-  app.get('/api/residences/:residenceId/assigned-users', requireAuth, async (req: any, res: any) => {
+  app.get('/api/residences/:residenceId/assigned-users', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { residenceId } = req.params;
       const currentUser = req.user;
@@ -60,14 +65,14 @@ export function registerResidenceRoutes(app: Express) {
         ));
 
       res.json(assignedUsers);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching assigned users:', error);
       res.status(500).json({ message: 'Failed to fetch assigned users' });
     }
   });
 
   // Update assigned user information
-  app.put('/api/residences/:residenceId/assigned-users/:userId', requireAuth, async (req: any, res: any) => {
+  app.put('/api/residences/:residenceId/assigned-users/:userId', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { userId } = req.params;
       const { firstName, lastName, email, phone } = req.body;
@@ -86,14 +91,14 @@ export function registerResidenceRoutes(app: Express) {
         .where(eq(users.id, userId));
 
       res.json({ message: 'User updated successfully' });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error updating assigned user:', error);
       res.status(500).json({ message: 'Failed to update assigned user' });
     }
   });
 
   // Get all residences with filtering and search
-  app.get('/api/residences', requireAuth, async (req: any, res: any) => {
+  app.get('/api/residences', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
@@ -185,14 +190,14 @@ export function registerResidenceRoutes(app: Express) {
       }));
 
       res.json(residencesList);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching residences:', error);
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
 
   // Get a specific residence by ID
-  app.get('/api/residences/:id', requireAuth, async (req: any, res: any) => {
+  app.get('/api/residences/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -259,14 +264,14 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants
       });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error fetching residence:', error);
       res.status(500).json({ message: 'Failed to fetch residence' });
     }
   });
 
   // Update a residence
-  app.put('/api/residences/:id', requireAuth, async (req: any, res: any) => {
+  app.put('/api/residences/:id', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { id } = req.params;
       const updateData = req.body;
@@ -293,20 +298,20 @@ export function registerResidenceRoutes(app: Express) {
       try {
         delayedUpdateService.scheduleResidenceUpdate(id);
         console.log(`🏠 Scheduled delayed update for updated residence ${id}`);
-      } catch (error) {
+      } catch (__error) {
         console.error('Failed to schedule delayed update for updated residence:', error);
         // Don't fail the residence update if scheduling fails
       }
 
       res.json(updated[0]);
-    } catch (error) {
+    } catch (__error) {
       console.error('Error updating residence:', error);
       res.status(500).json({ message: 'Failed to update residence' });
     }
   });
 
   // Create residences when a building is created (called internally)
-  app.post('/api/buildings/:buildingId/generate-residences', requireAuth, async (req: any, res: any) => {
+  app.post('/api/buildings/:buildingId/generate-residences', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const { buildingId } = req.params;
 
@@ -366,7 +371,7 @@ export function registerResidenceRoutes(app: Express) {
         message: `Successfully created ${createdResidences.length} residences`,
         residences: createdResidences
       });
-    } catch (error) {
+    } catch (__error) {
       console.error('Error generating residences:', error);
       res.status(500).json({ message: 'Failed to generate residences' });
     }

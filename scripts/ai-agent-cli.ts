@@ -7,7 +7,6 @@
 import { program } from 'commander';
 import chalk from 'chalk';
 import * as fs from 'fs';
-import * as path from 'path';
 import { agentToolkit } from '../tools/ai-agent-toolkit';
 import { contextManager } from '../tools/smart-context-manager';
 import { workflowAssistant } from '../tools/intelligent-workflow-assistant';
@@ -18,6 +17,13 @@ import { agentDashboard } from '../tools/ai-agent-dashboard';
  * @param title
  * @param data
  * @param format
+ */
+/**
+ * DisplayResult function.
+ * @param title
+ * @param data
+ * @param format
+ * @returns Function result.
  */
 function displayResult(title: string, data: any, format: 'json' | 'table' | 'summary' = 'summary'): void {
   console.log(chalk.blue.bold(`\n📊 ${title}\n`));
@@ -151,7 +157,7 @@ program
   .action(async (options) => {
     if (options.list) {
       const report = JSON.parse(workflowAssistant.generateWorkflowReport());
-      displayResult('Available Workflow Patterns', report.availablePatterns.map((p: any) => 
+      displayResult('Available Workflow Patterns', report.availablePatterns.map((p: unknown) => 
         `${p.name} - ${p.description} (${p.frequency})`
       ));
       return;
@@ -243,7 +249,7 @@ program
                          process.platform === 'win32' ? 'start' : 'xdg-open';
           execSync(`${command} ${dashboardPath}`);
           console.log(chalk.green('🌐 Opening dashboard in browser...'));
-        } catch (error) {
+        } catch (__error) {
           console.log(chalk.yellow(`⚠️ Could not open browser automatically. Please open: ${dashboardPath}`));
         }
       }
@@ -272,7 +278,7 @@ program
   .option('-s, --suggestions', 'Get AI agent suggestions')
   .option('--export <file>', 'Export analysis to file')
   .action(async (options) => {
-    const results: any = {};
+    const results: unknown = {};
 
     if (options.code || Object.keys(options).length === 1) {
       console.log(chalk.blue('🔍 Analyzing code...'));

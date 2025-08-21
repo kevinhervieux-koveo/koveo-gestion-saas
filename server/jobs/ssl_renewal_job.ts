@@ -91,7 +91,7 @@ class SSLRenewalJob {
         await this.checkForExpiringCertificates();
       }
 
-    } catch (_error) {
+    } catch (___error) {
       this.log('error', 'Failed to start SSL renewal job', { error: _error instanceof Error ? _error.message : 'Unknown error' });
       throw _error;
     }
@@ -153,7 +153,7 @@ class SSLRenewalJob {
             
             // Small delay between renewals to avoid rate limiting
             await this.sleep(2000);
-          } catch (_error) {
+          } catch (___error) {
             failureCount++;
             this.log('error', `Failed to renew certificate for ${certificate.domain}`, {
               domain: certificate.domain,
@@ -194,7 +194,7 @@ class SSLRenewalJob {
         await this.sendFailureNotification(failureCount, successCount);
       }
 
-    } catch (_error) {
+    } catch (___error) {
       this.log('error', 'SSL renewal job failed', { error: _error instanceof Error ? _error.message : 'Unknown error' });
       throw _error;
     } finally {
@@ -272,14 +272,14 @@ class SSLRenewalJob {
 
             this.log('info', `Sent expiry notification for ${certificate.domain} (expires in ${daysUntilExpiry} days)`);
           }
-        } catch (_error) {
+        } catch (___error) {
           this.log('error', `Failed to send expiry notification for ${certificate.domain}`, {
             error: _error instanceof Error ? _error.message : 'Unknown error'
           });
         }
       }
 
-    } catch (_error) {
+    } catch (___error) {
       this.log('error', 'Failed to check for expiring certificates', {
         error: _error instanceof Error ? _error.message : 'Unknown error'
       });
@@ -346,7 +346,7 @@ class SSLRenewalJob {
    * Renew a specific certificate.
    * @param certificate
    */
-  private async renewCertificate(certificate: any): Promise<void> {
+  private async renewCertificate(certificate: unknown): Promise<void> {
     this.log('info', `Starting renewal for certificate: ${certificate.domain}`);
 
     try {
@@ -406,7 +406,7 @@ class SSLRenewalJob {
         );
       }
 
-    } catch (error) {
+    } catch (__error) {
       throw new Error(`Certificate renewal failed for ${certificate.domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -485,7 +485,7 @@ class SSLRenewalJob {
    * @param domain
    * @param certificate
    */
-  private async sendSuccessNotification(domain: string, certificate: any): Promise<void> {
+  private async sendSuccessNotification(domain: string, certificate: unknown): Promise<void> {
     this.log('info', `Certificate renewed successfully for ${domain}`, {
       domain,
       validUntil: certificate.validTo
@@ -521,7 +521,7 @@ class SSLRenewalJob {
    * @param message
    * @param data
    */
-  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: any): void {
+  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: unknown): void {
     const levels = { error: 0, warn: 1, info: 2, debug: 3 };
     const configLevel = levels[this.config.logLevel];
     const messageLevel = levels[level];

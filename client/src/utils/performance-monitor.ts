@@ -115,7 +115,7 @@ class PerformanceMonitor {
           }
         });
         observer.observe({ entryTypes: ['paint'] });
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to observe paint metrics:', error);
       }
     }
@@ -169,7 +169,7 @@ class PerformanceMonitor {
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
 
-    } catch (error) {
+    } catch (__error) {
       console.warn('Failed to set up performance observers:', error);
     }
   }
@@ -184,6 +184,11 @@ export const performanceMonitor = new PerformanceMonitor();
  * React hook for component performance tracking.
  * @param componentName Name of the component to track.
  */
+/**
+ * UsePerformanceTracking function.
+ * @param componentName
+ * @returns Function result.
+ */
 export function usePerformanceTracking(componentName: string): void {
   useEffect(() => {
     performanceMonitor.markComponentLoadStart(componentName);
@@ -196,6 +201,10 @@ export function usePerformanceTracking(componentName: string): void {
 
 /**
  * Function to manually trigger performance analysis.
+ */
+/**
+ * AnalyzePerformance function.
+ * @returns Function result.
  */
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();

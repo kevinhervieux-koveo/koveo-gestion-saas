@@ -39,6 +39,10 @@ export interface MemoryUsage {
  * Gets current memory usage information.
  * @returns Memory usage details in MB.
  */
+/**
+ * GetMemoryUsage function.
+ * @returns Function result.
+ */
 export function getMemoryUsage(): MemoryUsage | null {
   if ('memory' in performance && performance.memory) {
     const memory = performance.memory as any;
@@ -115,7 +119,7 @@ export class MemoryOptimizer {
     this.cleanupCallbacks.forEach((callback) => {
       try {
         callback();
-      } catch (error) {
+      } catch (__error) {
         console.warn('Memory cleanup callback failed:', error);
       }
     });
@@ -153,6 +157,11 @@ export const memoryOptimizer = new MemoryOptimizer();
  * React hook for component-level memory cleanup.
  * @param cleanupFn Function to call when component unmounts.
  */
+/**
+ * UseMemoryCleanup function.
+ * @param cleanupFn
+ * @returns Function result.
+ */
 export function useMemoryCleanup(cleanupFn: () => void): void {
   // Register cleanup on mount and unregister on unmount
   useEffect(() => {
@@ -172,6 +181,15 @@ export function useMemoryCleanup(cleanupFn: () => void): void {
  * @param options.height
  * @param options.quality
  * @returns Promise that resolves when image is loaded.
+ */
+/**
+ * LoadImageOptimized function.
+ * @param src
+ * @param options
+ * @param options.width
+ * @param options.height
+ * @param options.quality
+ * @returns Function result.
  */
 export function loadImageOptimized(
   src: string,
@@ -200,7 +218,13 @@ export function loadImageOptimized(
  * @param delay Delay in milliseconds.
  * @returns Debounced function.
  */
-export function debounce<T extends (...args: any[]) => any>(
+/**
+ * Debounce function.
+ * @param func
+ * @param delay
+ * @returns Function result.
+ */
+export function debounce<T extends (...args: unknown[]) => any>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -218,7 +242,13 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param limit Time limit in milliseconds.
  * @returns Throttled function.
  */
-export function throttle<T extends (...args: any[]) => any>(
+/**
+ * Throttle function.
+ * @param func
+ * @param limit
+ * @returns Function result.
+ */
+export function throttle<T extends (...args: unknown[]) => any>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {

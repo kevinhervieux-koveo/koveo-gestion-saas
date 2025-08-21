@@ -101,6 +101,12 @@ const ROLE_PERMISSIONS = {
  * @param role
  * @param permission
  */
+/**
+ * HasPermission function.
+ * @param role
+ * @param permission
+ * @returns Function result.
+ */
 function hasPermission(role: keyof typeof ROLES, permission: string): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission as any) ?? false;
 }
@@ -112,6 +118,15 @@ function hasPermission(role: keyof typeof ROLES, permission: string): boolean {
  * @param isOwner
  * @param isInSameOrganization
  * @param isInSameBuilding
+ */
+/**
+ * CanAccessResource function.
+ * @param userRole
+ * @param resourceType
+ * @param isOwner
+ * @param isInSameOrganization
+ * @param isInSameBuilding
+ * @returns Function result.
  */
 function canAccessResource(
   userRole: keyof typeof ROLES,

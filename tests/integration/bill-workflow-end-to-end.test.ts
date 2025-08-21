@@ -22,7 +22,7 @@ import { eq, and } from 'drizzle-orm';
 
 // Mock authentication
 jest.mock('../../server/auth', () => ({
-  requireAuth: (req: any, res: any, next: any) => {
+  requireAuth: (req: unknown, res: unknown, next: unknown) => {
     req.user = { 
       id: 'e2e-user-123', 
       role: 'admin',

@@ -49,6 +49,10 @@ interface Residence {
 /**
  *
  */
+/**
+ * TestInvitationRBAC function.
+ * @returns Function result.
+ */
 async function testInvitationRBAC() {
   console.log('🧪 Testing Updated Invitation System with RBAC...\n');
 
@@ -153,7 +157,7 @@ async function testInvitationRBAC() {
     console.log('✅ Residence required for tenants/residents');
     console.log('✅ Proper validation and access control implemented');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Test failed:', error);
   }
 }

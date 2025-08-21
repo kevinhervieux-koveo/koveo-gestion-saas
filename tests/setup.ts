@@ -20,13 +20,13 @@ try {
   // Try ES module import first
   const mswModule = require('./mocks/server');
   server = mswModule.server;
-} catch (error) {
+} catch (__error) {
   try {
     // Fallback for ES module environment
     import('./mocks/server.js').then(module => {
       server = module.server;
     });
-  } catch (fallbackError) {
+  } catch (__fallbackError) {
     console.warn('MSW server setup failed, tests will run without API mocking');
   }
 }

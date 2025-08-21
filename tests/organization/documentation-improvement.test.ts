@@ -29,6 +29,11 @@ describe('Documentation Continuous Improvement', () => {
    * Calculate readability score (simplified Flesch Reading Ease).
    * @param text
    */
+  /**
+   * CalculateReadability function.
+   * @param text
+   * @returns Function result.
+   */
   function calculateReadability(text: string): number {
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
     const words = text.split(/\s+/).filter(w => w.length > 0);
@@ -50,6 +55,11 @@ describe('Documentation Continuous Improvement', () => {
   /**
    * Analyze documentation file.
    * @param filePath
+   */
+  /**
+   * AnalyzeDocumentation function.
+   * @param filePath
+   * @returns Function result.
    */
   function analyzeDocumentation(filePath: string): DocumentationMetrics {
     const content = fs.readFileSync(filePath, 'utf-8');

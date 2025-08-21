@@ -20,6 +20,14 @@ interface RBACConfigurationProps {
  * @param root0.onUpdateRBACRole - Function to update RBAC role settings.
  * @returns JSX element for the RBAC configuration.
  */
+/**
+ * RBACConfiguration function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @param root0.onUpdateRBACRole
+ * @returns Function result.
+ */
 export function RBACConfiguration({
   formData,
   onUpdateFormData,

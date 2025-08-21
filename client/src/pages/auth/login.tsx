@@ -77,7 +77,7 @@ export default function LoginPage() {
       });
 
       // Note: Routing to /dashboard is handled by the auth hook
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error.message || 'Login failed';
       setLoginError(errorMessage);
       

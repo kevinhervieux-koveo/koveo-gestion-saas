@@ -9,6 +9,10 @@ import chalk from 'chalk';
 /**
  *
  */
+/**
+ * DemoAIAgentTools function.
+ * @returns Function result.
+ */
 async function demoAIAgentTools() {
   console.log(chalk.blue.bold('🤖 AI Agent Tools Demo\n'));
 
@@ -32,7 +36,7 @@ async function demoAIAgentTools() {
                          quickCheck.status === 'warning' ? chalk.yellow : chalk.red;
       console.log(chalk.green(`✅ Status: ${statusColor(quickCheck.status.toUpperCase())}`));
       console.log(chalk.cyan(`   Score: ${quickCheck.score}/100`));
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Health check test skipped: Simplified mode`));
     }
     console.log();
@@ -46,7 +50,7 @@ async function demoAIAgentTools() {
       const contextSummary = JSON.parse(contextManager.generateContextSummary());
       console.log(chalk.green(`✅ Working Set: ${contextSummary.workingSet} files`));
       console.log(chalk.cyan(`   Focus Area: ${contextSummary.focusArea}`));
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Context test simplified: ${error}`));
     }
     console.log();
@@ -63,7 +67,7 @@ async function demoAIAgentTools() {
       workflowSuggestions.slice(0, 2).forEach((suggestion, index) => {
         console.log(chalk.cyan(`   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`));
       });
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Workflow test simplified: Pattern detection works`));
     }
     console.log();
@@ -75,7 +79,7 @@ async function demoAIAgentTools() {
       console.log(chalk.green(`✅ Metrics collected successfully`));
       console.log(chalk.cyan(`   Timestamp: ${new Date(metrics.timestamp).toLocaleTimeString()}`));
       console.log(chalk.cyan(`   Project Health: ${metrics.projectHealth.overallScore}/100`));
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Dashboard test simplified: Metrics system works`));
     }
     console.log();
@@ -127,7 +131,7 @@ async function demoAIAgentTools() {
     console.log(chalk.cyan('  • replit.md - Updated with new tooling information'));
     console.log();
 
-  } catch (error) {
+  } catch (__error) {
     console.error(chalk.red('❌ Demo failed:'), error);
     process.exit(1);
   }

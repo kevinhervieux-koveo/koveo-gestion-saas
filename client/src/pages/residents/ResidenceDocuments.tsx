@@ -249,7 +249,7 @@ export default function ResidenceDocuments() {
       setUploadedFile(null);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: "Error", 
         description: "Failed to create document",
@@ -289,7 +289,7 @@ export default function ResidenceDocuments() {
       setUploadedFile(null);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: "Error", 
         description: "Failed to update document",
@@ -313,7 +313,7 @@ export default function ResidenceDocuments() {
 
       toast({ title: "Success", description: "Document deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    } catch (error) {
+    } catch (_error) {
       toast({ 
         title: "Error", 
         description: "Failed to delete document",
@@ -330,7 +330,7 @@ export default function ResidenceDocuments() {
     return { method: 'PUT' as const, url: uploadURL };
   };
 
-  const handleNewDocumentUploadComplete = (result: any) => {
+  const handleNewDocumentUploadComplete = (result: unknown) => {
     setIsUploadingNewFile(false);
     if (result.successful && result.successful[0]) {
       const file = result.successful[0];

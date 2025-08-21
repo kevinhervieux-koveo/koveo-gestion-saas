@@ -86,6 +86,15 @@ interface InvitationManagementProps {
  * @param root0.isLoading - Loading state indicator.
  * @returns JSX element for the invitation management interface.
  */
+/**
+ * InvitationManagement function.
+ * @param root0
+ * @param root0.invitations
+ * @param root0.onSendReminder
+ * @param root0.onRefresh
+ * @param root0.isLoading
+ * @returns Function result.
+ */
 export function InvitationManagement({ 
   invitations, 
   onSendReminder, 

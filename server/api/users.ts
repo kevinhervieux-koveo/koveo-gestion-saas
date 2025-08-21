@@ -10,6 +10,11 @@ import { permissions, getRolePermissions } from '../../config';
  *
  * @param app - Express application instance.
  */
+/**
+ * RegisterUserRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerUserRoutes(app: Express): void {
   /**
    * GET /api/users - Retrieves all users.
@@ -18,7 +23,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       const users = await storage.getUsers();
       res.json(users);
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to fetch users:', _error);
       res.status(500).json({
         error: 'Internal server error',
@@ -52,7 +57,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to fetch user:', _error);
       res.status(500).json({
         error: 'Internal server error',
@@ -86,7 +91,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to fetch user by email:', _error);
       res.status(500).json({
         error: 'Internal server error',
@@ -116,7 +121,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
-    } catch (_error) {
+    } catch (___error) {
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
@@ -166,7 +171,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (_error) {
+    } catch (___error) {
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
@@ -214,7 +219,7 @@ export function registerUserRoutes(app: Express): void {
         message: 'User deactivated successfully',
         id: user.id,
       });
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to deactivate user:', _error);
       res.status(500).json({
         error: 'Internal server error',
@@ -267,7 +272,7 @@ export function registerUserRoutes(app: Express): void {
       const validatedResponse = permissionsResponseSchema.parse(responseData);
       
       res.json(validatedResponse);
-    } catch (_error) {
+    } catch (___error) {
       if (_error instanceof z.ZodError) {
         return res.status(500).json({
           error: 'Internal server error',

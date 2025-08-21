@@ -12,7 +12,7 @@ try {
   global.ReadableStream = ReadableStream;
   global.TransformStream = TransformStream;
   global.WritableStream = WritableStream;
-} catch (error) {
+} catch (_error) {
   // Fallback for older Node versions
   console.warn('Web streams not available, some MSW features may not work');
 }

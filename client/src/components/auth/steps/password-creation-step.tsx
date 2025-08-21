@@ -31,6 +31,14 @@ interface PasswordCreationData {
  * @param root0.onValidationChange - Callback when validation status changes.
  * @returns JSX element for the password creation step.
  */
+/**
+ * PasswordCreationStep function.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
+ * @returns Function result.
+ */
 export function PasswordCreationStep({ 
   data, 
   onDataChange, 

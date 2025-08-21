@@ -157,7 +157,7 @@ export class MetricValidationService {
       await this.recordValidationForML(metricType, calculatedValue, result);
 
       return result;
-    } catch (_error) {
+    } catch (___error) {
       result.isValid = false;
       result.issues.push(`Validation error: ${_error}`);
       result.confidence = 0;
@@ -369,7 +369,7 @@ export class MetricValidationService {
    * @param issueData - The quality issue details.
    * @returns The recorded issue ID.
    */
-  public async recordQualityIssue(issueData: any): Promise<string> {
+  public async recordQualityIssue(issueData: unknown): Promise<string> {
     const issue: InsertQualityIssue = {
       title: issueData.title,
       description: issueData.description,
@@ -407,7 +407,7 @@ export class MetricValidationService {
   private async validateCodeCoverage(
     value: string,
     result: MetricValidationResult,
-    historicalData: any[]
+    historicalData: unknown[]
   ): Promise<void> {
     const coverage = parseFloat(value);
     
@@ -445,7 +445,7 @@ export class MetricValidationService {
   private async validateSecurityVulnerabilities(
     value: string,
     result: MetricValidationResult,
-    historicalData: any[]
+    historicalData: unknown[]
   ): Promise<void> {
     const vulnerabilities = parseInt(value);
     
@@ -475,7 +475,7 @@ export class MetricValidationService {
   private async validateTranslationCoverage(
     value: string,
     result: MetricValidationResult,
-    historicalData: any[]
+    historicalData: unknown[]
   ): Promise<void> {
     const coverage = parseFloat(value);
     
@@ -503,7 +503,7 @@ export class MetricValidationService {
   private async validateQuebecCompliance(
     value: string,
     result: MetricValidationResult,
-    historicalData: any[]
+    historicalData: unknown[]
   ): Promise<void> {
     const score = parseFloat(value);
     
@@ -532,7 +532,7 @@ export class MetricValidationService {
     metricType: string,
     value: string,
     result: MetricValidationResult,
-    historicalData: any[]
+    historicalData: unknown[]
   ): Promise<void> {
     // Generic validation for unknown metrics
     if (!value || value.trim() === '') {
@@ -767,7 +767,7 @@ export class MetricValidationService {
    * @param trainingData
    * @param metricType
    */
-  private selectOptimalAlgorithm(trainingData: any[], metricType: string): CalibrationModelConfig {
+  private selectOptimalAlgorithm(trainingData: unknown[], metricType: string): CalibrationModelConfig {
     // Simplified algorithm selection - would be more sophisticated in production
     const dataSize = trainingData.length;
     
@@ -802,7 +802,7 @@ export class MetricValidationService {
    * @param metricType
    */
   private async trainCalibrationModel(
-    trainingData: any[],
+    trainingData: unknown[],
     algorithm: CalibrationModelConfig,
     metricType: string
   ): Promise<any> {
@@ -827,7 +827,7 @@ export class MetricValidationService {
    * @param model
    * @param trainingData
    */
-  private async validateCalibrationModel(model: any, trainingData: any[]): Promise<any> {
+  private async validateCalibrationModel(model: any, trainingData: unknown[]): Promise<any> {
     // Simplified validation - would use cross-validation in production
     return {
       accuracy: 85 + Math.random() * 10, // Simulated accuracy
@@ -972,7 +972,7 @@ export class MetricValidationService {
    *
    * @param issue
    */
-  private async checkPredictionAccuracy(issue: any): Promise<void> {
+  private async checkPredictionAccuracy(issue: unknown): Promise<void> {
     // Check if any predictions should have caught this issue
     const recentPredictions = await db
       .select()

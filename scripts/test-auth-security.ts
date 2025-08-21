@@ -113,7 +113,7 @@ class AuthSecurityTester {
       } else {
         this.addResult('Login Endpoint', 'FAIL', `Unexpected response status: ${response.status}`);
       }
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Login Endpoint', 'FAIL', `Login endpoint error: ${error}`);
     }
 
@@ -121,7 +121,7 @@ class AuthSecurityTester {
     try {
       const response = await this.makeRequest('POST', '/api/auth/logout');
       this.addResult('Logout Endpoint', 'PASS', 'Logout endpoint accessible');
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Logout Endpoint', 'FAIL', `Logout endpoint error: ${error}`);
     }
   }
@@ -149,7 +149,7 @@ class AuthSecurityTester {
         } else {
           this.addResult(`Protected Route ${endpoint}`, 'FAIL', 'Accessible without authentication');
         }
-      } catch (error) {
+      } catch (__error) {
         // Network errors are acceptable for this test
         this.addResult(`Protected Route ${endpoint}`, 'PASS', 'Route properly protected');
       }
@@ -185,7 +185,7 @@ class AuthSecurityTester {
       } else {
         this.addResult('Cookie Security', 'FAIL', 'Insecure cookie configuration');
       }
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Session Security', 'FAIL', `Session security test error: ${error}`);
     }
   }
@@ -212,7 +212,7 @@ class AuthSecurityTester {
         } else {
           this.addResult('Password Strength', 'FAIL', `Weak password "${weakPassword}" accepted`);
         }
-      } catch (error) {
+      } catch (__error) {
         // Registration endpoint might not exist, which is acceptable
         this.addResult('Password Strength', 'PASS', 'Password validation likely in place');
         break;
@@ -226,10 +226,10 @@ class AuthSecurityTester {
    * @param path
    * @param body
    */
-  private async makeRequest(method: string, path: string, body?: any): Promise<any> {
+  private async makeRequest(method: string, path: string, body?: unknown): Promise<any> {
     const fetch = await import('node-fetch').then(m => m.default);
     
-    const options: any = {
+    const options: unknown = {
       method,
       headers: {
         'Content-Type': 'application/json',

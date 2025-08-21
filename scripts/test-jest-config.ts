@@ -44,7 +44,7 @@ try {
     console.warn(`   📂 Root directory: ${config.configs[0].rootDir}`);
     console.warn(`   🎯 Test match patterns: ${config.configs[0].testMatch.length} patterns`);
     
-  } catch (configError) {
+  } catch (__configError) {
     console.warn('   ❌ Jest configuration has issues:');
     console.warn(`   ${configError}`);
   }
@@ -82,7 +82,7 @@ try {
       console.warn('   ⚠️  Some tests failed, but Jest configuration is working');
     }
     
-  } catch (testError) {
+  } catch (__testError) {
     console.warn('   ❌ Test execution failed:');
     console.warn(`   ${testError.toString().slice(0, 300)}...`);
     
@@ -127,7 +127,7 @@ try {
   console.warn('• ✅ Set up transform ignore patterns');
   console.warn('• ✅ Extended test timeout to 10 seconds');
 
-} catch (error) {
+} catch (__error) {
   console.error('\n💥 Jest configuration test failed:', error);
   process.exit(1);
 }

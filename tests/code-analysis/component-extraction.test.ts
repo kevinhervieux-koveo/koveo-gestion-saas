@@ -147,7 +147,7 @@ const StandardButton: React.FC<StandardButtonProps> = ({
       name: 'StandardForm',
       description: 'Reusable form wrapper with validation and error handling',
       template: `interface StandardFormProps {
-  onSubmit: (data: any) => Promise<void> | void;
+  onSubmit: (data: unknown) => Promise<void> | void;
   children: React.ReactNode;
   className?: string;
   validationSchema?: any;
@@ -177,7 +177,7 @@ const StandardForm: React.FC<StandardFormProps> = ({
         const result = validationSchema.safeParse(data);
         if (!result.success) {
           const fieldErrors: Record<string, string> = {};
-          result.error.errors.forEach((error: any) => {
+          result.error.errors.forEach((error: unknown) => {
             fieldErrors[error.path[0]] = error.message;
           });
           setErrors(fieldErrors);
@@ -186,7 +186,7 @@ const StandardForm: React.FC<StandardFormProps> = ({
       }
       
       await onSubmit(data);
-    } catch (error) {
+    } catch (__error) {
       console.error('Form submission error:', error);
     } finally {
       setIsSubmitting(false);
@@ -544,6 +544,14 @@ interface StandardTableProps<T> {
   };
 }
 
+/**
+
+ * StandardTable function
+
+ * @returns Function result
+
+ */
+
 function StandardTable<T extends { id: string | number }>({
   data,
   columns,
@@ -735,7 +743,7 @@ describe('Component Extraction Analysis Tests', () => {
             sourceFiles.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (__error) {
         // Directory might not exist
       }
     };

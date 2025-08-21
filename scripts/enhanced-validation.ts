@@ -11,6 +11,10 @@ import { validateDocs } from './docs-validation.js';
  * Enhanced validation runner that includes documentation checks.
  * @returns Process exit code.
  */
+/**
+ * RunEnhancedValidation function.
+ * @returns Function result.
+ */
 async function runEnhancedValidation(): Promise<number> {
   console.log('🔍 Running enhanced validation with documentation checks...\n');
   
@@ -30,7 +34,7 @@ async function runEnhancedValidation(): Promise<number> {
       console.log(`📋 Running ${step.name}...`);
       execSync(step.command, { stdio: 'pipe' });
       console.log(`✅ ${step.name} passed\n`);
-    } catch (error) {
+    } catch (__error) {
       console.log(`❌ ${step.name} failed\n`);
       hasErrors = true;
     }
@@ -43,7 +47,7 @@ async function runEnhancedValidation(): Promise<number> {
     if (docsResult !== 0) {
       hasErrors = true;
     }
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Documentation validation failed:', error);
     hasErrors = true;
   }

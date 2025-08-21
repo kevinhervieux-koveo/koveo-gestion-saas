@@ -33,7 +33,7 @@ describe('SQL Injection Unit Security Tests', () => {
         // Should return empty array, not execute injection
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         // If it throws, it should not reveal database internals
         expect(error.message).not.toMatch(/syntax error|table.*does not exist|constraint/i);
       }
@@ -50,7 +50,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
@@ -66,7 +66,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/invalid input value for enum|syntax error/i);
       }
     });
@@ -90,7 +90,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|invalid input|constraint/i);
       }
     });
@@ -112,7 +112,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
@@ -137,7 +137,7 @@ describe('SQL Injection Unit Security Tests', () => {
           expect(org.id).not.toContain('DROP');
           expect(org.id).not.toContain('SELECT');
         });
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
@@ -168,7 +168,7 @@ describe('SQL Injection Unit Security Tests', () => {
           .limit(1);
           
         expect(Array.isArray(countResult)).toBe(true);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/table.*users.*does not exist/i);
       }
     });
@@ -203,7 +203,7 @@ describe('SQL Injection Unit Security Tests', () => {
 
         // Cleanup
         await db.delete(schema.users).where(eq(schema.users.id, testUser.id));
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|constraint violation/i);
       }
     });
@@ -244,7 +244,7 @@ describe('SQL Injection Unit Security Tests', () => {
 
         // Cleanup
         await db.delete(schema.users).where(eq(schema.users.id, testUser.id));
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
     });
@@ -266,7 +266,7 @@ describe('SQL Injection Unit Security Tests', () => {
             
           expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (error) {
+        } catch (__error) {
           expect(error.message).not.toMatch(/syntax error|unicode|encoding/i);
         }
       }
@@ -288,7 +288,7 @@ describe('SQL Injection Unit Security Tests', () => {
             
           expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (error) {
+        } catch (__error) {
           expect(error.message).not.toMatch(/null byte|invalid byte sequence/i);
         }
       }
@@ -315,7 +315,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
           // Should not contain schema information
           expect(JSON.stringify(result)).not.toMatch(/information_schema|pg_tables|users|organizations/);
-        } catch (error) {
+        } catch (__error) {
           // The error message should not reveal database schema details
           // This test found that error messages expose SQL queries and table/column names
           // This is a security concern that should be addressed in production
@@ -341,7 +341,7 @@ describe('SQL Injection Unit Security Tests', () => {
           
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (error) {
+      } catch (__error) {
         expect(error.message).not.toMatch(/input too long|buffer overflow|memory/i);
       }
     });

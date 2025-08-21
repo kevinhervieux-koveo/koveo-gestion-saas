@@ -7,6 +7,12 @@ import type { FeatureFormData } from './use-feature-form-data';
  * @param formData - Form data containing feature requirements.
  * @returns Generated development prompt string.
  */
+/**
+ * GenerateDevelopmentPrompt function.
+ * @param feature
+ * @param formData
+ * @returns Function result.
+ */
 export function generateDevelopmentPrompt(
   feature: Feature | null,
   formData: FeatureFormData

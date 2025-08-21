@@ -7,6 +7,10 @@ import { useLanguage } from '@/hooks/use-language';
  * of the Koveo Gestion methodology with their descriptions and status.
  * @returns JSX element displaying the pillar framework interface.
  */
+/**
+ * PillarFramework function.
+ * @returns Function result.
+ */
 export function PillarFramework() {
   const { t } = useLanguage();
 

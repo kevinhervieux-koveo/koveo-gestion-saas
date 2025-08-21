@@ -76,7 +76,7 @@ const buildingValidationRules = {
 
 describe('Buildings API Integration Validation Tests', () => {
   // Mock validation function
-  const validateField = (fieldName: string, value: any) => {
+  const validateField = (fieldName: string, value: unknown) => {
     const rules = buildingValidationRules[fieldName as keyof typeof buildingValidationRules];
     if (!rules) {return { valid: true };}
 
@@ -139,7 +139,7 @@ describe('Buildings API Integration Validation Tests', () => {
     return { valid: errors.length === 0, errors };
   };
 
-  const validateBuilding = (buildingData: any) => {
+  const validateBuilding = (buildingData: unknown) => {
     const allErrors: string[] = [];
     let isValid = true;
 

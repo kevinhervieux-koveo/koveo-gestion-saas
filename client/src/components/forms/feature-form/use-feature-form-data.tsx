@@ -74,6 +74,11 @@ const getInitialFormData = (): FeatureFormData => ({
  * @param feature - The feature being edited or null for new features.
  * @returns Object containing form data state and management functions.
  */
+/**
+ * UseFeatureFormData function.
+ * @param feature
+ * @returns Function result.
+ */
 export function useFeatureFormData(feature: Feature | null) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<FeatureFormData>(getInitialFormData());
@@ -109,7 +114,7 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
@@ -133,7 +138,7 @@ export function useFeatureFormData(feature: Feature | null) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to load draft:', _error);
     }
   }, [getDraftKey]);
@@ -152,7 +157,7 @@ export function useFeatureFormData(feature: Feature | null) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to clear draft:', _error);
     }
   }, [getDraftKey, toast]);

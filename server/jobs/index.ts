@@ -9,6 +9,10 @@ import { moneyFlowJob } from './money_flow_job';
 /**
  * Start all background jobs.
  */
+/**
+ * StartJobs function.
+ * @returns Function result.
+ */
 export async function startJobs(): Promise<void> {
   try {
     console.log('Starting background jobs...');
@@ -20,7 +24,7 @@ export async function startJobs(): Promise<void> {
     await moneyFlowJob.start();
     
     console.log('All background jobs started successfully');
-  } catch (_error) {
+  } catch (___error) {
     console.error('Failed to start background jobs:', _error);
     throw _error;
   }
@@ -28,6 +32,10 @@ export async function startJobs(): Promise<void> {
 
 /**
  * Stop all background jobs.
+ */
+/**
+ * StopJobs function.
+ * @returns Function result.
  */
 export function stopJobs(): void {
   console.log('Stopping background jobs...');
@@ -40,6 +48,10 @@ export function stopJobs(): void {
 
 /**
  * Get status of all background jobs.
+ */
+/**
+ * GetJobsStatus function.
+ * @returns Function result.
  */
 export function getJobsStatus(): Record<string, any> {
   return {

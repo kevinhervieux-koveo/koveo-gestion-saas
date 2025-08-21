@@ -177,6 +177,14 @@ interface Residence {
  * @param root0.onSuccess - Handler called when invitation is sent successfully.
  * @returns JSX element for the invitation dialog.
  */
+/**
+ * SendInvitationDialog function.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
   const { user: currentUser, hasRole } = useAuth();
@@ -227,7 +235,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         const data = JSON.parse(text);
         console.warn('Organizations parsed successfully:', data);
         return data;
-      } catch (e) {
+      } catch (_e) {
         console.error('Failed to parse organizations JSON:', e);
         console.error('Raw text was:', text);
         throw new Error('Invalid JSON response');

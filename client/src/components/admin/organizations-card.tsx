@@ -50,6 +50,12 @@ interface OrganizationsCardProps {
  * @param root0.className - Optional CSS class name for styling.
  * @returns JSX element for the organizations card component.
  */
+/**
+ * OrganizationsCard function.
+ * @param root0
+ * @param root0.className
+ * @returns Function result.
+ */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();

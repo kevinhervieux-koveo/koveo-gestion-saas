@@ -66,6 +66,13 @@ interface ResidenceEditFormProps {
  * @param root0.residence
  * @param root0.onSuccess
  */
+/**
+ * ResidenceEditForm function.
+ * @param root0
+ * @param root0.residence
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
   const { toast } = useToast();
   const [parkingSpaces, setParkingSpaces] = useState<string[]>(residence.parkingSpaceNumbers || []);

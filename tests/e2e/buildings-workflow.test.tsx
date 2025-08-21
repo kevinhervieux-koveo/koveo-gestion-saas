@@ -17,7 +17,7 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: any) => (
+  Link: ({ children, href, ...props }: unknown) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -27,7 +27,7 @@ jest.mock('wouter', () => ({
 // Mock API with realistic response simulation
 const mockApiRequest = jest.fn();
 jest.mock('@/lib/queryClient', () => ({
-  apiRequest: (...args: any[]) => mockApiRequest(...args),
+  apiRequest: (...args: unknown[]) => mockApiRequest(...args),
   queryClient: new QueryClient({
     defaultOptions: {
       queries: { retry: false },

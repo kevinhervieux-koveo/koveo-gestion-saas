@@ -55,6 +55,11 @@ interface Building {
  *
  * @param bytes
  */
+/**
+ * FormatFileSize function.
+ * @param bytes
+ * @returns Function result.
+ */
 function formatFileSize(bytes?: number): string {
   if (!bytes) {return 'Unknown size';}
   
@@ -67,6 +72,11 @@ function formatFileSize(bytes?: number): string {
  *
  * @param dateString
  */
+/**
+ * FormatDate function.
+ * @param dateString
+ * @returns Function result.
+ */
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -78,6 +88,11 @@ function formatDate(dateString: string): string {
 /**
  *
  * @param value
+ */
+/**
+ * GetCategoryLabel function.
+ * @param value
+ * @returns Function result.
  */
 function getCategoryLabel(value: string): string {
   // Return the actual document type as a formatted label
@@ -227,7 +242,7 @@ export default function ResidentsBuildingDocuments() {
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Download failed",
         description: "Failed to download document",
@@ -249,7 +264,7 @@ export default function ResidentsBuildingDocuments() {
           window.open(data.viewUrl, '_blank');
         }
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "View failed",
         description: "Failed to open document for viewing",

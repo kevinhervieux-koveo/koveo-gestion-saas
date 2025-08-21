@@ -121,7 +121,7 @@ export class CoverageAutomationService {
       console.log(`✅ Coverage analysis completed in ${duration}ms`);
       
       return effectivenessData;
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Coverage analysis failed:', error);
       throw error;
     }
@@ -162,7 +162,7 @@ export class CoverageAutomationService {
           result,
           timestamp: new Date().toISOString()
         });
-      } catch (error) {
+      } catch (__error) {
         console.warn(`⚠️ Test suite failed: ${command}`);
         results.push({
           suite: command,
@@ -209,7 +209,7 @@ export class CoverageAutomationService {
         quebecSpecific: quebecFileCoverage,
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Coverage report generation failed:', error);
       throw error;
     }
@@ -247,7 +247,7 @@ export class CoverageAutomationService {
       metrics.accessibility = await this.validateAccessibilityTests();
 
       return metrics;
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Test quality analysis failed:', error);
       return metrics;
     }
@@ -322,7 +322,7 @@ export class CoverageAutomationService {
       quebecMetrics.overallScore = Math.round(quebecCoverage * 100);
 
       return quebecMetrics;
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Quebec compliance validation failed:', error);
       return quebecMetrics;
     }
@@ -401,7 +401,7 @@ export class CoverageAutomationService {
    *
    * @param coverageData
    */
-  private calculateAggregateCoverage(coverageData: any): CoverageMetrics {
+  private calculateAggregateCoverage(coverageData: unknown): CoverageMetrics {
     if (!coverageData || typeof coverageData !== 'object') {
       return { statements: 0, branches: 0, functions: 0, lines: 0 };
     }
@@ -465,7 +465,7 @@ export class CoverageAutomationService {
    *
    * @param coverageData
    */
-  private analyzeQuebecFileCoverage(coverageData: any): any {
+  private analyzeQuebecFileCoverage(coverageData: unknown): any {
     // Implementation for Quebec-specific file coverage analysis
     return {
       quebecSpecificFiles: [],
@@ -485,7 +485,7 @@ export class CoverageAutomationService {
    *
    * @param coverageData
    */
-  private calculateOverallCoverage(coverageData: any): number {
+  private calculateOverallCoverage(coverageData: unknown): number {
     if (!coverageData || !coverageData.aggregate) {
       return 0;
     }
@@ -543,7 +543,7 @@ export class CoverageAutomationService {
    *
    * @param report
    */
-  private generateHTMLReport(report: any): string {
+  private generateHTMLReport(report: unknown): string {
     return `
     <!DOCTYPE html>
     <html>
@@ -584,7 +584,7 @@ export class CoverageAutomationService {
    *
    * @param summary
    */
-  private outputConsoleSummary(summary: any): void {
+  private outputConsoleSummary(summary: unknown): void {
     console.log('\n📋 TEST COVERAGE SUMMARY');
     console.log('=' .repeat(50));
     console.log(`Overall Coverage: ${summary.overallCoverage}%`);
@@ -608,7 +608,7 @@ export class CoverageAutomationService {
         const coverageData = JSON.parse(readFileSync(coveragePath, 'utf8'));
         return this.calculateAggregateCoverage(coverageData);
       }
-    } catch (error) {
+    } catch (__error) {
       console.warn('Failed to analyze test coverage depth:', error);
     }
     return { statements: 0, branches: 0, functions: 0, lines: 0 };
@@ -639,7 +639,7 @@ export class CoverageAutomationService {
           totalScore += fileScore;
           validFiles++;
         }
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to evaluate test quality for file:', file);
       }
     }
@@ -663,7 +663,7 @@ export class CoverageAutomationService {
         if (quebecKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
           quebecTestFiles++;
         }
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to check Quebec compliance for file:', file);
       }
     }
@@ -691,7 +691,7 @@ export class CoverageAutomationService {
       ));
       
       return Math.round(score);
-    } catch (error) {
+    } catch (__error) {
       return 50; // Default middle score if measurement fails
     }
   }
@@ -712,7 +712,7 @@ export class CoverageAutomationService {
         if (a11yKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
           a11yTestFiles++;
         }
-      } catch (error) {
+      } catch (__error) {
         console.warn('Failed to validate accessibility tests for file:', file);
       }
     }

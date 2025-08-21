@@ -69,6 +69,27 @@ interface FilterSortProps {
  * @param props.className - Optional CSS class name.
  * @returns JSX element for the filter sort interface.
  */
+/**
+ * FilterSort function.
+ * @param root0
+ * @param root0.config
+ * @param root0.filters
+ * @param root0.sort
+ * @param root0.search
+ * @param root0.onAddFilter
+ * @param root0.onRemoveFilter
+ * @param root0.onFilterUpdate
+ * @param root0.onClearFilters
+ * @param root0.onSetSort
+ * @param root0.onToggleSort
+ * @param root0.onSetSearch
+ * @param root0.onApplyPreset
+ * @param root0.activeFilterCount
+ * @param root0.resultCount
+ * @param root0.totalCount
+ * @param root0.className
+ * @returns Function result.
+ */
 export function FilterSort({
   config,
   filters,

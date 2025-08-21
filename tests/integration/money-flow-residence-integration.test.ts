@@ -79,7 +79,7 @@ describe('Money Flow Residence Integration Tests', () => {
       // Mock database responses
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -139,7 +139,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -200,7 +200,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -260,7 +260,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -419,7 +419,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -466,7 +466,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -540,7 +540,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -584,7 +584,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);
@@ -666,7 +666,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
       mockDb.select.mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table: any) => {
+        query.from.mockImplementation((table: unknown) => {
           if (table.toString().includes('residences')) {
             query.innerJoin.mockReturnValue(query);
             query.where.mockResolvedValue(mockResidences);

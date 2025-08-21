@@ -88,6 +88,11 @@ const DemandCard = ({ demand }: { demand: any }) => {
  *
  * @param status
  */
+/**
+ * GetStatusStyles function.
+ * @param status
+ * @returns Function result.
+ */
 function getStatusStyles(status: string) {
   const styles = {
     submitted: 'bg-blue-100 text-blue-800',

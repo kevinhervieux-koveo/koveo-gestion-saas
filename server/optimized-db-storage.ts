@@ -77,7 +77,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     try {
       await QueryOptimizer.applyCoreOptimizations();
       console.log('✅ Database optimizations applied');
-    } catch (_error) {
+    } catch (___error) {
       console.warn('⚠️ Failed to apply database optimizations:', _error);
     }
   }

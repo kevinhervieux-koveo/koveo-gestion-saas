@@ -51,6 +51,11 @@ export const BuildingIdSchema = z.object({
  * Validates building creation data.
  * @param data
  */
+/**
+ * ValidateBuildingCreate function.
+ * @param data
+ * @returns Function result.
+ */
 export function validateBuildingCreate(data: unknown) {
   return CreateBuildingSchema.parse(data);
 }
@@ -58,6 +63,11 @@ export function validateBuildingCreate(data: unknown) {
 /**
  * Validates building update data.
  * @param data
+ */
+/**
+ * ValidateBuildingUpdate function.
+ * @param data
+ * @returns Function result.
  */
 export function validateBuildingUpdate(data: unknown) {
   return UpdateBuildingSchema.parse(data);
@@ -67,6 +77,11 @@ export function validateBuildingUpdate(data: unknown) {
  * Validates building ID parameter.
  * @param id
  */
+/**
+ * ValidateBuildingId function.
+ * @param id
+ * @returns Function result.
+ */
 export function validateBuildingId(id: string) {
   return BuildingIdSchema.parse({ id });
 }
@@ -75,6 +90,12 @@ export function validateBuildingId(id: string) {
  * Checks if user has permission for building operations.
  * @param userRole
  * @param operation
+ */
+/**
+ * ValidateBuildingPermissions function.
+ * @param userRole
+ * @param operation
+ * @returns Function result.
  */
 export function validateBuildingPermissions(userRole: string, operation: 'read' | 'create' | 'update' | 'delete'): boolean {
   switch (operation) {
@@ -103,7 +124,12 @@ export function validateBuildingPermissions(userRole: string, operation: 'read' 
  * Validates user authentication for building operations.
  * @param req
  */
-export function validateUserAuth(req: any): { user: any; isValid: boolean; error?: string } {
+/**
+ * ValidateUserAuth function.
+ * @param req
+ * @returns Function result.
+ */
+export function validateUserAuth(req: unknown): { user: any; isValid: boolean; error?: string } {
   const user = req.user || req.session?.user;
   
   if (!user && !req.session?.userId) {

@@ -7,6 +7,11 @@ import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack
  * @param {Response} res - Fetch API Response object to check.
  * @throws {Error} Error with status code and message if response is not ok.
  */
+/**
+ * ThrowIfResNotOk function.
+ * @param res
+ * @returns Function result.
+ */
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -23,6 +28,13 @@ async function throwIfResNotOk(res: Response) {
  * @param {unknown} [data] - Optional data to send in request body (will be JSON stringified).
  * @returns {Promise<Response>} Fetch API Response object.
  * @throws {Error} If response status is not ok.
+ */
+/**
+ * ApiRequest function.
+ * @param method
+ * @param url
+ * @param data
+ * @returns Function result.
  */
 export async function apiRequest(
   method: string,

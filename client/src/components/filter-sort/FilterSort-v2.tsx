@@ -96,6 +96,20 @@ interface FilterSortProps {
  * @param root0.showFilters
  * @param root0.showSort
  */
+/**
+ * FilterSort function.
+ * @param root0
+ * @param root0.searchPlaceholder
+ * @param root0.filterConfigs
+ * @param root0.sortOptions
+ * @param root0.state
+ * @param root0.onChange
+ * @param root0.className
+ * @param root0.showSearch
+ * @param root0.showFilters
+ * @param root0.showSort
+ * @returns Function result.
+ */
 export function FilterSort({
   searchPlaceholder = 'Search...',
   filterConfigs = [],
@@ -115,7 +129,7 @@ export function FilterSort({
   }, [state, onChange]);
 
   // Handle filter change
-  const handleFilterChange = useCallback((filterId: string, value: any) => {
+  const handleFilterChange = useCallback((filterId: string, value: unknown) => {
     const newFilters = { ...state.filters };
     if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
       delete newFilters[filterId];
@@ -318,7 +332,7 @@ export function FilterSort({
 interface FilterFieldProps {
   config: FilterConfig;
   value: any;
-  onChange: (value: any) => void;
+  onChange: (value: unknown) => void;
 }
 
 /**
@@ -327,6 +341,14 @@ interface FilterFieldProps {
  * @param root0.config
  * @param root0.value
  * @param root0.onChange
+ */
+/**
+ * FilterField function.
+ * @param root0
+ * @param root0.config
+ * @param root0.value
+ * @param root0.onChange
+ * @returns Function result.
  */
 function FilterField({ config, value, onChange }: FilterFieldProps) {
   switch (config.type) {

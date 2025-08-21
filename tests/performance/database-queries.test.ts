@@ -37,12 +37,12 @@ interface QueryResult {
 
 describe('Database Query Performance Tests', () => {
   let testData: {
-    organizations: any[];
-    buildings: any[];
-    residences: any[];
-    users: any[];
-    demands: any[];
-    comments: any[];
+    organizations: unknown[];
+    buildings: unknown[];
+    residences: unknown[];
+    users: unknown[];
+    demands: unknown[];
+    comments: unknown[];
   };
 
   beforeAll(async () => {
@@ -55,6 +55,10 @@ describe('Database Query Performance Tests', () => {
 
   /**
    * Setup a large dataset for performance testing.
+   */
+  /**
+   * SetupLargeTestDataset function.
+   * @returns Function result.
    */
   async function setupLargeTestDataset() {
     const startTime = performance.now();
@@ -194,6 +198,10 @@ describe('Database Query Performance Tests', () => {
   /**
    * Cleanup all test data.
    */
+  /**
+   * CleanupTestData function.
+   * @returns Function result.
+   */
   async function cleanupTestData() {
     if (testData) {
       await db.delete(demandComments);
@@ -211,6 +219,12 @@ describe('Database Query Performance Tests', () => {
    * Execute query and measure performance.
    * @param queryName
    * @param queryFn
+   */
+  /**
+   * MeasureQuery function.
+   * @param queryName
+   * @param queryFn
+   * @returns Function result.
    */
   async function measureQuery<T>(
     queryName: string,
@@ -234,6 +248,12 @@ describe('Database Query Performance Tests', () => {
    * Assert query performance meets threshold.
    * @param result
    * @param threshold
+   */
+  /**
+   * AssertQueryPerformance function.
+   * @param result
+   * @param threshold
+   * @returns Function result.
    */
   function assertQueryPerformance(result: QueryResult, threshold: number) {
     console.log(`${result.queryName}: ${result.duration.toFixed(2)}ms (${result.rowCount} rows)`);

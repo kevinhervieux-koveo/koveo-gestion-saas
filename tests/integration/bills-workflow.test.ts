@@ -24,7 +24,7 @@ jest.mock('../../server/db', () => ({
 }));
 
 jest.mock('../../server/auth', () => ({
-  requireAuth: (req: any, res: any, next: any) => {
+  requireAuth: (req: unknown, res: unknown, next: unknown) => {
     req.user = { 
       id: 'test-user-id', 
       role: 'manager',
@@ -142,7 +142,7 @@ describe('Bills Workflow Integration Tests', () => {
         .query({ buildingId, category: 'insurance' });
 
       expect(categoryFilterResponse.status).toBe(200);
-      categoryFilterResponse.body.forEach((bill: any) => {
+      categoryFilterResponse.body.forEach((bill: unknown) => {
         expect(bill.category).toBe('insurance');
       });
 
@@ -152,7 +152,7 @@ describe('Bills Workflow Integration Tests', () => {
         .query({ buildingId, status: 'paid' });
 
       expect(statusFilterResponse.status).toBe(200);
-      statusFilterResponse.body.forEach((bill: any) => {
+      statusFilterResponse.body.forEach((bill: unknown) => {
         expect(bill.status).toBe('paid');
       });
 
@@ -162,7 +162,7 @@ describe('Bills Workflow Integration Tests', () => {
         .query({ buildingId, year: '2024' });
 
       expect(yearFilterResponse.status).toBe(200);
-      yearFilterResponse.body.forEach((bill: any) => {
+      yearFilterResponse.body.forEach((bill: unknown) => {
         expect(bill.startDate).toMatch(/^2024/);
       });
 
@@ -177,7 +177,7 @@ describe('Bills Workflow Integration Tests', () => {
         });
 
       expect(combinedFilterResponse.status).toBe(200);
-      combinedFilterResponse.body.forEach((bill: any) => {
+      combinedFilterResponse.body.forEach((bill: unknown) => {
         expect(bill.category).toBe('maintenance');
         expect(bill.status).toBe('sent');
         expect(bill.startDate).toMatch(/^2024/);
@@ -346,13 +346,13 @@ describe('Bills Workflow Integration Tests', () => {
         'administration', 'repairs', 'supplies', 'taxes', 'other'
       ];
 
-      const categoryValues = categoriesResponse.body.map((cat: any) => cat.value);
+      const categoryValues = categoriesResponse.body.map((cat: unknown) => cat.value);
       expectedCategories.forEach(category => {
         expect(categoryValues).toContain(category);
       });
 
       // Verify category structure
-      categoriesResponse.body.forEach((category: any) => {
+      categoriesResponse.body.forEach((category: unknown) => {
         expect(category).toHaveProperty('value');
         expect(category).toHaveProperty('label');
         expect(typeof category.value).toBe('string');

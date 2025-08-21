@@ -85,6 +85,13 @@ jest.mock('@tanstack/react-query', () => ({
  * @param root0.children
  * @param root0.route
  */
+/**
+ * TestWrapper function.
+ * @param root0
+ * @param root0.children
+ * @param root0.route
+ * @returns Function result.
+ */
 function TestWrapper({ children, route = '/' }: { children: React.ReactNode; route?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -112,12 +119,19 @@ function TestWrapper({ children, route = '/' }: { children: React.ReactNode; rou
  * @param pageName
  * @param route
  */
+/**
+ * ValidatePageComponent function.
+ * @param PageComponent
+ * @param pageName
+ * @param route
+ * @returns Function result.
+ */
 async function validatePageComponent(
   PageComponent: React.ComponentType,
   pageName: string,
   route: string = '/'
 ): Promise<{
-  violations: any[];
+  violations: unknown[];
   report: string;
   isValid: boolean;
 }> {
@@ -449,7 +463,7 @@ describe('Full Application Language Audit', () => {
         }
         detailedReport += '\n';
         
-      } catch (error) {
+      } catch (_error) {
         detailedReport += `❌ ${page.name}: Erreur lors du test - ${error}\n\n`;
       }
     }

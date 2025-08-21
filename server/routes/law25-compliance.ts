@@ -33,6 +33,10 @@ interface Law25ComplianceData {
 /**
  * Runs Semgrep scan and analyzes Law 25 compliance.
  */
+/**
+ * RunLaw25ComplianceScan function.
+ * @returns Function result.
+ */
 function runLaw25ComplianceScan(): Law25ComplianceData {
   try {
     // Run Semgrep with Law 25 rules
@@ -60,7 +64,7 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
       dataSubjectRights: 0
     };
     
-    const processedViolations = violations.map((violation: any) => {
+    const processedViolations = violations.map((violation: unknown) => {
       const metadata = violation.extra?.metadata || {};
       const law25Aspect = metadata.law25 || 'general';
       const severity = violation.extra?.severity || 'info';
@@ -119,7 +123,7 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
       violations: processedViolations
     };
     
-  } catch (error) {
+  } catch (__error) {
     console.warn('Law 25 compliance scan failed:', error);
     
     // Return default/fallback data
@@ -149,7 +153,7 @@ router.get('/', (req, res) => {
   try {
     const complianceData = runLaw25ComplianceScan();
     res.json(complianceData);
-  } catch (error) {
+  } catch (__error) {
     console.error('Error generating Law 25 compliance data:', error);
     res.status(500).json({ 
       error: 'Failed to generate compliance data',

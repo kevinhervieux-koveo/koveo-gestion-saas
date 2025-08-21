@@ -84,7 +84,7 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach(callback => {
       try {
         callback(alert);
-      } catch (_error) {
+      } catch (___error) {
         console.error('Error in security alert callback:', _error);
       }
     });
@@ -106,7 +106,7 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null
       });
-    } catch (_error) {
+    } catch (___error) {
       console.error('Failed to log security alert:', _error);
     }
   }
@@ -194,6 +194,12 @@ export class InvitationSecurityMonitor {
  * Rate limiting middleware for invitation operations.
  * @param maxRequests
  * @param windowMs
+ */
+/**
+ * RateLimitInvitations function.
+ * @param maxRequests
+ * @param windowMs
+ * @returns Function result.
  */
 export function rateLimitInvitations(maxRequests: number, windowMs: number = 3600000) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -374,6 +380,16 @@ export class InvitationPermissionValidator {
  * @param options.allowSelfAccess
  * @param options.auditAction
  */
+/**
+ * RequireInvitationPermission function.
+ * @param action
+ * @param options
+ * @param options.validateContext
+ * @param options.requireOwnership
+ * @param options.allowSelfAccess
+ * @param options.auditAction
+ * @returns Function result.
+ */
 export function requireInvitationPermission(
   action: string,
   options: {
@@ -486,7 +502,7 @@ export function requireInvitationPermission(
       );
 
       next();
-    } catch (error) {
+    } catch (__error) {
       console.error('Invitation RBAC error:', error);
       return res.status(500).json({
         message: 'Permission validation failed',
@@ -505,6 +521,17 @@ export function requireInvitationPermission(
  * @param previousStatus
  * @param newStatus
  * @param details
+ */
+/**
+ * CreateEnhancedInvitationAuditLog function.
+ * @param invitationId
+ * @param action
+ * @param performedBy
+ * @param req
+ * @param previousStatus
+ * @param newStatus
+ * @param details
+ * @returns Function result.
  */
 export async function createEnhancedInvitationAuditLog(
   invitationId: string,
@@ -557,7 +584,7 @@ export async function createEnhancedInvitationAuditLog(
       newStatus
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('Failed to create enhanced audit log:', error);
   }
 }
@@ -566,6 +593,11 @@ export async function createEnhancedInvitationAuditLog(
  * Delegation and inheritance middleware for invitation permissions.
  * Allows temporary permission elevation based on organizational hierarchy.
  * @param baseAction
+ */
+/**
+ * WithPermissionInheritance function.
+ * @param baseAction
+ * @returns Function result.
  */
 export function withPermissionInheritance(baseAction: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -634,7 +666,7 @@ export function withPermissionInheritance(baseAction: string) {
         userRole: req.user.role
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Permission inheritance error:', error);
       return res.status(500).json({
         message: 'Permission validation failed',

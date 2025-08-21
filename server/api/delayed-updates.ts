@@ -7,10 +7,15 @@ import { delayedUpdateService } from '../services/delayed-update-service';
  * These endpoints allow monitoring and manual triggering of delayed updates.
  * @param app
  */
+/**
+ * RegisterDelayedUpdateRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerDelayedUpdateRoutes(app: Express) {
   
   // Get delayed update status and pending updates
-  app.get('/api/delayed-updates/status', requireAuth, async (req: any, res: any) => {
+  app.get('/api/delayed-updates/status', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -37,7 +42,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error getting delayed update status:', error);
       res.status(500).json({ 
         message: 'Failed to get delayed update status',
@@ -47,7 +52,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Force immediate update for a specific bill (for testing)
-  app.post('/api/delayed-updates/force-bill', requireAuth, async (req: any, res: any) => {
+  app.post('/api/delayed-updates/force-bill', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       const { billId } = req.body;
@@ -78,7 +83,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error forcing immediate bill update:', error);
       res.status(500).json({ 
         message: 'Failed to force immediate bill update',
@@ -88,7 +93,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Force immediate update for a specific residence (for testing)
-  app.post('/api/delayed-updates/force-residence', requireAuth, async (req: any, res: any) => {
+  app.post('/api/delayed-updates/force-residence', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       const { residenceId } = req.body;
@@ -119,7 +124,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error forcing immediate residence update:', error);
       res.status(500).json({ 
         message: 'Failed to force immediate residence update',
@@ -129,7 +134,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
   });
 
   // Health check for delayed update system
-  app.get('/api/delayed-updates/health', requireAuth, async (req: any, res: any) => {
+  app.get('/api/delayed-updates/health', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -162,7 +167,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Delayed update system is operational'
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error in delayed update health check:', error);
       res.status(500).json({ 
         status: 'unhealthy',

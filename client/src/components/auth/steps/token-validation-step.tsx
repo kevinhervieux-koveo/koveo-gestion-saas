@@ -32,6 +32,14 @@ interface TokenValidationData {
  * @param root0.onValidationChange - Callback when validation status changes.
  * @returns JSX element for the token validation step.
  */
+/**
+ * TokenValidationStep function.
+ * @param root0
+ * @param root0.data
+ * @param root0.onDataChange
+ * @param root0.onValidationChange
+ * @returns Function result.
+ */
 export function TokenValidationStep({ 
   data, 
   onDataChange, 
@@ -88,7 +96,7 @@ export function TokenValidationStep({
         onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
       }
-    } catch (_error) {
+    } catch (__error) {
       const errorData: TokenValidationData = {
         token,
         email: '',

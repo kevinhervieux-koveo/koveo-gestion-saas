@@ -16,6 +16,12 @@ describe('Page Dependencies Integration', () => {
    * @param dir
    * @param relativePath
    */
+  /**
+   * GetAllPageFiles function.
+   * @param dir
+   * @param relativePath
+   * @returns Function result.
+   */
   function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string, fullPath: string}> {
     const items = readdirSync(dir);
     const pages: Array<{file: string, path: string, fullPath: string}> = [];
@@ -58,11 +64,11 @@ describe('Page Dependencies Integration', () => {
       it(`should have ${dep} installed`, () => {
         try {
           require(dep);
-        } catch (error) {
+        } catch (_error) {
           // Try to require from node_modules path
           try {
             require(`${process.cwd()}/node_modules/${dep}`);
-          } catch (nodeModulesError) {
+          } catch (_nodeModulesError) {
             throw new Error(`Missing essential dependency: ${dep}`);
           }
         }
@@ -88,7 +94,7 @@ describe('Page Dependencies Integration', () => {
           // Use dynamic import to test the module
           const modulePath = page.fullPath.replace(process.cwd(), '').replace(/\\/g, '/');
           await import(modulePath);
-        } catch (error: any) {
+        } catch (error: unknown) {
           importErrors.push({
             page: page.path,
             error: error.message
@@ -116,7 +122,7 @@ describe('Page Dependencies Integration', () => {
       uiComponents.forEach(component => {
         try {
           require(component.replace('@/', `${process.cwd()}/client/src/`));
-        } catch (error) {
+        } catch (_error) {
           console.warn(`UI component may have issues: ${component}`);
           // Allow warnings for missing UI components during development
         }
@@ -133,7 +139,7 @@ describe('Page Dependencies Integration', () => {
       hooks.forEach(hook => {
         try {
           require(hook.replace('@/', `${process.cwd()}/client/src/`));
-        } catch (error) {
+        } catch (_error) {
           console.warn(`Hook may have issues: ${hook}`);
           // Allow warnings for missing hooks during development
         }
@@ -156,7 +162,7 @@ describe('Page Dependencies Integration', () => {
       commonlyMissing.forEach(pkg => {
         try {
           require(pkg);
-        } catch (error) {
+        } catch (_error) {
           missingPackages.push(pkg);
         }
       });

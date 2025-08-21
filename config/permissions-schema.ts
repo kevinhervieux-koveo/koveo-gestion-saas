@@ -204,6 +204,11 @@ export type PermissionsConfig = z.infer<typeof PermissionsSchema>;
  * }
  * ```
  */
+/**
+ * ValidatePermissions function.
+ * @param permissions
+ * @returns Function result.
+ */
 export function validatePermissions(permissions: unknown) {
   return PermissionsSchema.safeParse(permissions);
 }
@@ -216,6 +221,13 @@ export function validatePermissions(permissions: unknown) {
  * @param options - Validation options including whether to allow fallback.
  * @param options.allowFallback
  * @returns Validation result with fallback data when needed.
+ */
+/**
+ * ValidatePermissionsWithFallback function.
+ * @param permissions
+ * @param options
+ * @param options.allowFallback
+ * @returns Function result.
  */
 export function validatePermissionsWithFallback(
   permissions: unknown,
@@ -243,7 +255,7 @@ export function validatePermissionsWithFallback(
     }
     
     return { success: false, error: result.error, usedFallback: false };
-  } catch (error) {
+  } catch (__error) {
     if (options.allowFallback) {
       console.error('Permissions validation error, using minimal fallback:', error);
       const fallbackPermissions = {
@@ -272,6 +284,13 @@ export function validatePermissionsWithFallback(
  * console.log('Owner can read bills:', hasPermission);
  * ```
  */
+/**
+ * CheckPermission function.
+ * @param permissions
+ * @param role
+ * @param permission
+ * @returns Function result.
+ */
 export function checkPermission(
   permissions: PermissionsConfig,
   role: Role,
@@ -293,6 +312,12 @@ export function checkPermission(
  * console.log('Manager permissions:', userPermissions);
  * ```
  */
+/**
+ * GetRolePermissions function.
+ * @param permissions
+ * @param role
+ * @returns Function result.
+ */
 export function getRolePermissions(
   permissions: PermissionsConfig,
   role: Role
@@ -306,6 +331,11 @@ export function getRolePermissions(
  * 
  * @param permissions - Array of permission strings to validate.
  * @returns Validation result with any invalid permissions.
+ */
+/**
+ * ValidatePermissionNaming function.
+ * @param permissions
+ * @returns Function result.
  */
 export function validatePermissionNaming(permissions: string[]): {
   valid: boolean;

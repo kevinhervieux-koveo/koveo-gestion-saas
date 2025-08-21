@@ -27,7 +27,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Authentication provider component that wraps the application.
  * Manages user authentication state and provides authentication actions.
  * 
+ * @param children.children
  * @param children - Child components to wrap with authentication context.
+ */
+/**
+ * AuthProvider function.
+ * @param root0
+ * @param root0.children
+ * @returns Function result.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
@@ -61,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         return await response.json() as User;
-      } catch (error) {
+      } catch (_error) {
         console.debug('Auth check failed:', error);
         return null;
       }
@@ -196,6 +203,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * 
  * @returns Authentication context with user state and actions.
  * @throws Error if used outside of AuthProvider.
+ */
+/**
+ * UseAuth function.
+ * @returns Function result.
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);

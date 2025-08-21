@@ -170,7 +170,7 @@ export class AIAgentToolkit {
           `${file}: ${match.replace(/TODO:?\s*/i, '')}`
         ));
       });
-    } catch (error) {
+    } catch (__error) {
       console.warn('Error scanning for TODOs:', error);
     }
 
@@ -197,7 +197,7 @@ export class AIAgentToolkit {
         cwd: this.projectRoot 
       });
       analysis.typeScriptErrors = (tscOutput.match(/error TS\d+:/g) || []).length;
-    } catch (error: any) {
+    } catch (_error: unknown) {
       const errorOutput = error.stdout || error.message;
       analysis.typeScriptErrors = (errorOutput.match(/error TS\d+:/g) || []).length;
     }
@@ -209,14 +209,14 @@ export class AIAgentToolkit {
         cwd: this.projectRoot 
       });
       const lintResults = JSON.parse(lintOutput);
-      analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+      analysis.lintWarnings = lintResults.reduce((total: number, file: unknown) => 
         total + file.warningCount + file.errorCount, 0);
-    } catch (error: any) {
+    } catch (_error: unknown) {
       try {
         const errorOutput = error.stdout || '';
         if (errorOutput) {
           const lintResults = JSON.parse(errorOutput);
-          analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+          analysis.lintWarnings = lintResults.reduce((total: number, file: unknown) => 
             total + file.warningCount + file.errorCount, 0);
         }
       } catch {
@@ -385,7 +385,7 @@ export class AIAgentToolkit {
           cwd: this.projectRoot,
           stdio: 'pipe'
         });
-      } catch (error: any) {
+      } catch (_error: unknown) {
         try {
           const auditResult = JSON.parse(error.stdout);
           const vulnCount = auditResult.metadata?.vulnerabilities?.total || 0;
@@ -395,7 +395,7 @@ export class AIAgentToolkit {
         }
       }
 
-    } catch (error) {
+    } catch (__error) {
       score -= 5; // Penalty for security check failure
     }
 
@@ -447,7 +447,7 @@ export class AIAgentToolkit {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       score -= 5; // Penalty for performance check failure
     }
 

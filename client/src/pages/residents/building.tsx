@@ -218,7 +218,7 @@ export default function MyBuilding() {
                                   </span>
                                 ))
                               : null;
-                          } catch (e) {
+                          } catch (_e) {
                             return <span className='text-sm text-muted-foreground'>Unable to display amenities</span>;
                           }
                         })()}

@@ -135,7 +135,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         try {
           const data = JSON.parse(message.toString());
           this.handleWebSocketMessage(data, ws);
-        } catch (error) {
+        } catch (__error) {
           console.error('WebSocket message parse error:', error);
         }
       });
@@ -173,7 +173,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * @param type
    * @param data
    */
-  private broadcastUpdate(type: string, data: any): void {
+  private broadcastUpdate(type: string, data: unknown): void {
     const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() });
     
     this.activeConnections.forEach(ws => {
@@ -209,7 +209,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           (endUsage.user + endUsage.system) / 10000
         );
       }, 100);
-    } catch (error) {
+    } catch (__error) {
       console.warn('Performance tracking error:', error);
     }
   }
@@ -220,7 +220,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * @param priority
    * @param context
    */
-  public queueTask(task: string, priority: number = 1, context?: any): string {
+  public queueTask(task: string, priority: number = 1, context?: unknown): string {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     this.taskQueue.push({ id: taskId, task, priority, context });
@@ -256,7 +256,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         // Update session metrics
         this.updateSessionMetrics(result);
         
-      } catch (error) {
+      } catch (__error) {
         const failureResult: TaskResult = {
           success: false,
           message: error instanceof Error ? error.message : 'Unknown error',
@@ -313,7 +313,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       result.duration = Date.now() - startTime;
       return result;
       
-    } catch (error) {
+    } catch (__error) {
       stage.status = 'failed';
       stage.endTime = new Date();
       
@@ -325,7 +325,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Execute linting task with detailed reporting.
    * @param task
    */
-  private async executeLintTask(task: any): Promise<TaskResult> {
+  private async executeLintTask(task: unknown): Promise<TaskResult> {
     return new Promise((resolve) => {
       const process = spawn('npm', ['run', 'lint:check'], {
         cwd: this.projectRoot,
@@ -379,7 +379,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Execute test task with coverage reporting.
    * @param task
    */
-  private async executeTestTask(task: any): Promise<TaskResult> {
+  private async executeTestTask(task: unknown): Promise<TaskResult> {
     return new Promise((resolve) => {
       const process = spawn('npm', ['test', '--', '--coverage', '--passWithNoTests'], {
         cwd: this.projectRoot,
@@ -428,7 +428,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Execute build task with timing.
    * @param task
    */
-  private async executeBuildTask(task: any): Promise<TaskResult> {
+  private async executeBuildTask(task: unknown): Promise<TaskResult> {
     const startTime = Date.now();
     
     return new Promise((resolve) => {
@@ -465,7 +465,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Execute format task.
    * @param task
    */
-  private async executeFormatTask(task: any): Promise<TaskResult> {
+  private async executeFormatTask(task: unknown): Promise<TaskResult> {
     return new Promise((resolve) => {
       const process = spawn('npm', ['run', 'format'], {
         cwd: this.projectRoot,
@@ -486,7 +486,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Execute generic shell command task.
    * @param task
    */
-  private async executeGenericTask(task: any): Promise<TaskResult> {
+  private async executeGenericTask(task: unknown): Promise<TaskResult> {
     return new Promise((resolve) => {
       try {
         const output = execSync(task.task, {
@@ -501,7 +501,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           data: { output: output.slice(-500) },
           duration: 0
         });
-      } catch (error) {
+      } catch (__error) {
         resolve({
           success: false,
           message: error instanceof Error ? error.message : 'Command failed',
@@ -573,7 +573,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         };
       }
       return { exists: false };
-    } catch (error) {
+    } catch (__error) {
       return { exists: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -590,7 +590,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           ? fs.statSync(nodeModulesPath).mtime 
           : null
       };
-    } catch (error) {
+    } catch (__error) {
       return { installed: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -606,7 +606,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         return Object.keys(packageJson.scripts || {});
       }
       return [];
-    } catch (error) {
+    } catch (__error) {
       return [];
     }
   }

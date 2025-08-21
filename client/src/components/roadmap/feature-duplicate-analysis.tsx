@@ -24,6 +24,11 @@ interface FeatureDuplicateAnalysisProps {
  * Hook for analyzing feature duplicates and similarities.
  * @param features
  */
+/**
+ * UseFeatureDuplicateAnalysis function.
+ * @param features
+ * @returns Function result.
+ */
 export function useFeatureDuplicateAnalysis(features: Feature[]) {
   const duplicateAnalysis = useMemo(() => {
     if (!features.length) {
@@ -94,6 +99,12 @@ export function useFeatureDuplicateAnalysis(features: Feature[]) {
  * @param featureId
  * @param duplicateAnalysis
  */
+/**
+ * GetDuplicateBadge function.
+ * @param featureId
+ * @param duplicateAnalysis
+ * @returns Function result.
+ */
 export function getDuplicateBadge(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo> | undefined) {
   if (!duplicateAnalysis) {
     return null;
@@ -124,6 +135,12 @@ export function getDuplicateBadge(featureId: string, duplicateAnalysis: Map<stri
  * Gets duplicate note text for a feature.
  * @param featureId
  * @param duplicateAnalysis
+ */
+/**
+ * GetDuplicateNote function.
+ * @param featureId
+ * @param duplicateAnalysis
+ * @returns Function result.
  */
 export function getDuplicateNote(featureId: string, duplicateAnalysis: Map<string, DuplicateInfo> | undefined) {
   if (!duplicateAnalysis) {

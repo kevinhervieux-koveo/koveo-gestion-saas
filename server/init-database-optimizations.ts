@@ -9,6 +9,10 @@ import { dbPerformanceMonitor } from './performance-monitoring';
 /**
  * Initializes all database optimizations to reduce 132ms average query time.
  */
+/**
+ * InitializeDatabaseOptimizations function.
+ * @returns Function result.
+ */
 export async function initializeDatabaseOptimizations(): Promise<void> {
   console.log('🚀 Initializing database optimizations for Koveo Gestion...');
   
@@ -38,7 +42,7 @@ export async function initializeDatabaseOptimizations(): Promise<void> {
     console.log('🎯 Database optimizations initialized successfully');
     console.log('📊 Performance monitoring active - target: reduce 132ms query time');
     
-  } catch (_error) {
+  } catch (___error) {
     console.error('❌ Database optimization initialization failed:', _error);
     throw _error;
   }
@@ -46,6 +50,10 @@ export async function initializeDatabaseOptimizations(): Promise<void> {
 
 /**
  * Monitors and reports database performance periodically.
+ */
+/**
+ * StartPerformanceMonitoring function.
+ * @returns Function result.
  */
 export function startPerformanceMonitoring(): void {
   console.log('🔍 Starting database performance monitoring...');
@@ -79,6 +87,10 @@ export function startPerformanceMonitoring(): void {
 /**
  * Emergency performance optimization for when queries are too slow.
  */
+/**
+ * EmergencyOptimization function.
+ * @returns Function result.
+ */
 export async function emergencyOptimization(): Promise<void> {
   console.log('🚨 Running emergency database optimization...');
   
@@ -98,13 +110,17 @@ export async function emergencyOptimization(): Promise<void> {
     
     console.log('🎯 Emergency optimization completed');
     
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Emergency optimization failed:', error);
   }
 }
 
 /**
  * Gets current optimization status.
+ */
+/**
+ * GetOptimizationStatus function.
+ * @returns Function result.
  */
 export function getOptimizationStatus(): any {
   const performanceStats = dbPerformanceMonitor.getPerformanceStats();

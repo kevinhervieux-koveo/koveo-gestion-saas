@@ -100,6 +100,12 @@ describe('Error Detection in Project Organization', () => {
        * @param node
        * @param visitPath
        */
+      /**
+       * HasCycle function.
+       * @param node
+       * @param visitPath
+       * @returns Function result.
+       */
       function hasCycle(node: string, visitPath: string[] = []): boolean {
         if (recursionStack.has(node)) {
           const cycleStart = visitPath.indexOf(node);

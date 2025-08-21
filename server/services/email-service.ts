@@ -231,7 +231,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (error) {
+    } catch (__error) {
       console.error('Password reset email error:', error);
       return false;
     }
@@ -267,7 +267,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (error) {
+    } catch (__error) {
       console.error('Test email error:', error);
       return false;
     }

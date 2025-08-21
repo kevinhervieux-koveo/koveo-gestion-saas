@@ -178,6 +178,10 @@ const InvitationAcceptancePage = createOptimizedLoader(
  * Shows login page for unauthenticated users, main app for authenticated users.
  * @returns JSX element for the router component.
  */
+/**
+ * Router function.
+ * @returns Function result.
+ */
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
@@ -290,6 +294,10 @@ function Router() {
  * Redirects authenticated users from login page to dashboard.
  * @returns JSX element that shows loading while redirecting.
  */
+/**
+ * LoginRedirect function.
+ * @returns Function result.
+ */
 function LoginRedirect() {
   const [, setLocation] = useLocation();
   
@@ -306,6 +314,10 @@ function LoginRedirect() {
  * Main App component with authentication integration.
  * Wraps the application with all necessary providers including authentication.
  * @returns JSX element for the main App component.
+ */
+/**
+ * App function.
+ * @returns Function result.
  */
 function App() {
   // Initialize memory monitoring on app start

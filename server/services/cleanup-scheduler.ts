@@ -54,7 +54,7 @@ export class CleanupScheduler {
           console.error('❌ Automatic cleanup failed:', response.statusText);
         }
         
-      } catch (error) {
+      } catch (__error) {
         console.error('❌ Automatic cleanup error:', error);
       }
     }, {
@@ -96,7 +96,7 @@ export class CleanupScheduler {
         throw new Error(`Cleanup failed: ${response.statusText}`);
       }
       
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Manual cleanup error:', error);
       throw error;
     }

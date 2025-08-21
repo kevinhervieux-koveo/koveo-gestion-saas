@@ -111,7 +111,7 @@ export class GeminiBillAnalyzer {
       } else {
         throw new Error("Empty response from Gemini");
       }
-    } catch (error) {
+    } catch (__error) {
       console.error('Error analyzing bill with Gemini:', error);
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
@@ -180,7 +180,7 @@ export class GeminiBillAnalyzer {
 
       const result = JSON.parse(response.text || '{}');
       return result;
-    } catch (error) {
+    } catch (__error) {
       console.error('Error getting payment schedule suggestion:', error);
       return {
         paymentType: 'unique',

@@ -95,7 +95,12 @@ export const QUERY_CATEGORIES = {
  * @param userContext - User context to validate.
  * @returns Boolean indicating if the context is valid.
  */
-export function isValidUserContext(userContext: any): userContext is import('./scope-query').UserContext {
+/**
+ * IsValidUserContext function.
+ * @param userContext
+ * @returns Function result.
+ */
+export function isValidUserContext(userContext: unknown): userContext is import('./scope-query').UserContext {
   return (
     userContext &&
     typeof userContext.userId === 'string' &&

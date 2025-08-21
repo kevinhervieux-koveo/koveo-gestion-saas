@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
 import axios from 'axios';
 
 /**
@@ -78,7 +78,7 @@ export class ReplitIntegrationEnhancer {
       };
       
       console.warn('🔧 Replit environment detected:', this.environment.replId);
-    } catch (_error) {
+    } catch (___error) {
       console.warn('⚠️ Could not fully detect Replit environment:', _error);
     }
   }
@@ -195,7 +195,7 @@ export class ReplitIntegrationEnhancer {
     try {
       execSync('npm run db:status', { stdio: 'pipe', timeout: 5000 });
       return true;
-    } catch (error) {
+    } catch (__error) {
       return false;
     }
   }
@@ -320,7 +320,7 @@ export class ReplitIntegrationEnhancer {
     // Check build process
     try {
       execSync('npm run build', { stdio: 'pipe', timeout: 30000 });
-    } catch (error) {
+    } catch (__error) {
       issues.push('Build process fails - fix build errors before deployment');
     }
     
@@ -588,6 +588,14 @@ export class ReplitIntegrationEnhancer {
         let ws;
         let reconnectInterval;
         
+        /**
+        
+         * connectWebSocket function
+        
+         * @returns Function result
+        
+         */
+        
         function connectWebSocket() {
             ws = new WebSocket('ws://localhost:8080');
             
@@ -621,6 +629,14 @@ export class ReplitIntegrationEnhancer {
             };
         }
         
+        /**
+        
+         * handleWebSocketMessage function
+        
+         * @returns Function result
+        
+         */
+        
         function handleWebSocketMessage(data) {
             switch (data.type) {
                 case 'session_state':
@@ -644,6 +660,14 @@ export class ReplitIntegrationEnhancer {
             }
         }
         
+        /**
+        
+         * updateDashboard function
+        
+         * @returns Function result
+        
+         */
+        
         function updateDashboard(sessionData) {
             document.getElementById('lintErrors').textContent = sessionData.lintResults.errors;
             document.getElementById('testCoverage').textContent = sessionData.testResults.coverage.toFixed(1) + '%';
@@ -651,11 +675,27 @@ export class ReplitIntegrationEnhancer {
             document.getElementById('currentTask').textContent = sessionData.currentTask;
         }
         
+        /**
+        
+         * updatePerformanceMetrics function
+        
+         * @returns Function result
+        
+         */
+        
         function updatePerformanceMetrics(perfData) {
             document.getElementById('memory').textContent = perfData.memoryUsage + 'MB';
             document.getElementById('cpu').textContent = perfData.cpuUsage + '%';
             document.getElementById('uptime').textContent = formatUptime(process.uptime());
         }
+        
+        /**
+        
+         * appendLog function
+        
+         * @returns Function result
+        
+         */
         
         function appendLog(message) {
             const logs = document.getElementById('logs');
@@ -664,11 +704,27 @@ export class ReplitIntegrationEnhancer {
             logs.scrollTop = logs.scrollHeight;
         }
         
+        /**
+        
+         * formatUptime function
+        
+         * @returns Function result
+        
+         */
+        
         function formatUptime(seconds) {
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
             return \`\${hours}h \${minutes}m\`;
         }
+        
+        /**
+        
+         * runHealthCheck function
+        
+         * @returns Function result
+        
+         */
         
         function runHealthCheck() {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -676,6 +732,14 @@ export class ReplitIntegrationEnhancer {
             }
             appendLog('🏥 Health check requested...');
         }
+        
+        /**
+        
+         * runLintCheck function
+        
+         * @returns Function result
+        
+         */
         
         function runLintCheck() {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -688,6 +752,14 @@ export class ReplitIntegrationEnhancer {
             appendLog('🔍 Lint check queued...');
         }
         
+        /**
+        
+         * runTests function
+        
+         * @returns Function result
+        
+         */
+        
         function runTests() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ 
@@ -698,6 +770,14 @@ export class ReplitIntegrationEnhancer {
             }
             appendLog('🧪 Test suite queued...');
         }
+        
+        /**
+        
+         * optimizeEnvironment function
+        
+         * @returns Function result
+        
+         */
         
         function optimizeEnvironment() {
             appendLog('⚡ Environment optimization started...');
@@ -738,7 +818,7 @@ export class ReplitIntegrationEnhancer {
           const _response = await axios.get(this.environment.replUrl, { timeout: 5000 });
           this.deploymentInfo.status = 'deployed';
           this.deploymentInfo.url = this.environment.replUrl;
-        } catch (_error) {
+        } catch (___error) {
           this.deploymentInfo.status = 'failed';
         }
       }

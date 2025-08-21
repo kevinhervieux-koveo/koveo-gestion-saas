@@ -30,7 +30,7 @@ const devPool = new Pool({ connectionString: process.env.DATABASE_URL });
 const devDb = drizzle({ client: devPool, schema });
 
 // Production database connection (optional - for direct sync)
-let prodDb: any = null;
+let prodDb: unknown = null;
 if (process.env.PRODUCTION_DATABASE_URL) {
   const prodPool = new Pool({ connectionString: process.env.PRODUCTION_DATABASE_URL });
   prodDb = drizzle({ client: prodPool, schema });
@@ -41,17 +41,21 @@ if (process.env.PRODUCTION_DATABASE_URL) {
  */
 interface DemoOrganizationData {
   organization: any;
-  buildings: any[];
-  residences: any[];
-  users: any[];
-  userOrganizations: any[];
-  bills: any[];
-  maintenanceRequests: any[];
-  notifications: any[];
+  buildings: unknown[];
+  residences: unknown[];
+  users: unknown[];
+  userOrganizations: unknown[];
+  bills: unknown[];
+  maintenanceRequests: unknown[];
+  notifications: unknown[];
 }
 
 /**
  * Exports all Demo organization data from development database.
+ */
+/**
+ * ExportDemoData function.
+ * @returns Function result.
  */
 async function exportDemoData(): Promise<DemoOrganizationData> {
   console.log('📤 Exporting Demo organization data from development...');
@@ -151,7 +155,7 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
 
     return exportData;
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error exporting Demo data:', error);
     throw error;
   }
@@ -161,7 +165,12 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
  * Deletes all Demo organization data from target database.
  * @param db
  */
-async function deleteDemoData(db: any): Promise<void> {
+/**
+ * DeleteDemoData function.
+ * @param db
+ * @returns Function result.
+ */
+async function deleteDemoData(db: unknown): Promise<void> {
   console.log('🗑️  Deleting existing Demo organization data...');
 
   try {
@@ -263,7 +272,7 @@ async function deleteDemoData(db: any): Promise<void> {
       .where(eq(schema.organizations.id, demoOrg.id));
     console.log('  ✓ Deleted Demo organization');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error deleting Demo data:', error);
     throw error;
   }
@@ -273,6 +282,12 @@ async function deleteDemoData(db: any): Promise<void> {
  * Imports Demo organization data into target database.
  * @param db
  * @param data
+ */
+/**
+ * ImportDemoData function.
+ * @param db
+ * @param data
+ * @returns Function result.
  */
 async function importDemoData(db: any, data: DemoOrganizationData): Promise<void> {
   console.log('📥 Importing Demo organization data...');
@@ -407,7 +422,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
       console.log(`  ✓ Imported ${data.notifications.length} notifications`);
     }
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error importing Demo data:', error);
     throw error;
   }
@@ -415,6 +430,10 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
 
 /**
  * Synchronizes Demo organization from development to production.
+ */
+/**
+ * SyncDemoOrganization function.
+ * @returns Function result.
  */
 async function syncDemoOrganization(): Promise<void> {
   try {
@@ -459,7 +478,7 @@ async function syncDemoOrganization(): Promise<void> {
       console.log('  2. Run: tsx scripts/import-demo-organization.ts');
     }
 
-  } catch (error) {
+  } catch (__error) {
     console.error('\n❌ Demo organization sync failed:', error);
     process.exit(1);
   } finally {
@@ -472,6 +491,10 @@ async function syncDemoOrganization(): Promise<void> {
 
 /**
  * Import Demo organization from JSON file (for production deployment).
+ */
+/**
+ * ImportFromFile function.
+ * @returns Function result.
  */
 async function importFromFile(): Promise<void> {
   try {
@@ -493,7 +516,7 @@ async function importFromFile(): Promise<void> {
     
     console.log('\n✅ Demo organization imported successfully from file!');
     
-  } catch (error) {
+  } catch (__error) {
     console.error('\n❌ Demo organization import failed:', error);
     process.exit(1);
   } finally {
@@ -504,6 +527,10 @@ async function importFromFile(): Promise<void> {
 // Main execution
 /**
  *
+ */
+/**
+ * Main function.
+ * @returns Function result.
  */
 async function main() {
   const command = process.argv[2];

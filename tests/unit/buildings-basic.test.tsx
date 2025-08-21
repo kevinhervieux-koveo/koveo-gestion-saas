@@ -209,7 +209,7 @@ describe('Buildings Management Unit Tests', () => {
   });
 
   describe('Building Form Validation', () => {
-    const validateBuildingForm = (formData: any) => {
+    const validateBuildingForm = (formData: unknown) => {
       const errors: string[] = [];
       
       if (!formData.name || formData.name.trim().length === 0) {

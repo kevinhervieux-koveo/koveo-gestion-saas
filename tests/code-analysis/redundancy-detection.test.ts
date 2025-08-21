@@ -24,7 +24,7 @@ const readSourceFiles = (dir: string, extensions: string[] = ['.tsx', '.ts', '.c
           files.push(fullPath);
         }
       }
-    } catch (error) {
+    } catch (__error) {
       // Directory might not exist or be accessible
     }
   };

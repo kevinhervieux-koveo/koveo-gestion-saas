@@ -61,6 +61,14 @@ const billFormSchema = z.object({
  * @param root0.onCancel - Callback function called when editing is cancelled.
  * @returns JSX element for bill editing form.
  */
+/**
+ * BillEditForm function.
+ * @param root0
+ * @param root0.bill
+ * @param root0.onSuccess
+ * @param root0.onCancel
+ * @returns Function result.
+ */
 export function BillEditForm({ 
   bill, 
   onSuccess, 

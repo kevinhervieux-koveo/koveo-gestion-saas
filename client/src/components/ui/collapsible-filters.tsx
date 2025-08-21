@@ -11,7 +11,7 @@ interface FilterConfig {
   type: 'select' | 'multiselect' | 'checkbox' | 'custom';
   options?: { value: string; label: string }[];
   value?: any;
-  onChange: (value: any) => void;
+  onChange: (value: unknown) => void;
   customComponent?: React.ReactNode;
 }
 
@@ -30,6 +30,14 @@ interface CollapsibleFiltersProps {
   className?: string;
   defaultExpanded?: boolean;
 }
+
+/**
+
+ * CollapsibleFilters function
+
+ * @returns Function result
+
+ */
 
 export function CollapsibleFilters({
   title,
@@ -173,7 +181,7 @@ export function CollapsibleFilters({
                                   if (e.target.checked) {
                                     filter.onChange([...currentValue, option.value]);
                                   } else {
-                                    filter.onChange(currentValue.filter((v: any) => v !== option.value));
+                                    filter.onChange(currentValue.filter((v: unknown) => v !== option.value));
                                   }
                                 }}
                                 className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2'

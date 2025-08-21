@@ -5,6 +5,10 @@ import { useLanguage } from '@/hooks/use-language';
  * of the Koveo Gestion development framework with progress indicators.
  * @returns JSX element displaying the initialization wizard interface.
  */
+/**
+ * InitializationWizard function.
+ * @returns Function result.
+ */
 export function InitializationWizard() {
   const { t } = useLanguage();
 

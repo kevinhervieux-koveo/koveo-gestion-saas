@@ -31,6 +31,10 @@ const colors = {
 /**
  * Display help information.
  */
+/**
+ * DisplayHelp function.
+ * @returns Function result.
+ */
 function displayHelp() {
   console.warn(`
 ${colors.bright}${colors.blue}=== LLM FORM MAPPING VALIDATION ===${colors.reset}
@@ -68,6 +72,10 @@ ${colors.bright}Examples:${colors.reset}
 /**
  * Parse command line arguments.
  */
+/**
+ * ParseArguments function.
+ * @returns Function result.
+ */
 function parseArguments(): {
   help: boolean;
   integration: boolean;
@@ -93,6 +101,12 @@ function parseArguments(): {
  * Run Jest tests and capture results.
  * @param testPattern
  * @param verbose
+ */
+/**
+ * RunTests function.
+ * @param testPattern
+ * @param verbose
+ * @returns Function result.
  */
 function runTests(testPattern: string, verbose: boolean = false): {
   success: boolean;
@@ -124,7 +138,7 @@ function runTests(testPattern: string, verbose: boolean = false): {
         total: result.numTotalTests || 0
       }
     };
-  } catch (error: any) {
+  } catch (_error: unknown) {
     // Try to parse error output for test results
     let summary = { passed: 0, failed: 1, total: 1 };
     try {
@@ -139,7 +153,7 @@ function runTests(testPattern: string, verbose: boolean = false): {
           total: result.numTotalTests || 0
         };
       }
-    } catch (parseError) {
+    } catch (__parseError) {
       // Use default summary
     }
     
@@ -155,6 +169,12 @@ function runTests(testPattern: string, verbose: boolean = false): {
  * Generate comprehensive validation report.
  * @param includeIntegration
  * @param verbose
+ */
+/**
+ * GenerateReport function.
+ * @param includeIntegration
+ * @param verbose
+ * @returns Function result.
  */
 function generateReport(includeIntegration: boolean, verbose: boolean): string {
   const timestamp = new Date().toLocaleString('en-CA', {
@@ -336,6 +356,10 @@ ${integrationTestResult?.output || ''}
 /**
  * Main execution function.
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 function main() {
   const args = parseArguments();
   
@@ -373,7 +397,7 @@ function main() {
       process.exit(0);
     }
     
-  } catch (error) {
+  } catch (__error) {
     console.error(`${colors.red}❌ Error during validation:${colors.reset}`, error);
     process.exit(1);
   }

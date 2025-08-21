@@ -6,12 +6,12 @@ const router = Router();
 
 /**
  * Dynamic Budget API - Replaces money_flow based endpoints with real-time calculations
- * Much faster, more cost-effective, and always accurate
+ * Much faster, more cost-effective, and always accurate.
  */
 
 /**
  * Get financial data for a building with smart caching
- * GET /api/dynamic-budgets/:buildingId?startYear=2024&endYear=2026&groupBy=monthly&forceRefresh=false
+ * GET /api/dynamic-budgets/:buildingId?startYear=2024&endYear=2026&groupBy=monthly&forceRefresh=false.
  */
 router.get('/:buildingId', requireAuth, async (req, res) => {
   try {
@@ -78,7 +78,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       }
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error getting dynamic financial data:', error);
     res.status(500).json({
       error: 'Failed to get financial data',
@@ -89,7 +89,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 
 /**
  * Get financial summary for multiple buildings
- * GET /api/dynamic-budgets/summary?buildingIds=id1,id2,id3&year=2024
+ * GET /api/dynamic-budgets/summary?buildingIds=id1,id2,id3&year=2024.
  */
 router.get('/summary', requireAuth, async (req, res) => {
   try {
@@ -130,7 +130,7 @@ router.get('/summary', requireAuth, async (req, res) => {
           success: true,
           ...data.summary
         };
-      } catch (error) {
+      } catch (__error) {
         return {
           buildingId: buildingId.trim(),
           success: false,
@@ -172,7 +172,7 @@ router.get('/summary', requireAuth, async (req, res) => {
       }
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error getting financial summary:', error);
     res.status(500).json({
       error: 'Failed to get financial summary',
@@ -183,7 +183,7 @@ router.get('/summary', requireAuth, async (req, res) => {
 
 /**
  * Invalidate cache for a building
- * DELETE /api/dynamic-budgets/:buildingId/cache
+ * DELETE /api/dynamic-budgets/:buildingId/cache.
  */
 router.delete('/:buildingId/cache', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
   try {
@@ -196,7 +196,7 @@ router.delete('/:buildingId/cache', requireAuth, requireRole(['admin', 'manager'
       message: `Cache invalidated for building ${buildingId}`
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error invalidating cache:', error);
     res.status(500).json({
       error: 'Failed to invalidate cache',
@@ -207,7 +207,7 @@ router.delete('/:buildingId/cache', requireAuth, requireRole(['admin', 'manager'
 
 /**
  * Get cache statistics
- * GET /api/dynamic-budgets/cache/stats
+ * GET /api/dynamic-budgets/cache/stats.
  */
 router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res) => {
   try {
@@ -219,7 +219,7 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
       generatedAt: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error getting cache stats:', error);
     res.status(500).json({
       error: 'Failed to get cache statistics',
@@ -230,7 +230,7 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
 
 /**
  * Force refresh cache for a building
- * POST /api/dynamic-budgets/:buildingId/refresh
+ * POST /api/dynamic-budgets/:buildingId/refresh.
  */
 router.post('/:buildingId/refresh', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
   try {
@@ -243,7 +243,7 @@ router.post('/:buildingId/refresh', requireAuth, requireRole(['admin', 'manager'
       message: `Cache refreshed for building ${buildingId}`
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error refreshing cache:', error);
     res.status(500).json({
       error: 'Failed to refresh cache',
@@ -253,9 +253,15 @@ router.post('/:buildingId/refresh', requireAuth, requireRole(['admin', 'manager'
 });
 
 /**
- * Transform monthly data to yearly aggregation
+ * Transform monthly data to yearly aggregation.
+ * @param financialData
  */
-function transformToYearlyData(financialData: any) {
+/**
+ * TransformToYearlyData function.
+ * @param financialData
+ * @returns Function result.
+ */
+function transformToYearlyData(financialData: unknown) {
   const yearlyMap = new Map();
 
   for (const monthData of financialData.monthlyData) {

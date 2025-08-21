@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
         title: 'E-mail envoyé',
         description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Forgot password error:', error);
       toast({
         title: 'Erreur',

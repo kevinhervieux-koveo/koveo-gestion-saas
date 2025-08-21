@@ -34,6 +34,12 @@ import { eq, desc, and, gte, sql } from 'drizzle-orm';
  * }
  * ```
  */
+/**
+ * GetAIMetrics function.
+ * @param req
+ * @param res
+ * @returns Function result.
+ */
 export async function getAIMetrics(req: Request, res: Response) {
   try {
     // Get today's date
@@ -104,7 +110,7 @@ export async function getAIMetrics(req: Request, res: Response) {
       lastAnalysis: metrics.lastAnalysis || new Date(),
       aiEfficiency: parseFloat(metrics.aiEfficiency || '0'),
     });
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error fetching AI metrics:', _error);
     res.status(500).json({ error: 'Failed to fetch AI metrics' });
   }
@@ -136,6 +142,12 @@ export async function getAIMetrics(req: Request, res: Response) {
  * ]
  * ```
  */
+/**
+ * GetAIInteractions function.
+ * @param req
+ * @param res
+ * @returns Function result.
+ */
 export async function getAIInteractions(req: Request, res: Response) {
   try {
     const interactions = await db
@@ -145,7 +157,7 @@ export async function getAIInteractions(req: Request, res: Response) {
       .limit(50);
 
     res.json(interactions);
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error fetching AI interactions:', _error);
     res.status(500).json({ error: 'Failed to fetch AI interactions' });
   }
@@ -177,6 +189,12 @@ export async function getAIInteractions(req: Request, res: Response) {
  * ]
  * ```
  */
+/**
+ * GetAIInsights function.
+ * @param req
+ * @param res
+ * @returns Function result.
+ */
 export async function getAIInsights(req: Request, res: Response) {
   try {
     const insights = await db
@@ -186,7 +204,7 @@ export async function getAIInsights(req: Request, res: Response) {
       .limit(20);
 
     res.json(insights);
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error fetching AI insights:', _error);
     res.status(500).json({ error: 'Failed to fetch AI insights' });
   }
@@ -210,6 +228,12 @@ export async function getAIInsights(req: Request, res: Response) {
  *   "insightsGenerated": 3
  * }
  * ```
+ */
+/**
+ * TriggerAIAnalysis function.
+ * @param req
+ * @param res
+ * @returns Function result.
  */
 export async function triggerAIAnalysis(req: Request, res: Response) {
   try {
@@ -288,7 +312,7 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       message: 'AI analysis triggered successfully',
       insightsGenerated: numberOfInsights 
     });
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error triggering AI analysis:', _error);
     res.status(500).json({ error: 'Failed to trigger AI analysis' });
   }
@@ -317,6 +341,12 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
  *   }
  * }
  * ```
+ */
+/**
+ * ApplyAISuggestion function.
+ * @param req
+ * @param res
+ * @returns Function result.
  */
 export async function applyAISuggestion(req: Request, res: Response) {
   try {
@@ -360,7 +390,7 @@ export async function applyAISuggestion(req: Request, res: Response) {
       message: 'Suggestion applied successfully',
       insight: updatedInsight 
     });
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error applying AI suggestion:', _error);
     res.status(500).json({ error: 'Failed to apply AI suggestion' });
   }
@@ -379,6 +409,10 @@ export async function applyAISuggestion(req: Request, res: Response) {
  * await updateAIMetrics();
  * // Metrics are calculated and stored for the current date
  * ```
+ */
+/**
+ * UpdateAIMetrics function.
+ * @returns Function result.
  */
 async function updateAIMetrics() {
   const today = new Date();
@@ -468,6 +502,12 @@ async function updateAIMetrics() {
  * }
  * ```
  */
+/**
+ * RecordAIInteraction function.
+ * @param req
+ * @param res
+ * @returns Function result.
+ */
 export async function recordAIInteraction(req: Request, res: Response) {
   try {
     const interaction: InsertAIInteraction = req.body;
@@ -481,7 +521,7 @@ export async function recordAIInteraction(req: Request, res: Response) {
     await updateAIMetrics();
 
     res.json(newInteraction);
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error recording AI interaction:', _error);
     res.status(500).json({ error: 'Failed to record AI interaction' });
   }

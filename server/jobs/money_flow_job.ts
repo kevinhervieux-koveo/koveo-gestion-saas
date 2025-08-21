@@ -72,7 +72,7 @@ class MoneyFlowJob {
         await this.executeMoneyFlowJob();
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.log('error', 'Failed to start money flow job', { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
@@ -129,7 +129,7 @@ class MoneyFlowJob {
 
         success = true;
 
-      } catch (error) {
+      } catch (__error) {
         this.log('error', `Money flow job attempt ${attempt} failed`, {
           error: error instanceof Error ? error.message : 'Unknown error',
           attempt,
@@ -172,7 +172,7 @@ class MoneyFlowJob {
         entriesCreated
       });
       return entriesCreated;
-    } catch (error) {
+    } catch (__error) {
       this.log('error', `Failed to generate money flow for bill ${billId}`, {
         billId,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -196,7 +196,7 @@ class MoneyFlowJob {
         entriesCreated
       });
       return entriesCreated;
-    } catch (error) {
+    } catch (__error) {
       this.log('error', `Failed to generate money flow for residence ${residenceId}`, {
         residenceId,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -211,7 +211,7 @@ class MoneyFlowJob {
   async getStatistics(): Promise<any> {
     try {
       return await moneyFlowAutomationService.getMoneyFlowStatistics();
-    } catch (error) {
+    } catch (__error) {
       this.log('error', 'Failed to get money flow statistics', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -248,7 +248,7 @@ class MoneyFlowJob {
    * @param message
    * @param data
    */
-  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: any): void {
+  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: unknown): void {
     const levels = { error: 0, warn: 1, info: 2, debug: 3 };
     const configLevel = levels[this.config.logLevel];
     const messageLevel = levels[level];

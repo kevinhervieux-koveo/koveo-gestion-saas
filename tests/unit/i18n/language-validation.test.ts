@@ -377,7 +377,7 @@ describe('Language Validation Tests', () => {
       const months = mockTranslations.fr['date.months'];
       
       // Check that French month names are properly capitalized (lowercase in French)
-      Object.values(months).forEach((month: any) => {
+      Object.values(months).forEach((month: unknown) => {
         expect(month.charAt(0)).toBe(month.charAt(0).toUpperCase());
         expect(month.slice(1)).toBe(month.slice(1).toLowerCase());
       });

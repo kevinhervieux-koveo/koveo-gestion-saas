@@ -12,6 +12,10 @@ import { join } from 'path';
 /**
  * Builds the server using esbuild and copies configuration files.
  */
+/**
+ * BuildServer function.
+ * @returns Function result.
+ */
 function buildServer() {
   console.warn('🔨 Building server...');
   
@@ -37,7 +41,7 @@ function buildServer() {
     
     console.warn('✅ Server build completed successfully');
     
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Build failed:', error);
     process.exit(1);
   }

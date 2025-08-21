@@ -417,6 +417,14 @@ export default function Bills() {
  * @param root0.bills
  * @param root0.onBillUpdate
  */
+/**
+ * BillCategorySection function.
+ * @param root0
+ * @param root0.category
+ * @param root0.bills
+ * @param root0.onBillUpdate
+ * @returns Function result.
+ */
 function BillCategorySection({ 
   category, 
   bills, 
@@ -454,6 +462,13 @@ function BillCategorySection({
  * @param root0
  * @param root0.bill
  * @param root0.onUpdate
+ */
+/**
+ * BillCard function.
+ * @param root0
+ * @param root0.bill
+ * @param root0.onUpdate
+ * @returns Function result.
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -547,6 +562,14 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
  * @param root0.bill
  * @param root0.onSuccess
  * @param root0.onCancel
+ */
+/**
+ * BillDetail function.
+ * @param root0
+ * @param root0.bill
+ * @param root0.onSuccess
+ * @param root0.onCancel
+ * @returns Function result.
  */
 function BillDetail({ 
   bill, 

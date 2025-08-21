@@ -314,7 +314,7 @@ export class IntelligentWorkflowAssistant {
                 encoding: 'utf-8',
                 stdio: 'pipe'
               });
-            } catch (error: any) {
+            } catch (_error: unknown) {
               success = false;
               output = error.message;
             }
@@ -327,7 +327,7 @@ export class IntelligentWorkflowAssistant {
                 encoding: 'utf-8',
                 stdio: 'pipe'
               });
-            } catch (error: any) {
+            } catch (_error: unknown) {
               success = false;
               output = error.stdout || error.message;
             }
@@ -356,7 +356,7 @@ export class IntelligentWorkflowAssistant {
           overallSuccess = false;
         }
 
-      } catch (error: any) {
+      } catch (_error: unknown) {
         results.push({
           action: action.description,
           success: false,
@@ -382,7 +382,7 @@ export class IntelligentWorkflowAssistant {
    * Perform analysis action.
    * @param payload
    */
-  private async performAnalysis(payload: any): Promise<string> {
+  private async performAnalysis(payload: unknown): Promise<string> {
     if (payload.target) {
       // Analyze target directory/file
       const targetPath = path.join(this.projectRoot, payload.target);
@@ -419,7 +419,7 @@ export class IntelligentWorkflowAssistant {
             stdio: 'pipe'
           });
           results.push(`${tool}: Success`);
-        } catch (error: any) {
+        } catch (_error: unknown) {
           results.push(`${tool}: ${error.message.substring(0, 100)}`);
         }
       }
@@ -433,7 +433,7 @@ export class IntelligentWorkflowAssistant {
    * Perform file operation.
    * @param payload
    */
-  private async performFileOperation(payload: any): Promise<string> {
+  private async performFileOperation(payload: unknown): Promise<string> {
     if (payload.pattern) {
       const files = glob.sync(payload.pattern, {
         cwd: this.projectRoot,
@@ -480,7 +480,7 @@ export class IntelligentWorkflowAssistant {
         encoding: 'utf-8',
         stdio: 'pipe'
       });
-    } catch (error: any) {
+    } catch (_error: unknown) {
       const errors = (error.stdout || '').match(/error TS\d+:/g) || [];
       if (errors.length > 0) {
         insights.push({
@@ -505,7 +505,9 @@ export class IntelligentWorkflowAssistant {
           try {
             const filePath = path.join(distPath, file as string);
             totalSize += fs.statSync(filePath).size;
-          } catch {}
+          } catch (__error) {
+    // Error handled silently
+  }
         });
 
         const sizeMB = totalSize / (1024 * 1024);
@@ -520,7 +522,9 @@ export class IntelligentWorkflowAssistant {
             impact: Math.round(sizeMB * 10)
           });
         }
-      } catch {}
+      } catch (__error) {
+    // Error handled silently
+  }
     }
 
     // Security insights
@@ -545,7 +549,9 @@ export class IntelligentWorkflowAssistant {
           impact: critical * 50 + highSeverity * 20
         });
       }
-    } catch {}
+    } catch (__error) {
+    // Error handled silently
+  }
 
     // Maintenance insights
     const packageJson = JSON.parse(fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8'));

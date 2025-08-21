@@ -204,6 +204,10 @@ const extractMetrics = (output: string) => {
 /**
  * Main execution.
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 async function main() {
   console.log(chalk.bold.blue('🚀 Starting Redundancy Analysis Pipeline\n'));
   
@@ -233,7 +237,7 @@ async function main() {
         process.exit(0); // Don't fail validation for redundancy findings
       }
     }
-  } catch (error) {
+  } catch (__error) {
     console.error(chalk.red(`\n❌ Failed to run redundancy analysis: ${error}`));
     process.exit(1);
   }

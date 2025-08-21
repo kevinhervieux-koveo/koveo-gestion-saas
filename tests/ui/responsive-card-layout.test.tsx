@@ -164,6 +164,11 @@ const ResponsiveDemandCard = ({ demand, className = '' }: { demand: any; classNa
  *
  * @param status
  */
+/**
+ * GetResponsiveStatusStyles function.
+ * @param status
+ * @returns Function result.
+ */
 function getResponsiveStatusStyles(status: string) {
   const baseStyles = 'bg-opacity-10 border border-opacity-20';
   const statusColors = {

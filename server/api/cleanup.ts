@@ -34,7 +34,7 @@ router.post('/cleanup-storage', async (req, res) => {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
           }
-        } catch (error) {
+        } catch (__error) {
           console.log(`Could not normalize path for ${doc.fileUrl}`);
         }
       }
@@ -87,7 +87,7 @@ router.post('/cleanup-storage', async (req, res) => {
         deletedFiles.push(objectPath);
         deletedCount++;
         console.log(`Deleted orphaned file: ${objectPath}`);
-      } catch (error) {
+      } catch (__error) {
         console.error(`Failed to delete ${objectPath}:`, error);
       }
     }
@@ -103,7 +103,7 @@ router.post('/cleanup-storage', async (req, res) => {
       }
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('Error during storage cleanup:', error);
     res.status(500).json({ 
       success: false, 
@@ -137,7 +137,7 @@ router.get('/storage-stats', async (req, res) => {
       message: `Database contains ${totalDbFiles} documents with attached files`
     });
 
-  } catch (error) {
+  } catch (__error) {
     console.error('Error getting storage stats:', error);
     res.status(500).json({ 
       success: false, 
@@ -167,7 +167,7 @@ router.post('/auto-cleanup', async (req, res) => {
       result
     });
     
-  } catch (error) {
+  } catch (__error) {
     console.error('Auto-cleanup failed:', error);
     res.status(500).json({ 
       success: false, 

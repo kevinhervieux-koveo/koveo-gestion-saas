@@ -36,7 +36,7 @@ jest.mock('../../server/db', () => ({
 }));
 
 // Mock auth middleware
-const mockRequireAuth = (req: any, res: any, next: any) => {
+const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
   req.user = {
     id: 'user-123',
     email: 'admin@test.com',

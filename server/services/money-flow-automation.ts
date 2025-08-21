@@ -1,6 +1,5 @@
 import { db } from '../db';
 import { eq, and, gte, lte, or, sql } from 'drizzle-orm';
-import * as schema from '@shared/schema';
 import type { 
   InsertMoneyFlow, 
   Bill, 
@@ -8,6 +7,8 @@ import type {
   Building 
 } from '@shared/schema';
 import { billGenerationService } from './bill-generation-service';
+
+import * as schema from '@shared/schema';
 
 const { 
   moneyFlow, 
@@ -64,7 +65,7 @@ export class MoneyFlowAutomationService {
         totalEntriesCreated
       };
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error generating money flow entries:', error);
       throw error;
     }
@@ -106,7 +107,7 @@ export class MoneyFlowAutomationService {
         const billEntries = await this.generateEntriesForBill(bill, startDate, endDate);
         entriesCreated += billEntries;
 
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Error processing bill ${bill.billNumber}:`, error);
         // Continue with other bills
       }
@@ -158,7 +159,7 @@ export class MoneyFlowAutomationService {
         );
         entriesCreated += residenceEntries;
 
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Error processing residence ${residence.unitNumber}:`, error);
         // Continue with other residences
       }
@@ -432,13 +433,13 @@ export class MoneyFlowAutomationService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(moneyFlow).values(batch);
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Error inserting batch ${i / batchSize + 1}:`, error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
             await db.insert(moneyFlow).values(entry);
-          } catch (individualError) {
+          } catch (__individualError) {
             console.error(`❌ Error inserting individual entry:`, individualError);
             // Skip this entry and continue
           }

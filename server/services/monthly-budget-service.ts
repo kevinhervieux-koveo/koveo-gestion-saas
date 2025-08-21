@@ -1,11 +1,11 @@
 import { db } from '../db';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import * as schema from '@shared/schema';
 import type { 
   InsertMonthlyBudget, 
   Building,
   MoneyFlow
 } from '@shared/schema';
+import * as schema from '@shared/schema';
 
 const { 
   monthlyBudgets,
@@ -50,7 +50,7 @@ export class MonthlyBudgetService {
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
           console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
-        } catch (error) {
+        } catch (__error) {
           console.error(`❌ Error processing building ${building.name}:`, error);
           // Continue with other buildings
         }
@@ -65,7 +65,7 @@ export class MonthlyBudgetService {
         buildingsProcessed
       };
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error populating monthly budgets:', error);
       throw error;
     }
@@ -289,13 +289,13 @@ export class MonthlyBudgetService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(monthlyBudgets).values(batch);
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Error inserting budget batch ${i / batchSize + 1}:`, error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
             await db.insert(monthlyBudgets).values(entry);
-          } catch (individualError) {
+          } catch (__individualError) {
             console.error(`❌ Error inserting individual budget entry:`, individualError);
             // Skip this entry and continue
           }

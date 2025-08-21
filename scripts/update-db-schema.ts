@@ -8,6 +8,10 @@ import * as schema from '../shared/schema';
  * Updates the database schema with new tables and indexes.
  * @returns Promise that resolves when schema update is complete.
  */
+/**
+ * UpdateSchema function.
+ * @returns Function result.
+ */
 async function updateSchema() {
   console.warn('🔄 Updating database schema...');
   
@@ -52,7 +56,7 @@ async function updateSchema() {
       try {
         await sql(`ALTER TABLE features ADD COLUMN IF NOT EXISTS ${column.name} ${column.type}`);
         console.warn(`✅ Added column ${column.name} to features table`);
-      } catch (error: any) {
+      } catch (_error: unknown) {
         if (error.code === '42701') {
           console.warn(`⏭️  Column ${column.name} already exists`);
         } else {
@@ -66,7 +70,7 @@ async function updateSchema() {
     console.warn('✅ Updated default status for features');
 
     console.warn('\n✨ Database schema updated successfully!');
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error updating schema:', error);
     process.exit(1);
   }

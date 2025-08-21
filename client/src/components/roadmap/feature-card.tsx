@@ -41,6 +41,22 @@ interface FeatureCardProps {
  * @param root0.onUpdateStatus
  * @param root0.onToggleStrategic
  */
+/**
+ * FeatureCard function.
+ * @param root0
+ * @param root0.feature
+ * @param root0.isExpanded
+ * @param root0.actionableItems
+ * @param root0.duplicateAnalysis
+ * @param root0.onToggleExpand
+ * @param root0.onFeatureClick
+ * @param root0.onToggleActionableItem
+ * @param root0.onFetchActionableItems
+ * @param root0.onCopyPrompt
+ * @param root0.onUpdateStatus
+ * @param root0.onToggleStrategic
+ * @returns Function result.
+ */
 export function FeatureCard({
   feature,
   isExpanded,

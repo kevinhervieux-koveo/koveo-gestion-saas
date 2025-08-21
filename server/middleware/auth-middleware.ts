@@ -18,6 +18,13 @@ import { Request, Response, NextFunction } from 'express';
  * });
  * ```
  */
+/**
+ * RequireAuth function.
+ * @param req
+ * @param res
+ * @param next
+ * @returns Function result.
+ */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.session && 'user' in req.session && req.session.user) {
     next();
@@ -39,6 +46,11 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
  * // Only admin and manager roles can access this route
  * app.get('/api/admin', requireAuth, requireRole(['admin', 'manager']), handler);
  * ```
+ */
+/**
+ * RequireRole function.
+ * @param roles
+ * @returns Function result.
  */
 export function requireRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {

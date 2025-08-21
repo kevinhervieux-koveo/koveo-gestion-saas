@@ -22,6 +22,11 @@ import { ObjectStorageService } from '../objectStorage';
  *
  * @param app
  */
+/**
+ * RegisterOrganizationRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerOrganizationRoutes(app: Express): void {
   /**
    * GET /api/organizations - Retrieves organizations accessible to the current user
@@ -95,7 +100,7 @@ export function registerOrganizationRoutes(app: Express): void {
       // Return array directly (not wrapped in object)
       res.json(userOrganizations);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -155,7 +160,7 @@ export function registerOrganizationRoutes(app: Express): void {
         organizations: allOrganizations
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -225,7 +230,7 @@ export function registerOrganizationRoutes(app: Express): void {
       
       res.status(201).json(newOrganization);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error creating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -297,7 +302,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(eq(invitations.organizationId, organizationId));
 
         totalInvitations = invitationsCount[0]?.count || 0;
-      } catch (invError) {
+      } catch (__invError) {
         console.log('Invitations table access failed, skipping invitation count');
         totalInvitations = 0;
       }
@@ -323,7 +328,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(impact);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error analyzing deletion impact:', error);
       
       // Return partial data if we can get basic counts
@@ -350,7 +355,7 @@ export function registerOrganizationRoutes(app: Express): void {
           });
           return;
         }
-      } catch (fallbackError) {
+      } catch (__fallbackError) {
         console.error('Fallback also failed:', fallbackError);
       }
       
@@ -487,7 +492,7 @@ export function registerOrganizationRoutes(app: Express): void {
         deletedOrganization: organization[0].name
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error cascading delete organization:', error);
       res.status(500).json({
         error: 'Internal server error',

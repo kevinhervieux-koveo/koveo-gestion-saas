@@ -32,6 +32,13 @@ const componentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>(
  * @param options Loading options.
  * @returns Lazy component with optimizations.
  */
+/**
+ * CreateOptimizedLoader function.
+ * @param importFn
+ * @param key
+ * @param options
+ * @returns Function result.
+ */
 export function createOptimizedLoader<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   key: string,
@@ -64,7 +71,7 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
         }
         
         return module;
-      } catch (error) {
+      } catch (__error) {
         attempts++;
         if (attempts >= retryAttempts) {
           console.error(`Failed to load component ${key} after ${retryAttempts} attempts:`, error);
@@ -99,6 +106,12 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
  * @param importFn Dynamic import function.
  * @param priority Loading priority (higher numbers load first).
  */
+/**
+ * PreloadComponent function.
+ * @param importFn
+ * @param priority
+ * @returns Function result.
+ */
 export function preloadComponent(
   importFn: () => Promise<{ default: ComponentType<any> }>,
   priority: number = 0
@@ -126,6 +139,11 @@ export function preloadComponent(
  * Clears the component cache to free memory.
  * @param keys Specific keys to clear, or undefined to clear all.
  */
+/**
+ * ClearComponentCache function.
+ * @param keys
+ * @returns Function result.
+ */
 export function clearComponentCache(keys?: string[]): void {
   if (keys) {
     keys.forEach(key => componentCache.delete(key));
@@ -136,6 +154,10 @@ export function clearComponentCache(keys?: string[]): void {
 
 /**
  * Gets current cache size for monitoring.
+ */
+/**
+ * GetComponentCacheSize function.
+ * @returns Function result.
  */
 export function getComponentCacheSize(): number {
   return componentCache.size;

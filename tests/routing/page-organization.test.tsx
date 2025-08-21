@@ -62,6 +62,12 @@ describe('Page Organization Validation', () => {
      * @param dir
      * @param relativePath
      */
+    /**
+     * GetAllPageFiles function.
+     * @param dir
+     * @param relativePath
+     * @returns Function result.
+     */
     function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string}> {
       const items = readdirSync(dir);
       const pages: Array<{file: string, path: string}> = [];
@@ -142,6 +148,11 @@ describe('Page Organization Validation', () => {
      *
      * @param filePath
      */
+    /**
+     * ValidatePageComponent function.
+     * @param filePath
+     * @returns Function result.
+     */
     function validatePageComponent(filePath: string): string[] {
       const errors: string[] = [];
       
@@ -172,7 +183,7 @@ describe('Page Organization Validation', () => {
           errors.push('No function component found');
         }
 
-      } catch (error) {
+      } catch (_error) {
         errors.push(`Failed to read file: ${error}`);
       }
 
@@ -206,6 +217,12 @@ describe('Page Organization Validation', () => {
      *
      * @param dir
      * @param relativePath
+     */
+    /**
+     * GetAllPageFiles function.
+     * @param dir
+     * @param relativePath
+     * @returns Function result.
      */
     function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string}> {
       const items = readdirSync(dir);

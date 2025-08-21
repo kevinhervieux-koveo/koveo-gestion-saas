@@ -75,6 +75,10 @@ type DomainFormData = z.infer<typeof domainFormSchema>;
  * SSL Certificate Info Component - Refactored using reusable components
  * Reduced from 469+ lines to ~240 lines by leveraging StandardForm and BaseDialog.
  */
+/**
+ * SslCertificateInfo function.
+ * @returns Function result.
+ */
 export function SslCertificateInfo() {
   const { user } = useAuth();
   const [showAddDomain, setShowAddDomain] = React.useState(false);
@@ -319,6 +323,13 @@ interface CertificateInfoCardProps {
  * @param root0.title
  * @param root0.items
  */
+/**
+ * CertificateInfoCard function.
+ * @param root0
+ * @param root0.title
+ * @param root0.items
+ * @returns Function result.
+ */
 function CertificateInfoCard({ title, items }: CertificateInfoCardProps) {
   return (
     <Card>
@@ -340,6 +351,10 @@ function CertificateInfoCard({ title, items }: CertificateInfoCardProps) {
 // Loading skeleton component
 /**
  *
+ */
+/**
+ * SslCertificateInfoSkeleton function.
+ * @returns Function result.
  */
 function SslCertificateInfoSkeleton() {
   return (

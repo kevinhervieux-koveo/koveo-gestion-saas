@@ -21,6 +21,15 @@ interface ActionableItemsListProps {
  * @param root0.onToggleStatus
  * @param root0.onFetchItems
  */
+/**
+ * ActionableItemsList function.
+ * @param root0
+ * @param root0.featureId
+ * @param root0.items
+ * @param root0.onToggleStatus
+ * @param root0.onFetchItems
+ * @returns Function result.
+ */
 export function ActionableItemsList({ 
   featureId, 
   items, 

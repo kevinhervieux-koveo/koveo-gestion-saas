@@ -26,6 +26,10 @@ interface QualityMetricsData {
  * including code coverage, complexity, performance metrics, and compliance scores.
  * @returns JSX element displaying the quality metrics dashboard.
  */
+/**
+ * QualityMetrics function.
+ * @returns Function result.
+ */
 export function QualityMetrics() {
   const { t } = useLanguage();
 

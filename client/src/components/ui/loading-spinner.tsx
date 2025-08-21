@@ -18,6 +18,10 @@ import { Loader2 } from 'lucide-react';
  * }
  * ```
  */
+/**
+ * LoadingSpinner function
+ * @returns Function result
+ */
 export function LoadingSpinner() {
   return (
     <div className='flex-1 flex items-center justify-center bg-gray-50'>

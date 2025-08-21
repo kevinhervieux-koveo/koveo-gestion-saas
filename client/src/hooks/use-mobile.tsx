@@ -20,6 +20,10 @@ const MOBILE_BREAKPOINT = 768;
  * }
  * ```
  */
+/**
+ * UseIsMobile function.
+ * @returns Function result.
+ */
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 

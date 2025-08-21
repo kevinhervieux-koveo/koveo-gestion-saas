@@ -4,7 +4,6 @@ import { program } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import * as fs from 'fs';
-import * as path from 'path';
 import { agentOrchestrator } from '../tools/enhanced-agent-orchestrator';
 import { replitIntegration } from '../tools/replit-integration-enhancer';
 import { agentToolkit } from '../tools/ai-agent-toolkit';
@@ -64,7 +63,7 @@ program
       // Keep the process running
       process.stdin.resume();
       
-    } catch (_error) {
+    } catch (___error) {
       spinner.fail('Failed to start agent orchestrator');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -109,7 +108,7 @@ program
         });
       }
       
-    } catch (_error) {
+    } catch (___error) {
       spinner.fail('Environment optimization failed');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -184,7 +183,7 @@ program
         console.log(report);
       }
       
-    } catch (_error) {
+    } catch (___error) {
       spinner.fail('Failed to generate report');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -225,7 +224,7 @@ program
       console.log(chalk.green(`✅ Task "${task}" has been queued for execution`));
       console.log(chalk.gray(`Monitor progress at: http://localhost:8080`));
       
-    } catch (_error) {
+    } catch (___error) {
       spinner.fail('Failed to queue task');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -284,7 +283,7 @@ program
           });
         }
         
-      } catch (_error) {
+      } catch (___error) {
         spinner.fail('Workspace analysis failed');
         console.error(chalk.red('Error:'), _error);
       }
@@ -315,7 +314,7 @@ program
           }
         });
         
-      } catch (_error) {
+      } catch (___error) {
         spinner.fail('Failed to generate suggestions');
         console.error(chalk.red('Error:'), _error);
       }
@@ -384,6 +383,10 @@ program
 /**
  * Interactive task selection.
  */
+/**
+ * InteractiveTaskSelection function.
+ * @returns Function result.
+ */
 async function interactiveTaskSelection(): Promise<string> {
   const inquirer = (await import('inquirer')).default;
   
@@ -432,7 +435,12 @@ async function interactiveTaskSelection(): Promise<string> {
  * Generate HTML report.
  * @param data
  */
-function generateHTMLReport(data: any): string {
+/**
+ * GenerateHTMLReport function.
+ * @param data
+ * @returns Function result.
+ */
+function generateHTMLReport(data: unknown): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -502,7 +510,12 @@ function generateHTMLReport(data: any): string {
  * Generate text report.
  * @param data
  */
-function generateTextReport(data: any): string {
+/**
+ * GenerateTextReport function.
+ * @param data
+ * @returns Function result.
+ */
+function generateTextReport(data: unknown): string {
   return `
 # Koveo Gestion Development Environment Report
 Generated: ${new Date().toISOString()}

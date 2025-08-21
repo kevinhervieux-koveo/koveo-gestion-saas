@@ -20,6 +20,13 @@ interface FormSectionProps {
  * @param root0.onUpdateFormData - Function to update form data.
  * @returns JSX element for the basic information section.
  */
+/**
+ * BasicInformationSection function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @returns Function result.
+ */
 export function BasicInformationSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
     <div className="space-y-4">
@@ -101,6 +108,13 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
  * @param root0.onUpdateFormData - Function to update form data.
  * @returns JSX element for the business requirements section.
  */
+/**
+ * BusinessRequirementsSection function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @returns Function result.
+ */
 export function BusinessRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
     <div className="space-y-4">
@@ -177,6 +191,13 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
  * @param root0.formData - Current form data.
  * @param root0.onUpdateFormData - Function to update form data.
  * @returns JSX element for the technical requirements section.
+ */
+/**
+ * TechnicalRequirementsSection function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @returns Function result.
  */
 export function TechnicalRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
@@ -255,6 +276,13 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
  * @param root0.onUpdateFormData - Function to update form data.
  * @returns JSX element for the user experience section.
  */
+/**
+ * UserExperienceSection function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @returns Function result.
+ */
 export function UserExperienceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (
     <div className="space-y-4">
@@ -301,6 +329,13 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
  * @param root0.formData - Current form data.
  * @param root0.onUpdateFormData - Function to update form data.
  * @returns JSX element for the quality performance section.
+ */
+/**
+ * QualityPerformanceSection function.
+ * @param root0
+ * @param root0.formData
+ * @param root0.onUpdateFormData
+ * @returns Function result.
  */
 export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSectionProps) {
   return (

@@ -68,6 +68,13 @@ interface ResidenceEditFormProps {
  * @param root0.residence
  * @param root0.onSuccess
  */
+/**
+ * ResidenceEditForm function.
+ * @param root0
+ * @param root0.residence
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -125,7 +132,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
       queryClient.invalidateQueries({ queryKey: ['/api/residences'] });
       onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update residence',

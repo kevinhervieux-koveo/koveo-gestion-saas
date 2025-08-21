@@ -34,6 +34,12 @@ interface MobileMenuProviderProps {
  * @param root0
  * @param root0.children
  */
+/**
+ * MobileMenuProvider function.
+ * @param root0
+ * @param root0.children
+ * @returns Function result.
+ */
 export function MobileMenuProvider({ children }: MobileMenuProviderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

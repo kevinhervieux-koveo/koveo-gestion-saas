@@ -44,6 +44,12 @@ interface AnalysisResult {
  * console.log(analysis.actionableItems.length); // Number of implementation steps
  * ```
  */
+/**
+ * AnalyzeFeatureWithGemini function.
+ * @param feature
+ * @param documentationContext
+ * @returns Function result.
+ */
 export async function analyzeFeatureWithGemini(
   feature: Feature,
   documentationContext: string
@@ -197,7 +203,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
     } else {
       throw new Error('Invalid response from Gemini');
     }
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error analyzing feature with Gemini:', _error);
     throw new Error(`Failed to analyze feature: ${_error}`);
   }
@@ -218,6 +224,12 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
  * const dbItems = formatActionableItemsForDatabase(feature.id, analysis);
  * await storage.createActionableItems(dbItems);
  * ```
+ */
+/**
+ * FormatActionableItemsForDatabase function.
+ * @param featureId
+ * @param analysisResult
+ * @returns Function result.
  */
 export function formatActionableItemsForDatabase(
   featureId: string,
@@ -255,6 +267,10 @@ export function formatActionableItemsForDatabase(
  * const analysis = await analyzeFeatureWithGemini(feature, context);
  * // Context ensures AI suggestions align with system architecture
  * ```
+ */
+/**
+ * GetDocumentationContext function.
+ * @returns Function result.
  */
 export async function getDocumentationContext(): Promise<string> {
   // For now, return a summary of the system architecture

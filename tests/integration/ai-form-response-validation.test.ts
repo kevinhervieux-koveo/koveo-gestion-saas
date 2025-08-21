@@ -114,7 +114,7 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(typeof analysisResult.estimatedTotalEffort).toBe('string');
       expect(analysisResult.estimatedTotalEffort).toMatch(/\d+.*?(hour|day|week)/i);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('AI Integration Test Error:', error);
       throw error;
     }
@@ -153,7 +153,7 @@ describe('AI Form Response Validation (Integration)', () => {
       
       expect(hasQuebecReference).toBe(true);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Quebec Compliance Test Error:', error);
       throw error;
     }
@@ -181,7 +181,7 @@ describe('AI Form Response Validation (Integration)', () => {
 
       expect(referencedTerms.length).toBeGreaterThan(1); // At least 2 tech stack terms mentioned
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Tech Stack Reference Test Error:', error);
       throw error;
     }
@@ -229,7 +229,7 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(analysisResult.actionableItems.length).toBeGreaterThan(2);
       expect(analysisResult.summary.length).toBeGreaterThan(50);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Comprehensive Field Test Error:', error);
       throw error;
     }
@@ -274,7 +274,7 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(typeof analysisResult.summary).toBe('string');
       expect(analysisResult.summary.length).toBeGreaterThan(10);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Edge Case Test Error:', error);
       throw error;
     }
@@ -314,7 +314,7 @@ describe('AI Form Response Validation (Integration)', () => {
       
       expect(authMentioned1 || authMentioned2).toBe(true);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Consistency Test Error:', error);
       throw error;
     }
@@ -370,7 +370,7 @@ describe('AI Service Performance and Reliability', () => {
       expect(analysisResult).toHaveProperty('actionableItems');
       expect(analysisResult.actionableItems.length).toBeGreaterThan(0);
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Performance Test Error:', error);
       throw error;
     }

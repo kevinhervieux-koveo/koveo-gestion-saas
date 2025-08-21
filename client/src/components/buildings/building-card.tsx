@@ -24,6 +24,15 @@ interface BuildingCardProps {
  * @param root0.onDelete - Callback function when delete button is clicked.
  * @returns JSX element for the building card.
  */
+/**
+ * BuildingCard function.
+ * @param root0
+ * @param root0.building
+ * @param root0.userRole
+ * @param root0.onEdit
+ * @param root0.onDelete
+ * @returns Function result.
+ */
 export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
   const [, navigate] = useLocation();
 

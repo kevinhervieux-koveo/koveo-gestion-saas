@@ -200,7 +200,7 @@ app.get('/api/features', async (req, res) => {
     } else {
       res.json([]);
     }
-  } catch (error) {
+  } catch (__error) {
     console.error('Features API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -253,7 +253,7 @@ app.post('/api/features/:id/update-status', async (req, res) => {
     
     res.setHeader('Content-Type', 'application/json');
     res.json(feature);
-  } catch (error) {
+  } catch (__error) {
     console.error('Feature status update error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -280,7 +280,7 @@ try {
   );
 
   // Handle server errors gracefully without crashing in production
-  server.on('error', (error: any) => {
+  server.on('error', (error: unknown) => {
     log(`Server error: ${error.message}`, 'error');
     if (error.code === 'EADDRINUSE') {
       log(`Port ${port} is already in use`, 'error');
@@ -293,7 +293,7 @@ try {
     }
   });
 
-} catch (error) {
+} catch (__error) {
   log(`Failed to start server: ${error}`, 'error');
   // Don't exit in production to maintain uptime
   if (process.env.NODE_ENV !== 'production') {
@@ -306,6 +306,10 @@ try {
 // Initialize application components after server starts
 /**
  *
+ */
+/**
+ * InitializeApplication function.
+ * @returns Function result.
  */
 async function initializeApplication() {
   try {
@@ -321,7 +325,7 @@ async function initializeApplication() {
           const objectStorageService = new ObjectStorageService();
           const objectFile = await objectStorageService.getObjectEntityFile(req.path);
           await objectStorageService.downloadObject(objectFile, res);
-        } catch (error) {
+        } catch (__error) {
           console.error('Error serving private object:', error);
           if (error instanceof ObjectNotFoundError) {
             return res.status(404).json({ error: 'File not found' });
@@ -340,14 +344,14 @@ async function initializeApplication() {
             return res.status(404).json({ error: 'File not found' });
           }
           await objectStorageService.downloadObject(file, res);
-        } catch (error) {
+        } catch (__error) {
           console.error('Error serving public object:', error);
           return res.status(500).json({ error: 'Internal server error' });
         }
       });
 
       log('✅ Object storage routes registered');
-    } catch (error) {
+    } catch (__error) {
       log(`❌ Object storage routes setup failed: ${error}`, 'error');
     }
 
@@ -358,7 +362,7 @@ async function initializeApplication() {
       
       // Add the user organizations route AFTER session middleware is set up
       const { requireAuth } = await import('./auth');
-      app.get('/api/users/me/organizations', requireAuth, async (req: any, res: any) => {
+      app.get('/api/users/me/organizations', requireAuth, async (req: unknown, res: unknown) => {
         try {
           const { getUserAccessibleOrganizations } = await import('./rbac');
           const { Pool, neonConfig } = await import('@neondatabase/serverless');
@@ -385,14 +389,14 @@ async function initializeApplication() {
           console.log('Organizations found:', organizations.length, organizations.map(o => ({ id: o.id, name: o.name })));
           
           res.json(organizations);
-        } catch (error) {
+        } catch (__error) {
           console.error('Error fetching user organizations:', error);
           res.status(500).json({ message: 'Failed to fetch user organizations' });
         }
       });
       log('✅ User organizations route registered');
       
-    } catch (error) {
+    } catch (__error) {
       log(`❌ Route registration failed: ${error}`, 'error');
       // Skip route registration but continue with Vite setup
     }
@@ -406,7 +410,7 @@ async function initializeApplication() {
       try {
         await setupVite(app, server);
         log('✅ Vite development server started');
-      } catch (error) {
+      } catch (__error) {
         log(`❌ Vite setup failed: ${error}`, 'error');
         log('⚠️ Falling back to React build serving', 'error');
         
@@ -447,6 +451,14 @@ async function initializeApplication() {
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
+        
+        /**
+        
+         * App function
+        
+         * @returns Function result
+        
+         */
         
         function App() {
             const [health, setHealth] = useState(null);
@@ -544,7 +556,7 @@ async function initializeApplication() {
       initializeBackgroundJobsInBackground();
     }, 100);
     
-  } catch (error) {
+  } catch (__error) {
     log(`⚠️ Application initialization failed: ${error}`, 'error');
     // Don't crash - health checks will still work
   }
@@ -553,11 +565,15 @@ async function initializeApplication() {
 /**
  * Runs email service initialization in background with timeout handling.
  */
+/**
+ * InitializeEmailServiceInBackground function.
+ * @returns Function result.
+ */
 async function initializeEmailServiceInBackground(): Promise<void> {
   try {
     log('📧 Email service is ready (on-demand initialization)');
     // Email service will initialize on first use - no need for upfront initialization
-  } catch (error) {
+  } catch (__error) {
     log('⚠️ Email service initialization failed:', String(error));
     // Continue running - don't crash the server
   }
@@ -566,6 +582,10 @@ async function initializeEmailServiceInBackground(): Promise<void> {
 /**
  * Runs database optimizations in background with timeout handling.
  */
+  /**
+   * InitializeDatabaseOptimizationsInBackground function.
+   * @returns Function result.
+   */
   async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
     try {
       log('🚀 Starting database optimizations in background...');
@@ -582,7 +602,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
       
       await Promise.race([optimizationPromise, timeoutPromise]);
       log('🚀 Database optimizations initialized successfully');
-    } catch (error) {
+    } catch (__error) {
       log('⚠️ Database optimization initialization failed:', String(error));
       // Continue running - don't crash the server
     }
@@ -590,6 +610,10 @@ async function initializeEmailServiceInBackground(): Promise<void> {
   
   /**
    * Runs background jobs initialization with timeout handling.
+   */
+  /**
+   * InitializeBackgroundJobsInBackground function.
+   * @returns Function result.
    */
   async function initializeBackgroundJobsInBackground(): Promise<void> {
     try {
@@ -602,7 +626,7 @@ async function initializeEmailServiceInBackground(): Promise<void> {
       
       await Promise.race([startJobs(), timeoutPromise]);
       log('🔄 Background jobs initialized successfully');
-    } catch (error) {
+    } catch (__error) {
       log('⚠️ Background job initialization failed:', String(error));
       // Continue running - don't crash the server
     }

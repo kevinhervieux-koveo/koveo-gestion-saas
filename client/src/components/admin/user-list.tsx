@@ -56,6 +56,15 @@ interface EditUserDialogProps {
  * @param root0.onOpenChange
  * @param root0.onSuccess
  */
+/**
+ * EditUserDialog function.
+ * @param root0
+ * @param root0.user
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
   
@@ -125,6 +134,16 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
  * @param root0.onSelectionChange
  * @param root0.onBulkAction
  * @param root0.isLoading
+ */
+/**
+ * UserListComponent function.
+ * @param root0
+ * @param root0.users
+ * @param root0.selectedUsers
+ * @param root0.onSelectionChange
+ * @param root0.onBulkAction
+ * @param root0.isLoading
+ * @returns Function result.
  */
 export function UserListComponent({ 
   users, 

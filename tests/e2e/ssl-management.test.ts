@@ -116,7 +116,7 @@ describe('SSL Management End-to-End Integration', () => {
 
       expect(listResponse.status).toBe(200);
       expect(listResponse.body.success).toBe(true);
-      const ourCert = listResponse.body.data.find((cert: any) => 
+      const ourCert = listResponse.body.data.find((cert: unknown) => 
         cert.domain === 'e2e-test.example.com'
       );
       expect(ourCert).toBeDefined();

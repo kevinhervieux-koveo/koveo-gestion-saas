@@ -20,7 +20,7 @@ try {
     env: process.env 
   });
   console.log('✅ Demo organization import completed');
-} catch (error) {
+} catch (__error) {
   console.error('❌ Demo organization import failed:', error);
   process.exit(1);
 }

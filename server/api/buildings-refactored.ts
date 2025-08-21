@@ -36,6 +36,11 @@ import {
  * Registers refactored building routes with improved modularity and maintainability.
  * @param app
  */
+/**
+ * RegisterBuildingRoutesRefactored function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerBuildingRoutesRefactored(app: Express): void {
   
   /**
@@ -71,7 +76,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
 
       // Get user access information
       const userAccess = await getUserBuildingAccess(currentUser.id);
-      let accessibleBuildings: any[] = [];
+      let accessibleBuildings: unknown[] = [];
 
       if (userAccess.isKoveoUser) {
         console.log(`🌟 Koveo organization user detected - granting access to ALL buildings`);
@@ -127,7 +132,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to fetch manager buildings:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -154,7 +159,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (validationError) {
+      } catch (__validationError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid building ID format'
@@ -193,7 +198,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         building: buildingWithStats
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to fetch building details:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -227,7 +232,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       let buildingData;
       try {
         buildingData = validateBuildingCreate(req.body);
-      } catch (validationError: any) {
+      } catch (_validationError: unknown) {
         return res.status(400).json({
           error: 'Validation error',
           message: validationError.message || 'Invalid building data'
@@ -246,7 +251,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         building: newBuilding
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error creating building:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -281,7 +286,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (validationError) {
+      } catch (__validationError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid building ID format'
@@ -292,7 +297,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       let buildingData;
       try {
         buildingData = validateBuildingUpdate(req.body);
-      } catch (validationError: any) {
+      } catch (_validationError: unknown) {
         return res.status(400).json({
           error: 'Validation error',
           message: validationError.message || 'Invalid building data'
@@ -319,7 +324,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         building: updatedBuilding
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error updating building:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -354,7 +359,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (validationError) {
+      } catch (__validationError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid building ID format'
@@ -384,7 +389,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error analyzing building deletion impact:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -419,7 +424,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (validationError) {
+      } catch (__validationError) {
         return res.status(400).json({
           error: 'Validation error',
           message: 'Invalid building ID format'
@@ -438,7 +443,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         deletedBuilding: deletedBuilding.name
       });
 
-    } catch (error: any) {
+    } catch (_error: unknown) {
       if (error.message === 'Building not found') {
         return res.status(404).json({
           error: 'Not found',

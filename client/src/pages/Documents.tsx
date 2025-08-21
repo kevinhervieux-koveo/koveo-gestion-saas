@@ -162,7 +162,7 @@ export default function Documents() {
         description: "Document created successfully. Now upload the file.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to create document",
@@ -184,7 +184,7 @@ export default function Documents() {
         description: "Document updated successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to update document",
@@ -205,7 +205,7 @@ export default function Documents() {
         description: "Document deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete document",
@@ -227,7 +227,7 @@ export default function Documents() {
         description: "The file has been uploaded successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setUploadingDocumentId(null);
       toast({
         title: "Error",

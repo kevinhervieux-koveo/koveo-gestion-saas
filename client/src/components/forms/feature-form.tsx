@@ -43,6 +43,14 @@ interface FeatureFormProps {
  * @param root0.onOpenChange - Callback to handle dialog open state changes.
  * @returns Feature form dialog component.
  */
+/**
+ * FeatureForm function.
+ * @param root0
+ * @param root0.feature
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @returns Function result.
+ */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -211,7 +219,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
@@ -235,7 +243,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to load draft:', _error);
     }
   }, [feature?.id, getDraftKey]);
@@ -253,7 +261,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
+    } catch (__error) {
       console.error('Failed to clear draft:', _error);
     }
   }, [feature?.id, toast, getDraftKey]);
@@ -448,7 +456,7 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -564,12 +572,12 @@ ${formData.additionalNotes || 'No additional notes'}
               window.localStorage.removeItem(key);
               console.warn('Cleared invalid draft:', key);
             }
-          } catch (_error) {
+          } catch (__error) {
             // Invalid JSON, remove it
             window.localStorage.removeItem(key);
           }
         });
-      } catch (_error) {
+      } catch (__error) {
         console.error('Error clearing invalid drafts:', _error);
       }
       

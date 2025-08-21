@@ -44,13 +44,13 @@ class ReplitMonitor {
         try {
           const diskUsage = execSync('df -h .').toString();
           console.warn('Disk Usage:', diskUsage.split('\n')[1]);
-        } catch (_e) {
+        } catch (__e) {
           // Silent fail for disk usage
         }
       }
       
       return this.metrics;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error collecting metrics:', error.message);
       return this.metrics;
     }

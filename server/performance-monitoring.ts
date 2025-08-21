@@ -144,11 +144,16 @@ export const dbPerformanceMonitor = new DatabasePerformanceMonitor();
  * Decorator for tracking database operation performance.
  * @param queryName
  */
+/**
+ * TrackPerformance function.
+ * @param queryName
+ * @returns Function result.
+ */
 export function trackPerformance(queryName: string) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       return dbPerformanceMonitor.trackQuery(queryName, () => method.apply(this, args));
     };
 

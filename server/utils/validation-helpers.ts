@@ -20,6 +20,11 @@ export const phoneSchema = z.string().regex(/^\+?[\d\s\-\(\)]+$/);
  * isValidUUID('invalid-uuid'); // false
  * ```
  */
+/**
+ * IsValidUUID function.
+ * @param value
+ * @returns Function result.
+ */
 export function isValidUUID(value: string): boolean {
   try {
     uuidSchema.parse(value);
@@ -41,6 +46,11 @@ export function isValidUUID(value: string): boolean {
  * isValidEmail('user@example.com'); // true
  * isValidEmail('invalid-email'); // false
  * ```
+ */
+/**
+ * IsValidEmail function.
+ * @param value
+ * @returns Function result.
  */
 export function isValidEmail(value: string): boolean {
   try {

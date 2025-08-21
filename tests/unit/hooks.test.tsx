@@ -23,6 +23,10 @@ const mockMatchMedia = (matches: boolean) => ({
  * Test component that displays mobile status based on useIsMobile hook.
  * @returns JSX element showing mobile or desktop status.
  */
+/**
+ * MobileTestComponent function.
+ * @returns Function result.
+ */
 function MobileTestComponent() {
   const isMobile = useIsMobile();
   return (
@@ -36,6 +40,10 @@ function MobileTestComponent() {
 /**
  * Test component for language functionality with translation and language switching.
  * @returns JSX element with language controls and translated text.
+ */
+/**
+ * LanguageTestComponent function.
+ * @returns Function result.
  */
 function LanguageTestComponent() {
   const { language, setLanguage, t } = useLanguage();
@@ -64,6 +72,10 @@ function LanguageTestComponent() {
 /**
  * Test component for toast notification functionality.
  * @returns JSX element with toast controls and display.
+ */
+/**
+ * ToastTestComponent function.
+ * @returns Function result.
  */
 function ToastTestComponent() {
   const { toast: showToast, toasts, dismiss } = useToast();
@@ -191,6 +203,10 @@ describe('Quebec Property Management Hooks', () => {
        * Test component that renders a missing translation key.
        * @returns JSX element displaying fallback text for missing key.
        */
+      /**
+       * TestMissingKey function.
+       * @returns Function result.
+       */
       function TestMissingKey() {
         const { t } = useLanguage();
         return <span data-testid="missing-key">{t('nonExistentKey' as never)}</span>;
@@ -209,6 +225,10 @@ describe('Quebec Property Management Hooks', () => {
       /**
        * Test component that attempts to use useLanguage without provider.
        * @returns JSX element for testing error boundary.
+       */
+      /**
+       * ComponentWithoutProvider function.
+       * @returns Function result.
        */
       function ComponentWithoutProvider() {
         useLanguage();

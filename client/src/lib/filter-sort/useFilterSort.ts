@@ -89,6 +89,11 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * });
  * ```
  */
+/**
+ * UseFilterSort function.
+ * @param options
+ * @returns Function result.
+ */
 export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
 
@@ -99,7 +104,7 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
       if (stored) {
         try {
           return JSON.parse(stored);
-        } catch (e) {
+        } catch (__e) {
           console.warn('Failed to parse stored filter state', e);
         }
       }

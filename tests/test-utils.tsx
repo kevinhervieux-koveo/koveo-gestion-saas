@@ -19,6 +19,12 @@ interface AllProvidersProps {
  * @param root0
  * @param root0.children
  */
+/**
+ * AllProviders function.
+ * @param root0
+ * @param root0.children
+ * @returns Function result.
+ */
 function AllProviders({ children }: AllProvidersProps) {
   const queryClient = new QueryClient({
     defaultOptions: {

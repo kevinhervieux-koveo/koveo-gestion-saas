@@ -58,6 +58,18 @@ interface DeleteConfirmationDialogProps {
  * @param root0.isDeleting - Whether deletion is in progress.
  * @returns JSX element for the delete confirmation dialog.
  */
+/**
+ * DeleteConfirmationDialog function.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.entityType
+ * @param root0.entityId
+ * @param root0.entityName
+ * @param root0.onConfirm
+ * @param root0.isDeleting
+ * @returns Function result.
+ */
 export function DeleteConfirmationDialog({
   open,
   onOpenChange,
@@ -88,7 +100,7 @@ export function DeleteConfirmationDialog({
       const response = await apiRequest('GET', endpoint);
       const impactData = await response.json();
       setImpact(impactData);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error fetching deletion impact:', error);
       toast({
         title: 'Error',

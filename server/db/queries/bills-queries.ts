@@ -10,6 +10,11 @@ import { scopeQuery, type UserContext } from './scope-query';
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of bills the user can access.
  */
+/**
+ * GetBillsForUser function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBillsForUser(userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -40,6 +45,12 @@ export async function getBillsForUser(userContext: UserContext) {
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of bills for the residence.
  */
+/**
+ * GetBillsForResidence function.
+ * @param residenceId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBillsForResidence(residenceId: string, userContext: UserContext) {
   const baseQuery = db
     .select()
@@ -58,6 +69,11 @@ export async function getBillsForResidence(residenceId: string, userContext: Use
  * 
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of overdue bills.
+ */
+/**
+ * GetOverdueBills function.
+ * @param userContext
+ * @returns Function result.
  */
 export async function getOverdueBills(userContext: UserContext) {
   const today = new Date().toISOString().split('T')[0];
@@ -99,6 +115,12 @@ export async function getOverdueBills(userContext: UserContext) {
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of bills with the specified status.
  */
+/**
+ * GetBillsByStatus function.
+ * @param status
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBillsByStatus(
   status: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled',
   userContext: UserContext
@@ -120,6 +142,13 @@ export async function getBillsByStatus(
  * @param endDate - End date (YYYY-MM-DD format).
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of bills within the date range.
+ */
+/**
+ * GetBillsByDateRange function.
+ * @param startDate
+ * @param endDate
+ * @param userContext
+ * @returns Function result.
  */
 export async function getBillsByDateRange(
   startDate: string,
@@ -165,6 +194,12 @@ export async function getBillsByDateRange(
  * @param userContext - User context for access control.
  * @returns Promise resolving to the bill if accessible, undefined otherwise.
  */
+/**
+ * GetBillById function.
+ * @param billId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBillById(billId: string, userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -206,6 +241,11 @@ export async function getBillById(billId: string, userContext: UserContext) {
  * 
  * @param userContext - User context for access control.
  * @returns Promise resolving to bill summary statistics.
+ */
+/**
+ * GetBillSummary function.
+ * @param userContext
+ * @returns Function result.
  */
 export async function getBillSummary(userContext: UserContext) {
   // First get all accessible bill IDs

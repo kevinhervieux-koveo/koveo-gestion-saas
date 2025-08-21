@@ -9,6 +9,11 @@ import { scopeQuery, type UserContext } from './scope-query';
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of buildings the user can access.
  */
+/**
+ * GetBuildingsForUser function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBuildingsForUser(userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -47,6 +52,12 @@ export async function getBuildingsForUser(userContext: UserContext) {
  * @param buildingId - The building ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the building if accessible, undefined otherwise.
+ */
+/**
+ * GetBuildingById function.
+ * @param buildingId
+ * @param userContext
+ * @returns Function result.
  */
 export async function getBuildingById(buildingId: string, userContext: UserContext) {
   const baseQuery = db
@@ -91,6 +102,12 @@ export async function getBuildingById(buildingId: string, userContext: UserConte
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings in the organization.
  */
+/**
+ * GetBuildingsByOrganization function.
+ * @param organizationId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBuildingsByOrganization(organizationId: string, userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -122,6 +139,12 @@ export async function getBuildingsByOrganization(organizationId: string, userCon
  * @param searchTerm - Search term to look for in name or address.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of matching buildings.
+ */
+/**
+ * SearchBuildings function.
+ * @param searchTerm
+ * @param userContext
+ * @returns Function result.
  */
 export async function searchBuildings(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
@@ -160,6 +183,12 @@ export async function searchBuildings(searchTerm: string, userContext: UserConte
  * @param buildingId - Building ID to get statistics for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to building statistics if accessible.
+ */
+/**
+ * GetBuildingStatistics function.
+ * @param buildingId
+ * @param userContext
+ * @returns Function result.
  */
 export async function getBuildingStatistics(buildingId: string, userContext: UserContext) {
   // First verify user has access to this building
@@ -214,7 +243,7 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
   let totalBudgeted = 0;
   let totalActual = 0;
   
-  budgetQuery.forEach((budget: any) => {
+  budgetQuery.forEach((budget: unknown) => {
     totalBudgeted += parseFloat(budget.budgetedAmount || '0');
     totalActual += parseFloat(budget.actualAmount || '0');
   });
@@ -238,6 +267,11 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings with occupancy information.
  */
+/**
+ * GetBuildingsWithOccupancy function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBuildingsWithOccupancy(userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -260,7 +294,7 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
 
   // For each building, calculate occupancy
   const buildingsWithOccupancy = await Promise.all(
-    buildingsResult.map(async (building: any) => {
+    buildingsResult.map(async (building: unknown) => {
       const occupiedUnitsQuery = await db
         .select({ count: count() })
         .from(residences)
@@ -293,6 +327,12 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
  * @param buildingType - Building type ('condo' or 'rental').
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings of the specified type.
+ */
+/**
+ * GetBuildingsByType function.
+ * @param buildingType
+ * @param userContext
+ * @returns Function result.
  */
 export async function getBuildingsByType(
   buildingType: 'condo' | 'rental', 
@@ -332,6 +372,11 @@ export async function getBuildingsByType(
  * @param userContext - User context for access control.
  * @returns Promise resolving to building portfolio summary.
  */
+/**
+ * GetBuildingSummary function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getBuildingSummary(userContext: UserContext) {
   // Get all accessible buildings
   const accessibleBuildingsQuery = await scopeQuery(
@@ -361,7 +406,7 @@ export async function getBuildingSummary(userContext: UserContext) {
   let condoBuildings = 0;
   let rentalBuildings = 0;
 
-  accessibleBuildings.forEach((building: any) => {
+  accessibleBuildings.forEach((building: unknown) => {
     totalBuildings++;
     totalUnits += building.totalUnits || 0;
     

@@ -24,6 +24,14 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
+/**
+
+ * useChart function
+
+ * @returns Function result
+
+ */
+
 function useChart() {
   const context = React.useContext(ChartContext);
 
@@ -294,6 +302,10 @@ const ChartLegendContent = React.forwardRef<
 ChartLegendContent.displayName = 'ChartLegend';
 
 // Helper to extract item config from a payload.
+/**
+ * getPayloadConfigFromPayload function
+ * @returns Function result
+ */
 function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key: string) {
   if (typeof payload !== 'object' || payload === null) {
     return undefined;

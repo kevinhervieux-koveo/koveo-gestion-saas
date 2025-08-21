@@ -189,7 +189,7 @@ export default function Permissions() {
         description: 'User permission has been successfully granted.'
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to grant permission',
@@ -201,7 +201,7 @@ export default function Permissions() {
   const validatePermissionMutation = useMutation({
     mutationFn: (permission: string) => 
       apiRequest('POST', '/api/permissions/validate', { permission }),
-    onSuccess: (data: any) => {
+    onSuccess: (data: unknown) => {
       toast({
         title: 'Permission Validation',
         description: `${data.message} for role: ${data.role}`,

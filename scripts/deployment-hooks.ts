@@ -16,6 +16,12 @@ import { execSync } from 'child_process';
  * @param command
  * @param description
  */
+/**
+ * RunCommand function.
+ * @param command
+ * @param description
+ * @returns Function result.
+ */
 function runCommand(command: string, description: string): void {
   console.log(`🔄 ${description}...`);
   try {
@@ -24,7 +30,7 @@ function runCommand(command: string, description: string): void {
       console.log(output);
     }
     console.log(`✅ ${description} completed`);
-  } catch (error: any) {
+  } catch (_error: unknown) {
     console.error(`❌ ${description} failed:`, error.message);
     if (error.stdout) {console.log('STDOUT:', error.stdout);}
     if (error.stderr) {console.log('STDERR:', error.stderr);}
@@ -34,6 +40,10 @@ function runCommand(command: string, description: string): void {
 
 /**
  * Main deployment hook execution.
+ */
+/**
+ * RunDeploymentHooks function.
+ * @returns Function result.
  */
 async function runDeploymentHooks(): Promise<void> {
   console.log('🚀 Starting deployment hooks...\n');
@@ -64,7 +74,7 @@ async function runDeploymentHooks(): Promise<void> {
 
     console.log('\n✅ All deployment hooks completed successfully!');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('\n❌ Deployment hooks failed:', error);
     process.exit(1);
   }

@@ -8,6 +8,10 @@ import { useEffect, useState } from 'react';
  * showing the initialization progress of the Koveo Gestion development framework.
  * @returns JSX element displaying the development console interface.
  */
+/**
+ * DevelopmentConsole function.
+ * @returns Function result.
+ */
 export function DevelopmentConsole() {
   const { t } = useLanguage();
   const [currentLine, setCurrentLine] = useState(0);

@@ -70,6 +70,15 @@ interface OrganizationFormDialogProps {
  * @param props.onSuccess - Callback called after successful form submission.
  * @returns JSX element for the organization form dialog.
  */
+/**
+ * OrganizationFormDialog function.
+ * @param root0
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @param root0.organization
+ * @param root0.onSuccess
+ * @returns Function result.
+ */
 export function OrganizationFormDialog({
   open,
   onOpenChange,

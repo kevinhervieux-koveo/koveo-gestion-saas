@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { registerBillRoutes } from '../../server/api/bills';
 
 // Mock dependencies
@@ -16,8 +16,23 @@ jest.mock('../../server/db', () => ({
 }));
 
 jest.mock('../../server/auth', () => ({
-  requireAuth: (req: Express.Request, res: Express.Response, next: () => void) => {
-    (req as any).user = { id: 'test-user-id', role: 'manager' };
+  requireAuth: (req: Request, res: Response, next: () => void) => {
+    (req as Request & { user: unknown }).user = { 
+      id: 'test-user-id', 
+      role: 'manager',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      username: 'testuser',
+      phone: '555-0123',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      profileImage: '',
+      language: 'en',
+      lastLoginAt: new Date(),
+      password: 'hashed'
+    };
     next();
   }
 }));
@@ -60,7 +75,7 @@ describe('Bills API', () => {
         });
 
       expect(response.status).toBe(200);
-      response.body.forEach((bill: any) => {
+      response.body.forEach((bill: unknown) => {
         expect(bill.category).toBe('insurance');
       });
     });
@@ -74,7 +89,7 @@ describe('Bills API', () => {
         });
 
       expect(response.status).toBe(200);
-      response.body.forEach((bill: any) => {
+      response.body.forEach((bill: unknown) => {
         expect(bill.status).toBe('paid');
       });
     });
@@ -88,7 +103,7 @@ describe('Bills API', () => {
         });
 
       expect(response.status).toBe(200);
-      response.body.forEach((bill: any) => {
+      response.body.forEach((bill: unknown) => {
         expect(bill.startDate).toMatch(/^2024/);
       });
     });
@@ -267,7 +282,7 @@ describe('Bills API', () => {
       expect(category).toHaveProperty('label');
       
       // Verify expected categories are present
-      const categoryValues = response.body.map((cat: any) => cat.value);
+      const categoryValues = response.body.map((cat: unknown) => cat.value);
       expect(categoryValues).toContain('insurance');
       expect(categoryValues).toContain('maintenance');
       expect(categoryValues).toContain('utilities');

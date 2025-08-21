@@ -33,6 +33,10 @@ const colors = {
 /**
  * Display help information.
  */
+/**
+ * DisplayHelp function.
+ * @returns Function result.
+ */
 function displayHelp() {
   console.warn(`
 ${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}
@@ -71,6 +75,10 @@ ${colors.bright}Exemples:${colors.reset}
 /**
  * Parse command line arguments.
  */
+/**
+ * ParseArguments function.
+ * @returns Function result.
+ */
 function parseArguments(): {
   help: boolean;
   report: boolean;
@@ -96,6 +104,12 @@ function parseArguments(): {
  * Run Jest tests and capture results.
  * @param pattern
  * @param verbose
+ */
+/**
+ * RunTests function.
+ * @param pattern
+ * @param verbose
+ * @returns Function result.
  */
 function runTests(pattern: string, verbose: boolean = false): {
   success: boolean;
@@ -127,7 +141,7 @@ function runTests(pattern: string, verbose: boolean = false): {
         total
       }
     };
-  } catch (error: any) {
+  } catch (_error: unknown) {
     return {
       success: false,
       output: error.stdout + error.stderr,
@@ -143,6 +157,11 @@ function runTests(pattern: string, verbose: boolean = false): {
 /**
  * Generate language validation report.
  * @param verbose
+ */
+/**
+ * GenerateReport function.
+ * @param verbose
+ * @returns Function result.
  */
 function generateReport(verbose: boolean = false): string {
   const timestamp = new Date().toLocaleString('fr-CA', {
@@ -325,6 +344,10 @@ ${pageTestResult.output}
 /**
  * Main execution function.
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 function main() {
   const args = parseArguments();
   
@@ -358,7 +381,7 @@ function main() {
       process.exit(0);
     }
     
-  } catch (error) {
+  } catch (__error) {
     console.error(`${colors.red}❌ Erreur lors de l'exécution des tests:${colors.reset}`, error);
     process.exit(1);
   }

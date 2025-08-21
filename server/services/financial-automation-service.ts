@@ -1,18 +1,20 @@
 import { db } from '../db';
 import { eq, and, or, sql } from 'drizzle-orm';
-import * as schema from '@shared/schema';
 import { dynamicFinancialCalculator } from './dynamic-financial-calculator';
+import * as schema from '@shared/schema';
 
 const { bills, residences, buildings } = schema;
 
 /**
  * Financial Automation Service - Replaces MoneyFlowAutomationService
- * Handles cache invalidation when source data changes instead of pre-generating entries
+ * Handles cache invalidation when source data changes instead of pre-generating entries.
  */
 export class FinancialAutomationService {
   
   /**
-   * Handle bill creation/update by invalidating related caches
+   * Handle bill creation/update by invalidating related caches.
+   * @param billId
+   * @param action
    */
   async handleBillUpdate(billId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
     console.log(`🔄 Handling bill ${action} for ID: ${billId}`);
@@ -51,14 +53,16 @@ export class FinancialAutomationService {
         console.log(`📊 Recurrent bill ${billNumber} ${action}d - future projections will be recalculated`);
       }
 
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Error handling bill ${action}:`, error);
       throw error;
     }
   }
 
   /**
-   * Handle residence monthly fee updates by invalidating related caches
+   * Handle residence monthly fee updates by invalidating related caches.
+   * @param residenceId
+   * @param action
    */
   async handleResidenceUpdate(residenceId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
     console.log(`🏠 Handling residence ${action} for ID: ${residenceId}`);
@@ -92,14 +96,16 @@ export class FinancialAutomationService {
         console.log(`✅ Cache invalidated for building ${buildingId} due to residence ${action}`);
       }
 
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Error handling residence ${action}:`, error);
       throw error;
     }
   }
 
   /**
-   * Handle building updates by invalidating all related caches
+   * Handle building updates by invalidating all related caches.
+   * @param buildingId
+   * @param action
    */
   async handleBuildingUpdate(buildingId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
     console.log(`🏢 Handling building ${action} for ID: ${buildingId}`);
@@ -113,14 +119,14 @@ export class FinancialAutomationService {
       
       console.log(`✅ Cache invalidated for building ${buildingId} due to building ${action}`);
 
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Error handling building ${action}:`, error);
       throw error;
     }
   }
 
   /**
-   * Get financial statistics - much simpler than the old money_flow approach
+   * Get financial statistics - much simpler than the old money_flow approach.
    */
   async getFinancialStatistics(): Promise<{
     activeBills: number;
@@ -172,7 +178,7 @@ export class FinancialAutomationService {
         systemHealth
       };
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error getting financial statistics:', error);
       return {
         activeBills: 0,
@@ -185,7 +191,7 @@ export class FinancialAutomationService {
   }
 
   /**
-   * Perform maintenance tasks (cleanup expired cache, etc.)
+   * Perform maintenance tasks (cleanup expired cache, etc.).
    */
   async performMaintenance(): Promise<{
     cacheEntriesRemoved: number;
@@ -214,7 +220,7 @@ export class FinancialAutomationService {
         systemHealth: systemStats.systemHealth
       };
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error during maintenance:', error);
       return {
         cacheEntriesRemoved: 0,
@@ -224,7 +230,7 @@ export class FinancialAutomationService {
   }
 
   /**
-   * Initialize the financial system (create cache table if needed)
+   * Initialize the financial system (create cache table if needed).
    */
   async initialize(): Promise<void> {
     console.log('🚀 Initializing Dynamic Financial System...');
@@ -258,7 +264,7 @@ export class FinancialAutomationService {
 
       console.log('✅ Dynamic Financial System initialized successfully');
 
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Error initializing financial system:', error);
       throw error;
     }

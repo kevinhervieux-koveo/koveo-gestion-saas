@@ -17,6 +17,10 @@ const db = drizzle({ client: pool, schema });
 /**
  *
  */
+/**
+ * PopulateOrganizations function.
+ * @returns Function result.
+ */
 async function populateOrganizations() {
   try {
     console.log('🚀 Starting to populate organizations, buildings, and residences...');
@@ -302,7 +306,7 @@ async function populateOrganizations() {
     console.log('- 15 Residences created (5 + 4 + 6)');
     console.log('- Users assigned to organizations and residences');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error populating data:', error);
     throw error;
   } finally {

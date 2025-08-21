@@ -60,7 +60,7 @@ class DelayedUpdateService {
           await this.scheduleBudgetUpdate(buildingId);
         }
 
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Failed delayed money flow update for bill ${billId}:`, error);
       } finally {
         this.pendingBillUpdates.delete(billId);
@@ -96,7 +96,7 @@ class DelayedUpdateService {
           await this.scheduleBudgetUpdate(buildingId);
         }
 
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Failed delayed money flow update for residence ${residenceId}:`, error);
       } finally {
         this.pendingResidenceUpdates.delete(residenceId);
@@ -127,7 +127,7 @@ class DelayedUpdateService {
         const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
         console.log(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
 
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ Failed delayed budget update for building ${buildingId}:`, error);
       } finally {
         this.pendingBuildingBudgetUpdates.delete(buildingId);
@@ -152,7 +152,7 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to get building ID for bill ${billId}:`, error);
       return null;
     }
@@ -175,7 +175,7 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to get building ID for residence ${residenceId}:`, error);
       return null;
     }

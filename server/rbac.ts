@@ -71,6 +71,11 @@ export interface AccessContext {
  * console.log(orgIds); // ['demo-org-id', 'user-org-id', ...]
  * ```
  */
+/**
+ * GetUserAccessibleOrganizations function.
+ * @param userId
+ * @returns Function result.
+ */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
     console.log('Getting accessible organizations for user:', userId);
@@ -126,7 +131,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     const result = Array.from(accessibleOrgIds);
     console.log('Final accessible org IDs:', result);
     return result;
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error getting user accessible organizations:', _error);
     return [];
   }
@@ -146,6 +151,11 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
  * console.log(residenceIds); // ['residence-uuid-1', 'residence-uuid-2']
  * ```
  */
+/**
+ * GetUserAccessibleResidences function.
+ * @param userId
+ * @returns Function result.
+ */
 export async function getUserAccessibleResidences(userId: string): Promise<string[]> {
   try {
     const userResidences = await db.query.userResidences.findMany({
@@ -156,7 +166,7 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
     });
 
     return userResidences.map(ur => ur.residenceId);
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error getting user accessible residences:', _error);
     return [];
   }
@@ -179,6 +189,12 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
  * }
  * ```
  */
+/**
+ * CanUserAccessOrganization function.
+ * @param userId
+ * @param organizationId
+ * @returns Function result.
+ */
 export async function canUserAccessOrganization(userId: string, organizationId: string): Promise<boolean> {
   const accessibleOrgs = await getUserAccessibleOrganizations(userId);
   return accessibleOrgs.includes(organizationId);
@@ -200,6 +216,12 @@ export async function canUserAccessOrganization(userId: string, organizationId: 
  * }
  * ```
  */
+/**
+ * CanUserAccessBuilding function.
+ * @param userId
+ * @param buildingId
+ * @returns Function result.
+ */
 export async function canUserAccessBuilding(userId: string, buildingId: string): Promise<boolean> {
   try {
     const building = await db.query.buildings.findFirst({
@@ -209,7 +231,7 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
     if (!building) {return false;}
 
     return await canUserAccessOrganization(userId, building.organizationId);
-  } catch (error) {
+  } catch (__error) {
     console.error('Error checking building access:', error);
     return false;
   }
@@ -231,6 +253,12 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
  *   // Show residence details and related data
  * }
  * ```
+ */
+/**
+ * CanUserAccessResidence function.
+ * @param userId
+ * @param residenceId
+ * @returns Function result.
  */
 export async function canUserAccessResidence(userId: string, residenceId: string): Promise<boolean> {
   try {
@@ -257,7 +285,7 @@ export async function canUserAccessResidence(userId: string, residenceId: string
     // Tenants/residents can only access their own residences
     const accessibleResidences = await getUserAccessibleResidences(userId);
     return accessibleResidences.includes(residenceId);
-  } catch (error) {
+  } catch (__error) {
     console.error('Error checking residence access:', error);
     return false;
   }
@@ -266,6 +294,11 @@ export async function canUserAccessResidence(userId: string, residenceId: string
 /**
  * Middleware to check organization access.
  * @param param
+ */
+/**
+ * RequireOrganizationAccess function.
+ * @param param
+ * @returns Function result.
  */
 export function requireOrganizationAccess(param: string = 'organizationId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -296,7 +329,7 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
       }
 
       next();
-    } catch (error) {
+    } catch (__error) {
       console.error('Organization access check error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
@@ -309,6 +342,11 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
 /**
  * Middleware to check building access.
  * @param param
+ */
+/**
+ * RequireBuildingAccess function.
+ * @param param
+ * @returns Function result.
  */
 export function requireBuildingAccess(param: string = 'buildingId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -339,7 +377,7 @@ export function requireBuildingAccess(param: string = 'buildingId') {
       }
 
       next();
-    } catch (error) {
+    } catch (__error) {
       console.error('Building access check error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
@@ -352,6 +390,11 @@ export function requireBuildingAccess(param: string = 'buildingId') {
 /**
  * Middleware to check residence access.
  * @param param
+ */
+/**
+ * RequireResidenceAccess function.
+ * @param param
+ * @returns Function result.
  */
 export function requireResidenceAccess(param: string = 'residenceId') {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -382,7 +425,7 @@ export function requireResidenceAccess(param: string = 'residenceId') {
       }
 
       next();
-    } catch (error) {
+    } catch (__error) {
       console.error('Residence access check error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
@@ -397,7 +440,13 @@ export function requireResidenceAccess(param: string = 'residenceId') {
  * @param userId
  * @param organizations
  */
-export async function filterOrganizationsByAccess(userId: string, organizations: any[]): Promise<any[]> {
+/**
+ * FilterOrganizationsByAccess function.
+ * @param userId
+ * @param organizations
+ * @returns Function result.
+ */
+export async function filterOrganizationsByAccess(userId: string, organizations: unknown[]): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return organizations.filter(org => accessibleOrgIds.includes(org.id));
 }
@@ -407,7 +456,13 @@ export async function filterOrganizationsByAccess(userId: string, organizations:
  * @param userId
  * @param buildings
  */
-export async function filterBuildingsByAccess(userId: string, buildings: any[]): Promise<any[]> {
+/**
+ * FilterBuildingsByAccess function.
+ * @param userId
+ * @param buildings
+ * @returns Function result.
+ */
+export async function filterBuildingsByAccess(userId: string, buildings: unknown[]): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return buildings.filter(building => accessibleOrgIds.includes(building.organizationId));
 }
@@ -417,7 +472,13 @@ export async function filterBuildingsByAccess(userId: string, buildings: any[]):
  * @param userId
  * @param residences
  */
-export async function filterResidencesByAccess(userId: string, residences: any[]): Promise<any[]> {
+/**
+ * FilterResidencesByAccess function.
+ * @param userId
+ * @param residences
+ * @returns Function result.
+ */
+export async function filterResidencesByAccess(userId: string, residences: unknown[]): Promise<any[]> {
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, userId)
   });
@@ -446,6 +507,11 @@ export async function filterResidencesByAccess(userId: string, residences: any[]
  * Get organization filter for database queries.
  * @param userId
  */
+/**
+ * GetOrganizationFilter function.
+ * @param userId
+ * @returns Function result.
+ */
 export async function getOrganizationFilter(userId: string) {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return inArray(schema.organizations.id, accessibleOrgIds);
@@ -455,6 +521,11 @@ export async function getOrganizationFilter(userId: string) {
  * Get building filter for database queries.
  * @param userId
  */
+/**
+ * GetBuildingFilter function.
+ * @param userId
+ * @returns Function result.
+ */
 export async function getBuildingFilter(userId: string) {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return inArray(schema.buildings.organizationId, accessibleOrgIds);
@@ -463,6 +534,11 @@ export async function getBuildingFilter(userId: string) {
 /**
  * Get residence filter for database queries.
  * @param userId
+ */
+/**
+ * GetResidenceFilter function.
+ * @param userId
+ * @returns Function result.
  */
 export async function getResidenceFilter(userId: string) {
   const user = await db.query.users.findFirst({

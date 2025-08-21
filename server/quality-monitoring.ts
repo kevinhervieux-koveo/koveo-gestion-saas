@@ -60,10 +60,15 @@ interface QualityMetricConfig {
  * });
  * ```
  */
+/**
+ * AddQualityMetricMonitoring function.
+ * @param config
+ * @returns Function result.
+ */
 export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
   registerQualityAnalyzer({
     metricName: config.metricName,
-    analyze: async (value: any) => {
+    analyze: async (value: unknown) => {
       const suggestions: InsertImprovementSuggestion[] = [];
       
       // Parse numeric values if they're strings with units

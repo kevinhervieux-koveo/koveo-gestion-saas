@@ -54,6 +54,17 @@ interface ObjectUploaderProps {
  * @param props.children - Content to be rendered inside the button.
  * @returns JSX element for file upload component.
  */
+/**
+ * ObjectUploader function.
+ * @param root0
+ * @param root0.maxNumberOfFiles
+ * @param root0.maxFileSize
+ * @param root0.onGetUploadParameters
+ * @param root0.onComplete
+ * @param root0.buttonClassName
+ * @param root0.children
+ * @returns Function result.
+ */
 export function ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default

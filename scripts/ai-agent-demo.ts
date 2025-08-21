@@ -13,6 +13,10 @@ import { agentToolkit } from '../tools/ai-agent-toolkit';
 /**
  *
  */
+/**
+ * RunDemo function.
+ * @returns Function result.
+ */
 async function runDemo() {
   console.log(chalk.blue.bold('🚀 AI Agent Toolkit Enhanced Demonstration\n'));
   
@@ -95,7 +99,7 @@ async function runDemo() {
     
     console.log(chalk.green.bold('\n✨ AI Agent Toolkit Enhanced - Ready for Advanced Development Assistance!'));
     
-  } catch (error) {
+  } catch (__error) {
     console.error(chalk.red('❌ Demo failed:'), error);
     process.exit(1);
   }

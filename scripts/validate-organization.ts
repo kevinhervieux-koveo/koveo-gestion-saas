@@ -25,6 +25,11 @@ interface TestResult {
  * Run a test suite and capture results.
  * @param suitePath
  */
+/**
+ * RunTestSuite function.
+ * @param suitePath
+ * @returns Function result.
+ */
 function runTestSuite(suitePath: string): TestResult {
   const suiteName = path.basename(suitePath, '.test.ts');
   console.log(chalk.blue(`\nRunning ${suiteName}...`));
@@ -41,7 +46,7 @@ function runTestSuite(suitePath: string): TestResult {
       details: output,
       suggestions: extractSuggestions(output)
     };
-  } catch (error: any) {
+  } catch (_error: unknown) {
     return {
       suite: suiteName,
       passed: false,
@@ -54,6 +59,11 @@ function runTestSuite(suitePath: string): TestResult {
 /**
  * Extract improvement suggestions from test output.
  * @param output
+ */
+/**
+ * ExtractSuggestions function.
+ * @param output
+ * @returns Function result.
  */
 function extractSuggestions(output: string): string[] {
   const suggestions: string[] = [];
@@ -74,6 +84,11 @@ function extractSuggestions(output: string): string[] {
 /**
  * Generate validation report.
  * @param results
+ */
+/**
+ * GenerateReport function.
+ * @param results
+ * @returns Function result.
  */
 function generateReport(results: TestResult[]): string {
   const timestamp = new Date().toISOString();
@@ -148,6 +163,10 @@ Generated: ${timestamp}
 
 /**
  * Main validation function.
+ */
+/**
+ * ValidateOrganization function.
+ * @returns Function result.
  */
 async function validateOrganization() {
   console.log(chalk.bold.green('\n🔍 Organization Validation Starting...\n'));

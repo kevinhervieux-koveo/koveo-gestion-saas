@@ -35,6 +35,10 @@ let count = 0;
  * const id = genId(); // Returns '1', '2', '3', etc.
  * ```
  */
+/**
+ * GenId function.
+ * @returns Function result.
+ */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
@@ -162,6 +166,11 @@ let memoryState: State = { toasts: [] };
  * dispatch({ type: 'DISMISS_TOAST', toastId: 'toast-1' });
  * ```
  */
+/**
+ * Dispatch function.
+ * @param action
+ * @returns Function result.
+ */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
@@ -194,6 +203,11 @@ type Toast = Omit<ToasterToast, 'id'>;
  * // Or update its content
  * update({ title: 'Updated Title' });
  * ```
+ */
+/**
+ * Toast function.
+ * @param root0
+ * @returns Function result.
  */
 function toast({ ...props }: Toast) {
   const id = genId();
@@ -251,6 +265,10 @@ function toast({ ...props }: Toast) {
  *   );
  * }
  * ```
+ */
+/**
+ * UseToast function.
+ * @returns Function result.
  */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);

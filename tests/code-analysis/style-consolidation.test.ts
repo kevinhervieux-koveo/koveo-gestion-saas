@@ -262,7 +262,7 @@ describe('Style Consolidation Analysis Tests', () => {
             sourceFiles.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (__error) {
         // Directory might not exist
       }
     };

@@ -38,6 +38,10 @@ interface Law25ComplianceData {
  * violations, and remediation guidance for property management systems.
  * @returns JSX element for the Law 25 compliance dashboard.
  */
+/**
+ * Law25Compliance function.
+ * @returns Function result.
+ */
 export function Law25Compliance() {
   const { t: _t } = useLanguage();
 

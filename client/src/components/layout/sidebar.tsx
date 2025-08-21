@@ -17,6 +17,10 @@ import { useMobileMenu } from '@/hooks/use-mobile-menu';
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
  */
+/**
+ * Sidebar function.
+ * @returns Function result.
+ */
 export function Sidebar() {
   const { isMobileMenuOpen, closeMobileMenu } = useMobileMenu();
   const [location] = useLocation();
@@ -77,7 +81,7 @@ export function Sidebar() {
     );
   };
 
-  const renderMenuItem = (item: any) => {
+  const renderMenuItem = (item: unknown) => {
     const ItemIcon = item.icon;
     const isActive = location === item.href;
 
@@ -114,7 +118,7 @@ export function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (_error) {
+    } catch (__error) {
       console.error('Logout failed:', _error);
       // Fallback: still redirect to login page
       window.location.href = '/login';

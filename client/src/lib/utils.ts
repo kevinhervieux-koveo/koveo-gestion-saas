@@ -13,6 +13,11 @@ import { twMerge } from 'tailwind-merge';
  * cn('text-red-500', { 'font-bold': true }) // Returns 'text-red-500 font-bold'
  * ```
  */
+/**
+ * Cn function.
+ * @param {...any} inputs
+ * @returns Function result.
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

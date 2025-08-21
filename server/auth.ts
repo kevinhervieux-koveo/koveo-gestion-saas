@@ -57,6 +57,11 @@ export const sessionConfig = session({
  * await storage.createUser({ ...userData, passwordSalt: salt, passwordHash: hash });
  * ```
  */
+/**
+ * HashPassword function.
+ * @param password
+ * @returns Function result.
+ */
 export function hashPassword(password: string): { salt: string; hash: string } {
   const salt = randomBytes(32).toString('hex');
   const hash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
@@ -81,6 +86,13 @@ export function hashPassword(password: string): { salt: string; hash: string } {
  * }
  * ```
  */
+/**
+ * VerifyPassword function.
+ * @param password
+ * @param salt
+ * @param hash
+ * @returns Function result.
+ */
 export function verifyPassword(password: string, salt: string, hash: string): boolean {
   const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   return hash === verifyHash;
@@ -103,6 +115,13 @@ export function verifyPassword(password: string, salt: string, hash: string): bo
  *   res.json({ userId: req.user.id });
  * });
  * ```
+ */
+/**
+ * RequireAuth function.
+ * @param req
+ * @param res
+ * @param next
+ * @returns Function result.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.userId) {
@@ -150,7 +169,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     } as any;
     
     next();
-  } catch (error) {
+  } catch (__error) {
     console.error('Authentication error:', error);
     return res.status(500).json({ 
       message: 'Authentication error',
@@ -175,6 +194,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
  * // Managers and admins can access building data
  * app.get('/api/buildings', requireAuth, requireRole(['admin', 'manager']), getBuildings);
  * ```
+ */
+/**
+ * RequireRole function.
+ * @param allowedRoles
+ * @returns Function result.
  */
 export function requireRole(allowedRoles: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -220,6 +244,11 @@ export function requireRole(allowedRoles: string[]) {
  * router.patch('/buildings/:id', updateBuilding);
  * ```
  */
+/**
+ * Authorize function.
+ * @param permission
+ * @returns Function result.
+ */
 export function authorize(permission: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -244,7 +273,7 @@ export function authorize(permission: string) {
       }
 
       next();
-    } catch (error) {
+    } catch (__error) {
       console.error('Authorization error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
@@ -274,7 +303,12 @@ export function authorize(permission: string) {
  * // POST /api/auth/register
  * ```
  */
-export function setupAuthRoutes(app: any) {
+/**
+ * SetupAuthRoutes function.
+ * @param app
+ * @returns Function result.
+ */
+export function setupAuthRoutes(app: unknown) {
   // Login route
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
@@ -349,7 +383,7 @@ export function setupAuthRoutes(app: any) {
         message: 'Login successful'
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Login error:', error);
       res.status(500).json({ 
         message: 'Login failed',
@@ -428,7 +462,7 @@ export function setupAuthRoutes(app: any) {
         message: 'User created successfully'
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Registration error:', error);
       res.status(500).json({ 
         message: 'Registration failed',
@@ -501,7 +535,7 @@ export function setupAuthRoutes(app: any) {
         success: true 
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Password reset request error:', error);
       res.status(500).json({ 
         message: 'Password reset request failed',
@@ -605,7 +639,7 @@ export function setupAuthRoutes(app: any) {
         success: true 
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Password reset error:', error);
       res.status(500).json({ 
         message: 'Password reset failed',

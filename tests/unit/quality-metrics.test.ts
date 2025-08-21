@@ -17,6 +17,10 @@ const mockedReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSy
  * Get quality metrics for the project including coverage, code quality, and security issues.
  * @returns Promise resolving to quality metrics object.
  */
+/**
+ * GetQualityMetrics function.
+ * @returns Function result.
+ */
 async function getQualityMetrics() {
   try {
     // Get real test coverage
@@ -144,7 +148,7 @@ async function getQualityMetrics() {
       buildTime,
       translationCoverage,
     };
-  } catch (_error) {
+  } catch (___error) {
     // Fallback to some calculated values
     return {
       coverage: '68%',

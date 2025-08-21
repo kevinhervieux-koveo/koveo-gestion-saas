@@ -41,6 +41,10 @@ interface BaseDialogProps {
  * @param props - Dialog configuration and content
  * @returns Standardized dialog component
  */
+/**
+ * BaseDialog function
+ * @returns Function result
+ */
 export function BaseDialog({
   open,
   onOpenChange,

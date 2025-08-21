@@ -10,6 +10,11 @@ import { scopeQuery, type UserContext } from './scope-query';
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of maintenance requests the user can access.
  */
+/**
+ * GetMaintenanceRequestsForUser function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getMaintenanceRequestsForUser(userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -52,6 +57,12 @@ export async function getMaintenanceRequestsForUser(userContext: UserContext) {
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of maintenance requests for the residence.
  */
+/**
+ * GetMaintenanceRequestsForResidence function.
+ * @param residenceId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getMaintenanceRequestsForResidence(residenceId: string, userContext: UserContext) {
   const baseQuery = db
     .select()
@@ -68,6 +79,12 @@ export async function getMaintenanceRequestsForResidence(residenceId: string, us
  * @param status - Maintenance request status to filter by.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of maintenance requests with the specified status.
+ */
+/**
+ * GetMaintenanceRequestsByStatus function.
+ * @param status
+ * @param userContext
+ * @returns Function result.
  */
 export async function getMaintenanceRequestsByStatus(
   status: 'submitted' | 'acknowledged' | 'in_progress' | 'completed' | 'cancelled',
@@ -109,6 +126,11 @@ export async function getMaintenanceRequestsByStatus(
  * 
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of urgent maintenance requests.
+ */
+/**
+ * GetUrgentMaintenanceRequests function.
+ * @param userContext
+ * @returns Function result.
  */
 export async function getUrgentMaintenanceRequests(userContext: UserContext) {
   const baseQuery = db
@@ -158,6 +180,12 @@ export async function getUrgentMaintenanceRequests(userContext: UserContext) {
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of assigned maintenance requests.
  */
+/**
+ * GetMaintenanceRequestsAssignedTo function.
+ * @param assignedUserId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getMaintenanceRequestsAssignedTo(assignedUserId: string, userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -198,6 +226,12 @@ export async function getMaintenanceRequestsAssignedTo(assignedUserId: string, u
  * @param searchTerm - Search term to look for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of matching maintenance requests.
+ */
+/**
+ * SearchMaintenanceRequests function.
+ * @param searchTerm
+ * @param userContext
+ * @returns Function result.
  */
 export async function searchMaintenanceRequests(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
@@ -244,6 +278,12 @@ export async function searchMaintenanceRequests(searchTerm: string, userContext:
  * @param requestId - The maintenance request ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the maintenance request if accessible, undefined otherwise.
+ */
+/**
+ * GetMaintenanceRequestById function.
+ * @param requestId
+ * @param userContext
+ * @returns Function result.
  */
 export async function getMaintenanceRequestById(requestId: string, userContext: UserContext) {
   const baseQuery = db
@@ -292,6 +332,11 @@ export async function getMaintenanceRequestById(requestId: string, userContext: 
  * @param userContext - User context for access control.
  * @returns Promise resolving to maintenance request summary statistics.
  */
+/**
+ * GetMaintenanceRequestSummary function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getMaintenanceRequestSummary(userContext: UserContext) {
   // First get all accessible maintenance request IDs
   const accessibleRequestsQuery = await scopeQuery(
@@ -338,7 +383,7 @@ export async function getMaintenanceRequestSummary(userContext: UserContext) {
   let totalEstimatedCost = 0;
   let totalActualCost = 0;
 
-  summary.forEach((row: any) => {
+  summary.forEach((row: unknown) => {
     totalRequests++;
     
     // Count by status

@@ -26,6 +26,11 @@ import type { UploadResult } from "@uppy/core";
  *
  * @param fileUrl
  */
+/**
+ * GetDisplayableFileUrl function.
+ * @param fileUrl
+ * @returns Function result.
+ */
 function getDisplayableFileUrl(fileUrl: string): string {
   if (!fileUrl) {return '';}
   
@@ -103,6 +108,14 @@ interface EditDocumentFormProps {
  * @param root0.onSave
  * @param root0.onCancel
  */
+/**
+ * EditDocumentForm function.
+ * @param root0
+ * @param root0.document
+ * @param root0.onSave
+ * @param root0.onCancel
+ * @returns Function result.
+ */
 function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -132,7 +145,7 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
       };
       onSave(updatedDocument);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Update failed",
         description: error.message || "Failed to update document. Please try again.",
@@ -366,7 +379,7 @@ export default function BuildingDocuments() {
       // Use full user ID as string (backend now accepts any string)
       console.log("Creating document with user ID:", user.id, "(length:", user.id.length, ")"); // Debug log
       
-      const documentData: any = {
+      const documentData: unknown = {
         name: data.name,
         type: data.type, // This is the document category (bylaw, financial, etc.)
         dateReference: data.dateReference, // Send as YYYY-MM-DD string
@@ -395,7 +408,7 @@ export default function BuildingDocuments() {
         description: uploadedFile ? "Document and file uploaded successfully!" : "Document created successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to create document",
@@ -407,7 +420,7 @@ export default function BuildingDocuments() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      const updateData: any = {};
+      const updateData: unknown = {};
       if (data.name) {updateData.name = data.name;}
       if (data.type) {updateData.type = data.type;}
       if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string
@@ -423,7 +436,7 @@ export default function BuildingDocuments() {
         description: "Document updated successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to update document",
@@ -444,7 +457,7 @@ export default function BuildingDocuments() {
         description: "Document deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete document",
@@ -471,7 +484,7 @@ export default function BuildingDocuments() {
         description: "The file has been uploaded successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setUploadingDocumentId(null);
       toast({
         title: "Upload failed",
@@ -577,7 +590,7 @@ export default function BuildingDocuments() {
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Download failed",
         description: "Failed to download document",
@@ -918,7 +931,7 @@ export default function BuildingDocuments() {
                                       };
                                       setSelectedDocument(updatedDocument);
                                     }
-                                  } catch (error) {
+                                  } catch (_error) {
                                     toast({
                                       title: "Upload failed",
                                       description: "Failed to upload file. Please try again.",

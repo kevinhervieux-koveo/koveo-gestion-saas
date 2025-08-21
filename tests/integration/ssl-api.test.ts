@@ -167,7 +167,7 @@ describe('SSL API Integration', () => {
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.count).toBeGreaterThanOrEqual(1);
       
-      const certificate = response.body.data.find((cert: any) => cert.domain === 'test.example.com');
+      const certificate = response.body.data.find((cert: unknown) => cert.domain === 'test.example.com');
       expect(certificate).toBeDefined();
       expect(certificate.certificateStatus).toBeDefined();
     });

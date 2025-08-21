@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
         title: 'Mot de passe réinitialisé',
         description: 'Votre mot de passe a été mis à jour avec succès.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reset password error:', error);
       let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.';
       

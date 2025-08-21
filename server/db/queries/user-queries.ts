@@ -11,6 +11,11 @@ import { scopeQuery, type UserContext } from './scope-query';
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of users the current user can access.
  */
+/**
+ * GetUsersForUser function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getUsersForUser(userContext: UserContext) {
   const baseQuery = db
     .select({
@@ -38,6 +43,12 @@ export async function getUsersForUser(userContext: UserContext) {
  * @param userId - The user ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the user if accessible, undefined otherwise.
+ */
+/**
+ * GetUserById function.
+ * @param userId
+ * @param userContext
+ * @returns Function result.
  */
 export async function getUserById(userId: string, userContext: UserContext) {
   const baseQuery = db
@@ -68,6 +79,12 @@ export async function getUserById(userId: string, userContext: UserContext) {
  * @param role - User role to filter by.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users with the specified role.
+ */
+/**
+ * GetUsersByRole function.
+ * @param role
+ * @param userContext
+ * @returns Function result.
  */
 export async function getUsersByRole(
   role: 'admin' | 'manager' | 'tenant' | 'resident',
@@ -104,6 +121,12 @@ export async function getUsersByRole(
  * @param searchTerm - Search term to look for in name or email.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of matching users.
+ */
+/**
+ * SearchUsers function.
+ * @param searchTerm
+ * @param userContext
+ * @returns Function result.
  */
 export async function searchUsers(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
@@ -142,6 +165,12 @@ export async function searchUsers(searchTerm: string, userContext: UserContext) 
  * @param residenceId - Residence ID to get users for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users associated with the residence.
+ */
+/**
+ * GetUsersForResidence function.
+ * @param residenceId
+ * @param userContext
+ * @returns Function result.
  */
 export async function getUsersForResidence(residenceId: string, userContext: UserContext) {
   const baseQuery = db
@@ -194,6 +223,12 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users associated with the building.
  */
+/**
+ * GetUsersForBuilding function.
+ * @param buildingId
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getUsersForBuilding(buildingId: string, userContext: UserContext) {
   // First verify the user has access to this building
   const buildingAccessQuery = await scopeQuery(
@@ -244,6 +279,11 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
  * 
  * @param userContext - User context containing current user info.
  * @returns Promise resolving to user profile with residence associations.
+ */
+/**
+ * GetCurrentUserProfile function.
+ * @param userContext
+ * @returns Function result.
  */
 export async function getCurrentUserProfile(userContext: UserContext) {
   // Get user basic info
@@ -307,6 +347,11 @@ export async function getCurrentUserProfile(userContext: UserContext) {
  * @param userContext - User context for access control.
  * @returns Promise resolving to user summary statistics.
  */
+/**
+ * GetUserSummary function.
+ * @param userContext
+ * @returns Function result.
+ */
 export async function getUserSummary(userContext: UserContext) {
   // Get all accessible users
   const accessibleUsersQuery = await scopeQuery(
@@ -353,7 +398,7 @@ export async function getUserSummary(userContext: UserContext) {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  accessibleUsers.forEach((user: any) => {
+  accessibleUsers.forEach((user: unknown) => {
     totalUsers++;
     
     if (user.isActive) {

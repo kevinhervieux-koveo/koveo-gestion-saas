@@ -43,6 +43,14 @@ interface FeatureFormProps {
  * @param root0.onOpenChange - Callback when dialog open state changes.
  * @returns JSX element for the feature form dialog.
  */
+/**
+ * FeatureFormRefactored function.
+ * @param root0
+ * @param root0.feature
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @returns Function result.
+ */
 export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFormProps) {
   const [step, setStep] = useState<'form' | 'prompt'>('form');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
@@ -123,12 +131,12 @@ export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFo
               window.localStorage.removeItem(key);
               console.warn('Cleared invalid draft:', key);
             }
-          } catch (_error) {
+          } catch (__error) {
             // Invalid JSON, remove it
             window.localStorage.removeItem(key);
           }
         });
-      } catch (_error) {
+      } catch (__error) {
         console.error('Error clearing invalid drafts:', _error);
       }
       

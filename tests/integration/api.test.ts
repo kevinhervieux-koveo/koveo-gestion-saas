@@ -7,7 +7,7 @@ const mockStorage = {
       { id: '3', name: 'Security Pillar', description: 'Test pillar', status: 'active', order: '3', configuration: {}, createdAt: new Date() }
     ];
   },
-  async createPillar(data: any) {
+  async createPillar(data: unknown) {
     return { id: 'new-id', ...data, createdAt: new Date() };
   },
   async getWorkspaceStatuses() {

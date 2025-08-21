@@ -138,7 +138,7 @@ export default function OwnerRoadmap() {
         description: data.message || 'All features have been synchronized to production.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Sync Failed',
         description: error.message || 'Failed to synchronize features to production.',
@@ -193,7 +193,7 @@ export default function OwnerRoadmap() {
       } else {
         console.error('Failed to fetch actionable items:', response.statusText);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to fetch actionable items:', error);
     }
   }, []);
@@ -209,7 +209,7 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -284,7 +284,7 @@ export default function OwnerRoadmap() {
         description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',
@@ -416,7 +416,7 @@ export default function OwnerRoadmap() {
   ];
 
 
-  const calculateProgress = (features: Feature[]) => {
+  const calculateProgress = (_features: Feature[]) => {
     const completed = features.filter((f) => f.status === 'completed').length;
     const inProgress = features.filter((f) => f.status === 'in-progress').length;
     const total = features.length;

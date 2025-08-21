@@ -17,10 +17,15 @@ const generateForResidenceSchema = z.object({
  * These endpoints allow manual triggering and monitoring of money flow automation.
  * @param app
  */
+/**
+ * RegisterMoneyFlowRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export function registerMoneyFlowRoutes(app: Express) {
   
   // Get money flow automation status and statistics
-  app.get('/api/money-flow/status', requireAuth, async (req: any, res: any) => {
+  app.get('/api/money-flow/status', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -44,7 +49,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         lastUpdated: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error getting money flow status:', error);
       res.status(500).json({ 
         message: 'Failed to get money flow status',
@@ -54,7 +59,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Manually trigger full money flow regeneration
-  app.post('/api/money-flow/regenerate', requireAuth, async (req: any, res: any) => {
+  app.post('/api/money-flow/regenerate', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -78,7 +83,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error triggering money flow regeneration:', error);
       res.status(500).json({ 
         message: 'Failed to trigger money flow regeneration',
@@ -88,7 +93,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Generate money flow entries for a specific bill
-  app.post('/api/money-flow/generate-bill', requireAuth, async (req: any, res: any) => {
+  app.post('/api/money-flow/generate-bill', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       const { billId } = generateForBillSchema.parse(req.body);
@@ -114,7 +119,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error generating money flow for bill:', error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for bill',
@@ -124,7 +129,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Generate money flow entries for a specific residence
-  app.post('/api/money-flow/generate-residence', requireAuth, async (req: any, res: any) => {
+  app.post('/api/money-flow/generate-residence', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       const { residenceId } = generateForResidenceSchema.parse(req.body);
@@ -150,7 +155,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error generating money flow for residence:', error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for residence',
@@ -160,7 +165,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Get detailed money flow statistics
-  app.get('/api/money-flow/statistics', requireAuth, async (req: any, res: any) => {
+  app.get('/api/money-flow/statistics', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -186,7 +191,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         }
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error getting money flow statistics:', error);
       res.status(500).json({ 
         message: 'Failed to get money flow statistics',
@@ -196,7 +201,7 @@ export function registerMoneyFlowRoutes(app: Express) {
   });
 
   // Test endpoint to verify money flow automation is working
-  app.get('/api/money-flow/health', requireAuth, async (req: any, res: any) => {
+  app.get('/api/money-flow/health', requireAuth, async (req: unknown, res: unknown) => {
     try {
       const user = req.user;
       
@@ -226,7 +231,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         message: 'Money flow automation system is operational'
       });
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Error in money flow health check:', error);
       res.status(500).json({ 
         status: 'unhealthy',

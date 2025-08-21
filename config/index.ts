@@ -52,6 +52,10 @@ try {
 /**
  * Load permissions data with fallback for production and development environments.
  */
+/**
+ * LoadPermissionsData function.
+ * @returns Function result.
+ */
 function loadPermissionsData() {
   // Try multiple possible locations for the permissions.json file
   const possiblePaths = [
@@ -69,7 +73,7 @@ function loadPermissionsData() {
     try {
       const data = readFileSync(path, 'utf-8');
       return JSON.parse(data);
-    } catch (error) {
+    } catch (__error) {
       // Continue to next path
       continue;
     }
@@ -103,6 +107,12 @@ export const ROLE_HIERARCHY = {
  * const hasAccess = hasRoleOrHigher('admin', 'manager'); // true
  * const hasAccess2 = hasRoleOrHigher('tenant', 'admin'); // false
  * ```
+ */
+/**
+ * HasRoleOrHigher function.
+ * @param userRole
+ * @param requiredRole
+ * @returns Function result.
  */
 export function hasRoleOrHigher(
   userRole: keyof typeof ROLE_HIERARCHY,

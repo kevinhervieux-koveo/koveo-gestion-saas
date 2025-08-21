@@ -28,6 +28,10 @@ interface QualityTestResult {
 /**
  * Runs quality metrics tests and validates their effectiveness.
  */
+/**
+ * RunQualityMetricTests function.
+ * @returns Function result.
+ */
 async function runQualityMetricTests(): Promise<QualityTestResult> {
   const result: QualityTestResult = {
     success: false,
@@ -89,7 +93,7 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
     console.warn(`   Tests Total: ${result.testsTotal}`);
     console.warn(`   Success Rate: ${result.testsTotal > 0 ? Math.round((result.testsPassed / result.testsTotal) * 100) : 0}%`);
 
-  } catch (error) {
+  } catch (__error) {
     result.errors.push(`Test execution failed: ${error}`);
     console.error('❌ Quality metrics tests failed:', error);
   }
@@ -99,6 +103,10 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
 
 /**
  * Validates the effectiveness of the quality metrics system.
+ */
+/**
+ * ValidateSystemEffectiveness function.
+ * @returns Function result.
  */
 async function validateSystemEffectiveness(): Promise<void> {
   console.warn('\n🎯 Validating Quality Metrics System Effectiveness...\n');
@@ -163,6 +171,10 @@ async function validateSystemEffectiveness(): Promise<void> {
 /**
  * Records current quality metrics for effectiveness tracking.
  */
+/**
+ * RecordCurrentMetrics function.
+ * @returns Function result.
+ */
 async function recordCurrentMetrics(): Promise<void> {
   console.warn('\n📋 Recording Current Quality Metrics for Effectiveness Tracking...\n');
 
@@ -199,13 +211,17 @@ async function recordCurrentMetrics(): Promise<void> {
 
     console.warn('✅ Effectiveness tracking setup ready');
     
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Failed to record current metrics:', error);
   }
 }
 
 /**
  * Main execution function.
+ */
+/**
+ * Main function.
+ * @returns Function result.
  */
 async function main(): Promise<void> {
   console.warn('🚀 Quality Metrics Testing & Effectiveness Validation\n');
@@ -241,7 +257,7 @@ async function main(): Promise<void> {
     console.warn('   • Continue tracking real issues vs false positives');
     console.warn('   • Run this validation regularly as part of CI/CD');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('\n💥 Quality metrics validation failed:', error);
     process.exit(1);
   }

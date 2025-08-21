@@ -214,7 +214,7 @@ describe('useAuth Hook Tests', () => {
 
     try {
       await result.current.logout();
-    } catch (error) {
+    } catch (_error) {
       expect(error).toBeInstanceOf(Error);
     }
   });

@@ -88,6 +88,13 @@ interface SslCertificateInfoProps {
  * @param root0.initialDomain
  * @param root0.className
  */
+/**
+ * SslCertificateInfo function.
+ * @param root0
+ * @param root0.initialDomain
+ * @param root0.className
+ * @returns Function result.
+ */
 export function SslCertificateInfo({ initialDomain = '', className }: SslCertificateInfoProps) {
   const { user, hasAnyRole } = useAuth();
   const [selectedDomain, setSelectedDomain] = React.useState(initialDomain);

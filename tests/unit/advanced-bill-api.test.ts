@@ -36,7 +36,7 @@ jest.mock('../../server/db', () => ({ db: mockDb }));
 
 // Mock auth middleware
 jest.mock('../../server/auth', () => ({
-  requireAuth: (req: any, res: any, next: any) => {
+  requireAuth: (req: unknown, res: unknown, next: unknown) => {
     req.user = { 
       id: 'test-user-123', 
       role: 'admin',
@@ -131,7 +131,7 @@ describe('Advanced Bill API Endpoints', () => {
     it('should enforce role-based access control', async () => {
       // Mock user with insufficient permissions
       jest.doMock('../../server/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: unknown, res: unknown, next: unknown) => {
           req.user = { 
             id: 'resident-user', 
             role: 'resident',
@@ -273,7 +273,7 @@ describe('Advanced Bill API Endpoints', () => {
     it('should enforce permissions for marking bills as paid', async () => {
       // Test with different role permissions
       jest.doMock('../../server/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: unknown, res: unknown, next: unknown) => {
           req.user = { 
             id: 'tenant-user', 
             role: 'tenant',
@@ -374,7 +374,7 @@ describe('Advanced Bill API Endpoints', () => {
       mockDb.limit.mockReturnValue([{ organizationId: 'different-org' }]);
 
       jest.doMock('../../server/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: unknown, res: unknown, next: unknown) => {
           req.user = { 
             id: 'limited-user', 
             role: 'manager',
@@ -545,7 +545,7 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should enforce admin/manager permissions for deletion', async () => {
       jest.doMock('../../server/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: unknown, res: unknown, next: unknown) => {
           req.user = { 
             id: 'resident-user', 
             role: 'resident',

@@ -16,6 +16,17 @@ import { eq, and, gte, lte } from 'drizzle-orm';
  * @param currentValue
  * @param metadata
  */
+/**
+ * CreateInvitationAuditLog function.
+ * @param invitationId
+ * @param action
+ * @param userId
+ * @param req
+ * @param previousValue
+ * @param currentValue
+ * @param metadata
+ * @returns Function result.
+ */
 async function createInvitationAuditLog(
   invitationId: string,
   action: string,
@@ -37,7 +48,7 @@ async function createInvitationAuditLog(
       currentValue,
       metadata: metadata ? JSON.stringify(metadata) : null,
     });
-  } catch (_error) {
+  } catch (___error) {
     console.error('Error creating invitation audit log:', _error);
   }
 }
@@ -46,6 +57,11 @@ async function createInvitationAuditLog(
  * Registers email management API routes for unsubscribe functionality,
  * reminder emails, and template management.
  * @param app
+ */
+/**
+ * RegisterEmailRoutes function.
+ * @param app
+ * @returns Function result.
  */
 export function registerEmailRoutes(app: Express) {
   // POST /api/email/send-reminder - Send reminder emails for pending invitations
@@ -105,7 +121,7 @@ export function registerEmailRoutes(app: Express) {
           res.status(500).json({ message: 'Failed to send reminder email' });
         }
         
-      } catch (_error) {
+      } catch (___error) {
         console.error('Error sending reminder email:', _error);
         res.status(500).json({ message: 'Failed to send reminder email' });
       }
@@ -165,7 +181,7 @@ export function registerEmailRoutes(app: Express) {
             } else {
               failureCount++;
             }
-          } catch (_error) {
+          } catch (___error) {
             console.error(`Failed to send reminder for invitation ${invitation.id}:`, _error);
             failureCount++;
           }
@@ -178,7 +194,7 @@ export function registerEmailRoutes(app: Express) {
           totalProcessed: pendingInvitations.length
         });
         
-      } catch (_error) {
+      } catch (___error) {
         console.error('Error sending bulk reminder emails:', _error);
         res.status(500).json({ message: 'Failed to send bulk reminder emails' });
       }
@@ -233,7 +249,7 @@ export function registerEmailRoutes(app: Express) {
         </html>
       `);
       
-    } catch (_error) {
+    } catch (___error) {
       console.error('Error processing unsubscribe:', _error);
       res.status(500).send('Erreur lors du désabonnement. Veuillez réessayer.');
     }
@@ -271,7 +287,7 @@ export function registerEmailRoutes(app: Express) {
         
         res.json({ templates });
         
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching email templates:', error);
         res.status(500).json({ message: 'Failed to fetch email templates' });
       }
@@ -304,7 +320,7 @@ export function registerEmailRoutes(app: Express) {
           note: 'Templates are currently embedded in the email service class'
         });
         
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching template:', error);
         res.status(500).json({ message: 'Failed to fetch template' });
       }

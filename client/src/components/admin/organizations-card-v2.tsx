@@ -42,6 +42,12 @@ interface OrganizationsCardProps {
  * @param root0
  * @param root0.className
  */
+/**
+ * OrganizationsCard function.
+ * @param root0
+ * @param root0.className
+ * @returns Function result.
+ */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();
   
@@ -295,6 +301,15 @@ interface OrganizationActionsProps {
  * @param root0.onView
  * @param root0.onDelete
  */
+/**
+ * OrganizationActions function.
+ * @param root0
+ * @param root0.organization
+ * @param root0.onEdit
+ * @param root0.onView
+ * @param root0.onDelete
+ * @returns Function result.
+ */
 function OrganizationActions({ organization, onEdit, onView, onDelete }: OrganizationActionsProps) {
   const canDelete = organization.type !== 'koveo' && organization.type !== 'demo';
 
@@ -340,6 +355,12 @@ interface OrganizationDetailsProps {
  *
  * @param root0
  * @param root0.organization
+ */
+/**
+ * OrganizationDetails function.
+ * @param root0
+ * @param root0.organization
+ * @returns Function result.
  */
 function OrganizationDetails({ organization }: OrganizationDetailsProps) {
   return (

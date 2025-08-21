@@ -113,6 +113,12 @@ export const ROLE_HIERARCHY = {
  * @param requiredRole - The minimum required role.
  * @returns True if user has sufficient permissions.
  */
+/**
+ * HasRoleOrHigher function.
+ * @param userRole
+ * @param requiredRole
+ * @returns Function result.
+ */
 export function hasRoleOrHigher(userRole: string | undefined, requiredRole: string): boolean {
   if (!userRole) {return false;}
   
@@ -126,6 +132,11 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
  * Filter navigation sections based on user role.
  * @param userRole - The user's current role.
  * @returns Array of navigation sections the user can access.
+ */
+/**
+ * GetFilteredNavigation function.
+ * @param userRole
+ * @returns Function result.
  */
 export function getFilteredNavigation(userRole: string | undefined): NavigationSection[] {
   return NAVIGATION_CONFIG

@@ -46,6 +46,10 @@ const codeBlockFixes = {
 /**
  *
  */
+/**
+ * FixCodeBlocks function.
+ * @returns Function result.
+ */
 function fixCodeBlocks() {
   console.log('🔧 Fixing code block language specifications...');
   
@@ -82,6 +86,10 @@ function fixCodeBlocks() {
 
 /**
  *
+ */
+/**
+ * AddTableOfContents function.
+ * @returns Function result.
  */
 function addTableOfContents() {
   console.log('\n📑 Adding table of contents to long documents...');
@@ -153,6 +161,10 @@ function addTableOfContents() {
 
 /**
  *
+ */
+/**
+ * GenerateProgressReport function.
+ * @returns Function result.
  */
 function generateProgressReport() {
   console.log('\n📊 Documentation fix progress:');

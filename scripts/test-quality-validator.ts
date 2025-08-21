@@ -140,7 +140,7 @@ class TestQualityValidator {
       
       return report;
       
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Test quality validation failed:', error);
       throw error;
     }
@@ -192,7 +192,7 @@ class TestQualityValidator {
       validations++;
 
       return score;
-    } catch (error) {
+    } catch (__error) {
       this.failedValidations.push(`❌ Coverage validation failed: ${error.message}`);
       return 0;
     }
@@ -340,7 +340,7 @@ class TestQualityValidator {
         performanceScore -= antiPatterns * 5;
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.failedValidations.push(`❌ Performance measurement failed: ${error.message}`);
       performanceScore = 0;
     }

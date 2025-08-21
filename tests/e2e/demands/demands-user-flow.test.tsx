@@ -146,7 +146,7 @@ describe('Demands E2E User Flow Tests', () => {
     jest.clearAllMocks();
     
     // Setup default fetch responses
-    (global.fetch as jest.Mock).mockImplementation((url: string, options?: any) => {
+    (global.fetch as jest.Mock).mockImplementation((url: string, options?: unknown) => {
       if (url.includes('/api/demands') && !options?.method) {
         return Promise.resolve({
           ok: true,

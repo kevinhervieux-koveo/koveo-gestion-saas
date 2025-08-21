@@ -39,7 +39,7 @@ describe('Demands Workflow Integration Tests', () => {
     app.use(express.json());
     
     // Mock auth middleware
-    app.use((req: any, res: any, next: any) => {
+    app.use((req: unknown, res: unknown, next: unknown) => {
       const userHeader = req.get('test-user');
       if (userHeader) {
         req.user = JSON.parse(userHeader);
@@ -58,6 +58,10 @@ describe('Demands Workflow Integration Tests', () => {
 
   /**
    *
+   */
+  /**
+   * SetupTestData function.
+   * @returns Function result.
    */
   async function setupTestData() {
     // Create organization
@@ -177,6 +181,10 @@ describe('Demands Workflow Integration Tests', () => {
 
   /**
    *
+   */
+  /**
+   * CleanupTestData function.
+   * @returns Function result.
    */
   async function cleanupTestData() {
     if (testData) {
@@ -334,7 +342,7 @@ describe('Demands Workflow Integration Tests', () => {
         }));
 
       expect(finalResponse.status).toBe(200);
-      const finalDemand = finalResponse.body.find((d: any) => d.id === demandId);
+      const finalDemand = finalResponse.body.find((d: unknown) => d.id === demandId);
       expect(finalDemand).toBeDefined();
       expect(finalDemand.status).toBe('completed');
 

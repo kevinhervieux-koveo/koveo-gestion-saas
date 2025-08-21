@@ -8,21 +8,45 @@ var addSorting = (function() {
         };
 
     // returns the summary table element
+    /**
+     * getTable function
+     * @returns Function result
+     */
     function getTable() {
         return document.querySelector('.coverage-summary');
     }
     // returns the thead element of the summary table
+    /**
+     * getTableHeader function
+     * @returns Function result
+     */
     function getTableHeader() {
         return getTable().querySelector('thead tr');
     }
     // returns the tbody element of the summary table
+    /**
+     * getTableBody function
+     * @returns Function result
+     */
     function getTableBody() {
         return getTable().querySelector('tbody');
     }
     // returns the th element for nth column
+    /**
+     * getNthColumn function
+     * @returns Function result
+     */
     function getNthColumn(n) {
         return getTableHeader().querySelectorAll('th')[n];
     }
+
+    /**
+
+     * onFilterInput function
+
+     * @returns Function result
+
+     */
 
     function onFilterInput() {
         const searchValue = document.getElementById('fileSearch').value;
@@ -42,6 +66,10 @@ var addSorting = (function() {
     }
 
     // loads the search box
+    /**
+     * addSearchBox function
+     * @returns Function result
+     */
     function addSearchBox() {
         var template = document.getElementById('filterTemplate');
         var templateClone = template.content.cloneNode(true);
@@ -50,6 +78,10 @@ var addSorting = (function() {
     }
 
     // loads all columns
+    /**
+     * loadColumns function
+     * @returns Function result
+     */
     function loadColumns() {
         var colNodes = getTableHeader().querySelectorAll('th'),
             colNode,
@@ -75,6 +107,10 @@ var addSorting = (function() {
     }
     // attaches a data attribute to every tr element with an object
     // of data values keyed by column name
+    /**
+     * loadRowData function
+     * @returns Function result
+     */
     function loadRowData(tableRow) {
         var tableCols = tableRow.querySelectorAll('td'),
             colNode,
@@ -94,6 +130,10 @@ var addSorting = (function() {
         return data;
     }
     // loads all row data
+    /**
+     * loadData function
+     * @returns Function result
+     */
     function loadData() {
         var rows = getTableBody().querySelectorAll('tr'),
             i;
@@ -103,6 +143,10 @@ var addSorting = (function() {
         }
     }
     // sorts the table using the data for the ith column
+    /**
+     * sortByIndex function
+     * @returns Function result
+     */
     function sortByIndex(index, desc) {
         var key = cols[index].key,
             sorter = function(a, b) {
@@ -134,6 +178,10 @@ var addSorting = (function() {
         }
     }
     // removes sort indicators for current column being sorted
+    /**
+     * removeSortIndicators function
+     * @returns Function result
+     */
     function removeSortIndicators() {
         var col = getNthColumn(currentSort.index),
             cls = col.className;
@@ -142,12 +190,20 @@ var addSorting = (function() {
         col.className = cls;
     }
     // adds sort indicators for current column being sorted
+    /**
+     * addSortIndicators function
+     * @returns Function result
+     */
     function addSortIndicators() {
         getNthColumn(currentSort.index).className += currentSort.desc
             ? ' sorted-desc'
             : ' sorted';
     }
     // adds event listeners for all sorter widgets
+    /**
+     * enableUI function
+     * @returns Function result
+     */
     function enableUI() {
         var i,
             el,

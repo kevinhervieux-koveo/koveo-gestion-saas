@@ -10,6 +10,10 @@ import { execSync } from 'child_process';
  * Runs the complete build process for client and server.
  * @returns Promise that resolves when build is complete.
  */
+/**
+ * RunBuild function.
+ * @returns Function result.
+ */
 async function runBuild() {
   console.warn('🚀 Starting complete build process...');
   
@@ -24,7 +28,7 @@ async function runBuild() {
     
     console.warn('✅ Build completed successfully!');
     
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Build failed:', error);
     process.exit(1);
   }

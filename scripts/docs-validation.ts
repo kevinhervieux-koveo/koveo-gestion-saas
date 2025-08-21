@@ -12,6 +12,10 @@ import { join } from 'path';
  * Check JSDoc coverage for TypeScript files.
  * @returns Number of files with missing JSDoc.
  */
+/**
+ * CheckJSDocCoverage function.
+ * @returns Function result.
+ */
 function checkJSDocCoverage(): number {
   console.log('📚 Checking JSDoc coverage...');
   
@@ -40,7 +44,7 @@ function checkJSDocCoverage(): number {
           }
         }
       }
-    } catch (error) {
+    } catch (__error) {
       // Skip directories that can't be read
     }
   };
@@ -61,6 +65,10 @@ function checkJSDocCoverage(): number {
  * Validate TypeDoc generation.
  * @returns Exit code from TypeDoc validation.
  */
+/**
+ * ValidateTypeDoc function.
+ * @returns Function result.
+ */
 function validateTypeDoc(): number {
   console.log('📖 Validating TypeDoc generation...');
   
@@ -68,7 +76,7 @@ function validateTypeDoc(): number {
     execSync('npm run docs:generate', { stdio: 'pipe' });
     console.log('✅ TypeDoc validation passed');
     return 0;
-  } catch (error) {
+  } catch (__error) {
     console.log('⚠️  TypeDoc validation warnings (non-blocking)');
     return 0; // Non-blocking for now
   }
@@ -77,6 +85,10 @@ function validateTypeDoc(): number {
 /**
  * Main documentation validation function.
  * @returns Exit code (0 = success, 1 = failure).
+ */
+/**
+ * ValidateDocs function.
+ * @returns Function result.
  */
 export function validateDocs(): number {
   console.log('🔍 Running documentation validation...\n');

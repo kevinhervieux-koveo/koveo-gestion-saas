@@ -36,6 +36,11 @@ const db = drizzle(sql, { schema });
  * Determines the migration target for a document based on its boolean flags.
  * @param doc
  */
+/**
+ * DetermineDocumentTarget function.
+ * @param doc
+ * @returns Function result.
+ */
 function determineDocumentTarget(doc: LegacyDocument): 'building' | 'resident' | 'both' | 'skip' {
   const isBuilding = doc.buildings === 'true';
   const isResidence = doc.residence === 'true';
@@ -55,6 +60,10 @@ function determineDocumentTarget(doc: LegacyDocument): 'building' | 'resident' |
 /**
  * Gets building IDs from the database.
  */
+/**
+ * GetBuildingIds function.
+ * @returns Function result.
+ */
 async function getBuildingIds(): Promise<string[]> {
   const buildings = await db.select({ id: schema.buildings.id }).from(schema.buildings);
   return buildings.map(b => b.id);
@@ -62,6 +71,10 @@ async function getBuildingIds(): Promise<string[]> {
 
 /**
  * Gets residence IDs from the database.
+ */
+/**
+ * GetResidenceIds function.
+ * @returns Function result.
  */
 async function getResidenceIds(): Promise<string[]> {
   const residences = await db.select({ id: schema.residences.id }).from(schema.residences);
@@ -73,6 +86,13 @@ async function getResidenceIds(): Promise<string[]> {
  * @param doc
  * @param buildingId
  * @param uploadedBy
+ */
+/**
+ * CreateBuildingDocument function.
+ * @param doc
+ * @param buildingId
+ * @param uploadedBy
+ * @returns Function result.
  */
 async function createBuildingDocument(doc: LegacyDocument, buildingId: string, uploadedBy: string) {
   return {
@@ -95,6 +115,13 @@ async function createBuildingDocument(doc: LegacyDocument, buildingId: string, u
  * @param residenceId
  * @param uploadedBy
  */
+/**
+ * CreateResidentDocument function.
+ * @param doc
+ * @param residenceId
+ * @param uploadedBy
+ * @returns Function result.
+ */
 async function createResidentDocument(doc: LegacyDocument, residenceId: string, uploadedBy: string) {
   return {
     name: doc.name,
@@ -113,6 +140,10 @@ async function createResidentDocument(doc: LegacyDocument, residenceId: string, 
 /**
  * Main migration function.
  */
+/**
+ * MigrateDocuments function.
+ * @returns Function result.
+ */
 async function migrateDocuments() {
   console.log('🚀 Starting document migration...');
 
@@ -128,7 +159,7 @@ async function migrateDocuments() {
         FROM documents
       `);
       
-      legacyDocuments = result.rows.map((row: any) => ({
+      legacyDocuments = result.rows.map((row: unknown) => ({
         id: row.id,
         name: row.name,
         uploadDate: new Date(row.upload_date),
@@ -140,7 +171,7 @@ async function migrateDocuments() {
       }));
       
       console.log(`📄 Found ${legacyDocuments.length} legacy documents to migrate`);
-    } catch (error) {
+    } catch (__error) {
       console.log('ℹ️  No legacy documents table found or no documents to migrate');
       console.log('✅ Migration completed - no data to migrate');
       return;
@@ -231,7 +262,7 @@ async function migrateDocuments() {
     console.log('   4. Test document functionality end-to-end');
     console.log('   5. Once verified, you can remove the legacy documents table');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Migration failed:', error);
     throw error;
   }
@@ -239,6 +270,10 @@ async function migrateDocuments() {
 
 /**
  * Rollback function to undo the migration.
+ */
+/**
+ * RollbackMigration function.
+ * @returns Function result.
  */
 async function rollbackMigration() {
   console.log('🔄 Rolling back document migration...');
@@ -249,7 +284,7 @@ async function rollbackMigration() {
     await db.delete(schema.documentsResidents);
 
     console.log('✅ Migration rollback completed');
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Rollback failed:', error);
     throw error;
   }

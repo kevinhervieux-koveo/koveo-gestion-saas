@@ -27,6 +27,16 @@ interface PromptDisplayProps {
  * @param root0.isSaving - Whether saving is in progress.
  * @returns JSX element for the prompt display component.
  */
+/**
+ * PromptDisplay function.
+ * @param root0
+ * @param root0.prompt
+ * @param root0.feature
+ * @param root0.onSavePrompt
+ * @param root0.onCopyToClipboard
+ * @param root0.isSaving
+ * @returns Function result.
+ */
 export function PromptDisplay({ 
   prompt, 
   feature: _feature, 
@@ -44,7 +54,7 @@ export function PromptDisplay({
         title: 'Prompt Copied!',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (__error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the prompt to clipboard.',

@@ -44,7 +44,12 @@ export interface BuildingWithStatistics {
  * Adds statistics to a single building.
  * @param building
  */
-export async function addStatisticsToBuilding(building: any): Promise<BuildingWithStatistics> {
+/**
+ * AddStatisticsToBuilding function.
+ * @param building
+ * @returns Function result.
+ */
+export async function addStatisticsToBuilding(building: unknown): Promise<BuildingWithStatistics> {
   // Get residence count
   const residenceCount = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -77,7 +82,12 @@ export async function addStatisticsToBuilding(building: any): Promise<BuildingWi
  * Adds statistics to multiple buildings.
  * @param buildings
  */
-export async function addStatisticsToBuildings(buildings: any[]): Promise<BuildingWithStatistics[]> {
+/**
+ * AddStatisticsToBuildings function.
+ * @param buildings
+ * @returns Function result.
+ */
+export async function addStatisticsToBuildings(buildings: unknown[]): Promise<BuildingWithStatistics[]> {
   return await Promise.all(
     buildings.map(building => addStatisticsToBuilding(building))
   );
@@ -86,6 +96,11 @@ export async function addStatisticsToBuildings(buildings: any[]): Promise<Buildi
 /**
  * Gets aggregated statistics for multiple buildings.
  * @param buildingIds
+ */
+/**
+ * GetAggregatedStatistics function.
+ * @param buildingIds
+ * @returns Function result.
  */
 export async function getAggregatedStatistics(buildingIds: string[]) {
   if (buildingIds.length === 0) {

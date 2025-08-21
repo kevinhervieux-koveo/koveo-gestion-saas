@@ -139,7 +139,7 @@ export class ObjectStorageService {
       });
 
       stream.pipe(res);
-    } catch (error) {
+    } catch (__error) {
       console.error("Error downloading file:", error);
       if (!res.headersSent) {
         res.status(500).json({ error: "Error downloading file" });
@@ -288,7 +288,7 @@ export class ObjectStorageService {
       await orgFile.save('', { metadata: { contentType: 'text/plain' } });
 
       console.log(`✅ Created organization hierarchy for: ${organizationId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to create organization hierarchy for ${organizationId}:`, error);
     }
   }
@@ -313,7 +313,7 @@ export class ObjectStorageService {
       await buildingsDocFile.save('', { metadata: { contentType: 'text/plain' } });
 
       console.log(`✅ Created building hierarchy for: ${buildingId} in organization ${organizationId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to create building hierarchy for ${buildingId}:`, error);
     }
   }
@@ -338,7 +338,7 @@ export class ObjectStorageService {
       await residenceFile.save('', { metadata: { contentType: 'text/plain' } });
 
       console.log(`✅ Created residence hierarchy for: ${residenceId} in building ${buildingId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to create residence hierarchy for ${residenceId}:`, error);
     }
   }
@@ -365,7 +365,7 @@ export class ObjectStorageService {
       }
 
       console.log(`✅ Deleted organization hierarchy for: ${organizationId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to delete organization hierarchy for ${organizationId}:`, error);
     }
   }
@@ -393,7 +393,7 @@ export class ObjectStorageService {
       }
 
       console.log(`✅ Deleted building hierarchy for: ${buildingId} in organization ${organizationId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to delete building hierarchy for ${buildingId}:`, error);
     }
   }
@@ -422,7 +422,7 @@ export class ObjectStorageService {
       }
 
       console.log(`✅ Deleted residence hierarchy for: ${residenceId} in building ${buildingId}`);
-    } catch (error) {
+    } catch (__error) {
       console.error(`❌ Failed to delete residence hierarchy for ${residenceId}:`, error);
     }
   }
@@ -431,6 +431,11 @@ export class ObjectStorageService {
 /**
  *
  * @param path
+ */
+/**
+ * ParseObjectPath function.
+ * @param path
+ * @returns Function result.
  */
 function parseObjectPath(path: string): {
   bucketName: string;
@@ -460,6 +465,15 @@ function parseObjectPath(path: string): {
  * @param root0.objectName
  * @param root0.method
  * @param root0.ttlSec
+ */
+/**
+ * SignObjectURL function.
+ * @param root0
+ * @param root0.bucketName
+ * @param root0.objectName
+ * @param root0.method
+ * @param root0.ttlSec
+ * @returns Function result.
  */
 async function signObjectURL({
   bucketName,

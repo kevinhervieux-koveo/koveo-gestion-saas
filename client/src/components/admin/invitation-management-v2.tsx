@@ -60,6 +60,14 @@ interface InvitationManagementProps {
  * @param root0.onSendReminder
  * @param root0.onRefresh
  */
+/**
+ * InvitationManagement function.
+ * @param root0
+ * @param root0.invitations
+ * @param root0.onSendReminder
+ * @param root0.onRefresh
+ * @returns Function result.
+ */
 export function InvitationManagement({ 
   invitations, 
   onSendReminder, 
@@ -319,6 +327,17 @@ interface InvitationActionsProps {
  * @param root0.onResend
  * @param root0.onCopyLink
  * @param root0.canEdit
+ */
+/**
+ * InvitationActions function.
+ * @param root0
+ * @param root0.invitation
+ * @param root0.onCancel
+ * @param root0.onDelete
+ * @param root0.onResend
+ * @param root0.onCopyLink
+ * @param root0.canEdit
+ * @returns Function result.
  */
 function InvitationActions({
   invitation,

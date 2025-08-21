@@ -24,6 +24,11 @@ describe('Documentation Validation', () => {
    * Simple hash function for content comparison.
    * @param content
    */
+  /**
+   * HashContent function.
+   * @param content
+   * @returns Function result.
+   */
   function hashContent(content: string): string {
     let hash = 0;
     const normalized = content.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -38,6 +43,11 @@ describe('Documentation Validation', () => {
   /**
    * Extract sections from markdown files.
    * @param filePath
+   */
+  /**
+   * ExtractSections function.
+   * @param filePath
+   * @returns Function result.
    */
   function extractSections(filePath: string): DocumentationSection[] {
     const content = fs.readFileSync(filePath, 'utf-8');

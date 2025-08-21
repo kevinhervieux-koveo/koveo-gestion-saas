@@ -16,7 +16,7 @@ jest.mock('../../server/jobs/money_flow_job', () => ({
 }));
 
 // Mock auth middleware
-const mockRequireAuth = (req: any, res: any, next: any) => {
+const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
   req.user = {
     id: 'user-123',
     email: 'admin@test.com',
@@ -86,7 +86,7 @@ describe('Money Flow API Integration Tests', () => {
       // Override the mock auth for this test
       app = express();
       app.use(express.json());
-      app.use((req: any, res: any, next: any) => {
+      app.use((req: unknown, res: unknown, next: unknown) => {
         req.user = {
           id: 'user-456',
           email: 'manager@test.com',
@@ -153,7 +153,7 @@ describe('Money Flow API Integration Tests', () => {
     it('should deny access to non-admin users', async () => {
       app = express();
       app.use(express.json());
-      app.use((req: any, res: any, next: any) => {
+      app.use((req: unknown, res: unknown, next: unknown) => {
         req.user = {
           id: 'user-789',
           email: 'user@test.com',
@@ -224,7 +224,7 @@ describe('Money Flow API Integration Tests', () => {
     it('should allow manager access', async () => {
       app = express();
       app.use(express.json());
-      app.use((req: any, res: any, next: any) => {
+      app.use((req: unknown, res: unknown, next: unknown) => {
         req.user = {
           id: 'manager-123',
           email: 'manager@test.com',
@@ -249,7 +249,7 @@ describe('Money Flow API Integration Tests', () => {
     it('should deny access to regular users', async () => {
       app = express();
       app.use(express.json());
-      app.use((req: any, res: any, next: any) => {
+      app.use((req: unknown, res: unknown, next: unknown) => {
         req.user = {
           id: 'user-123',
           email: 'user@test.com',
@@ -354,7 +354,7 @@ describe('Money Flow API Integration Tests', () => {
     it('should allow manager access to statistics', async () => {
       app = express();
       app.use(express.json());
-      app.use((req: any, res: any, next: any) => {
+      app.use((req: unknown, res: unknown, next: unknown) => {
         req.user = {
           id: 'manager-456',
           email: 'manager@test.com',
@@ -437,14 +437,14 @@ describe('Money Flow API Integration Tests', () => {
       // Create app without auth middleware
       const unauthApp = express();
       unauthApp.use(express.json());
-      unauthApp.use((req: any, res: any, next: any) => {
+      unauthApp.use((req: unknown, res: unknown, next: unknown) => {
         // No user set - simulates unauthenticated request
         next();
       });
       
       // Mock the auth middleware to throw
       jest.doMock('../../server/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: unknown, res: unknown, next: unknown) => {
           res.status(401).json({ message: 'Authentication required' });
         }
       }));
@@ -487,7 +487,7 @@ describe('Money Flow API Integration Tests', () => {
       for (const testCase of testCases) {
         const testApp = express();
         testApp.use(express.json());
-        testApp.use((req: any, res: any, next: any) => {
+        testApp.use((req: unknown, res: unknown, next: unknown) => {
           req.user = {
             id: 'test-user',
             email: 'test@test.com',

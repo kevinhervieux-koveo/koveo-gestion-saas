@@ -135,6 +135,9 @@ const getInflationTranslations = (language: 'en' | 'fr') => ({
   saving: language === 'fr' ? 'Sauvegarde...' : 'Saving...',
 });
 
+/**
+ *
+ */
 interface BudgetData {
   year: number;
   month: number;
@@ -147,6 +150,9 @@ interface BudgetData {
   bankBalance: number;
 }
 
+/**
+ *
+ */
 interface BankAccountInfo {
   bankAccountNumber: string | null;
   bankAccountNotes: string | null;
@@ -157,12 +163,18 @@ interface BankAccountInfo {
   inflationSettings: string | null; // JSON string of inflation settings
 }
 
+/**
+ *
+ */
 interface MinimumBalanceSetting {
   id: string;
   amount: number;
   description: string;
 }
 
+/**
+ *
+ */
 interface InflationSetting {
   id: string;
   category: string;
@@ -173,6 +185,9 @@ interface InflationSetting {
   description: string;
 }
 
+/**
+ *
+ */
 interface InflationConfig {
   incomeSettings: InflationSetting[];
   expenseSettings: InflationSetting[];
@@ -180,6 +195,9 @@ interface InflationConfig {
   generalExpense: number; // General expense inflation rate
 }
 
+/**
+ *
+ */
 export default function Budget() {
   const { language } = useLanguage();
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
@@ -230,7 +248,7 @@ export default function Budget() {
         params.append('buildingId', selectedBuilding);
       }
       const response = await fetch(`/api/residences?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch residences');
+      if (!response.ok) {throw new Error('Failed to fetch residences');}
       return response.json();
     },
     enabled: !!selectedBuilding,
@@ -284,7 +302,7 @@ export default function Budget() {
 
   // Parse minimum balance settings
   const minimumBalanceSettings = useMemo(() => {
-    if (!bankAccountInfo?.bankAccountMinimums) return [];
+    if (!bankAccountInfo?.bankAccountMinimums) {return [];}
     try {
       return JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
     } catch {
@@ -294,9 +312,9 @@ export default function Budget() {
 
   // Transform raw data into chart-friendly format
   const chartData: BudgetData[] = useMemo(() => {
-    if (!budgetSummary?.summary) return [];
+    if (!budgetSummary?.summary) {return [];}
     
-    return budgetSummary.summary.map((item: any) => {
+    return budgetSummary.summary.map((item: unknown) => {
       const totalIncome = item.incomes ? 
         item.incomes.reduce((sum: number, income: string) => sum + parseFloat(income || '0'), 0) : 0;
       const totalExpenses = item.spendings ? 
@@ -333,13 +351,13 @@ export default function Budget() {
 
   // Find total minimum balance for chart visualization - optimized
   const minimumBalanceForChart = useMemo(() => {
-    if (!minimumBalanceSettings?.length) return null;
+    if (!minimumBalanceSettings?.length) {return null;}
     return minimumBalanceSettings.reduce((sum, m) => sum + m.amount, 0);
   }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
   // Calculate running bank account balance over time
   const chartDataWithBalance = useMemo(() => {
-    if (!chartData?.length) return [];
+    if (!chartData?.length) {return [];}
     
     // Use starting balance if available, otherwise start with 0 and build from cash flow
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
@@ -367,7 +385,7 @@ export default function Budget() {
   
   // Get all available categories with translations - optimized to avoid recalculation
   const availableCategories = useMemo(() => {
-    if (!chartData?.length) return [];
+    if (!chartData?.length) {return [];}
     const categories = new Set<string>();
     chartData.forEach((item) => {
       Object.keys(item.incomeByCategory || {}).forEach(cat => {
@@ -384,7 +402,7 @@ export default function Budget() {
 
   // Filter data by selected categories - optimized with better dependency tracking
   const filteredChartData = useMemo(() => {
-    if (!chartDataWithBalance?.length || selectedCategories.length === 0) return chartDataWithBalance || [];
+    if (!chartDataWithBalance?.length || selectedCategories.length === 0) {return chartDataWithBalance || [];}
     
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
@@ -441,26 +459,26 @@ export default function Budget() {
 
   // Calculate special contribution and property breakdown - optimized
   const specialContribution = useMemo(() => {
-    if (!filteredChartData?.length) return 0;
+    if (!filteredChartData?.length) {return 0;}
     const netCashFlow = filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0);
     return Math.abs(Math.min(0, netCashFlow));
   }, [filteredChartData]);
 
   // Get residences for selected building and calculate contributions - optimized
   const propertyContributions = useMemo(() => {
-    if (!selectedBuilding || !residences?.length || specialContribution === 0) return [];
+    if (!selectedBuilding || !residences?.length || specialContribution === 0) {return [];}
     
     // Filter and map in single pass for better performance
     return residences
-      .filter((residence: any) => residence.building_id === selectedBuilding)
-      .map((residence: any) => ({
+      .filter((residence: unknown) => residence.building_id === selectedBuilding)
+      .map((residence: unknown) => ({
         id: residence.id,
         unitNumber: residence.unit_number,
         ownershipPercentage: residence.ownership_percentage || 0,
         contribution: (specialContribution * (residence.ownership_percentage || 0)) / 100,
         floor: residence.floor,
       }))
-      .sort((a: any, b: any) => a.unitNumber.localeCompare(b.unitNumber));
+      .sort((a: unknown, b: unknown) => a.unitNumber.localeCompare(b.unitNumber));
   }, [selectedBuilding, residences?.length, specialContribution]);
 
   // Pagination for property contributions
@@ -518,7 +536,7 @@ export default function Budget() {
           bankAccountMinimums: JSON.stringify(data.minimumBalances),
         }),
       });
-      if (!response.ok) throw new Error('Failed to update bank account');
+      if (!response.ok) {throw new Error('Failed to update bank account');}
       return response.json();
     },
     onSuccess: () => {
@@ -584,7 +602,7 @@ export default function Budget() {
     setInflationSettings(prev => [...prev, newSetting]);
   }, [chartData]);
 
-  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, value: any) => {
+  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, value: unknown) => {
     setInflationSettings(prev => prev.map(setting => 
       setting.id === id ? { ...setting, [field]: value } : setting
     ));
@@ -756,7 +774,7 @@ export default function Budget() {
                           <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.isArray(buildings) && buildings.map((building: any) => (
+                          {Array.isArray(buildings) && buildings.map((building: unknown) => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name}
                             </SelectItem>
@@ -1485,7 +1503,7 @@ export default function Budget() {
                                   });
                                   
                                   setMinimumBalancesDialog(false);
-                                } catch (error) {
+                                } catch (_error) {
                                   toast({
                                     title: language === 'fr' ? 'Erreur' : 'Error',
                                     description: language === 'fr' ? 
@@ -1731,7 +1749,7 @@ export default function Budget() {
                           </div>
                           
                           <div className='divide-y'>
-                            {paginatedContributions.map((property: any) => (
+                            {paginatedContributions.map((property: unknown) => (
                               <PropertyContributionRow key={`${property.id}-${property.unitNumber}`} property={property} />
                             ))}
                           </div>

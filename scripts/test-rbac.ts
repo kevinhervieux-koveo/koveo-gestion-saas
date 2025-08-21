@@ -20,6 +20,10 @@ const db = drizzle({ client: pool, schema });
 /**
  *
  */
+/**
+ * TestRBAC function.
+ * @returns Function result.
+ */
 async function testRBAC() {
   console.log('🔒 Testing RBAC System for Quebec Property Management');
   console.log('=' .repeat(60));

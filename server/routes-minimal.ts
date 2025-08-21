@@ -35,6 +35,10 @@ const emailService = new EmailService();
 /**
  *
  */
+/**
+ * GenerateSecureToken function.
+ * @returns Function result.
+ */
 function generateSecureToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
@@ -42,6 +46,11 @@ function generateSecureToken(): string {
 /**
  *
  * @param token
+ */
+/**
+ * HashToken function.
+ * @param token
+ * @returns Function result.
  */
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -53,8 +62,13 @@ const invitationRateLimit = new Map();
  *
  * @param limit
  */
+/**
+ * RateLimitInvitations function.
+ * @param limit
+ * @returns Function result.
+ */
 function rateLimitInvitations(limit: number) {
-  return (req: any, res: any, next: any) => {
+  return (req: unknown, res: unknown, next: unknown) => {
     const userId = req.user?.id;
     const key = `invitation_${userId}`;
     const now = Date.now();
@@ -94,6 +108,17 @@ function rateLimitInvitations(limit: number) {
  * @param {string} [newStatus] - New invitation status.
  * @param {any} [details] - Additional details.
  */
+/**
+ * CreateInvitationAuditLog function.
+ * @param invitationId
+ * @param action
+ * @param performedBy
+ * @param req
+ * @param previousStatus
+ * @param newStatus
+ * @param details
+ * @returns Function result.
+ */
 async function createInvitationAuditLog(
   invitationId: string,
   action: string,
@@ -116,7 +141,7 @@ async function createInvitationAuditLog(
       newStatus,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Failed to create audit log:', error);
   }
 }
@@ -125,12 +150,17 @@ async function createInvitationAuditLog(
  * Core routes registration with essential functionality.
  * @param app
  */
+/**
+ * RegisterRoutes function.
+ * @param app
+ * @returns Function result.
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   try {
     app.use(sessionConfig);
     log('✅ Session middleware configured');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Session setup failed: ${error}`, 'error');
   }
   
@@ -138,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     setupAuthRoutes(app);
     log('✅ Auth routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Auth routes failed: ${error}`, 'error');
   }
   
@@ -146,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerPermissionsRoutes(app);
     log('✅ Permissions routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Permissions routes failed: ${error}`, 'error');
   }
   
@@ -154,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerOrganizationRoutes(app);
     log('✅ Organization routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Organization routes failed: ${error}`, 'error');
   }
   
@@ -162,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerUserRoutes(app);
     log('✅ User routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ User routes failed: ${error}`, 'error');
   }
   
@@ -170,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerBuildingRoutes(app);
     log('✅ Building routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Building routes failed: ${error}`, 'error');
   }
 
@@ -178,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerDocumentRoutes(app);
     log('✅ Document routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Document routes failed: ${error}`, 'error');
   }
 
@@ -186,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     app.use('/api/budgets', budgetRoutes);
     log('✅ Budget routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Budget routes failed: ${error}`, 'error');
   }
 
@@ -194,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     app.use('/api/dynamic-budgets', dynamicBudgetRoutes);
     log('✅ Dynamic budget routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Dynamic budget routes failed: ${error}`, 'error');
   }
 
@@ -202,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     app.use('/api/admin', cleanupRoutes);
     log('✅ Cleanup routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Cleanup routes failed: ${error}`, 'error');
   }
 
@@ -211,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { registerResidenceRoutes } = await import('./api/residences.js');
     registerResidenceRoutes(app);
     log('✅ Residence routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Residence routes failed: ${error}`, 'error');
   }
 
@@ -219,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerContactRoutes(app);
     log('✅ Contact routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Contact routes failed: ${error}`, 'error');
   }
 
@@ -227,7 +257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerDemandRoutes(app);
     log('✅ Demand routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Demand routes failed: ${error}`, 'error');
   }
 
@@ -235,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerBillRoutes(app);
     log('✅ Bills routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Bills routes failed: ${error}`, 'error');
   }
 
@@ -243,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerMoneyFlowRoutes(app);
     log('✅ Money flow automation routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Money flow automation routes failed: ${error}`, 'error');
   }
 
@@ -251,14 +281,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerDelayedUpdateRoutes(app);
     log('✅ Delayed update monitoring routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Delayed update monitoring routes failed: ${error}`, 'error');
   }
 
   // Register features and actionable items API routes
   try {
     // GET /api/features - Get all features
-    app.get('/api/features', requireAuth, async (req: any, res: any) => {
+    app.get('/api/features', requireAuth, async (req: unknown, res: unknown) => {
       try {
         const features = await db
           .select()
@@ -266,14 +296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .orderBy(schema.features.createdAt);
 
         res.json(features);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching features:', error);
         res.status(500).json({ message: 'Failed to fetch features' });
       }
     });
 
     // GET /api/features/:id/actionable-items - Get actionable items for a feature
-    app.get('/api/features/:id/actionable-items', requireAuth, async (req: any, res: any) => {
+    app.get('/api/features/:id/actionable-items', requireAuth, async (req: unknown, res: unknown) => {
       try {
         // Use raw SQL to query the correct column names that exist in the database
         const items = await db.execute(sql`
@@ -286,14 +316,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `);
 
         res.json(items.rows);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching actionable items:', error);
         res.status(500).json({ message: 'Failed to fetch actionable items' });
       }
     });
 
     // PUT /api/actionable-items/:id - Update an actionable item
-    app.put('/api/actionable-items/:id', requireAuth, async (req: any, res: any) => {
+    app.put('/api/actionable-items/:id', requireAuth, async (req: unknown, res: unknown) => {
       try {
         // Use raw SQL to update the correct column names that exist in the database
         const result = await db.execute(sql`
@@ -312,14 +342,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json(result.rows[0]);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error updating actionable item:', error);
         res.status(500).json({ message: 'Failed to update actionable item' });
       }
     });
 
     // POST /api/features/:id/toggle-strategic - Toggle strategic path for feature
-    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: any, res: any) => {
+    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: unknown, res: unknown) => {
       try {
         const { isStrategicPath } = req.body;
         
@@ -338,20 +368,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         res.json(feature);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error updating strategic path:', error);
         res.status(500).json({ message: 'Failed to update strategic path' });
       }
     });
 
     log('✅ Features and actionable items routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Features and actionable items routes failed: ${error}`, 'error');
   }
 
   // Register quality metrics API route
   try {
-    app.get('/api/quality-metrics', requireAuth, async (req: any, res: any) => {
+    app.get('/api/quality-metrics', requireAuth, async (req: unknown, res: unknown) => {
       try {
         // Generate mock quality metrics data that matches the expected format
         const metrics = {
@@ -368,14 +398,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         res.json(metrics);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching quality metrics:', error);
         res.status(500).json({ message: 'Failed to fetch quality metrics' });
       }
     });
     
     log('✅ Quality metrics routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Quality metrics routes failed: ${error}`, 'error');
   }
   
@@ -386,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       requireAuth, 
       authorize('create:user'),
       rateLimitInvitations(10),
-      async (req: any, res: any) => {
+      async (req: unknown, res: unknown) => {
         try {
           console.log('📥 Single invitation route reached with data:', req.body);
           const currentUser = req.user;
@@ -551,7 +581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // );
             
             console.log(`✅ Invitation email sent successfully to ${email}`);
-          } catch (emailError) {
+          } catch (__emailError) {
             console.error('❌ Failed to send invitation email:', emailError);
             // Don't fail the entire request if email fails, just log it
           }
@@ -565,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/register?invitation=${token}`
           });
           
-        } catch (error) {
+        } catch (__error) {
           console.error('Error creating invitation:', error);
           res.status(500).json({ message: 'Failed to create invitation' });
         }
@@ -573,18 +603,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // GET /api/invitations - List invitations
-    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: any, res: any) => {
+    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: unknown, res: unknown) => {
       try {
         const invitationList = await db.select().from(invitations);
         res.json(invitationList);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching invitations:', error);
         res.status(500).json({ message: 'Failed to fetch invitations' });
       }
     });
 
     // POST /api/invitations/validate - Validate invitation token
-    app.post('/api/invitations/validate', async (req: any, res: any) => {
+    app.post('/api/invitations/validate', async (req: unknown, res: unknown) => {
       try {
         const { token } = req.body;
         console.log('🔍 Validating invitation token:', { 
@@ -710,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           inviterName: inviter[0] ? `${inviter[0].firstName} ${inviter[0].lastName}` : 'Administrator'
         });
 
-      } catch (error) {
+      } catch (__error) {
         console.error('Error validating invitation:', error);
         res.status(500).json({ 
           message: 'Failed to validate invitation',
@@ -720,7 +750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/invitations/accept/:token - Accept invitation and create user account
-    app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
+    app.post('/api/invitations/accept/:token', async (req: unknown, res: unknown) => {
       try {
         const { token } = req.params;
         const { password, firstName, lastName, phone, address, city, province, postalCode, language, dateOfBirth, dataCollectionConsent, marketingConsent, analyticsConsent, thirdPartyConsent, acknowledgedRights } = req.body;
@@ -862,7 +892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirectTo: '/login'
         });
 
-      } catch (error) {
+      } catch (__error) {
         console.error('Error accepting invitation:', error);
         res.status(500).json({ 
           message: 'Failed to create account',
@@ -872,14 +902,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     log('✅ Invitation routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Invitation routes failed: ${error}`, 'error');
   }
 
   // Register improvement suggestions routes
   try {
     // GET /api/pillars/suggestions - Get improvement suggestions
-    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: any, res: any) => {
+    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: unknown, res: unknown) => {
       try {
         // Fetch only the columns that exist in the database
         const suggestions = await db
@@ -896,14 +926,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(schema.improvementSuggestions)
           .orderBy(desc(schema.improvementSuggestions.createdAt));
         res.json(suggestions);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error fetching suggestions:', error);
         res.status(500).json({ message: 'Failed to fetch improvement suggestions' });
       }
     });
 
     // POST /api/pillars/suggestions/:id/acknowledge - Acknowledge a suggestion
-    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req: any, res: any) => {
+    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req: unknown, res: unknown) => {
       try {
         // Update directly in database
         const [suggestion] = await db
@@ -916,14 +946,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: 'Suggestion not found' });
         }
         res.json(suggestion);
-      } catch (error) {
+      } catch (__error) {
         console.error('Error acknowledging suggestion:', error);
         res.status(500).json({ message: 'Failed to update suggestion status' });
       }
     });
 
     // POST /api/pillars/suggestions/:id/complete - Complete a suggestion (delete it)
-    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req: any, res: any) => {
+    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req: unknown, res: unknown) => {
       try {
         // Delete the suggestion from database
         const [deletedSuggestion] = await db
@@ -957,14 +987,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
         res.json({ message: 'Suggestion completed and deleted successfully' });
-      } catch (error) {
+      } catch (__error) {
         console.error('Error completing suggestion:', error);
         res.status(500).json({ message: 'Failed to complete suggestion' });
       }
     });
 
     log('✅ Improvement suggestions routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Improvement suggestions routes failed: ${error}`, 'error');
   }
 
@@ -975,7 +1005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/law25-compliance', law25ComplianceRouter);
     
     log('✅ Law 25 compliance routes registered');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Law 25 compliance routes failed: ${error}`, 'error');
   }
   
@@ -1002,7 +1032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const cleanupScheduler = CleanupScheduler.getInstance();
     cleanupScheduler.startAutoCleanup();
     log('✅ Storage cleanup scheduler initialized');
-  } catch (error) {
+  } catch (__error) {
     log(`❌ Cleanup scheduler failed: ${error}`, 'error');
   }
 

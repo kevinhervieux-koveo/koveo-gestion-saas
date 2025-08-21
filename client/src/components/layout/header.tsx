@@ -36,6 +36,13 @@ interface HeaderProps {
  * }
  * ```
  */
+/**
+ * Header function.
+ * @param root0
+ * @param root0.title
+ * @param root0.subtitle
+ * @returns Function result.
+ */
 export function Header({ title, subtitle }: HeaderProps) {
   const { t } = useLanguage();
   

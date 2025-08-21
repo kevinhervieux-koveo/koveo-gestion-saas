@@ -26,6 +26,10 @@ const db = drizzle({ client: pool, schema });
  * Creates a default admin user for the system.
  * Checks if admin already exists before creating to avoid duplicates.
  */
+/**
+ * CreateAdminUser function.
+ * @returns Function result.
+ */
 async function createAdminUser() {
   try {
     console.warn('🔍 Checking for existing admin user...');
@@ -71,7 +75,7 @@ async function createAdminUser() {
       console.warn('🇨🇦 Law 25 Compliance: This account follows Quebec privacy regulations');
     }
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error creating admin user:', error);
     throw error;
   } finally {
@@ -81,6 +85,10 @@ async function createAdminUser() {
 
 /**
  * Creates additional sample users for testing and demonstration.
+ */
+/**
+ * CreateSampleUsers function.
+ * @returns Function result.
  */
 async function createSampleUsers() {
   try {
@@ -150,7 +158,7 @@ async function createSampleUsers() {
     console.warn('🎯 Test accounts ready for Quebec property management system');
     console.warn('🔐 All passwords follow the same pattern: [Role]123!');
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error creating sample users:', error);
   }
 }
@@ -158,6 +166,10 @@ async function createSampleUsers() {
 // Execute the script
 /**
  *
+ */
+/**
+ * Main function.
+ * @returns Function result.
  */
 async function main() {
   console.warn('🏠 Koveo Gestion - Quebec Property Management System');

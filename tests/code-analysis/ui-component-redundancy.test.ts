@@ -226,7 +226,7 @@ describe('Enhanced UI Component Redundancy Detection', () => {
             componentFiles.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (__error) {
         // Directory might not exist
       }
     };

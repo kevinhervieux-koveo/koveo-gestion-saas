@@ -42,6 +42,11 @@ export interface BuildingUpdateData extends Partial<BuildingCreateData> {
  * Creates a new building with auto-generated residences.
  * @param buildingData
  */
+/**
+ * CreateBuilding function.
+ * @param buildingData
+ * @returns Function result.
+ */
 export async function createBuilding(buildingData: BuildingCreateData) {
   const buildingId = crypto.randomUUID();
   
@@ -94,7 +99,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
         .returning();
 
       console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
-    } catch (residenceError) {
+    } catch (__residenceError) {
       console.error('⚠️ Error auto-generating residences:', residenceError);
       // Don't fail the building creation if residence generation fails
     }
@@ -107,6 +112,12 @@ export async function createBuilding(buildingData: BuildingCreateData) {
  * Updates a building.
  * @param buildingId
  * @param buildingData
+ */
+/**
+ * UpdateBuilding function.
+ * @param buildingId
+ * @param buildingData
+ * @returns Function result.
  */
 export async function updateBuilding(buildingId: string, buildingData: BuildingUpdateData) {
   const updatedBuilding = await db
@@ -138,6 +149,11 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
  * Soft deletes a building.
  * @param buildingId
  */
+/**
+ * DeleteBuilding function.
+ * @param buildingId
+ * @returns Function result.
+ */
 export async function deleteBuilding(buildingId: string) {
   const deletedBuilding = await db
     .update(buildings)
@@ -154,6 +170,11 @@ export async function deleteBuilding(buildingId: string) {
 /**
  * Performs cascade delete of a building and all related entities.
  * @param buildingId
+ */
+/**
+ * CascadeDeleteBuilding function.
+ * @param buildingId
+ * @returns Function result.
  */
 export async function cascadeDeleteBuilding(buildingId: string) {
   // Check if building exists
@@ -231,6 +252,11 @@ export async function cascadeDeleteBuilding(buildingId: string) {
 /**
  * Checks if a building exists and is active.
  * @param buildingId
+ */
+/**
+ * BuildingExists function.
+ * @param buildingId
+ * @returns Function result.
  */
 export async function buildingExists(buildingId: string): Promise<boolean> {
   const result = await db

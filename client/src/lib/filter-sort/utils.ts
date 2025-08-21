@@ -16,6 +16,12 @@ import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
  * const matches = applyFilter(user, filter); // true
  * ```
  */
+/**
+ * ApplyFilter function.
+ * @param item
+ * @param filter
+ * @returns Function result.
+ */
 export function applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
   const filterValue = filter.value;
@@ -96,6 +102,12 @@ export function applyFilter(item: any, filter: FilterValue): boolean {
  * const filtered = applyFilters(users, filters); // Both users match
  * ```
  */
+/**
+ * ApplyFilters function.
+ * @param data
+ * @param filters
+ * @returns Function result.
+ */
 export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {
   if (!filters || filters.length === 0) {
     return data;
@@ -119,6 +131,13 @@ export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {
  * const products = [{ name: 'iPhone', category: 'Electronics' }, { name: 'Book', category: 'Media' }];
  * const results = applySearch(products, 'phone', ['name']); // [{ name: 'iPhone', ... }]
  * ```
+ */
+/**
+ * ApplySearch function.
+ * @param data
+ * @param search
+ * @param searchFields
+ * @returns Function result.
  */
 export function applySearch<T>(data: T[], search: string, searchFields?: string[]): T[] {
   if (!search || search.trim() === '') {
@@ -157,6 +176,12 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
  * const sorted = applySort(users, { field: 'age', direction: 'desc' });
  * // [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }]
  * ```
+ */
+/**
+ * ApplySort function.
+ * @param data
+ * @param sort
+ * @returns Function result.
  */
 export function applySort<T>(data: T[], sort: SortValue | null): T[] {
   if (!sort) {
@@ -220,6 +245,15 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {
  * );
  * ```
  */
+/**
+ * ApplyFilterSort function.
+ * @param data
+ * @param filters
+ * @param search
+ * @param sort
+ * @param searchFields
+ * @returns Function result.
+ */
 export function applyFilterSort<T>(
   data: T[],
   filters: FilterValue[],
@@ -257,6 +291,12 @@ export function applyFilterSort<T>(
  * const missing = getNestedValue(user, 'profile.phone'); // undefined
  * ```
  */
+/**
+ * GetNestedValue function.
+ * @param obj
+ * @param path
+ * @returns Function result.
+ */
 function getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, key) => current?.[key], obj);
 }
@@ -275,6 +315,12 @@ function getNestedValue(obj: any, path: string): any {
  * const found = searchInObject(user, 'montreal'); // true
  * const notFound = searchInObject(user, 'toronto'); // false
  * ```
+ */
+/**
+ * SearchInObject function.
+ * @param obj
+ * @param search
+ * @returns Function result.
  */
 function searchInObject(obj: any, search: string): boolean {
   if (obj === null || obj === undefined) {
@@ -313,6 +359,11 @@ function searchInObject(obj: any, search: string): boolean {
  * const numberOps = getDefaultOperators('number'); // ['equals', 'greater_than', 'less_than', ...]
  * const booleanOps = getDefaultOperators('boolean'); // ['equals']
  * ```
+ */
+/**
+ * GetDefaultOperators function.
+ * @param type
+ * @returns Function result.
  */
 export function getDefaultOperators(type: string): FilterOperator[] {
   switch (type) {
@@ -369,6 +420,11 @@ export function getDefaultOperators(type: string): FilterOperator[] {
  * const label2 = getOperatorLabel('greater_than_or_equal'); // 'Greater than or equal'
  * const label3 = getOperatorLabel('is_empty'); // 'Is empty'
  * ```
+ */
+/**
+ * GetOperatorLabel function.
+ * @param operator
+ * @returns Function result.
  */
 export function getOperatorLabel(operator: FilterOperator): string {
   const labels: Record<FilterOperator, string> = {

@@ -39,7 +39,7 @@ describe('API Security Integration Tests', () => {
     app.use(express.json());
     
     // Mock authentication middleware
-    app.use((req: any, res: any, next: any) => {
+    app.use((req: unknown, res: unknown, next: unknown) => {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header required' });
@@ -84,6 +84,10 @@ describe('API Security Integration Tests', () => {
 
   /**
    *
+   */
+  /**
+   * SetupTestData function.
+   * @returns Function result.
    */
   async function setupTestData() {
     // Create test organization
@@ -186,6 +190,10 @@ describe('API Security Integration Tests', () => {
   /**
    *
    */
+  /**
+   * CleanupTestData function.
+   * @returns Function result.
+   */
   async function cleanupTestData() {
     if (testData) {
       await db.delete(demands);
@@ -202,41 +210,46 @@ describe('API Security Integration Tests', () => {
    *
    * @param app
    */
+  /**
+   * RegisterSecurityTestRoutes function.
+   * @param app
+   * @returns Function result.
+   */
   function registerSecurityTestRoutes(app: express.Application) {
     // Mock protected routes for testing
-    app.get('/api/admin-only', (req: any, res: any) => {
+    app.get('/api/admin-only', (req: unknown, res: unknown) => {
       if (req.user?.role !== 'admin') {
         return res.status(403).json({ message: 'Admin access required' });
       }
       res.json({ message: 'Admin access granted' });
     });
 
-    app.get('/api/manager-or-admin', (req: any, res: any) => {
+    app.get('/api/manager-or-admin', (req: unknown, res: unknown) => {
       if (!['admin', 'manager'].includes(req.user?.role)) {
         return res.status(403).json({ message: 'Manager or admin access required' });
       }
       res.json({ message: 'Manager/admin access granted' });
     });
 
-    app.get('/api/authenticated', (req: any, res: any) => {
+    app.get('/api/authenticated', (req: unknown, res: unknown) => {
       res.json({ message: 'Authenticated user', userId: req.user.id });
     });
 
-    app.post('/api/demands', (req: any, res: any) => {
+    app.post('/api/demands', (req: unknown, res: unknown) => {
       if (req.user?.role === 'tenant') {
         return res.status(403).json({ message: 'Tenants cannot create demands' });
       }
       res.status(201).json({ message: 'Demand created', submitterId: req.user.id });
     });
 
-    app.patch('/api/demands/:id/status', (req: any, res: any) => {
+    app.patch('/api/demands/:id/status', (req: unknown, res: unknown) => {
       if (!['admin', 'manager'].includes(req.user?.role)) {
         return res.status(403).json({ message: 'Cannot update demand status' });
       }
       res.json({ message: 'Status updated', updatedBy: req.user.id });
     });
 
-    app.get('/api/users', (req: any, res: any) => {
+    app.get('/api/users', (req: unknown, res: unknown) => {
       if (!['admin', 'manager'].includes(req.user?.role)) {
         return res.status(403).json({ message: 'User list access denied' });
       }
@@ -244,7 +257,7 @@ describe('API Security Integration Tests', () => {
     });
 
     // Sensitive data endpoint
-    app.get('/api/sensitive-data', (req: any, res: any) => {
+    app.get('/api/sensitive-data', (req: unknown, res: unknown) => {
       if (req.user?.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
       }
@@ -255,7 +268,7 @@ describe('API Security Integration Tests', () => {
     });
 
     // SQL injection vulnerable endpoint (for testing)
-    app.get('/api/vulnerable-search', async (req: any, res: any) => {
+    app.get('/api/vulnerable-search', async (req: unknown, res: unknown) => {
       const { query } = req.query;
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ message: 'Query parameter required' });

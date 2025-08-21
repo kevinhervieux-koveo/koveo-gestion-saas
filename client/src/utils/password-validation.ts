@@ -37,6 +37,11 @@ const COMMON_PATTERNS = [
  * Validates password strength and provides detailed feedback.
  * @param password
  */
+/**
+ * ValidatePasswordStrength function.
+ * @param password
+ * @returns Function result.
+ */
 export function validatePasswordStrength(password: string): PasswordStrengthResult {
   const criteria = getPasswordCriteria(password);
   const feedback: string[] = [];
@@ -107,6 +112,11 @@ export function validatePasswordStrength(password: string): PasswordStrengthResu
  * Gets detailed password criteria evaluation.
  * @param password
  */
+/**
+ * GetPasswordCriteria function.
+ * @param password
+ * @returns Function result.
+ */
 export function getPasswordCriteria(password: string): PasswordCriteria {
   return {
     minLength: password.length >= 8,
@@ -123,6 +133,11 @@ export function getPasswordCriteria(password: string): PasswordCriteria {
 /**
  * Gets password strength level text with Quebec French labels.
  * @param score
+ */
+/**
+ * GetPasswordStrengthLabel function.
+ * @param score
+ * @returns Function result.
  */
 export function getPasswordStrengthLabel(score: number): string {
   switch (score) {
@@ -144,6 +159,11 @@ export function getPasswordStrengthLabel(score: number): string {
  * Gets password strength color for UI indicators.
  * @param score
  */
+/**
+ * GetPasswordStrengthColor function.
+ * @param score
+ * @returns Function result.
+ */
 export function getPasswordStrengthColor(score: number): string {
   switch (score) {
     case 0:
@@ -163,6 +183,11 @@ export function getPasswordStrengthColor(score: number): string {
 /**
  * Gets progress bar color for password strength visualization.
  * @param score
+ */
+/**
+ * GetPasswordStrengthBarColor function.
+ * @param score
+ * @returns Function result.
  */
 export function getPasswordStrengthBarColor(score: number): string {
   switch (score) {

@@ -150,7 +150,7 @@ class CoverageMonitoringService {
       writeFileSync(baselinePath, JSON.stringify(metrics, null, 2));
       
       console.warn('✅ Baseline metrics collected and saved');
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Failed to collect baseline:', error);
     }
   }
@@ -187,7 +187,7 @@ class CoverageMonitoringService {
           console.warn(`⚠️  ${alerts.length} alerts generated`);
         }
         
-      } catch (error) {
+      } catch (__error) {
         console.error(`❌ [${new Date().toLocaleTimeString()}] Monitoring error:`, error);
       }
       
@@ -330,7 +330,7 @@ class CoverageMonitoringService {
    * @param coverageData
    * @param qualityReport
    */
-  private async calculateTrends(coverageData: any, qualityReport: any): Promise<any> {
+  private async calculateTrends(coverageData: unknown, qualityReport: unknown): Promise<any> {
     const historicalPath = join(this.dataDir, 'historical.json');
     let historical = [];
     
@@ -465,7 +465,7 @@ class CoverageMonitoringService {
       }
       
       const historical = JSON.parse(readFileSync(historicalPath, 'utf8'));
-      const last24Hours = historical.filter((metric: any) => {
+      const last24Hours = historical.filter((metric: unknown) => {
         const metricTime = new Date(metric.timestamp).getTime();
         const now = Date.now();
         return now - metricTime <= 24 * 60 * 60 * 1000;
@@ -483,7 +483,7 @@ class CoverageMonitoringService {
       
       console.warn(`✅ Daily report generated: ${reportPath}`);
       
-    } catch (error) {
+    } catch (__error) {
       console.error('❌ Failed to generate daily report:', error);
     }
   }
@@ -519,7 +519,7 @@ class CoverageMonitoringService {
    * Generates HTML daily report.
    * @param report
    */
-  private generateDailyReportHTML(report: any): string {
+  private generateDailyReportHTML(report: unknown): string {
     return `
     <!DOCTYPE html>
     <html lang="fr">

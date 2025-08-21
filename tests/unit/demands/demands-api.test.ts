@@ -66,6 +66,10 @@ describe('Demands API Unit Tests', () => {
   /**
    * Setup comprehensive test data for demand testing.
    */
+  /**
+   * SetupTestData function.
+   * @returns Function result.
+   */
   async function setupTestData() {
     try {
       // Create test organizations
@@ -237,7 +241,7 @@ describe('Demands API Unit Tests', () => {
         testDemands.push(demand);
       }
 
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to setup test data:', error);
       throw error;
     }
@@ -245,6 +249,10 @@ describe('Demands API Unit Tests', () => {
 
   /**
    * Cleanup all test data after tests complete.
+   */
+  /**
+   * CleanupTestData function.
+   * @returns Function result.
    */
   async function cleanupTestData() {
     try {
@@ -271,7 +279,7 @@ describe('Demands API Unit Tests', () => {
       if (testOrganizations.length > 0) {
         await db.delete(organizations);
       }
-    } catch (error) {
+    } catch (__error) {
       console.error('Failed to cleanup test data:', error);
     }
   }
@@ -413,7 +421,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.body.length).toBeGreaterThan(0);
       
       // Verify search results contain the search term
-      const foundMatch = response.body.some((demand: any) => 
+      const foundMatch = response.body.some((demand: unknown) => 
         demand.description.toLowerCase().includes('faucet')
       );
       expect(foundMatch).toBe(true);

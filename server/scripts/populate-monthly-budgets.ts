@@ -13,6 +13,10 @@ import { db } from '../db';
 /**
  *
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 async function main() {
   console.log('🚀 Starting monthly budget population script...');
   console.log('This will create budget entries for all buildings from construction date to 3 years in the future.');
@@ -39,7 +43,7 @@ async function main() {
     console.log(`- Buildings with budgets: ${finalStats.buildingsWithBudgets}`);
     console.log(`- Date range: ${finalStats.oldestBudgetDate || 'N/A'} to ${finalStats.newestBudgetDate || 'N/A'}`);
 
-  } catch (error) {
+  } catch (__error) {
     console.error('❌ Error during budget population:', error);
     process.exit(1);
   } finally {

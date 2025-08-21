@@ -40,7 +40,7 @@ class SSLManagementValidator {
    * @param message
    * @param details
    */
-  private addResult(component: string, status: 'PASS' | 'FAIL' | 'WARNING', message: string, details?: any) {
+  private addResult(component: string, status: 'PASS' | 'FAIL' | 'WARNING', message: string, details?: unknown) {
     this.results.push({ component, status, message, details });
   }
 
@@ -89,7 +89,7 @@ class SSLManagementValidator {
         });
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.addResult('SSL Renewal Job', 'FAIL', 'Failed to get job status', { error: String(error) });
     }
   }
@@ -121,7 +121,7 @@ class SSLManagementValidator {
         this.addResult('Database - Admin Users', 'PASS', 'Admin users available for notifications');
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Database', 'FAIL', 'Database connectivity or schema issues', { error: String(error) });
     }
   }
@@ -157,7 +157,7 @@ class SSLManagementValidator {
         this.addResult('Notification Service', 'FAIL', 'Notification count method returned invalid type');
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Notification Service', 'FAIL', 'Notification service validation failed', { error: String(error) });
     }
   }
@@ -235,7 +235,7 @@ class SSLManagementValidator {
         this.addResult('Certificate Status Logic', 'FAIL', 'Certificate status calculation incorrect', { status });
       }
 
-    } catch (error) {
+    } catch (__error) {
       this.addResult('Certificate Status Logic', 'FAIL', 'Cannot validate certificate status logic', { error: String(error) });
     }
   }

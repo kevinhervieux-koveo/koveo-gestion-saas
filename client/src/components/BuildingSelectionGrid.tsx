@@ -10,6 +10,13 @@ import type { Building } from '@shared/schema';
  * @param root0.buildings
  * @param root0.onBuildingSelect
  */
+/**
+ * BuildingSelectionGrid function.
+ * @param root0
+ * @param root0.buildings
+ * @param root0.onBuildingSelect
+ * @returns Function result.
+ */
 export function BuildingSelectionGrid({ 
   buildings, 
   onBuildingSelect 
@@ -48,6 +55,13 @@ export function BuildingSelectionGrid({
  * @param root0
  * @param root0.building
  * @param root0.onSelect
+ */
+/**
+ * BuildingCard function.
+ * @param root0
+ * @param root0.building
+ * @param root0.onSelect
+ * @returns Function result.
  */
 function BuildingCard({ 
   building, 

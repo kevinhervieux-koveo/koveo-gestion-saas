@@ -34,6 +34,19 @@ interface BuildingFormProps {
  * @param root0.submitLabel - Submit button text.
  * @returns JSX element for the building form dialog.
  */
+/**
+ * BuildingForm function.
+ * @param root0
+ * @param root0.isOpen
+ * @param root0.onOpenChange
+ * @param root0.form
+ * @param root0.onSubmit
+ * @param root0.organizations
+ * @param root0.isSubmitting
+ * @param root0.title
+ * @param root0.submitLabel
+ * @returns Function result.
+ */
 export function BuildingForm({
   isOpen,
   onOpenChange,

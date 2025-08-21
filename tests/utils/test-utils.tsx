@@ -41,7 +41,7 @@ const customRender = (
 };
 
 // Enhanced utilities for better timeout handling
-export const waitFor = (callback: () => void, options?: any) => {
+export const waitFor = (callback: () => void, options?: unknown) => {
   return originalWaitFor(callback, {
     timeout: 12000,
     interval: 100,
@@ -59,7 +59,7 @@ export const findByTextWithTimeout = async (text: string, timeout = 10000) => {
   return await screen.findByText(text, {}, { timeout });
 };
 
-export const findByRoleWithTimeout = async (role: any, options: any = {}, timeout = 10000) => {
+export const findByRoleWithTimeout = async (role: any, options: unknown = {}, timeout = 10000) => {
   return await screen.findByRole(role, options, { timeout });
 };
 

@@ -113,6 +113,14 @@ type UpdateDemandData = z.infer<typeof updateDemandSchema>;
  * @param root0.open
  * @param root0.onOpenChange
  */
+/**
+ * DemandDetailsPopup function.
+ * @param root0
+ * @param root0.demandId
+ * @param root0.open
+ * @param root0.onOpenChange
+ * @returns Function result.
+ */
 export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetailsPopupProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);

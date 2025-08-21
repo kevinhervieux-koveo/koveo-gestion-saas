@@ -75,6 +75,10 @@ interface AIInsight {
  * Provides interface for triggering AI analysis and applying suggestions.
  * @returns JSX element for the AI monitoring dashboard.
  */
+/**
+ * ReplitAIMonitoring function.
+ * @returns Function result.
+ */
 export function ReplitAIMonitoring() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');

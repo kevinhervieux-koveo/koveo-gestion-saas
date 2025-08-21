@@ -61,7 +61,7 @@ export default function InvitationAcceptancePage() {
   ];
 
   // Handle wizard completion - create user account
-  const handleWizardComplete = useCallback(async (wizardData: any) => {
+  const handleWizardComplete = useCallback(async (wizardData: unknown) => {
     try {
       setError(null);
       
@@ -119,7 +119,7 @@ export default function InvitationAcceptancePage() {
       setCompletedUser(result.user);
       setIsCompleted(true);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error completing registration:', error);
       setError(error.message || 'Une erreur est survenue lors de la création de votre compte');
     }

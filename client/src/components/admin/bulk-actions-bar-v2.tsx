@@ -69,6 +69,14 @@ interface BulkAction {
  * @param root0.onBulkAction
  * @param root0.isLoading
  */
+/**
+ * BulkActionsBar function.
+ * @param root0
+ * @param root0.selectedCount
+ * @param root0.onBulkAction
+ * @param root0.isLoading
+ * @returns Function result.
+ */
 export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkActionsBarProps) {
   const { t } = useLanguage();
   const [currentAction, setCurrentAction] = useState<BulkAction | null>(null);
@@ -156,7 +164,7 @@ export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkA
       await onBulkAction(action.type, data);
       setCurrentAction(null);
       setIsConfirmDialogOpen(false);
-    } catch (error) {
+    } catch (_error) {
       // Error handling is managed by the parent component
       console.error('Bulk action failed:', error);
     }

@@ -4,6 +4,10 @@ import permissionsData from './permissions.json';
 /**
  * Simple test script to verify permissions system is working correctly.
  */
+/**
+ * TestPermissions function.
+ * @returns Function result.
+ */
 async function testPermissions() {
   console.warn('🔐 Testing Koveo Gestion Permissions System\n');
 

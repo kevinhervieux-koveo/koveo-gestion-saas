@@ -13,6 +13,10 @@ import { agentDashboard } from '../tools/ai-agent-dashboard';
 /**
  *
  */
+/**
+ * Main function.
+ * @returns Function result.
+ */
 async function main() {
   console.log(chalk.blue.bold('🤖 Testing AI Agent Toolkit\n'));
 
@@ -121,7 +125,7 @@ async function main() {
       console.log(chalk.green(`✅ Workflow Status: ${workflowResult.success ? 'Success' : 'Warning'}`));
       console.log(chalk.cyan(`   Actions: ${workflowResult.results.length}`));
       console.log(chalk.gray(`   Summary: ${workflowResult.summary}`));
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Workflow test skipped: ${error}`));
     }
     console.log();
@@ -139,7 +143,7 @@ async function main() {
       } else {
         console.log(chalk.cyan(`   Trends available: No (insufficient data)`));
       }
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Dashboard generation test failed: ${error}`));
     }
     console.log();
@@ -154,7 +158,7 @@ async function main() {
       const parsedData = JSON.parse(exportData);
       console.log(chalk.cyan(`   Contains: context, health, codeAnalysis, suggestions`));
       console.log(chalk.cyan(`   Timestamp: ${new Date(parsedData.timestamp).toLocaleTimeString()}`));
-    } catch (error) {
+    } catch (__error) {
       console.log(chalk.yellow(`⚠️ Export test failed: ${error}`));
     }
     console.log();
@@ -179,7 +183,7 @@ async function main() {
     console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts analyze'));
     console.log();
 
-  } catch (error) {
+  } catch (__error) {
     console.error(chalk.red('❌ Test failed:'), error);
     process.exit(1);
   }

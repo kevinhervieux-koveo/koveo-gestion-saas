@@ -127,6 +127,9 @@ export const financialCache = sql`
 `;
 
 // Types for the new system
+/**
+ *
+ */
 export interface FinancialPeriodData {
   buildingId: string;
   startDate: string;
@@ -149,6 +152,9 @@ export interface FinancialPeriodData {
   };
 }
 
+/**
+ *
+ */
 export interface FinancialCacheEntry {
   id: string;
   buildingId: string;
