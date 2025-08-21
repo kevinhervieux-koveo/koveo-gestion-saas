@@ -170,8 +170,8 @@ export default function Bills() {
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     } else {
-      // Show 3 years before building construction to current year + 3 years
-      const startYear = buildingConstructionYear - 3;
+      // Show current year ±3 years
+      const startYear = currentYear - 3;
       const endYear = currentYear + 3;
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
@@ -272,7 +272,7 @@ export default function Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(false)}
                             >
-                              Show fewer years ({buildingConstructionYear - 3} - {currentYear + 3})
+                              Show fewer years ({currentYear - 3} - {currentYear + 3})
                             </Button>
                           </div>
                         )}
