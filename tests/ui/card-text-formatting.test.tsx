@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LanguageProvider } from '../../client/src/contexts/LanguageContext';
+import { LanguageProvider } from '@/hooks/use-language';
 
 // Mock demand card component for testing
 const DemandCard = ({ demand }: { demand: any }) => {

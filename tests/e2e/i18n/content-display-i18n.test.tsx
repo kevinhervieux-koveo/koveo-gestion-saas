@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LanguageProvider } from '../../client/src/contexts/LanguageContext';
+import { LanguageProvider } from '@/hooks/use-language';
 
 // Mock data for testing with both languages
 const mockDemandsData = {

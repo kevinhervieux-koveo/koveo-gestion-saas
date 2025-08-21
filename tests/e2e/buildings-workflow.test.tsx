@@ -218,7 +218,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       const orgSelect = screen.getByRole('combobox');
       await user.click(orgSelect);
       
-      await waitFor(() => {
+      await waitFor(async () => {
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
       });

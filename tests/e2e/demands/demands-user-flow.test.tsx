@@ -11,7 +11,7 @@ import { Router } from 'wouter';
 import { memoryLocation } from 'wouter/memory';
 import ResidentDemandsPage from '../../../client/src/pages/residents/demands';
 import ManagerDemandsPage from '../../../client/src/pages/manager/demands';
-import { LanguageProvider } from '../../../client/src/contexts/LanguageContext';
+import { LanguageProvider } from '@/hooks/use-language';
 import { Toaster } from '../../../client/src/components/ui/toaster';
 
 // Mock the API calls
@@ -42,7 +42,7 @@ const mockAuthContext = {
   isLoading: false
 };
 
-jest.mock('../../../client/src/hooks/useAuth', () => ({
+jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockAuthContext
 }));
 

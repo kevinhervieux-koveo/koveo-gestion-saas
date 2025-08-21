@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LanguageProvider } from '../../client/src/contexts/LanguageContext';
+import { LanguageProvider } from '@/hooks/use-language';
 
 // Mock ResizeObserver for testing
 /**

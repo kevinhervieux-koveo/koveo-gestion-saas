@@ -40,9 +40,8 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-// Get the current directory  
-const configFilename = fileURLToPath(import.meta.url);
-const configDirname = dirname(configFilename);
+// Get the current directory - use require.resolve as CommonJS-compatible approach
+const configDirname = dirname(require.resolve('./permissions.json'));
 
 /**
  * Load permissions data with fallback for production and development environments.
