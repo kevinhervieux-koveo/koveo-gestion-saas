@@ -97,35 +97,25 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 
       // If no data exists, provide sample data to demonstrate the dashboard
       if (monthlyBudgetData.length === 0) {
-        const sampleData = [
-          {
-            year: currentYear,
-            month: new Date().getMonth() + 1,
-            incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
-            incomes: ['45000', '3500', '2000'],
-            spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
-            spendings: ['12000', '8500', '4200', '3800'],
-            approved: false,
-          },
-          {
-            year: currentYear,
-            month: new Date().getMonth(),
-            incomeTypes: ['monthly_fees', 'parking_fees'],
-            incomes: ['44500', '3200'],
-            spendingTypes: ['maintenance_expense', 'utilities', 'cleaning'],
-            spendings: ['15000', '7800', '2500'],
-            approved: true,
-          },
-          {
-            year: currentYear - 1,
-            month: 12,
-            incomeTypes: ['monthly_fees', 'special_assessment'],
-            incomes: ['43000', '25000'],
-            spendingTypes: ['maintenance_expense', 'professional_services'],
-            spendings: ['35000', '15000'],
-            approved: true,
-          },
-        ];
+        const sampleData = [];
+        
+        // Generate sample data for the requested year range
+        for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
+          const monthsInYear = year === start ? [1, 6, 12] : [1, 6, 12]; // Sample months
+          
+          monthsInYear.forEach(month => {
+            sampleData.push({
+              year: year,
+              month: month,
+              incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
+              incomes: ['45000', '3500', '2000'],
+              spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
+              spendings: ['12000', '8500', '4200', '3800'],
+              approved: true,
+            });
+          });
+        }
+        
         return res.json({ budgets: sampleData, type: 'monthly' });
       }
       
@@ -191,32 +181,25 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
 
     // If no data exists, provide sample data to demonstrate the dashboard
     if (summaryData.length === 0) {
-      const sampleSummary = [
-        {
-          year: currentYear,
-          month: new Date().getMonth() + 1,
-          incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
-          incomes: ['45000', '3500', '2000'],
-          spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
-          spendings: ['12000', '8500', '4200', '3800'],
-        },
-        {
-          year: currentYear,
-          month: new Date().getMonth(),
-          incomeTypes: ['monthly_fees', 'parking_fees'],
-          incomes: ['44500', '3200'],
-          spendingTypes: ['maintenance_expense', 'utilities', 'cleaning'],
-          spendings: ['15000', '7800', '2500'],
-        },
-        {
-          year: currentYear - 1,
-          month: 12,
-          incomeTypes: ['monthly_fees', 'special_assessment'],
-          incomes: ['43000', '25000'],
-          spendingTypes: ['maintenance_expense', 'professional_services'],
-          spendings: ['35000', '15000'],
-        },
-      ];
+      const sampleSummary = [];
+      
+      // Generate sample data for the requested year range
+      for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
+        const monthsInYear = year === start ? [1, 6, 12] : [1, 6, 12]; // Sample months
+        
+        monthsInYear.forEach(month => {
+          sampleSummary.push({
+            year: year,
+            month: month,
+            incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
+            incomes: ['45000', '3500', '2000'],
+            spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
+            spendings: ['12000', '8500', '4200', '3800'],
+            approved: true,
+          });
+        });
+      }
+      
       return res.json({ summary: sampleSummary });
     }
     
