@@ -156,21 +156,22 @@ export default function Bills() {
     return `${filters.months.length} months`;
   };
 
-  // Get building creation year for minimum year calculation
+  // Get building construction year for minimum year calculation
   const selectedBuilding = buildings.find(b => b.id === filters.buildingId);
-  const buildingCreationYear = selectedBuilding?.createdAt ? new Date(selectedBuilding.createdAt).getFullYear() : new Date().getFullYear();
+  const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
   const getYearOptions = () => {
     if (showAllYears) {
-      // Show all years from building creation to 25 years forward
+      // Show all years from 3 years before building construction to 25 years forward
+      const startYear = buildingConstructionYear - 3;
       const endYear = currentYear + 25;
-      const totalYears = endYear - buildingCreationYear + 1;
-      return Array.from({ length: totalYears }, (_, i) => buildingCreationYear + i);
+      const totalYears = endYear - startYear + 1;
+      return Array.from({ length: totalYears }, (_, i) => startYear + i);
     } else {
-      // Show current year ±3 years, but respect building creation year as minimum
-      const startYear = Math.max(currentYear - 3, buildingCreationYear);
+      // Show 3 years before building construction to current year + 3 years
+      const startYear = buildingConstructionYear - 3;
       const endYear = currentYear + 3;
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
@@ -259,7 +260,7 @@ export default function Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(true)}
                             >
-                              Show more years ({buildingCreationYear} - {currentYear + 25})
+                              Show more years ({buildingConstructionYear - 3} - {currentYear + 25})
                             </Button>
                           </div>
                         )}
@@ -271,7 +272,7 @@ export default function Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(false)}
                             >
-                              Show fewer years ({currentYear - 3} - {currentYear + 3})
+                              Show fewer years ({buildingConstructionYear - 3} - {currentYear + 3})
                             </Button>
                           </div>
                         )}
