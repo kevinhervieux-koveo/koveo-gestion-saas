@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -30,26 +31,29 @@ export default function HomePage() {
               <h1 className="text-xl font-bold text-gray-900">Koveo Gestion</h1>
             </div>
           </div>
-          <div className="flex space-x-3">
-            {isAuthenticated ? (
-              <>
-                <Button variant="outline" onClick={logout}>
-                  Logout
-                </Button>
-                <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
-                  Go to Dashboard
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" onClick={() => setLocation('/login')}>
-                  Sign In
-                </Button>
-                <Button onClick={() => setLocation('/login')} className="bg-blue-600 hover:bg-blue-700">
-                  Get Started
-                </Button>
-              </>
-            )}
+          <div className="flex items-center space-x-3">
+            <LanguageSwitcher />
+            <div className="flex space-x-3">
+              {isAuthenticated ? (
+                <>
+                  <Button variant="outline" onClick={logout}>
+                    Logout
+                  </Button>
+                  <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
+                    Go to Dashboard
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => setLocation('/login')}>
+                    Sign In
+                  </Button>
+                  <Button onClick={() => setLocation('/login')} className="bg-blue-600 hover:bg-blue-700">
+                    Get Started
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
