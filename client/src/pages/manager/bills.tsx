@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag, ChevronDown } from 'lucide-react';
 import { BillEditForm } from '@/components/BillEditForm';
+import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
@@ -362,13 +363,10 @@ export default function Bills() {
 
           {/* Bills Display */}
           {!filters.buildingId ? (
-            <Card>
-              <CardContent className='p-8 text-center'>
-                <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>Select a Building</h3>
-                <p className='text-gray-500'>Choose a building from the filter above to view and manage its bills</p>
-              </CardContent>
-            </Card>
+            <BuildingSelectionGrid 
+              buildings={buildings} 
+              onBuildingSelect={(buildingId) => handleFilterChange('buildingId', buildingId)}
+            />
           ) : isLoading ? (
             <Card>
               <CardContent className='p-8 text-center'>
