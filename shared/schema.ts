@@ -60,6 +60,8 @@ export type {
   InsertBill,
   Budget,
   InsertBudget,
+  MonthlyBudget,
+  InsertMonthlyBudget,
 } from './schemas/financial';
 
 export type {

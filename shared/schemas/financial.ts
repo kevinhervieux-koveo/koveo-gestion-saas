@@ -211,6 +211,32 @@ export const budgets = pgTable('budgets', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Monthly budgets table for detailed monthly tracking of income and spending by building.
+ * Automatically populated for each building from construction date to 25 years in the future.
+ * Updated monthly on the 1st and supports approval workflow.
+ */
+export const monthlyBudgets = pgTable('monthly_budgets', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  buildingId: uuid('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  year: integer('year').notNull(),
+  month: integer('month').notNull(), // 1-12
+  incomeTypes: text('income_types').array().notNull(), // Array of income categories from money_flow
+  incomes: decimal('incomes', { precision: 12, scale: 2 }).array().notNull(), // Array of income amounts corresponding to incomeTypes
+  spendingTypes: text('spending_types').array().notNull(), // Array of expense categories from money_flow
+  spendings: decimal('spendings', { precision: 12, scale: 2 }).array().notNull(), // Array of spending amounts corresponding to spendingTypes
+  approved: boolean('approved').notNull().default(false),
+  approvedBy: uuid('approved_by').references(() => users.id),
+  approvedDate: timestamp('approved_date'),
+  originalBudgetId: uuid('original_budget_id').references(() => monthlyBudgets.id), // References the original budget if this is an approved copy
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertMoneyFlowSchema = createInsertSchema(moneyFlow).pick({
   buildingId: true,
@@ -277,6 +303,19 @@ export const insertBudgetSchema = createInsertSchema(budgets).pick({
   createdBy: true,
 });
 
+export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).pick({
+  buildingId: true,
+  year: true,
+  month: true,
+  incomeTypes: true,
+  incomes: true,
+  spendingTypes: true,
+  spendings: true,
+  approved: true,
+  approvedBy: true,
+  originalBudgetId: true,
+});
+
 // Types
 /**
  * Money flow insert and select types.
@@ -313,6 +352,15 @@ export type InsertBudget = z.infer<typeof insertBudgetSchema>;
  *
  */
 export type Budget = typeof budgets.$inferSelect;
+
+/**
+ * Monthly budget insert and select types.
+ */
+export type InsertMonthlyBudget = z.infer<typeof insertMonthlyBudgetSchema>;
+/**
+ *
+ */
+export type MonthlyBudget = typeof monthlyBudgets.$inferSelect;
 
 // Relations
 export const moneyFlowRelations = relations(moneyFlow, ({ one }) => ({
@@ -377,5 +425,21 @@ export const budgetsRelations = relations(budgets, ({ one }) => ({
   approvedBy: one(users, {
     fields: [budgets.approvedBy],
     references: [users.id],
+  }),
+}));
+
+export const monthlyBudgetsRelations = relations(monthlyBudgets, ({ one }) => ({
+  building: one(buildings, {
+    fields: [monthlyBudgets.buildingId],
+    references: [buildings.id],
+  }),
+  approvedBy: one(users, {
+    fields: [monthlyBudgets.approvedBy],
+    references: [users.id],
+  }),
+  originalBudget: one(monthlyBudgets, {
+    fields: [monthlyBudgets.originalBudgetId],
+    references: [monthlyBudgets.id],
+    relationName: 'budgetCopy'
   }),
 }));
