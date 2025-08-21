@@ -4,12 +4,15 @@
  * Script to populate monthly budget entries for all buildings.
  * Run this script to initialize the monthly_budgets table with data.
  * 
- * Usage: tsx server/scripts/populate-monthly-budgets.ts
+ * Usage: tsx server/scripts/populate-monthly-budgets.ts.
  */
 
 import { monthlyBudgetService } from '../services/monthly-budget-service';
 import { db } from '../db';
 
+/**
+ *
+ */
 async function main() {
   console.log('🚀 Starting monthly budget population script...');
   console.log('This will create budget entries for all buildings from construction date to 25 years in the future.');

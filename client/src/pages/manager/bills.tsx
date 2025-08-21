@@ -147,8 +147,8 @@ export default function Bills() {
   };
 
   const getMonthsDisplayText = () => {
-    if (filters.months.length === 0) return 'All months';
-    if (filters.months.length === MONTHS.length) return 'All months';
+    if (filters.months.length === 0) {return 'All months';}
+    if (filters.months.length === MONTHS.length) {return 'All months';}
     if (filters.months.length === 1) {
       const month = MONTHS.find(m => m.value === filters.months[0]);
       return month?.label || 'All months';

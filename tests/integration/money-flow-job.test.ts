@@ -152,8 +152,8 @@ describe('MoneyFlowJob Integration Tests', () => {
       };
 
       (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValueOnce(error)  // First attempt fails
-        .mockRejectedValueOnce(error)  // Second attempt fails
+        .mockRejectedValueOnce(error) // First attempt fails
+        .mockRejectedValueOnce(error) // Second attempt fails
         .mockResolvedValueOnce(mockResult); // Third attempt succeeds
 
       (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
@@ -326,7 +326,7 @@ describe('MoneyFlowJob Integration Tests', () => {
 
     it('should handle large numbers of entries efficiently', async () => {
       const mockResult = {
-        billEntriesCreated: 50000,   // Large number of bill entries
+        billEntriesCreated: 50000, // Large number of bill entries
         residenceEntriesCreated: 25000, // Large number of residence entries
         totalEntriesCreated: 75000
       };

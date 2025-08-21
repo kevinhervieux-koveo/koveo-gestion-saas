@@ -316,8 +316,13 @@ describe('Money Flow Calculations', () => {
 });
 
 // Helper functions for testing
+/**
+ *
+ * @param startDate
+ * @param endDate
+ */
 function calculateWeeklyOccurrences(startDate: Date, endDate: Date): number {
-  if (startDate > endDate) return 0;
+  if (startDate > endDate) {return 0;}
   
   let count = 0;
   const currentDate = new Date(startDate);
@@ -330,8 +335,13 @@ function calculateWeeklyOccurrences(startDate: Date, endDate: Date): number {
   return count;
 }
 
+/**
+ *
+ * @param startDate
+ * @param endDate
+ */
 function calculateMonthlyOccurrences(startDate: Date, endDate: Date): number {
-  if (startDate > endDate) return 0;
+  if (startDate > endDate) {return 0;}
   
   let count = 0;
   const currentDate = new Date(startDate);
@@ -344,8 +354,13 @@ function calculateMonthlyOccurrences(startDate: Date, endDate: Date): number {
   return count;
 }
 
+/**
+ *
+ * @param startDate
+ * @param endDate
+ */
 function calculateQuarterlyOccurrences(startDate: Date, endDate: Date): number {
-  if (startDate > endDate) return 0;
+  if (startDate > endDate) {return 0;}
   
   let count = 0;
   const currentDate = new Date(startDate);
@@ -358,8 +373,13 @@ function calculateQuarterlyOccurrences(startDate: Date, endDate: Date): number {
   return count;
 }
 
+/**
+ *
+ * @param startDate
+ * @param endDate
+ */
 function calculateYearlyOccurrences(startDate: Date, endDate: Date): number {
-  if (startDate > endDate) return 0;
+  if (startDate > endDate) {return 0;}
   
   let count = 0;
   const currentDate = new Date(startDate);
@@ -372,6 +392,12 @@ function calculateYearlyOccurrences(startDate: Date, endDate: Date): number {
   return count;
 }
 
+/**
+ *
+ * @param customDates
+ * @param startDate
+ * @param endDate
+ */
 function calculateCustomOccurrences(customDates: string[], startDate: Date, endDate: Date): number {
   return customDates.filter(dateStr => {
     const date = new Date(dateStr);
@@ -379,8 +405,13 @@ function calculateCustomOccurrences(customDates: string[], startDate: Date, endD
   }).length;
 }
 
+/**
+ *
+ * @param costs
+ * @param occurrences
+ */
 function calculateTotalCost(costs: string[], occurrences: number): number {
-  if (costs.length === 0 || occurrences === 0) return 0;
+  if (costs.length === 0 || occurrences === 0) {return 0;}
   
   let total = 0;
   for (let i = 0; i < occurrences; i++) {

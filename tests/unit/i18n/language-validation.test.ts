@@ -184,9 +184,9 @@ const mockTranslations = {
 };
 
 // Mock translation function
-const translate = (key: string, params: Record<string, any> = {}, language: 'en' | 'fr' = 'en'): string => {
+const translate = (key: string, params: Record<string, unknown> = {}, language: 'en' | 'fr' = 'en'): string => {
   const keys = key.split('.');
-  let value: any = mockTranslations[language];
+  let value: unknown = mockTranslations[language];
   
   for (const k of keys) {
     value = value?.[k];
@@ -203,10 +203,10 @@ const translate = (key: string, params: Record<string, any> = {}, language: 'en'
 };
 
 // Validation helper functions
-const validateTranslationCompleteness = (enTranslations: any, frTranslations: any, path = ''): string[] => {
+const validateTranslationCompleteness = (enTranslations: Record<string, unknown>, frTranslations: Record<string, unknown>, path = ''): string[] => {
   const missing: string[] = [];
   
-  const traverse = (enObj: any, frObj: any, currentPath: string) => {
+  const traverse = (enObj: unknown, frObj: unknown, currentPath: string) => {
     if (typeof enObj === 'string') {
       if (typeof frObj !== 'string') {
         missing.push(currentPath);
@@ -214,13 +214,15 @@ const validateTranslationCompleteness = (enTranslations: any, frTranslations: an
       return;
     }
     
-    if (typeof enObj === 'object' && enObj !== null) {
-      for (const key in enObj) {
+    if (typeof enObj === 'object' && enObj !== null && !Array.isArray(enObj)) {
+      const enRecord = enObj as Record<string, unknown>;
+      const frRecord = (typeof frObj === 'object' && frObj !== null && !Array.isArray(frObj)) ? frObj as Record<string, unknown> : {};
+      for (const key in enRecord) {
         const newPath = currentPath ? `${currentPath}.${key}` : key;
-        if (!(key in (frObj || {}))) {
+        if (!(key in frRecord)) {
           missing.push(newPath);
         } else {
-          traverse(enObj[key], frObj[key], newPath);
+          traverse(enRecord[key], frRecord[key], newPath);
         }
       }
     }
@@ -252,7 +254,7 @@ const validateQuebecFrench = (text: string): { isValid: boolean; suggestions: st
   const suggestions: string[] = [];
   
   // Quebec French preferences
-  const quebecPreferences = [
+  const _quebecPreferences = [
     { international: /courriel/gi, quebec: 'courriel', suggestion: 'Use "courriel" instead of "email" in Quebec French' },
     { international: /fin de semaine/gi, quebec: 'fin de semaine', suggestion: 'Use "fin de semaine" instead of "weekend"' },
     { international: /stationnement/gi, quebec: 'stationnement', suggestion: 'Use "stationnement" instead of "parking"' },
@@ -470,7 +472,7 @@ describe('Language Validation Tests', () => {
         'data_processing': { en: 'data processing', fr: 'traitement des données' }
       };
       
-      Object.entries(legalTerms).forEach(([term, translations]) => {
+      Object.entries(legalTerms).forEach(([_term, translations]) => {
         // Verify these critical terms are consistently translated
         expect(translations.fr).toBeTruthy();
         expect(translations.fr).not.toBe(translations.en);
@@ -483,7 +485,7 @@ describe('Language Validation Tests', () => {
         { amount: 1000, en: '$1,000.00', fr: '1 000,00 $' }
       ];
       
-      currencyTests.forEach(({ amount, en, fr }) => {
+      currencyTests.forEach(({ amount, en: _en, fr: _fr }) => {
         // These would be format functions in real implementation
         const formatCAD = (value: number, locale: string) => {
           return new Intl.NumberFormat(locale, {
@@ -561,8 +563,8 @@ describe('Language Validation Tests', () => {
       const maxReasonableLength = 200;
       const minReasonableLength = 2;
       
-      const checkTextLengths = (translations: any, language: string) => {
-        const traverse = (obj: any, path = '') => {
+      const checkTextLengths = (translations: Record<string, unknown>, _language: string) => {
+        const traverse = (obj: Record<string, unknown>, path = '') => {
           for (const key in obj) {
             const fullPath = path ? `${path}.${key}` : key;
             
@@ -573,8 +575,8 @@ describe('Language Validation Tests', () => {
               
               // Should not be just whitespace
               expect(text.trim().length).toBeGreaterThan(0);
-            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-              traverse(obj[key], fullPath);
+            } else if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+              traverse(obj[key] as Record<string, unknown>, fullPath);
             }
           }
         };

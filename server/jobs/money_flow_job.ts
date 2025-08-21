@@ -21,6 +21,9 @@ class MoneyFlowJob {
   private jobTask: cron.ScheduledTask | null = null;
   private isRunning = false;
 
+  /**
+   *
+   */
   constructor() {
     this.config = {
       // Run daily at 3 AM by default
@@ -157,6 +160,7 @@ class MoneyFlowJob {
   /**
    * Run money flow generation for a specific bill.
    * Used when bills are created or updated.
+   * @param billId
    */
   async generateForBill(billId: string): Promise<number> {
     this.log('info', `Triggering money flow generation for bill ${billId}`);
@@ -180,6 +184,7 @@ class MoneyFlowJob {
   /**
    * Run money flow generation for a specific residence.
    * Used when residence monthly fees are updated.
+   * @param residenceId
    */
   async generateForResidence(residenceId: string): Promise<number> {
     this.log('info', `Triggering money flow generation for residence ${residenceId}`);
@@ -231,6 +236,7 @@ class MoneyFlowJob {
 
   /**
    * Utility method for delays.
+   * @param ms
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -238,6 +244,9 @@ class MoneyFlowJob {
 
   /**
    * Logging method with configurable levels.
+   * @param level
+   * @param message
+   * @param data
    */
   private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: any): void {
     const levels = { error: 0, warn: 1, info: 2, debug: 3 };

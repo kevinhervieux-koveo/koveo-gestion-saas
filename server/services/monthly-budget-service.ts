@@ -73,6 +73,7 @@ export class MonthlyBudgetService {
 
   /**
    * Populate monthly budget entries for a specific building.
+   * @param building
    */
   async populateBudgetsForBuilding(building: Building): Promise<number> {
     // Calculate date range
@@ -101,7 +102,7 @@ export class MonthlyBudgetService {
     const budgetEntries: InsertMonthlyBudget[] = [];
     const systemUser = await this.getSystemUser();
     
-    let currentDate = new Date(constructionDate);
+    const currentDate = new Date(constructionDate);
     
     while (currentDate <= endDate) {
       const year = currentDate.getFullYear();
@@ -149,6 +150,7 @@ export class MonthlyBudgetService {
 
   /**
    * Get distinct income and expense categories from money_flow for a specific building.
+   * @param buildingId
    */
   private async getCategoriesForBuilding(buildingId: string): Promise<{
     incomeCategories: string[];
@@ -198,6 +200,11 @@ export class MonthlyBudgetService {
 
   /**
    * Get aggregated income and expense amounts for a specific month/year.
+   * @param buildingId
+   * @param year
+   * @param month
+   * @param incomeCategories
+   * @param expenseCategories
    */
   private async getAggregatedAmountsForMonth(
     buildingId: string,
@@ -262,6 +269,7 @@ export class MonthlyBudgetService {
 
   /**
    * Clean up existing budget entries for a building to avoid duplicates.
+   * @param buildingId
    */
   private async cleanupExistingBudgets(buildingId: string): Promise<void> {
     await db
@@ -273,6 +281,8 @@ export class MonthlyBudgetService {
 
   /**
    * Insert budget entries in batches to avoid database constraints.
+   * @param entries
+   * @param batchSize
    */
   private async insertBudgetEntriesInBatches(entries: InsertMonthlyBudget[], batchSize = 100): Promise<void> {
     for (let i = 0; i < entries.length; i += batchSize) {
@@ -336,6 +346,7 @@ export class MonthlyBudgetService {
 
   /**
    * Repopulate budgets for a specific building (useful when money flow data changes).
+   * @param buildingId
    */
   async repopulateBudgetsForBuilding(buildingId: string): Promise<number> {
     console.log(`🔄 Repopulating budgets for building ${buildingId}`);

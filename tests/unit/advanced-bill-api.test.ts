@@ -10,7 +10,7 @@ import { billGenerationService } from '../../server/services/bill-generation-ser
  * - Mark bills as paid
  * - Get generated bill statistics
  * - Update generated bills from parent
- * - Delete generated bills with cascade options
+ * - Delete generated bills with cascade options.
  */
 
 // Mock the bill generation service

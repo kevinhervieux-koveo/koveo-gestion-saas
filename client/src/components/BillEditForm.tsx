@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +5,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -22,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Bill } from '../../shared/schema';
+import type { Bill } from '../../../shared/schema';
 
 // Form schema for bill editing
 const billFormSchema = z.object({
@@ -55,12 +53,13 @@ const billFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Full bill editing form
 /**
- * @param root0
- * @param root0.bill
- * @param root0.onSuccess
- * @param root0.onCancel
+ * Bill editing form component for modifying existing bills.
+ * @param root0 - The component props
+ * @param root0.bill - The bill object to edit
+ * @param root0.onSuccess - Callback function called when bill is successfully updated
+ * @param root0.onCancel - Callback function called when editing is cancelled
+ * @returns JSX element for bill editing form
  */
 export function BillEditForm({ 
   bill, 

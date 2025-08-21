@@ -9,6 +9,9 @@ import { GoogleGenAI } from "@google/genai";
 // This API key is from Gemini Developer API Key, not vertex AI API Key
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
+/**
+ *
+ */
 export interface BillAnalysisResult {
   title: string;
   vendor: string;
@@ -21,10 +24,14 @@ export interface BillAnalysisResult {
   confidence: number;
 }
 
+/**
+ *
+ */
 export class GeminiBillAnalyzer {
   
   /**
-   * Analyze a bill document using Gemini 2.5 Pro
+   * Analyze a bill document using Gemini 2.5 Pro.
+   * @param imagePath
    */
   async analyzeBillDocument(imagePath: string): Promise<BillAnalysisResult> {
     try {
@@ -111,7 +118,8 @@ export class GeminiBillAnalyzer {
   }
 
   /**
-   * Sanitize and validate amount string
+   * Sanitize and validate amount string.
+   * @param amount
    */
   private sanitizeAmount(amount: string): string {
     // Remove currency symbols and spaces
@@ -126,7 +134,9 @@ export class GeminiBillAnalyzer {
   }
 
   /**
-   * Get suggested payment schedule based on bill type and amount
+   * Get suggested payment schedule based on bill type and amount.
+   * @param category
+   * @param amount
    */
   async suggestPaymentSchedule(category: string, amount: number): Promise<{
     paymentType: 'unique' | 'recurrent';

@@ -6,19 +6,20 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Bill } from '../../shared/schema';
 
 /**
- * Advanced Bill Generation Service
+ * Advanced Bill Generation Service.
  * 
  * Handles the sophisticated bill management system including:
  * - Creating future bill instances (not just money flow entries)
  * - Multiple payment plans (60% now, 40% later, etc.)
  * - Recurrence patterns with auto-generated bill chains
  * - 25-year projection of future bills
- * - Parent-child bill relationships
+ * - Parent-child bill relationships.
  */
 export class BillGenerationService {
   
   /**
    * Get bills by reference (auto-generated bills linked to a parent).
+   * @param parentBillId
    */
   private async getBillsByReference(parentBillId: string): Promise<Bill[]> {
     try {
@@ -36,6 +37,8 @@ export class BillGenerationService {
 
   /**
    * Set end date for a recurrent bill (stops future auto-generation).
+   * @param billId
+   * @param endDate
    */
   async setRecurrenceEndDate(billId: string, endDate: Date): Promise<void> {
     try {
@@ -57,6 +60,7 @@ export class BillGenerationService {
   /**
    * Generate future bill instances for a recurrent bill up to 25 years.
    * Creates actual bill records that users can interact with individually.
+   * @param parentBill
    */
   async generateFutureBillInstances(parentBill: Bill): Promise<{
     billsCreated: number;
@@ -93,7 +97,7 @@ export class BillGenerationService {
     }
 
     const generatedBills: any[] = [];
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
     let billsCreated = 0;
 
     // Calculate occurrences based on schedule (auto-detect from parent bill)
@@ -153,7 +157,9 @@ export class BillGenerationService {
    * Examples:
    * - 60% now, 40% in 2 months
    * - 12 monthly payments of equal amounts
-   * - Quarterly payments with varying amounts
+   * - Quarterly payments with varying amounts.
+   * @param parentBill
+   * @param occurrenceDate
    */
   private calculatePaymentParts(parentBill: Bill, occurrenceDate: Date): Array<{
     amount: number;
@@ -192,6 +198,7 @@ export class BillGenerationService {
 
   /**
    * Detect schedule type from parent bill characteristics.
+   * @param parentBill
    */
   private detectScheduleType(parentBill: Bill): string {
     const costs = parentBill.costs || [];
@@ -222,10 +229,13 @@ export class BillGenerationService {
 
   /**
    * Calculate all occurrence dates based on schedule type.
+   * @param startDate
+   * @param endDate
+   * @param scheduleType
    */
   private calculateOccurrences(startDate: Date, endDate: Date, scheduleType: string): Date[] {
     const occurrences: Date[] = [];
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
 
     // Standard schedule types
     while (currentDate <= endDate) {
@@ -260,6 +270,9 @@ export class BillGenerationService {
 
   /**
    * Handle custom recurring dates (yearly repetition).
+   * @param startDate
+   * @param endDate
+   * @param customDates
    */
   private calculateCustomOccurrences(startDate: Date, endDate: Date, customDates: string[]): Date[] {
     const occurrences: Date[] = [];
@@ -282,6 +295,9 @@ export class BillGenerationService {
 
   /**
    * Generate unique bill number for auto-generated bills.
+   * @param parentBill
+   * @param occurrenceDate
+   * @param partIndex
    */
   private generateBillNumber(parentBill: Bill, occurrenceDate: Date, partIndex: number): string {
     const dateStr = occurrenceDate.toISOString().slice(0, 7); // YYYY-MM
@@ -291,6 +307,10 @@ export class BillGenerationService {
 
   /**
    * Generate descriptive title for auto-generated bills.
+   * @param parentBill
+   * @param occurrenceDate
+   * @param partIndex
+   * @param totalParts
    */
   private generateBillTitle(parentBill: Bill, occurrenceDate: Date, partIndex: number, totalParts: number): string {
     const monthYear = occurrenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -304,6 +324,7 @@ export class BillGenerationService {
 
   /**
    * Clean up existing auto-generated bills for a parent bill.
+   * @param parentBillId
    */
   private async cleanupExistingGeneratedBills(parentBillId: string): Promise<void> {
     try {
@@ -326,6 +347,7 @@ export class BillGenerationService {
 
   /**
    * Batch insert bills for performance.
+   * @param billBatch
    */
   private async insertBillsBatch(billBatch: any[]): Promise<void> {
     try {
@@ -338,6 +360,8 @@ export class BillGenerationService {
 
   /**
    * Update all future auto-generated bills when the parent bill is modified.
+   * @param parentBillId
+   * @param updates
    */
   async updateGeneratedBillsFromParent(parentBillId: string, updates: Partial<Bill>): Promise<{
     billsUpdated: number;
@@ -367,8 +391,8 @@ export class BillGenerationService {
         }
       }
 
-      if (updates.category) updatedFields.category = updates.category;
-      if (updates.vendor) updatedFields.vendor = updates.vendor;
+      if (updates.category) {updatedFields.category = updates.category;}
+      if (updates.vendor) {updatedFields.vendor = updates.vendor;}
       if (updates.notes) {
         updatedFields.notes = `Auto-generated bill - ${updates.notes}`;
       }
@@ -392,6 +416,8 @@ export class BillGenerationService {
 
   /**
    * Delete future auto-generated bills with cascade options.
+   * @param parentBillId
+   * @param deleteAllFuture
    */
   async deleteGeneratedBills(parentBillId: string, deleteAllFuture: boolean = false): Promise<{
     billsDeleted: number;
@@ -431,6 +457,7 @@ export class BillGenerationService {
 
   /**
    * Get statistics about generated bills for a parent bill.
+   * @param parentBillId
    */
   async getGeneratedBillsStats(parentBillId: string): Promise<{
     totalGenerated: number;
@@ -478,6 +505,8 @@ export class BillGenerationService {
 
   /**
    * Mark a bill as paid and update related tracking.
+   * @param billId
+   * @param paymentDate
    */
   async markBillAsPaid(billId: string, paymentDate?: Date): Promise<void> {
     const paymentReceivedDate = paymentDate || new Date();

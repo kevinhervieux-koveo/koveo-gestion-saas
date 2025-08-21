@@ -318,7 +318,7 @@ describe('Money Flow Residence Integration Tests', () => {
       endDate.setFullYear(startDate.getFullYear() + 25);
       
       let monthCount = 0;
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       currentDate.setDate(1); // First of month
       if (currentDate <= startDate) {
         currentDate.setMonth(currentDate.getMonth() + 1);
@@ -338,7 +338,7 @@ describe('Money Flow Residence Integration Tests', () => {
       const dates = [
         { start: new Date('2024-01-31'), expected: '2024-03-02' }, // Jan 31 + 1 month = Mar 2 (Feb 29 in leap year)
         { start: new Date('2024-03-31'), expected: '2024-05-01' }, // Mar 31 + 1 month = May 1 (Apr 30)
-        { start: new Date('2024-05-31'), expected: '2024-07-01' }  // May 31 + 1 month = July 1 (Jun 30)
+        { start: new Date('2024-05-31'), expected: '2024-07-01' } // May 31 + 1 month = July 1 (Jun 30)
       ];
 
       dates.forEach(({ start, expected }) => {

@@ -224,7 +224,7 @@ const validateLaw25Terminology = (enText: string, frText: string): {
   suggestions: string[];
 } => {
   const mismatches: string[] = [];
-  const suggestions: string[] = [];
+  const _suggestions: string[] = [];
   
   // Check if critical Law 25 terms are consistently translated
   Object.entries(quebecComplianceTerms.en).forEach(([key, enTerm]) => {
@@ -305,7 +305,7 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
         { en: 'withdraw consent', fr: 'retirer son consentement' }
       ];
       
-      consentTerms.forEach(({ en, fr }) => {
+      consentTerms.forEach(({ en, fr: _fr }) => {
         expect(quebecComplianceTerms.en).toHaveProperty(en.replace(' ', ''));
         expect(quebecComplianceTerms.fr).toHaveProperty(en.replace(' ', ''));
       });
@@ -439,7 +439,7 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
         { value: 1000000, enFormat: '$1,000,000.00', frFormat: '1 000 000,00 $' }
       ];
       
-      amounts.forEach(({ value, enFormat, frFormat }) => {
+      amounts.forEach(({ value, enFormat: _enFormat, frFormat: _frFormat }) => {
         // English Canadian format
         const enFormatted = new Intl.NumberFormat('en-CA', {
           style: 'currency',

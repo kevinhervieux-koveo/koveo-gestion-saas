@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -25,6 +24,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FileText, Upload, Sparkles } from 'lucide-react';
+
+// Type for AI analysis result
+interface AiAnalysisResult {
+  title: string;
+  vendor?: string;
+  category: 'insurance' | 'maintenance' | 'salary' | 'utilities' | 'cleaning' | 'security' | 'landscaping' | 'professional_services' | 'administration' | 'repairs' | 'supplies' | 'taxes' | 'technology' | 'reserves' | 'other';
+  totalAmount: string;
+  description?: string;
+  issueDate?: string;
+  billNumber?: string;
+  confidence: number;
+}
 
 // Form schema for bill creation
 const billCreateSchema = z.object({
@@ -58,10 +69,11 @@ const billCreateSchema = z.object({
 });
 
 /**
- * Bill creation form with manual entry and AI document analysis
- * @param root0
- * @param root0.buildingId
- * @param root0.onSuccess
+ * Bill creation form with manual entry and AI document analysis.
+ * @param root0 - The component props
+ * @param root0.buildingId - The ID of the building to create the bill for
+ * @param root0.onSuccess - Callback function called when bill is successfully created
+ * @returns JSX element for bill creation form
  */
 export function BillCreateForm({ 
   buildingId, 
@@ -71,8 +83,8 @@ export function BillCreateForm({
   onSuccess: () => void; 
 }) {
   const [activeTab, setActiveTab] = useState('manual');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [aiAnalysisData, setAiAnalysisData] = useState<any>(null);
+  const [_uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const form = useForm<z.infer<typeof billCreateSchema>>({

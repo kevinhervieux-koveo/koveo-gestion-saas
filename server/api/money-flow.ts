@@ -15,6 +15,7 @@ const generateForResidenceSchema = z.object({
 /**
  * Register money flow automation routes.
  * These endpoints allow manual triggering and monitoring of money flow automation.
+ * @param app
  */
 export function registerMoneyFlowRoutes(app: Express) {
   

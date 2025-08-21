@@ -72,6 +72,8 @@ export class MoneyFlowAutomationService {
 
   /**
    * Generate money flow entries for bills based on their recurrence patterns.
+   * @param startDate
+   * @param endDate
    */
   private async generateBillMoneyFlowEntries(
     startDate: Date, 
@@ -115,6 +117,8 @@ export class MoneyFlowAutomationService {
 
   /**
    * Generate money flow entries for residence monthly fees.
+   * @param startDate
+   * @param endDate
    */
   private async generateResidenceMoneyFlowEntries(
     startDate: Date, 
@@ -165,6 +169,9 @@ export class MoneyFlowAutomationService {
 
   /**
    * Generate money flow entries for a specific bill based on its schedule.
+   * @param bill
+   * @param startDate
+   * @param endDate
    */
   private async generateEntriesForBill(
     bill: Bill, 
@@ -229,6 +236,10 @@ export class MoneyFlowAutomationService {
 
   /**
    * Generate money flow entries for residence monthly fees.
+   * @param residence
+   * @param building
+   * @param startDate
+   * @param endDate
    */
   private async generateEntriesForResidence(
     residence: Residence,
@@ -244,7 +255,7 @@ export class MoneyFlowAutomationService {
     const systemUser = await this.getSystemUser();
 
     // Generate monthly entries starting from the 1st of next month
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
     currentDate.setDate(1); // Set to first day of month
     if (currentDate <= startDate) {
       // If we're already past the 1st, move to next month
@@ -287,6 +298,9 @@ export class MoneyFlowAutomationService {
 
   /**
    * Calculate the next occurrence date based on schedule type.
+   * @param currentDate
+   * @param schedule
+   * @param customDates
    */
   private calculateNextDate(
     currentDate: Date, 
@@ -339,6 +353,7 @@ export class MoneyFlowAutomationService {
 
   /**
    * Map bill category to money flow category.
+   * @param billCategory
    */
   private mapBillCategoryToMoneyFlowCategory(billCategory: string): 'monthly_fees' | 'special_assessment' | 'late_fees' | 'parking_fees' | 'utility_reimbursement' | 'insurance_claim' | 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_income' | 'other_expense' {
     const mapping: Record<string, 'monthly_fees' | 'special_assessment' | 'late_fees' | 'parking_fees' | 'utility_reimbursement' | 'insurance_claim' | 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_income' | 'other_expense'> = {
@@ -362,6 +377,7 @@ export class MoneyFlowAutomationService {
 
   /**
    * Format schedule description for money flow entry.
+   * @param schedule
    */
   private formatScheduleDescription(schedule: string): string {
     const descriptions: Record<string, string> = {
@@ -377,6 +393,8 @@ export class MoneyFlowAutomationService {
 
   /**
    * Clean up existing bill entries to avoid duplicates.
+   * @param billId
+   * @param fromDate
    */
   private async cleanupExistingBillEntries(billId: string, fromDate: Date): Promise<void> {
     await db
@@ -391,6 +409,8 @@ export class MoneyFlowAutomationService {
 
   /**
    * Clean up existing residence entries to avoid duplicates.
+   * @param residenceId
+   * @param fromDate
    */
   private async cleanupExistingResidenceEntries(residenceId: string, fromDate: Date): Promise<void> {
     await db
@@ -406,6 +426,8 @@ export class MoneyFlowAutomationService {
 
   /**
    * Insert entries in batches to avoid database constraints.
+   * @param entries
+   * @param batchSize
    */
   private async insertEntriesInBatches(entries: InsertMoneyFlow[], batchSize = 100): Promise<void> {
     for (let i = 0; i < entries.length; i += batchSize) {
@@ -470,6 +492,7 @@ export class MoneyFlowAutomationService {
   /**
    * Trigger money flow generation for a specific bill.
    * Called when bills are created or updated.
+   * @param billId
    */
   async generateForBill(billId: string): Promise<number> {
     console.log(`🔄 Generating money flow entries for bill ${billId}`);
@@ -508,6 +531,7 @@ export class MoneyFlowAutomationService {
   /**
    * Trigger money flow generation for a specific residence.
    * Called when residence monthly fees are updated.
+   * @param residenceId
    */
   async generateForResidence(residenceId: string): Promise<number> {
     console.log(`🔄 Generating money flow entries for residence ${residenceId}`);

@@ -15,10 +15,16 @@ class DelayedUpdateService {
   private pendingResidenceUpdates = new Set<string>();
   private pendingBuildingBudgetUpdates = new Set<string>();
 
+  /**
+   *
+   */
   private constructor() {
     console.log(`🕐 Delayed Update Service initialized with ${this.DELAY_MINUTES}-minute delay`);
   }
 
+  /**
+   *
+   */
   static getInstance(): DelayedUpdateService {
     if (!DelayedUpdateService.instance) {
       DelayedUpdateService.instance = new DelayedUpdateService();
@@ -28,6 +34,7 @@ class DelayedUpdateService {
 
   /**
    * Schedule money flow update for a bill after 15-minute delay.
+   * @param billId
    */
   scheduleBillUpdate(billId: string): void {
     // Avoid duplicate updates for the same bill
@@ -63,6 +70,7 @@ class DelayedUpdateService {
 
   /**
    * Schedule money flow update for a residence after 15-minute delay.
+   * @param residenceId
    */
   scheduleResidenceUpdate(residenceId: string): void {
     // Avoid duplicate updates for the same residence
@@ -99,6 +107,7 @@ class DelayedUpdateService {
   /**
    * Schedule budget update for a building after money flow changes.
    * This is called internally after money flow updates complete.
+   * @param buildingId
    */
   private async scheduleBudgetUpdate(buildingId: string): Promise<void> {
     // Avoid duplicate updates for the same building
@@ -128,6 +137,7 @@ class DelayedUpdateService {
 
   /**
    * Get building ID from bill ID.
+   * @param billId
    */
   private async getBuildingIdFromBill(billId: string): Promise<string | null> {
     try {
@@ -150,6 +160,7 @@ class DelayedUpdateService {
 
   /**
    * Get building ID from residence ID.
+   * @param residenceId
    */
   private async getBuildingIdFromResidence(residenceId: string): Promise<string | null> {
     try {
@@ -172,6 +183,7 @@ class DelayedUpdateService {
 
   /**
    * Force immediate update (for testing or urgent updates).
+   * @param billId
    */
   async forceImmediateBillUpdate(billId: string): Promise<void> {
     console.log(`⚡ Force immediate update for bill ${billId}`);
@@ -190,6 +202,7 @@ class DelayedUpdateService {
 
   /**
    * Force immediate update (for testing or urgent updates).
+   * @param residenceId
    */
   async forceImmediateResidenceUpdate(residenceId: string): Promise<void> {
     console.log(`⚡ Force immediate update for residence ${residenceId}`);

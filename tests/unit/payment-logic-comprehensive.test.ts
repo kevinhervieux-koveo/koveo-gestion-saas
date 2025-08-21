@@ -12,7 +12,7 @@ import { eq, and } from 'drizzle-orm';
  * - Annual bills with monthly payments
  * - Quarterly with varying amounts
  * - Custom payment schedules
- * - Edge cases and calculations
+ * - Edge cases and calculations.
  */
 
 describe('Complex Payment Logic Comprehensive Tests', () => {
@@ -227,7 +227,7 @@ describe('Complex Payment Logic Comprehensive Tests', () => {
         '800.00', '800.00', '800.00', // Q1 - higher winter costs
         '600.00', '600.00', '600.00', // Q2 - moderate spring costs
         '400.00', '400.00', '400.00', // Q3 - lower summer costs
-        '700.00', '700.00', '700.00'  // Q4 - higher fall costs
+        '700.00', '700.00', '700.00' // Q4 - higher fall costs
       ];
 
       const parentBill = {

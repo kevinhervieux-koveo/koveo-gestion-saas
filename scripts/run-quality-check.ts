@@ -501,7 +501,7 @@ async function generateSuggestions(
 
 /**
  * Checks JSDoc documentation coverage.
- * @returns Promise resolving to JSDoc coverage count
+ * @returns Promise resolving to JSDoc coverage count.
  */
 async function checkJSDocCoverage(): Promise<number> {
   try {
@@ -519,7 +519,7 @@ async function checkJSDocCoverage(): Promise<number> {
 
 /**
  * Checks build performance.
- * @returns Promise resolving to build time in milliseconds
+ * @returns Promise resolving to build time in milliseconds.
  */
 async function checkBuildPerformance(): Promise<number> {
   try {
@@ -664,7 +664,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
 
 /**
  * Analyzes translation coverage across all UI components.
- * @returns Promise resolving to translation coverage analysis results
+ * @returns Promise resolving to translation coverage analysis results.
  */
 async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> {
   try {
@@ -1022,7 +1022,7 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
  * Extracts numeric value from test output using regex.
  * @param output
  * @param regex
- * @returns Extracted number or null if not found
+ * @returns Extracted number or null if not found.
  */
 function extractNumberFromOutput(output: string, regex: RegExp): number | null {
   const match = output.match(regex);
@@ -1031,7 +1031,7 @@ function extractNumberFromOutput(output: string, regex: RegExp): number | null {
 
 /**
  * Analyzes Quebec Law 25 compliance using Semgrep.
- * @returns Promise resolving to Law 25 compliance analysis results
+ * @returns Promise resolving to Law 25 compliance analysis results.
  */
 async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
   try {
@@ -1409,7 +1409,7 @@ async function verifyQualityMetricsAPI(
 
 /**
  * Main function to execute quality checks and save to database.
- * @returns Promise that resolves when quality analysis is complete
+ * @returns Promise that resolves when quality analysis is complete.
  */
 async function main(): Promise<void> {
   console.warn(`${COLORS.BLUE}🚀 Starting Koveo Gestion Pillar Framework Auditor${COLORS.RESET}\n`);

@@ -13,7 +13,7 @@ import { eq, and } from 'drizzle-orm';
  * - Parent-child relationships
  * - Payment type validations
  * - Schedule and cost validations
- * - Complex payment scenarios
+ * - Complex payment scenarios.
  */
 
 describe('Bill Schema Validation', () => {
@@ -591,7 +591,7 @@ describe('Bill Schema Validation', () => {
 
       // Business validation
       const validateDateRange = (start: string, end: string | null) => {
-        if (!end) return true;
+        if (!end) {return true;}
         return new Date(start) <= new Date(end);
       };
 

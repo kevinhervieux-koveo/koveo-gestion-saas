@@ -17,7 +17,7 @@ import { eq, and } from 'drizzle-orm';
  * - Deleting bills with cascade options
  * - Real API integration with database
  * - Error handling and edge cases
- * - Performance validation
+ * - Performance validation.
  */
 
 // Mock authentication
@@ -358,7 +358,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
         .post(`/api/bills/${modifiableBill.id}/generate-future`)
         .expect(200);
 
-      let generatedBills = await db
+      const generatedBills = await db
         .select()
         .from(bills)
         .where(eq(bills.reference, modifiableBill.id));

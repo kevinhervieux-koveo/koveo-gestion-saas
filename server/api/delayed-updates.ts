@@ -5,6 +5,7 @@ import { delayedUpdateService } from '../services/delayed-update-service';
 /**
  * Register delayed update monitoring routes.
  * These endpoints allow monitoring and manual triggering of delayed updates.
+ * @param app
  */
 export function registerDelayedUpdateRoutes(app: Express) {
   

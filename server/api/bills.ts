@@ -77,10 +77,14 @@ const upload = multer({
   }
 });
 
+/**
+ *
+ * @param app
+ */
 export function registerBillRoutes(app: Express) {
   /**
    * Get all bills with optional filtering
-   * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6
+   * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6.
    */
   app.get('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
@@ -150,7 +154,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Get a specific bill by ID
-   * GET /api/bills/:id
+   * GET /api/bills/:id.
    */
   app.get('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
@@ -197,7 +201,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Create a new bill
-   * POST /api/bills
+   * POST /api/bills.
    */
   app.post('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
@@ -255,7 +259,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Update a bill (PATCH)
-   * PATCH /api/bills/:id
+   * PATCH /api/bills/:id.
    */
   app.patch('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
@@ -272,17 +276,17 @@ export function registerBillRoutes(app: Express) {
       const billData = validation.data;
       
       const updateData: any = {};
-      if (billData.title) updateData.title = billData.title;
-      if (billData.description) updateData.description = billData.description;
-      if (billData.category) updateData.category = billData.category;
-      if (billData.vendor) updateData.vendor = billData.vendor;
-      if (billData.paymentType) updateData.paymentType = billData.paymentType;
-      if (billData.costs) updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
-      if (billData.totalAmount) updateData.totalAmount = parseFloat(billData.totalAmount);
-      if (billData.startDate) updateData.startDate = billData.startDate;
-      if (billData.endDate) updateData.endDate = billData.endDate;
-      if (billData.status) updateData.status = billData.status;
-      if (billData.notes) updateData.notes = billData.notes;
+      if (billData.title) {updateData.title = billData.title;}
+      if (billData.description) {updateData.description = billData.description;}
+      if (billData.category) {updateData.category = billData.category;}
+      if (billData.vendor) {updateData.vendor = billData.vendor;}
+      if (billData.paymentType) {updateData.paymentType = billData.paymentType;}
+      if (billData.costs) {updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));}
+      if (billData.totalAmount) {updateData.totalAmount = parseFloat(billData.totalAmount);}
+      if (billData.startDate) {updateData.startDate = billData.startDate;}
+      if (billData.endDate) {updateData.endDate = billData.endDate;}
+      if (billData.status) {updateData.status = billData.status;}
+      if (billData.notes) {updateData.notes = billData.notes;}
       updateData.updatedAt = new Date();
 
       const updatedBill = await db
@@ -309,7 +313,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Update a bill (PUT)
-   * PUT /api/bills/:id
+   * PUT /api/bills/:id.
    */
   app.put('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
@@ -326,16 +330,16 @@ export function registerBillRoutes(app: Express) {
       const billData = validation.data;
       
       const updateData: any = {};
-      if (billData.title) updateData.title = billData.title;
-      if (billData.description) updateData.description = billData.description;
-      if (billData.category) updateData.category = billData.category;
-      if (billData.vendor) updateData.vendor = billData.vendor;
-      if (billData.paymentType) updateData.paymentType = billData.paymentType;
-      if (billData.costs) updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
-      if (billData.totalAmount) updateData.totalAmount = parseFloat(billData.totalAmount);
-      if (billData.startDate) updateData.startDate = billData.startDate;
-      if (billData.status) updateData.status = billData.status;
-      if (billData.notes) updateData.notes = billData.notes;
+      if (billData.title) {updateData.title = billData.title;}
+      if (billData.description) {updateData.description = billData.description;}
+      if (billData.category) {updateData.category = billData.category;}
+      if (billData.vendor) {updateData.vendor = billData.vendor;}
+      if (billData.paymentType) {updateData.paymentType = billData.paymentType;}
+      if (billData.costs) {updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));}
+      if (billData.totalAmount) {updateData.totalAmount = parseFloat(billData.totalAmount);}
+      if (billData.startDate) {updateData.startDate = billData.startDate;}
+      if (billData.status) {updateData.status = billData.status;}
+      if (billData.notes) {updateData.notes = billData.notes;}
       updateData.updatedAt = new Date();
 
       const updatedBill = await db
@@ -371,7 +375,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Delete a bill
-   * DELETE /api/bills/:id
+   * DELETE /api/bills/:id.
    */
   app.delete('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
@@ -403,7 +407,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Upload and analyze bill document with Gemini AI
-   * POST /api/bills/:id/upload-document
+   * POST /api/bills/:id/upload-document.
    */
   app.post('/api/bills/:id/upload-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
     try {
@@ -493,7 +497,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Apply AI analysis to bill form data
-   * POST /api/bills/:id/apply-ai-analysis
+   * POST /api/bills/:id/apply-ai-analysis.
    */
   app.post('/api/bills/:id/apply-ai-analysis', requireAuth, async (req: any, res: any) => {
     try {
@@ -563,7 +567,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Generate future bill instances for a recurrent bill
-   * POST /api/bills/:id/generate-future
+   * POST /api/bills/:id/generate-future.
    */
   app.post('/api/bills/:id/generate-future', requireAuth, async (req: any, res: any) => {
     try {
@@ -641,7 +645,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Get bill categories for filter dropdown
-   * GET /api/bills/categories
+   * GET /api/bills/categories.
    */
   app.get('/api/bills/categories', requireAuth, async (req: any, res: any) => {
     try {
@@ -675,7 +679,7 @@ export function registerBillRoutes(app: Express) {
 
   /**
    * Get statistics for auto-generated bills from a parent bill
-   * GET /api/bills/:id/generated-stats
+   * GET /api/bills/:id/generated-stats.
    */
   app.get('/api/bills/:id/generated-stats', requireAuth, async (req: any, res: any) => {
     try {

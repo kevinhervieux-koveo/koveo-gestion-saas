@@ -138,7 +138,7 @@ describe('MoneyFlowAutomationService', () => {
       
       // Test weekly calculation logic
       const weeklyDates = [];
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
         weeklyDates.push(new Date(currentDate));
@@ -155,7 +155,7 @@ describe('MoneyFlowAutomationService', () => {
       const endDate = new Date('2024-12-31');
       
       const monthlyDates = [];
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
         monthlyDates.push(new Date(currentDate));
@@ -172,7 +172,7 @@ describe('MoneyFlowAutomationService', () => {
       const endDate = new Date('2024-12-31');
       
       const quarterlyDates = [];
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
         quarterlyDates.push(new Date(currentDate));
@@ -189,7 +189,7 @@ describe('MoneyFlowAutomationService', () => {
       const endDate = new Date('2026-12-31');
       
       const yearlyDates = [];
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
         yearlyDates.push(new Date(currentDate));
@@ -280,7 +280,7 @@ describe('MoneyFlowAutomationService', () => {
 
       // Count expected entries
       const monthlyDates = [];
-      let currentDate = new Date(firstEntryDate);
+      const currentDate = new Date(firstEntryDate);
       
       while (currentDate <= endDate) {
         monthlyDates.push(new Date(currentDate));
@@ -326,7 +326,7 @@ describe('MoneyFlowAutomationService', () => {
       const testDates = [
         { start: new Date('2024-01-31'), addMonth: 1, expectedMonth: 1 }, // Jan 31 + 1 month = Feb 29 (leap year)
         { start: new Date('2024-03-31'), addMonth: 1, expectedMonth: 3 }, // Mar 31 + 1 month = Apr 30
-        { start: new Date('2024-05-31'), addMonth: 1, expectedMonth: 5 }  // May 31 + 1 month = Jun 30
+        { start: new Date('2024-05-31'), addMonth: 1, expectedMonth: 5 } // May 31 + 1 month = Jun 30
       ];
 
       testDates.forEach(({ start, addMonth, expectedMonth }) => {
@@ -355,7 +355,7 @@ describe('MoneyFlowAutomationService', () => {
       // Simulate entry generation with safety limit
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2049-12-31'); // 25 years
-      let currentDate = new Date(startDate);
+      const currentDate = new Date(startDate);
       
       while (currentDate <= endDate && entryCount < maxEntries) {
         entryCount++;
@@ -456,9 +456,9 @@ describe('MoneyFlowAutomationService', () => {
       });
 
       mockQueryBuilder.limit.mockResolvedValueOnce([{ count: 1000 }]) // total
-        .mockResolvedValueOnce([{ count: 600 }])  // bills
-        .mockResolvedValueOnce([{ count: 400 }])  // residences
-        .mockResolvedValueOnce([{ count: 800 }])  // future
+        .mockResolvedValueOnce([{ count: 600 }]) // bills
+        .mockResolvedValueOnce([{ count: 400 }]) // residences
+        .mockResolvedValueOnce([{ count: 800 }]) // future
         .mockResolvedValueOnce([{ date: '2024-01-01' }]) // oldest
         .mockResolvedValueOnce([{ date: '2049-12-31' }]); // newest
 

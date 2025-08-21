@@ -12,7 +12,7 @@ import { eq, and, isNull } from 'drizzle-orm';
  * - Cascade deletions with options
  * - Orphaned bill handling
  * - Complex relationship hierarchies
- * - Relationship data integrity
+ * - Relationship data integrity.
  */
 
 describe('Bill Relationships Integration Tests', () => {

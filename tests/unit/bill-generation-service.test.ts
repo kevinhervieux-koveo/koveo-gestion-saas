@@ -12,7 +12,7 @@ import { eq, and } from 'drizzle-orm';
  * - Multiple payment plans and installments
  * - Parent-child bill relationships
  * - 25-year projection capabilities
- * - Auto-generated bill management
+ * - Auto-generated bill management.
  */
 
 describe('BillGenerationService', () => {
