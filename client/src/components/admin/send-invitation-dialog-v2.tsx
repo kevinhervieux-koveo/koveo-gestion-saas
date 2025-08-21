@@ -294,8 +294,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     <BaseDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('sendInvitation')}
-      description={t('inviteUsersToJoinPlatform')}
+      title="Send Invitation"
+      description="Invite users to join the platform"
       maxWidth="2xl"
       showFooter={false}
     >
@@ -322,7 +322,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 submitText={t('sendInvitation')}
                 defaultValues={{
                   expiryDays: 7,
-                  organizationId: hasRole(['manager']) ? user?.organizationId : '',
+                  organizationId: hasRole(['manager']) ? user?.id : '',
                 }}
               />
             </CardContent>
