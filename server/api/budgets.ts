@@ -18,7 +18,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
-    const end = endYear ? parseInt(endYear as string) : currentYear + 3;
+    const end = endYear ? parseInt(endYear as string) : currentYear + 25;
     const startMo = startMonth ? parseInt(startMonth as string) : 1;
     const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
@@ -148,7 +148,7 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
-    const end = endYear ? parseInt(endYear as string) : currentYear + 3;
+    const end = endYear ? parseInt(endYear as string) : currentYear + 25;
     const startMo = startMonth ? parseInt(startMonth as string) : 1;
     const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
