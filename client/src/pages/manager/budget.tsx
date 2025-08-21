@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle } from 'lucide-react';
+import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
@@ -62,12 +62,22 @@ export default function Budget() {
   const [startYear, setStartYear] = useState(currentYear - 3);
   const [endYear, setEndYear] = useState(currentYear + 25);
   
+  // Property contribution pagination
+  const [contributionPage, setContributionPage] = useState(1);
+  const contributionsPerPage = 10;
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Get buildings for selection
   const { data: buildings = [] } = useQuery({
     queryKey: ['/api/buildings'],
+  });
+
+  // Get residences for selected building
+  const { data: residences = [] } = useQuery({
+    queryKey: ['/api/residences', selectedBuilding],
+    enabled: !!selectedBuilding,
   });
 
   // Get budget data
@@ -145,6 +155,8 @@ export default function Budget() {
     if (minimumBalanceSettings.length === 0) return null;
     return Math.min(...minimumBalanceSettings.map(m => m.amount));
   }, [minimumBalanceSettings]);
+
+  // Special contribution and property calculations are now defined after filteredChartData
 
   // Category translation mapping
   const categoryTranslations: Record<string, { en: string; fr: string }> = {
@@ -241,6 +253,37 @@ export default function Budget() {
     });
   }, [chartData, selectedCategories]);
 
+  // Calculate special contribution and property breakdown
+  const specialContribution = useMemo(() => {
+    const netCashFlow = filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0);
+    return Math.abs(Math.min(0, netCashFlow));
+  }, [filteredChartData]);
+
+  // Get residences for selected building and calculate contributions
+  const propertyContributions = useMemo(() => {
+    if (!selectedBuilding || !residences || specialContribution === 0) return [];
+    
+    // Filter residences for selected building
+    const buildingResidences = residences.filter((residence: any) => 
+      residence.building_id === selectedBuilding
+    );
+    
+    return buildingResidences.map((residence: any) => ({
+      id: residence.id,
+      unitNumber: residence.unit_number,
+      ownershipPercentage: residence.ownership_percentage || 0,
+      contribution: (specialContribution * (residence.ownership_percentage || 0)) / 100,
+      floor: residence.floor,
+    })).sort((a: any, b: any) => a.unitNumber.localeCompare(b.unitNumber));
+  }, [selectedBuilding, residences, specialContribution]);
+
+  // Pagination for property contributions
+  const totalContributionPages = Math.ceil(propertyContributions.length / contributionsPerPage);
+  const paginatedContributions = propertyContributions.slice(
+    (contributionPage - 1) * contributionsPerPage,
+    contributionPage * contributionsPerPage
+  );
+
   const chartConfig = {
     totalIncome: {
       label: language === 'fr' ? 'Revenus Totaux' : 'Total Income',
@@ -287,6 +330,22 @@ export default function Budget() {
     cancel: language === 'fr' ? 'Annuler' : 'Cancel',
     updating: language === 'fr' ? 'Mise à jour...' : 'Updating...',
     updateButton: language === 'fr' ? 'Mettre à jour le compte' : 'Update Account',
+  };
+
+  // Property contribution translations
+  const contributionTranslations = {
+    title: language === 'fr' ? 'Répartition des contributions spéciales' : 'Special Contribution Breakdown',
+    subtitle: language === 'fr' ? 'Montant requis par propriété selon le pourcentage de copropriété' : 'Required amount per property based on ownership percentage',
+    noContribution: language === 'fr' ? 'Aucune contribution spéciale requise - flux de trésorerie positif' : 'No special contribution required - positive cash flow',
+    totalRequired: language === 'fr' ? 'Total requis:' : 'Total required:',
+    unit: language === 'fr' ? 'Unité' : 'Unit',
+    ownership: language === 'fr' ? 'Propriété (%)' : 'Ownership (%)',
+    contribution: language === 'fr' ? 'Contribution ($)' : 'Contribution ($)',
+    floor: language === 'fr' ? 'Étage' : 'Floor',
+    page: language === 'fr' ? 'Page' : 'Page',
+    of: language === 'fr' ? 'de' : 'of',
+    previous: language === 'fr' ? 'Précédent' : 'Previous',
+    next: language === 'fr' ? 'Suivant' : 'Next',
   };
 
   // Update bank account mutation
@@ -674,7 +733,7 @@ export default function Budget() {
           ) : (
             <>
               {/* Summary Cards */}
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                 <Card>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-sm font-medium'>
@@ -720,6 +779,26 @@ export default function Budget() {
                     </div>
                     <p className='text-xs text-muted-foreground mt-1'>
                       {language === 'fr' ? 'Position nette' : 'Net position'}
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                {/* Special Contribution Card */}
+                <Card>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='text-sm font-medium'>
+                      {language === 'fr' ? 'Contribution spéciale' : 'Special Contribution'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${
+                      specialContribution > 0 
+                        ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      ${specialContribution.toLocaleString()}
+                    </div>
+                    <p className='text-xs text-muted-foreground mt-1'>
+                      {language === 'fr' ? 'Contribution requise' : 'Required contribution'}
                     </p>
                   </CardContent>
                 </Card>
@@ -1050,6 +1129,104 @@ export default function Budget() {
                     </DialogContent>
                   </Dialog>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Property Contribution Breakdown Card */}
+          {selectedBuilding && (
+            <Card className='mt-6'>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Users className='w-5 h-5' />
+                  {contributionTranslations.title}
+                </CardTitle>
+                <p className='text-sm text-muted-foreground'>
+                  {contributionTranslations.subtitle}
+                </p>
+              </CardHeader>
+              <CardContent>
+                {specialContribution === 0 ? (
+                  <div className='p-6 bg-green-50 border border-green-200 rounded-lg text-center'>
+                    <div className='text-green-700 font-medium mb-2'>
+                      ✅ {contributionTranslations.noContribution}
+                    </div>
+                  </div>
+                ) : (
+                  <div className='space-y-4'>
+                    <div className='p-4 bg-red-50 border border-red-200 rounded-lg'>
+                      <div className='text-red-800 font-medium mb-1'>
+                        {contributionTranslations.totalRequired} ${specialContribution.toLocaleString()}
+                      </div>
+                      <p className='text-sm text-red-600'>
+                        {propertyContributions.length} {language === 'fr' ? 'propriétés concernées' : 'properties affected'}
+                      </p>
+                    </div>
+                    
+                    {propertyContributions.length > 0 && (
+                      <>
+                        <div className='border rounded-lg overflow-hidden'>
+                          <div className='bg-muted px-4 py-2 border-b'>
+                            <div className='grid grid-cols-4 gap-4 font-medium text-sm'>
+                              <div>{contributionTranslations.unit}</div>
+                              <div>{contributionTranslations.floor}</div>
+                              <div className='text-right'>{contributionTranslations.ownership}</div>
+                              <div className='text-right'>{contributionTranslations.contribution}</div>
+                            </div>
+                          </div>
+                          
+                          <div className='divide-y'>
+                            {paginatedContributions.map((property: any) => (
+                              <div key={property.id} className='px-4 py-3 hover:bg-muted/50'>
+                                <div className='grid grid-cols-4 gap-4 text-sm'>
+                                  <div className='font-medium'>{property.unitNumber}</div>
+                                  <div className='text-muted-foreground'>{property.floor}</div>
+                                  <div className='text-right'>{property.ownershipPercentage.toFixed(2)}%</div>
+                                  <div className='text-right font-medium text-red-600'>
+                                    ${property.contribution.toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Pagination */}
+                        {totalContributionPages > 1 && (
+                          <div className='flex items-center justify-between'>
+                            <p className='text-sm text-muted-foreground'>
+                              {contributionTranslations.page} {contributionPage} {contributionTranslations.of} {totalContributionPages}
+                            </p>
+                            
+                            <div className='flex items-center gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setContributionPage(Math.max(1, contributionPage - 1))}
+                                disabled={contributionPage === 1}
+                                className='flex items-center gap-1'
+                              >
+                                <ChevronLeft className='w-3 h-3' />
+                                {contributionTranslations.previous}
+                              </Button>
+                              
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setContributionPage(Math.min(totalContributionPages, contributionPage + 1))}
+                                disabled={contributionPage === totalContributionPages}
+                                className='flex items-center gap-1'
+                              >
+                                {contributionTranslations.next}
+                                <ChevronRight className='w-3 h-3' />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
