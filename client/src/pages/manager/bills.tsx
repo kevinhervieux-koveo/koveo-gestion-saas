@@ -80,7 +80,7 @@ export default function Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
-    year: '', // Default to show all years
+    year: 'all', // Default to show all years
     months: []
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -98,7 +98,7 @@ export default function Bills() {
       const params = new URLSearchParams();
       if (filters.buildingId) {params.set('buildingId', filters.buildingId);}
       if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}
-      if (filters.year) {params.set('year', filters.year);}
+      if (filters.year && filters.year !== 'all') {params.set('year', filters.year);}
       if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
       
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
@@ -217,7 +217,7 @@ export default function Bills() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className='max-h-[300px] overflow-y-auto'>
-                      <SelectItem value="">All Years</SelectItem>
+                      <SelectItem value="all">All Years</SelectItem>
                       {Array.from({ length: 27 }, (_, i) => {
                         const year = new Date().getFullYear() - 2 + i; // 2 years back to 25 years forward
                         return (
