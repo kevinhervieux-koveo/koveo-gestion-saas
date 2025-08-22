@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 import { glob } from 'glob';
 
 /**
- *
+ * Agent context interface for project state tracking.
  */
 export interface AgentContext {
   projectRoot: string;
@@ -21,7 +21,7 @@ export interface AgentContext {
 }
 
 /**
- *
+ * Code analysis interface for quality metrics.
  */
 export interface CodeAnalysis {
   complexity: number;
@@ -33,7 +33,7 @@ export interface CodeAnalysis {
 }
 
 /**
- *
+ * Project health interface for comprehensive assessment.
  */
 export interface ProjectHealth {
   overallScore: number;
@@ -60,8 +60,8 @@ export class AIAgentToolkit {
   private context: AgentContext;
 
   /**
-   *
-   * @param projectRoot
+   * Initialize AI Agent Toolkit.
+   * @param projectRoot - The root directory of the project to analyze.
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -441,7 +441,7 @@ export class AIAgentToolkit {
       files.forEach(file => {
         const content = fs.readFileSync(path.join(this.projectRoot, file), 'utf-8');
         
-        // Check for console.log in production code
+        // Check for console statements in production code
         if (/console\.log/g.test(content) && !file.includes('test')) {
           score -= 2;
         }

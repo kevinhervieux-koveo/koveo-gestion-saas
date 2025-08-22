@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 import { glob } from 'glob';
 
 /**
- *
+ * Workflow pattern interface defining automation rules.
  */
 export interface WorkflowPattern {
   name: string;
@@ -21,17 +21,17 @@ export interface WorkflowPattern {
 }
 
 /**
- *
+ * Workflow action interface defining individual automation steps.
  */
 export interface WorkflowAction {
   type: 'command' | 'file_operation' | 'validation' | 'notification' | 'analysis';
   description: string;
-  payload: any;
+  payload: Record<string, unknown>;
   priority: number;
 }
 
 /**
- *
+ * Workflow suggestion interface for recommended automations.
  */
 export interface WorkflowSuggestion {
   pattern: string;
@@ -43,7 +43,7 @@ export interface WorkflowSuggestion {
 }
 
 /**
- *
+ * Project insight interface for analysis results.
  */
 export interface ProjectInsight {
   category: 'architecture' | 'quality' | 'performance' | 'security' | 'maintenance';
@@ -64,8 +64,8 @@ export class IntelligentWorkflowAssistant {
   private patterns: WorkflowPattern[] = [];
 
   /**
-   *
-   * @param projectRoot
+   * Initialize Intelligent Workflow Assistant.
+   * @param projectRoot - The root directory of the project to assist.
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -194,8 +194,9 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Detect workflow patterns from current context.
-   * @param currentFiles
-   * @param recentChanges
+   * @param currentFiles - Array of current file paths.
+   * @param recentChanges - Array of recently changed file paths.
+   * @returns Array of workflow suggestions based on detected patterns.
    */
   public detectWorkflowPatterns(currentFiles: string[], recentChanges: string[]): WorkflowSuggestion[] {
     const suggestions: WorkflowSuggestion[] = [];
@@ -408,12 +409,12 @@ export class IntelligentWorkflowAssistant {
       }
     }
 
-    if (payload && typeof payload === 'object' && 'tools' in payload && Array.isArray((payload as any).tools)) {
+    if (payload && typeof payload === 'object' && 'tools' in payload && Array.isArray((payload as { tools: string[] }).tools)) {
       // Run analysis tools
       const results: string[] = [];
-      for (const tool of (payload as any).tools) {
+      for (const tool of (payload as { tools: string[] }).tools) {
         try {
-          const output = execSync(`npx ${tool}`, {
+          const _output = execSync(`npx ${tool}`, {
             cwd: this.projectRoot,
             encoding: 'utf-8',
             stdio: 'pipe'
@@ -431,16 +432,17 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Perform file operation.
-   * @param payload
+   * @param payload - Operation configuration and parameters.
+   * @returns Promise resolving to operation result message.
    */
   private async performFileOperation(payload: unknown): Promise<string> {
-    if (payload && typeof payload === 'object' && 'pattern' in payload && typeof (payload as any).pattern === 'string') {
-      const files = glob.sync((payload as any).pattern, {
+    if (payload && typeof payload === 'object' && 'pattern' in payload && typeof (payload as { pattern: string }).pattern === 'string') {
+      const files = glob.sync((payload as { pattern: string }).pattern, {
         cwd: this.projectRoot,
         ignore: ['node_modules/**', 'dist/**']
       });
       
-      return `Found ${files.length} files matching pattern: ${(payload as any).pattern}`;
+      return `Found ${files.length} files matching pattern: ${(payload as { pattern: string }).pattern}`;
     }
 
     return 'File operation completed';
@@ -448,6 +450,7 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Generate project insights using AI-powered analysis.
+   * @returns Promise resolving to array of project insights.
    */
   public async generateProjectInsights(): Promise<ProjectInsight[]> {
     const insights: ProjectInsight[] = [];
@@ -475,7 +478,7 @@ export class IntelligentWorkflowAssistant {
 
     // Quality insights
     try {
-      const tscOutput = execSync('npx tsc --noEmit --skipLibCheck', {
+      const _tscOutput = execSync('npx tsc --noEmit --skipLibCheck', {
         cwd: this.projectRoot,
         encoding: 'utf-8',
         stdio: 'pipe'
@@ -506,8 +509,8 @@ export class IntelligentWorkflowAssistant {
             const filePath = path.join(distPath, file as string);
             totalSize += fs.statSync(filePath).size;
           } catch (__error) {
-    // Error handled silently
-  }
+            // Error handled silently
+          }
         });
 
         const sizeMB = totalSize / (1024 * 1024);
@@ -550,8 +553,8 @@ export class IntelligentWorkflowAssistant {
         });
       }
     } catch (__error) {
-    // Error handled silently
-  }
+      // Error handled silently
+    }
 
     // Maintenance insights
     const packageJson = JSON.parse(fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8'));
@@ -574,10 +577,11 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Smart workflow recommendation engine.
-   * @param context
-   * @param context.recentFiles
-   * @param context.userIntent
-   * @param context.projectPhase
+   * @param context - Context information for recommendations.
+   * @param context.recentFiles - Array of recently modified files.
+   * @param context.userIntent - User's stated intent or goal.
+   * @param context.projectPhase - Current phase of the project.
+   * @returns Promise resolving to categorized workflow suggestions.
    */
   public async recommendWorkflows(context: {
     recentFiles?: string[];

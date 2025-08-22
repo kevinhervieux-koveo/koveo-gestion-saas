@@ -1,13 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoadingSpinner } from '../../client/src/components/ui/loading-spinner';
-import { LanguageProvider } from '../../client/src/hooks/use-language';
+// LanguageProvider import removed - not used in tests
 import { Sidebar } from '../../client/src/components/layout/sidebar';
 import { Header } from '../../client/src/components/layout/header';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from '../../client/src/components/ui/navigation-menu';
-import { TestProviders, createTestQueryClient } from '../utils/test-providers';
+import { TestProviders } from '../utils/test-providers';
 
 // Mock wouter for routing components
 jest.mock('wouter', () => ({

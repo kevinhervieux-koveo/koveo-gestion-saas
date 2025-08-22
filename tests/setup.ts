@@ -74,3 +74,64 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   rootMargin: '',
   thresholds: [],
 })) as any;
+
+// Global test configuration for DOM APIs
+Object.defineProperty(global, 'performance', {
+  value: {
+    now: () => Date.now(),
+    mark: () => {},
+    measure: () => {},
+    getEntriesByName: () => [],
+    getEntriesByType: () => []
+  },
+  writable: true
+});
+
+// Mock DOM APIs that may be missing in test environment
+Object.defineProperty(global, 'File', {
+  value: class MockFile {
+    name: string;
+    size: number;
+    type: string;
+    constructor(chunks: BlobPart[], filename: string, options?: FilePropertyBag) {
+      this.name = filename;
+      this.size = 0;
+      this.type = options?.type || '';
+    }
+  },
+  writable: true
+});
+
+Object.defineProperty(global, 'FormData', {
+  value: class MockFormData {
+    private data = new Map<string, unknown>();
+    append(name: string, value: unknown) {
+      this.data.set(name, value);
+    }
+    get(name: string) {
+      return this.data.get(name);
+    }
+  },
+  writable: true
+});
+
+// Mock Node and Element for DOM testing
+Object.defineProperty(global, 'Node', {
+  value: {
+    ELEMENT_NODE: 1,
+    TEXT_NODE: 3,
+    COMMENT_NODE: 8
+  },
+  writable: true
+});
+
+Object.defineProperty(global, 'Element', {
+  value: class MockElement {
+    tagName: string = '';
+    nodeType: number = 1;
+  },
+  writable: true
+});
+
+// Global error handling for tests
+global.error = jest.fn();

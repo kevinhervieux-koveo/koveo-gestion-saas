@@ -10,7 +10,7 @@ import { contextManager } from './smart-context-manager';
 import { workflowAssistant } from './intelligent-workflow-assistant';
 
 /**
- *
+ * Dashboard metrics interface for tracking project health and performance.
  */
 export interface DashboardMetrics {
   timestamp: string;
@@ -48,7 +48,7 @@ export interface DashboardMetrics {
 }
 
 /**
- *
+ * Agent performance metrics for session tracking.
  */
 export interface AgentPerformance {
   sessionsToday: number;
@@ -60,7 +60,7 @@ export interface AgentPerformance {
 }
 
 /**
- *
+ * System status interface for monitoring infrastructure health.
  */
 export interface SystemStatus {
   status: 'optimal' | 'good' | 'warning' | 'critical';
@@ -80,8 +80,8 @@ export class AIAgentDashboard {
   private sessionStart: Date;
 
   /**
-   *
-   * @param projectRoot
+   * Initialize AI Agent Dashboard.
+   * @param projectRoot - The root directory of the project to monitor.
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -122,6 +122,7 @@ export class AIAgentDashboard {
 
   /**
    * Collect current metrics.
+   * @returns Promise resolving to current dashboard metrics.
    */
   public async collectMetrics(): Promise<DashboardMetrics> {
     const [projectHealth, codeAnalysis, workspaceContext, recommendations, insights] = await Promise.all([
@@ -175,6 +176,7 @@ export class AIAgentDashboard {
 
   /**
    * Get workspace context summary.
+   * @returns Promise resolving to workspace context data.
    */
   private async getWorkspaceContext(): Promise<{
     workingFiles: number;
@@ -186,23 +188,25 @@ export class AIAgentDashboard {
     return {
       workingFiles: context.workingSet || 0,
       focusArea: context.focusArea || 'general',
-      recentActivity: context.recentFiles?.map((f: unknown) => f.path).slice(0, 5) || []
+      recentActivity: context.recentFiles?.map((f: { path: string }) => f.path).slice(0, 5) || []
     };
   }
 
   /**
    * Get recommendations summary.
+   * @returns Promise resolving to categorized recommendations.
    */
   private async getRecommendations(): Promise<{
-    priority: unknown[];
-    exploratory: unknown[];
-    maintenance: unknown[];
+    priority: Array<{ type: string; description: string }>;
+    exploratory: Array<{ type: string; description: string }>;
+    maintenance: Array<{ type: string; description: string }>;
   }> {
     return contextManager.getSmartRecommendations();
   }
 
   /**
    * Generate real-time dashboard HTML.
+   * @returns Promise resolving to HTML string for dashboard.
    */
   public async generateDashboardHTML(): Promise<string> {
     const metrics = await this.collectMetrics();
@@ -401,6 +405,7 @@ export class AIAgentDashboard {
 
   /**
    * Calculate agent performance metrics.
+   * @returns Agent performance metrics object.
    */
   private calculateAgentPerformance(): AgentPerformance {
     const sessionDuration = (Date.now() - this.sessionStart.getTime()) / 1000 / 60; // minutes
@@ -428,6 +433,7 @@ export class AIAgentDashboard {
 
   /**
    * Get system status.
+   * @returns Current system status metrics.
    */
   private getSystemStatus(): SystemStatus {
     const uptime = process.uptime();
@@ -450,6 +456,7 @@ export class AIAgentDashboard {
 
   /**
    * Export dashboard data as JSON.
+   * @returns Promise resolving to JSON string of dashboard data.
    */
   public async exportDashboardData(): Promise<string> {
     const metrics = await this.collectMetrics();
@@ -466,6 +473,7 @@ export class AIAgentDashboard {
 
   /**
    * Save dashboard HTML to file.
+   * @returns Promise resolving to file path where dashboard was saved.
    */
   public async saveDashboard(): Promise<string> {
     const html = await this.generateDashboardHTML();
@@ -484,7 +492,16 @@ export class AIAgentDashboard {
    * Get metrics trends.
    * @param days
    */
-  public getMetricsTrends(days: number = 7): any {
+  /**
+   * Get metrics trends over specified time period.
+   * @param days - Number of days to analyze trends for.
+   * @returns Trends data or null if insufficient data.
+   */
+  public getMetricsTrends(days: number = 7): {
+    projectHealth: { change: number; trend: string };
+    codeQuality: { change: number; trend: string };
+    testCoverage: { change: number; trend: string };
+  } | null {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     

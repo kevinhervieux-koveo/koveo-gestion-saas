@@ -194,6 +194,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Test database connection.
+   * @returns True if database connection is successful, false otherwise.
    */
   private testDatabaseConnection(): boolean {
     try {
@@ -206,6 +207,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Optimize Replit environment for AI development.
+   * @returns Promise resolving to optimization results with applied changes, recommendations, and warnings.
    */
   public async optimizeEnvironment(): Promise<{
     optimizations: string[];
@@ -250,6 +252,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Check if memory optimization is needed.
+   * @returns True if memory optimization is recommended, false otherwise.
    */
   private shouldOptimizeMemory(): boolean {
     const memUsage = process.memoryUsage();
@@ -259,6 +262,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Optimize memory usage for Replit environment.
+   * @returns Promise that resolves when memory optimization is complete.
    */
   private async optimizeMemoryUsage(): Promise<void> {
     // Set Node.js memory flags for Replit
@@ -278,6 +282,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Optimize package.json scripts for Replit.
+   * @returns Promise that resolves when package scripts are optimized.
    */
   private async optimizePackageScripts(): Promise<void> {
     const packagePath = path.join(this.projectRoot, 'package.json');
@@ -309,6 +314,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Check for required secrets.
+   * @returns Array of missing required secret names.
    */
   private checkRequiredSecrets(): string[] {
     const required = ['DATABASE_URL', 'JWT_SECRET', 'SESSION_SECRET'];
@@ -317,6 +323,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Check deployment readiness.
+   * @returns Promise resolving to array of deployment issues found.
    */
   private async checkDeploymentReadiness(): Promise<string[]> {
     const issues: string[] = [];
@@ -347,6 +354,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Optimize build configuration.
+   * @returns Promise resolving to true if optimizations were applied, false otherwise.
    */
   private async optimizeBuildConfig(): Promise<boolean> {
     let optimized = false;
@@ -393,6 +401,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Create Replit monitoring dashboard.
+   * @returns Path to the generated dashboard HTML file.
    */
   public createMonitoringDashboard(): string {
     const dashboardPath = path.join(this.projectRoot, 'replit-dashboard.html');
@@ -807,6 +816,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Get deployment information.
+   * @returns Promise resolving to current deployment information.
    */
   public async getDeploymentInfo(): Promise<DeploymentInfo> {
     if (!this.deploymentInfo) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import Budget from '@/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
 import { getDemoBuildings } from '../../utils/demo-data-helpers';
