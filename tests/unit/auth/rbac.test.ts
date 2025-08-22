@@ -162,7 +162,7 @@ describe('RBAC Unit Tests', () => {
     });
     
     it('should have limited user management permissions', () => {
-      expect(hasPermission(managerRole, PERMISSIONS.CREATE_USERS)).toBe(false);
+      expect(hasPermission(managerRole, PERMISSIONS.CREATE_USERS)).toBe(false); // Only Admin can create users
       expect(hasPermission(managerRole, PERMISSIONS.VIEW_USERS)).toBe(true);
       expect(hasPermission(managerRole, PERMISSIONS.EDIT_USERS)).toBe(true);
       expect(hasPermission(managerRole, PERMISSIONS.DELETE_USERS)).toBe(false);
@@ -301,10 +301,10 @@ describe('RBAC Unit Tests', () => {
 
     it('should allow appropriate cross-role interactions', () => {
       // All roles can comment on demands
-      expect(hasPermission('ADMIN', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission('MANAGER', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission('RESIDENT', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission('TENANT', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission(ROLES.MANAGER, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission(ROLES.TENANT, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
     });
   });
 
@@ -341,9 +341,9 @@ describe('RBAC Unit Tests', () => {
 
     it('should allow appropriate data management roles', () => {
       // Only admin and manager should manage user data
-      expect(hasPermission('ADMIN', PERMISSIONS.EDIT_USERS)).toBe(true);
-      expect(hasPermission('MANAGER', PERMISSIONS.EDIT_USERS)).toBe(true);
-      expect(hasPermission('RESIDENT', PERMISSIONS.EDIT_USERS)).toBe(false);
+      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.EDIT_USERS)).toBe(true);
+      expect(hasPermission(ROLES.MANAGER, PERMISSIONS.EDIT_USERS)).toBe(true);
+      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.EDIT_USERS)).toBe(false);
     });
   });
 });

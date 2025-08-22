@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         return await response.json() as User;
       } catch (_error) {
-        console.debug('Auth check failed:', error);
+        console.debug('Auth check failed:', _error);
         return null;
       }
     },

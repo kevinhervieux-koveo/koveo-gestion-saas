@@ -32,8 +32,8 @@ describe('Demands Schema Validation Tests', () => {
       const invalidDemand = {
         type: 'maintenance',
         description: 'Test description',
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -282,11 +282,11 @@ describe('Demands Schema Validation Tests', () => {
 
       descriptionsWithSpecialChars.forEach(description => {
         const demand = {
-          submitterId: 'user-123',
+          submitterId: '123e4567-e89b-12d3-a456-426614174000',
           type: 'maintenance',
           description,
-          residenceId: 'residence-456',
-          buildingId: 'building-789'
+          residenceId: '223e4567-e89b-12d3-a456-426614174001',
+          buildingId: '323e4567-e89b-12d3-a456-426614174002'
         };
 
         expect(() => insertDemandSchema.parse(demand)).not.toThrow();
@@ -300,19 +300,19 @@ describe('Demands Schema Validation Tests', () => {
       const aboveMax = 'a'.repeat(2001);
 
       const demandMinValid = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: minValidDescription,
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       const demandMaxValid = {
-        submitterId: 'user-123',
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: maxValidDescription,
-        residenceId: 'residence-456',
-        buildingId: 'building-789'
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002'
       };
 
       expect(() => insertDemandSchema.parse(demandMinValid)).not.toThrow();

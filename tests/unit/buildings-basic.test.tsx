@@ -209,38 +209,38 @@ describe('Buildings Management Unit Tests', () => {
   });
 
   describe('Building Form Validation', () => {
-    const validateBuildingForm = (formData: unknown) => {
+    const validateBuildingForm = (formData: any) => {
       const errors: string[] = [];
       
-      if (!formData.name || formData.name.trim().length === 0) {
+      if (!formData || !formData.name || formData.name.trim().length === 0) {
         errors.push('Building name is required');
       }
       
-      if (!formData.organizationId || formData.organizationId.trim().length === 0) {
+      if (!formData || !formData.organizationId || formData.organizationId.trim().length === 0) {
         errors.push('Organization is required');
       }
       
-      if (formData.postalCode && !/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/.test(formData.postalCode)) {
+      if (formData && formData.postalCode && !/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/.test(formData.postalCode)) {
         errors.push('Invalid postal code format');
       }
       
-      if (formData.yearBuilt && (formData.yearBuilt < 1800 || formData.yearBuilt > new Date().getFullYear() + 5)) {
+      if (formData && formData.yearBuilt !== undefined && (formData.yearBuilt < 1800 || formData.yearBuilt > new Date().getFullYear() + 5)) {
         errors.push('Invalid year built');
       }
       
-      if (formData.totalUnits && (formData.totalUnits < 0 || formData.totalUnits > 10000)) {
+      if (formData && formData.totalUnits !== undefined && (formData.totalUnits < 0 || formData.totalUnits > 10000)) {
         errors.push('Invalid total units');
       }
       
-      if (formData.totalFloors && (formData.totalFloors < 1 || formData.totalFloors > 200)) {
+      if (formData && formData.totalFloors !== undefined && (formData.totalFloors < 1 || formData.totalFloors > 200)) {
         errors.push('Invalid total floors');
       }
       
-      if (formData.parkingSpaces !== undefined && (formData.parkingSpaces < 0 || formData.parkingSpaces > 50000)) {
+      if (formData && formData.parkingSpaces !== undefined && (formData.parkingSpaces < 0 || formData.parkingSpaces > 50000)) {
         errors.push('Invalid parking spaces');
       }
       
-      if (formData.storageSpaces !== undefined && (formData.storageSpaces < 0 || formData.storageSpaces > 50000)) {
+      if (formData && formData.storageSpaces !== undefined && (formData.storageSpaces < 0 || formData.storageSpaces > 50000)) {
         errors.push('Invalid storage spaces');
       }
       
