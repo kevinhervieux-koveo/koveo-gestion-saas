@@ -23,11 +23,12 @@ export const phoneSchema = z.string().regex(/^\+?[\d\s\-\(\)]+$/);
 /**
  * IsValidUUID function.
  * @param value
+ * @param _value
  * @returns Function result.
  */
-export function isValidUUID(value: string): boolean {
+export function isValidUUID(_value: string): boolean {
   try {
-    uuidSchema.parse(value);
+    uuidSchema.parse(_value);
     return true;
   } catch {
     return false;
@@ -50,11 +51,12 @@ export function isValidUUID(value: string): boolean {
 /**
  * IsValidEmail function.
  * @param value
+ * @param _value
  * @returns Function result.
  */
-export function isValidEmail(value: string): boolean {
+export function isValidEmail(_value: string): boolean {
   try {
-    emailSchema.parse(value);
+    emailSchema.parse(_value);
     return true;
   } catch {
     return false;

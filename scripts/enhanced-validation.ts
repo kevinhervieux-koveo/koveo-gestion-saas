@@ -24,8 +24,8 @@ interface ValidationResult {
  * @returns Process exit code.
  */
 async function runEnhancedValidation(): Promise<number> {
-  console.log(chalk.blue('🚀 Running Enhanced Validation Suite with Consolidation Analysis...'));
-  console.log(chalk.gray('   Includes linting, testing, consolidation analysis, and feature validation\n'));
+  console.warn(chalk.blue('🚀 Running Enhanced Validation Suite with Consolidation Analysis...'));
+  console.warn(chalk.gray('   Includes linting, testing, consolidation analysis, and feature validation\n'));
   
   const startTime = Date.now();
   const results: ValidationResult[] = [];
@@ -46,22 +46,22 @@ async function runEnhancedValidation(): Promise<number> {
   let allPassed = true;
   
   for (const step of validationSteps) {
-    console.log(chalk.blue(`🔍 ${step.name}...`));
+    console.warn(chalk.blue(`🔍 ${step.name}...`));
     const result = await runValidationStep(step.name, step.command);
-    results.push(result);
+    results.push(_result);
     
     if (!result.passed) {
       allPassed = false;
-      console.log(chalk.red(`❌ ${step.name}: FAILED`));
+      console.warn(chalk.red(`❌ ${step.name}: FAILED`));
     } else {
-      console.log(chalk.green(`✅ ${step.name}: PASSED`));
+      console.warn(chalk.green(`✅ ${step.name}: PASSED`));
     }
     
-    console.log(chalk.gray(`   Duration: ${result.duration}ms`));
+    console.warn(chalk.gray(`   Duration: ${result.duration}ms`));
     if (result.issues > 0) {
-      console.log(chalk.yellow(`   Issues: ${result.issues}`));
+      console.warn(chalk.yellow(`   Issues: ${result.issues}`));
     }
-    console.log('');
+    console.warn('');
   }
   
   const totalDuration = Date.now() - startTime;
@@ -70,18 +70,18 @@ async function runEnhancedValidation(): Promise<number> {
   // Generate summary report
   await generateValidationSummary(results, totalDuration, allPassed);
   
-  console.log(chalk.blue('📊 Enhanced Validation Summary:'));
-  console.log(chalk.gray(`   Total Duration: ${totalDuration}ms`));
-  console.log(chalk.gray(`   Steps Passed: ${results.filter(r => r.passed).length}/${results.length}`));
-  console.log(chalk.gray(`   Total Issues: ${totalIssues}`));
+  console.warn(chalk.blue('📊 Enhanced Validation Summary:'));
+  console.warn(chalk.gray(`   Total Duration: ${totalDuration}ms`));
+  console.warn(chalk.gray(`   Steps Passed: ${results.filter(r => r.passed).length}/${results.length}`));
+  console.warn(chalk.gray(`   Total Issues: ${totalIssues}`));
   
   if (allPassed) {
-    console.log(chalk.green('\n🎉 All validation checks passed! Your codebase is in excellent shape.'));
-    console.log(chalk.gray('   Reports saved to: reports/enhanced-validation-report.md'));
+    console.warn(chalk.green('\n🎉 All validation checks passed! Your codebase is in excellent shape.'));
+    console.warn(chalk.gray('   Reports saved to: reports/enhanced-validation-report.md'));
     return 0;
   } else {
-    console.log(chalk.red('\n⚠️  Some validation checks failed. Review the reports for details.'));
-    console.log(chalk.gray('   Reports saved to: reports/ directory'));
+    console.warn(chalk.red('\n⚠️  Some validation checks failed. Review the reports for details.'));
+    console.warn(chalk.gray('   Reports saved to: reports/ directory'));
     return 1;
   }
 }
@@ -105,11 +105,11 @@ async function runValidationStep(name: string, command: string): Promise<Validat
     let output = '';
     let errorOutput = '';
     
-    process.stdout?.on('data', (data) => {
+    process.stdout?.on('data', (_data) => {
       output += data.toString();
     });
     
-    process.stderr?.on('data', (data) => {
+    process.stderr?.on('data', (_data) => {
       errorOutput += data.toString();
     });
     
@@ -196,7 +196,7 @@ Generated on: ${new Date().toISOString()}
 
 ## Validation Results
 
-${results.map((result, index) => `
+${results.map((result, _index) => `
 ### ${index + 1}. ${result.category}
 
 **Status:** ${result.passed ? '✅ PASSED' : '❌ FAILED'}  
@@ -264,7 +264,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   runEnhancedValidation().then(exitCode => {
     process.exit(exitCode);
   }).catch(error => {
-    console.error('Validation runner failed:', error);
+    console.error('Validation runner failed:', _error);
     process.exit(1);
   });
 }

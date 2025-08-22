@@ -60,13 +60,13 @@ const mockUsers = {
 describe('RBAC Validation Test Suite', () => {
   beforeAll(async () => {
     // Skip validation for now to test the actual permissions
-    console.log('Loading permissions configuration (skipping validation for testing)');
+    console.warn('Loading permissions configuration (skipping validation for testing)');
     
-    console.log('🔐 RBAC Test Suite initialized with permissions configuration');
-    console.log(`   Admin permissions: ${permissions.admin.length}`);
-    console.log(`   Manager permissions: ${permissions.manager.length}`);
-    console.log(`   Tenant permissions: ${permissions.tenant.length}`);
-    console.log(`   Resident permissions: ${permissions.resident.length}`);
+    console.warn('🔐 RBAC Test Suite initialized with permissions configuration');
+    console.warn(`   Admin permissions: ${permissions.admin.length}`);
+    console.warn(`   Manager permissions: ${permissions.manager.length}`);
+    console.warn(`   Tenant permissions: ${permissions.tenant.length}`);
+    console.warn(`   Resident permissions: ${permissions.resident.length}`);
   });
 
   describe('Role Hierarchy Validation', () => {
@@ -85,7 +85,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(managerPermissions.length).toBeGreaterThan(tenantPermissions.length);
       expect(managerPermissions.length).toBeGreaterThan(residenPermissions.length);
 
-      console.log('✅ Role hierarchy properly enforced');
+      console.warn('✅ Role hierarchy properly enforced');
     });
 
     it('should ensure admin has all critical system permissions', () => {
@@ -101,7 +101,7 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(true, `Admin should have critical permission: ${permission}`);
       });
 
-      console.log(`✅ Admin has all ${criticalPermissions.length} critical system permissions`);
+      console.warn(`✅ Admin has all ${criticalPermissions.length} critical system permissions`);
     });
 
     it('should verify managers have appropriate property management permissions', () => {
@@ -117,7 +117,7 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(true, `Manager should have permission: ${permission}`);
       });
 
-      console.log(`✅ Manager has all ${managerPermissions.length} property management permissions`);
+      console.warn(`✅ Manager has all ${managerPermissions.length} property management permissions`);
     });
 
     it('should ensure tenant/resident permissions are appropriately restricted', () => {
@@ -134,7 +134,7 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(false, `Resident should not have permission: ${permission}`);
       });
 
-      console.log(`✅ Tenant/Resident properly restricted from ${restrictedPermissions.length} sensitive permissions`);
+      console.warn(`✅ Tenant/Resident properly restricted from ${restrictedPermissions.length} sensitive permissions`);
     });
   });
 
@@ -158,7 +158,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(checkPermission(permissions, 'tenant', 'read:user')).toBe(false);
       expect(checkPermission(permissions, 'resident', 'read:user')).toBe(false);
 
-      console.log('✅ User management permissions properly distributed');
+      console.warn('✅ User management permissions properly distributed');
     });
 
     it('should validate building management permissions', () => {
@@ -180,7 +180,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(checkPermission(permissions, 'tenant', 'create:building')).toBe(false);
       expect(checkPermission(permissions, 'resident', 'create:building')).toBe(false);
 
-      console.log('✅ Building management permissions properly restricted');
+      console.warn('✅ Building management permissions properly restricted');
     });
 
     it('should validate financial management permissions', () => {
@@ -208,7 +208,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(checkPermission(permissions, 'resident', 'read:bill')).toBe(true);
       expect(checkPermission(permissions, 'resident', 'create:bill')).toBe(false);
 
-      console.log('✅ Financial management permissions properly secured');
+      console.warn('✅ Financial management permissions properly secured');
     });
 
     it('should validate maintenance request permissions', () => {
@@ -238,7 +238,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(checkPermission(permissions, 'resident', 'update:own_maintenance_request')).toBe(true);
       expect(checkPermission(permissions, 'resident', 'assign:maintenance_request')).toBe(false);
 
-      console.log('✅ Maintenance request permissions properly configured');
+      console.warn('✅ Maintenance request permissions properly configured');
     });
   });
 
@@ -260,7 +260,7 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(false, `${role} should not have elevated permission: ${permission}`);
       });
 
-      console.log(`✅ Prevented ${privilegeEscalationTests.length} privilege escalation attempts`);
+      console.warn(`✅ Prevented ${privilegeEscalationTests.length} privilege escalation attempts`);
     });
 
     it('should enforce strict boundaries for system administration', () => {
@@ -281,7 +281,7 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(false, `Resident should not have system permission: ${permission}`);
       });
 
-      console.log('✅ System administration permissions strictly controlled');
+      console.warn('✅ System administration permissions strictly controlled');
     });
 
     it('should validate Quebec Law 25 compliance permissions', () => {
@@ -303,7 +303,7 @@ describe('RBAC Validation Test Suite', () => {
         }
       });
 
-      console.log('✅ Quebec Law 25 privacy permissions properly restricted');
+      console.warn('✅ Quebec Law 25 privacy permissions properly restricted');
     });
   });
 
@@ -323,7 +323,7 @@ describe('RBAC Validation Test Suite', () => {
         expect(user.organizations.length).toBeGreaterThan(0);
       });
 
-      console.log('✅ Organization-level access controls properly configured');
+      console.warn('✅ Organization-level access controls properly configured');
     });
 
     it('should enforce resource ownership boundaries', () => {
@@ -348,7 +348,7 @@ describe('RBAC Validation Test Suite', () => {
         expect(test.shouldNotHave).toBe(false, `${test.description} - should not have general permission`);
       });
 
-      console.log('✅ Resource ownership boundaries properly enforced');
+      console.warn('✅ Resource ownership boundaries properly enforced');
     });
 
     it('should validate cross-role permission inheritance', () => {
@@ -363,7 +363,7 @@ describe('RBAC Validation Test Suite', () => {
         expect(checkPermission(permissions, 'resident', permission as Permission)).toBe(true);
       });
 
-      console.log('✅ Cross-role permission inheritance working correctly');
+      console.warn('✅ Cross-role permission inheritance working correctly');
     });
   });
 
@@ -383,7 +383,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(invalidPermissions.length).toBe(0, 
         `Invalid permission formats found: ${invalidPermissions.join(', ')}`);
 
-      console.log('✅ All permissions follow proper naming conventions');
+      console.warn('✅ All permissions follow proper naming conventions');
     });
 
     it('should validate permission uniqueness across roles', () => {
@@ -397,7 +397,7 @@ describe('RBAC Validation Test Suite', () => {
           `Role ${role} has duplicate permissions`);
       });
 
-      console.log(`✅ Validated ${uniquePermissions.size} unique permissions across all roles`);
+      console.warn(`✅ Validated ${uniquePermissions.size} unique permissions across all roles`);
     });
 
     it('should ensure minimum required permissions per role', () => {
@@ -414,7 +414,7 @@ describe('RBAC Validation Test Suite', () => {
           `Role ${role} should have at least ${minCount} permissions, has ${rolePermissions.length}`);
       });
 
-      console.log('✅ All roles have sufficient permission counts');
+      console.warn('✅ All roles have sufficient permission counts');
     });
   });
 
@@ -433,7 +433,7 @@ describe('RBAC Validation Test Suite', () => {
       expect(checkPermission(permissions, 'admin', 'invalid:permission' as Permission))
         .toBe(false);
 
-      console.log('✅ Invalid input handling works correctly');
+      console.warn('✅ Invalid input handling works correctly');
     });
 
     it('should validate permission combinations for complex operations', () => {
@@ -465,7 +465,7 @@ describe('RBAC Validation Test Suite', () => {
           `${operation.role} should have all permissions for ${operation.name}`);
       });
 
-      console.log('✅ Complex operation permission combinations validated');
+      console.warn('✅ Complex operation permission combinations validated');
     });
 
     it('should verify invitation management permissions across roles', () => {
@@ -493,7 +493,7 @@ describe('RBAC Validation Test Suite', () => {
         expect(checkPermission(permissions, 'resident', permission)).toBe(false);
       });
 
-      console.log('✅ Invitation management permissions properly distributed');
+      console.warn('✅ Invitation management permissions properly distributed');
     });
   });
 
@@ -518,8 +518,8 @@ describe('RBAC Validation Test Suite', () => {
           .toBe(true, `Permission category ${category} should be covered`);
       });
 
-      console.log(`✅ All ${expectedCategories.length} expected permission categories are covered`);
-      console.log(`   Total resources covered: ${resourcesCovered.size}`);
+      console.warn(`✅ All ${expectedCategories.length} expected permission categories are covered`);
+      console.warn(`   Total resources covered: ${resourcesCovered.size}`);
     });
 
     it('should ensure role consistency across all permissions', () => {
@@ -544,22 +544,22 @@ describe('RBAC Validation Test Suite', () => {
       expect(inconsistencies.length).toBe(0, 
         `Role inconsistencies found: ${inconsistencies.join(', ')}`);
 
-      console.log('✅ Role consistency maintained across all permission resources');
+      console.warn('✅ Role consistency maintained across all permission resources');
     });
   });
 
   afterAll(() => {
-    console.log('\n🎯 RBAC VALIDATION SUMMARY');
-    console.log('=========================');
-    console.log('✅ Role hierarchy properly enforced');
-    console.log('✅ Permission boundaries secured');
-    console.log('✅ System administration restricted');
-    console.log('✅ Quebec Law 25 compliance validated');
-    console.log('✅ Resource ownership boundaries enforced');
-    console.log('✅ Permission schema consistency verified');
-    console.log('✅ Complex operation scenarios tested');
-    console.log('✅ Security integration validated');
-    console.log(`\n📊 Total Permissions Tested: ${Object.values(permissions).flat().length}`);
-    console.log('🔐 RBAC system validated for production deployment');
+    console.warn('\n🎯 RBAC VALIDATION SUMMARY');
+    console.warn('=========================');
+    console.warn('✅ Role hierarchy properly enforced');
+    console.warn('✅ Permission boundaries secured');
+    console.warn('✅ System administration restricted');
+    console.warn('✅ Quebec Law 25 compliance validated');
+    console.warn('✅ Resource ownership boundaries enforced');
+    console.warn('✅ Permission schema consistency verified');
+    console.warn('✅ Complex operation scenarios tested');
+    console.warn('✅ Security integration validated');
+    console.warn(`\n📊 Total Permissions Tested: ${Object.values(permissions).flat().length}`);
+    console.warn('🔐 RBAC system validated for production deployment');
   });
 });

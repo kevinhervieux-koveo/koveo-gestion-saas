@@ -18,7 +18,7 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: {children: React.ReactNode, href?: string, [key: string]: any}) => (
+  Link: ({ children, href, ...props }: {children: React.ReactNode, href?: string, [_key: string]: any}) => (
     <a href={href} {...props}>
       {children}
     </a>

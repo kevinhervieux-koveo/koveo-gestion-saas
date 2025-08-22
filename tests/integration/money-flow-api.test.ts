@@ -121,7 +121,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Failed to get money flow status',
-        error: 'Database error'
+        _error: 'Database error'
       });
     });
   });
@@ -142,7 +142,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Money flow regeneration completed successfully',
-        result: mockResult,
+        _result: mockResult,
         triggeredBy: 'admin@test.com',
         timestamp: expect.any(String)
       });
@@ -184,7 +184,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Failed to trigger money flow regeneration',
-        error: 'Job is already running'
+        _error: 'Job is already running'
       });
     });
   });
@@ -316,7 +316,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Failed to generate money flow for residence',
-        error: 'Residence not found'
+        _error: 'Residence not found'
       });
     });
   });
@@ -426,7 +426,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         status: 'unhealthy',
-        error: 'Job configuration error',
+        _error: 'Job configuration error',
         message: 'Money flow automation system encountered an error'
       });
     });

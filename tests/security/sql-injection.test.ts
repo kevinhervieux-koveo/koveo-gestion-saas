@@ -92,7 +92,7 @@ describe('SQL Injection Security Tests', () => {
       }).returning({ id: schema.users.id });
       
       testUserId = testUser.id;
-    } catch (___error) {
+    } catch (____error) {
       console.warn('Test user may already exist, continuing...');
     }
   });
@@ -103,7 +103,7 @@ describe('SQL Injection Security Tests', () => {
       if (testUserId) {
         await db.delete(schema.users).where(eq(schema.users.id, testUserId));
       }
-    } catch (___error) {
+    } catch (____error) {
       console.error('Cleanup error occurred during test teardown');
     }
   });

@@ -192,7 +192,7 @@ describe('Database Query Performance Tests', () => {
     };
 
     const setupTime = performance.now() - startTime;
-    console.log(`Test data setup completed in ${setupTime.toFixed(2)}ms`);
+    console.warn(`Test data setup completed in ${setupTime.toFixed(2)}ms`);
   }
 
   /**
@@ -235,7 +235,7 @@ describe('Database Query Performance Tests', () => {
     const endTime = performance.now();
     
     const duration = endTime - startTime;
-    const rowCount = Array.isArray(result) ? result.length : 1;
+    const rowCount = Array.isArray(_result) ? result.length : 1;
     
     return {
       duration,
@@ -252,11 +252,12 @@ describe('Database Query Performance Tests', () => {
   /**
    * AssertQueryPerformance function.
    * @param result
+   * @param _result
    * @param threshold
    * @returns Function result.
    */
-  function assertQueryPerformance(result: QueryResult, threshold: number) {
-    console.log(`${result.queryName}: ${result.duration.toFixed(2)}ms (${result.rowCount} rows)`);
+  function assertQueryPerformance(_result: QueryResult, threshold: number) {
+    console.warn(`${result.queryName}: ${result.duration.toFixed(2)}ms (${result.rowCount} rows)`);
     expect(result.duration).toBeLessThan(threshold);
   }
 
@@ -566,8 +567,8 @@ describe('Database Query Performance Tests', () => {
 
       const results = await Promise.all(concurrentQueries);
       
-      results.forEach((result, index) => {
-        console.log(`Concurrent query ${index + 1}: ${result.duration.toFixed(2)}ms`);
+      results.forEach((result, _index) => {
+        console.warn(`Concurrent query ${index + 1}: ${result.duration.toFixed(2)}ms`);
         expect(result.duration).toBeLessThan(QUERY_THRESHOLDS.SLOW);
       });
     });

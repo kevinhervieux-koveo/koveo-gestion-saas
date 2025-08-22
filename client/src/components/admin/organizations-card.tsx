@@ -66,7 +66,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const [viewingOrganization, setViewingOrganization] = useState<Organization | null>(null);
 
   // Fetch organizations
-  const { data: organizations, isLoading } = useQuery<Organization[]>({
+  const { _data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/organizations');
@@ -87,7 +87,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       });
       setDeletingOrganization(null);
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete organization',

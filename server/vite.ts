@@ -27,7 +27,7 @@ export function log(message: string, source = 'express') {
     hour12: true,
   });
 
-  console.log(`${formattedTime} [${source}] ${message}`);
+  console.warn(`${formattedTime} [${source}] ${message}`);
 }
 
 /**
@@ -53,8 +53,8 @@ export async function setupVite(app: Express, server: Server) {
     configFile: false,
     customLogger: {
       ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
+      _error: (msg, _options) => {
+        viteLogger.error(msg, _options);
         process.exit(1);
       },
     },
@@ -74,7 +74,7 @@ export async function setupVite(app: Express, server: Server) {
       template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ 'Content-Type': 'text/html' }).end(page);
-    } catch (__e) {
+    } catch (___e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }

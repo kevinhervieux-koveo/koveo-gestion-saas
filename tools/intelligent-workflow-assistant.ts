@@ -289,11 +289,11 @@ export class IntelligentWorkflowAssistant {
     const results: Array<{ action: string; success: boolean; output: string; }> = [];
     let overallSuccess = true;
 
-    console.log(`${dryRun ? '[DRY RUN] ' : ''}Executing workflow: ${pattern.description}`);
+    console.warn(`${dryRun ? '[DRY RUN] ' : ''}Executing workflow: ${pattern.description}`);
 
     for (const action of pattern.actions.sort((a, b) => a.priority - b.priority)) {
       try {
-        console.log(`${dryRun ? '[DRY RUN] ' : ''}Running: ${action.description}`);
+        console.warn(`${dryRun ? '[DRY RUN] ' : ''}Running: ${action.description}`);
         
         if (dryRun) {
           results.push({
@@ -508,7 +508,7 @@ export class IntelligentWorkflowAssistant {
           try {
             const filePath = path.join(distPath, file as string);
             totalSize += fs.statSync(filePath).size;
-          } catch (__error) {
+          } catch (_error) {
             // Error handled silently
           }
         });
@@ -525,7 +525,7 @@ export class IntelligentWorkflowAssistant {
             impact: Math.round(sizeMB * 10)
           });
         }
-      } catch (__error) {
+      } catch (_error) {
     // Error handled silently
   }
     }
@@ -552,7 +552,7 @@ export class IntelligentWorkflowAssistant {
           impact: critical * 50 + highSeverity * 20
         });
       }
-    } catch (__error) {
+    } catch (_error) {
       // Error handled silently
     }
 
@@ -581,9 +581,13 @@ export class IntelligentWorkflowAssistant {
    * @param context.recentFiles - Array of recently modified files.
    * @param context.userIntent - User's stated intent or goal.
    * @param context.projectPhase - Current phase of the project.
+   * @param _context
+   * @param _context.recentFiles
+   * @param _context.userIntent
+   * @param _context.projectPhase
    * @returns Promise resolving to categorized workflow suggestions.
    */
-  public async recommendWorkflows(context: {
+  public async recommendWorkflows(_context: {
     recentFiles?: string[];
     userIntent?: string;
     projectPhase?: string;

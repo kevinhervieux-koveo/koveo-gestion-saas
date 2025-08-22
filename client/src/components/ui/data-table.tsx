@@ -28,13 +28,19 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * ColumnConfig type definition.
  */
+/**
+ * ColumnConfig type definition.
+ */
 export interface ColumnConfig<T> extends TableColumn<T> {}
 
 /**
  * TableColumn type definition.
  */
+/**
+ * TableColumn type definition.
+ */
 export interface TableColumn<T> {
-  key: string;
+  _key: string;
   label: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
   sortable?: boolean;
@@ -46,6 +52,9 @@ export interface TableColumn<T> {
 
 /**
  * Action configuration for table rows
+ */
+/**
+ * TableAction type definition.
  */
 /**
  * TableAction type definition.
@@ -65,6 +74,9 @@ export interface TableAction<T> {
 /**
  * BulkAction type definition.
  */
+/**
+ * BulkAction type definition.
+ */
 export interface BulkAction<T> {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -76,7 +88,7 @@ export interface BulkAction<T> {
  * Props for the DataTable component
  */
 interface DataTableProps<T> {
-  data: T[];
+  _data: T[];
   columns: TableColumn<T>[];
   actions?: TableAction<T>[];
   bulkActions?: BulkAction<T>[];
@@ -130,6 +142,14 @@ export function DataTable<T extends Record<string, unknown>>({
   /**
    * If function.
    * @param checked - checked parameter.
+   */  /**
+   * If function.
+   * @param checked - checked parameter.
+   */
+
+  /**
+   * If function.
+   * @param checked - checked parameter.
    */
 
     if (checked) {
@@ -153,7 +173,11 @@ export function DataTable<T extends Record<string, unknown>>({
   const renderCellContent = (column: TableColumn<T>, item: T) => {  /**
    * If function.
    * @param column.render - column.render parameter.
+   */  /**
+   * If function.
+   * @param column.render - column.render parameter.
    */
+
 
     if (column.render) {
       const value = typeof column.accessor === 'function' 
@@ -165,7 +189,16 @@ export function DataTable<T extends Record<string, unknown>>({
     }
 
     if (typeof column.accessor === 'function') result.
+   */  /**
+   * Accessor function.
+   * @param item - item parameter.
+   * @returns item[column.accessor];
+      return column.render(value, item);
+    }
+
+    if (typeof column.accessor === 'function') result.
    */
+
 accessor(item) 
         : item[column.accessor];
       return column.render(value, item);
@@ -180,7 +213,11 @@ accessor(item)
     // Handle common data types  /**
    * If function.
    * @param typeof value === 'boolean' - typeof value === 'boolean' parameter.
+   */  /**
+   * If function.
+   * @param typeof value === 'boolean' - typeof value === 'boolean' parameter.
    */
+
 
     if (typeof value === 'boolean') {
       return (
@@ -191,10 +228,14 @@ accessor(item)
     }  /**
    * If function.
    * @param value && typeof value === 'object' && 'toLocaleDateString' in value - value && typeof value === 'object' && 'toLocaleDateString' in value parameter.
+   */  /**
+   * If function.
+   * @param value && typeof value === 'object' && 'toLocaleDateString' in value - value && typeof value === 'object' && 'toLocaleDateString' in value parameter.
    */
 
 
-    if (value && typeof value === 'object' && 'toLocaleDateString' in value) {
+
+    if (value && typeof value === 'object' && 'toLocaleDateString' in _value) {
       return (value as Date).toLocaleDateString();
     }
 
@@ -224,7 +265,7 @@ accessor(item)
             )}
             {bulkActions.length > 0 && selection.size > 0 && (
               <div className="flex gap-2">
-                {bulkActions.map((action, index) => (
+                {bulkActions.map((action, _index) => (
                   <Button
                     key={index}
                     size="sm"
@@ -321,7 +362,7 @@ accessor(item)
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              {actions.map((action, index) => (
+                              {actions.map((action, _index) => (
                                 <React.Fragment key={index}>
                                   {action.separator && <DropdownMenuSeparator />}
                                   <DropdownMenuItem
@@ -331,7 +372,13 @@ accessor(item)
    * @param item - item parameter.
    * @returns false}
                                     className= result.
+   */  /**
+   * Disable .
+   * @param item - item parameter.
+   * @returns false}
+                                    className= result.
    */
+
 disabled(item) : false}
                                     className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
                                   >

@@ -219,8 +219,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (__error) {
-      console.error('Failed to save draft:', __error);
+    } catch (_error) {
+      console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -243,8 +243,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (__error) {
-      console.error('Failed to load draft:', __error);
+    } catch (_error) {
+      console.error('Failed to load draft:', _error);
     }
   }, [feature?.id, getDraftKey]);
 
@@ -261,8 +261,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (__error) {
-      console.error('Failed to clear draft:', __error);
+    } catch (_error) {
+      console.error('Failed to clear draft:', _error);
     }
   }, [feature?.id, toast, getDraftKey]);
 
@@ -270,8 +270,9 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * Updates form data when input values change.
    * @param field - The form field to update.
    * @param value - The new value for the field.
+   * @param _value
    */
-  const updateFormData = (field: string, value: string | boolean | unknown) => {
+  const updateFormData = (field: string, _value: string | boolean | unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
@@ -456,7 +457,7 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -567,18 +568,18 @@ ${formData.additionalNotes || 'No additional notes'}
         
         draftKeys.forEach(key => {
           try {
-            const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
+            const draftData = JSON.parse(window.localStorage.getItem(_key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
-              window.localStorage.removeItem(key);
-              console.warn('Cleared invalid draft:', key);
+              window.localStorage.removeItem(_key);
+              console.warn('Cleared invalid draft:', _key);
             }
-          } catch (__error) {
+          } catch (_error) {
             // Invalid JSON, remove it
-            window.localStorage.removeItem(key);
+            window.localStorage.removeItem(_key);
           }
         });
-      } catch (__error) {
-        console.error('Error clearing invalid drafts:', __error);
+      } catch (_error) {
+        console.error('Error clearing invalid drafts:', _error);
       }
       
       loadDraft();
@@ -663,12 +664,12 @@ ${formData.additionalNotes || 'No additional notes'}
                       id="featureName"
                       placeholder="Enter feature name"
                       value={formData.featureName || ''}
-                      onChange={(e) => updateFormData('featureName', e.target.value)}
+                      onChange={(e) => updateFormData('featureName', e.target._value)}
                     />
                   </div>
                   <div>
                     <Label htmlFor="featureCategory">Category</Label>
-                    <Select value={formData.featureCategory || ''} onValueChange={(value: string) => updateFormData('featureCategory', value)}>
+                    <Select value={formData.featureCategory || ''} onValueChange={(_value: string) => updateFormData('featureCategory', _value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -696,7 +697,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="featureDescription"
                     placeholder="Describe what this feature will do"
                     value={formData.featureDescription || ''}
-                    onChange={(e) => updateFormData('featureDescription', e.target.value)}
+                    onChange={(e) => updateFormData('featureDescription', e.target._value)}
                   />
                 </div>
                 
@@ -725,7 +726,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="businessObjective"
                     placeholder="What problem does this feature solve? What business value does it provide?"
                     value={formData.businessObjective}
-                    onChange={(e) => updateFormData('businessObjective', e.target.value)}
+                    onChange={(e) => updateFormData('businessObjective', e.target._value)}
                   />
                 </div>
 
@@ -735,7 +736,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="targetUsers"
                     placeholder="e.g., Property managers, Tenants, Owners"
                     value={formData.targetUsers}
-                    onChange={(e) => updateFormData('targetUsers', e.target.value)}
+                    onChange={(e) => updateFormData('targetUsers', e.target._value)}
                   />
                 </div>
 
@@ -745,13 +746,13 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="successMetrics"
                     placeholder="How will we measure success? What are the KPIs?"
                     value={formData.successMetrics}
-                    onChange={(e) => updateFormData('successMetrics', e.target.value)}
+                    onChange={(e) => updateFormData('successMetrics', e.target._value)}
                   />
                 </div>
 
                 <div>
                   <Label htmlFor="priority">Development Priority</Label>
-                  <Select value={formData.priority} onValueChange={(value: string) => updateFormData('priority', value)}>
+                  <Select value={formData.priority} onValueChange={(_value: string) => updateFormData('priority', _value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority level" />
                     </SelectTrigger>
@@ -770,7 +771,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="timeline"
                     placeholder="e.g., 2 weeks, 1 month, Next sprint"
                     value={formData.timeline}
-                    onChange={(e) => updateFormData('timeline', e.target.value)}
+                    onChange={(e) => updateFormData('timeline', e.target._value)}
                   />
                 </div>
               </div>
@@ -781,7 +782,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 
                 <div>
                   <Label htmlFor="complexity">Complexity Assessment</Label>
-                  <Select value={formData.complexity} onValueChange={(value: string) => updateFormData('complexity', value)}>
+                  <Select value={formData.complexity} onValueChange={(_value: string) => updateFormData('complexity', _value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Assess technical complexity" />
                     </SelectTrigger>
@@ -800,7 +801,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="dependencies"
                     placeholder="What other features, APIs, or systems does this depend on?"
                     value={formData.dependencies}
-                    onChange={(e) => updateFormData('dependencies', e.target.value)}
+                    onChange={(e) => updateFormData('dependencies', e.target._value)}
                   />
                 </div>
 
@@ -810,7 +811,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="dataRequirements"
                     placeholder="What data needs to be stored, modified, or accessed?"
                     value={formData.dataRequirements}
-                    onChange={(e) => updateFormData('dataRequirements', e.target.value)}
+                    onChange={(e) => updateFormData('dataRequirements', e.target._value)}
                   />
                 </div>
 
@@ -820,7 +821,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="integrationNeeds"
                     placeholder="External APIs, services, or third-party integrations needed"
                     value={formData.integrationNeeds}
-                    onChange={(e) => updateFormData('integrationNeeds', e.target.value)}
+                    onChange={(e) => updateFormData('integrationNeeds', e.target._value)}
                   />
                 </div>
 
@@ -830,7 +831,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="securityConsiderations"
                     placeholder="Authentication, authorization, data privacy concerns"
                     value={formData.securityConsiderations}
-                    onChange={(e) => updateFormData('securityConsiderations', e.target.value)}
+                    onChange={(e) => updateFormData('securityConsiderations', e.target._value)}
                   />
                 </div>
               </div>
@@ -846,7 +847,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="userFlow"
                     placeholder="Describe the step-by-step user interaction with this feature"
                     value={formData.userFlow}
-                    onChange={(e) => updateFormData('userFlow', e.target.value)}
+                    onChange={(e) => updateFormData('userFlow', e.target._value)}
                   />
                 </div>
 
@@ -856,7 +857,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="uiRequirements"
                     placeholder="Specific UI components, layouts, or visual requirements"
                     value={formData.uiRequirements}
-                    onChange={(e) => updateFormData('uiRequirements', e.target.value)}
+                    onChange={(e) => updateFormData('uiRequirements', e.target._value)}
                   />
                 </div>
               </div>
@@ -867,7 +868,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   id="accessibilityNeeds"
                   placeholder="Screen reader support, keyboard navigation, color contrast"
                   value={formData.accessibilityNeeds}
-                  onChange={(e) => updateFormData('accessibilityNeeds', e.target.value)}
+                  onChange={(e) => updateFormData('accessibilityNeeds', e.target._value)}
                 />
               </div>
             </div>
@@ -882,7 +883,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="performanceRequirements"
                     placeholder="Load times, data processing speed, scalability needs"
                     value={formData.performanceRequirements}
-                    onChange={(e) => updateFormData('performanceRequirements', e.target.value)}
+                    onChange={(e) => updateFormData('performanceRequirements', e.target._value)}
                   />
                 </div>
 
@@ -892,7 +893,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id="testingStrategy"
                     placeholder="Unit tests, integration tests, user acceptance criteria"
                     value={formData.testingStrategy}
-                    onChange={(e) => updateFormData('testingStrategy', e.target.value)}
+                    onChange={(e) => updateFormData('testingStrategy', e.target._value)}
                   />
                 </div>
               </div>
@@ -980,7 +981,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 id="additionalNotes"
                 placeholder="Any other requirements, constraints, or considerations"
                 value={formData.additionalNotes}
-                onChange={(e) => updateFormData('additionalNotes', e.target.value)}
+                onChange={(e) => updateFormData('additionalNotes', e.target._value)}
               />
             </div>
           </div>

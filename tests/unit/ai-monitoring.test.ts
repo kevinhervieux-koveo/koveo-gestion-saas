@@ -135,7 +135,7 @@ describe('AI Monitoring API Tests', () => {
         .post('/api/ai/analyze')
         .expect(500);
 
-      expect(response.body.error).toBe('Failed to trigger AI analysis');
+      expect(response.body._error).toBe('Failed to trigger AI analysis');
     });
   });
 
@@ -165,7 +165,7 @@ describe('AI Monitoring API Tests', () => {
         .post('/api/ai/insights/nonexistent/apply')
         .expect(404);
 
-      expect(response.body.error).toBe('Insight not found');
+      expect(response.body._error).toBe('Insight not found');
     });
   });
 });

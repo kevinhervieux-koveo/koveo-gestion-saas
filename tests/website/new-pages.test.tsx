@@ -20,7 +20,8 @@ import TermsOfServicePage from '@/pages/terms-of-service';
  *
  * @param root0
  * @param root0.children
- */
+  * @returns Function result.
+*/
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {

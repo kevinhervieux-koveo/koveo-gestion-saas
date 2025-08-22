@@ -5,12 +5,18 @@
 /**
  * Language type definition.
  */
+/**
+ * Language type definition.
+ */
 export type Language = 'en' | 'fr';
 
 /**
  * Translation keys interface for multilingual support.
  * Defines all translatable text keys used throughout the application.
  * Supports Quebec's bilingual requirements with French and English translations.
+ */
+/**
+ * Translations type definition.
  */
 /**
  * Translations type definition.
@@ -135,7 +141,7 @@ export interface Translations {
   bulkInvitationsSent: string;
   bulkInvitationsResult: string;
   bulkInvitationsSuccess: string;
-  error: string;
+  _error: string;
   // Additional user management translations
   bulkActionSuccess: string;
   bulkActionSuccessDescription: string;
@@ -392,7 +398,7 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsSent: 'Bulk Invitations Sent',
     bulkInvitationsResult: 'Bulk invitations processed successfully',
     bulkInvitationsSuccess: 'invitations sent successfully',
-    error: 'Error',
+    _error: 'Error',
     // Additional user management translations
     bulkActionSuccess: 'Bulk Action Completed',
     bulkActionSuccessDescription: 'The bulk action has been completed successfully',
@@ -648,7 +654,7 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsSent: 'Invitations en lot envoyées',
     bulkInvitationsResult: 'Invitations en lot traitées avec succès',
     bulkInvitationsSuccess: 'invitations envoyées avec succès',
-    error: 'Erreur',
+    _error: 'Erreur',
     // Additional user management translations
     bulkActionSuccess: 'Action en lot terminée',
     bulkActionSuccessDescription: 'L\'action en lot a été terminée avec succès',

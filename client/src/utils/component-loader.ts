@@ -37,23 +37,25 @@ const componentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>(
  * @param importFn
  * @param key
  * @param options
+ * @param _key
+ * @param _options
  * @returns Function result.
  */
 export function createOptimizedLoader<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
-  key: string,
-  options: LoaderOptions = {}
+  _key: string,
+  _options: LoaderOptions = {}
 ): LazyExoticComponent<T> {
   // Return cached component if available
-  if (componentCache.has(key)) {
-    return componentCache.get(key) as LazyExoticComponent<T>;
+  if (componentCache.has(_key)) {
+    return componentCache.get(_key) as LazyExoticComponent<T>;
   }
 
   const {
     preloadDelay = 0,
     retryAttempts = 3,
     enableMemoryCleanup = true
-  } = options;
+  } = _options;
 
   // Create lazy component with retry logic
   const LazyComponent = lazy(async () => {
@@ -66,16 +68,16 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
         // Register cleanup if enabled
         if (enableMemoryCleanup) {
           memoryOptimizer.registerCleanup(() => {
-            componentCache.delete(key);
+            componentCache.delete(_key);
           });
         }
         
         return module;
-      } catch (__error) {
+      } catch (_error) {
         attempts++;
         if (attempts >= retryAttempts) {
-          console.error(`Failed to load component ${key} after ${retryAttempts} attempts:`, error);
-          throw error;
+          console.error(`Failed to load component ${_key} after ${retryAttempts} attempts:`, _error);
+          throw _error;
         }
         
         // Wait before retry with exponential backoff
@@ -83,11 +85,11 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
       }
     }
     
-    throw new Error(`Failed to load component ${key}`);
+    throw new Error(`Failed to load component ${_key}`);
   });
 
   // Cache the component
-  componentCache.set(key, LazyComponent);
+  componentCache.set(_key, LazyComponent);
 
   // Preload if requested
   if (preloadDelay > 0) {
@@ -146,7 +148,7 @@ export function preloadComponent(
  */
 export function clearComponentCache(keys?: string[]): void {
   if (keys) {
-    keys.forEach(key => componentCache.delete(key));
+    keys.forEach(key => componentCache.delete(_key));
   } else {
     componentCache.clear();
   }

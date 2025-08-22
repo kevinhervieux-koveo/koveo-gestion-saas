@@ -23,7 +23,7 @@ interface StylePattern {
  */
 interface DesignToken {
   name: string;
-  value: string;
+  _value: string;
   category: 'colors' | 'spacing' | 'typography' | 'shadows' | 'borders';
   usage: number;
   files: string[];
@@ -82,7 +82,7 @@ const generateDesignTokens = (stylePatterns: StylePattern[]): DesignToken[] => {
   
   // Color tokens
   const colorPatterns = stylePatterns.filter(p => p.category === 'color');
-  const colorMap = new Map<string, { value: string; usage: number; files: Set<string> }>();
+  const colorMap = new Map<string, { _value: string; usage: number; files: Set<string> }>();
   
   colorPatterns.forEach(pattern => {
     const colorMatch = pattern.pattern.match(/(red|blue|green|yellow|purple|pink|indigo|gray|black|white|orange|teal|cyan|lime|emerald|sky|violet|fuchsia|rose)-(\d+)/);
@@ -95,7 +95,7 @@ const generateDesignTokens = (stylePatterns: StylePattern[]): DesignToken[] => {
         pattern.files.forEach(file => existing.files.add(file));
       } else {
         colorMap.set(tokenName, {
-          value: `var(--${color}-${shade})`,
+          _value: `var(--${color}-${shade})`,
           usage: pattern.occurrences,
           files: new Set(pattern.files)
         });
@@ -107,7 +107,7 @@ const generateDesignTokens = (stylePatterns: StylePattern[]): DesignToken[] => {
     if (data.usage >= 3) { // Only create tokens for frequently used colors
       tokens.push({
         name: tokenName,
-        value: data.value,
+        _value: data.value,
         category: 'colors',
         usage: data.usage,
         files: Array.from(data.files)
@@ -140,7 +140,7 @@ const generateDesignTokens = (stylePatterns: StylePattern[]): DesignToken[] => {
     if (data.usage >= 5) { // Only create tokens for frequently used spacing
       tokens.push({
         name: `spacing-${size}`,
-        value: `var(--spacing-${size})`,
+        _value: `var(--spacing-${size})`,
         category: 'spacing',
         usage: data.usage,
         files: Array.from(data.files)
@@ -174,7 +174,7 @@ const generateDesignTokens = (stylePatterns: StylePattern[]): DesignToken[] => {
     if (data.usage >= 3) {
       tokens.push({
         name: `font-size-${size}`,
-        value: `var(--font-size-${size})`,
+        _value: `var(--font-size-${size})`,
         category: 'typography',
         usage: data.usage,
         files: Array.from(data.files)
@@ -262,7 +262,7 @@ describe('Style Consolidation Analysis Tests', () => {
             sourceFiles.push(fullPath);
           }
         }
-      } catch (__error) {
+      } catch (_error) {
         // Directory might not exist
       }
     };
@@ -314,12 +314,12 @@ describe('Style Consolidation Analysis Tests', () => {
         responsive: stylePatterns.filter(p => p.category === 'responsive').length
       };
       
-      console.log('\n=== CSS CLASS USAGE ANALYSIS ===\n');
-      console.log(`Total unique classes: ${classFrequency.size}`);
-      console.log(`Duplicate classes: ${stylePatterns.length}`);
-      console.log('\nCategory breakdown:');
+      console.warn('\n=== CSS CLASS USAGE ANALYSIS ===\n');
+      console.warn(`Total unique classes: ${classFrequency.size}`);
+      console.warn(`Duplicate classes: ${stylePatterns.length}`);
+      console.warn('\nCategory breakdown:');
       Object.entries(categoryStats).forEach(([category, count]) => {
-        console.log(`- ${category}: ${count} duplicate classes`);
+        console.warn(`- ${category}: ${count} duplicate classes`);
       });
       
       // Show most frequently used classes
@@ -327,9 +327,9 @@ describe('Style Consolidation Analysis Tests', () => {
         .sort((a, b) => b.occurrences - a.occurrences)
         .slice(0, 10);
       
-      console.log('\nMost frequently used classes:');
-      topClasses.forEach((pattern, index) => {
-        console.log(`${index + 1}. ${pattern.pattern}: ${pattern.occurrences} times (${pattern.category})`);
+      console.warn('\nMost frequently used classes:');
+      topClasses.forEach((pattern, _index) => {
+        console.warn(`${index + 1}. ${pattern.pattern}: ${pattern.occurrences} times (${pattern.category})`);
       });
       
       expect(stylePatterns.length).toBeGreaterThan(0);
@@ -346,28 +346,28 @@ describe('Style Consolidation Analysis Tests', () => {
         if (colorMatch) {
           const [, color, shade] = colorMatch;
           const key = `${color}-${shade}`;
-          colorUsage.set(key, (colorUsage.get(key) || 0) + 1);
+          colorUsage.set(key, (colorUsage.get(_key) || 0) + 1);
         }
       });
       
-      console.log('\n=== COLOR USAGE ANALYSIS ===\n');
-      console.log(`Total color classes: ${colorPatterns.length}`);
-      console.log(`Unique color combinations: ${colorUsage.size}`);
+      console.warn('\n=== COLOR USAGE ANALYSIS ===\n');
+      console.warn(`Total color classes: ${colorPatterns.length}`);
+      console.warn(`Unique color combinations: ${colorUsage.size}`);
       
       const topColors = [...colorUsage.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
       
-      console.log('\nMost used colors:');
-      topColors.forEach(([color, count], index) => {
-        console.log(`${index + 1}. ${color}: ${count} times`);
+      console.warn('\nMost used colors:');
+      topColors.forEach(([color, count], _index) => {
+        console.warn(`${index + 1}. ${color}: ${count} times`);
       });
       
       // Suggest color palette
       const primaryColors = topColors.filter(([color]) => !color.startsWith('gray-')).slice(0, 5);
-      console.log('\nSuggested primary color palette:');
+      console.warn('\nSuggested primary color palette:');
       primaryColors.forEach(([color]) => {
-        console.log(`- --color-${color}: hsl(var(--${color}))`);
+        console.warn(`- --color-${color}: hsl(var(--${color}))`);
       });
       
       expect(colorPatterns.length).toBeGreaterThan(0);
@@ -387,25 +387,25 @@ describe('Style Consolidation Analysis Tests', () => {
         }
       });
       
-      console.log('\n=== SPACING CONSISTENCY ANALYSIS ===\n');
-      console.log(`Total spacing classes: ${spacingPatterns.length}`);
-      console.log(`Unique spacing values: ${spacingUsage.size}`);
+      console.warn('\n=== SPACING CONSISTENCY ANALYSIS ===\n');
+      console.warn(`Total spacing classes: ${spacingPatterns.length}`);
+      console.warn(`Unique spacing values: ${spacingUsage.size}`);
       
       const topSpacing = [...spacingUsage.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8);
       
-      console.log('\nMost used spacing values:');
-      topSpacing.forEach(([size, count], index) => {
-        console.log(`${index + 1}. ${size}: ${count} times`);
+      console.warn('\nMost used spacing values:');
+      topSpacing.forEach(([size, count], _index) => {
+        console.warn(`${index + 1}. ${size}: ${count} times`);
       });
       
       // Suggest spacing scale
-      console.log('\nSuggested spacing scale:');
+      console.warn('\nSuggested spacing scale:');
       const spacingScale = ['1', '2', '3', '4', '6', '8', '12', '16', '20', '24', '32'];
       spacingScale.forEach(size => {
         const usage = spacingUsage.get(size) || 0;
-        console.log(`- --spacing-${size}: ${parseInt(size) * 0.25}rem (used ${usage} times)`);
+        console.warn(`- --spacing-${size}: ${parseInt(size) * 0.25}rem (used ${usage} times)`);
       });
       
       expect(spacingPatterns.length).toBeGreaterThan(0);
@@ -435,8 +435,8 @@ describe('Style Consolidation Analysis Tests', () => {
       
       const designTokens = generateDesignTokens(stylePatterns);
       
-      console.log('\n=== DESIGN TOKEN SYSTEM ===\n');
-      console.log(`Generated ${designTokens.length} design tokens\n`);
+      console.warn('\n=== DESIGN TOKEN SYSTEM ===\n');
+      console.warn(`Generated ${designTokens.length} design tokens\n`);
       
       // Group tokens by category
       const tokensByCategory = designTokens.reduce((acc, token) => {
@@ -446,26 +446,26 @@ describe('Style Consolidation Analysis Tests', () => {
       }, {} as Record<string, DesignToken[]>);
       
       Object.entries(tokensByCategory).forEach(([category, tokens]) => {
-        console.log(`## ${category.toUpperCase()} TOKENS\n`);
+        console.warn(`## ${category.toUpperCase()} TOKENS\n`);
         tokens.forEach(token => {
-          console.log(`--${token.name}: ${token.value}; /* Used ${token.usage} times across ${token.files.length} files */`);
+          console.warn(`--${token.name}: ${token.value}; /* Used ${token.usage} times across ${token.files.length} files */`);
         });
-        console.log('');
+        console.warn('');
       });
       
       // Generate CSS custom properties
-      console.log('=== CSS CUSTOM PROPERTIES ===\n');
-      console.log(':root {');
+      console.warn('=== CSS CUSTOM PROPERTIES ===\n');
+      console.warn(':root {');
       designTokens.forEach(token => {
-        console.log(`  --${token.name}: ${token.value};`);
+        console.warn(`  --${token.name}: ${token.value};`);
       });
-      console.log('}');
+      console.warn('}');
       
       expect(designTokens.length).toBeGreaterThan(0);
     });
 
     it('should suggest Tailwind config customization', () => {
-      console.log('\n=== TAILWIND CONFIG CUSTOMIZATION ===\n');
+      console.warn('\n=== TAILWIND CONFIG CUSTOMIZATION ===\n');
       
       // Analyze current usage to suggest Tailwind theme extensions
       const customConfig = {
@@ -501,32 +501,32 @@ describe('Style Consolidation Analysis Tests', () => {
         }
       };
       
-      console.log('// tailwind.config.js');
-      console.log('module.exports = {');
-      console.log('  theme: {');
-      console.log('    extend: {');
-      console.log('      colors: {');
+      console.warn('// tailwind.config.js');
+      console.warn('module.exports = {');
+      console.warn('  theme: {');
+      console.warn('    extend: {');
+      console.warn('      colors: {');
       Object.entries(customConfig.colors).forEach(([name, shades]) => {
-        console.log(`        ${name}: {`);
+        console.warn(`        ${name}: {`);
         Object.entries(shades).forEach(([shade, value]) => {
-          console.log(`          '${shade}': '${value}',`);
+          console.warn(`          '${shade}': '${value}',`);
         });
-        console.log('        },');
+        console.warn('        },');
       });
-      console.log('      },');
-      console.log('      spacing: {');
+      console.warn('      },');
+      console.warn('      spacing: {');
       Object.entries(customConfig.spacing).forEach(([key, value]) => {
-        console.log(`        '${key}': '${value}',`);
+        console.warn(`        '${key}': '${value}',`);
       });
-      console.log('      },');
-      console.log('      fontFamily: {');
+      console.warn('      },');
+      console.warn('      fontFamily: {');
       Object.entries(customConfig.fontFamily).forEach(([key, value]) => {
-        console.log(`        '${key}': ${JSON.stringify(value)},`);
+        console.warn(`        '${key}': ${JSON.stringify(_value)},`);
       });
-      console.log('      },');
-      console.log('    }');
-      console.log('  }');
-      console.log('}');
+      console.warn('      },');
+      console.warn('    }');
+      console.warn('  }');
+      console.warn('}');
       
       expect(customConfig).toBeDefined();
     });
@@ -555,44 +555,44 @@ describe('Style Consolidation Analysis Tests', () => {
       
       const recommendations = generateUtilityClasses(stylePatterns);
       
-      console.log('\n=== UTILITY CLASS CONSOLIDATION ===\n');
-      console.log(`Found ${recommendations.length} consolidation opportunities\n`);
+      console.warn('\n=== UTILITY CLASS CONSOLIDATION ===\n');
+      console.warn(`Found ${recommendations.length} consolidation opportunities\n`);
       
-      recommendations.forEach((rec, index) => {
-        console.log(`${index + 1}. ${rec.name} (${rec.impact} impact)`);
-        console.log(`   Description: ${rec.description}`);
-        console.log(`   Before: ${rec.before}`);
-        console.log(`   After: ${rec.after}`);
-        console.log(`   Estimated savings: ${rec.estimatedSavings}`);
-        console.log('');
+      recommendations.forEach((rec, _index) => {
+        console.warn(`${index + 1}. ${rec.name} (${rec.impact} impact)`);
+        console.warn(`   Description: ${rec.description}`);
+        console.warn(`   Before: ${rec.before}`);
+        console.warn(`   After: ${rec.after}`);
+        console.warn(`   Estimated savings: ${rec.estimatedSavings}`);
+        console.warn('');
       });
       
       // Generate utility CSS
-      console.log('=== GENERATED UTILITY CSS ===\n');
+      console.warn('=== GENERATED UTILITY CSS ===\n');
       recommendations.forEach(rec => {
         const className = rec.name;
         const styles = rec.before.match(/className="([^"]*)"/)?.[1] || '';
         
-        console.log(`.${className} {`);
-        console.log(`  /* Generated from: ${styles} */`);
+        console.warn(`.${className} {`);
+        console.warn(`  /* Generated from: ${styles} */`);
         
         // Convert Tailwind classes to CSS (simplified)
         if (styles.includes('flex items-center justify-between')) {
-          console.log('  display: flex;');
-          console.log('  align-items: center;');
-          console.log('  justify-content: space-between;');
+          console.warn('  display: flex;');
+          console.warn('  align-items: center;');
+          console.warn('  justify-content: space-between;');
         }
         if (styles.includes('bg-white')) {
-          console.log('  background-color: white;');
+          console.warn('  background-color: white;');
         }
         if (styles.includes('rounded-lg')) {
-          console.log('  border-radius: 0.5rem;');
+          console.warn('  border-radius: 0.5rem;');
         }
         if (styles.includes('shadow-sm')) {
-          console.log('  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);');
+          console.warn('  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);');
         }
         
-        console.log('}\n');
+        console.warn('}\n');
       });
       
       expect(recommendations.length).toBeGreaterThan(0);
@@ -608,23 +608,23 @@ describe('Style Consolidation Analysis Tests', () => {
         consistencyImprovement: 'High'
       };
       
-      console.log('\n=== CONSOLIDATION IMPACT ANALYSIS ===\n');
-      console.log(`Total class combinations found: ${consolidationMetrics.totalClassCombinations}`);
-      console.log(`Duplicate combinations: ${consolidationMetrics.duplicateCombinations}`);
-      console.log(`Consolidation opportunities: ${consolidationMetrics.consolidationOpportunities}`);
-      console.log(`Estimated character savings: ${consolidationMetrics.estimatedCharacterSavings}`);
-      console.log(`Maintenance improvement: ${consolidationMetrics.maintenanceImprovement}`);
-      console.log(`Consistency improvement: ${consolidationMetrics.consistencyImprovement}`);
+      console.warn('\n=== CONSOLIDATION IMPACT ANALYSIS ===\n');
+      console.warn(`Total class combinations found: ${consolidationMetrics.totalClassCombinations}`);
+      console.warn(`Duplicate combinations: ${consolidationMetrics.duplicateCombinations}`);
+      console.warn(`Consolidation opportunities: ${consolidationMetrics.consolidationOpportunities}`);
+      console.warn(`Estimated character savings: ${consolidationMetrics.estimatedCharacterSavings}`);
+      console.warn(`Maintenance improvement: ${consolidationMetrics.maintenanceImprovement}`);
+      console.warn(`Consistency improvement: ${consolidationMetrics.consistencyImprovement}`);
       
       const consolidationRatio = (consolidationMetrics.duplicateCombinations / consolidationMetrics.totalClassCombinations) * 100;
-      console.log(`\nConsolidation ratio: ${consolidationRatio.toFixed(1)}%`);
+      console.warn(`\nConsolidation ratio: ${consolidationRatio.toFixed(1)}%`);
       
       if (consolidationRatio > 20) {
-        console.log('🔥 HIGH IMPACT: Significant consolidation opportunities available');
+        console.warn('🔥 HIGH IMPACT: Significant consolidation opportunities available');
       } else if (consolidationRatio > 10) {
-        console.log('⚡ MEDIUM IMPACT: Moderate consolidation opportunities');
+        console.warn('⚡ MEDIUM IMPACT: Moderate consolidation opportunities');
       } else {
-        console.log('✅ LOW IMPACT: Code is already well-consolidated');
+        console.warn('✅ LOW IMPACT: Code is already well-consolidated');
       }
       
       expect(consolidationMetrics.consolidationOpportunities).toBeGreaterThan(0);
@@ -633,7 +633,7 @@ describe('Style Consolidation Analysis Tests', () => {
 
   describe('Implementation Strategy', () => {
     it('should generate step-by-step implementation plan', () => {
-      console.log('\n=== STYLE CONSOLIDATION IMPLEMENTATION PLAN ===\n');
+      console.warn('\n=== STYLE CONSOLIDATION IMPLEMENTATION PLAN ===\n');
       
       const implementationPhases = [
         {
@@ -691,30 +691,30 @@ describe('Style Consolidation Analysis Tests', () => {
       ];
       
       implementationPhases.forEach(phase => {
-        console.log(`## Phase ${phase.phase}: ${phase.title}`);
-        console.log(`**Duration**: ${phase.duration}`);
-        console.log(`**Impact**: ${phase.impact}`);
-        console.log(`**Risk**: ${phase.risk}\n`);
+        console.warn(`## Phase ${phase.phase}: ${phase.title}`);
+        console.warn(`**Duration**: ${phase.duration}`);
+        console.warn(`**Impact**: ${phase.impact}`);
+        console.warn(`**Risk**: ${phase.risk}\n`);
         
-        console.log('**Tasks**:');
+        console.warn('**Tasks**:');
         phase.tasks.forEach(task => {
-          console.log(`- ${task}`);
+          console.warn(`- ${task}`);
         });
-        console.log('');
+        console.warn('');
       });
       
-      console.log('## Success Metrics\n');
-      console.log('- [ ] 50% reduction in duplicate class combinations');
-      console.log('- [ ] 30% reduction in CSS bundle size');
-      console.log('- [ ] Improved design consistency score');
-      console.log('- [ ] Faster development velocity for new features');
-      console.log('- [ ] Reduced QA time for styling issues');
+      console.warn('## Success Metrics\n');
+      console.warn('- [ ] 50% reduction in duplicate class combinations');
+      console.warn('- [ ] 30% reduction in CSS bundle size');
+      console.warn('- [ ] Improved design consistency score');
+      console.warn('- [ ] Faster development velocity for new features');
+      console.warn('- [ ] Reduced QA time for styling issues');
       
       expect(implementationPhases.length).toBe(4);
     });
 
     it('should provide migration guidelines', () => {
-      console.log('\n=== MIGRATION GUIDELINES ===\n');
+      console.warn('\n=== MIGRATION GUIDELINES ===\n');
       
       const migrationSteps = [
         {
@@ -754,25 +754,25 @@ describe('Style Consolidation Analysis Tests', () => {
         }
       ];
       
-      migrationSteps.forEach((step, index) => {
-        console.log(`### ${index + 1}. ${step.step}\n`);
-        console.log(`${step.description}\n`);
+      migrationSteps.forEach((step, _index) => {
+        console.warn(`### ${index + 1}. ${step.step}\n`);
+        console.warn(`${step.description}\n`);
         
         if (step.commands.length > 0) {
-          console.log('**Commands**:');
+          console.warn('**Commands**:');
           step.commands.forEach(command => {
-            console.log(`\`\`\`bash\n${command}\n\`\`\``);
+            console.warn(`\`\`\`bash\n${command}\n\`\`\``);
           });
-          console.log('');
+          console.warn('');
         }
       });
       
-      console.log('### Best Practices\n');
-      console.log('- **Start Small**: Begin with the most frequently used patterns');
-      console.log('- **Test Thoroughly**: Run visual regression tests after each migration');
-      console.log('- **Document Changes**: Update style guide and component documentation');
-      console.log('- **Team Communication**: Keep team informed about new utility classes');
-      console.log('- **Performance Monitoring**: Track bundle size and render performance');
+      console.warn('### Best Practices\n');
+      console.warn('- **Start Small**: Begin with the most frequently used patterns');
+      console.warn('- **Test Thoroughly**: Run visual regression tests after each migration');
+      console.warn('- **Document Changes**: Update style guide and component documentation');
+      console.warn('- **Team Communication**: Keep team informed about new utility classes');
+      console.warn('- **Performance Monitoring**: Track bundle size and render performance');
       
       expect(migrationSteps.length).toBe(4);
     });

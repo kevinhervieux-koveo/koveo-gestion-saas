@@ -196,7 +196,7 @@ export type PermissionsConfig = z.infer<typeof PermissionsSchema>;
  * 
  * const result = validatePermissions(permissionsData);
  * if (result.success) {
- *   console.log('Permissions are valid:', result.data);
+ *   console.warn('Permissions are valid:', result._data);
  * } else {
  *   console.error('Validation errors:', result.error.issues);
  * }
@@ -225,17 +225,19 @@ export function validatePermissions(permissions: unknown) {
  * @param permissions
  * @param options
  * @param options.allowFallback
+ * @param _options
+ * @param _options.allowFallback
  * @returns Function result.
  */
 export function validatePermissionsWithFallback(
   permissions: unknown,
-  options: { allowFallback?: boolean } = {}
+  _options: { allowFallback?: boolean } = {}
 ) {
   try {
     const result = PermissionsSchema.safeParse(permissions);
     
     if (result.success) {
-      return { success: true, data: result.data, usedFallback: false };
+      return { success: true, _data: result.data, usedFallback: false };
     }
     
     // If validation fails and fallback is allowed, provide minimal permissions
@@ -249,22 +251,22 @@ export function validatePermissionsWithFallback(
         tenant: ['read:profile', 'read:residence']
       };
       
-      return { success: true, data: fallbackPermissions, usedFallback: true };
+      return { success: true, _data: fallbackPermissions, usedFallback: true };
     }
     
-    return { success: false, error: result.error, usedFallback: false };
-  } catch (__error) {
+    return { success: false, _error: result.error, usedFallback: false };
+  } catch (_error) {
     if (options.allowFallback) {
-      console.error('Permissions validation error, using minimal fallback:', __error);
+      console.error('Permissions validation error, using minimal fallback:', _error);
       const fallbackPermissions = {
         admin: ['read:user'],
         manager: ['read:user'],
         tenant: ['read:profile']
       };
-      return { success: true, data: fallbackPermissions, usedFallback: true };
+      return { success: true, _data: fallbackPermissions, usedFallback: true };
     }
     
-    throw __error;
+    throw _error;
   }
 }
 
@@ -279,7 +281,7 @@ export function validatePermissionsWithFallback(
  * @example
  * ```typescript
  * const hasPermission = checkPermission(permissions, 'admin', 'read:bill');
- * console.log('Owner can read bills:', hasPermission);
+ * console.warn('Owner can read bills:', hasPermission);
  * ```
  */
 /**
@@ -307,7 +309,7 @@ export function checkPermission(
  * @example
  * ```typescript
  * const userPermissions = getRolePermissions(permissions, 'manager');
- * console.log('Manager permissions:', userPermissions);
+ * console.warn('Manager permissions:', userPermissions);
  * ```
  */
 /**

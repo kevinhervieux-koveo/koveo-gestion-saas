@@ -39,7 +39,7 @@ describe('NotificationService', () => {
         'admin@test.com',
         new Date()
       );
-      expect(result).toBeDefined();
+      expect(_result).toBeDefined();
     });
 
     it('should handle SSL renewal failure alerts', async () => {
@@ -47,7 +47,7 @@ describe('NotificationService', () => {
         'test.com',
         'Test error'
       );
-      expect(result).toBeDefined();
+      expect(_result).toBeDefined();
     });
 
     it('should handle SSL renewal success alerts', async () => {
@@ -55,7 +55,7 @@ describe('NotificationService', () => {
         'test.com',
         new Date()
       );
-      expect(result).toBeDefined();
+      expect(_result).toBeDefined();
     });
   });
 });

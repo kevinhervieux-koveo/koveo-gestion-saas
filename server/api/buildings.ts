@@ -52,7 +52,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.log(`📊 Fetching buildings for user ${user.id} with role ${user.role}`);
+      console.warn(`📊 Fetching buildings for user ${user.id} with role ${user.role}`);
 
       let buildingsQuery;
 
@@ -119,13 +119,13 @@ export function registerBuildingRoutes(app: Express): void {
 
       const result = await buildingsQuery;
       
-      console.log(`✅ Found ${result.length} buildings for user ${user.id}`);
-      res.json(result);
+      console.warn(`✅ Found ${result.length} buildings for user ${user.id}`);
+      res.json(_result);
 
-    } catch (__error) {
-      console.error('❌ Error fetching buildings:', error);
+    } catch (_error) {
+      console.error('❌ Error fetching buildings:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch buildings'
       });
     }
@@ -166,7 +166,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
       
-      console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
       const accessibleBuildings: unknown[] = [];
       const buildingIds = new Set<string>();
@@ -190,7 +190,7 @@ export function registerBuildingRoutes(app: Express): void {
       const isKoveoUser = userOrgs.some(org => org.organizationName === 'Koveo');
       
       if (isKoveoUser) {
-        console.log(`🌟 Koveo organization user detected - granting access to ALL buildings`);
+        console.warn(`🌟 Koveo organization user detected - granting access to ALL buildings`);
         
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await db
@@ -424,7 +424,7 @@ export function registerBuildingRoutes(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(`✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`);
+      console.warn(`✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`);
 
       res.json({
         buildings: buildingsWithStats,
@@ -435,10 +435,10 @@ export function registerBuildingRoutes(app: Express): void {
         }
       });
 
-    } catch (__error) {
-      console.error('Failed to fetch manager buildings:', error);
+    } catch (_error) {
+      console.error('Failed to fetch manager buildings:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch buildings'
       });
     }
@@ -455,12 +455,12 @@ export function registerBuildingRoutes(app: Express): void {
       
       if (!currentUser) {
         return res.status(401).json({
-          error: 'Unauthorized',
+          _error: 'Unauthorized',
           message: 'Authentication required'
         });
       }
 
-      console.log(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
 
       let hasAccess = false;
       let accessType = '';
@@ -523,7 +523,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (!hasAccess) {
         return res.status(403).json({
-          error: 'Forbidden',
+          _error: 'Forbidden',
           message: 'You do not have access to this building'
         });
       }
@@ -562,7 +562,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (buildingData.length === 0) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -644,10 +644,10 @@ export function registerBuildingRoutes(app: Express): void {
         residences: (currentUser.role === 'admin' || currentUser.role === 'manager') ? buildingResidences : undefined
       });
 
-    } catch (__error) {
-      console.error('Failed to fetch building details:', error);
+    } catch (_error) {
+      console.error('Failed to fetch building details:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch building details'
       });
     }
@@ -675,12 +675,12 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingData = req.body;
-      console.log(`🏢 Admin ${currentUser.id} creating new building: ${buildingData.name}`);
+      console.warn(`🏢 Admin ${currentUser.id} creating new building: ${buildingData.name}`);
 
       // Validate required fields
       if (!buildingData.name || !buildingData.organizationId) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Building name and organization are required'
         });
       }
@@ -712,7 +712,7 @@ export function registerBuildingRoutes(app: Express): void {
         })
         .returning();
 
-      console.log(`✅ Building created successfully with ID: ${buildingId}`);
+      console.warn(`✅ Building created successfully with ID: ${buildingId}`);
 
       // Create object storage hierarchy for the new building
       const objectStorageService = new ObjectStorageService();
@@ -745,13 +745,13 @@ export function registerBuildingRoutes(app: Express): void {
             .values(residencesToCreate)
             .returning();
 
-          console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
+          console.warn(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
           
           // Create object storage hierarchy for each residence
           for (const residence of createdResidences) {
             await objectStorageService.createResidenceHierarchy(buildingData.organizationId, buildingId, residence.id);
           }
-        } catch (__residenceError) {
+        } catch (___residenceError) {
           console.error('⚠️ Error auto-generating residences:', residenceError);
           // Don't fail the building creation if residence generation fails
         }
@@ -762,10 +762,10 @@ export function registerBuildingRoutes(app: Express): void {
         building: newBuilding[0]
       });
 
-    } catch (__error) {
-      console.error('❌ Error creating building:', error);
+    } catch (_error) {
+      console.error('❌ Error creating building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to create building'
       });
     }
@@ -794,12 +794,12 @@ export function registerBuildingRoutes(app: Express): void {
 
       const buildingId = req.params.id;
       const buildingData = req.body;
-      console.log(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
+      console.warn(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
 
       // Validate required fields
       if (!buildingData.name || !buildingData.organizationId) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Building name and organization are required'
         });
       }
@@ -813,7 +813,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (existingBuilding.length === 0) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -841,17 +841,17 @@ export function registerBuildingRoutes(app: Express): void {
         .where(eq(buildings.id, buildingId))
         .returning();
 
-      console.log(`✅ Building updated successfully: ${buildingId}`);
+      console.warn(`✅ Building updated successfully: ${buildingId}`);
 
       res.json({
         message: 'Building updated successfully',
         building: updatedBuilding[0]
       });
 
-    } catch (__error) {
-      console.error('❌ Error updating building:', error);
+    } catch (_error) {
+      console.error('❌ Error updating building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to update building'
       });
     }
@@ -879,7 +879,7 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingId = req.params.id;
-      console.log(`🗑️ Admin ${currentUser.id} deleting building: ${buildingId}`);
+      console.warn(`🗑️ Admin ${currentUser.id} deleting building: ${buildingId}`);
 
       // Check if building exists
       const existingBuilding = await db
@@ -890,7 +890,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (existingBuilding.length === 0) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -904,7 +904,7 @@ export function registerBuildingRoutes(app: Express): void {
         })
         .where(eq(buildings.id, buildingId));
 
-      console.log(`✅ Building deleted successfully: ${buildingId}`);
+      console.warn(`✅ Building deleted successfully: ${buildingId}`);
 
       // Clean up object storage hierarchy for the deleted building
       const objectStorageService = new ObjectStorageService();
@@ -914,10 +914,10 @@ export function registerBuildingRoutes(app: Express): void {
         message: 'Building deleted successfully'
       });
 
-    } catch (__error) {
-      console.error('❌ Error deleting building:', error);
+    } catch (_error) {
+      console.error('❌ Error deleting building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to delete building'
       });
     }
@@ -955,7 +955,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (building.length === 0) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -997,10 +997,10 @@ export function registerBuildingRoutes(app: Express): void {
 
       res.json(impact);
 
-    } catch (__error) {
-      console.error('❌ Error analyzing building deletion impact:', error);
+    } catch (_error) {
+      console.error('❌ Error analyzing building deletion impact:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to analyze deletion impact'
       });
     }
@@ -1028,7 +1028,7 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingId = req.params.id;
-      console.log(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
+      console.warn(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
 
       // Check if building exists
       const building = await db
@@ -1039,7 +1039,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (building.length === 0) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -1108,7 +1108,7 @@ export function registerBuildingRoutes(app: Express): void {
           .where(eq(buildings.id, buildingId));
       });
 
-      console.log(`✅ Building cascading delete completed: ${buildingId}`);
+      console.warn(`✅ Building cascading delete completed: ${buildingId}`);
 
       // Clean up object storage hierarchy for the deleted building  
       // Get organization ID from building before deletion
@@ -1128,10 +1128,10 @@ export function registerBuildingRoutes(app: Express): void {
         deletedBuilding: building[0].name
       });
 
-    } catch (__error) {
-      console.error('❌ Error cascading delete building:', error);
+    } catch (_error) {
+      console.error('❌ Error cascading delete building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to delete building and related entities'
       });
     }

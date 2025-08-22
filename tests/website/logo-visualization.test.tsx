@@ -31,7 +31,8 @@ import LoginPage from '@/pages/auth/login';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
- */
+  * @returns Function result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -63,7 +64,7 @@ function TestProviders({
 const mockMatchMedia = (matches: boolean) => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    _value: jest.fn().mockImplementation(query => ({
       matches,
       media: query,
       onchange: null,
@@ -222,12 +223,12 @@ describe('Logo Visualization Tests', () => {
           Object.defineProperty(window, 'innerWidth', {
             writable: true,
             configurable: true,
-            value: width,
+            _value: width,
           });
           Object.defineProperty(window, 'innerHeight', {
             writable: true,
             configurable: true,
-            value: height,
+            _value: height,
           });
 
           // Mock media query for mobile detection
@@ -322,8 +323,8 @@ describe('Logo Visualization Tests', () => {
           expect(document.activeElement).toBe(logoLink);
 
           // Should respond to keyboard events
-          fireEvent.keyDown(logoLink, { key: 'Enter' });
-          fireEvent.keyDown(logoLink, { key: ' ' });
+          fireEvent.keyDown(logoLink, { _key: 'Enter' });
+          fireEvent.keyDown(logoLink, { _key: ' ' });
           
           // Should not throw errors
           expect(logoLink).toBeInTheDocument();
@@ -375,12 +376,12 @@ describe('Logo Visualization Tests', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 375,
+        _value: 375,
       });
       Object.defineProperty(window, 'innerHeight', {
         writable: true,
         configurable: true,
-        value: 667,
+        _value: 667,
       });
     });
 

@@ -44,7 +44,7 @@ interface DocumentationData {
     method: string;
     description: string;
     parameters: string[];
-    response: string;
+    _response: string;
   }>;
   database: {
     tables: Array<{
@@ -89,7 +89,7 @@ export default function OwnerDocumentation() {
 
   // Fetch comprehensive documentation data
   const {
-    data: docData,
+    _data: docData,
     isLoading,
     refetch,
     isFetching,
@@ -141,21 +141,21 @@ export default function OwnerDocumentation() {
             method: 'GET',
             description: 'Retrieve all organizations',
             parameters: ['limit', 'offset'],
-            response: 'Organization[]',
+            _response: 'Organization[]',
           },
           {
             endpoint: '/api/users',
             method: 'GET',
             description: 'Retrieve user list',
             parameters: ['role', 'active'],
-            response: 'User[]',
+            _response: 'User[]',
           },
           {
             endpoint: '/api/pillars/suggestions',
             method: 'GET',
             description: 'Get improvement suggestions',
             parameters: [],
-            response: 'ImprovementSuggestion[]',
+            _response: 'ImprovementSuggestion[]',
           },
         ],
         database: {
@@ -282,7 +282,7 @@ export default function OwnerDocumentation() {
         title: 'Documentation Refreshed',
         description: 'Documentation data has been updated with the latest information.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Refresh Failed',
@@ -316,7 +316,7 @@ export default function OwnerDocumentation() {
         title: 'Documentation Exported',
         description: 'Google Suite documentation package has been downloaded successfully.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -342,7 +342,7 @@ export default function OwnerDocumentation() {
         title: 'LLM Documentation Exported',
         description: 'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -353,8 +353,8 @@ export default function OwnerDocumentation() {
     }
   };
 
-  const generateProjectOverviewDocx = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateProjectOverviewDocx = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
     return `PROJECT OVERVIEW
@@ -379,8 +379,8 @@ COMPLIANCE:
 `;
   };
 
-  const generateComponentSpreadsheet = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateComponentSpreadsheet = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
     let csv = 'Component Name,Type,Dependencies,Exports,Complexity\n';
@@ -390,8 +390,8 @@ COMPLIANCE:
     return csv;
   };
 
-  const generateApiDocumentation = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateApiDocumentation = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
     let doc = 'API DOCUMENTATION\n\n';
@@ -405,8 +405,8 @@ COMPLIANCE:
     return doc;
   };
 
-  const generateDatabaseSchema = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateDatabaseSchema = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
     let csv = 'Table,Column,Type,Nullable,Primary Key\n';
@@ -418,8 +418,8 @@ COMPLIANCE:
     return csv;
   };
 
-  const generateDependenciesList = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateDependenciesList = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
     let doc = 'DEPENDENCIES LIST\n\n';
@@ -447,8 +447,8 @@ COMPLIANCE:
     return new Blob([zipContent], { type: 'application/zip' });
   };
 
-  const generateComprehensiveLLMDocumentation = (data: DocumentationData | undefined) => {
-    if (!data) {
+  const generateComprehensiveLLMDocumentation = (_data: DocumentationData | undefined) => {
+    if (!_data) {
       return '';
     }
 

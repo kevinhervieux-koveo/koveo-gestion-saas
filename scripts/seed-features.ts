@@ -211,15 +211,15 @@ async function seedFeatures() {
       console.warn(`  ${status}: ${count}`);
     });
 
-  } catch (__error) {
-    console.error('❌ Error seeding features:', error);
+  } catch (_error) {
+    console.error('❌ Error seeding features:', _error);
     throw error;
   } finally {
     await pool.end();
   }
 }
 
-seedFeatures().catch((error) => {
-  console.error('Fatal error:', error);
+seedFeatures().catch((_error) => {
+  console.error('Fatal _error:', _error);
   process.exit(1);
 });

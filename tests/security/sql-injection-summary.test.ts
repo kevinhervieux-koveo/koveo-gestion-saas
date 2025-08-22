@@ -77,7 +77,7 @@ describe('SQL Injection Security Summary', () => {
 
     it('should report protection status for all attack vectors', () => {
       Object.entries(protectionStatus).forEach(([attack, status]) => {
-        console.log(`${attack}: ${status}`);
+        console.warn(`${attack}: ${status}`);
       });
       
       const protectedCount = Object.values(protectionStatus).filter(status => 

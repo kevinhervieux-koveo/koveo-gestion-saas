@@ -47,9 +47,12 @@ type LoginFormData = z.infer<typeof loginSchema>;
  * - Quebec-compliant security messaging
  * - Role-based redirection after login.
  */
-export default function  /**
+export default function /**
+   * Login page function.
+   */ /**
    * Login page function.
    */
+
  LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -89,7 +92,7 @@ export default function  /**
     },
   });
 
-  const handleLogin = async (data: LoginFormData) => {
+  const handleLogin = async (_data: LoginFormData) => {
     try {
       setIsLoggingIn(true);
       setLoginError('');
@@ -104,15 +107,23 @@ export default function  /**
       });
 
       // Note: Routing to /dashboard is handled by the auth hook
-    }  /**
+    } /**
    * Catch function.
    * @param error - Error object.
    */
   /**
    * Catch function.
    * @param error - Error object.
+   */ /**
+   * Catch function.
+   * @param error - Error object.
    */
- catch (error: unknown) {
+
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (_error: unknown) {
       const errorMessage = error.message || 'Login failed';
       setLoginError(errorMessage);
       
@@ -128,8 +139,8 @@ export default function  /**
     }
   };
 
-  const onSubmit = (data: LoginFormData) => {
-    handleLogin(data);
+  const onSubmit = (_data: LoginFormData) => {
+    handleLogin(_data);
   };
 
   const handleDemoLogin = async (demoUserEmail: string) => {
@@ -145,7 +156,7 @@ export default function  /**
           ? 'Vous accédez maintenant à la démonstration en lecture seule'
           : 'You are now accessing the read-only demo',
       });
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       const errorMessage = error.message || 'Demo login failed';
       setLoginError(errorMessage);
       

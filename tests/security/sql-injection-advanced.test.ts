@@ -24,7 +24,7 @@ describe('Advanced SQL Injection Security Tests', () => {
         
         // Should return 0 count, not execute the DROP command
         expect(result.rows[0].count).toBe('0');
-      } catch (__error) {
+      } catch (_error) {
         // Should handle gracefully without revealing database details
         expect(error.message).not.toMatch(/syntax error|table.*users.*does not exist/i);
       }
@@ -44,8 +44,8 @@ describe('Advanced SQL Injection Security Tests', () => {
         const result = await query;
         
         // Should return valid results without executing injection
-        expect(Array.isArray(result)).toBe(true);
-      } catch (__error) {
+        expect(Array.isArray(_result)).toBe(true);
+      } catch (_error) {
         // Should fail safely
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
@@ -66,7 +66,7 @@ describe('Advanced SQL Injection Security Tests', () => {
         expect(userContext.userId).not.toContain(';');
         expect(userContext.userId).not.toContain('DROP');
         expect(['admin', 'manager', 'tenant', 'resident']).toContain(userContext.role);
-      } catch (__error) {
+      } catch (_error) {
         // Should fail safely without revealing database details
         expect(error.message).not.toMatch(/syntax error|database|constraint/i);
       }
@@ -97,7 +97,7 @@ describe('Advanced SQL Injection Security Tests', () => {
           expect(id).not.toContain('DROP');
           expect(id).not.toContain('SELECT');
         });
-      } catch (__error) {
+      } catch (_error) {
         // Should handle injection attempts gracefully
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
@@ -120,9 +120,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .where(eq(schema.users.email, payload));
             
           // Should not return unexpected results
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0); // No user should match malicious input
-        } catch (__error) {
+        } catch (_error) {
           expect(error.message).not.toMatch(/syntax error|unicode|encoding/i);
         }
       }
@@ -143,9 +143,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.username, decoded));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (__error) {
+        } catch (_error) {
           expect(error.message).not.toMatch(/syntax error|malformed|invalid/i);
         }
       }
@@ -169,12 +169,12 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, maliciousInput));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
           
           // Should not contain system information
-          expect(JSON.stringify(result)).not.toMatch(/PostgreSQL|version|database|postgres/i);
-        } catch (__error) {
+          expect(JSON.stringify(_result)).not.toMatch(/PostgreSQL|version|database|postgres/i);
+        } catch (_error) {
           expect(error.message).not.toMatch(/function.*does not exist|syntax error/i);
         }
       }
@@ -198,13 +198,13 @@ describe('Advanced SQL Injection Security Tests', () => {
               .from(schema.users)
               .where(eq(schema.users.email, payload));
               
-            expect(Array.isArray(result)).toBe(true);
+            expect(Array.isArray(_result)).toBe(true);
             expect(result.length).toBe(0);
             
             // Transaction should still be valid
             return result;
           });
-        } catch (__error) {
+        } catch (_error) {
           // Should not reveal transaction state information
           expect(error.message).not.toMatch(/transaction|commit|rollback|deadlock/i);
         }
@@ -227,12 +227,12 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           
           // Should not reveal table names or schema information
-          expect(JSON.stringify(result)).not.toMatch(/users|organizations|buildings|residences/);
-          expect(JSON.stringify(result)).not.toMatch(/information_schema|pg_tables/);
-        } catch (__error) {
+          expect(JSON.stringify(_result)).not.toMatch(/users|organizations|buildings|residences/);
+          expect(JSON.stringify(_result)).not.toMatch(/information_schema|pg_tables/);
+        } catch (_error) {
           expect(error.message).not.toMatch(/table.*exists|column.*does not exist/i);
         }
       }
@@ -252,12 +252,12 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           
           // Should not reveal column information
-          expect(JSON.stringify(result)).not.toMatch(/password|email|username|role/);
-          expect(JSON.stringify(result)).not.toMatch(/column_name|information_schema/);
-        } catch (__error) {
+          expect(JSON.stringify(_result)).not.toMatch(/password|email|username|role/);
+          expect(JSON.stringify(_result)).not.toMatch(/column_name|information_schema/);
+        } catch (_error) {
           expect(error.message).not.toMatch(/column.*does not exist|ORDER BY position/i);
         }
       }
@@ -280,7 +280,7 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
           
           // Verify no unauthorized admin users were created
@@ -297,7 +297,7 @@ describe('Advanced SQL Injection Security Tests', () => {
           );
           
           expect(suspiciousEmails.length).toBe(0);
-        } catch (__error) {
+        } catch (_error) {
           expect(error.message).not.toMatch(/permission denied|access denied|privilege/i);
         }
       }
@@ -320,9 +320,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (__error) {
+        } catch (_error) {
           // Should not reveal PostgreSQL-specific error details
           expect(error.message).not.toMatch(/lo_import|COPY|CREATE FUNCTION|plpgsql/i);
         }
@@ -340,9 +340,9 @@ describe('Advanced SQL Injection Security Tests', () => {
           .from(schema.users)
           .where(eq(schema.users.email, longPayload));
           
-        expect(Array.isArray(result)).toBe(true);
+        expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (__error) {
+      } catch (_error) {
         // Should handle long input gracefully
         expect(error.message).not.toMatch(/input too long|buffer overflow/i);
       }
@@ -361,9 +361,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(result)).toBe(true);
+          expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (__error) {
+        } catch (_error) {
           expect(error.message).not.toMatch(/null byte|invalid byte sequence/i);
         }
       }

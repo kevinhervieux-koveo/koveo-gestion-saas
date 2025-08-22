@@ -41,11 +41,11 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Priority',
       type: 'select',
       icon: AlertCircle,
-      options: [
-        { label: 'Critical', value: 'Critical', color: 'purple' },
-        { label: 'High', value: 'High', color: 'red' },
-        { label: 'Medium', value: 'Medium', color: 'yellow' },
-        { label: 'Low', value: 'Low', color: 'blue' },
+      _options: [
+        { label: 'Critical', _value: 'Critical', color: 'purple' },
+        { label: 'High', _value: 'High', color: 'red' },
+        { label: 'Medium', _value: 'Medium', color: 'yellow' },
+        { label: 'Low', _value: 'Low', color: 'blue' },
       ],
       defaultOperator: 'equals',
     },
@@ -55,10 +55,10 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Status',
       type: 'select',
       icon: Clock,
-      options: [
-        { label: 'New', value: 'New' },
-        { label: 'Acknowledged', value: 'Acknowledged' },
-        { label: 'Done', value: 'Done' },
+      _options: [
+        { label: 'New', _value: 'New' },
+        { label: 'Acknowledged', _value: 'Acknowledged' },
+        { label: 'Done', _value: 'Done' },
       ],
       defaultOperator: 'equals',
     },
@@ -68,14 +68,14 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Category',
       type: 'select',
       icon: MessageSquare,
-      options: [
-        { label: 'Code Quality', value: 'Code Quality', icon: Code },
-        { label: 'Testing', value: 'Testing' },
-        { label: 'Documentation', value: 'Documentation', icon: FileText },
-        { label: 'Security', value: 'Security', icon: Shield },
-        { label: 'Performance', value: 'Performance', icon: Zap },
-        { label: 'Continuous Improvement', value: 'Continuous Improvement', icon: Terminal },
-        { label: 'Replit AI Agent Monitoring', value: 'Replit AI Agent Monitoring', icon: MessageSquare },
+      _options: [
+        { label: 'Code Quality', _value: 'Code Quality', icon: Code },
+        { label: 'Testing', _value: 'Testing' },
+        { label: 'Documentation', _value: 'Documentation', icon: FileText },
+        { label: 'Security', _value: 'Security', icon: Shield },
+        { label: 'Performance', _value: 'Performance', icon: Zap },
+        { label: 'Continuous Improvement', _value: 'Continuous Improvement', icon: Terminal },
+        { label: 'Replit AI Agent Monitoring', _value: 'Replit AI Agent Monitoring', icon: MessageSquare },
       ],
       defaultOperator: 'equals',
     },
@@ -110,22 +110,22 @@ const filterSortConfig: FilterSortConfig = {
       description: 'Show critical priority items that are new',
       icon: AlertCircle,
       filters: [
-        { field: 'priority', operator: 'equals', value: 'Critical' },
-        { field: 'status', operator: 'equals', value: 'New' },
+        { field: 'priority', operator: 'equals', _value: 'Critical' },
+        { field: 'status', operator: 'equals', _value: 'New' },
       ],
     },
     {
       id: 'high-priority',
       name: 'High Priority',
       description: 'Show high and critical priority items',
-      filters: [{ field: 'priority', operator: 'in', value: ['Critical', 'High'] }],
+      filters: [{ field: 'priority', operator: 'in', _value: ['Critical', 'High'] }],
       sort: { field: 'createdAt', direction: 'desc' },
     },
     {
       id: 'pending-work',
       name: 'Pending Work',
       description: 'Show items that are not done',
-      filters: [{ field: 'status', operator: 'not_equals', value: 'Done' }],
+      filters: [{ field: 'status', operator: 'not_equals', _value: 'Done' }],
       sort: { field: 'priority', direction: 'asc' },
     },
     {
@@ -133,7 +133,7 @@ const filterSortConfig: FilterSortConfig = {
       name: 'Security Issues',
       description: 'Show all security-related suggestions',
       icon: Shield,
-      filters: [{ field: 'category', operator: 'equals', value: 'Security' }],
+      filters: [{ field: 'category', operator: 'equals', _value: 'Security' }],
     },
   ],
   searchable: true,
@@ -152,7 +152,7 @@ const filterSortConfig: FilterSortConfig = {
  * @returns {JSX.Element} Rendered suggestions page with filter/sort controls.
  */
 export default function OwnerSuggestionsWithFilter() {
-  const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
+  const { _data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
   });
 
@@ -172,7 +172,7 @@ export default function OwnerSuggestionsWithFilter() {
     activeFilterCount,
     resultCount,
   } = useFilterSort({
-    data: suggestions,
+    _data: suggestions,
     config: filterSortConfig,
     initialState: {
       sort: { field: 'createdAt', direction: 'desc' },

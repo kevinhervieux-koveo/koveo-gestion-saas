@@ -156,21 +156,22 @@ function extractVisibleText(container: HTMLElement): string[] {
  * ValidateText function.
  * @param text
  * @param context
+ * @param _context
  * @returns Function result.
  */
-function validateText(text: string, context: string = ''): Array<{
+function validateText(text: string, _context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
   term: string;
   suggestion?: string;
   severity: 'error' | 'warning';
-  context: string;
+  _context: string;
 }> {
   const violations: Array<{
     type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
     term: string;
     suggestion?: string;
     severity: 'error' | 'warning';
-    context: string;
+    _context: string;
   }> = [];
   const lowerText = text.toLowerCase();
   
@@ -182,7 +183,7 @@ function validateText(text: string, context: string = ''): Array<{
         term,
         suggestion: PREFERRED_TERMS.technical[term] || PREFERRED_TERMS.propertyManagement[term],
         severity: 'error',
-        context: context
+        _context: context
       });
     }
   });
@@ -194,7 +195,7 @@ function validateText(text: string, context: string = ''): Array<{
         type: 'france_french',
         term,
         severity: 'warning',
-        context: context
+        _context: context
       });
     }
   });
@@ -206,7 +207,7 @@ function validateText(text: string, context: string = ''): Array<{
         type: 'legal_violation',
         term,
         severity: 'error',
-        context: context
+        _context: context
       });
     }
   });
@@ -228,7 +229,7 @@ function validateText(text: string, context: string = ''): Array<{
         term: wrong,
         suggestion: correct,
         severity: 'error',
-        context: context
+        _context: context
       });
     }
   });
@@ -245,7 +246,7 @@ class LanguageValidator {
     term: string;
     suggestion?: string;
     severity: 'error' | 'warning';
-    context: string;
+    _context: string;
   }> = [];
   
   /**
@@ -257,9 +258,9 @@ class LanguageValidator {
     const { container } = render(component);
     const textNodes = extractVisibleText(container);
     
-    textNodes.forEach((text, index) => {
+    textNodes.forEach((text, _index) => {
       const context = `${componentName} - Text node ${index + 1}`;
-      const textViolations = validateText(text, context);
+      const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
   }
@@ -273,9 +274,9 @@ class LanguageValidator {
     const dom = new JSDOM(html);
     const textNodes = extractVisibleText(dom.window.document.body);
     
-    textNodes.forEach((text, index) => {
+    textNodes.forEach((text, _index) => {
       const context = `${pageName} - HTML Text node ${index + 1}`;
-      const textViolations = validateText(text, context);
+      const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
   }
@@ -304,12 +305,12 @@ class LanguageValidator {
       if (typeof obj === 'string') {
         strings.push(obj);
       } else if (Array.isArray(obj)) {
-        obj.forEach((item, index) => {
+        obj.forEach((item, _index) => {
           strings.push(...extractStrings(item, `${path}[${index}]`));
         });
       } else if (obj && typeof obj === 'object') {
         Object.keys(obj).forEach(key => {
-          strings.push(...extractStrings(obj[key], path ? `${path}.${key}` : key));
+          strings.push(...extractStrings(obj[key], path ? `${path}.${key}` : _key));
         });
       }
       
@@ -317,9 +318,9 @@ class LanguageValidator {
     }
     
     const strings = extractStrings(jsonData);
-    strings.forEach((text, index) => {
+    strings.forEach((text, _index) => {
       const context = `${dataName} - JSON string ${index + 1}`;
-      const textViolations = validateText(text, context);
+      const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
   }
@@ -366,7 +367,7 @@ class LanguageValidator {
     
     if (errors.length > 0) {
       report += `❌ ERREURS (${errors.length}):\n`;
-      errors.forEach((error, index) => {
+      errors.forEach((error, _index) => {
         report += `${index + 1}. [${error.type.toUpperCase()}] "${error.term}"`;
         if (error.suggestion) {
           report += ` → Suggestion: "${error.suggestion}"`;
@@ -377,7 +378,7 @@ class LanguageValidator {
     
     if (warnings.length > 0) {
       report += `⚠️  AVERTISSEMENTS (${warnings.length}):\n`;
-      warnings.forEach((warning, index) => {
+      warnings.forEach((warning, _index) => {
         report += `${index + 1}. [${warning.type.toUpperCase()}] "${warning.term}"`;
         if (warning.suggestion) {
           report += ` → Suggestion: "${warning.suggestion}"`;

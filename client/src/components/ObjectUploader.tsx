@@ -73,26 +73,32 @@ interface ObjectUploaderProps {
  * @param props.// 10MB default
   onGetUploadParameters - // 10MB default
   onGetUploadParameters parameter.
- * @param props.onComplete - onComplete parameter.
- * @param props.buttonClassName - buttonClassName parameter.
+ * @param props.onComplete - OnComplete parameter.
+ * @param props.buttonClassName - ButtonClassName parameter.
  * @param props.children - React children elements.
  * @returns JSX element.
  */
 /**
  * Object uploader function.
- * @param {
+ * @param root0
+  * @param root0.maxNumberOfFiles
   maxNumberOfFiles = 1 - {
   maxNumberOfFiles = 1 parameter.
  * @param maxFileSize = 10485760 - maxFileSize = 10485760 parameter.
  * @param // 10MB default
   onGetUploadParameters - // 10MB default
   onGetUploadParameters parameter.
- * @param onComplete - onComplete parameter.
- * @param buttonClassName - buttonClassName parameter.
- * @param children - children parameter.
+ * @param onComplete - OnComplete parameter.
+ * @param buttonClassName - ButtonClassName parameter.
+ * @param root0.maxFileSize
+ * @param root0.onGetUploadParameters
+ * @param root0.onComplete
+ * @param root0.buttonClassName
+ * @param root0.children
+ * @param children - Children parameter.
  * @param } - } parameter.
  */
-export function  /**
+export function /**
    * Object uploader function.
    * @param {
   maxNumberOfFiles = 1 - {
@@ -101,11 +107,25 @@ export function  /**
    * @param // 10MB default
   onGetUploadParameters - // 10MB default
   onGetUploadParameters parameter.
-   * @param onComplete - onComplete parameter.
-   * @param buttonClassName - buttonClassName parameter.
-   * @param children - children parameter.
+   * @param onComplete - OnComplete parameter.
+   * @param buttonClassName - ButtonClassName parameter.
+   * @param children - Children parameter.
+   * @param } - } parameter.
+   */ /**
+   * Object uploader function.
+   * @param {
+  maxNumberOfFiles = 1 - {
+  maxNumberOfFiles = 1 parameter.
+   * @param maxFileSize = 10485760 - maxFileSize = 10485760 parameter.
+   * @param // 10MB default
+  onGetUploadParameters - // 10MB default
+  onGetUploadParameters parameter.
+   * @param onComplete - OnComplete parameter.
+   * @param buttonClassName - ButtonClassName parameter.
+   * @param children - Children parameter.
    * @param } - } parameter.
    */
+
  ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default
@@ -127,8 +147,8 @@ export function  /**
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
       })
-      .on("complete", (result) => {
-        onComplete?.(result);
+      .on("complete", (_result) => {
+        onComplete?.(_result);
       })
   );
 

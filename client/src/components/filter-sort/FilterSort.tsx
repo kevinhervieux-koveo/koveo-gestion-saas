@@ -119,7 +119,7 @@ export function FilterSort({
       onAddFilter({
         field: selectedFilter.field,
         operator: filterOperator as any,
-        value: filterValue,
+        _value: filterValue,
       });
       // Reset form
       setSelectedFilter(null);
@@ -150,7 +150,7 @@ export function FilterSort({
               type='text'
               placeholder={config.searchPlaceholder || 'Search...'}
               value={search}
-              onChange={(e) => onSetSearch(e.target.value)}
+              onChange={(e) => onSetSearch(e.target._value)}
               className='pl-9 pr-9'
             />
             {search && (
@@ -184,8 +184,8 @@ export function FilterSort({
               {/* Filter Field Selection */}
               <Select
                 value={selectedFilter?.id || ''}
-                onValueChange={(value) => {
-                  const filter = config.filters.find((f) => f.id === value);
+                onValueChange={(_value) => {
+                  const filter = config.filters.find((f) => f.id === _value);
                   setSelectedFilter(filter || null);
                   if (filter) {
                     const operators = filter.operators || getDefaultOperators(filter.type);
@@ -238,7 +238,7 @@ export function FilterSort({
                         </SelectTrigger>
                         <SelectContent>
                           {selectedFilter.options.map((option) => (
-                            <SelectItem key={String(option.value)} value={String(option.value)}>
+                            <SelectItem key={String(option._value)} value={String(option._value)}>
                               <div className='flex items-center gap-2'>
                                 {option.icon && <option.icon className='h-4 w-4' />}
                                 {option.label}
@@ -252,7 +252,7 @@ export function FilterSort({
                         type={selectedFilter.type === 'number' ? 'number' : 'text'}
                         placeholder={selectedFilter.placeholder || 'Enter value'}
                         value={filterValue}
-                        onChange={(e) => setFilterValue(e.target.value)}
+                        onChange={(e) => setFilterValue(e.target._value)}
                       />
                     )}
                   </div>
@@ -329,8 +329,8 @@ export function FilterSort({
         {config.presets && config.presets.length > 0 && (
           <Select
             value=''
-            onValueChange={(value) => {
-              const preset = config.presets?.find((p) => p.id === value);
+            onValueChange={(_value) => {
+              const preset = config.presets?.find((p) => p.id === _value);
               if (preset && onApplyPreset) {
                 onApplyPreset(preset.id);
               }
@@ -383,7 +383,7 @@ export function FilterSort({
       {/* Active Filters Display */}
       {filters.length > 0 && (
         <div className='flex flex-wrap gap-2'>
-          {filters.map((filter, index) => {
+          {filters.map((filter, _index) => {
             const filterConfig = config.filters.find((f) => f.field === filter.field);
             return (
               <Badge key={`${filter.field}-${index}`} variant='secondary' className='pl-2'>

@@ -108,7 +108,7 @@ describe('RBAC System Integration Tests', () => {
     const serverModule = await import('../../server/server');
     app = serverModule.default || serverModule.app;
     
-    console.log('🔐 RBAC Integration Test Suite initialized');
+    console.warn('🔐 RBAC Integration Test Suite initialized');
   });
 
   beforeEach(() => {
@@ -404,7 +404,7 @@ describe('RBAC System Integration Tests', () => {
       expect(adminPermissions.length).toBeGreaterThan(managerPermissions.length);
       expect(managerPermissions.length).toBeGreaterThan(tenantPermissions.length);
 
-      console.log(`✅ Validated permission matrix across ${validationResults.length} role-endpoint combinations`);
+      console.warn(`✅ Validated permission matrix across ${validationResults.length} role-endpoint combinations`);
     });
 
     it('should verify no orphaned permissions exist', async () => {
@@ -433,7 +433,7 @@ describe('RBAC System Integration Tests', () => {
         console.warn(`⚠️ Permissions used by only one role: ${unusedPermissions.join(', ')}`);
       }
 
-      console.log(`✅ Verified ${uniquePermissions.length} unique permissions across all roles`);
+      console.warn(`✅ Verified ${uniquePermissions.length} unique permissions across all roles`);
     });
   });
 
@@ -500,7 +500,7 @@ describe('RBAC System Integration Tests', () => {
         expect(response.body.role).toBe('admin');
       });
 
-      console.log('✅ Handled 10 concurrent permission checks successfully');
+      console.warn('✅ Handled 10 concurrent permission checks successfully');
     });
 
     it('should validate role consistency across session lifecycle', async () => {
@@ -542,7 +542,7 @@ describe('RBAC System Integration Tests', () => {
       expect(secondResponse.status).toBe(200);
       expect(secondResponse.body.role).toBe('tenant');
 
-      console.log('✅ Role consistency maintained across session lifecycle');
+      console.warn('✅ Role consistency maintained across session lifecycle');
     });
   });
 
@@ -597,19 +597,19 @@ describe('RBAC System Integration Tests', () => {
       expect(managerResponse.body.canAccessAllOrganizations).toBe(false);
       expect(managerResponse.body.organizations).toHaveLength(1);
 
-      console.log('✅ Organization-based access control working correctly');
+      console.warn('✅ Organization-based access control working correctly');
     });
   });
 
   afterAll(() => {
-    console.log('\n🎯 RBAC INTEGRATION TEST SUMMARY');
-    console.log('=================================');
-    console.log('✅ Authentication flow integration verified');
-    console.log('✅ Role-based route protection validated');
-    console.log('✅ Permission matrix consistency confirmed');
-    console.log('✅ Security edge cases handled');
-    console.log('✅ Organization access control enforced');
-    console.log('✅ Session lifecycle management tested');
-    console.log('\n🔒 RBAC system integration validated for production');
+    console.warn('\n🎯 RBAC INTEGRATION TEST SUMMARY');
+    console.warn('=================================');
+    console.warn('✅ Authentication flow integration verified');
+    console.warn('✅ Role-based route protection validated');
+    console.warn('✅ Permission matrix consistency confirmed');
+    console.warn('✅ Security edge cases handled');
+    console.warn('✅ Organization access control enforced');
+    console.warn('✅ Session lifecycle management tested');
+    console.warn('\n🔒 RBAC system integration validated for production');
   });
 });

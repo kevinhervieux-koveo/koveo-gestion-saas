@@ -150,8 +150,8 @@ class CoverageMonitoringService {
       writeFileSync(baselinePath, JSON.stringify(metrics, null, 2));
       
       console.warn('✅ Baseline metrics collected and saved');
-    } catch (__error) {
-      console.error('❌ Failed to collect baseline:', error);
+    } catch (_error) {
+      console.error('❌ Failed to collect baseline:', _error);
     }
   }
 
@@ -187,8 +187,8 @@ class CoverageMonitoringService {
           console.warn(`⚠️  ${alerts.length} alerts generated`);
         }
         
-      } catch (__error) {
-        console.error(`❌ [${new Date().toLocaleTimeString()}] Monitoring error:`, error);
+      } catch (_error) {
+        console.error(`❌ [${new Date().toLocaleTimeString()}] Monitoring _error:`, _error);
       }
       
       // Wait for next collection interval
@@ -483,16 +483,17 @@ class CoverageMonitoringService {
       
       console.warn(`✅ Daily report generated: ${reportPath}`);
       
-    } catch (__error) {
-      console.error('❌ Failed to generate daily report:', error);
+    } catch (_error) {
+      console.error('❌ Failed to generate daily report:', _error);
     }
   }
 
   /**
    * Generates report summary from historical data.
    * @param data
+   * @param _data
    */
-  private generateReportSummary(data: MonitoringMetrics[]): any {
+  private generateReportSummary(_data: MonitoringMetrics[]): any {
     if (data.length === 0) {return {};}
     
     const latest = data[data.length - 1];
@@ -648,7 +649,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
   
   if (command === 'start') {
-    coverageMonitor.startMonitoring().catch(console.error);
+    coverageMonitor.startMonitoring().catch(console._error);
   } else if (command === 'stop') {
     coverageMonitor.stopMonitoring();
     process.exit(0);

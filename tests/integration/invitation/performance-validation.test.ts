@@ -27,9 +27,9 @@ describe('Invitation System Performance Validation', () => {
       
       // All results should have valid structure
       results.forEach(result => {
-        expect(result).toHaveProperty('score');
-        expect(result).toHaveProperty('feedback');
-        expect(result).toHaveProperty('isValid');
+        expect(_result).toHaveProperty('score');
+        expect(_result).toHaveProperty('feedback');
+        expect(_result).toHaveProperty('isValid');
         expect(typeof result.score).toBe('number');
         expect(Array.isArray(result.feedback)).toBe(true);
         expect(typeof result.isValid).toBe('boolean');
@@ -323,7 +323,7 @@ describe('Invitation System Performance Validation', () => {
         }
         
         const result = validatePasswordStrength(password);
-        cache.set(password, result);
+        cache.set(password, _result);
         return result;
       });
       
@@ -389,7 +389,7 @@ describe('Invitation System Performance Validation', () => {
       expect(withErrors.length).toBeGreaterThan(0);
       
       // Verify error collection efficiency
-      const totalErrors = errorResults.reduce((sum, result) => sum + result.errors.length, 0);
+      const totalErrors = errorResults.reduce((sum, _result) => sum + result.errors.length, 0);
       expect(totalErrors).toBeGreaterThan(1000); // Multiple errors per invalid input
     });
 

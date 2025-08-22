@@ -49,11 +49,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         lastUpdated: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error getting money flow status:', __error);
+    } catch (_error) {
+      console.error('Error getting money flow status:', _error);
       res.status(500).json({ 
         message: 'Failed to get money flow status',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -71,7 +71,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`💰 Manual money flow regeneration triggered by user ${user.id}`);
+      console.warn(`💰 Manual money flow regeneration triggered by user ${user.id}`);
 
       // Trigger full regeneration
       const result = await moneyFlowJob.triggerFullRegeneration();
@@ -83,11 +83,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error triggering money flow regeneration:', __error);
+    } catch (_error) {
+      console.error('Error triggering money flow regeneration:', _error);
       res.status(500).json({ 
         message: 'Failed to trigger money flow regeneration',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -106,7 +106,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`💰 Money flow generation for bill ${billId} triggered by user ${user.id}`);
+      console.warn(`💰 Money flow generation for bill ${billId} triggered by user ${user.id}`);
 
       // Generate money flow for specific bill
       const entriesCreated = await moneyFlowJob.generateForBill(billId);
@@ -119,11 +119,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error generating money flow for bill:', __error);
+    } catch (_error) {
+      console.error('Error generating money flow for bill:', _error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for bill',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -142,7 +142,7 @@ export function registerMoneyFlowRoutes(app: Express) {
         });
       }
 
-      console.log(`🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id}`);
+      console.warn(`🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id}`);
 
       // Generate money flow for specific residence
       const entriesCreated = await moneyFlowJob.generateForResidence(residenceId);
@@ -155,11 +155,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error generating money flow for residence:', __error);
+    } catch (_error) {
+      console.error('Error generating money flow for residence:', _error);
       res.status(500).json({ 
         message: 'Failed to generate money flow for residence',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -191,11 +191,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         }
       });
 
-    } catch (__error) {
-      console.error('Error getting money flow statistics:', __error);
+    } catch (_error) {
+      console.error('Error getting money flow statistics:', _error);
       res.status(500).json({ 
         message: 'Failed to get money flow statistics',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -231,11 +231,11 @@ export function registerMoneyFlowRoutes(app: Express) {
         message: 'Money flow automation system is operational'
       });
 
-    } catch (__error) {
-      console.error('Error in money flow health check:', __error);
+    } catch (_error) {
+      console.error('Error in money flow health check:', _error);
       res.status(500).json({ 
         status: 'unhealthy',
-        error: __error instanceof Error ? __error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
         message: 'Money flow automation system encountered an error'
       });
     }

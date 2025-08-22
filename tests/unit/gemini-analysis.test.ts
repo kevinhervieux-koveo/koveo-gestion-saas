@@ -136,7 +136,7 @@ describe('Gemini Analysis Service Tests', () => {
       });
 
       await expect(analyzeFeatureWithGemini(mockFeature, 'context'))
-        .rejects.toThrow('Gemini API error: 400 - Bad Request');
+        .rejects.toThrow('Gemini API _error: 400 - Bad Request');
     });
 
     it('should handle network errors', async () => {
@@ -218,7 +218,7 @@ describe('Gemini Analysis Service Tests', () => {
       const featureId = 'test-feature-id';
       const result = formatActionableItemsForDatabase(featureId, mockAnalysisResult);
 
-      expect(result).toHaveLength(2);
+      expect(_result).toHaveLength(2);
       expect(result[0]).toMatchObject({
         featureId,
         title: '1. First Task',
@@ -251,39 +251,39 @@ describe('Gemini Analysis Service Tests', () => {
     it('should return comprehensive system context', async () => {
       const context = await getDocumentationContext();
 
-      expect(context).toContain('Koveo Gestion');
-      expect(context).toContain('Quebec residential communities');
-      expect(context).toContain('React 18 with TypeScript');
-      expect(context).toContain('Express.js with TypeScript');
-      expect(context).toContain('PostgreSQL with Drizzle ORM');
-      expect(context).toContain('Quebec Law 25 compliance');
-      expect(context).toContain('French and English');
+      expect(_context).toContain('Koveo Gestion');
+      expect(_context).toContain('Quebec residential communities');
+      expect(_context).toContain('React 18 with TypeScript');
+      expect(_context).toContain('Express.js with TypeScript');
+      expect(_context).toContain('PostgreSQL with Drizzle ORM');
+      expect(_context).toContain('Quebec Law 25 compliance');
+      expect(_context).toContain('French and English');
     });
 
     it('should include tech stack information', async () => {
       const context = await getDocumentationContext();
 
-      expect(context).toContain('Vite');
-      expect(context).toContain('shadcn/ui components');
-      expect(context).toContain('Tailwind CSS');
-      expect(context).toContain('TanStack Query');
-      expect(context).toContain('Zod schemas');
+      expect(_context).toContain('Vite');
+      expect(_context).toContain('shadcn/ui components');
+      expect(_context).toContain('Tailwind CSS');
+      expect(_context).toContain('TanStack Query');
+      expect(_context).toContain('Zod schemas');
     });
 
     it('should include database schema details', async () => {
       const context = await getDocumentationContext();
 
-      expect(context).toContain('Users, Organizations, Buildings');
-      expect(context).toContain('Bills, Maintenance Requests');
-      expect(context).toContain('Features and Actionable Items');
+      expect(_context).toContain('Users, Organizations, Buildings');
+      expect(_context).toContain('Bills, Maintenance Requests');
+      expect(_context).toContain('Features and Actionable Items');
     });
 
     it('should include security considerations', async () => {
       const context = await getDocumentationContext();
 
-      expect(context).toContain('bcrypt password hashing');
-      expect(context).toContain('Session management');
-      expect(context).toContain('Input validation');
+      expect(_context).toContain('bcrypt password hashing');
+      expect(_context).toContain('Session management');
+      expect(_context).toContain('Input validation');
     });
   });
 });

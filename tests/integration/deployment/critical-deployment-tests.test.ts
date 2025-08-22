@@ -24,8 +24,8 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         server = createServer(app);
         const startPromise = new Promise((resolve, reject) => {
           // Use port 0 for dynamic allocation to avoid conflicts
-          server.listen(0, '127.0.0.1', (error: any) => {
-            if (error) {reject(error);}
+          server.listen(0, '127.0.0.1', (_error: any) => {
+            if (_error) {reject(_error);}
             else {resolve(server);}
           });
           
@@ -190,7 +190,7 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         // Critical SPA fallback route
         app.get('*', (req, res) => {
           if (req.path.startsWith('/api')) {
-            return res.status(404).json({ error: 'API route not found' });
+            return res.status(404).json({ _error: 'API route not found' });
           }
           const indexPath = path.resolve(distPath, 'index.html');
           if (fs.existsSync(indexPath)) {
@@ -214,7 +214,7 @@ describe('CRITICAL: Deployment Validation Tests', () => {
       // Mock the SPA fallback behavior
       app.get('*', (req, res) => {
         if (req.path.startsWith('/api')) {
-          return res.status(404).json({ error: 'API route not found' });
+          return res.status(404).json({ _error: 'API route not found' });
         }
         // This simulates serving the SPA
         res.status(200).send('<html><body><div id="root"></div></body></html>');
@@ -268,8 +268,8 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         
         // Simple query to test connection
         const result = await db.execute('SELECT 1 as test');
-        expect(result).toBeDefined();
-      } catch (error) {
+        expect(_result).toBeDefined();
+      } catch (_error) {
         // If database is not available, this test should fail
         // This prevents deploying with broken database configuration
         throw new Error(`Database connection failed: ${error}`);
@@ -294,7 +294,7 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         const missingTables = requiredTables.filter(table => !tableNames.includes(table));
         
         expect(missingTables).toEqual([]);
-      } catch (error) {
+      } catch (_error) {
         throw new Error(`Database schema validation failed: ${error}`);
       }
     });
@@ -427,7 +427,7 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         app.use(express.static(distPath));
         app.get('*', (req, res) => {
           if (req.path.startsWith('/api')) {
-            return res.status(404).json({ error: 'API route not found' });
+            return res.status(404).json({ _error: 'API route not found' });
           }
           const indexPath = path.resolve(distPath, 'index.html');
           if (fs.existsSync(indexPath)) {
@@ -480,8 +480,8 @@ describe('CRITICAL: Deployment Validation Tests', () => {
       try {
         const { db } = await import('../../../server/db');
         const result = await db.execute('SELECT 1');
-        expect(result).toBeDefined();
-      } catch (error) {
+        expect(_result).toBeDefined();
+      } catch (_error) {
         throw new Error(`DEPLOYMENT BLOCKED: Database connection failed - ${error}`);
       }
     });

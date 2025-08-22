@@ -133,7 +133,7 @@ export function PasswordStrengthIndicator({
       {/* Feedback messages */}
       {password.length > 0 && strength.feedback.length > 0 && (
         <div className="space-y-1">
-          {strength.feedback.map((message, index) => (
+          {strength.feedback.map((message, _index) => (
             <div key={index} className="text-xs text-gray-600 flex items-start">
               <span className="mr-1">•</span>
               <span>{message}</span>

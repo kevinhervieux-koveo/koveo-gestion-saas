@@ -123,16 +123,16 @@ interface Document {
 
 // Residence-specific document categories
 const DOCUMENT_CATEGORIES = [
-  { value: 'lease', label: 'Lease Documents' },
-  { value: 'inspection', label: 'Inspections' },
-  { value: 'maintenance', label: 'Maintenance Requests' },
-  { value: 'financial', label: 'Financial Records' },
-  { value: 'insurance', label: 'Insurance Documents' },
-  { value: 'correspondence', label: 'Correspondence' },
-  { value: 'utilities', label: 'Utility Bills' },
-  { value: 'renovation', label: 'Renovation/Modification' },
-  { value: 'inventory', label: 'Inventory Lists' },
-  { value: 'other', label: 'Other' },
+  { _value: 'lease', label: 'Lease Documents' },
+  { _value: 'inspection', label: 'Inspections' },
+  { _value: 'maintenance', label: 'Maintenance Requests' },
+  { _value: 'financial', label: 'Financial Records' },
+  { _value: 'insurance', label: 'Insurance Documents' },
+  { _value: 'correspondence', label: 'Correspondence' },
+  { _value: 'utilities', label: 'Utility Bills' },
+  { _value: 'renovation', label: 'Renovation/Modification' },
+  { _value: 'inventory', label: 'Inventory Lists' },
+  { _value: 'other', label: 'Other' },
 ] as const;
 
 const contactSchema = z.object({
@@ -168,7 +168,10 @@ type DocumentFormData = z.infer<typeof documentSchema>;
  */
 export default function  /**
    * My residence function.
+   */  /**
+   * My residence function.
    */
+
  MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -185,12 +188,12 @@ export default function  /**
   const { toast } = useToast();
 
   // Get user's residences
-  const { data: userResidences } = useQuery<UserResidence[]>({
+  const { _data: userResidences } = useQuery<UserResidence[]>({
     queryKey: ['/api/user/residences'],
   });
 
   // Get detailed residence data
-  const { data: residences, isLoading: residencesLoading } = useQuery<Residence[]>({
+  const { _data: residences, isLoading: residencesLoading } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
   });
 
@@ -205,26 +208,58 @@ export default function  /**
   // Update selected residence when residences are loaded  /**
    * If function.
    * @param selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 - selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 parameter.
+   */  /**
+   * If function.
+   * @param selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 - selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 parameter.
    */
+
 
   if (selectedResidence && !selectedResidenceId && accessibleResidences.length > 0) {
     setSelectedResidenceId(selectedResidence.id);
   }
 
   // Get contacts for the selected residence
-  const { data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
+  const { _data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/residences', selectedResidence?.id, 'contacts'],
     enabled: !!selectedResidence?.id,
   });
 
   // Get assigned users for the selected residence
-  const { data: assignedUsers, refetch: refetchAssignedUsers } = useQuery<AssignedUser[]>({
+  const { _data: assignedUsers, refetch: refetchAssignedUsers } = useQuery<AssignedUser[]>({
     queryKey: ['/api/residences', selectedResidence?.id, 'assigned-users'],
     queryFn: async () => {
       const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -257,7 +292,7 @@ export default function  /**
   });
 
   // Get documents for the selected residence
-  const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
+  const { _data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ['/api/documents', 'residence', selectedResidence?.id],
     queryFn: async () => {
       const response = await fetch(`/api/documents?type=resident&residenceId=${selectedResidence?.id}`);
@@ -274,7 +309,11 @@ export default function  /**
     const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().  /**
    * To string function.
    * @returns Array result.
+   */  /**
+   * To string function.
+   * @returns Array result.
    */
+
 toString() : '';
     const yearMatch = yearFilter === 'all' || docYear === yearFilter;
     return categoryMatch && yearMatch;
@@ -287,7 +326,7 @@ toString() : '';
   )).sort((a, b) => parseInt(b) - parseInt(a));
 
   // Get building contacts for the selected residence's building
-  const { data: buildingContacts, isLoading: buildingContactsLoading } = useQuery<Contact[]>({
+  const { _data: buildingContacts, isLoading: buildingContactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/contacts', 'building', selectedResidence?.building?.id],
     queryFn: async () => {
       const response = await fetch(`/api/contacts?entity=building&entityId=${selectedResidence?.building?.id}`);
@@ -330,10 +369,18 @@ toString() : '';
     setIsContactDialogOpen(true);
   };
 
-  const handleAddContact = async (data: ContactFormData) => {  /**
+  const handleAddContact = async (_data: ContactFormData) => {  /**
    * If function.
    * @param !selectedResidence - !selectedResidence parameter.
    */
+  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
+   */  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
+   */
+
   /**
    * If function.
    * @param !selectedResidence - !selectedResidence parameter.
@@ -344,7 +391,11 @@ toString() : '';
     try {  /**
    * If function.
    * @param editingContact - editingContact parameter.
+   */  /**
+   * If function.
+   * @param editingContact - editingContact parameter.
    */
+
 
       if (editingContact) {
         // Update existing contact
@@ -361,6 +412,14 @@ toString() : '';
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -414,6 +473,26 @@ toString() : '';
   /**
    * Catch function.
    * @param _error - _error parameter.
+   */  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
  catch (_error) {
       toast({ 
@@ -450,12 +529,20 @@ toString() : '';
   const handleNewDocumentUpload =  /**
    * Async function.
    * @returns Promise resolving to .
+   */  /**
+   * Async function.
+   * @returns Promise resolving to .
    */
+
  async (): Promise<{ method: "PUT"; url: string }> => {
     setIsUploadingNewFile(true);  /**
    * If function.
    * @param !selectedResidence - !selectedResidence parameter.
+   */  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
    */
+
 
     
     if (!selectedResidence) {
@@ -478,7 +565,11 @@ toString() : '';
     });  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
     
     if (!response.ok) {
@@ -490,11 +581,15 @@ toString() : '';
     return { method: "PUT" as const, url: data.uploadURL };
   };
 
-  const handleNewDocumentUploadComplete = (result: unknown) => {
+  const handleNewDocumentUploadComplete = (_result: unknown) => {
     setIsUploadingNewFile(false);  /**
    * If function.
    * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
    */
+
 
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
@@ -511,7 +606,7 @@ toString() : '';
     }
   };
 
-  const handleAddDocument = async (data: DocumentFormData) => {
+  const handleAddDocument = async (_data: DocumentFormData) => {
     if (!selectedResidence) {return;}
 
     try {
@@ -556,10 +651,14 @@ toString() : '';
     }
   };
 
-  const handleEditDocument = async (data: DocumentFormData) => {  /**
+  const handleEditDocument = async (_data: DocumentFormData) => {  /**
+   * If function.
+   * @param !selectedDocument - !selectedDocument parameter.
+   */  /**
    * If function.
    * @param !selectedDocument - !selectedDocument parameter.
    */
+
 
     if (!selectedDocument) {return;}
 
@@ -617,18 +716,30 @@ toString() : '';
   const formatFileSize = (size?: string) => {  /**
    * If function.
    * @param !size - !size parameter.
+   */  /**
+   * If function.
+   * @param !size - !size parameter.
    */
+
 
     if (!size) {return 'Unknown size';}
     const bytes = parseInt(size);  /**
    * If function.
    * @param bytes < 1024 - bytes < 1024 parameter.
+   */  /**
+   * If function.
+   * @param bytes < 1024 - bytes < 1024 parameter.
    */
+
 
     if (bytes < 1024) {return `${bytes} B`;}  /**
    * If function.
    * @param bytes < 1048576 - bytes < 1048576 parameter.
+   */  /**
+   * If function.
+   * @param bytes < 1048576 - bytes < 1048576 parameter.
    */
+
 
     if (bytes < 1048576) {return `${(bytes / 1024).toFixed(1)} KB`;}
     return `${(bytes / 1048576).toFixed(1)} MB`;
@@ -637,14 +748,22 @@ toString() : '';
   const formatDate = (dateString?: string) => {  /**
    * If function.
    * @param !dateString - !dateString parameter.
+   */  /**
+   * If function.
+   * @param !dateString - !dateString parameter.
    */
+
 
     if (!dateString) {return 'No date';}
     return new Date(dateString).toLocaleDateString();
   };  /**
    * If function.
    * @param residencesLoading - residencesLoading parameter.
+   */  /**
+   * If function.
+   * @param residencesLoading - residencesLoading parameter.
    */
+
 
 
   if (residencesLoading) {
@@ -661,7 +780,11 @@ toString() : '';
   }  /**
    * If function.
    * @param accessibleResidences.length === 0 - accessibleResidences.length === 0 parameter.
+   */  /**
+   * If function.
+   * @param accessibleResidences.length === 0 - accessibleResidences.length === 0 parameter.
    */
+
 
 
   if (accessibleResidences.length === 0) {

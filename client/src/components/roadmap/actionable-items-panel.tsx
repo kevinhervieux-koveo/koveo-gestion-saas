@@ -50,7 +50,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Fetch actionable items
-  const { data: items = [], isLoading } = useQuery<ActionableItem[]>({
+  const { _data: items = [], isLoading } = useQuery<ActionableItem[]>({
     queryKey: [`/api/features/${feature.id}/actionable-items`],
     enabled: !!feature.id && feature.status === 'ai-analyzed',
   });
@@ -131,7 +131,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         title: '🤖 AI Prompt Copied!',
         description: 'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
-    } catch (__error) {
+    } catch (_error) {
       // Fallback to creating a text area and selecting the text
       try {
         const textArea = document.createElement('textarea');
@@ -144,7 +144,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           title: '📋 Prompt Copied!',
           description: 'The implementation prompt has been copied using fallback method.',
         });
-      } catch (__fallbackError) {
+      } catch (___fallbackError) {
         toast({
           title: 'Copy Failed',
           description: 'Failed to copy prompt to clipboard. Please manually select and copy the text.',
@@ -218,7 +218,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
             onValueChange={setExpandedItems}
             className="space-y-4"
           >
-            {items.map((item, index) => (
+            {items.map((item, _index) => (
               <AccordionItem
                 key={item.id}
                 value={item.id}

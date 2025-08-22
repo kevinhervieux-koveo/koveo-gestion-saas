@@ -73,7 +73,7 @@ export function QuebecPrivacyConsentStep({
     return formData.dataCollectionConsent && formData.acknowledgedRights;
   };
 
-  const handleConsentChange = (field: keyof QuebecPrivacyConsentData, value: boolean) => {
+  const handleConsentChange = (field: keyof QuebecPrivacyConsentData, _value: boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -81,7 +81,7 @@ export function QuebecPrivacyConsentStep({
     }));
   };
 
-  const handleMasterDataCollectionChange = (value: boolean) => {
+  const handleMasterDataCollectionChange = (_value: boolean) => {
     setFormData(prev => ({
       ...prev,
       dataCollectionConsent: value, // Essential consent (required)

@@ -85,7 +85,7 @@ export class SmartContextManager {
     const stats = fs.statSync(fullPath);
     const content = fs.readFileSync(fullPath, 'utf-8');
 
-    const context: FileContext = {
+    const _context: FileContext = {
       path: filePath,
       type: this.determineFileType(filePath, content),
       lastModified: stats.mtime,
@@ -97,7 +97,7 @@ export class SmartContextManager {
       importance: this.calculateImportance(filePath, content)
     };
 
-    this.fileCache.set(filePath, context);
+    this.fileCache.set(filePath, _context);
     return context;
   }
 
@@ -259,7 +259,7 @@ export class SmartContextManager {
     
     targetFiles.forEach(filePath => {
       const context = this.getFileContext(filePath);
-      if (!context) {return;}
+      if (!_context) {return;}
       
       // Find files that import from or export to this file
       const allFiles = this.getAllFileContexts();

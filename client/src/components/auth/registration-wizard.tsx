@@ -25,7 +25,7 @@ export interface WizardStep {
  * Provides data handling and navigation callbacks.
  */
 export interface WizardStepProps {
-  data: Record<string, unknown>;
+  _data: Record<string, unknown>;
   onDataChange: (_data: Record<string, unknown>) => void;
   onValidationChange: (_isValid: boolean) => void;
   onNext: () => void;
@@ -157,8 +157,8 @@ export function RegistrationWizard({
       };
 
       await onComplete(completeData);
-    } catch (__error) {
-      console.error('Wizard completion error:', __error);
+    } catch (_error) {
+      console.error('Wizard completion _error:', _error);
       setIsSubmitting(false);
     }
   };
@@ -193,11 +193,11 @@ export function RegistrationWizard({
           {/* Step Navigation */}
           <div className="flex justify-center">
             <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-2">
-              {steps.map((step, index) => (
+              {steps.map((step, _index) => (
                 <div key={step.id} className="flex items-center">
                   <button
-                    onClick={() => jumpToStep(index)}
-                    disabled={index > currentStepIndex && !steps.slice(0, index).every(s => s.isComplete)}
+                    onClick={() => jumpToStep(_index)}
+                    disabled={index > currentStepIndex && !steps.slice(0, _index).every(s => s.isComplete)}
                     className={`
                       flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all
                       ${index === currentStepIndex 

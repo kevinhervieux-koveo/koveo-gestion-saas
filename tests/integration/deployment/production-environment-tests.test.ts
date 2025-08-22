@@ -23,7 +23,7 @@ describe('Production Environment Tests', () => {
         // SPA fallback for production
         app.get('*', (req, res) => {
           if (req.path.startsWith('/api')) {
-            return res.status(404).json({ error: 'API route not found' });
+            return res.status(404).json({ _error: 'API route not found' });
           }
           const indexPath = path.resolve(distPath, 'index.html');
           if (fs.existsSync(indexPath)) {
@@ -138,7 +138,7 @@ describe('Production Environment Tests', () => {
       if (process.env.NODE_ENV === 'production') {
         expect(foundValidBuild).toBe(true);
       } else {
-        console.log('ℹ️ Production build validation skipped in development mode');
+        console.warn('ℹ️ Production build validation skipped in development mode');
       }
     });
 
@@ -205,7 +205,7 @@ describe('Production Environment Tests', () => {
       // Simulate production error handling
       app.get('/test-error', (req, res, next) => {
         const error = new Error('Production test error');
-        next(error);
+        next(_error);
       });
       
       // Production error handler
@@ -317,7 +317,7 @@ describe('Production Environment Tests', () => {
         // Memory increase should be reasonable (less than 100MB)
         expect(memoryIncrease).toBeLessThan(100 * 1024 * 1024);
         done();
-      }).catch(done);
+      }).catch (_done);
     });
   });
 

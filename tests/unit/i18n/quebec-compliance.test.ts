@@ -307,8 +307,8 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
       
       consentTerms.forEach(({ en, fr: _fr }) => {
         const key = en.replace(/\s+/g, '');
-        const hasEnProperty = quebecComplianceTerms.en.hasOwnProperty(key) || quebecComplianceTerms.en.hasOwnProperty(en.replace(' ', ''));
-        const hasFrProperty = quebecComplianceTerms.fr.hasOwnProperty(key) || quebecComplianceTerms.fr.hasOwnProperty(en.replace(' ', ''));
+        const hasEnProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, en.replace(' ', ''));
+        const hasFrProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(fr, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(fr, en.replace(' ', ''));
         
         // For now, just verify the terms exist in some form
         expect(hasEnProperty || en.includes('consent')).toBe(true);
@@ -449,9 +449,9 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
 
     it('should validate currency formatting for Canada', () => {
       const amounts = [
-        { value: 1234.56, enFormat: '$1,234.56', frFormat: '1 234,56 $' },
-        { value: 999.99, enFormat: '$999.99', frFormat: '999,99 $' },
-        { value: 1000000, enFormat: '$1,000,000.00', frFormat: '1 000 000,00 $' }
+        { _value: 1234.56, enFormat: '$1,234.56', frFormat: '1 234,56 $' },
+        { _value: 999.99, enFormat: '$999.99', frFormat: '999,99 $' },
+        { _value: 1000000, enFormat: '$1,000,000.00', frFormat: '1 000 000,00 $' }
       ];
       
       amounts.forEach(({ value, enFormat: _enFormat, frFormat: _frFormat }) => {
@@ -459,13 +459,13 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
         const enFormatted = new Intl.NumberFormat('en-CA', {
           style: 'currency',
           currency: 'CAD'
-        }).format(value);
+        }).format(_value);
         
         // French Canadian format
         const frFormatted = new Intl.NumberFormat('fr-CA', {
           style: 'currency',
           currency: 'CAD'
-        }).format(value);
+        }).format(_value);
         
         // Both should contain CAD symbol
         expect(enFormatted).toContain('$');

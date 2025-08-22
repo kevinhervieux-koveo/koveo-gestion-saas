@@ -28,7 +28,7 @@ export interface NavigationItem {
  */
 export interface NavigationSection {
   name: string;
-  key: string;
+  _key: string;
   icon: React.ComponentType<any>;
   requiredRole: string;
   items: NavigationItem[];
@@ -43,7 +43,7 @@ export interface NavigationSection {
 export const NAVIGATION_CONFIG: NavigationSection[] = [
   {
     name: 'Residents',
-    key: 'residents',
+    _key: 'residents',
     icon: Users,
     requiredRole: 'tenant',
     items: [
@@ -54,7 +54,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
   },
   {
     name: 'Manager',
-    key: 'manager',
+    _key: 'manager',
     icon: Building,
     requiredRole: 'manager',
     items: [
@@ -69,7 +69,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
 
   {
     name: 'Admin',
-    key: 'admin',
+    _key: 'admin',
     icon: User,
     requiredRole: 'admin',
     items: [
@@ -85,7 +85,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
   },
   {
     name: 'Settings',
-    key: 'settings',
+    _key: 'settings',
     icon: Settings,
     requiredRole: 'tenant',
     items: [

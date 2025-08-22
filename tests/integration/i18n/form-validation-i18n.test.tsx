@@ -124,29 +124,29 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
   
   const t = labels[language];
   
-  const validateField = (name: string, value: string): string => {
+  const validateField = (name: string, _value: string): string => {
     switch (name) {
       case 'type':
         return !value ? validation.required : '';
       case 'description':
-        if (!value) {return validation.required;}
+        if (!_value) {return validation.required;}
         if (value.length < 10) {return validation.minLength(10);}
         if (value.length > 2000) {return validation.maxLength(2000);}
         return '';
       case 'contactEmail':
-        if (!value) {return validation.required;}
+        if (!_value) {return validation.required;}
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return !emailRegex.test(value) ? validation.email : '';
+        return !emailRegex.test(_value) ? validation.email : '';
       case 'contactPhone':
-        if (!value) {return validation.required;}
+        if (!_value) {return validation.required;}
         // Quebec phone format: 514-555-0123 or (514) 555-0123
         const phoneRegex = /^(\(\d{3}\)\s?|\d{3}[-.]?)\d{3}[-.]?\d{4}$/;
-        return !phoneRegex.test(value) ? validation.phoneQuebec : '';
+        return !phoneRegex.test(_value) ? validation.phoneQuebec : '';
       case 'building':
         return !value ? validation.required : '';
       case 'preferredDate':
-        if (value) {
-          const date = new Date(value);
+        if (_value) {
+          const date = new Date(_value);
           const now = new Date();
           if (isNaN(date.getTime())) {return validation.invalidDate;}
           if (date < now) {return validation.futureDate;}
@@ -164,7 +164,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
     const newErrors: Record<string, string> = {};
     Object.keys(formData).forEach(key => {
       const error = validateField(key, formData[key as keyof typeof formData] as string);
-      if (error) {newErrors[key] = error;}
+      if (_error) {newErrors[key] = error;}
     });
     
     setErrors(newErrors);
@@ -172,11 +172,11 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
     
     if (Object.keys(newErrors).length === 0) {
       // Form is valid
-      console.log('Form submitted:', formData);
+      console.warn('Form submitted:', formData);
     }
   };
   
-  const handleFieldChange = (name: string, value: string) => {
+  const handleFieldChange = (name: string, _value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error when user starts typing
@@ -197,7 +197,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
         <select
           id="type"
           value={formData.type}
-          onChange={(e) => handleFieldChange('type', e.target.value)}
+          onChange={(e) => handleFieldChange('type', e.target._value)}
           className={`w-full p-2 border rounded ${errors.type ? 'border-red-500' : 'border-gray-300'}`}
           data-testid="type-select"
         >
@@ -222,7 +222,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
         <textarea
           id="description"
           value={formData.description}
-          onChange={(e) => handleFieldChange('description', e.target.value)}
+          onChange={(e) => handleFieldChange('description', e.target._value)}
           className={`w-full p-2 border rounded h-24 ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
           placeholder={language === 'en' ? 'Describe your request...' : 'Décrivez votre demande...'}
           data-testid="description-textarea"
@@ -243,7 +243,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
           type="email"
           id="contactEmail"
           value={formData.contactEmail}
-          onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
+          onChange={(e) => handleFieldChange('contactEmail', e.target._value)}
           className={`w-full p-2 border rounded ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'}`}
           placeholder={language === 'en' ? 'your@email.com' : 'votre@courriel.com'}
           data-testid="email-input"
@@ -264,7 +264,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
           type="tel"
           id="contactPhone"
           value={formData.contactPhone}
-          onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+          onChange={(e) => handleFieldChange('contactPhone', e.target._value)}
           className={`w-full p-2 border rounded ${errors.contactPhone ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="514-555-0123"
           data-testid="phone-input"
@@ -285,7 +285,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
           type="text"
           id="building"
           value={formData.building}
-          onChange={(e) => handleFieldChange('building', e.target.value)}
+          onChange={(e) => handleFieldChange('building', e.target._value)}
           className={`w-full p-2 border rounded ${errors.building ? 'border-red-500' : 'border-gray-300'}`}
           data-testid="building-input"
         />
@@ -305,7 +305,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
           type="date"
           id="preferredDate"
           value={formData.preferredDate}
-          onChange={(e) => handleFieldChange('preferredDate', e.target.value)}
+          onChange={(e) => handleFieldChange('preferredDate', e.target._value)}
           className={`w-full p-2 border rounded ${errors.preferredDate ? 'border-red-500' : 'border-gray-300'}`}
           data-testid="date-input"
         />
@@ -324,7 +324,7 @@ const MultilingualDemandForm = ({ language = 'en' }: { language?: 'en' | 'fr' })
         <select
           id="urgency"
           value={formData.urgency}
-          onChange={(e) => handleFieldChange('urgency', e.target.value)}
+          onChange={(e) => handleFieldChange('urgency', e.target._value)}
           className="w-full p-2 border rounded border-gray-300"
           data-testid="urgency-select"
         >

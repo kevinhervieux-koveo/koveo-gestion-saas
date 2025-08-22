@@ -140,8 +140,8 @@ class TestQualityValidator {
       
       return report;
       
-    } catch (__error) {
-      console.error('❌ Test quality validation failed:', error);
+    } catch (_error) {
+      console.error('❌ Test quality validation failed:', _error);
       throw error;
     }
   }
@@ -192,7 +192,7 @@ class TestQualityValidator {
       validations++;
 
       return score;
-    } catch (__error) {
+    } catch (_error) {
       this.failedValidations.push(`❌ Coverage validation failed: ${error.message}`);
       return 0;
     }
@@ -340,7 +340,7 @@ class TestQualityValidator {
         performanceScore -= antiPatterns * 5;
       }
 
-    } catch (__error) {
+    } catch (_error) {
       this.failedValidations.push(`❌ Performance measurement failed: ${error.message}`);
       performanceScore = 0;
     }
@@ -726,7 +726,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(report.overallScore >= 90 ? 0 : 1);
     })
     .catch(error => {
-      console.error('❌ Test quality validation failed:', error);
+      console.error('❌ Test quality validation failed:', _error);
       process.exit(1);
     });
 }

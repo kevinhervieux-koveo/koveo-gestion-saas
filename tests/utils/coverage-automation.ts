@@ -86,7 +86,7 @@ export class CoverageAutomationService {
    * @returns Promise<TestEffectivenessData> Complete test effectiveness data.
    */
   async runComprehensiveCoverage(): Promise<TestEffectivenessData> {
-    console.log('🚀 Starting comprehensive test coverage analysis...');
+    console.warn('🚀 Starting comprehensive test coverage analysis...');
 
     const startTime = Date.now();
 
@@ -118,12 +118,12 @@ export class CoverageAutomationService {
       await this.generateEffectivenessReport(effectivenessData);
       
       const duration = Date.now() - startTime;
-      console.log(`✅ Coverage analysis completed in ${duration}ms`);
+      console.warn(`✅ Coverage analysis completed in ${duration}ms`);
       
       return effectivenessData;
-    } catch (__error) {
-      console.error('❌ Coverage analysis failed:', __error);
-      throw __error;
+    } catch (_error) {
+      console.error('❌ Coverage analysis failed:', _error);
+      throw _error;
     }
   }
 
@@ -132,7 +132,7 @@ export class CoverageAutomationService {
    * @returns Promise<any[]> Test suite results.
    */
   private async runAllTestSuites(): Promise<any[]> {
-    console.log('📋 Running all test suites...');
+    console.warn('📋 Running all test suites...');
 
     const testCommands = [
       'npx jest tests/unit --coverage --json',
@@ -146,7 +146,7 @@ export class CoverageAutomationService {
 
     for (const command of testCommands) {
       try {
-        console.log(`Running: ${command}`);
+        console.warn(`Running: ${command}`);
         const output = execSync(command, { 
           encoding: 'utf8',
           cwd: this.projectRoot,
@@ -162,11 +162,11 @@ export class CoverageAutomationService {
           result,
           timestamp: new Date().toISOString()
         });
-      } catch (__error) {
+      } catch (_error) {
         console.warn(`⚠️ Test suite failed: ${command}`);
         results.push({
           suite: command,
-          error: (__error as Error).message,
+          _error: (_error as Error).message,
           timestamp: new Date().toISOString()
         });
       }
@@ -180,7 +180,7 @@ export class CoverageAutomationService {
    * @returns Promise<any> Coverage data with Quebec metrics.
    */
   private async generateCoverageReports(): Promise<any> {
-    console.log('📊 Generating coverage reports...');
+    console.warn('📊 Generating coverage reports...');
 
     try {
       // Generate NYC coverage report
@@ -209,9 +209,9 @@ export class CoverageAutomationService {
         quebecSpecific: quebecFileCoverage,
         timestamp: new Date().toISOString()
       };
-    } catch (__error) {
-      console.error('❌ Coverage report generation failed:', __error);
-      throw __error;
+    } catch (_error) {
+      console.error('❌ Coverage report generation failed:', _error);
+      throw _error;
     }
   }
 
@@ -220,7 +220,7 @@ export class CoverageAutomationService {
    * @returns Promise<QualityMetrics> Quality analysis results.
    */
   private async analyzeTestQuality(): Promise<QualityMetrics> {
-    console.log('🔍 Analyzing test quality...');
+    console.warn('🔍 Analyzing test quality...');
 
     const metrics: QualityMetrics = {
       testCoverage: { statements: 0, branches: 0, functions: 0, lines: 0 },
@@ -247,8 +247,8 @@ export class CoverageAutomationService {
       metrics.accessibility = await this.validateAccessibilityTests();
 
       return metrics;
-    } catch (__error) {
-      console.error('❌ Test quality analysis failed:', __error);
+    } catch (_error) {
+      console.error('❌ Test quality analysis failed:', _error);
       return metrics;
     }
   }
@@ -258,7 +258,7 @@ export class CoverageAutomationService {
    * @returns Promise<any> Quebec compliance metrics.
    */
   private async validateQuebecComplianceInTests(): Promise<any> {
-    console.log('🇨🇦 Validating Quebec compliance in tests...');
+    console.warn('🇨🇦 Validating Quebec compliance in tests...');
 
     const quebecMetrics = {
       frenchLanguageTests: 0,
@@ -322,8 +322,8 @@ export class CoverageAutomationService {
       quebecMetrics.overallScore = Math.round(quebecCoverage * 100);
 
       return quebecMetrics;
-    } catch (__error) {
-      console.error('❌ Quebec compliance validation failed:', __error);
+    } catch (_error) {
+      console.error('❌ Quebec compliance validation failed:', _error);
       return quebecMetrics;
     }
   }
@@ -333,7 +333,7 @@ export class CoverageAutomationService {
    * @returns Promise<any[]> Trend analysis data.
    */
   private async trackEffectivenessTrends(): Promise<any[]> {
-    console.log('📈 Tracking effectiveness trends...');
+    console.warn('📈 Tracking effectiveness trends...');
 
     const trendsPath = join(this.projectRoot, 'coverage', 'trends.json');
     const currentMetrics = {
@@ -363,9 +363,10 @@ export class CoverageAutomationService {
   /**
    * Generates comprehensive effectiveness report with actionable insights.
    * @param data Test effectiveness data.
+   * @param _data
    */
-  private async generateEffectivenessReport(data: TestEffectivenessData): Promise<void> {
-    console.log('📝 Generating effectiveness report...');
+  private async generateEffectivenessReport(_data: TestEffectivenessData): Promise<void> {
+    console.warn('📝 Generating effectiveness report...');
 
     const report = {
       summary: {
@@ -373,7 +374,7 @@ export class CoverageAutomationService {
         overallCoverage: this.calculateOverallCoverage(data.coverageData),
         qualityScore: this.calculateQualityScore(data.qualityScores),
         quebecComplianceScore: (data.quebecSpecificMetrics as any).complianceScore,
-        recommendations: this.generateRecommendations(data)
+        recommendations: this.generateRecommendations(_data)
       },
       detailed: {
         testSuites: data.testSuiteResults,
@@ -524,8 +525,9 @@ export class CoverageAutomationService {
   /**
    *
    * @param data
+   * @param _data
    */
-  private generateRecommendations(data: TestEffectivenessData): string[] {
+  private generateRecommendations(_data: TestEffectivenessData): string[] {
     const recommendations = [];
     
     if ((data.quebecSpecificMetrics as any).complianceScore < this.quebecComplianceThreshold) {
@@ -585,16 +587,16 @@ export class CoverageAutomationService {
    * @param summary
    */
   private outputConsoleSummary(summary: any): void {
-    console.log('\n📋 TEST COVERAGE SUMMARY');
-    console.log('=' .repeat(50));
-    console.log(`Overall Coverage: ${summary.overallCoverage}%`);
-    console.log(`Quality Score: ${summary.qualityScore}%`);
-    console.log(`Quebec Compliance: ${summary.quebecComplianceScore}%`);
-    console.log('\n💡 RECOMMENDATIONS:');
+    console.warn('\n📋 TEST COVERAGE SUMMARY');
+    console.warn('=' .repeat(50));
+    console.warn(`Overall Coverage: ${summary.overallCoverage}%`);
+    console.warn(`Quality Score: ${summary.qualityScore}%`);
+    console.warn(`Quebec Compliance: ${summary.quebecComplianceScore}%`);
+    console.warn('\n💡 RECOMMENDATIONS:');
     summary.recommendations.forEach((rec: string, i: number) => {
-      console.log(`${i + 1}. ${rec}`);
+      console.warn(`${i + 1}. ${rec}`);
     });
-    console.log('=' .repeat(50));
+    console.warn('=' .repeat(50));
   }
 
   // Real implementations for helper methods
@@ -608,8 +610,8 @@ export class CoverageAutomationService {
         const coverageData = JSON.parse(readFileSync(coveragePath, 'utf8'));
         return this.calculateAggregateCoverage(coverageData);
       }
-    } catch (__error) {
-      console.warn('Failed to analyze test coverage depth:', __error);
+    } catch (_error) {
+      console.warn('Failed to analyze test coverage depth:', _error);
     }
     return { statements: 0, branches: 0, functions: 0, lines: 0 };
   }
@@ -639,7 +641,7 @@ export class CoverageAutomationService {
           totalScore += fileScore;
           validFiles++;
         }
-      } catch (__error) {
+      } catch (_error) {
         console.warn('Failed to evaluate test quality for file:', file);
       }
     }
@@ -663,7 +665,7 @@ export class CoverageAutomationService {
         if (quebecKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
           quebecTestFiles++;
         }
-      } catch (__error) {
+      } catch (_error) {
         console.warn('Failed to check Quebec compliance for file:', file);
       }
     }
@@ -691,7 +693,7 @@ export class CoverageAutomationService {
       ));
       
       return Math.round(score);
-    } catch (__error) {
+    } catch (_error) {
       return 50; // Default middle score if measurement fails
     }
   }
@@ -712,7 +714,7 @@ export class CoverageAutomationService {
         if (a11yKeywords.some(keyword => content.includes(keyword.toLowerCase()))) {
           a11yTestFiles++;
         }
-      } catch (__error) {
+      } catch (_error) {
         console.warn('Failed to validate accessibility tests for file:', file);
       }
     }

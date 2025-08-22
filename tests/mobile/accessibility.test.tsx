@@ -305,7 +305,7 @@ describe('Mobile Accessibility Tests', () => {
       // Mock prefers-reduced-motion media query
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(query => ({
+        _value: jest.fn().mockImplementation(query => ({
           matches: query === '(prefers-reduced-motion: reduce)',
           media: query,
           onchange: null,
@@ -336,7 +336,7 @@ describe('Mobile Accessibility Tests', () => {
       // Mock higher zoom level
       Object.defineProperty(window, 'devicePixelRatio', {
         writable: true,
-        value: 2,
+        _value: 2,
       });
       
       render(

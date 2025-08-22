@@ -17,7 +17,7 @@ import { join } from 'path';
  * @returns Function result.
  */
 function checkJSDocCoverage(): number {
-  console.log('📚 Checking JSDoc coverage...');
+  console.warn('📚 Checking JSDoc coverage...');
   
   let missingDocs = 0;
   const checkDirectory = (dir: string) => {
@@ -44,7 +44,7 @@ function checkJSDocCoverage(): number {
           }
         }
       }
-    } catch (__error) {
+    } catch (_error) {
       // Skip directories that can't be read
     }
   };
@@ -53,9 +53,9 @@ function checkJSDocCoverage(): number {
   checkDirectory('./server');
   
   if (missingDocs > 0) {
-    console.log(`⚠️  Found ${missingDocs} files potentially missing JSDoc documentation`);
+    console.warn(`⚠️  Found ${missingDocs} files potentially missing JSDoc documentation`);
   } else {
-    console.log('✅ JSDoc coverage check passed');
+    console.warn('✅ JSDoc coverage check passed');
   }
   
   return missingDocs;
@@ -70,14 +70,14 @@ function checkJSDocCoverage(): number {
  * @returns Function result.
  */
 function validateTypeDoc(): number {
-  console.log('📖 Validating TypeDoc generation...');
+  console.warn('📖 Validating TypeDoc generation...');
   
   try {
     execSync('npm run docs:generate', { stdio: 'pipe' });
-    console.log('✅ TypeDoc validation passed');
+    console.warn('✅ TypeDoc validation passed');
     return 0;
-  } catch (__error) {
-    console.log('⚠️  TypeDoc validation warnings (non-blocking)');
+  } catch (_error) {
+    console.warn('⚠️  TypeDoc validation warnings (non-blocking)');
     return 0; // Non-blocking for now
   }
 }
@@ -91,17 +91,17 @@ function validateTypeDoc(): number {
  * @returns Function result.
  */
 export function validateDocs(): number {
-  console.log('🔍 Running documentation validation...\n');
+  console.warn('🔍 Running documentation validation...\n');
   
   const jsDocIssues = checkJSDocCoverage();
   const typeDocResult = validateTypeDoc();
   
-  console.log('\n📊 Documentation validation summary:');
-  console.log(`- JSDoc coverage issues: ${jsDocIssues}`);
-  console.log(`- TypeDoc generation: ${typeDocResult === 0 ? 'passed' : 'failed'}`);
+  console.warn('\n📊 Documentation validation summary:');
+  console.warn(`- JSDoc coverage issues: ${jsDocIssues}`);
+  console.warn(`- TypeDoc generation: ${typeDocResult === 0 ? 'passed' : 'failed'}`);
   
   // For now, documentation issues are warnings, not failures
-  console.log('\n✅ Documentation validation completed (warnings only)');
+  console.warn('\n✅ Documentation validation completed (warnings only)');
   return 0;
 }
 

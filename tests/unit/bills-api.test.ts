@@ -282,7 +282,7 @@ describe('Bills API', () => {
       expect(category).toHaveProperty('label');
       
       // Verify expected categories are present
-      const categoryValues = response.body.map((cat: unknown) => cat.value);
+      const categoryValues = response.body.map((cat: unknown) => cat._value);
       expect(categoryValues).toContain('insurance');
       expect(categoryValues).toContain('maintenance');
       expect(categoryValues).toContain('utilities');

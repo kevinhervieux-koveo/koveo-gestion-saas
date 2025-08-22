@@ -163,7 +163,7 @@ export class TestEffectivenessTracker {
     const suiteGroups = this.groupMetricsByTestSuite();
     const results: TestSuiteEffectiveness[] = [];
 
-    for (const [suiteName, metrics] of Object.entries(suiteGroups)) {
+    for (const [_suiteName, metrics] of Object.entries(suiteGroups)) {
       const totalTests = metrics.length;
       const passedTests = metrics.filter(m => m.predicted === m.actual).length;
       const bugsDetected = metrics.filter(m => m.actual && m.predicted).length;
@@ -233,7 +233,7 @@ export class TestEffectivenessTracker {
     const categoryAnalysis: unknown = {
     // No action needed
   };
-    for (const [category, metrics] of Object.entries(categories)) {
+    for (const [_category, metrics] of Object.entries(categories)) {
       if (metrics.length > 0) {
         const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
         categoryAnalysis[category] = {
@@ -377,8 +377,8 @@ export class TestEffectivenessTracker {
     if (existsSync(this.metricsPath)) {
       try {
         const data = readFileSync(this.metricsPath, 'utf8');
-        this.metrics = JSON.parse(data);
-      } catch (__error) {
+        this.metrics = JSON.parse(_data);
+      } catch (_error) {
         console.warn('Failed to load existing metrics, starting fresh');
         this.metrics = [];
       }
@@ -489,7 +489,7 @@ export class TestEffectivenessTracker {
       weeklyGroups[week].push(metric);
     }
     
-    for (const [week, metrics] of Object.entries(weeklyGroups)) {
+    for (const [_week, metrics] of Object.entries(weeklyGroups)) {
       const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
       trends.push({
         week,
@@ -517,7 +517,7 @@ export class TestEffectivenessTracker {
       monthlyGroups[month].push(metric);
     }
     
-    for (const [month, metrics] of Object.entries(monthlyGroups)) {
+    for (const [_month, metrics] of Object.entries(monthlyGroups)) {
       const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
       const quebecAccuracy = metrics.filter(m => m.quebecSpecific && m.predicted === m.actual).length / 
                             metrics.filter(m => m.quebecSpecific).length || 0;
@@ -580,7 +580,7 @@ export class TestEffectivenessTracker {
       recommendations.push('Améliorer la couverture globale des tests québécois');
     }
     
-    for (const [category, analysis] of Object.entries(categoryAnalysis)) {
+    for (const [_category, analysis] of Object.entries(categoryAnalysis)) {
       if ((analysis as any).accuracy < 85) {
         recommendations.push(`Améliorer les tests pour: ${category}`);
       }

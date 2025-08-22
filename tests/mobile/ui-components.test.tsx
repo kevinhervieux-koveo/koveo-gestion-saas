@@ -7,12 +7,12 @@ const setupMobileViewport = () => {
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
     configurable: true,
-    value: 375,
+    _value: 375,
   });
   Object.defineProperty(window, 'innerHeight', {
     writable: true,
     configurable: true,
-    value: 667,
+    _value: 667,
   });
   window.dispatchEvent(new Event('resize'));
 };

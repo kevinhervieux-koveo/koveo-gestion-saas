@@ -166,7 +166,7 @@ describe('Error Detection in Project Organization', () => {
           
           // Check for explicit 'any' usage (not in comments)
           const lines = content.split('\n');
-          lines.forEach((line, index) => {
+          lines.forEach((line, _index) => {
             // Skip comments
             if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
               return;
@@ -375,7 +375,7 @@ describe('Error Detection in Project Organization', () => {
         }
         
         // Check for prop types definition
-        if (content.includes('props:') && !content.includes('interface') && 
+        if (content.includes('_props:') && !content.includes('interface') && 
             !content.includes('type') && !content.includes('Props')) {
           issues.push(`${file}: Missing prop types definition`);
         }

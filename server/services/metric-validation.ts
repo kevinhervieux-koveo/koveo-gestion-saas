@@ -119,7 +119,7 @@ export class MetricValidationService {
     calculatedValue: string,
     _contextData?: unknown
   ): Promise<MetricValidationResult> {
-    const result: MetricValidationResult = {
+    const _result: MetricValidationResult = {
       isValid: true,
       accuracy: 100,
       confidence: 100,
@@ -151,15 +151,15 @@ export class MetricValidationService {
       }
 
       // Apply Quebec-specific validation rules
-      this.applyQuebecSpecificValidation(metricType, calculatedValue, result);
+      this.applyQuebecSpecificValidation(metricType, calculatedValue, _result);
 
       // Record validation results for machine learning
-      await this.recordValidationForML(metricType, calculatedValue, result);
+      await this.recordValidationForML(metricType, calculatedValue, _result);
 
       return result;
-    } catch (___error) {
+    } catch (____error) {
       result.isValid = false;
-      result.issues.push(`Validation error: ${_error}`);
+      result.issues.push(`Validation _error: ${_error}`);
       result.confidence = 0;
       return result;
     }
@@ -309,13 +309,13 @@ export class MetricValidationService {
    * @returns Calibration results and updated model parameters.
    */
   public async triggerCalibrationUpdate(metricType: string): Promise<any> {
-    console.log(`🤖 Starting ML calibration for ${metricType}...`);
+    console.warn(`🤖 Starting ML calibration for ${metricType}...`);
 
     // Get training data
     const trainingData = await this.getCalibrationTrainingData(metricType);
     
     if (trainingData.length < 10) {
-      console.log(`⚠️ Insufficient training data for ${metricType} (${trainingData.length} samples)`);
+      console.warn(`⚠️ Insufficient training data for ${metricType} (${trainingData.length} samples)`);
       return { status: 'insufficient_data', samples: trainingData.length };
     }
 
@@ -351,7 +351,7 @@ export class MetricValidationService {
     // Update cache
     this.calibrationCache.set(metricType, calibrationModel);
 
-    console.log(`✅ Calibration completed for ${metricType}. Accuracy: ${modelPerformance.accuracy}%`);
+    console.warn(`✅ Calibration completed for ${metricType}. Accuracy: ${modelPerformance.accuracy}%`);
     
     return {
       status: 'success',
@@ -391,7 +391,7 @@ export class MetricValidationService {
       .returning();
 
     // Check if this issue was predicted by any metric
-    await this.checkPredictionAccuracy(result);
+    await this.checkPredictionAccuracy(_result);
 
     return result.id;
   }
@@ -402,24 +402,26 @@ export class MetricValidationService {
    *
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    * @param historicalData
    */
   private async validateCodeCoverage(
-    value: string,
-    result: MetricValidationResult,
+    _value: string,
+    _result: MetricValidationResult,
     historicalData: unknown[]
   ): Promise<void> {
-    const coverage = parseFloat(value);
+    const coverage = parseFloat(_value);
     
     if (isNaN(coverage) || coverage < 0 || coverage > 100) {
       result.isValid = false;
-      result.issues.push('Invalid coverage value: must be between 0 and 100');
+      result.issues.push('Invalid coverage _value: must be between 0 and 100');
       return;
     }
 
     // Validate against historical trends
     const avgHistorical = historicalData.length > 0 
-      ? historicalData.reduce((sum, d) => sum + parseFloat(d.value), 0) / historicalData.length
+      ? historicalData.reduce((sum, d) => sum + parseFloat(d._value), 0) / historicalData.length
       : coverage;
 
     const deviation = Math.abs(coverage - avgHistorical);
@@ -440,14 +442,16 @@ export class MetricValidationService {
    *
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    * @param historicalData
    */
   private async validateSecurityVulnerabilities(
-    value: string,
-    result: MetricValidationResult,
+    _value: string,
+    _result: MetricValidationResult,
     historicalData: unknown[]
   ): Promise<void> {
-    const vulnerabilities = parseInt(value);
+    const vulnerabilities = parseInt(_value);
     
     if (isNaN(vulnerabilities) || vulnerabilities < 0) {
       result.isValid = false;
@@ -470,14 +474,16 @@ export class MetricValidationService {
    *
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    * @param historicalData
    */
   private async validateTranslationCoverage(
-    value: string,
-    result: MetricValidationResult,
+    _value: string,
+    _result: MetricValidationResult,
     historicalData: unknown[]
   ): Promise<void> {
-    const coverage = parseFloat(value);
+    const coverage = parseFloat(_value);
     
     if (isNaN(coverage) || coverage < 0 || coverage > 100) {
       result.isValid = false;
@@ -498,14 +504,16 @@ export class MetricValidationService {
    *
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    * @param historicalData
    */
   private async validateQuebecCompliance(
-    value: string,
-    result: MetricValidationResult,
+    _value: string,
+    _result: MetricValidationResult,
     historicalData: unknown[]
   ): Promise<void> {
-    const score = parseFloat(value);
+    const score = parseFloat(_value);
     
     if (isNaN(score) || score < 0 || score > 100) {
       result.isValid = false;
@@ -526,12 +534,14 @@ export class MetricValidationService {
    * @param metricType
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    * @param historicalData
    */
   private async validateGenericMetric(
     metricType: string,
-    value: string,
-    result: MetricValidationResult,
+    _value: string,
+    _result: MetricValidationResult,
     historicalData: unknown[]
   ): Promise<void> {
     // Generic validation for unknown metrics
@@ -543,12 +553,12 @@ export class MetricValidationService {
 
     // Check for reasonable bounds based on historical data
     if (historicalData.length > 5) {
-      const values = historicalData.map(d => parseFloat(d.value)).filter(v => !isNaN(v));
+      const values = historicalData.map(d => parseFloat(d._value)).filter(v => !isNaN(v));
       if (values.length > 0) {
         const avg = values.reduce((a, b) => a + b, 0) / values.length;
         const stdDev = Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - avg, 2), 0) / values.length);
         
-        const numericValue = parseFloat(value);
+        const numericValue = parseFloat(_value);
         if (!isNaN(numericValue) && Math.abs(numericValue - avg) > 3 * stdDev) {
           result.issues.push(`Value is ${(Math.abs(numericValue - avg) / stdDev).toFixed(1)} standard deviations from historical mean`);
           result.confidence -= 15;
@@ -562,11 +572,13 @@ export class MetricValidationService {
    * @param metricType
    * @param value
    * @param result
+   * @param _value
+   * @param _result
    */
   private applyQuebecSpecificValidation(
     metricType: string,
-    value: string,
-    result: MetricValidationResult
+    _value: string,
+    _result: MetricValidationResult
   ): void {
     // Apply Quebec property management specific validation rules
     const quebecWeight = this.quebecComplianceWeights[metricType];
@@ -696,11 +708,12 @@ export class MetricValidationService {
    * @param metricType
    * @param calculatedValue
    * @param result
+   * @param _result
    */
   private async recordValidationForML(
     metricType: string,
     calculatedValue: string,
-    result: MetricValidationResult
+    _result: MetricValidationResult
   ): Promise<void> {
     const tracking: InsertMetricEffectivenessTracking = {
       metricType: metricType,

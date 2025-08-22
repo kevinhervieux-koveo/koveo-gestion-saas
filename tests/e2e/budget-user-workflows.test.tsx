@@ -159,7 +159,7 @@ describe('Budget End-to-End User Workflows', () => {
     mockUseLanguage.mockReturnValue({
       language: 'en',
       setLanguage: jest.fn(),
-      t: jest.fn((key) => key),
+      t: jest.fn((_key) => _key),
       translations: {},
     });
 
@@ -219,7 +219,7 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Step 2: Select building to analyze
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 3: Review financial summary
       await waitFor(() => {
@@ -286,7 +286,7 @@ describe('Budget End-to-End User Workflows', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 1: Access bank account management
       await waitFor(() => {
@@ -305,7 +305,7 @@ describe('Budget End-to-End User Workflows', () => {
       // Step 3: Update reconciliation note
       const reconciliationNote = screen.getByLabelText('Reconciliation Note');
       fireEvent.change(reconciliationNote, { 
-        target: { value: 'Monthly reconciliation for Q1 2024' } 
+        target: { _value: 'Monthly reconciliation for Q1 2024' } 
       });
 
       // Step 4: Close dialog without saving
@@ -335,11 +335,11 @@ describe('Budget End-to-End User Workflows', () => {
         
         // Fill in new requirement
         const newAmountInput = amountInputs[3];
-        fireEvent.change(newAmountInput, { target: { value: '10000' } });
+        fireEvent.change(newAmountInput, { target: { _value: '10000' } });
         
         const descriptionInputs = screen.getAllByPlaceholderText(/e\.g\./);
         const newDescriptionInput = descriptionInputs[descriptionInputs.length - 1];
-        fireEvent.change(newDescriptionInput, { target: { value: 'Legal fees reserve' } });
+        fireEvent.change(newDescriptionInput, { target: { _value: 'Legal fees reserve' } });
       });
 
       // Step 8: Cancel minimum balance changes
@@ -357,7 +357,7 @@ describe('Budget End-to-End User Workflows', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 1: Start in yearly view and verify default data
       await waitFor(() => {
@@ -374,17 +374,17 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Step 4: Adjust month range (focus on Q1)
       const startMonthSelect = screen.getByDisplayValue((new Date().getMonth() + 1).toString());
-      fireEvent.change(startMonthSelect, { target: { value: '1' } });
+      fireEvent.change(startMonthSelect, { target: { _value: '1' } });
 
       const endMonthSelect = screen.getByDisplayValue('12');
-      fireEvent.change(endMonthSelect, { target: { value: '3' } });
+      fireEvent.change(endMonthSelect, { target: { _value: '3' } });
 
       // Step 5: Adjust year range for multi-year analysis
       const startYearInput = screen.getByDisplayValue(new Date().getFullYear().toString());
-      fireEvent.change(startYearInput, { target: { value: '2024' } });
+      fireEvent.change(startYearInput, { target: { _value: '2024' } });
 
       const endYearInput = screen.getByDisplayValue((new Date().getFullYear() + 3).toString());
-      fireEvent.change(endYearInput, { target: { value: '2025' } });
+      fireEvent.change(endYearInput, { target: { _value: '2025' } });
 
       // Step 6: Switch back to yearly view
       const yearlyButton = screen.getByText('Yearly');
@@ -454,7 +454,7 @@ describe('Budget End-to-End User Workflows', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 1: Identify negative cash flow
       await waitFor(() => {
@@ -502,7 +502,7 @@ describe('Budget End-to-End User Workflows', () => {
 
     it('navigates through contribution pagination when many units exist', async () => {
       // Mock more residences to test pagination
-      const manyResidences = Array.from({ length: 25 }, (_, index) => ({
+      const manyResidences = Array.from({ length: 25 }, (_, _index) => ({
         id: `res-${index + 1}`,
         building_id: 'building-1',
         unit_number: `${Math.floor(index / 10) + 1}${String(index % 10 + 1).padStart(2, '0')}`,
@@ -553,7 +553,7 @@ describe('Budget End-to-End User Workflows', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Special Contribution Breakdown')).toBeInTheDocument();
@@ -590,7 +590,7 @@ describe('Budget End-to-End User Workflows', () => {
       mockUseLanguage.mockReturnValue({
         language: 'fr',
         setLanguage: jest.fn(),
-        t: jest.fn((key) => key),
+        t: jest.fn((_key) => _key),
         translations: {},
       });
 
@@ -633,7 +633,7 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Step 2: Select building and view French financial summary
       const buildingSelect = screen.getByDisplayValue('Sélectionner un bâtiment...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Revenus Totaux')).toBeInTheDocument();
@@ -673,7 +673,7 @@ describe('Budget End-to-End User Workflows', () => {
       mockUseLanguage.mockImplementation(() => ({
         language: currentLanguage as 'en' | 'fr',
         setLanguage: mockSetLanguage,
-        t: jest.fn((key) => key),
+        t: jest.fn((_key) => _key),
         translations: {},
       }));
 
@@ -708,7 +708,7 @@ describe('Budget End-to-End User Workflows', () => {
       expect(screen.getByText('Budget Dashboard')).toBeInTheDocument();
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 2: Switch to French
       currentLanguage = 'fr';
@@ -756,7 +756,7 @@ describe('Budget End-to-End User Workflows', () => {
             return Promise.resolve({
               ok: false,
               status: 500,
-              json: () => Promise.resolve({ error: 'Server error' }),
+              json: () => Promise.resolve({ _error: 'Server error' }),
             });
           } else {
             // Succeed on retry
@@ -783,7 +783,7 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Step 1: Select building (will trigger failed API call)
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 2: Wait for error handling (component should not crash)
       await waitFor(() => {
@@ -791,8 +791,8 @@ describe('Budget End-to-End User Workflows', () => {
       });
 
       // Step 3: Try switching buildings to trigger retry
-      fireEvent.change(buildingSelect, { target: { value: 'building-2' } });
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-2' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 4: Should eventually succeed on retry
       await waitFor(() => {
@@ -832,7 +832,7 @@ describe('Budget End-to-End User Workflows', () => {
     it('handles large datasets efficiently', async () => {
       // Mock large budget dataset (12 months x 3 years)
       const largeBudgetData = {
-        summary: Array.from({ length: 36 }, (_, index) => ({
+        summary: Array.from({ length: 36 }, (_, _index) => ({
           year: 2022 + Math.floor(index / 12),
           month: (index % 12) + 1,
           incomes: [45000 + (index * 100), 5000 + (index * 10)],
@@ -843,7 +843,7 @@ describe('Budget End-to-End User Workflows', () => {
       };
 
       // Mock many residences
-      const manyResidences = Array.from({ length: 100 }, (_, index) => ({
+      const manyResidences = Array.from({ length: 100 }, (_, _index) => ({
         id: `res-${index + 1}`,
         building_id: 'building-1',
         unit_number: `${Math.floor(index / 10) + 1}${String(index % 10 + 1).padStart(2, '0')}`,
@@ -887,7 +887,7 @@ describe('Budget End-to-End User Workflows', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Total Income')).toBeInTheDocument();
@@ -932,8 +932,8 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Rapidly switch between buildings and view types
       for (let i = 0; i < 5; i++) {
-        fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
-        fireEvent.change(buildingSelect, { target: { value: 'building-2' } });
+        fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
+        fireEvent.change(buildingSelect, { target: { _value: 'building-2' } });
         
         const yearlyButton = screen.getByText('Yearly');
         const monthlyButton = screen.getByText('Monthly');

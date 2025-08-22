@@ -105,7 +105,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
   });
 
   const updateResidenceMutation = useMutation({
-    mutationFn: async (data: ResidenceEditFormData) => {
+    mutationFn: async (_data: ResidenceEditFormData) => {
       const response = await fetch(`/api/residences/${residence.id}`, {
         method: 'PUT',
         headers: {
@@ -132,7 +132,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
       queryClient.invalidateQueries({ queryKey: ['/api/residences'] });
       onSuccess();
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Error',
         description: (error as Error)?.message || 'Failed to update residence',
@@ -141,8 +141,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     },
   });
 
-  const onSubmit = (data: ResidenceEditFormData) => {
-    updateResidenceMutation.mutate(data);
+  const onSubmit = (_data: ResidenceEditFormData) => {
+    updateResidenceMutation.mutate(_data);
   };
 
   const addParkingSpace = () => {
@@ -152,8 +152,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeParkingSpace = (index: number) => {
-    setParkingSpaces(parkingSpaces.filter((_, i) => i !== index));
+  const removeParkingSpace = (_index: number) => {
+    setParkingSpaces(parkingSpaces.filter((_, i) => i !== _index));
   };
 
   const addStorageSpace = () => {
@@ -163,8 +163,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeStorageSpace = (index: number) => {
-    setStorageSpaces(storageSpaces.filter((_, i) => i !== index));
+  const removeStorageSpace = (_index: number) => {
+    setStorageSpaces(storageSpaces.filter((_, i) => i !== _index));
   };
 
   return (
@@ -284,12 +284,12 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {parkingSpaces.map((space, index) => (
+            {parkingSpaces.map((space, _index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
                 <X
                   className='w-3 h-3 cursor-pointer'
-                  onClick={() => removeParkingSpace(index)}
+                  onClick={() => removeParkingSpace(_index)}
                 />
               </Badge>
             ))}
@@ -299,7 +299,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add parking space number'
               value={newParkingSpace}
-              onChange={(e) => setNewParkingSpace(e.target.value)}
+              onChange={(e) => setNewParkingSpace(e.target._value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addParkingSpace())}
             />
             <Button type='button' onClick={addParkingSpace} size='sm'>
@@ -316,12 +316,12 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {storageSpaces.map((space, index) => (
+            {storageSpaces.map((space, _index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
                 <X
                   className='w-3 h-3 cursor-pointer'
-                  onClick={() => removeStorageSpace(index)}
+                  onClick={() => removeStorageSpace(_index)}
                 />
               </Badge>
             ))}
@@ -331,7 +331,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add storage space number'
               value={newStorageSpace}
-              onChange={(e) => setNewStorageSpace(e.target.value)}
+              onChange={(e) => setNewStorageSpace(e.target._value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addStorageSpace())}
             />
             <Button type='button' onClick={addStorageSpace} size='sm'>

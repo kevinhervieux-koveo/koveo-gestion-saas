@@ -119,8 +119,8 @@ export default function InvitationAcceptancePage() {
       setCompletedUser(result.user);
       setIsCompleted(true);
       
-    } catch (error: unknown) {
-      console.error('Error completing registration:', error);
+    } catch (_error: unknown) {
+      console.error('Error completing registration:', _error);
       setError(error.message || 'Une erreur est survenue lors de la création de votre compte');
     }
   }, []);

@@ -132,17 +132,17 @@ export class ObjectStorageService {
       const stream = file.createReadStream();
 
       stream.on("error", (err) => {
-        console.error("Stream error:", err);
+        console.error("Stream _error:", err);
         if (!res.headersSent) {
-          res.status(500).json({ error: "Error streaming file" });
+          res.status(500).json({ _error: "Error streaming file" });
         }
       });
 
       stream.pipe(res);
-    } catch (__error) {
-      console.error("Error downloading file:", error);
+    } catch (_error) {
+      console.error("Error downloading file:", _error);
       if (!res.headersSent) {
-        res.status(500).json({ error: "Error downloading file" });
+        res.status(500).json({ _error: "Error downloading file" });
       }
     }
   }
@@ -157,8 +157,13 @@ export class ObjectStorageService {
    * @param options.buildingId
    * @param options.residenceId
    * @param options.documentType
+   * @param _options
+   * @param _options.organizationId
+   * @param _options.buildingId
+   * @param _options.residenceId
+   * @param _options.documentType
    */
-  async getObjectEntityUploadURL(options: {
+  async getObjectEntityUploadURL(_options: {
     organizationId: string;
     buildingId?: string;
     residenceId?: string;
@@ -287,9 +292,9 @@ export class ObjectStorageService {
       const orgFile = bucket.file(orgDir);
       await orgFile.save('', { metadata: { contentType: 'text/plain' } });
 
-      console.log(`✅ Created organization hierarchy for: ${organizationId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to create organization hierarchy for ${organizationId}:`, error);
+      console.warn(`✅ Created organization hierarchy for: ${organizationId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to create organization hierarchy for ${organizationId}:`, _error);
     }
   }
 
@@ -312,9 +317,9 @@ export class ObjectStorageService {
       const buildingsDocFile = bucket.file(buildingsDocDir);
       await buildingsDocFile.save('', { metadata: { contentType: 'text/plain' } });
 
-      console.log(`✅ Created building hierarchy for: ${buildingId} in organization ${organizationId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to create building hierarchy for ${buildingId}:`, error);
+      console.warn(`✅ Created building hierarchy for: ${buildingId} in organization ${organizationId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to create building hierarchy for ${buildingId}:`, _error);
     }
   }
 
@@ -337,9 +342,9 @@ export class ObjectStorageService {
       const residenceFile = bucket.file(residenceDir);
       await residenceFile.save('', { metadata: { contentType: 'text/plain' } });
 
-      console.log(`✅ Created residence hierarchy for: ${residenceId} in building ${buildingId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to create residence hierarchy for ${residenceId}:`, error);
+      console.warn(`✅ Created residence hierarchy for: ${residenceId} in building ${buildingId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to create residence hierarchy for ${residenceId}:`, _error);
     }
   }
 
@@ -361,12 +366,12 @@ export class ObjectStorageService {
       // Delete all files in the organization hierarchy
       for (const file of files) {
         await file.delete();
-        console.log(`🗑️ Deleted: ${file.name}`);
+        console.warn(`🗑️ Deleted: ${file.name}`);
       }
 
-      console.log(`✅ Deleted organization hierarchy for: ${organizationId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to delete organization hierarchy for ${organizationId}:`, error);
+      console.warn(`✅ Deleted organization hierarchy for: ${organizationId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to delete organization hierarchy for ${organizationId}:`, _error);
     }
   }
 
@@ -389,12 +394,12 @@ export class ObjectStorageService {
       // Delete all files in the building hierarchy
       for (const file of files) {
         await file.delete();
-        console.log(`🗑️ Deleted: ${file.name}`);
+        console.warn(`🗑️ Deleted: ${file.name}`);
       }
 
-      console.log(`✅ Deleted building hierarchy for: ${buildingId} in organization ${organizationId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to delete building hierarchy for ${buildingId}:`, error);
+      console.warn(`✅ Deleted building hierarchy for: ${buildingId} in organization ${organizationId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to delete building hierarchy for ${buildingId}:`, _error);
     }
   }
 
@@ -418,12 +423,12 @@ export class ObjectStorageService {
       // Delete all files in the residence hierarchy
       for (const file of files) {
         await file.delete();
-        console.log(`🗑️ Deleted: ${file.name}`);
+        console.warn(`🗑️ Deleted: ${file.name}`);
       }
 
-      console.log(`✅ Deleted residence hierarchy for: ${residenceId} in building ${buildingId}`);
-    } catch (__error) {
-      console.error(`❌ Failed to delete residence hierarchy for ${residenceId}:`, error);
+      console.warn(`✅ Deleted residence hierarchy for: ${residenceId} in building ${buildingId}`);
+    } catch (_error) {
+      console.error(`❌ Failed to delete residence hierarchy for ${residenceId}:`, _error);
     }
   }
 }

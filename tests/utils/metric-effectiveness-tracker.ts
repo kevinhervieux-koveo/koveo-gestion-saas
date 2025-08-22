@@ -84,8 +84,20 @@ export class MetricEffectivenessTracker {
    * @param data.issueDetails.moderateIssues - Number of moderate issues.
    * @param data.issueDetails.minorIssues - Number of minor issues.
    * @param data.issueDetails.description - Description of the issues.
+   * @param _data
+   * @param _data.metric
+   * @param _data.calculatedValue
+   * @param _data.realIssuesFound
+   * @param _data.falsePositives
+   * @param _data.missedIssues
+   * @param _data.projectPhase
+   * @param _data.issueDetails
+   * @param _data.issueDetails.criticalIssues
+   * @param _data.issueDetails.moderateIssues
+   * @param _data.issueDetails.minorIssues
+   * @param _data.issueDetails.description
    */
-  static recordMetricEffectiveness(data: {
+  static recordMetricEffectiveness(_data: {
     metric: string;
     calculatedValue: string;
     realIssuesFound: number;

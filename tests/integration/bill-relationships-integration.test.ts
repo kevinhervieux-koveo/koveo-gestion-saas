@@ -694,9 +694,9 @@ describe('Bill Relationships Integration Tests', () => {
         if (selfRef) {
           expect(selfRef.reference).toBe('bill-self-ref');
         }
-      } catch (__error) {
+      } catch (_error) {
         // If it fails due to constraints, that's also acceptable
-        expect(error).toBeDefined();
+        expect(_error).toBeDefined();
       }
     });
   });

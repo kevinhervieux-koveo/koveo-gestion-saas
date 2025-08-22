@@ -37,7 +37,7 @@ export function useFeatureDuplicateAnalysis(features: Feature[]) {
     
     const analysis = new Map<string, DuplicateInfo>();
     
-    features.forEach((feature: Feature, index: number) => {
+    features.forEach((feature: Feature, _index: number) => {
       const duplicates: Feature[] = [];
       let exactMatch = false;
       

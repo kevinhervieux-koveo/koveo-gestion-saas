@@ -16,7 +16,8 @@ import HomePage from '@/pages/home';
  *
  * @param root0
  * @param root0.children
- */
+  * @returns Function result.
+*/
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -489,7 +490,7 @@ export const UI_CONSISTENCY_RULES = {
     primary: 'blue-600',
     primaryHover: 'blue-700',
     success: 'green-600',
-    error: 'red-600',
+    _error: 'red-600',
     warning: 'yellow-600',
     neutral: 'gray-600',
   },

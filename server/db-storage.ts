@@ -34,7 +34,7 @@ const db = drizzle(sql, { schema });
 
 // Initialize database optimizations on startup (skip in test environment)
 if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
-  QueryOptimizer.applyCoreOptimizations().catch(console.error);
+  QueryOptimizer.applyCoreOptimizations().catch(console._error);
 }
 
 /**
@@ -459,12 +459,13 @@ export class DatabaseStorage implements IStorage {
   /**
    *
    * @param key
+   * @param _key
    */
-  async getFrameworkConfig(key: string): Promise<FrameworkConfiguration | undefined> {
+  async getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined> {
     const result = await db
       .select()
       .from(schema.frameworkConfiguration)
-      .where(eq(schema.frameworkConfiguration.key, key));
+      .where(eq(schema.frameworkConfiguration.key, _key));
     return result[0];
   }
 

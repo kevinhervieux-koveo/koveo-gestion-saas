@@ -199,7 +199,7 @@ describe('Project Structure Validation', () => {
       });
 
       if (invalidNames.length > 0) {
-        console.log('Files with invalid naming conventions:', invalidNames);
+        console.warn('Files with invalid naming conventions:', invalidNames);
       }
       expect(invalidNames.length).toBe(0);
     });

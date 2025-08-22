@@ -137,10 +137,10 @@ export function OrganizationFormDialog({
   }, [organization, form]);
 
   const mutation = useMutation({
-    mutationFn: async (data: OrganizationFormData) => {
+    mutationFn: async (_data: OrganizationFormData) => {
       const url = isEditing ? `/api/organizations/${organization.id}` : '/api/organizations';
       const method = isEditing ? 'PUT' : 'POST';
-      return apiRequest(method, url, data);
+      return apiRequest(method, url, _data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
@@ -154,7 +154,7 @@ export function OrganizationFormDialog({
       form.reset();
       onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Something went wrong',
@@ -163,8 +163,8 @@ export function OrganizationFormDialog({
     },
   });
 
-  const onSubmit = (data: OrganizationFormData) => {
-    mutation.mutate(data);
+  const onSubmit = (_data: OrganizationFormData) => {
+    mutation.mutate(_data);
   };
 
   return (

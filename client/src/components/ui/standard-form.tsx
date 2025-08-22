@@ -30,10 +30,16 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * FieldType type definition.
  */
+/**
+ * FieldType type definition.
+ */
 export type FieldType = 'text' | 'email' | 'password' | 'textarea' | 'select' | 'checkbox' | 'number';
 
 /**
  * Configuration for a single form field
+ */
+/**
+ * FormFieldConfig type definition.
  */
 /**
  * FormFieldConfig type definition.
@@ -44,7 +50,7 @@ export interface FormFieldConfig {
   type: FieldType;
   placeholder?: string;
   description?: string;
-  options?: Array<{ value: string; label: string }>;
+  options?: Array<{ _value: string; label: string }>;
   rows?: number;
   disabled?: boolean;
   className?: string;
@@ -134,7 +140,25 @@ export function  /**
    * @param children
 } - children
 } parameter.
+   */  /**
+   * Standard form function.
+   * @param {
+  schema - {
+  schema parameter.
+   * @param fields - fields parameter.
+   * @param onSubmit - onSubmit parameter.
+   * @param defaultValues - defaultValues parameter.
+   * @param submitText - submitText parameter.
+   * @param cancelText - cancelText parameter.
+   * @param onCancel - onCancel parameter.
+   * @param isLoading = false - isLoading = false parameter.
+   * @param showCancel = false - showCancel = false parameter.
+   * @param className = '' - className = '' parameter.
+   * @param children
+} - children
+} parameter.
    */
+
  StandardForm({
   schema,
   fields,
@@ -155,15 +179,19 @@ export function  /**
     defaultValues,
   });
 
-  const handleSubmit = async (data: unknown) => {
+  const handleSubmit = async (_data: unknown) => {
     try {
       await onSubmit(data as Record<string, unknown>);
     }  /**
    * Catch function.
    * @param _error - _error parameter.
+   */  /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
+
  catch (_error) {
-      console.error('Form submission error:', _error);
+      console.error('Form submission _error:', _error);
     }
   };
 
@@ -192,7 +220,7 @@ export function  /**
                   placeholder={placeholder}
                   disabled={disabled}
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) => field.onChange(Number(e.target._value))}
                 />
               ) : type === 'textarea' ? (
                 <Textarea

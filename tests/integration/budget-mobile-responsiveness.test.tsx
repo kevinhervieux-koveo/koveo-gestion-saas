@@ -192,7 +192,7 @@ describe('Budget Page Mobile Responsiveness', () => {
 
       // Select a building to trigger contribution calculation
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Check for mobile-responsive table headers
@@ -271,7 +271,7 @@ describe('Budget Page Mobile Responsiveness', () => {
 
       // Select a building
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Check for mobile-responsive form layout
@@ -336,7 +336,7 @@ describe('Budget Page Mobile Responsiveness', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 375,
+        _value: 375,
       });
 
       render(

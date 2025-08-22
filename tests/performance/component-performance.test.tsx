@@ -48,7 +48,7 @@ class PerformanceMonitor {
 // Mock components for testing
 const LargeDataComponent: React.FC<{ items: any[] }> = ({ items }) => (
   <div data-testid="large-data-component">
-    {items.map((item, index) => (
+    {items.map((item, _index) => (
       <div key={index} data-testid={`item-${index}`}>
         {item.name} - {item.description}
       </div>
@@ -71,7 +71,7 @@ const HeavyCalculationComponent: React.FC = () => {
   return <div data-testid="heavy-calc-result">{result.toFixed(2)}</div>;
 };
 
-const MemoizedComponent: React.FC<{ data: any }> = React.memo(({ data }) => (
+const MemoizedComponent: React.FC<{ _data: any }> = React.memo(({ data }) => (
   <div data-testid="memoized-component">{data.name}</div>
 ));
 
@@ -126,7 +126,7 @@ describe('Component Performance Tests', () => {
 
   describe('Render Performance', () => {
     it('renders large lists efficiently', async () => {
-      const largeDataSet = Array.from({ length: 1000 }, (_, index) => ({
+      const largeDataSet = Array.from({ length: 1000 }, (_, _index) => ({
         id: index,
         name: `Item ${index}`,
         description: `Description for item ${index}`,
@@ -199,7 +199,7 @@ describe('Component Performance Tests', () => {
       const data = { name: 'Test Data', id: 1 };
       let renderCount = 0;
 
-      const MemoizedTestComponent: React.FC<{ data: any }> = React.memo(({ data }) => {
+      const MemoizedTestComponent: React.FC<{ _data: any }> = React.memo(({ data }) => {
         renderCount++;
         return <div data-testid="memoized-test">{data.name}</div>;
       });
@@ -283,7 +283,7 @@ describe('Component Performance Tests', () => {
 
       const ComponentWithEventListener: React.FC = () => {
         React.useEffect(() => {
-          const handleClick = () => console.log('clicked');
+          const handleClick = () => console.warn('clicked');
           document.addEventListener('click', handleClick);
           
           return () => {
@@ -340,7 +340,7 @@ describe('Component Performance Tests', () => {
 
     it('optimizes repeated calculations', async () => {
       const fibonacci = React.useMemo(() => {
-        const cache: { [key: number]: number } = {};
+        const cache: { [_key: number]: number } = {};
         
         return function fib(n: number): number {
           if (n in cache) {return cache[n];}
@@ -371,7 +371,7 @@ describe('Component Performance Tests', () => {
 
       performanceMonitor.start();
 
-      // Same calculation (should use memoized result)
+      // Same calculation (should use memoized _result)
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
@@ -456,8 +456,8 @@ describe('Component Performance Tests', () => {
 
       const QueryComponent: React.FC = () => {
         const { data, isLoading } = queryClient.getQueryData(['test-query']) 
-          ? { data: mockData, isLoading: false }
-          : { data: undefined, isLoading: true };
+          ? { _data: mockData, isLoading: false }
+          : { _data: undefined, isLoading: true };
 
         React.useEffect(() => {
           if (!queryClient.getQueryData(['test-query'])) {
@@ -506,7 +506,7 @@ describe('Component Performance Tests', () => {
         queries.forEach(queryKey => {
           React.useEffect(() => {
             if (!queryClient.getQueryData([queryKey])) {
-              queryClient.setQueryData([queryKey], { id: queryKey, data: `Data for ${queryKey}` });
+              queryClient.setQueryData([queryKey], { id: queryKey, _data: `Data for ${queryKey}` });
             }
           }, [queryKey]);
         });
@@ -517,7 +517,7 @@ describe('Component Performance Tests', () => {
               const data = queryClient.getQueryData([queryKey]);
               return (
                 <div key={queryKey} data-testid={`result-${queryKey}`}>
-                  {data ? (data as any).data : 'Loading...'}
+                  {data ? (data as any)._data : 'Loading...'}
                 </div>
               );
             })}

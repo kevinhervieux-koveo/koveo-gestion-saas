@@ -72,9 +72,9 @@ class MoneyFlowJob {
         await this.executeMoneyFlowJob();
       }
 
-    } catch (__error) {
+    } catch (_error) {
       this.log('error', 'Failed to start money flow job', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        _error: error instanceof Error ? error.message : 'Unknown error' 
       });
       throw error;
     }
@@ -129,9 +129,9 @@ class MoneyFlowJob {
 
         success = true;
 
-      } catch (__error) {
+      } catch (_error) {
         this.log('error', `Money flow job attempt ${attempt} failed`, {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          _error: error instanceof Error ? error.message : 'Unknown error',
           attempt,
           maxAttempts: this.config.retryAttempts
         });
@@ -172,10 +172,10 @@ class MoneyFlowJob {
         entriesCreated
       });
       return entriesCreated;
-    } catch (__error) {
+    } catch (_error) {
       this.log('error', `Failed to generate money flow for bill ${billId}`, {
         billId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
@@ -196,10 +196,10 @@ class MoneyFlowJob {
         entriesCreated
       });
       return entriesCreated;
-    } catch (__error) {
+    } catch (_error) {
       this.log('error', `Failed to generate money flow for residence ${residenceId}`, {
         residenceId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
@@ -211,9 +211,9 @@ class MoneyFlowJob {
   async getStatistics(): Promise<any> {
     try {
       return await moneyFlowAutomationService.getMoneyFlowStatistics();
-    } catch (__error) {
+    } catch (_error) {
       this.log('error', 'Failed to get money flow statistics', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
@@ -256,7 +256,7 @@ class MoneyFlowJob {
     if (messageLevel <= configLevel) {
       const timestamp = new Date().toISOString();
       const logData = data ? ` ${JSON.stringify(data, null, 2)}` : '';
-      console.log(`[${timestamp}] [MONEY-FLOW] [${level.toUpperCase()}] ${message}${logData}`);
+      console.warn(`[${timestamp}] [MONEY-FLOW] [${level.toUpperCase()}] ${message}${logData}`);
     }
   }
 

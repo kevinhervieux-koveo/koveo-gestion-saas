@@ -150,12 +150,12 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(coverageValidation.reasons).toBeInstanceOf(Array);
       expect(coverageValidation.recommendations).toBeInstanceOf(Array);
 
-      console.log('\n📊 Quality Metrics System Validation Results:');
-      console.log(`   System Health: ${systemHealth.effectiveMetrics > systemHealth.ineffectiveMetrics ? 'Good' : 'Poor'}`);
-      console.log(`   Average Accuracy: ${systemHealth.averageSystemAccuracy.toFixed(1)}%`);
-      console.log(`   Valid Metrics: ${systemHealth.effectiveMetrics}/${systemHealth.totalMetrics}`);
-      console.log(`   Coverage Effectiveness: ${coverageEffectiveness!.averageAccuracy.toFixed(1)}%`);
-      console.log(`   Code Quality Effectiveness: ${codeQualityEffectiveness!.averageAccuracy.toFixed(1)}%`);
+      console.warn('\n📊 Quality Metrics System Validation Results:');
+      console.warn(`   System Health: ${systemHealth.effectiveMetrics > systemHealth.ineffectiveMetrics ? 'Good' : 'Poor'}`);
+      console.warn(`   Average Accuracy: ${systemHealth.averageSystemAccuracy.toFixed(1)}%`);
+      console.warn(`   Valid Metrics: ${systemHealth.effectiveMetrics}/${systemHealth.totalMetrics}`);
+      console.warn(`   Coverage Effectiveness: ${coverageEffectiveness!.averageAccuracy.toFixed(1)}%`);
+      console.warn(`   Code Quality Effectiveness: ${codeQualityEffectiveness!.averageAccuracy.toFixed(1)}%`);
     });
 
     it('should detect and report metric improvement over time', () => {
@@ -168,7 +168,7 @@ describe('Complete Quality Metrics System Integration', () => {
         { coverage: '94%', realIssues: 1, falsePositives: 0, missedIssues: 0 },
       ];
 
-      iterations.forEach((iteration, index) => {
+      iterations.forEach((iteration, _index) => {
         MetricEffectivenessTracker.recordMetricEffectiveness({
           metric: 'improvingCoverage',
           calculatedValue: iteration.coverage,
@@ -190,7 +190,7 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(effectiveness!.totalMeasurements).toBe(5);
       expect(effectiveness!.totalRealIssuesFound).toBe(31); // Sum of all real issues found
 
-      console.log(`   Improvement Trend: +${effectiveness!.accuracyTrend.toFixed(1)}% accuracy over time`);
+      console.warn(`   Improvement Trend: +${effectiveness!.accuracyTrend.toFixed(1)}% accuracy over time`);
     });
 
     it('should identify problematic metrics that need attention', () => {
@@ -220,8 +220,8 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(suggestion.priority).toBe('critical');
       expect(suggestion.suggestions.length).toBeGreaterThan(0);
 
-      console.log(`   Problematic Metric Detected: ${validation.reasons.join(', ')}`);
-      console.log(`   Priority: ${suggestion.priority}`);
+      console.warn(`   Problematic Metric Detected: ${validation.reasons.join(', ')}`);
+      console.warn(`   Priority: ${suggestion.priority}`);
     });
 
     it('should export data for external analysis', () => {
@@ -238,7 +238,7 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(csvData).toContain('timestamp,metric,calculatedValue');
       expect(csvData.split('\n').length).toBeGreaterThan(1);
 
-      console.log(`   Export capabilities: JSON (${parsedData.length} records), CSV format available`);
+      console.warn(`   Export capabilities: JSON (${parsedData.length} records), CSV format available`);
     });
 
     it('should provide actionable system recommendations', () => {
@@ -247,12 +247,12 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(systemHealth.recommendations).toBeInstanceOf(Array);
       
       if (systemHealth.recommendations.length > 0) {
-        console.log('   System Recommendations:');
+        console.warn('   System Recommendations:');
         systemHealth.recommendations.forEach(rec => {
-          console.log(`     • ${rec}`);
+          console.warn(`     • ${rec}`);
         });
       } else {
-        console.log('   System Status: All metrics performing well');
+        console.warn('   System Status: All metrics performing well');
       }
 
       // Should provide specific guidance based on metric performance
@@ -328,7 +328,7 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(effectiveness!.totalMeasurements).toBe(100);
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(0);
 
-      console.log(`   Scalability Test: Successfully processed ${effectiveness!.totalMeasurements} measurements`);
+      console.warn(`   Scalability Test: Successfully processed ${effectiveness!.totalMeasurements} measurements`);
     });
 
     it('should provide time-range filtered analysis', () => {

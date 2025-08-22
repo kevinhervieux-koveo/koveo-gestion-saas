@@ -7,9 +7,12 @@ import { Settings as SettingsIcon, User, Bell, Shield, Globe, Palette } from 'lu
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Settings function.
+   */ /**
    * Settings function.
    */
+
  Settings() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

@@ -54,10 +54,11 @@ export const BuildingIdSchema = z.object({
 /**
  * ValidateBuildingCreate function.
  * @param data
+ * @param _data
  * @returns Function result.
  */
-export function validateBuildingCreate(data: unknown) {
-  return CreateBuildingSchema.parse(data);
+export function validateBuildingCreate(_data: unknown) {
+  return CreateBuildingSchema.parse(_data);
 }
 
 /**
@@ -67,10 +68,11 @@ export function validateBuildingCreate(data: unknown) {
 /**
  * ValidateBuildingUpdate function.
  * @param data
+ * @param _data
  * @returns Function result.
  */
-export function validateBuildingUpdate(data: unknown) {
-  return UpdateBuildingSchema.parse(data);
+export function validateBuildingUpdate(_data: unknown) {
+  return UpdateBuildingSchema.parse(_data);
 }
 
 /**
@@ -136,7 +138,7 @@ export function validateUserAuth(req: unknown): { user: any; isValid: boolean; e
     return {
       user: null,
       isValid: false,
-      error: 'Authentication required'
+      _error: 'Authentication required'
     };
   }
   
@@ -145,7 +147,7 @@ export function validateUserAuth(req: unknown): { user: any; isValid: boolean; e
     return {
       user: null,
       isValid: false,
-      error: 'User session incomplete'
+      _error: 'User session incomplete'
     };
   }
   

@@ -42,11 +42,11 @@ export function registerDelayedUpdateRoutes(app: Express) {
         }
       });
 
-    } catch (__error) {
-      console.error('Error getting delayed update status:', __error);
+    } catch (_error) {
+      console.error('Error getting delayed update status:', _error);
       res.status(500).json({ 
         message: 'Failed to get delayed update status',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -71,7 +71,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         });
       }
 
-      console.log(`⚡ Force immediate update for bill ${billId} requested by user ${user.id}`);
+      console.warn(`⚡ Force immediate update for bill ${billId} requested by user ${user.id}`);
 
       // Force immediate update
       await delayedUpdateService.forceImmediateBillUpdate(billId);
@@ -83,11 +83,11 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error forcing immediate bill update:', __error);
+    } catch (_error) {
+      console.error('Error forcing immediate bill update:', _error);
       res.status(500).json({ 
         message: 'Failed to force immediate bill update',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -112,7 +112,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         });
       }
 
-      console.log(`⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`);
+      console.warn(`⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`);
 
       // Force immediate update
       await delayedUpdateService.forceImmediateResidenceUpdate(residenceId);
@@ -124,11 +124,11 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
 
-    } catch (__error) {
-      console.error('Error forcing immediate residence update:', __error);
+    } catch (_error) {
+      console.error('Error forcing immediate residence update:', _error);
       res.status(500).json({ 
         message: 'Failed to force immediate residence update',
-        error: __error instanceof Error ? __error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error'
       });
     }
   });
@@ -167,11 +167,11 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Delayed update system is operational'
       });
 
-    } catch (__error) {
-      console.error('Error in delayed update health check:', __error);
+    } catch (_error) {
+      console.error('Error in delayed update health check:', _error);
       res.status(500).json({ 
         status: 'unhealthy',
-        error: __error instanceof Error ? __error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
         message: 'Delayed update system encountered an error'
       });
     }

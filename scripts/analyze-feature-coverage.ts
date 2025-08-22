@@ -25,7 +25,7 @@ interface FeatureAnalysis {
  * Main feature coverage analysis.
  */
 async function analyzeFeatureCoverage() {
-  console.log(chalk.blue('🎯 Analyzing Feature Coverage...'));
+  console.warn(chalk.blue('🎯 Analyzing Feature Coverage...'));
   
   const features: FeatureAnalysis[] = [
     await analyzeDocumentManagement(),
@@ -46,10 +46,10 @@ async function analyzeFeatureCoverage() {
   const missingCount = features.filter(f => f.coverage === 'missing').length;
   const partialCount = features.filter(f => f.coverage === 'partial').length;
   
-  console.log(chalk.green(`✅ Feature Coverage Analysis Complete`));
-  console.log(chalk.gray(`   ${features.length} features analyzed`));
-  console.log(chalk.yellow(`   ${partialCount} features need improvement`));
-  console.log(chalk.red(`   ${missingCount} features missing coverage`));
+  console.warn(chalk.green(`✅ Feature Coverage Analysis Complete`));
+  console.warn(chalk.gray(`   ${features.length} features analyzed`));
+  console.warn(chalk.yellow(`   ${partialCount} features need improvement`));
+  console.warn(chalk.red(`   ${missingCount} features missing coverage`));
   
   return missingCount === 0 && partialCount === 0;
 }
@@ -163,7 +163,7 @@ async function findFiles(patterns: string[]): Promise<string[]> {
         });
         
         let output = '';
-        find.stdout.on('data', (data) => {
+        find.stdout.on('data', (_data) => {
           output += data.toString();
         });
         
@@ -180,7 +180,7 @@ async function findFiles(patterns: string[]): Promise<string[]> {
       });
       
       allFiles.push(...files);
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Could not search for pattern ${pattern}: ${error}`);
     }
   }
@@ -383,7 +383,7 @@ Total features analyzed: **${features.length}**
 
 ## Feature Analysis Details
 
-${features.map((feature, index) => `
+${features.map((feature, _index) => `
 ### ${index + 1}. ${feature.feature}
 
 **Coverage Status:** ${feature.coverage === 'complete' ? '✅ Complete' : 

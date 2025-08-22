@@ -58,7 +58,7 @@ interface DemoOrganizationData {
  * @returns Function result.
  */
 async function exportDemoData(): Promise<DemoOrganizationData> {
-  console.log('📤 Exporting Demo organization data from development...');
+  console.warn('📤 Exporting Demo organization data from development...');
 
   try {
     // Find Demo organization
@@ -70,7 +70,7 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
       throw new Error('Demo organization not found in development database');
     }
 
-    console.log(`  ✓ Found Demo organization: ${demoOrg.id}`);
+    console.warn(`  ✓ Found Demo organization: ${demoOrg.id}`);
 
     // Export all related data
     const [buildings, users, userOrganizations] = await Promise.all([
@@ -146,17 +146,17 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
       notifications
     };
 
-    console.log(`  ✓ Exported ${buildings.length} buildings`);
-    console.log(`  ✓ Exported ${residences.length} residences`);
-    console.log(`  ✓ Exported ${exportData.users.length} users`);
-    console.log(`  ✓ Exported ${bills.length} bills`);
-    console.log(`  ✓ Exported ${maintenanceRequests.length} maintenance requests`);
-    console.log(`  ✓ Exported ${notifications.length} notifications`);
+    console.warn(`  ✓ Exported ${buildings.length} buildings`);
+    console.warn(`  ✓ Exported ${residences.length} residences`);
+    console.warn(`  ✓ Exported ${exportData.users.length} users`);
+    console.warn(`  ✓ Exported ${bills.length} bills`);
+    console.warn(`  ✓ Exported ${maintenanceRequests.length} maintenance requests`);
+    console.warn(`  ✓ Exported ${notifications.length} notifications`);
 
     return exportData;
 
-  } catch (__error) {
-    console.error('❌ Error exporting Demo data:', error);
+  } catch (_error) {
+    console.error('❌ Error exporting Demo _data:', _error);
     throw error;
   }
 }
@@ -171,7 +171,7 @@ async function exportDemoData(): Promise<DemoOrganizationData> {
  * @returns Function result.
  */
 async function deleteDemoData(db: unknown): Promise<void> {
-  console.log('🗑️  Deleting existing Demo organization data...');
+  console.warn('🗑️  Deleting existing Demo organization data...');
 
   try {
     // Find Demo organization in target database
@@ -180,11 +180,11 @@ async function deleteDemoData(db: unknown): Promise<void> {
     });
 
     if (!demoOrg) {
-      console.log('  ℹ️  No Demo organization found to delete');
+      console.warn('  ℹ️  No Demo organization found to delete');
       return;
     }
 
-    console.log(`  ✓ Found Demo organization to delete: ${demoOrg.id}`);
+    console.warn(`  ✓ Found Demo organization to delete: ${demoOrg.id}`);
 
     // Get all buildings for Demo organization
     const buildings = await db.query.buildings.findMany({
@@ -214,41 +214,41 @@ async function deleteDemoData(db: unknown): Promise<void> {
     if (userIds.length > 0) {
       await db.delete(schema.notifications)
         .where((notifications, { inArray }) => inArray(notifications.userId, userIds));
-      console.log('  ✓ Deleted Demo user notifications');
+      console.warn('  ✓ Deleted Demo user notifications');
     }
 
     // 2. Delete bills for Demo residences
     if (residenceIds.length > 0) {
       await db.delete(schema.bills)
         .where((bills, { inArray }) => inArray(bills.residenceId, residenceIds));
-      console.log('  ✓ Deleted Demo bills');
+      console.warn('  ✓ Deleted Demo bills');
     }
 
     // 3. Delete maintenance requests for Demo residences
     if (residenceIds.length > 0) {
       await db.delete(schema.maintenanceRequests)
         .where((requests, { inArray }) => inArray(requests.residenceId, residenceIds));
-      console.log('  ✓ Deleted Demo maintenance requests');
+      console.warn('  ✓ Deleted Demo maintenance requests');
     }
 
     // 4. Delete residences
     if (buildingIds.length > 0) {
       await db.delete(schema.residences)
         .where((residences, { inArray }) => inArray(residences.buildingId, buildingIds));
-      console.log('  ✓ Deleted Demo residences');
+      console.warn('  ✓ Deleted Demo residences');
     }
 
     // 5. Delete buildings
     if (buildingIds.length > 0) {
       await db.delete(schema.buildings)
         .where((buildings, { inArray }) => inArray(buildings.id, buildingIds));
-      console.log('  ✓ Deleted Demo buildings');
+      console.warn('  ✓ Deleted Demo buildings');
     }
 
     // 6. Delete user-organization relationships
     await db.delete(schema.userOrganizations)
       .where(eq(schema.userOrganizations.organizationId, demoOrg.id));
-    console.log('  ✓ Deleted Demo user-organization relationships');
+    console.warn('  ✓ Deleted Demo user-organization relationships');
 
     // 7. Delete Demo users (only if they don't belong to other organizations)
     if (userIds.length > 0) {
@@ -264,16 +264,16 @@ async function deleteDemoData(db: unknown): Promise<void> {
           await db.delete(schema.users).where(eq(schema.users.id, userId));
         }
       }
-      console.log('  ✓ Deleted Demo-only users');
+      console.warn('  ✓ Deleted Demo-only users');
     }
 
     // 8. Finally delete the Demo organization
     await db.delete(schema.organizations)
       .where(eq(schema.organizations.id, demoOrg.id));
-    console.log('  ✓ Deleted Demo organization');
+    console.warn('  ✓ Deleted Demo organization');
 
-  } catch (__error) {
-    console.error('❌ Error deleting Demo data:', error);
+  } catch (_error) {
+    console.error('❌ Error deleting Demo _data:', _error);
     throw error;
   }
 }
@@ -287,10 +287,11 @@ async function deleteDemoData(db: unknown): Promise<void> {
  * ImportDemoData function.
  * @param db
  * @param data
+ * @param _data
  * @returns Function result.
  */
-async function importDemoData(db: any, data: DemoOrganizationData): Promise<void> {
-  console.log('📥 Importing Demo organization data...');
+async function importDemoData(db: any, _data: DemoOrganizationData): Promise<void> {
+  console.warn('📥 Importing Demo organization data...');
 
   try {
     // 1. Insert organization
@@ -301,7 +302,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
         updatedAt: new Date()
       })
       .returning();
-    console.log(`  ✓ Imported Demo organization: ${newOrg.id}`);
+    console.warn(`  ✓ Imported Demo organization: ${newOrg.id}`);
 
     // 2. Insert users (if they don't already exist)
     const existingUsers = await db.query.users.findMany({
@@ -329,13 +330,13 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
         })))
         .returning();
       
-      insertedUsers.forEach((newUser, index) => {
+      insertedUsers.forEach((newUser, _index) => {
         allUserIds[newUsers[index].id] = newUser.id;
       });
       
-      console.log(`  ✓ Imported ${newUsers.length} new users`);
+      console.warn(`  ✓ Imported ${newUsers.length} new users`);
     } else {
-      console.log('  ✓ All users already exist');
+      console.warn('  ✓ All users already exist');
     }
 
     // 3. Insert user-organization relationships
@@ -346,7 +347,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
         role: uo.role,
         joinedAt: uo.joinedAt || new Date()
       })));
-    console.log(`  ✓ Imported ${data.userOrganizations.length} user-organization relationships`);
+    console.warn(`  ✓ Imported ${data.userOrganizations.length} user-organization relationships`);
 
     // 4. Insert buildings
     const buildingIdMap: Record<string, string> = {};
@@ -360,11 +361,11 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
         })))
         .returning();
       
-      insertedBuildings.forEach((newBuilding, index) => {
+      insertedBuildings.forEach((newBuilding, _index) => {
         buildingIdMap[data.buildings[index].id] = newBuilding.id;
       });
       
-      console.log(`  ✓ Imported ${data.buildings.length} buildings`);
+      console.warn(`  ✓ Imported ${data.buildings.length} buildings`);
     }
 
     // 5. Insert residences
@@ -379,11 +380,11 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
         })))
         .returning();
       
-      insertedResidences.forEach((newResidence, index) => {
+      insertedResidences.forEach((newResidence, _index) => {
         residenceIdMap[data.residences[index].id] = newResidence.id;
       });
       
-      console.log(`  ✓ Imported ${data.residences.length} residences`);
+      console.warn(`  ✓ Imported ${data.residences.length} residences`);
     }
 
     // 6. Insert bills
@@ -395,7 +396,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
           createdAt: new Date(),
           updatedAt: new Date()
         })));
-      console.log(`  ✓ Imported ${data.bills.length} bills`);
+      console.warn(`  ✓ Imported ${data.bills.length} bills`);
     }
 
     // 7. Insert maintenance requests
@@ -407,7 +408,7 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
           createdAt: new Date(),
           updatedAt: new Date()
         })));
-      console.log(`  ✓ Imported ${data.maintenanceRequests.length} maintenance requests`);
+      console.warn(`  ✓ Imported ${data.maintenanceRequests.length} maintenance requests`);
     }
 
     // 8. Insert notifications
@@ -419,11 +420,11 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
           createdAt: new Date(),
           updatedAt: new Date()
         })));
-      console.log(`  ✓ Imported ${data.notifications.length} notifications`);
+      console.warn(`  ✓ Imported ${data.notifications.length} notifications`);
     }
 
-  } catch (__error) {
-    console.error('❌ Error importing Demo data:', error);
+  } catch (_error) {
+    console.error('❌ Error importing Demo _data:', _error);
     throw error;
   }
 }
@@ -437,31 +438,31 @@ async function importDemoData(db: any, data: DemoOrganizationData): Promise<void
  */
 async function syncDemoOrganization(): Promise<void> {
   try {
-    console.log('🔄 Starting Demo organization synchronization...\n');
+    console.warn('🔄 Starting Demo organization synchronization...\n');
 
     // Step 1: Export data from development
     const demoData = await exportDemoData();
     
-    console.log('\n📋 Export Summary:');
-    console.log(`  • Organization: ${demoData.organization.name}`);
-    console.log(`  • Buildings: ${demoData.buildings.length}`);
-    console.log(`  • Residences: ${demoData.residences.length}`);
-    console.log(`  • Users: ${demoData.users.length}`);
-    console.log(`  • Bills: ${demoData.bills.length}`);
-    console.log(`  • Maintenance Requests: ${demoData.maintenanceRequests.length}`);
-    console.log(`  • Notifications: ${demoData.notifications.length}`);
+    console.warn('\n📋 Export Summary:');
+    console.warn(`  • Organization: ${demoData.organization.name}`);
+    console.warn(`  • Buildings: ${demoData.buildings.length}`);
+    console.warn(`  • Residences: ${demoData.residences.length}`);
+    console.warn(`  • Users: ${demoData.users.length}`);
+    console.warn(`  • Bills: ${demoData.bills.length}`);
+    console.warn(`  • Maintenance Requests: ${demoData.maintenanceRequests.length}`);
+    console.warn(`  • Notifications: ${demoData.notifications.length}`);
 
     // Step 2: If production database is available, sync directly
     if (prodDb) {
-      console.log('\n🎯 Syncing directly to production database...');
+      console.warn('\n🎯 Syncing directly to production database...');
       
       await deleteDemoData(prodDb);
       await importDemoData(prodDb, demoData);
       
-      console.log('\n✅ Demo organization synchronized successfully!');
+      console.warn('\n✅ Demo organization synchronized successfully!');
     } else {
       // Step 3: If no direct prod access, export to JSON for manual import
-      console.log('\n💾 Exporting to JSON file for manual deployment...');
+      console.warn('\n💾 Exporting to JSON file for manual deployment...');
       
       const fs = await import('fs');
       const exportFile = 'demo-organization-export.json';
@@ -472,14 +473,14 @@ async function syncDemoOrganization(): Promise<void> {
         'utf8'
       );
       
-      console.log(`  ✓ Exported to ${exportFile}`);
-      console.log('\n📋 To complete sync in production:');
-      console.log('  1. Upload demo-organization-export.json to production');
-      console.log('  2. Run: tsx scripts/import-demo-organization.ts');
+      console.warn(`  ✓ Exported to ${exportFile}`);
+      console.warn('\n📋 To complete sync in production:');
+      console.warn('  1. Upload demo-organization-export.json to production');
+      console.warn('  2. Run: tsx scripts/import-demo-organization.ts');
     }
 
-  } catch (__error) {
-    console.error('\n❌ Demo organization sync failed:', error);
+  } catch (_error) {
+    console.error('\n❌ Demo organization sync failed:', _error);
     process.exit(1);
   } finally {
     await devPool.end();
@@ -498,7 +499,7 @@ async function syncDemoOrganization(): Promise<void> {
  */
 async function importFromFile(): Promise<void> {
   try {
-    console.log('📥 Importing Demo organization from JSON file...');
+    console.warn('📥 Importing Demo organization from JSON file...');
     
     const fs = await import('fs');
     const exportFile = 'demo-organization-export.json';
@@ -514,10 +515,10 @@ async function importFromFile(): Promise<void> {
     await deleteDemoData(devDb);
     await importDemoData(devDb, demoData);
     
-    console.log('\n✅ Demo organization imported successfully from file!');
+    console.warn('\n✅ Demo organization imported successfully from file!');
     
-  } catch (__error) {
-    console.error('\n❌ Demo organization import failed:', error);
+  } catch (_error) {
+    console.error('\n❌ Demo organization import failed:', _error);
     process.exit(1);
   } finally {
     await devPool.end();
@@ -550,5 +551,5 @@ export { exportDemoData, deleteDemoData, importDemoData };
 
 // Run the script
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error);
+  main().catch(console._error);
 }

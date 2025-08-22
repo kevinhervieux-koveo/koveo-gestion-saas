@@ -27,8 +27,8 @@ program
   .option('-p, --port <port>', 'WebSocket port for real-time monitoring', '8080')
   .option('-w, --watch', 'Enable intelligent file watching')
   .option('-d, --dashboard', 'Create monitoring dashboard')
-  .action(async (options) => {
-    console.log(chalk.blue.bold('🚀 Starting Enhanced AI Agent Orchestrator...\n'));
+  .action(async (_options) => {
+    console.warn(chalk.blue.bold('🚀 Starting Enhanced AI Agent Orchestrator...\n'));
     
     const spinner = ora('Initializing agent orchestrator...').start();
     
@@ -40,22 +40,22 @@ program
       // Enable file watching if requested
       if (options.watch) {
         agentOrchestrator.startIntelligentWatching();
-        console.log(chalk.green('✅ Intelligent file watching enabled'));
+        console.warn(chalk.green('✅ Intelligent file watching enabled'));
       }
       
       // Create monitoring dashboard if requested
       if (options.dashboard) {
         const dashboardPath = replitIntegration.createMonitoringDashboard();
-        console.log(chalk.green(`✅ Monitoring dashboard created at: ${dashboardPath}`));
+        console.warn(chalk.green(`✅ Monitoring dashboard created at: ${dashboardPath}`));
       }
       
-      console.log(chalk.yellow(`📡 WebSocket server running on port ${options.port}`));
-      console.log(chalk.cyan('🔍 Real-time monitoring active'));
-      console.log(chalk.gray('Press Ctrl+C to stop\n'));
+      console.warn(chalk.yellow(`📡 WebSocket server running on port ${options.port}`));
+      console.warn(chalk.cyan('🔍 Real-time monitoring active'));
+      console.warn(chalk.gray('Press Ctrl+C to stop\n'));
       
       // Handle graceful shutdown
       process.on('SIGINT', () => {
-        console.log(chalk.yellow('\n🛑 Shutting down agent orchestrator...'));
+        console.warn(chalk.yellow('\n🛑 Shutting down agent orchestrator...'));
         agentOrchestrator.cleanup();
         process.exit(0);
       });
@@ -63,7 +63,7 @@ program
       // Keep the process running
       process.stdin.resume();
       
-    } catch (___error) {
+    } catch (____error) {
       spinner.fail('Failed to start agent orchestrator');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -78,8 +78,8 @@ program
   .description('Optimize Replit environment for AI-assisted development')
   .option('--skip-build', 'Skip build optimization')
   .option('--skip-memory', 'Skip memory optimization')
-  .action(async (options) => {
-    console.log(chalk.blue.bold('⚡ Optimizing Replit Environment...\n'));
+  .action(async (_options) => {
+    console.warn(chalk.blue.bold('⚡ Optimizing Replit Environment...\n'));
     
     const spinner = ora('Running environment optimization...').start();
     
@@ -88,27 +88,27 @@ program
       spinner.succeed('Environment optimization completed');
       
       if (result.optimizations.length > 0) {
-        console.log(chalk.green.bold('\n✅ Applied Optimizations:'));
+        console.warn(chalk.green.bold('\n✅ Applied Optimizations:'));
         result.optimizations.forEach(opt => {
-          console.log(chalk.green(`  • ${opt}`));
+          console.warn(chalk.green(`  • ${opt}`));
         });
       }
       
       if (result.recommendations.length > 0) {
-        console.log(chalk.yellow.bold('\n💡 Recommendations:'));
+        console.warn(chalk.yellow.bold('\n💡 Recommendations:'));
         result.recommendations.forEach(rec => {
-          console.log(chalk.yellow(`  • ${rec}`));
+          console.warn(chalk.yellow(`  • ${rec}`));
         });
       }
       
       if (result.warnings.length > 0) {
-        console.log(chalk.red.bold('\n⚠️ Warnings:'));
+        console.warn(chalk.red.bold('\n⚠️ Warnings:'));
         result.warnings.forEach(warn => {
-          console.log(chalk.red(`  • ${warn}`));
+          console.warn(chalk.red(`  • ${warn}`));
         });
       }
       
-    } catch (___error) {
+    } catch (____error) {
       spinner.fail('Environment optimization failed');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -123,8 +123,8 @@ program
   .description('Generate comprehensive development environment report')
   .option('-f, --format <format>', 'Output format (text|json|html)', 'text')
   .option('-o, --output <file>', 'Save report to file')
-  .action(async (options) => {
-    console.log(chalk.blue.bold('📊 Generating Environment Report...\n'));
+  .action(async (_options) => {
+    console.warn(chalk.blue.bold('📊 Generating Environment Report...\n'));
     
     const spinner = ora('Collecting environment data...').start();
     
@@ -152,7 +152,7 @@ program
             replit: replitEnv,
             health: healthCheck,
             deployment: deploymentInfo,
-            context: contextData
+            _context: contextData
           }, null, 2);
           break;
           
@@ -161,7 +161,7 @@ program
             replit: replitEnv,
             health: healthCheck,
             deployment: deploymentInfo,
-            context: contextData
+            _context: contextData
           });
           break;
           
@@ -171,19 +171,19 @@ program
             replit: replitEnv,
             health: healthCheck,
             deployment: deploymentInfo,
-            context: contextData
+            _context: contextData
           });
           break;
       }
       
       if (options.output) {
         fs.writeFileSync(options.output, report);
-        console.log(chalk.green(`✅ Report saved to: ${options.output}`));
+        console.warn(chalk.green(`✅ Report saved to: ${options.output}`));
       } else {
-        console.log(report);
+        console.warn(report);
       }
       
-    } catch (___error) {
+    } catch (____error) {
       spinner.fail('Failed to generate report');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -199,7 +199,7 @@ program
   .argument('[task]', 'Task to execute')
   .option('-p, --priority <priority>', 'Task priority (1-5)', '1')
   .option('-i, --interactive', 'Interactive task selection')
-  .action(async (task, options) => {
+  .action(async (task, _options) => {
     if (!task && !options.interactive) {
       console.error(chalk.red('Error: Specify a task or use --interactive flag'));
       process.exit(1);
@@ -209,7 +209,7 @@ program
       task = await interactiveTaskSelection();
     }
     
-    console.log(chalk.blue.bold(`🎯 Executing Task: ${task}\n`));
+    console.warn(chalk.blue.bold(`🎯 Executing Task: ${task}\n`));
     
     const spinner = ora('Queueing task...').start();
     
@@ -221,10 +221,10 @@ program
       );
       
       spinner.succeed(`Task queued with ID: ${taskId}`);
-      console.log(chalk.green(`✅ Task "${task}" has been queued for execution`));
-      console.log(chalk.gray(`Monitor progress at: http://localhost:8080`));
+      console.warn(chalk.green(`✅ Task "${task}" has been queued for execution`));
+      console.warn(chalk.gray(`Monitor progress at: http://localhost:8080`));
       
-    } catch (___error) {
+    } catch (____error) {
       spinner.fail('Failed to queue task');
       console.error(chalk.red('Error:'), _error);
       process.exit(1);
@@ -241,21 +241,21 @@ program
   .option('-s, --suggest', 'Get context-aware suggestions')
   .option('-u, --update <files...>', 'Update working set with files')
   .option('-r, --reset', 'Reset context state')
-  .action(async (options) => {
+  .action(async (_options) => {
     if (options.reset) {
       // Context reset functionality would be implemented here
-      console.log(chalk.green('✅ Context state reset (placeholder)'));
+      console.warn(chalk.green('✅ Context state reset (placeholder)'));
       return;
     }
     
     if (options.update) {
       contextManager.updateWorkingSet(options.update);
-      console.log(chalk.green(`✅ Working set updated with ${options.update.length} files`));
+      console.warn(chalk.green(`✅ Working set updated with ${options.update.length} files`));
       return;
     }
     
     if (options.analyze) {
-      console.log(chalk.blue.bold('🔍 Analyzing Workspace Context...\n'));
+      console.warn(chalk.blue.bold('🔍 Analyzing Workspace Context...\n'));
       
       const spinner = ora('Analyzing workspace...').start();
       
@@ -270,27 +270,27 @@ program
         };
         spinner.succeed('Workspace analysis completed');
         
-        console.log(chalk.cyan.bold('📊 Context Analysis:'));
-        console.log(`Files analyzed: ${analysis.filesAnalyzed}`);
-        console.log(`Working set size: ${analysis.workingSetSize}`);
-        console.log(`Focus area: ${analysis.focusArea}`);
-        console.log(`Complexity score: ${analysis.complexityScore}/100`);
+        console.warn(chalk.cyan.bold('📊 Context Analysis:'));
+        console.warn(`Files analyzed: ${analysis.filesAnalyzed}`);
+        console.warn(`Working set size: ${analysis.workingSetSize}`);
+        console.warn(`Focus area: ${analysis.focusArea}`);
+        console.warn(`Complexity score: ${analysis.complexityScore}/100`);
         
         if (analysis.hotspots.length > 0) {
-          console.log(chalk.yellow.bold('\n🔥 Complexity Hotspots:'));
+          console.warn(chalk.yellow.bold('\n🔥 Complexity Hotspots:'));
           analysis.hotspots.forEach(hotspot => {
-            console.log(chalk.yellow(`  • ${hotspot.file} (${hotspot.complexity})`));
+            console.warn(chalk.yellow(`  • ${hotspot.file} (${hotspot.complexity})`));
           });
         }
         
-      } catch (___error) {
+      } catch (____error) {
         spinner.fail('Workspace analysis failed');
         console.error(chalk.red('Error:'), _error);
       }
     }
     
     if (options.suggest) {
-      console.log(chalk.blue.bold('💡 Getting Context-Aware Suggestions...\n'));
+      console.warn(chalk.blue.bold('💡 Getting Context-Aware Suggestions...\n'));
       
       const spinner = ora('Generating suggestions...').start();
       
@@ -301,20 +301,20 @@ program
         // Handle suggestions object structure with priority, exploratory, maintenance arrays
         Object.entries(suggestions).forEach(([category, categoryItems]) => {
           if (Array.isArray(categoryItems) && categoryItems.length > 0) {
-            console.log(chalk.cyan.bold(`\n${category.charAt(0).toUpperCase() + category.slice(1)} Suggestions:`));
-            categoryItems.forEach((suggestion, index) => {
-              console.log(chalk.green(`${index + 1}. ${suggestion.description}`));
-              console.log(chalk.gray(`   Category: ${category}`));
+            console.warn(chalk.cyan.bold(`\n${category.charAt(0).toUpperCase() + category.slice(1)} Suggestions:`));
+            categoryItems.forEach((suggestion, _index) => {
+              console.warn(chalk.green(`${index + 1}. ${suggestion.description}`));
+              console.warn(chalk.gray(`   Category: ${category}`));
               if ('type' in suggestion) {
-                console.log(chalk.gray(`   Type: ${suggestion.type}\n`));
+                console.warn(chalk.gray(`   Type: ${suggestion.type}\n`));
               } else {
-                console.log(chalk.gray('\n'));
+                console.warn(chalk.gray('\n'));
               }
             });
           }
         });
         
-      } catch (___error) {
+      } catch (____error) {
         spinner.fail('Failed to generate suggestions');
         console.error(chalk.red('Error:'), _error);
       }
@@ -329,8 +329,8 @@ program
   .description('Automated development workflow execution')
   .option('-t, --type <type>', 'Workflow type (pre-commit|security|quality|deploy)', 'quality')
   .option('-a, --auto', 'Run all applicable workflows automatically')
-  .action(async (options) => {
-    console.log(chalk.blue.bold(`🔄 Executing ${options.type} Workflow...\n`));
+  .action(async (_options) => {
+    console.warn(chalk.blue.bold(`🔄 Executing ${options.type} Workflow...\n`));
     
     const workflows = {
       'pre-commit': [
@@ -363,21 +363,21 @@ program
       process.exit(1);
     }
     
-    console.log(chalk.gray(`Workflow includes ${tasksToRun.length} tasks:`));
-    tasksToRun.forEach((task, index) => {
-      console.log(chalk.gray(`  ${index + 1}. ${task}`));
+    console.warn(chalk.gray(`Workflow includes ${tasksToRun.length} tasks:`));
+    tasksToRun.forEach((task, _index) => {
+      console.warn(chalk.gray(`  ${index + 1}. ${task}`));
     });
-    console.log();
+    console.warn();
     
     for (const task of tasksToRun) {
       const taskId = agentOrchestrator.queueTask(task, 3, { 
         workflow: options.type,
         source: 'workflow_cli'
       });
-      console.log(chalk.green(`✅ Queued: ${task} (ID: ${taskId})`));
+      console.warn(chalk.green(`✅ Queued: ${task} (ID: ${taskId})`));
     }
     
-    console.log(chalk.cyan('\n📡 Monitor workflow execution at: http://localhost:8080'));
+    console.warn(chalk.cyan('\n📡 Monitor workflow execution at: http://localhost:8080'));
   });
 
 /**
@@ -438,9 +438,10 @@ async function interactiveTaskSelection(): Promise<string> {
 /**
  * GenerateHTMLReport function.
  * @param data
+ * @param _data
  * @returns Function result.
  */
-function generateHTMLReport(data: unknown): string {
+function generateHTMLReport(_data: unknown): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -513,9 +514,10 @@ function generateHTMLReport(data: unknown): string {
 /**
  * GenerateTextReport function.
  * @param data
+ * @param _data
  * @returns Function result.
  */
-function generateTextReport(data: unknown): string {
+function generateTextReport(_data: unknown): string {
   return `
 # Koveo Gestion Development Environment Report
 Generated: ${new Date().toISOString()}

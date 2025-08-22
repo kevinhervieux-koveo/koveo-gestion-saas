@@ -47,7 +47,11 @@ const useFormField = () => {
   const fieldState = getFieldState(fieldContext.name, formState);  /**
    * If function.
    * @param !fieldContext - !fieldContext parameter.
+   */  /**
+   * If function.
+   * @param !fieldContext - !fieldContext parameter.
    */
+
 
 
   if (!fieldContext) {
@@ -148,7 +152,14 @@ const FormMessage = React.forwardRef<
    * @returns children;
 
   if (!body) result.
+   */  /**
+   * String function.
+   * @param error?.message ?? '' - error?.message ?? '' parameter.
+   * @returns children;
+
+  if (!body) result.
    */
+
  String(error?.message ?? '') : children;
 
   if (!body) {

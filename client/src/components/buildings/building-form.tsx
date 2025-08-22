@@ -212,7 +212,7 @@ export function BuildingForm({
                         type="number" 
                         placeholder="2020" 
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -230,7 +230,7 @@ export function BuildingForm({
                         type="number" 
                         placeholder="100" 
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -248,7 +248,7 @@ export function BuildingForm({
                         type="number" 
                         placeholder="10" 
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -269,7 +269,7 @@ export function BuildingForm({
                         type="number" 
                         placeholder="50" 
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -287,7 +287,7 @@ export function BuildingForm({
                         type="number" 
                         placeholder="25" 
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
                       />
                     </FormControl>
                     <FormMessage />

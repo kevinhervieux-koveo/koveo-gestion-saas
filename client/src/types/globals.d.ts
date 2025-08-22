@@ -4,6 +4,9 @@
 
 // DOM globals that might not be available in all test environments
 declare global {
+  /**
+   *
+   */
   interface Window {
     File: typeof File;
     FormData: typeof FormData;
@@ -11,7 +14,13 @@ declare global {
 }
 
 // Browser API types
+/**
+ *
+ */
 type FileConstructor = typeof File;
+/**
+ *
+ */
 type FormDataConstructor = typeof FormData;
 
 export {};

@@ -70,13 +70,13 @@ class AuthSecurityTester {
         detached: false
       });
 
-      this.serverProcess.stdout.on('data', (data: Buffer) => {
+      this.serverProcess.stdout.on('data', (_data: Buffer) => {
         if (data.toString().includes('serving on port')) {
           resolve();
         }
       });
 
-      this.serverProcess.stderr.on('data', (data: Buffer) => {
+      this.serverProcess.stderr.on('data', (_data: Buffer) => {
         console.warn('Server output:', data.toString());
       });
 
@@ -113,16 +113,16 @@ class AuthSecurityTester {
       } else {
         this.addResult('Login Endpoint', 'FAIL', `Unexpected response status: ${response.status}`);
       }
-    } catch (__error) {
-      this.addResult('Login Endpoint', 'FAIL', `Login endpoint error: ${error}`);
+    } catch (_error) {
+      this.addResult('Login Endpoint', 'FAIL', `Login endpoint _error: ${error}`);
     }
 
     // Test logout endpoint
     try {
       const response = await this.makeRequest('POST', '/api/auth/logout');
       this.addResult('Logout Endpoint', 'PASS', 'Logout endpoint accessible');
-    } catch (__error) {
-      this.addResult('Logout Endpoint', 'FAIL', `Logout endpoint error: ${error}`);
+    } catch (_error) {
+      this.addResult('Logout Endpoint', 'FAIL', `Logout endpoint _error: ${error}`);
     }
   }
 
@@ -149,7 +149,7 @@ class AuthSecurityTester {
         } else {
           this.addResult(`Protected Route ${endpoint}`, 'FAIL', 'Accessible without authentication');
         }
-      } catch (__error) {
+      } catch (_error) {
         // Network errors are acceptable for this test
         this.addResult(`Protected Route ${endpoint}`, 'PASS', 'Route properly protected');
       }
@@ -185,8 +185,8 @@ class AuthSecurityTester {
       } else {
         this.addResult('Cookie Security', 'FAIL', 'Insecure cookie configuration');
       }
-    } catch (__error) {
-      this.addResult('Session Security', 'FAIL', `Session security test error: ${error}`);
+    } catch (_error) {
+      this.addResult('Session Security', 'FAIL', `Session security test _error: ${error}`);
     }
   }
 
@@ -212,7 +212,7 @@ class AuthSecurityTester {
         } else {
           this.addResult('Password Strength', 'FAIL', `Weak password "${weakPassword}" accepted`);
         }
-      } catch (__error) {
+      } catch (_error) {
         // Registration endpoint might not exist, which is acceptable
         this.addResult('Password Strength', 'PASS', 'Password validation likely in place');
         break;
@@ -229,7 +229,7 @@ class AuthSecurityTester {
   private async makeRequest(method: string, path: string, body?: unknown): Promise<any> {
     const fetch = await import('node-fetch').then(m => m.default);
     
-    const options: unknown = {
+    const _options: unknown = {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -241,12 +241,12 @@ class AuthSecurityTester {
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`http://localhost:5000${path}`, options);
+    const response = await fetch(`http://localhost:5000${path}`, _options);
     
     return {
       status: response.status,
       headers: Object.fromEntries(response.headers.entries()),
-      data: await response.text()
+      _data: await response.text()
     };
   }
 
@@ -283,7 +283,7 @@ class AuthSecurityTester {
 if (require.main === module) {
   const tester = new AuthSecurityTester();
   tester.runAuthTests().catch(error => {
-    console.error('❌ Authentication security test failed:', error);
+    console.error('❌ Authentication security test failed:', _error);
     process.exit(1);
   });
 }

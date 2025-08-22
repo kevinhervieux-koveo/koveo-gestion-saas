@@ -183,9 +183,9 @@ describe('Demo Organization Integration Tests', () => {
     const serverModule = await import('../../server/index');
     app = serverModule.app;
     
-    console.log('🏢 Demo Organization Integration Test Suite initialized');
-    console.log(`   Demo Organization ID: ${DEMO_ORGANIZATION.id}`);
-    console.log(`   Target: 2 buildings, 9 residences, 9 users testing`);
+    console.warn('🏢 Demo Organization Integration Test Suite initialized');
+    console.warn(`   Demo Organization ID: ${DEMO_ORGANIZATION.id}`);
+    console.warn(`   Target: 2 buildings, 9 residences, 9 users testing`);
     
     // Setup authenticated sessions
     mockStorage.getUserByEmail
@@ -275,7 +275,7 @@ describe('Demo Organization Integration Tests', () => {
           })
         );
 
-        console.log('✅ User invitation created successfully in Demo organization');
+        console.warn('✅ User invitation created successfully in Demo organization');
       });
 
       it('should handle invitation acceptance and user creation', async () => {
@@ -327,7 +327,7 @@ describe('Demo Organization Integration Tests', () => {
           })
         );
 
-        console.log('✅ Invitation acceptance and user creation completed in Demo organization');
+        console.warn('✅ Invitation acceptance and user creation completed in Demo organization');
       });
 
       it('should validate invitation permissions across different roles', async () => {
@@ -373,7 +373,7 @@ describe('Demo Organization Integration Tests', () => {
           }
         }
 
-        console.log('✅ Invitation permission validation completed');
+        console.warn('✅ Invitation permission validation completed');
       });
     });
 
@@ -397,7 +397,7 @@ describe('Demo Organization Integration Tests', () => {
 
         expect(mockStorage.deleteUser).toHaveBeenCalledWith(userToDelete.id);
 
-        console.log('✅ User deletion completed successfully by admin');
+        console.warn('✅ User deletion completed successfully by admin');
       });
 
       it('should prevent non-admin users from deleting users', async () => {
@@ -419,7 +419,7 @@ describe('Demo Organization Integration Tests', () => {
 
         expect(mockStorage.deleteUser).not.toHaveBeenCalled();
 
-        console.log('✅ User deletion properly restricted to admin users only');
+        console.warn('✅ User deletion properly restricted to admin users only');
       });
 
       it('should handle user deletion with cascade operations', async () => {
@@ -446,7 +446,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.status).toBe(200);
         expect(response.body.deletedRecords).toBeGreaterThan(0);
 
-        console.log('✅ User deletion with cascade operations handled correctly');
+        console.warn('✅ User deletion with cascade operations handled correctly');
       });
     });
   });
@@ -501,7 +501,7 @@ describe('Demo Organization Integration Tests', () => {
           })
         );
 
-        console.log('✅ Building creation completed successfully in Demo organization');
+        console.warn('✅ Building creation completed successfully in Demo organization');
       });
 
       it('should auto-generate residences when creating building', async () => {
@@ -560,7 +560,7 @@ describe('Demo Organization Integration Tests', () => {
         // Should create residences automatically
         expect(mockStorage.createResidence).toHaveBeenCalledTimes(buildingData.totalUnits);
 
-        console.log(`✅ Building with ${buildingData.totalUnits} auto-generated residences created`);
+        console.warn(`✅ Building with ${buildingData.totalUnits} auto-generated residences created`);
       });
     });
 
@@ -618,7 +618,7 @@ describe('Demo Organization Integration Tests', () => {
           })
         );
 
-        console.log('✅ Building configuration updated successfully');
+        console.warn('✅ Building configuration updated successfully');
       });
 
       it('should configure building access codes and security', async () => {
@@ -661,7 +661,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.building.accessCodes).toBeDefined();
         expect(response.body.building.securityFeatures).toHaveLength(3);
 
-        console.log('✅ Building security configuration updated successfully');
+        console.warn('✅ Building security configuration updated successfully');
       });
     });
   });
@@ -714,7 +714,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.residence.parkingSpots).toEqual(residenceUpdates.parkingSpots);
         expect(response.body.residence.storageSpaces).toEqual(residenceUpdates.storageSpaces);
 
-        console.log('✅ Residence configuration updated successfully');
+        console.warn('✅ Residence configuration updated successfully');
       });
 
       it('should assign tenants to residences in Demo organization', async () => {
@@ -750,7 +750,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.assignment.userId).toBe(tenantAssignment.userId);
         expect(response.body.assignment.monthlyRent).toBe(tenantAssignment.monthlyRent);
 
-        console.log('✅ Tenant assigned to residence successfully');
+        console.warn('✅ Tenant assigned to residence successfully');
       });
 
       it('should configure residence-specific services and utilities', async () => {
@@ -790,7 +790,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.residence.services).toBeDefined();
         expect(response.body.residence.appliances).toHaveLength(3);
 
-        console.log('✅ Residence services and utilities configured successfully');
+        console.warn('✅ Residence services and utilities configured successfully');
       });
     });
   });
@@ -845,7 +845,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.bill.details.baseRent).toBe(1200.00);
         expect(response.body.bill.details.taxes.gst).toBe(60.00);
 
-        console.log('✅ Monthly rent bill created successfully for Demo residence');
+        console.warn('✅ Monthly rent bill created successfully for Demo residence');
       });
 
       it('should create utility bill with multiple services', async () => {
@@ -886,7 +886,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.bill.amount).toBe(185.50);
         expect(response.body.bill.details.electricity.usage).toBe('450 kWh');
 
-        console.log('✅ Utility bill with multiple services created successfully');
+        console.warn('✅ Utility bill with multiple services created successfully');
       });
 
       it('should create special assessment bill for building maintenance', async () => {
@@ -933,7 +933,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.bill.details.project).toContain('toiture');
         expect(response.body.bill.details.perUnitCost).toBe(750.00);
 
-        console.log('✅ Special assessment bill created successfully');
+        console.warn('✅ Special assessment bill created successfully');
       });
     });
 
@@ -987,7 +987,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.bill.paymentTerms.lateFee).toBe(50.00);
         expect(response.body.bill.installmentPlan.maxInstallments).toBe(6);
 
-        console.log('✅ Bill payment configuration updated successfully');
+        console.warn('✅ Bill payment configuration updated successfully');
       });
 
       it('should process bill approval workflow', async () => {
@@ -1024,7 +1024,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.bill.status).toBe('approved');
         expect(response.body.bill.approvedBy).toBe(TEST_USERS.admin.id);
 
-        console.log('✅ Bill approval workflow completed successfully');
+        console.warn('✅ Bill approval workflow completed successfully');
       });
     });
   });
@@ -1103,7 +1103,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.budget.categories.maintenance.budgetAmount).toBe(25000.00);
         expect(response.body.budget.categories.utilities.items).toHaveLength(4);
 
-        console.log('✅ Annual operating budget created successfully for Demo organization');
+        console.warn('✅ Annual operating budget created successfully for Demo organization');
       });
 
       it('should create capital improvement budget', async () => {
@@ -1173,7 +1173,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.budget.projects.roofReplacement.quotes).toHaveLength(3);
         expect(response.body.budget.fundingSources.reserves).toBe(60000.00);
 
-        console.log('✅ Capital improvement budget created successfully');
+        console.warn('✅ Capital improvement budget created successfully');
       });
     });
 
@@ -1236,7 +1236,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.budget.approvalLevels).toHaveLength(3);
         expect(response.body.budget.status).toBe('pending_approval');
 
-        console.log('✅ Budget approval workflow configured successfully');
+        console.warn('✅ Budget approval workflow configured successfully');
       });
 
       it('should process budget amendments and revisions', async () => {
@@ -1282,7 +1282,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.amendment.totalBudgetChange).toBe(4000.00);
         expect(response.body.amendment.newTotalBudget).toBe(62000.00);
 
-        console.log('✅ Budget amendment processed successfully');
+        console.warn('✅ Budget amendment processed successfully');
       });
     });
   });
@@ -1345,7 +1345,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.demand.preferredTimeSlots).toHaveLength(3);
         expect(response.body.demand.photos).toHaveLength(2);
 
-        console.log('✅ Urgent maintenance demand created successfully');
+        console.warn('✅ Urgent maintenance demand created successfully');
       });
 
       it('should create routine maintenance demand', async () => {
@@ -1390,7 +1390,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.demand.workType).toBe('cosmetic');
         expect(response.body.demand.materialsNeeded).toHaveLength(3);
 
-        console.log('✅ Routine maintenance demand created successfully');
+        console.warn('✅ Routine maintenance demand created successfully');
       });
 
       it('should create service demand for Demo building', async () => {
@@ -1438,7 +1438,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.demand.fees.total).toBe(35.00);
         expect(response.body.demand.requiredDocuments).toHaveLength(3);
 
-        console.log('✅ Service demand created successfully');
+        console.warn('✅ Service demand created successfully');
       });
     });
 
@@ -1497,7 +1497,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.comment.nextSteps).toHaveLength(3);
         expect(response.body.comment.materialsRequired).toHaveLength(3);
 
-        console.log('✅ Initial assessment comment added successfully');
+        console.warn('✅ Initial assessment comment added successfully');
       });
 
       it('should add progress update comments with photos', async () => {
@@ -1549,7 +1549,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.comment.revisedEstimate.cost).toBe(285.00);
         expect(response.body.comment.issuesEncountered).toHaveLength(3);
 
-        console.log('✅ Progress update comment with photos added successfully');
+        console.warn('✅ Progress update comment with photos added successfully');
       });
 
       it('should add tenant response and feedback comments', async () => {
@@ -1591,7 +1591,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.comment.availability.confirmed).toBe(true);
         expect(response.body.comment.satisfactionLevel).toBe('satisfied');
 
-        console.log('✅ Tenant response comment added successfully');
+        console.warn('✅ Tenant response comment added successfully');
       });
 
       it('should add completion and closure comments', async () => {
@@ -1664,7 +1664,7 @@ describe('Demo Organization Integration Tests', () => {
         expect(response.body.comment.warranty.duration).toBe('12 mois');
         expect(response.body.comment.tenantFeedback.rating).toBe(5);
 
-        console.log('✅ Completion and closure comment added successfully');
+        console.warn('✅ Completion and closure comment added successfully');
       });
     });
 
@@ -1737,23 +1737,23 @@ describe('Demo Organization Integration Tests', () => {
 
         expect(completeResponse.status).toBe(201);
 
-        console.log('✅ Complete demand lifecycle with comments executed successfully');
+        console.warn('✅ Complete demand lifecycle with comments executed successfully');
       });
     });
   });
 
   afterAll(() => {
-    console.log('\n🏢 DEMO ORGANIZATION TEST SUMMARY');
-    console.log('=================================');
-    console.log('✅ User invitation and deletion workflows validated');
-    console.log('✅ Building creation and configuration tested');
-    console.log('✅ Residence setup and tenant assignment verified');
-    console.log('✅ Bill creation and payment configuration validated');
-    console.log('✅ Budget planning and approval workflows tested');
-    console.log('✅ Demand creation and comment system verified');
-    console.log('✅ Complete integration workflows validated');
-    console.log(`\n📊 Demo Organization: ${DEMO_ORGANIZATION.name} (${DEMO_ORGANIZATION.id})`);
-    console.log('🏗️ Comprehensive business workflow testing completed');
-    console.log('🚀 Demo organization ready for production showcase');
+    console.warn('\n🏢 DEMO ORGANIZATION TEST SUMMARY');
+    console.warn('=================================');
+    console.warn('✅ User invitation and deletion workflows validated');
+    console.warn('✅ Building creation and configuration tested');
+    console.warn('✅ Residence setup and tenant assignment verified');
+    console.warn('✅ Bill creation and payment configuration validated');
+    console.warn('✅ Budget planning and approval workflows tested');
+    console.warn('✅ Demand creation and comment system verified');
+    console.warn('✅ Complete integration workflows validated');
+    console.warn(`\n📊 Demo Organization: ${DEMO_ORGANIZATION.name} (${DEMO_ORGANIZATION.id})`);
+    console.warn('🏗️ Comprehensive business workflow testing completed');
+    console.warn('🚀 Demo organization ready for production showcase');
   });
 });

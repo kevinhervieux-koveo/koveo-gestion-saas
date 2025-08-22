@@ -79,7 +79,7 @@ describe('User API Routes', () => {
       const response = await request(app).get('/api/users').expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch users',
       });
     });
@@ -108,7 +108,7 @@ describe('User API Routes', () => {
       const response = await request(app).get('/api/users/non-existent').expect(404);
 
       expect(response.body).toMatchObject({
-        error: 'Not found',
+        _error: 'Not found',
         message: 'User not found',
       });
     });
@@ -123,7 +123,7 @@ describe('User API Routes', () => {
       const response = await request(app).get('/api/users/user-123').expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch user',
       });
     });
@@ -151,7 +151,7 @@ describe('User API Routes', () => {
       const response = await request(app).get('/api/users/email/notfound@koveo.ca').expect(404);
 
       expect(response.body).toMatchObject({
-        error: 'Not found',
+        _error: 'Not found',
         message: 'User not found',
       });
     });
@@ -170,7 +170,7 @@ describe('User API Routes', () => {
       const response = await request(app).get('/api/users/email/marie@koveo.ca').expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch user',
       });
     });
@@ -217,7 +217,7 @@ describe('User API Routes', () => {
       const response = await request(app).post('/api/users').send(mockUserData).expect(409);
 
       expect(response.body).toMatchObject({
-        error: 'Conflict',
+        _error: 'Conflict',
         message: 'User with this email already exists',
       });
       expect(mockStorage.createUser).not.toHaveBeenCalled();
@@ -230,7 +230,7 @@ describe('User API Routes', () => {
         .expect(400);
 
       expect(response.body).toMatchObject({
-        error: 'Validation error',
+        _error: 'Validation error',
         message: 'Invalid user data',
       });
       expect(response.body.details).toBeDefined();
@@ -246,7 +246,7 @@ describe('User API Routes', () => {
         .expect(400);
 
       expect(response.body).toMatchObject({
-        error: 'Validation error',
+        _error: 'Validation error',
         message: 'Invalid user data',
       });
     });
@@ -276,7 +276,7 @@ describe('User API Routes', () => {
       const response = await request(app).post('/api/users').send(mockUserData).expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to create user',
       });
     });
@@ -316,7 +316,7 @@ describe('User API Routes', () => {
         .expect(404);
 
       expect(response.body).toMatchObject({
-        error: 'Not found',
+        _error: 'Not found',
         message: 'User not found',
       });
     });
@@ -347,7 +347,7 @@ describe('User API Routes', () => {
         .expect(400);
 
       expect(response.body).toMatchObject({
-        error: 'Validation error',
+        _error: 'Validation error',
         message: 'Invalid user data',
       });
     });
@@ -358,7 +358,7 @@ describe('User API Routes', () => {
       const response = await request(app).put('/api/users/user-123').send(updateData).expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to update user',
       });
     });
@@ -387,7 +387,7 @@ describe('User API Routes', () => {
       const response = await request(app).delete('/api/users/non-existent').expect(404);
 
       expect(response.body).toMatchObject({
-        error: 'Not found',
+        _error: 'Not found',
         message: 'User not found',
       });
     });
@@ -398,7 +398,7 @@ describe('User API Routes', () => {
       const response = await request(app).delete('/api/users/user-123').expect(500);
 
       expect(response.body).toMatchObject({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to deactivate user',
       });
     });
@@ -417,7 +417,7 @@ describe('User API Routes', () => {
         .expect(400); // Should fail validation
 
       expect(response.body).toMatchObject({
-        error: 'Validation error',
+        _error: 'Validation error',
         message: 'Invalid user data',
       });
     });
@@ -449,7 +449,7 @@ describe('User API Routes', () => {
       const response = await request(app).post('/api/users').send({}).expect(400);
 
       expect(response.body).toMatchObject({
-        error: 'Validation error',
+        _error: 'Validation error',
         message: 'Invalid user data',
       });
     });

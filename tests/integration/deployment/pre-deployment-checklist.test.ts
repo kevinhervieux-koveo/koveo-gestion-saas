@@ -29,7 +29,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
         // SPA fallback route - THIS IS CRITICAL
         app.get('*', (req, res) => {
           if (req.path.startsWith('/api')) {
-            return res.status(404).json({ error: 'API route not found' });
+            return res.status(404).json({ _error: 'API route not found' });
           }
           
           const indexPath = path.resolve(publicPath, 'index.html');
@@ -111,8 +111,8 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
         const { db } = await import('../../../server/db');
         const result = await db.execute('SELECT 1 as test');
         
-        expect(result).toBeDefined();
-      } catch (error) {
+        expect(_result).toBeDefined();
+      } catch (_error) {
         throw new Error(`🚨 DEPLOYMENT BLOCKED: Database connection failed - ${error}`);
       }
     });
@@ -162,7 +162,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
           }
         });
       } else {
-        console.log('ℹ️ Production build check skipped in development mode');
+        console.warn('ℹ️ Production build check skipped in development mode');
       }
     });
 
@@ -228,7 +228,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
           } else {
             expect(response.status).toBe(test.expectedStatus);
           }
-        } catch (error) {
+        } catch (_error) {
           console.warn(`⚠️ API route test failed for ${test.path}:`, error.message);
         }
       }
@@ -246,7 +246,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       app.use((err: any, req: any, res: any, next: any) => {
         res.status(500).json({ 
           message: err.message || 'Internal Server Error',
-          error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+          _error: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
       });
 
@@ -257,7 +257,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       
       // In production, should not expose stack traces
       if (process.env.NODE_ENV === 'production') {
-        expect(response.body.error).toBeUndefined();
+        expect(response.body._error).toBeUndefined();
       }
     });
 
@@ -290,7 +290,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       // Should be Node 18 or higher
       expect(majorVersion).toBeGreaterThanOrEqual(18);
       
-      console.log(`ℹ️ Node.js version: ${nodeVersion}`);
+      console.warn(`ℹ️ Node.js version: ${nodeVersion}`);
     });
 
     test('🔍 Critical dependencies should be available', () => {
@@ -320,16 +320,16 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
         uptime: process.uptime()
       };
       
-      console.log('📋 DEPLOYMENT READINESS REPORT:');
-      console.log('================================');
-      console.log(`🕒 Timestamp: ${report.timestamp}`);
-      console.log(`🟢 Node.js: ${report.nodeVersion}`);
-      console.log(`🌍 Environment: ${report.environment}`);
-      console.log(`🚪 Port: ${report.port}`);
-      console.log(`💾 Database: ${report.databaseConfigured ? '✅ Configured' : '❌ Not configured'}`);
-      console.log(`📊 Memory: ${Math.round(report.memoryUsage.heapUsed / 1024 / 1024)}MB used`);
-      console.log(`⏱️ Uptime: ${Math.round(report.uptime)}s`);
-      console.log('================================');
+      console.warn('📋 DEPLOYMENT READINESS REPORT:');
+      console.warn('================================');
+      console.warn(`🕒 Timestamp: ${report.timestamp}`);
+      console.warn(`🟢 Node.js: ${report.nodeVersion}`);
+      console.warn(`🌍 Environment: ${report.environment}`);
+      console.warn(`🚪 Port: ${report.port}`);
+      console.warn(`💾 Database: ${report.databaseConfigured ? '✅ Configured' : '❌ Not configured'}`);
+      console.warn(`📊 Memory: ${Math.round(report.memoryUsage.heapUsed / 1024 / 1024)}MB used`);
+      console.warn(`⏱️ Uptime: ${Math.round(report.uptime)}s`);
+      console.warn('================================');
       
       // All critical items should be ready
       expect(report.databaseConfigured).toBe(true);

@@ -21,101 +21,101 @@ const db = drizzle(sql);
  * @returns Function result.
  */
 async function checkDocuments() {
-  console.log('🔍 Checking current document status...\n');
+  console.warn('🔍 Checking current document status...\n');
 
   try {
     // Check if legacy documents table exists
-    console.log('📋 Checking legacy documents table:');
+    console.warn('📋 Checking legacy documents table:');
     try {
       const legacyDocs = await db.execute('SELECT COUNT(*) as count FROM documents');
-      console.log(`   Legacy documents found: ${legacyDocs.rows[0]?.count || 0}`);
+      console.warn(`   Legacy documents found: ${legacyDocs.rows[0]?.count || 0}`);
       
       if (parseInt(legacyDocs.rows[0]?.count as string) > 0) {
-        console.log('\n   Sample legacy documents:');
+        console.warn('\n   Sample legacy documents:');
         const sampleDocs = await db.execute(`
           SELECT id, name, type, buildings, residence, tenant, upload_date 
           FROM documents 
           LIMIT 5
         `);
         
-        sampleDocs.rows.forEach((doc: any, index) => {
-          console.log(`   ${index + 1}. ${doc.name} (${doc.type})`);
-          console.log(`      Building: ${doc.buildings}, Residence: ${doc.residence}, Tenant: ${doc.tenant}`);
-          console.log(`      Uploaded: ${doc.upload_date}`);
+        sampleDocs.rows.forEach((doc: any, _index) => {
+          console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
+          console.warn(`      Building: ${doc.buildings}, Residence: ${doc.residence}, Tenant: ${doc.tenant}`);
+          console.warn(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (__error) {
-      console.log('   ❌ Legacy documents table does not exist');
+    } catch (_error) {
+      console.warn('   ❌ Legacy documents table does not exist');
     }
 
     // Check if new documents_buildings table exists
-    console.log('\n🏢 Checking documents_buildings table:');
+    console.warn('\n🏢 Checking documents_buildings table:');
     try {
       const buildingDocs = await db.execute('SELECT COUNT(*) as count FROM documents_buildings');
-      console.log(`   Building documents found: ${buildingDocs.rows[0]?.count || 0}`);
+      console.warn(`   Building documents found: ${buildingDocs.rows[0]?.count || 0}`);
       
       if (parseInt(buildingDocs.rows[0]?.count as string) > 0) {
-        console.log('\n   Sample building documents:');
+        console.warn('\n   Sample building documents:');
         const sampleBuildingDocs = await db.execute(`
           SELECT id, name, type, building_id, upload_date 
           FROM documents_buildings 
           LIMIT 3
         `);
         
-        sampleBuildingDocs.rows.forEach((doc: any, index) => {
-          console.log(`   ${index + 1}. ${doc.name} (${doc.type})`);
-          console.log(`      Building ID: ${doc.building_id}`);
-          console.log(`      Uploaded: ${doc.upload_date}`);
+        sampleBuildingDocs.rows.forEach((doc: any, _index) => {
+          console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
+          console.warn(`      Building ID: ${doc.building_id}`);
+          console.warn(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (__error) {
-      console.log('   ❌ documents_buildings table does not exist');
+    } catch (_error) {
+      console.warn('   ❌ documents_buildings table does not exist');
     }
 
     // Check if new documents_residents table exists
-    console.log('\n🏠 Checking documents_residents table:');
+    console.warn('\n🏠 Checking documents_residents table:');
     try {
       const residentDocs = await db.execute('SELECT COUNT(*) as count FROM documents_residents');
-      console.log(`   Resident documents found: ${residentDocs.rows[0]?.count || 0}`);
+      console.warn(`   Resident documents found: ${residentDocs.rows[0]?.count || 0}`);
       
       if (parseInt(residentDocs.rows[0]?.count as string) > 0) {
-        console.log('\n   Sample resident documents:');
+        console.warn('\n   Sample resident documents:');
         const sampleResidentDocs = await db.execute(`
           SELECT id, name, type, residence_id, upload_date 
           FROM documents_residents 
           LIMIT 3
         `);
         
-        sampleResidentDocs.rows.forEach((doc: any, index) => {
-          console.log(`   ${index + 1}. ${doc.name} (${doc.type})`);
-          console.log(`      Residence ID: ${doc.residence_id}`);
-          console.log(`      Uploaded: ${doc.upload_date}`);
+        sampleResidentDocs.rows.forEach((doc: any, _index) => {
+          console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
+          console.warn(`      Residence ID: ${doc.residence_id}`);
+          console.warn(`      Uploaded: ${doc.upload_date}`);
         });
       }
-    } catch (__error) {
-      console.log('   ❌ documents_residents table does not exist');
+    } catch (_error) {
+      console.warn('   ❌ documents_residents table does not exist');
     }
 
     // Check available buildings and residences for migration context
-    console.log('\n🏗️  Available buildings and residences:');
+    console.warn('\n🏗️  Available buildings and residences:');
     try {
       const buildings = await db.execute('SELECT COUNT(*) as count FROM buildings WHERE is_active = true');
-      console.log(`   Active buildings: ${buildings.rows[0]?.count || 0}`);
-    } catch (__error) {
-      console.log('   ❌ Cannot check buildings table');
+      console.warn(`   Active buildings: ${buildings.rows[0]?.count || 0}`);
+    } catch (_error) {
+      console.warn('   ❌ Cannot check buildings table');
     }
 
     try {
       const residences = await db.execute('SELECT COUNT(*) as count FROM residences WHERE is_active = true');
-      console.log(`   Active residences: ${residences.rows[0]?.count || 0}`);
-    } catch (__error) {
-      console.log('   ❌ Cannot check residences table');
+      console.warn(`   Active residences: ${residences.rows[0]?.count || 0}`);
+    } catch (_error) {
+      console.warn('   ❌ Cannot check residences table');
     }
 
-    console.log('\n✅ Document check completed');
+    console.warn('\n✅ Document check completed');
 
-  } catch (__error) {
-    console.error('❌ Error checking documents:', error);
+  } catch (_error) {
+    console.error('❌ Error checking documents:', _error);
   }
 }
 

@@ -29,7 +29,8 @@ import HomePage from '@/pages/home';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
- */
+  * @returns Function result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -59,7 +60,7 @@ function TestProviders({
 const mockMatchMedia = (matches: boolean) => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    _value: jest.fn().mockImplementation(query => ({
       matches,
       media: query,
       onchange: null,
@@ -80,7 +81,7 @@ describe('Mobile Accessibility Tests', () => {
     // Mock touch support
     Object.defineProperty(window, 'ontouchstart', {
       writable: true,
-      value: {},
+      _value: {},
     });
   });
 
@@ -110,7 +111,7 @@ describe('Mobile Accessibility Tests', () => {
         const interactiveElements = [...buttons, ...links];
 
         // Check minimum touch target size (44x44px recommended)
-        interactiveElements.forEach((element, index) => {
+        interactiveElements.forEach((element, _index) => {
           const styles = window.getComputedStyle(element);
           const rect = element.getBoundingClientRect();
           
@@ -206,8 +207,8 @@ describe('Mobile Accessibility Tests', () => {
           expect(document.activeElement).toBe(firstElement);
 
           // Should respond to keyboard events
-          fireEvent.keyDown(firstElement, { key: 'Tab' });
-          fireEvent.keyDown(firstElement, { key: 'Enter' });
+          fireEvent.keyDown(firstElement, { _key: 'Tab' });
+          fireEvent.keyDown(firstElement, { _key: 'Enter' });
           
           // Should not crash on keyboard interaction
           expect(firstElement).toBeInTheDocument();
@@ -304,12 +305,12 @@ describe('Mobile Accessibility Tests', () => {
           Object.defineProperty(window, 'innerWidth', {
             writable: true,
             configurable: true,
-            value: width,
+            _value: width,
           });
           Object.defineProperty(window, 'innerHeight', {
             writable: true,
             configurable: true,
-            value: height,
+            _value: height,
           });
 
           render(
@@ -635,7 +636,7 @@ export function validateMobileAccessibility(element: HTMLElement): {
   const links = element.querySelectorAll('a');
   const interactiveElements = [...Array.from(buttons), ...Array.from(links)];
 
-  interactiveElements.forEach((elem, index) => {
+  interactiveElements.forEach((elem, _index) => {
     if (!elem.getAttribute('data-testid')) {
       issues.push(`Interactive element ${index} missing data-testid for testing`);
     }
@@ -658,7 +659,7 @@ export function validateMobileAccessibility(element: HTMLElement): {
 
   // Check images
   const images = element.querySelectorAll('img');
-  images.forEach((img, index) => {
+  images.forEach((img, _index) => {
     if (!img.getAttribute('alt')) {
       issues.push(`Image ${index} missing alt text`);
     }

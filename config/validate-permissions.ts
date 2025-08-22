@@ -28,7 +28,7 @@ export async function validatePermissionsFile(): Promise<{
  */
 export async function validatePermissionsForStartup(allowFallback: boolean = true): Promise<{
   valid: boolean;
-  data: Record<string, unknown>;
+  _data: Record<string, unknown>;
   errors: string[];
   warnings: string[];
   usedFallback: boolean;
@@ -62,7 +62,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
         permissionsContent = readFileSync(path, 'utf-8');
         foundPath = path;
         break;
-      } catch (__error) {
+      } catch (_error) {
         continue;
       }
     }
@@ -73,7 +73,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
         const fallbackResult = validatePermissionsWithFallback({}, { allowFallback: true });
         return {
           valid: true,
-          data: fallbackResult.data,
+          _data: fallbackResult.data,
           errors,
           warnings,
           usedFallback: true
@@ -93,7 +93,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
         warnings.push('Validation failed even with fallback, using minimal permissions');
         return {
           valid: true,
-          data: {
+          _data: {
             admin: ['read:user'],
             manager: ['read:user'],
             tenant: ['read:profile']
@@ -107,11 +107,11 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
       validation.error.issues.forEach(issue => {
         errors.push(`  - ${issue.path.join('.')}: ${issue.message}`);
       });
-      return { valid: false, data: null, errors, warnings, usedFallback: false };
+      return { valid: false, _data: null, errors, warnings, usedFallback: false };
     }
 
     // Additional validation checks (non-blocking)
-    const allPermissions = Object.values(validation.data).flat();
+    const allPermissions = Object.values(validation._data).flat();
     const uniquePermissions = Array.from(new Set(allPermissions));
     
     if (allPermissions.length !== uniquePermissions.length) {
@@ -130,21 +130,21 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
 
     return {
       valid: true,
-      data: validation.data,
+      _data: validation.data,
       errors,
       warnings,
       usedFallback: validation.usedFallback || false
     };
 
-  } catch (__error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+  } catch (_error) {
+    const errorMessage = error instanceof Error ? error.message : String(_error);
     
     if (allowFallback) {
       warnings.push(`Failed to read permissions.json (${errorMessage}), using fallback configuration`);
       const fallbackResult = validatePermissionsWithFallback({}, { allowFallback: true });
       return {
         valid: true,
-        data: fallbackResult.data,
+        _data: fallbackResult.data,
         errors,
         warnings,
         usedFallback: true
@@ -158,7 +158,7 @@ export async function validatePermissionsForStartup(allowFallback: boolean = tru
     } else {
       errors.push(`Failed to read or parse permissions.json: ${errorMessage}`);
     }
-    return { valid: false, data: null, errors, warnings, usedFallback: false };
+    return { valid: false, _data: null, errors, warnings, usedFallback: false };
   }
 }
 
@@ -208,7 +208,7 @@ export async function validatePermissionsFile(): Promise<{
         permissionsContent = readFileSync(path, 'utf-8');
         foundPath = path;
         break;
-      } catch (__error) {
+      } catch (_error) {
         // Continue to next path
         continue;
       }
@@ -230,7 +230,7 @@ export async function validatePermissionsFile(): Promise<{
       });
     } else {
       // Additional validation checks
-      const allPermissions = Object.values(validation.data).flat();
+      const allPermissions = Object.values(validation._data).flat();
       const uniquePermissions = Array.from(new Set(allPermissions));
       
       if (allPermissions.length !== uniquePermissions.length) {
@@ -270,8 +270,8 @@ export async function validatePermissionsFile(): Promise<{
       warnings
     };
 
-  } catch (__error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+  } catch (_error) {
+    const errorMessage = error instanceof Error ? error.message : String(_error);
     if (errorMessage.includes('ENOENT')) {
       errors.push('permissions.json file not found. Please ensure the file exists in the config directory.');
     } else if (errorMessage.includes('SyntaxError')) {
@@ -314,8 +314,8 @@ async function runCLI() {
       process.exit(result.valid ? 0 : 1);
     }
     return result.valid;
-  } catch (__error) {
-    console.error('❌ Validation failed:', error);
+  } catch (_error) {
+    console.error('❌ Validation failed:', _error);
     // Don't exit the process in production to prevent app shutdown
     if (process.env.NODE_ENV !== 'production') {
       process.exit(1);

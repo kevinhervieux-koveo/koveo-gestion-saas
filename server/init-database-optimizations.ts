@@ -14,35 +14,35 @@ import { dbPerformanceMonitor } from './performance-monitoring';
  * @returns Function result.
  */
 export async function initializeDatabaseOptimizations(): Promise<void> {
-  console.log('🚀 Initializing database optimizations for Koveo Gestion...');
+  console.warn('🚀 Initializing database optimizations for Koveo Gestion...');
   
   try {
     // Apply core database indexes
-    console.log('📊 Applying database indexes...');
+    console.warn('📊 Applying database indexes...');
     await QueryOptimizer.applyCoreOptimizations();
-    console.log('✅ Database indexes applied successfully');
+    console.warn('✅ Database indexes applied successfully');
     
     // Perform initial maintenance
-    console.log('🔧 Performing database maintenance...');
+    console.warn('🔧 Performing database maintenance...');
     await DatabaseMaintenance.performMaintenance();
-    console.log('✅ Database maintenance completed');
+    console.warn('✅ Database maintenance completed');
     
     // Analyze initial performance
-    console.log('📈 Analyzing query performance...');
+    console.warn('📈 Analyzing query performance...');
     await QueryOptimizer.analyzeQueryPerformance();
-    console.log('✅ Performance analysis completed');
+    console.warn('✅ Performance analysis completed');
     
     // Log optimization suggestions
     const suggestions = QueryOptimizer.getOptimizationSuggestions();
     if (suggestions.length > 0) {
-      console.log('💡 Optimization suggestions:');
-      suggestions.forEach(suggestion => console.log(`   • ${suggestion}`));
+      console.warn('💡 Optimization suggestions:');
+      suggestions.forEach(suggestion => console.warn(`   • ${suggestion}`));
     }
     
-    console.log('🎯 Database optimizations initialized successfully');
-    console.log('📊 Performance monitoring active - target: reduce 132ms query time');
+    console.warn('🎯 Database optimizations initialized successfully');
+    console.warn('📊 Performance monitoring active - target: reduce 132ms query time');
     
-  } catch (___error) {
+  } catch (____error) {
     console.error('❌ Database optimization initialization failed:', _error);
     throw _error;
   }
@@ -56,21 +56,21 @@ export async function initializeDatabaseOptimizations(): Promise<void> {
  * @returns Function result.
  */
 export function startPerformanceMonitoring(): void {
-  console.log('🔍 Starting database performance monitoring...');
+  console.warn('🔍 Starting database performance monitoring...');
   
   // Log performance stats every 5 minutes
   setInterval(() => {
     const stats = dbPerformanceMonitor.getPerformanceStats();
     const recommendations = dbPerformanceMonitor.getOptimizationRecommendations();
     
-    console.log('📊 Database Performance Report:');
-    console.log(`   Average Query Time: ${stats.averageQueryTime}`);
-    console.log(`   Total Queries: ${stats.totalQueries}`);
-    console.log(`   Slow Queries: ${stats.slowQueries}`);
+    console.warn('📊 Database Performance Report:');
+    console.warn(`   Average Query Time: ${stats.averageQueryTime}`);
+    console.warn(`   Total Queries: ${stats.totalQueries}`);
+    console.warn(`   Slow Queries: ${stats.slowQueries}`);
     
     if (recommendations.length > 0) {
-      console.log('💡 Performance Recommendations:');
-      recommendations.forEach(rec => console.log(`   • ${rec}`));
+      console.warn('💡 Performance Recommendations:');
+      recommendations.forEach(rec => console.warn(`   • ${rec}`));
     }
     
     // Alert if average query time exceeds target
@@ -78,7 +78,7 @@ export function startPerformanceMonitoring(): void {
     if (avgTime > 50) { // Target: reduce from 132ms to under 50ms
       console.warn(`⚠️  Average query time (${stats.averageQueryTime}) exceeds target (50ms)`);
     } else {
-      console.log(`✅ Query performance within target: ${stats.averageQueryTime}`);
+      console.warn(`✅ Query performance within target: ${stats.averageQueryTime}`);
     }
     
   }, 5 * 60 * 1000); // Every 5 minutes
@@ -92,26 +92,26 @@ export function startPerformanceMonitoring(): void {
  * @returns Function result.
  */
 export async function emergencyOptimization(): Promise<void> {
-  console.log('🚨 Running emergency database optimization...');
+  console.warn('🚨 Running emergency database optimization...');
   
   try {
     // Clear caches to reset state
     const { queryCache } = await import('./query-cache');
     queryCache.clearAll();
-    console.log('✅ Cleared query caches');
+    console.warn('✅ Cleared query caches');
     
     // Force database maintenance
     await DatabaseMaintenance.performMaintenance();
-    console.log('✅ Forced database maintenance');
+    console.warn('✅ Forced database maintenance');
     
     // Reset performance monitoring
     dbPerformanceMonitor.reset();
-    console.log('✅ Reset performance tracking');
+    console.warn('✅ Reset performance tracking');
     
-    console.log('🎯 Emergency optimization completed');
+    console.warn('🎯 Emergency optimization completed');
     
-  } catch (__error) {
-    console.error('❌ Emergency optimization failed:', error);
+  } catch (_error) {
+    console.error('❌ Emergency optimization failed:', _error);
   }
 }
 

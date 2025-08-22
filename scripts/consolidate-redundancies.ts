@@ -23,7 +23,7 @@ interface RedundancyPattern {
  * Main consolidation analysis function.
  */
 async function runConsolidationAnalysis() {
-  console.log(chalk.blue('🔍 Running Redundancy Consolidation Analysis...'));
+  console.warn(chalk.blue('🔍 Running Redundancy Consolidation Analysis...'));
   
   const redundancies: RedundancyPattern[] = [];
   
@@ -75,13 +75,13 @@ async function runConsolidationAnalysis() {
     // Generate consolidation report
     await generateConsolidationReport(redundancies);
     
-    console.log(chalk.green(`✅ Consolidation Analysis Complete`));
-    console.log(chalk.gray(`   Found ${redundancies.length} consolidation opportunities`));
-    console.log(chalk.gray(`   Report saved to: reports/consolidation-report.md`));
+    console.warn(chalk.green(`✅ Consolidation Analysis Complete`));
+    console.warn(chalk.gray(`   Found ${redundancies.length} consolidation opportunities`));
+    console.warn(chalk.gray(`   Report saved to: reports/consolidation-report.md`));
     
     return redundancies.length === 0;
     
-  } catch (error) {
+  } catch (_error) {
     console.error(chalk.red(`❌ Error during consolidation analysis: ${error}`));
     return false;
   }
@@ -101,7 +101,7 @@ async function findFilesWithPattern(pattern: string): Promise<string[]> {
       });
       
       let output = '';
-      grep.stdout.on('data', (data) => {
+      grep.stdout.on('data', (_data) => {
         output += data.toString();
       });
       
@@ -116,7 +116,7 @@ async function findFilesWithPattern(pattern: string): Promise<string[]> {
       
       grep.on('error', reject);
     });
-  } catch (error) {
+  } catch (_error) {
     console.warn(`Could not search for pattern ${pattern}: ${error}`);
     return [];
   }
@@ -142,7 +142,7 @@ Found **${redundancies.length}** consolidation opportunities across the codebase
 
 ## Redundancy Patterns
 
-${redundancies.map((redundancy, index) => `
+${redundancies.map((redundancy, _index) => `
 ### ${index + 1}. ${redundancy.pattern} (${redundancy.type})
 
 **Files affected:** ${redundancy.files.length}

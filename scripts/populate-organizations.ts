@@ -23,10 +23,10 @@ const db = drizzle({ client: pool, schema });
  */
 async function populateOrganizations() {
   try {
-    console.log('🚀 Starting to populate organizations, buildings, and residences...');
+    console.warn('🚀 Starting to populate organizations, buildings, and residences...');
 
     // Step 1: Create Organizations
-    console.log('\n📁 Creating organizations...');
+    console.warn('\n📁 Creating organizations...');
     
     // Create Demo organization
     const [demoOrg] = await db.insert(schema.organizations).values({
@@ -42,7 +42,7 @@ async function populateOrganizations() {
       registrationNumber: 'DEMO-001',
       isActive: true,
     }).returning();
-    console.log('✅ Created Demo organization');
+    console.warn('✅ Created Demo organization');
 
     // Create Koveo organization
     const [koveoOrg] = await db.insert(schema.organizations).values({
@@ -58,7 +58,7 @@ async function populateOrganizations() {
       registrationNumber: 'KOVEO-001',
       isActive: true,
     }).returning();
-    console.log('✅ Created Koveo organization');
+    console.warn('✅ Created Koveo organization');
 
     // Create 563 montée des pionniers organization
     const [monteeOrg] = await db.insert(schema.organizations).values({
@@ -74,10 +74,10 @@ async function populateOrganizations() {
       registrationNumber: 'SYNDIC-563',
       isActive: true,
     }).returning();
-    console.log('✅ Created 563 montée des pionniers organization');
+    console.warn('✅ Created 563 montée des pionniers organization');
 
     // Step 2: Find or create users
-    console.log('\n👤 Setting up users...');
+    console.warn('\n👤 Setting up users...');
     
     // Find the admin user (you)
     let adminUser = await db.query.users.findFirst({
@@ -97,16 +97,16 @@ async function populateOrganizations() {
         role: 'admin',
         isActive: true,
       }).returning();
-      console.log('✅ Created admin user');
+      console.warn('✅ Created admin user');
     } else {
-      console.log('✅ Found existing admin user');
+      console.warn('✅ Found existing admin user');
     }
 
     // Users will be created through the application interface
-    console.log('✅ User creation available through invitation system');
+    console.warn('✅ User creation available through invitation system');
 
     // Step 3: Create admin user organization relationships
-    console.log('\n🔗 Creating admin user organization relationships...');
+    console.warn('\n🔗 Creating admin user organization relationships...');
 
     // Add admin user to Koveo and 563 montée des pionniers organizations
     // Koveo organization with access to all
@@ -125,7 +125,7 @@ async function populateOrganizations() {
         canAccessAllOrganizations: true,
       });
     }
-    console.log('✅ Added admin user to Koveo organization');
+    console.warn('✅ Added admin user to Koveo organization');
 
     // 563 montée des pionniers organization with access to all
     const monteeRelExists = await db.query.userOrganizations.findFirst({
@@ -143,10 +143,10 @@ async function populateOrganizations() {
         canAccessAllOrganizations: true,
       });
     }
-    console.log('✅ Added admin user to 563 montée des pionniers organization');
+    console.warn('✅ Added admin user to 563 montée des pionniers organization');
 
     // Step 4: Create Buildings
-    console.log('\n🏢 Creating buildings...');
+    console.warn('\n🏢 Creating buildings...');
     
     // Demo buildings
     const [demoBuilding1] = await db.insert(schema.buildings).values({
@@ -166,7 +166,7 @@ async function populateOrganizations() {
       managementCompany: 'Demo Management Inc.',
       isActive: true,
     }).returning();
-    console.log('✅ Created Demo Building 1');
+    console.warn('✅ Created Demo Building 1');
 
     const [demoBuilding2] = await db.insert(schema.buildings).values({
       organizationId: demoOrg.id,
@@ -185,7 +185,7 @@ async function populateOrganizations() {
       managementCompany: 'Demo Management Inc.',
       isActive: true,
     }).returning();
-    console.log('✅ Created Demo Building 2');
+    console.warn('✅ Created Demo Building 2');
 
     // 563 montée des pionniers building
     const [monteeBuilding] = await db.insert(schema.buildings).values({
@@ -205,10 +205,10 @@ async function populateOrganizations() {
       managementCompany: 'Koveo Gestion',
       isActive: true,
     }).returning();
-    console.log('✅ Created 563 montée des pionniers building');
+    console.warn('✅ Created 563 montée des pionniers building');
 
     // Step 5: Create Residences
-    console.log('\n🏠 Creating residences...');
+    console.warn('\n🏠 Creating residences...');
     
     // Demo Building 1 - 5 residences
     const demo1Residences = [];
@@ -229,7 +229,7 @@ async function populateOrganizations() {
       }).returning();
       demo1Residences.push(residence);
     }
-    console.log('✅ Created 5 residences for Demo Building 1');
+    console.warn('✅ Created 5 residences for Demo Building 1');
 
     // Demo Building 2 - 4 residences
     const demo2Residences = [];
@@ -249,7 +249,7 @@ async function populateOrganizations() {
       }).returning();
       demo2Residences.push(residence);
     }
-    console.log('✅ Created 4 residences for Demo Building 2');
+    console.warn('✅ Created 4 residences for Demo Building 2');
 
     // 563 montée des pionniers - 6 residences
     const monteeResidences = [];
@@ -270,10 +270,10 @@ async function populateOrganizations() {
       }).returning();
       monteeResidences.push(residence);
     }
-    console.log('✅ Created 6 residences for 563 montée des pionniers');
+    console.warn('✅ Created 6 residences for 563 montée des pionniers');
 
     // Step 6: Assign users to residences
-    console.log('\n🏘️ Assigning users to residences...');
+    console.warn('\n🏘️ Assigning users to residences...');
     
     // Assign mock users to Demo Building 1 residences
     for (let i = 0; i < 5 && i < mockUsers.length; i++) {
@@ -285,7 +285,7 @@ async function populateOrganizations() {
         isActive: true,
       });
     }
-    console.log('✅ Assigned users to Demo Building 1');
+    console.warn('✅ Assigned users to Demo Building 1');
 
     // Assign remaining mock users to Demo Building 2 residences
     for (let i = 0; i < 4 && (i + 5) < mockUsers.length; i++) {
@@ -297,17 +297,17 @@ async function populateOrganizations() {
         isActive: true,
       });
     }
-    console.log('✅ Assigned users to Demo Building 2');
+    console.warn('✅ Assigned users to Demo Building 2');
 
-    console.log('\n✨ Successfully populated all organizations, buildings, and residences!');
-    console.log('\n📊 Summary:');
-    console.log('- 3 Organizations created');
-    console.log('- 3 Buildings created (2 for Demo, 0 for Koveo, 1 for 563 montée)');
-    console.log('- 15 Residences created (5 + 4 + 6)');
-    console.log('- Users assigned to organizations and residences');
+    console.warn('\n✨ Successfully populated all organizations, buildings, and residences!');
+    console.warn('\n📊 Summary:');
+    console.warn('- 3 Organizations created');
+    console.warn('- 3 Buildings created (2 for Demo, 0 for Koveo, 1 for 563 montée)');
+    console.warn('- 15 Residences created (5 + 4 + 6)');
+    console.warn('- Users assigned to organizations and residences');
 
-  } catch (__error) {
-    console.error('❌ Error populating data:', error);
+  } catch (_error) {
+    console.error('❌ Error populating _data:', _error);
     throw error;
   } finally {
     await pool.end();
@@ -315,4 +315,4 @@ async function populateOrganizations() {
 }
 
 // Run the population script
-populateOrganizations().catch(console.error);
+populateOrganizations().catch(console._error);

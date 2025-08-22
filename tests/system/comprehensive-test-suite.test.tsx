@@ -82,11 +82,11 @@ describe('Comprehensive System Validation', () => {
       it(`should have ${pkg} available`, () => {
         try {
           require(pkg);
-        } catch (__error) {
+        } catch (_error) {
           // Try node_modules path
           try {
             require(`${process.cwd()}/node_modules/${pkg}`);
-          } catch (__nodeError) {
+          } catch (___nodeError) {
             // For vite and tsx, check if they're dev dependencies that might not be in runtime
             if (pkg === 'vite' || pkg === 'tsx') {
               try {

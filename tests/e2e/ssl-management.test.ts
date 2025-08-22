@@ -97,7 +97,7 @@ describe('SSL Management End-to-End Integration', () => {
 
       expect(getResponse.status).toBe(200);
       expect(getResponse.body.success).toBe(true);
-      expect(getResponse.body.data).toMatchObject({
+      expect(getResponse.body._data).toMatchObject({
         domain: 'e2e-test.example.com',
         issuer: 'Let\'s Encrypt Authority X3',
         status: 'active',
@@ -127,7 +127,7 @@ describe('SSL Management End-to-End Integration', () => {
         .set('Cookie', authCookie);
 
       expect(statusResponse.status).toBe(200);
-      expect(statusResponse.body.data).toMatchObject({
+      expect(statusResponse.body._data).toMatchObject({
         domain: 'e2e-test.example.com',
         isValid: true,
         warnings: expect.any(Array)
@@ -257,7 +257,7 @@ describe('SSL Management End-to-End Integration', () => {
           .set('Cookie', authCookie);
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Bad Request');
+        expect(response.body._error).toBe('Bad Request');
       }
 
       console.warn('✅ Domain validation working correctly');
@@ -269,7 +269,7 @@ describe('SSL Management End-to-End Integration', () => {
         .set('Cookie', authCookie);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Not Found');
+      expect(response.body._error).toBe('Not Found');
 
       console.warn('✅ 404 handling working correctly');
     });

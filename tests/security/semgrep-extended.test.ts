@@ -21,7 +21,7 @@ describe('Extended Semgrep Analysis', () => {
         { cwd: process.cwd(), timeout: 60000 }
       );
       semgrepResults = JSON.parse(stdout);
-    } catch (error) {
+    } catch (_error) {
       console.warn('Semgrep execution failed:', error.message);
       semgrepResults = { results: [] };
     }
@@ -35,9 +35,9 @@ describe('Extended Semgrep Analysis', () => {
 
       // Report findings but don't fail - these are improvement opportunities
       if (i18nViolations.length > 0) {
-        console.log(`📝 Found ${i18nViolations.length} hardcoded French strings that could benefit from i18n:`);
+        console.warn(`📝 Found ${i18nViolations.length} hardcoded French strings that could benefit from i18n:`);
         i18nViolations.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -50,9 +50,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (i18nViolations.length > 0) {
-        console.log(`📝 Found ${i18nViolations.length} hardcoded English strings that could benefit from i18n:`);
+        console.warn(`📝 Found ${i18nViolations.length} hardcoded English strings that could benefit from i18n:`);
         i18nViolations.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -65,9 +65,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (missingTranslations.length > 0) {
-        console.log(`🔍 Found ${missingTranslations.length} components without translation usage:`);
+        console.warn(`🔍 Found ${missingTranslations.length} components without translation usage:`);
         missingTranslations.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -80,9 +80,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (quebecTerms.length > 0) {
-        console.log(`🍁 Found ${quebecTerms.length} non-Quebec French terms that should be localized:`);
+        console.warn(`🍁 Found ${quebecTerms.length} non-Quebec French terms that should be localized:`);
         quebecTerms.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}: ${violation.extra.message}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}: ${violation.extra.message}`);
         });
       }
 
@@ -97,9 +97,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (performanceIssues.length > 0) {
-        console.log(`⚡ Found ${performanceIssues.length} potentially expensive operations in render:`);
+        console.warn(`⚡ Found ${performanceIssues.length} potentially expensive operations in render:`);
         performanceIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -113,9 +113,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (memoOpportunities.length > 0) {
-        console.log(`🔄 Found ${memoOpportunities.length} components that could benefit from React.memo:`);
+        console.warn(`🔄 Found ${memoOpportunities.length} components that could benefit from React.memo:`);
         memoOpportunities.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -128,9 +128,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (bundleIssues.length > 0) {
-        console.log(`📦 Found ${bundleIssues.length} imports that may increase bundle size:`);
+        console.warn(`📦 Found ${bundleIssues.length} imports that may increase bundle size:`);
         bundleIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -143,9 +143,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (errorBoundaryIssues.length > 0) {
-        console.log(`🛡️ Found ${errorBoundaryIssues.length} components that need error boundaries:`);
+        console.warn(`🛡️ Found ${errorBoundaryIssues.length} components that need error boundaries:`);
         errorBoundaryIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -160,9 +160,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (typeIssues.length > 0) {
-        console.log(`📝 Found ${typeIssues.length} components missing proper type definitions:`);
+        console.warn(`📝 Found ${typeIssues.length} components missing proper type definitions:`);
         typeIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -175,9 +175,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (hookIssues.length > 0) {
-        console.log(`🪝 Found ${hookIssues.length} improper hook usage patterns:`);
+        console.warn(`🪝 Found ${hookIssues.length} improper hook usage patterns:`);
         hookIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -190,9 +190,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (a11yIssues.length > 0) {
-        console.log(`♿ Found ${a11yIssues.length} accessibility issues:`);
+        console.warn(`♿ Found ${a11yIssues.length} accessibility issues:`);
         a11yIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -205,9 +205,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (unusedCode.length > 0) {
-        console.log(`🧹 Found ${unusedCode.length} unused imports or variables:`);
+        console.warn(`🧹 Found ${unusedCode.length} unused imports or variables:`);
         unusedCode.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -222,9 +222,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (tenantDataIssues.length > 0) {
-        console.log(`🏠 Found ${tenantDataIssues.length} tenant data operations missing validation:`);
+        console.warn(`🏠 Found ${tenantDataIssues.length} tenant data operations missing validation:`);
         tenantDataIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -237,9 +237,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (accessCodeIssues.length > 0) {
-        console.log(`🔐 Found ${accessCodeIssues.length} insecure access code patterns:`);
+        console.warn(`🔐 Found ${accessCodeIssues.length} insecure access code patterns:`);
         accessCodeIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -252,9 +252,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (maintenanceIssues.length > 0) {
-        console.log(`🔧 Found ${maintenanceIssues.length} maintenance operations missing validation:`);
+        console.warn(`🔧 Found ${maintenanceIssues.length} maintenance operations missing validation:`);
         maintenanceIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -267,9 +267,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (financialRisks.length > 0) {
-        console.log(`💰 Found ${financialRisks.length} potential financial data exposure risks:`);
+        console.warn(`💰 Found ${financialRisks.length} potential financial data exposure risks:`);
         financialRisks.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -284,9 +284,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (rbacIssues.length > 0) {
-        console.log(`🛡️ Found ${rbacIssues.length} improper RBAC patterns:`);
+        console.warn(`🛡️ Found ${rbacIssues.length} improper RBAC patterns:`);
         rbacIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -299,9 +299,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (auditIssues.length > 0) {
-        console.log(`📊 Found ${auditIssues.length} critical operations missing audit logging:`);
+        console.warn(`📊 Found ${auditIssues.length} critical operations missing audit logging:`);
         auditIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -314,9 +314,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (dbOptimization.length > 0) {
-        console.log(`🗄️ Found ${dbOptimization.length} database query optimization opportunities:`);
+        console.warn(`🗄️ Found ${dbOptimization.length} database query optimization opportunities:`);
         dbOptimization.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -336,9 +336,9 @@ describe('Extended Semgrep Analysis', () => {
         categories[category] = (categories[category] || 0) + 1;
       });
 
-      console.log('📋 Law 25 Compliance Analysis:');
+      console.warn('📋 Law 25 Compliance Analysis:');
       Object.entries(categories).forEach(([category, count]) => {
-        console.log(`   - ${category}: ${count} findings`);
+        console.warn(`   - ${category}: ${count} findings`);
       });
 
       // Ensure we have comprehensive coverage
@@ -351,9 +351,9 @@ describe('Extended Semgrep Analysis', () => {
       ) || [];
 
       if (privacyRefs.length === 0) {
-        console.log('⚠️ No privacy policy references detected - consider adding privacy links');
+        console.warn('⚠️ No privacy policy references detected - consider adding privacy links');
       } else {
-        console.log(`🔒 Found ${privacyRefs.length} privacy policy references`);
+        console.warn(`🔒 Found ${privacyRefs.length} privacy policy references`);
       }
 
       expect(Array.isArray(privacyRefs)).toBe(true);
@@ -366,14 +366,14 @@ describe('Extended Semgrep Analysis', () => {
     const criticalFindings = semgrepResults.results?.filter(r => r.extra?.severity === 'ERROR').length || 0;
     const warningFindings = semgrepResults.results?.filter(r => r.extra?.severity === 'WARNING').length || 0;
 
-    console.log('\n📊 Semgrep Analysis Summary:');
-    console.log(`   Total findings: ${totalFindings}`);
-    console.log(`   Critical: ${criticalFindings}`);
-    console.log(`   Warnings: ${warningFindings}`);
-    console.log(`   Info: ${totalFindings - criticalFindings - warningFindings}`);
+    console.warn('\n📊 Semgrep Analysis Summary:');
+    console.warn(`   Total findings: ${totalFindings}`);
+    console.warn(`   Critical: ${criticalFindings}`);
+    console.warn(`   Warnings: ${warningFindings}`);
+    console.warn(`   Info: ${totalFindings - criticalFindings - warningFindings}`);
     
     if (totalFindings === 0) {
-      console.log('✅ No issues detected by semgrep analysis');
+      console.warn('✅ No issues detected by semgrep analysis');
     }
   });
 });

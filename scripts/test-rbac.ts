@@ -25,8 +25,8 @@ const db = drizzle({ client: pool, schema });
  * @returns Function result.
  */
 async function testRBAC() {
-  console.log('🔒 Testing RBAC System for Quebec Property Management');
-  console.log('=' .repeat(60));
+  console.warn('🔒 Testing RBAC System for Quebec Property Management');
+  console.warn('=' .repeat(60));
 
   // Get test users
   const admin = await db.query.users.findFirst({
@@ -46,10 +46,10 @@ async function testRBAC() {
     return;
   }
 
-  console.log('\n📋 Test Users:');
-  console.log(`- Admin: ${admin.username} (${admin.role})`);
-  console.log(`- Demo Manager: ${demoManager.username} (${demoManager.role})`);
-  console.log(`- Demo Tenant: ${demoTenant.username} (${demoTenant.role})`);
+  console.warn('\n📋 Test Users:');
+  console.warn(`- Admin: ${admin.username} (${admin.role})`);
+  console.warn(`- Demo Manager: ${demoManager.username} (${demoManager.role})`);
+  console.warn(`- Demo Tenant: ${demoTenant.username} (${demoTenant.role})`);
 
   // Get organization IDs
   const demoOrg = await db.query.organizations.findFirst({
@@ -69,72 +69,72 @@ async function testRBAC() {
     return;
   }
 
-  console.log('\n🏢 Test Organizations:');
-  console.log(`- Demo: ${demoOrg.id}`);
-  console.log(`- Koveo: ${koveoOrg.id}`);
-  console.log(`- 563 montée des pionniers: ${propertyOrg.id}`);
+  console.warn('\n🏢 Test Organizations:');
+  console.warn(`- Demo: ${demoOrg.id}`);
+  console.warn(`- Koveo: ${koveoOrg.id}`);
+  console.warn(`- 563 montée des pionniers: ${propertyOrg.id}`);
 
   // Test 1: Admin (Koveo) should access all organizations
-  console.log('\n🧪 Test 1: Admin Access (Should access ALL organizations)');
+  console.warn('\n🧪 Test 1: Admin Access (Should access ALL organizations)');
   const adminOrgs = await getUserAccessibleOrganizations(admin.id);
-  console.log(`Admin can access ${adminOrgs.length} organizations:`);
+  console.warn(`Admin can access ${adminOrgs.length} organizations:`);
   
   const adminCanAccessDemo = await canUserAccessOrganization(admin.id, demoOrg.id);
   const adminCanAccessKoveo = await canUserAccessOrganization(admin.id, koveoOrg.id);
   const adminCanAccessProperty = await canUserAccessOrganization(admin.id, propertyOrg.id);
   
-  console.log(`- Demo: ${adminCanAccessDemo ? '✅' : '❌'}`);
-  console.log(`- Koveo: ${adminCanAccessKoveo ? '✅' : '❌'}`);
-  console.log(`- 563 montée des pionniers: ${adminCanAccessProperty ? '✅' : '❌'}`);
+  console.warn(`- Demo: ${adminCanAccessDemo ? '✅' : '❌'}`);
+  console.warn(`- Koveo: ${adminCanAccessKoveo ? '✅' : '❌'}`);
+  console.warn(`- 563 montée des pionniers: ${adminCanAccessProperty ? '✅' : '❌'}`);
 
   // Test 2: Demo Manager should access Demo + public (Demo) organization
-  console.log('\n🧪 Test 2: Demo Manager Access (Should access Demo only + Demo is public)');
+  console.warn('\n🧪 Test 2: Demo Manager Access (Should access Demo only + Demo is public)');
   const managerOrgs = await getUserAccessibleOrganizations(demoManager.id);
-  console.log(`Demo Manager can access ${managerOrgs.length} organizations:`);
+  console.warn(`Demo Manager can access ${managerOrgs.length} organizations:`);
   
   const managerCanAccessDemo = await canUserAccessOrganization(demoManager.id, demoOrg.id);
   const managerCanAccessKoveo = await canUserAccessOrganization(demoManager.id, koveoOrg.id);
   const managerCanAccessProperty = await canUserAccessOrganization(demoManager.id, propertyOrg.id);
   
-  console.log(`- Demo: ${managerCanAccessDemo ? '✅' : '❌'}`);
-  console.log(`- Koveo: ${managerCanAccessKoveo ? '❌ (Expected)' : '✅ (Unexpected)'}`);
-  console.log(`- 563 montée des pionniers: ${managerCanAccessProperty ? '❌ (Unexpected)' : '✅ (Expected)'}`);
+  console.warn(`- Demo: ${managerCanAccessDemo ? '✅' : '❌'}`);
+  console.warn(`- Koveo: ${managerCanAccessKoveo ? '❌ (Expected)' : '✅ (Unexpected)'}`);
+  console.warn(`- 563 montée des pionniers: ${managerCanAccessProperty ? '❌ (Unexpected)' : '✅ (Expected)'}`);
 
   // Test 3: Demo Tenant should access Demo only + their residences
-  console.log('\n🧪 Test 3: Demo Tenant Access (Should access Demo only + their residences)');
+  console.warn('\n🧪 Test 3: Demo Tenant Access (Should access Demo only + their residences)');
   const tenantOrgs = await getUserAccessibleOrganizations(demoTenant.id);
-  console.log(`Demo Tenant can access ${tenantOrgs.length} organizations:`);
+  console.warn(`Demo Tenant can access ${tenantOrgs.length} organizations:`);
   
   const tenantCanAccessDemo = await canUserAccessOrganization(demoTenant.id, demoOrg.id);
   const tenantCanAccessKoveo = await canUserAccessOrganization(demoTenant.id, koveoOrg.id);
   const tenantCanAccessProperty = await canUserAccessOrganization(demoTenant.id, propertyOrg.id);
   
-  console.log(`- Demo: ${tenantCanAccessDemo ? '✅' : '❌'}`);
-  console.log(`- Koveo: ${tenantCanAccessKoveo ? '❌ (Expected)' : '✅ (Unexpected)'}`);
-  console.log(`- 563 montée des pionniers: ${tenantCanAccessProperty ? '❌ (Unexpected)' : '✅ (Expected)'}`);
+  console.warn(`- Demo: ${tenantCanAccessDemo ? '✅' : '❌'}`);
+  console.warn(`- Koveo: ${tenantCanAccessKoveo ? '❌ (Expected)' : '✅ (Unexpected)'}`);
+  console.warn(`- 563 montée des pionniers: ${tenantCanAccessProperty ? '❌ (Unexpected)' : '✅ (Expected)'}`);
 
   // Test residence access
   const tenantResidences = await getUserAccessibleResidences(demoTenant.id);
-  console.log(`\n🏠 Demo Tenant can access ${tenantResidences.length} residences`);
+  console.warn(`\n🏠 Demo Tenant can access ${tenantResidences.length} residences`);
 
   // Test 4: Property organization access rules
-  console.log('\n🧪 Test 4: 563 montée des pionniers Organization Rules');
-  console.log('✅ Everyone can see Demo (public)');
-  console.log('✅ Koveo admin can see everything');
-  console.log('✅ 563 montée des pionniers users can see themselves + Demo');
-  console.log('❌ Demo users cannot see 563 montée des pionniers');
-  console.log('❌ Residents/tenants only see their own residences');
+  console.warn('\n🧪 Test 4: 563 montée des pionniers Organization Rules');
+  console.warn('✅ Everyone can see Demo (public)');
+  console.warn('✅ Koveo admin can see everything');
+  console.warn('✅ 563 montée des pionniers users can see themselves + Demo');
+  console.warn('❌ Demo users cannot see 563 montée des pionniers');
+  console.warn('❌ Residents/tenants only see their own residences');
 
-  console.log('\n🎯 RBAC Implementation Summary:');
-  console.log('=' .repeat(60));
-  console.log('✅ Demo organization is publicly accessible');
-  console.log('✅ Koveo organization has full access to everything');
-  console.log('✅ Normal organizations (563 montée des pionniers) can only access themselves + Demo');
-  console.log('✅ Demo organization users cannot access other organizations');
-  console.log('✅ Residents/tenants are restricted to their own residences');
-  console.log('✅ Managers/admins have organization-wide access within their permissions');
+  console.warn('\n🎯 RBAC Implementation Summary:');
+  console.warn('=' .repeat(60));
+  console.warn('✅ Demo organization is publicly accessible');
+  console.warn('✅ Koveo organization has full access to everything');
+  console.warn('✅ Normal organizations (563 montée des pionniers) can only access themselves + Demo');
+  console.warn('✅ Demo organization users cannot access other organizations');
+  console.warn('✅ Residents/tenants are restricted to their own residences');
+  console.warn('✅ Managers/admins have organization-wide access within their permissions');
 
-  console.log('\n🔒 RBAC Testing Complete!');
+  console.warn('\n🔒 RBAC Testing Complete!');
 }
 
-testRBAC().catch(console.error);
+testRBAC().catch(console._error);

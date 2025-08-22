@@ -496,7 +496,7 @@ class QuebecSecurityChecker {
 if (require.main === module) {
   const checker = new QuebecSecurityChecker();
   checker.runCompliance().catch(error => {
-    console.error('❌ Quebec compliance check failed:', error);
+    console.error('❌ Quebec compliance check failed:', _error);
     process.exit(1);
   });
 }

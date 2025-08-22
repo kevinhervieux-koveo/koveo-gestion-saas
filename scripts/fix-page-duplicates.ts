@@ -88,17 +88,17 @@ const duplicatePages: DuplicatePage[] = [
  * @returns Function result.
  */
 function main() {
-  console.log('🔧 Starting page organization cleanup...\n');
+  console.warn('🔧 Starting page organization cleanup...\n');
 
   // 1. Remove orphaned pillars.tsx from root
   const orphanedPillarsPath = join(process.cwd(), 'client/src/pages/pillars.tsx');
   if (existsSync(orphanedPillarsPath)) {
-    console.log('📁 Removing orphaned pillars.tsx from root pages directory...');
+    console.warn('📁 Removing orphaned pillars.tsx from root pages directory...');
     try {
       unlinkSync(orphanedPillarsPath);
-      console.log('✅ Removed: client/src/pages/pillars.tsx\n');
-    } catch (__error) {
-      console.error('❌ Failed to remove pillars.tsx:', error);
+      console.warn('✅ Removed: client/src/pages/pillars.tsx\n');
+    } catch (_error) {
+      console.error('❌ Failed to remove pillars.tsx:', _error);
     }
   }
 
@@ -107,13 +107,13 @@ function main() {
   
   duplicatePages.forEach(duplicate => {
     if (duplicate.action === 'keep') {
-      console.log(`📝 Keeping both versions of ${duplicate.fileName} (different purposes)`);
+      console.warn(`📝 Keeping both versions of ${duplicate.fileName} (different purposes)`);
       consolidationReport.push(`KEPT: ${duplicate.fileName} - both versions serve different purposes`);
       return;
     }
 
     if (duplicate.action === 'consolidate') {
-      console.log(`🔄 Processing ${duplicate.fileName}...`);
+      console.warn(`🔄 Processing ${duplicate.fileName}...`);
       
       const keepLocation = duplicate.recommended;
       const removeLocations = duplicate.locations.filter(loc => loc !== keepLocation);
@@ -124,10 +124,10 @@ function main() {
         if (existsSync(removeFilePath)) {
           try {
             unlinkSync(removeFilePath);
-            console.log(`  ✅ Removed: ${removeLocation}/${duplicate.fileName}`);
+            console.warn(`  ✅ Removed: ${removeLocation}/${duplicate.fileName}`);
             consolidationReport.push(`REMOVED: ${removeLocation}/${duplicate.fileName} (kept ${keepLocation}/${duplicate.fileName})`);
-          } catch (__error) {
-            console.error(`  ❌ Failed to remove ${removeLocation}/${duplicate.fileName}:`, error);
+          } catch (_error) {
+            console.error(`  ❌ Failed to remove ${removeLocation}/${duplicate.fileName}:`, _error);
             consolidationReport.push(`ERROR: Failed to remove ${removeLocation}/${duplicate.fileName}`);
           }
         }
@@ -136,18 +136,18 @@ function main() {
   });
 
   // 3. Generate migration report
-  console.log('\n📋 Consolidation Report:');
-  consolidationReport.forEach(line => console.log(`  ${line}`));
+  console.warn('\n📋 Consolidation Report:');
+  consolidationReport.forEach(line => console.warn(`  ${line}`));
 
   // 4. Update App.tsx imports (manual step - too complex to automate safely)
-  console.log('\n⚠️  Manual Steps Required:');
-  console.log('   1. Update App.tsx to remove imports for deleted pages');
-  console.log('   2. Update routing to point to the consolidated page locations');
-  console.log('   3. Test all affected routes');
-  console.log('   4. Run page organization tests to verify fixes');
+  console.warn('\n⚠️  Manual Steps Required:');
+  console.warn('   1. Update App.tsx to remove imports for deleted pages');
+  console.warn('   2. Update routing to point to the consolidated page locations');
+  console.warn('   3. Test all affected routes');
+  console.warn('   4. Run page organization tests to verify fixes');
 
-  console.log('\n✅ Page organization cleanup completed!');
-  console.log('   Run: npm run test tests/routing/page-organization.test.tsx');
+  console.warn('\n✅ Page organization cleanup completed!');
+  console.warn('   Run: npm run test tests/routing/page-organization.test.tsx');
 }
 
 if (require.main === module) {

@@ -187,7 +187,7 @@ describe('Touch Interactions Tests', () => {
           onTouchStart={(e) => {
             // Long press simulation
             setTimeout(() => {
-              console.log('Long press detected');
+              console.warn('Long press detected');
             }, 500);
           }}
         >

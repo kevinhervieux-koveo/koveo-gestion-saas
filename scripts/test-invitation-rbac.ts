@@ -54,11 +54,11 @@ interface Residence {
  * @returns Function result.
  */
 async function testInvitationRBAC() {
-  console.log('🧪 Testing Updated Invitation System with RBAC...\n');
+  console.warn('🧪 Testing Updated Invitation System with RBAC...\n');
 
   try {
     // Test 1: Admin should be able to choose organization
-    console.log('Test 1: Admin organization selection capability');
+    console.warn('Test 1: Admin organization selection capability');
     const adminTestData = {
       email: 'test.admin.invite@example.com',
       role: 'manager',
@@ -67,10 +67,10 @@ async function testInvitationRBAC() {
       requires2FA: false,
       personalMessage: 'Welcome to our organization!'
     };
-    console.log('✅ Admin can specify organization in invitation data\n');
+    console.warn('✅ Admin can specify organization in invitation data\n');
 
     // Test 2: Manager should only invite to their organization
-    console.log('Test 2: Manager organization restrictions');
+    console.warn('Test 2: Manager organization restrictions');
     const managerTestData = {
       email: 'test.manager.invite@example.com',
       role: 'tenant',
@@ -81,10 +81,10 @@ async function testInvitationRBAC() {
       requires2FA: false,
       personalMessage: 'Welcome to our building!'
     };
-    console.log('✅ Manager invitation restricted to their organization\n');
+    console.warn('✅ Manager invitation restricted to their organization\n');
 
     // Test 3: Security level removed from schema
-    console.log('Test 3: Security level field removal verification');
+    console.warn('Test 3: Security level field removal verification');
     const dataWithoutSecurityLevel = {
       email: 'test.no.security@example.com',
       role: 'tenant',
@@ -95,10 +95,10 @@ async function testInvitationRBAC() {
       requires2FA: false
       // No securityLevel field - should work fine
     };
-    console.log('✅ Invitation schema works without securityLevel field\n');
+    console.warn('✅ Invitation schema works without securityLevel field\n');
 
     // Test 4: Residence required for tenants/residents
-    console.log('Test 4: Residence requirement for tenants/residents');
+    console.warn('Test 4: Residence requirement for tenants/residents');
     
     // Valid tenant invitation with residence
     const validTenantData = {
@@ -110,7 +110,7 @@ async function testInvitationRBAC() {
       expiryDays: 7,
       requires2FA: false
     };
-    console.log('✅ Valid tenant invitation includes residence\n');
+    console.warn('✅ Valid tenant invitation includes residence\n');
 
     // Invalid tenant invitation without residence
     const invalidTenantData = {
@@ -122,7 +122,7 @@ async function testInvitationRBAC() {
       expiryDays: 7,
       requires2FA: false
     };
-    console.log('❌ Invalid tenant invitation missing residence (should fail)\n');
+    console.warn('❌ Invalid tenant invitation missing residence (should fail)\n');
 
     // Valid admin invitation without residence (not required)
     const validAdminData = {
@@ -133,10 +133,10 @@ async function testInvitationRBAC() {
       expiryDays: 7,
       requires2FA: false
     };
-    console.log('✅ Valid admin invitation without residence\n');
+    console.warn('✅ Valid admin invitation without residence\n');
 
     // Test 5: Bulk invitation with same rules
-    console.log('Test 5: Bulk invitation RBAC');
+    console.warn('Test 5: Bulk invitation RBAC');
     const bulkInvitationData = {
       emails: ['bulk1@example.com', 'bulk2@example.com'],
       role: 'resident',
@@ -147,20 +147,20 @@ async function testInvitationRBAC() {
       requires2FA: false,
       personalMessage: 'Welcome to our community!'
     };
-    console.log('✅ Bulk invitation follows same RBAC rules\n');
+    console.warn('✅ Bulk invitation follows same RBAC rules\n');
 
-    console.log('🎯 All test scenarios defined successfully!');
-    console.log('\nInvitation RBAC Implementation Status:');
-    console.log('✅ Admin can choose organization for invites');
-    console.log('✅ Manager can only invite to their organization'); 
-    console.log('✅ Security level removed from form');
-    console.log('✅ Residence required for tenants/residents');
-    console.log('✅ Proper validation and access control implemented');
+    console.warn('🎯 All test scenarios defined successfully!');
+    console.warn('\nInvitation RBAC Implementation Status:');
+    console.warn('✅ Admin can choose organization for invites');
+    console.warn('✅ Manager can only invite to their organization'); 
+    console.warn('✅ Security level removed from form');
+    console.warn('✅ Residence required for tenants/residents');
+    console.warn('✅ Proper validation and access control implemented');
 
-  } catch (__error) {
-    console.error('❌ Test failed:', error);
+  } catch (_error) {
+    console.error('❌ Test failed:', _error);
   }
 }
 
 // Run the test
-testInvitationRBAC().catch(console.error);
+testInvitationRBAC().catch(console._error);

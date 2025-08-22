@@ -173,7 +173,7 @@ describe('Budget Page Tests', () => {
     mockUseLanguage.mockReturnValue({
       language: 'en',
       setLanguage: jest.fn(),
-      t: jest.fn((key) => key),
+      t: jest.fn((_key) => _key),
       translations: {},
     });
 
@@ -286,7 +286,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Total Income')).toBeInTheDocument();
@@ -305,7 +305,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Check for financial summary cards
@@ -324,7 +324,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Bank Account Management')).toBeInTheDocument();
@@ -344,7 +344,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Financial Trends')).toBeInTheDocument();
@@ -361,7 +361,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesToggle = screen.getByText('Categories');
@@ -423,7 +423,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Special Contribution Breakdown')).toBeInTheDocument();
@@ -480,7 +480,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Check for unit numbers in contribution table
@@ -502,7 +502,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const updateButton = screen.getByText('Update Account');
@@ -523,7 +523,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Emergency fund')).toBeInTheDocument();
@@ -543,7 +543,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const manageButton = screen.getByText('Manage Minimum Balances');
@@ -565,7 +565,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Switch to monthly view
       const monthlyButton = screen.getByText('Monthly');
@@ -608,7 +608,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
@@ -630,7 +630,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
@@ -707,7 +707,7 @@ describe('Budget Page Tests', () => {
       mockUseLanguage.mockReturnValue({
         language: 'fr',
         setLanguage: jest.fn(),
-        t: jest.fn((key) => key),
+        t: jest.fn((_key) => _key),
         translations: {},
       });
 
@@ -727,7 +727,7 @@ describe('Budget Page Tests', () => {
       mockUseLanguage.mockReturnValue({
         language: 'fr',
         setLanguage: jest.fn(),
-        t: jest.fn((key) => key),
+        t: jest.fn((_key) => _key),
         translations: {},
       });
 
@@ -740,7 +740,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Sélectionner un bâtiment...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Catégories');
@@ -755,7 +755,7 @@ describe('Budget Page Tests', () => {
       mockUseLanguage.mockReturnValue({
         language: 'fr',
         setLanguage: jest.fn(),
-        t: jest.fn((key) => key),
+        t: jest.fn((_key) => _key),
         translations: {},
       });
 
@@ -768,7 +768,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Sélectionner un bâtiment...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Gestion du compte bancaire')).toBeInTheDocument();
@@ -797,7 +797,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Should not crash and should handle error gracefully
       await waitFor(() => {
@@ -842,7 +842,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Total Income')).toBeInTheDocument();
@@ -863,7 +863,7 @@ describe('Budget Page Tests', () => {
     it('handles large datasets efficiently', async () => {
       // Mock large dataset
       const largeBudgetSummary = {
-        summary: Array.from({ length: 100 }, (_, index) => ({
+        summary: Array.from({ length: 100 }, (_, _index) => ({
           year: 2020 + Math.floor(index / 12),
           month: (index % 12) + 1,
           incomes: [45000, 5000],
@@ -903,7 +903,7 @@ describe('Budget Page Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         expect(screen.getByText('Total Income')).toBeInTheDocument();

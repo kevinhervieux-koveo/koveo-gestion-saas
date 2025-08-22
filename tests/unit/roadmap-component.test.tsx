@@ -245,7 +245,7 @@ describe('Roadmap Component Tests', () => {
     // Find status dropdown (would need proper test IDs in actual component)
     const statusSelects = screen.getAllByDisplayValue('in-progress');
     if (statusSelects.length > 0) {
-      fireEvent.change(statusSelects[0], { target: { value: 'completed' } });
+      fireEvent.change(statusSelects[0], { target: { _value: 'completed' } });
     }
   });
 

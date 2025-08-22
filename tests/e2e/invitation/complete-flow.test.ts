@@ -90,7 +90,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
         status: 'pending' as any
       });
 
-      expect(result).toEqual(mockInvitation);
+      expect(_result).toEqual(mockInvitation);
       expect(storage.createInvitation).toHaveBeenCalledWith(
         expect.objectContaining({
           email: 'newuser@example.com',
@@ -145,7 +145,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
 
       const result = await storage.getInvitationByToken(mockToken);
       
-      expect(result).toEqual(validInvitation);
+      expect(_result).toEqual(validInvitation);
       expect(new Date(result!.expiresAt).getTime()).toBeGreaterThan(Date.now());
       expect(result!.status).toBe('pending');
     });
@@ -161,7 +161,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
 
       const result = await storage.getInvitationByToken(mockToken);
       
-      expect(result).toEqual(expiredInvitation);
+      expect(_result).toEqual(expiredInvitation);
       expect(new Date(result!.expiresAt).getTime()).toBeLessThan(Date.now());
     });
 
@@ -176,7 +176,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
 
       const result = await storage.getInvitationByToken(mockToken);
       
-      expect(result).toEqual(acceptedInvitation);
+      expect(_result).toEqual(acceptedInvitation);
       expect(result!.status).toBe('accepted');
     });
 
@@ -185,7 +185,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
 
       const result = await storage.getInvitationByToken('invalid-token');
       
-      expect(result).toBeNull();
+      expect(_result).toBeNull();
     });
   });
 
@@ -228,7 +228,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
 
       const result = await storage.createUser(userData as any);
       
-      expect(result).toEqual(newUser);
+      expect(_result).toEqual(newUser);
       expect(result.email).toBe(mockInvitation.email);
       expect(result.role).toBe(mockInvitation.role);
       expect(result.isActive).toBe(true);
@@ -434,7 +434,7 @@ describe('Complete Invitation Flow E2E Tests', () => {
       }));
 
       (storage.createInvitation as jest.Mock).mockImplementation(
-        (data) => Promise.resolve({ ...mockInvitation, ...data, id: `invite-${Date.now()}-${Math.random()}` })
+        (_data) => Promise.resolve({ ...mockInvitation, ...data, id: `invite-${Date.now()}-${Math.random()}` })
       );
 
       const startTime = Date.now();

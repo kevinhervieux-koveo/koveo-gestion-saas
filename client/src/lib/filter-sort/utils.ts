@@ -12,7 +12,7 @@ import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
  * @example
  * ```typescript
  * const user = { name: 'John Doe', age: 30, active: true };
- * const filter = { field: 'age', operator: 'greater_than', value: 25 };
+ * const filter = { field: 'age', operator: 'greater_than', _value: 25 };
  * const matches = applyFilter(user, filter); // true
  * ```
  */
@@ -33,14 +33,24 @@ export function  /**
    * @param item - item parameter.
    * @param filter - filter parameter.
    * @returns Boolean result.
+   */  /**
+   * Apply filter function.
+   * @param item - item parameter.
+   * @param filter - filter parameter.
+   * @returns Boolean result.
    */
+
  applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
   const filterValue = filter.value;
   const operator = filter.operator;  /**
    * Switch function.
    * @param operator - operator parameter.
+   */  /**
+   * Switch function.
+   * @param operator - operator parameter.
    */
+
 
 
   switch (operator) {
@@ -51,52 +61,57 @@ export function  /**
       return value !== filterValue;
 
     case 'contains':
-      return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+      return String(_value).toLowerCase().includes(String(filterValue).toLowerCase());
 
     case 'not_contains':
-      return !String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+      return !String(_value).toLowerCase().includes(String(filterValue).toLowerCase());
 
     case 'starts_with':
-      return String(value).toLowerCase().startsWith(String(filterValue).toLowerCase());
+      return String(_value).toLowerCase().startsWith(String(filterValue).toLowerCase());
 
     case 'ends_with':
-      return String(value).toLowerCase().endsWith(String(filterValue).toLowerCase());
+      return String(_value).toLowerCase().endsWith(String(filterValue).toLowerCase());
 
     case 'greater_than':
-      return Number(value) > Number(filterValue);
+      return Number(_value) > Number(filterValue);
 
     case 'less_than':
-      return Number(value) < Number(filterValue);
+      return Number(_value) < Number(filterValue);
 
     case 'greater_than_or_equal':
-      return Number(value) >= Number(filterValue);
+      return Number(_value) >= Number(filterValue);
 
     case 'less_than_or_equal':
-      return Number(value) <= Number(filterValue);
+      return Number(_value) <= Number(filterValue);
 
     case 'in':
       return Array.isArray(filterValue) ? filterValue.  /**
    * Includes function.
    * @param value - Value to process.
    * @returns String result.
+   */  /**
+   * Includes function.
+   * @param value - Value to process.
+   * @returns String result.
    */
-includes(value) : false;
+
+includes(_value) : false;
 
     case 'not_in':
-      return Array.isArray(filterValue) ? !filterValue.includes(value) : true;
+      return Array.isArray(filterValue) ? !filterValue.includes(_value) : true;
 
     case 'is_empty':
       return (
         !value ||
         (typeof value === 'string' && value.trim() === '') ||
-        (Array.isArray(value) && value.length === 0)
+        (Array.isArray(_value) && value.length === 0)
       );
 
     case 'is_not_empty':
       return (
         value &&
         (typeof value !== 'string' || value.trim() !== '') &&
-        (!Array.isArray(value) || value.length > 0)
+        (!Array.isArray(_value) || value.length > 0)
       );
 
     default:
@@ -117,8 +132,8 @@ includes(value) : false;
  * ```typescript
  * const users = [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }];
  * const filters = [
- *   { field: 'age', operator: 'greater_than', value: 20 },
- *   { field: 'name', operator: 'contains', value: 'J' }
+ *   { field: 'age', operator: 'greater_than', _value: 20 },
+ *   { field: 'name', operator: 'contains', _value: 'J' }
  * ];
  * const filtered = applyFilters(users, filters); // Both users match
  * ```
@@ -129,10 +144,14 @@ includes(value) : false;
  * @param filters
  * @returns Function result.
  */
-export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {  /**
+export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] {  /**
+   * If function.
+   * @param !filters || filters.length === 0 - !filters || filters.length === 0 parameter.
+   */  /**
    * If function.
    * @param !filters || filters.length === 0 - !filters || filters.length === 0 parameter.
    */
+
 
   if (!filters || filters.length === 0) {
     return data;
@@ -164,7 +183,7 @@ export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {  /**
  * @param searchFields
  * @returns Function result.
  */
-export function applySearch<T>(data: T[], search: string, searchFields?: string[]): T[] {
+export function applySearch<T>(_data: T[], search: string, searchFields?: string[]): T[] {
   if (!search || search.trim() === '') {
     return data;
   }
@@ -174,13 +193,17 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
   return data.filter((item) => {  /**
    * If function.
    * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
+   */  /**
+   * If function.
+   * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
    */
+
 
     if (searchFields && searchFields.length > 0) {
       // Search only in specified fields
       return searchFields.some((field) => {
         const value = getNestedValue(item, field);
-        return String(value).toLowerCase().includes(searchLower);
+        return String(_value).toLowerCase().includes(searchLower);
       });
     } else {
       // Search in all string fields
@@ -212,10 +235,14 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
  * @param sort
  * @returns Function result.
  */
-export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
+export function applySort<T>(_data: T[], sort: SortValue | null): T[] {  /**
+   * If function.
+   * @param !sort - !sort parameter.
+   */  /**
    * If function.
    * @param !sort - !sort parameter.
    */
+
 
   if (!sort) {
     return data;
@@ -228,21 +255,33 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
     // Handle null/undefined values  /**
    * If function.
    * @param aValue == null && bValue == null - aValue == null && bValue == null parameter.
+   */  /**
+   * If function.
+   * @param aValue == null && bValue == null - aValue == null && bValue == null parameter.
    */
+
 
     if (aValue == null && bValue == null) {
       return 0;
     }  /**
    * If function.
    * @param aValue == null - aValue == null parameter.
+   */  /**
+   * If function.
+   * @param aValue == null - aValue == null parameter.
    */
+
 
     if (aValue == null) {
       return sort.direction === 'asc' ? 1 : -1;
     }  /**
    * If function.
    * @param bValue == null - bValue == null parameter.
+   */  /**
+   * If function.
+   * @param bValue == null - bValue == null parameter.
    */
+
 
     if (bValue == null) {
       return sort.direction === 'asc' ? -1 : 1;
@@ -252,7 +291,11 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
     let comparison = 0;  /**
    * If function.
    * @param typeof aValue === 'string' && typeof bValue === 'string' - typeof aValue === 'string' && typeof bValue === 'string' parameter.
+   */  /**
+   * If function.
+   * @param typeof aValue === 'string' && typeof bValue === 'string' - typeof aValue === 'string' && typeof bValue === 'string' parameter.
    */
+
 
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -260,13 +303,21 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
     } else  /**
    * If function.
    * @param typeof aValue === 'number' && typeof bValue === 'number' - typeof aValue === 'number' && typeof bValue === 'number' parameter.
+   */  /**
+   * If function.
+   * @param typeof aValue === 'number' && typeof bValue === 'number' - typeof aValue === 'number' && typeof bValue === 'number' parameter.
    */
+
  if (typeof aValue === 'number' && typeof bValue === 'number') {
       comparison = aValue - bValue;
     } else  /**
    * If function.
    * @param aValue instanceof Date && bValue instanceof Date - aValue instanceof Date && bValue instanceof Date parameter.
+   */  /**
+   * If function.
+   * @param aValue instanceof Date && bValue instanceof Date - aValue instanceof Date && bValue instanceof Date parameter.
    */
+
  if (aValue instanceof Date && bValue instanceof Date) {
       comparison = aValue.getTime() - bValue.getTime();
     } else {
@@ -295,7 +346,7 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
  * const users = [{ name: 'John Doe', age: 30, active: true }];
  * const result = applyFilterSort(
  *   users,
- *   [{ field: 'active', operator: 'equals', value: true }],
+ *   [{ field: 'active', operator: 'equals', _value: true }],
  *   'john',
  *   { field: 'age', direction: 'asc' },
  *   ['name']
@@ -312,7 +363,7 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
  * @returns Function result.
  */
 export function applyFilterSort<T>(
-  data: T[],
+  _data: T[],
   filters: FilterValue[],
   search: string,
   sort: SortValue | null,
@@ -359,9 +410,15 @@ function  /**
    * @param obj - obj parameter.
    * @param path - File or URL path.
    * @returns any result.
+   */  /**
+   * Get nested value.
+   * @param obj - obj parameter.
+   * @param path - File or URL path.
+   * @returns any result.
    */
+
  getNestedValue(obj: any, path: string): any {
-  return path.split('.').reduce((current, key) => current?.[key], obj);
+  return path.split('.').reduce((current, _key) => current?.[key], obj);
 }
 
 /**
@@ -390,18 +447,32 @@ function  /**
    * @param obj - obj parameter.
    * @param search - search parameter.
    * @returns Boolean result.
+   */  /**
+   * Search in object.
+   * @param obj - obj parameter.
+   * @param search - search parameter.
+   * @returns Boolean result.
    */
+
  searchInObject(obj: any, search: string): boolean {  /**
    * If function.
    * @param obj === null || obj === undefined - obj === null || obj === undefined parameter.
+   */  /**
+   * If function.
+   * @param obj === null || obj === undefined - obj === null || obj === undefined parameter.
    */
+
 
   if (obj === null || obj === undefined) {
     return false;
   }  /**
    * If function.
    * @param typeof obj === 'string' - typeof obj === 'string' parameter.
+   */  /**
+   * If function.
+   * @param typeof obj === 'string' - typeof obj === 'string' parameter.
    */
+
 
 
   if (typeof obj === 'string') {
@@ -409,7 +480,11 @@ function  /**
   }  /**
    * If function.
    * @param typeof obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
+   */  /**
+   * If function.
+   * @param typeof obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
    */
+
 
 
   if (typeof obj === 'number' || typeof obj === 'boolean') {
@@ -421,11 +496,15 @@ function  /**
   }  /**
    * If function.
    * @param typeof obj === 'object' - typeof obj === 'object' parameter.
+   */  /**
+   * If function.
+   * @param typeof obj === 'object' - typeof obj === 'object' parameter.
    */
 
 
+
   if (typeof obj === 'object') {
-    return Object.values(obj).some((value) => searchInObject(value, search));
+    return Object.values(obj).some((_value) => searchInObject(value, search));
   }
 
   return false;
@@ -459,11 +538,20 @@ export function  /**
    * Get default operators.
    * @param type - type parameter.
    * @returns Array result.
+   */  /**
+   * Get default operators.
+   * @param type - type parameter.
+   * @returns Array result.
    */
+
  getDefaultOperators(type: string): FilterOperator[] {  /**
    * Switch function.
    * @param type - type parameter.
+   */  /**
+   * Switch function.
+   * @param type - type parameter.
    */
+
 
   switch (type) {
     case 'text':
@@ -534,7 +622,12 @@ export function  /**
    * Get operator label.
    * @param operator - operator parameter.
    * @returns String result.
+   */  /**
+   * Get operator label.
+   * @param operator - operator parameter.
+   * @returns String result.
    */
+
  getOperatorLabel(operator: FilterOperator): string {
   const labels: Record<FilterOperator, string> = {
     equals: 'Is',

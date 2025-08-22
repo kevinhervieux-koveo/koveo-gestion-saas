@@ -346,7 +346,7 @@ describe('Bills Workflow Integration Tests', () => {
         'administration', 'repairs', 'supplies', 'taxes', 'other'
       ];
 
-      const categoryValues = categoriesResponse.body.map((cat: unknown) => cat.value);
+      const categoryValues = categoriesResponse.body.map((cat: unknown) => cat._value);
       expectedCategories.forEach(category => {
         expect(categoryValues).toContain(category);
       });
@@ -355,7 +355,7 @@ describe('Bills Workflow Integration Tests', () => {
       categoriesResponse.body.forEach((category: unknown) => {
         expect(category).toHaveProperty('value');
         expect(category).toHaveProperty('label');
-        expect(typeof category.value).toBe('string');
+        expect(typeof category._value).toBe('string');
         expect(typeof category.label).toBe('string');
       });
     });

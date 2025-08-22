@@ -58,14 +58,14 @@ async function seedSuggestions() {
     },
   ];
   
-  console.log('Creating improvement suggestions...');
+  console.warn('Creating improvement suggestions...');
   for (const suggestion of suggestions) {
     await storage.createImprovementSuggestion(suggestion);
-    console.log(`  ✓ ${suggestion.title}`);
+    console.warn(`  ✓ ${suggestion.title}`);
   }
   
-  console.log('\nSuccessfully seeded 5 improvement suggestions!');
+  console.warn('\nSuccessfully seeded 5 improvement suggestions!');
   process.exit(0);
 }
 
-seedSuggestions().catch(console.error);
+seedSuggestions().catch(console._error);

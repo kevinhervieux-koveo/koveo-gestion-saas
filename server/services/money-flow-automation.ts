@@ -35,7 +35,7 @@ export class MoneyFlowAutomationService {
     residenceEntriesCreated: number;
     totalEntriesCreated: number;
   }> {
-    console.log('🔄 Starting money flow entries generation...');
+    console.warn('🔄 Starting money flow entries generation...');
     
     let billEntriesCreated = 0;
     let residenceEntriesCreated = 0;
@@ -54,7 +54,7 @@ export class MoneyFlowAutomationService {
 
       const totalEntriesCreated = billEntriesCreated + residenceEntriesCreated;
 
-      console.log(`✅ Money flow generation completed:
+      console.warn(`✅ Money flow generation completed:
         - Bill entries: ${billEntriesCreated}
         - Residence entries: ${residenceEntriesCreated}
         - Total: ${totalEntriesCreated}`);
@@ -65,8 +65,8 @@ export class MoneyFlowAutomationService {
         totalEntriesCreated
       };
 
-    } catch (__error) {
-      console.error('❌ Error generating money flow entries:', error);
+    } catch (_error) {
+      console.error('❌ Error generating money flow entries:', _error);
       throw error;
     }
   }
@@ -94,7 +94,7 @@ export class MoneyFlowAutomationService {
         )
       );
 
-    console.log(`📋 Found ${activeBills.length} active recurrent bills`);
+    console.warn(`📋 Found ${activeBills.length} active recurrent bills`);
 
     let entriesCreated = 0;
 
@@ -107,8 +107,8 @@ export class MoneyFlowAutomationService {
         const billEntries = await this.generateEntriesForBill(bill, startDate, endDate);
         entriesCreated += billEntries;
 
-      } catch (__error) {
-        console.error(`❌ Error processing bill ${bill.billNumber}:`, error);
+      } catch (_error) {
+        console.error(`❌ Error processing bill ${bill.billNumber}:`, _error);
         // Continue with other bills
       }
     }
@@ -141,7 +141,7 @@ export class MoneyFlowAutomationService {
         )
       );
 
-    console.log(`🏠 Found ${activeResidences.length} active residences with monthly fees`);
+    console.warn(`🏠 Found ${activeResidences.length} active residences with monthly fees`);
 
     let entriesCreated = 0;
 
@@ -159,8 +159,8 @@ export class MoneyFlowAutomationService {
         );
         entriesCreated += residenceEntries;
 
-      } catch (__error) {
-        console.error(`❌ Error processing residence ${residence.unitNumber}:`, error);
+      } catch (_error) {
+        console.error(`❌ Error processing residence ${residence.unitNumber}:`, _error);
         // Continue with other residences
       }
     }
@@ -228,7 +228,7 @@ export class MoneyFlowAutomationService {
     // Insert entries in batches
     if (entries.length > 0) {
       await this.insertEntriesInBatches(entries);
-      console.log(`💰 Created ${entries.length} money flow entries for bill ${bill.billNumber}`);
+      console.warn(`💰 Created ${entries.length} money flow entries for bill ${bill.billNumber}`);
     }
 
     return entries.length;
@@ -289,7 +289,7 @@ export class MoneyFlowAutomationService {
     // Insert entries in batches
     if (entries.length > 0) {
       await this.insertEntriesInBatches(entries);
-      console.log(`🏠 Created ${entries.length} monthly fee entries for residence ${residence.unitNumber}`);
+      console.warn(`🏠 Created ${entries.length} monthly fee entries for residence ${residence.unitNumber}`);
     }
 
     return entries.length;
@@ -433,13 +433,13 @@ export class MoneyFlowAutomationService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(moneyFlow).values(batch);
-      } catch (__error) {
-        console.error(`❌ Error inserting batch ${i / batchSize + 1}:`, error);
+      } catch (_error) {
+        console.error(`❌ Error inserting batch ${i / batchSize + 1}:`, _error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
             await db.insert(moneyFlow).values(entry);
-          } catch (__individualError) {
+          } catch (___individualError) {
             console.error(`❌ Error inserting individual entry:`, individualError);
             // Skip this entry and continue
           }
@@ -494,7 +494,7 @@ export class MoneyFlowAutomationService {
    * @param billId
    */
   async generateForBill(billId: string): Promise<number> {
-    console.log(`🔄 Generating money flow entries for bill ${billId}`);
+    console.warn(`🔄 Generating money flow entries for bill ${billId}`);
 
     const bill = await db
       .select()
@@ -509,7 +509,7 @@ export class MoneyFlowAutomationService {
     const billData = bill[0];
 
     if (billData.paymentType !== 'recurrent') {
-      console.log(`💰 Bill ${billData.billNumber} is not recurrent, no future entries needed`);
+      console.warn(`💰 Bill ${billData.billNumber} is not recurrent, no future entries needed`);
       return 0;
     }
 
@@ -523,7 +523,7 @@ export class MoneyFlowAutomationService {
     // Generate new entries
     const entriesCreated = await this.generateEntriesForBill(billData, now, futureLimit);
 
-    console.log(`✅ Generated ${entriesCreated} money flow entries for bill ${billData.billNumber}`);
+    console.warn(`✅ Generated ${entriesCreated} money flow entries for bill ${billData.billNumber}`);
     return entriesCreated;
   }
 
@@ -533,7 +533,7 @@ export class MoneyFlowAutomationService {
    * @param residenceId
    */
   async generateForResidence(residenceId: string): Promise<number> {
-    console.log(`🔄 Generating money flow entries for residence ${residenceId}`);
+    console.warn(`🔄 Generating money flow entries for residence ${residenceId}`);
 
     const residenceData = await db
       .select({
@@ -561,7 +561,7 @@ export class MoneyFlowAutomationService {
     // Generate new entries
     const entriesCreated = await this.generateEntriesForResidence(residence, building, now, futureLimit);
 
-    console.log(`✅ Generated ${entriesCreated} money flow entries for residence ${residence.unitNumber}`);
+    console.warn(`✅ Generated ${entriesCreated} money flow entries for residence ${residence.unitNumber}`);
     return entriesCreated;
   }
 

@@ -241,8 +241,8 @@ describe('Demands API Unit Tests', () => {
         testDemands.push(demand);
       }
 
-    } catch (__error) {
-      console.error('Failed to setup test data:', error);
+    } catch (_error) {
+      console.error('Failed to setup test _data:', _error);
       throw error;
     }
   }
@@ -279,8 +279,8 @@ describe('Demands API Unit Tests', () => {
       if (testOrganizations.length > 0) {
         await db.delete(organizations);
       }
-    } catch (__error) {
-      console.error('Failed to cleanup test data:', error);
+    } catch (_error) {
+      console.error('Failed to cleanup test _data:', _error);
     }
   }
 

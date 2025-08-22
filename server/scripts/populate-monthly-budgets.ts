@@ -18,33 +18,33 @@ import { db } from '../db';
  * @returns Function result.
  */
 async function main() {
-  console.log('🚀 Starting monthly budget population script...');
-  console.log('This will create budget entries for all buildings from construction date to 3 years in the future.');
+  console.warn('🚀 Starting monthly budget population script...');
+  console.warn('This will create budget entries for all buildings from construction date to 3 years in the future.');
   
   try {
     // First, show some statistics
-    console.log('\n📊 Current budget statistics:');
+    console.warn('\n📊 Current budget statistics:');
     const initialStats = await monthlyBudgetService.getBudgetStatistics();
-    console.log(`- Total budget entries: ${initialStats.totalBudgetEntries}`);
-    console.log(`- Buildings with budgets: ${initialStats.buildingsWithBudgets}`);
-    console.log(`- Date range: ${initialStats.oldestBudgetDate || 'N/A'} to ${initialStats.newestBudgetDate || 'N/A'}`);
+    console.warn(`- Total budget entries: ${initialStats.totalBudgetEntries}`);
+    console.warn(`- Buildings with budgets: ${initialStats.buildingsWithBudgets}`);
+    console.warn(`- Date range: ${initialStats.oldestBudgetDate || 'N/A'} to ${initialStats.newestBudgetDate || 'N/A'}`);
 
     // Populate budgets for all buildings
     const result = await monthlyBudgetService.populateAllMonthlyBudgets();
     
-    console.log('\n✅ Budget population completed!');
-    console.log(`- Buildings processed: ${result.buildingsProcessed}`);
-    console.log(`- Budget entries created: ${result.budgetsCreated}`);
+    console.warn('\n✅ Budget population completed!');
+    console.warn(`- Buildings processed: ${result.buildingsProcessed}`);
+    console.warn(`- Budget entries created: ${result.budgetsCreated}`);
 
     // Show final statistics
-    console.log('\n📊 Final budget statistics:');
+    console.warn('\n📊 Final budget statistics:');
     const finalStats = await monthlyBudgetService.getBudgetStatistics();
-    console.log(`- Total budget entries: ${finalStats.totalBudgetEntries}`);
-    console.log(`- Buildings with budgets: ${finalStats.buildingsWithBudgets}`);
-    console.log(`- Date range: ${finalStats.oldestBudgetDate || 'N/A'} to ${finalStats.newestBudgetDate || 'N/A'}`);
+    console.warn(`- Total budget entries: ${finalStats.totalBudgetEntries}`);
+    console.warn(`- Buildings with budgets: ${finalStats.buildingsWithBudgets}`);
+    console.warn(`- Date range: ${finalStats.oldestBudgetDate || 'N/A'} to ${finalStats.newestBudgetDate || 'N/A'}`);
 
-  } catch (__error) {
-    console.error('❌ Error during budget population:', error);
+  } catch (_error) {
+    console.error('❌ Error during budget population:', _error);
     process.exit(1);
   } finally {
     // Close database connection
@@ -54,8 +54,8 @@ async function main() {
 
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    console.error('❌ Fatal error:', error);
+  main().catch((_error) => {
+    console.error('❌ Fatal _error:', _error);
     process.exit(1);
   });
 }

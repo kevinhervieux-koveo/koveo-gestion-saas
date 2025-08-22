@@ -23,17 +23,17 @@ import { execSync } from 'child_process';
  * @returns Function result.
  */
 function runCommand(command: string, description: string): void {
-  console.log(`🔄 ${description}...`);
+  console.warn(`🔄 ${description}...`);
   try {
     const output = execSync(command, { encoding: 'utf8', stdio: 'pipe' });
     if (output.trim()) {
-      console.log(output);
+      console.warn(output);
     }
-    console.log(`✅ ${description} completed`);
+    console.warn(`✅ ${description} completed`);
   } catch (_error: unknown) {
     console.error(`❌ ${description} failed:`, error.message);
-    if (error.stdout) {console.log('STDOUT:', error.stdout);}
-    if (error.stderr) {console.log('STDERR:', error.stderr);}
+    if (error.stdout) {console.warn('STDOUT:', error.stdout);}
+    if (error.stderr) {console.warn('STDERR:', error.stderr);}
     throw error;
   }
 }
@@ -46,7 +46,7 @@ function runCommand(command: string, description: string): void {
  * @returns Function result.
  */
 async function runDeploymentHooks(): Promise<void> {
-  console.log('🚀 Starting deployment hooks...\n');
+  console.warn('🚀 Starting deployment hooks...\n');
 
   try {
     // 1. Run database migrations
@@ -54,7 +54,7 @@ async function runDeploymentHooks(): Promise<void> {
 
     // 2. Check if we need to sync Demo organization
     if (process.env.SYNC_DEMO_ON_DEPLOY === 'true') {
-      console.log('\n📋 Demo organization sync enabled');
+      console.warn('\n📋 Demo organization sync enabled');
       
       if (process.env.NODE_ENV === 'production') {
         // In production, import from file
@@ -64,7 +64,7 @@ async function runDeploymentHooks(): Promise<void> {
         runCommand('tsx scripts/sync-demo-organization.ts', 'Syncing Demo organization to production');
       }
     } else {
-      console.log('\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)');
+      console.warn('\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)');
     }
 
     // 3. Warm up the application
@@ -72,15 +72,15 @@ async function runDeploymentHooks(): Promise<void> {
       runCommand('curl -f http://localhost:${PORT:-8080}/health || echo "Warmup skipped - server not ready"', 'Warming up application');
     }
 
-    console.log('\n✅ All deployment hooks completed successfully!');
+    console.warn('\n✅ All deployment hooks completed successfully!');
 
-  } catch (__error) {
-    console.error('\n❌ Deployment hooks failed:', error);
+  } catch (_error) {
+    console.error('\n❌ Deployment hooks failed:', _error);
     process.exit(1);
   }
 }
 
 // Run deployment hooks
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runDeploymentHooks().catch(console.error);
+  runDeploymentHooks().catch(console._error);
 }

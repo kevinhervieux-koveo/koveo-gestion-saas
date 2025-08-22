@@ -77,21 +77,22 @@ class QueryCacheManager {
    * Gets cached data if available.
    * @param cacheType Type of cache (users, buildings, etc.).
    * @param key Cache key.
+   * @param _key
    * @returns Cached data or undefined.
    */
-  get<T>(cacheType: string, key: string): T | undefined {
+  get<T>(cacheType: string, _key: string): T | undefined {
     const cache = this.caches.get(cacheType);
     if (!cache) {return undefined;}
 
-    const result = cache.get(key);
+    const result = cache.get(_key);
     if (result !== undefined) {
       this.hitCounts.set(cacheType, (this.hitCounts.get(cacheType) || 0) + 1);
-      console.debug(`Cache hit: ${cacheType}:${key}`);
+      console.warn(`Cache hit: ${cacheType}:${key}`);
       return result;
     }
 
     this.missCounts.set(cacheType, (this.missCounts.get(cacheType) || 0) + 1);
-    console.debug(`Cache miss: ${cacheType}:${key}`);
+    console.warn(`Cache miss: ${cacheType}:${key}`);
     return undefined;
   }
 
@@ -100,13 +101,15 @@ class QueryCacheManager {
    * @param cacheType Type of cache.
    * @param key Cache key.
    * @param data Data to cache.
+   * @param _key
+   * @param _data
    */
-  set<T>(cacheType: string, key: string, data: T): void {
+  set<T>(cacheType: string, _key: string, _data: T): void {
     const cache = this.caches.get(cacheType);
     if (!cache) {return;}
 
-    cache.set(key, data);
-    console.debug(`Cached: ${cacheType}:${key}`);
+    cache.set(key, _data);
+    console.warn(`Cached: ${cacheType}:${key}`);
   }
 
   /**
@@ -122,14 +125,14 @@ class QueryCacheManager {
       // Remove entries matching pattern
       for (const key of cache.keys()) {
         if (this.matchesPattern(key, pattern)) {
-          cache.delete(key);
-          console.debug(`Invalidated: ${cacheType}:${key}`);
+          cache.delete(_key);
+          console.warn(`Invalidated: ${cacheType}:${key}`);
         }
       }
     } else {
       // Clear entire cache
       cache.clear();
-      console.debug(`Cleared cache: ${cacheType}`);
+      console.warn(`Cleared cache: ${cacheType}`);
     }
   }
 
@@ -139,7 +142,7 @@ class QueryCacheManager {
   getStats(): Record<string, any> {
     const stats: Record<string, any> = {};
     
-    for (const [type, cache] of this.caches) {
+    for (const [_type, cache] of this.caches) {
       const hits = this.hitCounts.get(type) || 0;
       const misses = this.missCounts.get(type) || 0;
       const total = hits + misses;
@@ -162,22 +165,23 @@ class QueryCacheManager {
    * Clears all caches.
    */
   clearAll(): void {
-    for (const [type, cache] of this.caches) {
+    for (const [_type, cache] of this.caches) {
       cache.clear();
       this.hitCounts.set(type, 0);
       this.missCounts.set(type, 0);
     }
-    console.log('All caches cleared');
+    console.warn('All caches cleared');
   }
 
   /**
    * Pattern matching for cache key invalidation.
    * @param key
+   * @param _key
    * @param pattern
    */
-  private matchesPattern(key: string, pattern: string): boolean {
+  private matchesPattern(_key: string, pattern: string): boolean {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    return regex.test(key);
+    return regex.test(_key);
   }
 
   /**
@@ -187,7 +191,7 @@ class QueryCacheManager {
   private estimateMemoryUsage(cache: LRUCache<string, any>): string {
     let totalSize = 0;
     for (const value of cache.values()) {
-      totalSize += JSON.stringify(value).length * 2; // Rough estimate
+      totalSize += JSON.stringify(_value).length * 2; // Rough estimate
     }
     return `${(totalSize / 1024).toFixed(2)} KB`;
   }
@@ -230,10 +234,10 @@ export function withCache<T>(
       const result = await operation();
       
       // Cache the result
-      queryCache.set(cacheType, cacheKey, result);
+      queryCache.set(cacheType, cacheKey, _result);
       
-      resolve(result);
-    } catch (___error) {
+      resolve(_result);
+    } catch (____error) {
       reject(_error);
     }
   });
@@ -292,7 +296,7 @@ export class CacheMonitor {
    */
   static logPerformanceStats(): void {
     const stats = queryCache.getStats();
-    console.log('Cache Performance Statistics:');
+    console.warn('Cache Performance Statistics:');
     console.table(stats);
   }
 
@@ -342,14 +346,14 @@ export class CacheWarmer {
    * Warms up caches with frequently accessed data.
    */
   static async warmCaches(): Promise<void> {
-    console.log('Warming up caches...');
+    console.warn('Warming up caches...');
     
     try {
       // This would be implemented with actual database calls
       // Example: Pre-load active users, organizations, etc.
-      console.log('Cache warming complete');
-    } catch (__error) {
-      console.warn('Cache warming failed:', error);
+      console.warn('Cache warming complete');
+    } catch (_error) {
+      console.warn('Cache warming failed:', _error);
     }
   }
 }

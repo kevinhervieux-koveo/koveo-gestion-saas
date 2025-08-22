@@ -1,33 +1,40 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { TrialRequestForm } from '@/components/ui/trial-request-form';
-import { Menu, X, Home, Shield, Wrench, BookOpen, FileText, Scale, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
-import './hamburger-menu.css';
+import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings } from 'lucide-react';
 
 interface HamburgerMenuProps {
   className?: string;
 }
 
 /**
- * HamburgerMenu component.
- * @param props - Component props.
- * @param props.className - CSS class name for styling.
- * @returns JSX element.
+ * Hamburger menu component for mobile navigation.
  */
 export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
 
-  const navigate = (path: string) => {
+  // Close menu when clicking outside or on navigation
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  const handleNavigation = (path: string) => {
     setLocation(path);
     closeMenu();
   };
@@ -76,117 +83,82 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
       {/* Menu Panel */}
       <div
-        className={`
-          fixed top-0 right-0 h-full w-80 max-w-[85vw] shadow-xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-200
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        `}
+        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-background shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
         data-testid="menu-panel"
-        style={{ 
-          backgroundColor: '#ffffff !important',
-          backdropFilter: 'none !important',
-          opacity: '1 !important',
-          background: 'white !important'
-        }}
       >
-        {/* Menu Header */}
-        <div className="flex items-center justify-between p-4 border-b" style={{ backgroundColor: '#ffffff' }}>
-          <h2 className="text-lg font-semibold text-gray-900">{t('menu')}</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={closeMenu}
-            data-testid="close-menu-button"
-            aria-label={t('closeMenu')}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+        <div className="p-6 h-full flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-semibold">Menu</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={closeMenu}
+              className="h-8 w-8"
+              data-testid="menu-close-button"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
-        {/* Menu Content */}
-        <div className="flex flex-col h-full" style={{ backgroundColor: '#ffffff' }}>
           {/* Navigation Items */}
-          <nav className="flex-1 p-4 space-y-2" style={{ backgroundColor: '#ffffff' }}>
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
-                {t('navigation')}
-              </h3>
-              {publicNavItems.map((item) => (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  className="w-full justify-start text-left h-auto py-3 px-3"
-                  onClick={() => navigate(item.path)}
-                  data-testid={item.testId}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  <span>{item.label}</span>
-                </Button>
-              ))}
-            </div>
-
-            {/* Authentication Section */}
-            <div className="pt-4 border-t space-y-1">
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
-                {t('account')}
-              </h3>
-              {isAuthenticated ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-left h-auto py-3 px-3"
-                    onClick={() => navigate('/dashboard')}
-                    data-testid="nav-dashboard"
-                  >
-                    <LayoutDashboard className="mr-3 h-5 w-5" />
-                    <span>{t('dashboard')}</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-left h-auto py-3 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={handleLogout}
-                    data-testid="nav-logout"
-                  >
-                    <LogOut className="mr-3 h-5 w-5" />
-                    <span>{t('logout')}</span>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-left h-auto py-3 px-3"
-                    onClick={() => navigate('/login')}
-                    data-testid="nav-login"
-                  >
-                    <LogIn className="mr-3 h-5 w-5" />
-                    <span>{t('login')}</span>
-                  </Button>
-                  <TrialRequestForm>
+          <nav className="flex-1">
+            <ul className="space-y-2">
+              {publicNavItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.path}>
                     <Button
-                      className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white mt-2"
-                      data-testid="nav-get-started"
+                      variant="ghost"
+                      className="w-full justify-start h-12"
+                      onClick={() => handleNavigation(item.path)}
+                      data-testid={item.testId}
                     >
-                      <LogIn className="mr-3 h-5 w-5" />
-                      <span>{t('getStarted')}</span>
+                      <IconComponent className="mr-3 h-5 w-5" />
+                      {item.label}
                     </Button>
-                  </TrialRequestForm>
-                </>
-              )}
-            </div>
+                  </li>
+                );
+              })}
+            </ul>
           </nav>
 
-          {/* Menu Footer */}
-          <div className="p-4 border-t bg-gray-50" style={{ backgroundColor: '#f9fafb' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">{t('language')}</span>
-              <LanguageSwitcher />
+          {/* User Section */}
+          {user && (
+            <div className="mt-auto border-t pt-4">
+              <div className="flex items-center mb-4 p-3 bg-muted/50 rounded-lg">
+                <User className="h-8 w-8 text-muted-foreground mr-3" />
+                <div>
+                  <p className="font-medium text-sm">{user.first_name} {user.last_name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10"
+                  onClick={() => handleNavigation('/profile')}
+                  data-testid="nav-profile"
+                >
+                  <Settings className="mr-3 h-4 w-4" />
+                  Profile Settings
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleLogout}
+                  data-testid="nav-logout"
+                >
+                  <LogOut className="mr-3 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
             </div>
-            <div className="mt-3 text-xs text-gray-500 text-center">
-              {t('copyright')}
-              <br />
-              {t('law25Compliant')}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

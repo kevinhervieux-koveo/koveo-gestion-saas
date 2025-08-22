@@ -135,8 +135,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         try {
           const data = JSON.parse(message.toString());
           this.handleWebSocketMessage(data, ws);
-        } catch (__error) {
-          console.error('WebSocket message parse error:', __error);
+        } catch (_error) {
+          console.error('WebSocket message parse _error:', _error);
         }
       });
     });
@@ -147,18 +147,19 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   /**
    * Handle incoming WebSocket messages for interactive control.
    * @param data
+   * @param _data
    * @param ws
    */
-  private handleWebSocketMessage(data: any, ws: WebSocket): void {
+  private handleWebSocketMessage(_data: any, ws: WebSocket): void {
     switch (data.type) {
       case 'request_health_check':
         this.performHealthCheck().then(result => {
-          ws.send(JSON.stringify({ type: 'health_check_result', data: result }));
+          ws.send(JSON.stringify({ type: 'health_check_result', _data: result }));
         });
         break;
       
       case 'request_task_execution':
-        this.queueTask(data.task, data.priority || 1, data.context);
+        this.queueTask(data.task, data.priority || 1, data._context);
         break;
       
       case 'request_session_reset':
@@ -172,8 +173,9 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Broadcast updates to all connected clients.
    * @param type
    * @param data
+   * @param _data
    */
-  private broadcastUpdate(type: string, data: unknown): void {
+  private broadcastUpdate(type: string, _data: unknown): void {
     const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() });
     
     this.activeConnections.forEach(ws => {
@@ -209,8 +211,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           (endUsage.user + endUsage.system) / 10000
         );
       }, 100);
-    } catch (__error) {
-      console.warn('Performance tracking error:', __error);
+    } catch (_error) {
+      console.warn('Performance tracking _error:', _error);
     }
   }
 
@@ -254,16 +256,16 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         this.broadcastUpdate('task_completed', { task, result });
         
         // Update session metrics
-        this.updateSessionMetrics(result);
+        this.updateSessionMetrics(_result);
         
-      } catch (__error) {
+      } catch (_error) {
         const failureResult: TaskResult = {
           success: false,
-          message: __error instanceof Error ? __error.message : 'Unknown error',
+          message: _error instanceof Error ? _error.message : 'Unknown error',
           duration: 0
         };
         
-        this.broadcastUpdate('task_failed', { task, result: failureResult });
+        this.broadcastUpdate('task_failed', { task, _result: failureResult });
       }
     }
     
@@ -297,7 +299,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     this.currentSession.progressStages.push(stage);
     
     try {
-      let result: TaskResult;
+      let _result: TaskResult;
       
       // Route task to appropriate handler
       if (task.task.includes('lint') || task.task.includes('eslint')) {
@@ -319,11 +321,11 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       result.duration = Date.now() - startTime;
       return result;
       
-    } catch (__error) {
+    } catch (_error) {
       stage.status = 'failed';
       stage.endTime = new Date();
       
-      throw __error;
+      throw _error;
     }
   }
 
@@ -341,11 +343,11 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       let output = '';
       let errorOutput = '';
       
-      process.stdout?.on('data', (data) => {
+      process.stdout?.on('data', (_data) => {
         output += data.toString();
       });
       
-      process.stderr?.on('data', (data) => {
+      process.stderr?.on('data', (_data) => {
         errorOutput += data.toString();
       });
       
@@ -354,11 +356,11 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         const errorMatches: string[] = output.match(/(\d+) error/g) || [];
         const warningMatches: string[] = output.match(/(\d+) warning/g) || [];
         
-        const errors = errorMatches.reduce((sum: number, match: string) => {
+        const errors = errorMatches.reduce((sum: number, _match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
         
-        const warnings = warningMatches.reduce((sum: number, match: string) => {
+        const warnings = warningMatches.reduce((sum: number, _match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
         
@@ -368,7 +370,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         resolve({
           success: code === 0,
           message: code === 0 ? 'Linting passed' : `Linting failed with ${errors} errors, ${warnings} warnings`,
-          data: { errors, warnings, output: output.slice(-1000) }, // Last 1000 chars
+          _data: { errors, warnings, output: output.slice(-1000) }, // Last 1000 chars
           duration: 0,
           metrics: {
             linesChanged: 0,
@@ -394,11 +396,11 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       
       let output = '';
       
-      process.stdout?.on('data', (data) => {
+      process.stdout?.on('data', (_data) => {
         output += data.toString();
       });
       
-      process.stderr?.on('data', (data) => {
+      process.stderr?.on('data', (_data) => {
         output += data.toString();
       });
       
@@ -417,7 +419,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         resolve({
           success: code === 0,
           message: `Tests: ${passed} passed, ${failed} failed. Coverage: ${coverage.toFixed(1)}%`,
-          data: { passed, failed, coverage },
+          _data: { passed, failed, coverage },
           duration: 0,
           metrics: {
             linesChanged: 0,
@@ -445,11 +447,11 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       
       let output = '';
       
-      process.stdout?.on('data', (data) => {
+      process.stdout?.on('data', (_data) => {
         output += data.toString();
       });
       
-      process.stderr?.on('data', (data) => {
+      process.stderr?.on('data', (_data) => {
         output += data.toString();
       });
       
@@ -460,7 +462,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         resolve({
           success: code === 0,
           message: code === 0 ? `Build completed in ${buildTime}ms` : 'Build failed',
-          data: { buildTime, output: output.slice(-500) },
+          _data: { buildTime, output: output.slice(-500) },
           duration: buildTime
         });
       });
@@ -504,13 +506,13 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         resolve({
           success: true,
           message: 'Command executed successfully',
-          data: { output: output.slice(-500) },
+          _data: { output: output.slice(-500) },
           duration: 0
         });
-      } catch (__error) {
+      } catch (_error) {
         resolve({
           success: false,
-          message: __error instanceof Error ? __error.message : 'Command failed',
+          message: _error instanceof Error ? _error.message : 'Command failed',
           duration: 0
         });
       }
@@ -520,8 +522,9 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   /**
    * Update session metrics based on task result.
    * @param result
+   * @param _result
    */
-  private updateSessionMetrics(result: TaskResult): void {
+  private updateSessionMetrics(_result: TaskResult): void {
     if (result.metrics) {
       // Update file tracking would go here
       // This is a simplified version
@@ -579,8 +582,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         };
       }
       return { exists: false };
-    } catch (__error) {
-      return { exists: false, error: __error instanceof Error ? __error.message : 'Unknown error' };
+    } catch (_error) {
+      return { exists: false, _error: _error instanceof Error ? _error.message : 'Unknown error' };
     }
   }
 
@@ -596,8 +599,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           ? fs.statSync(nodeModulesPath).mtime 
           : null
       };
-    } catch (__error) {
-      return { installed: false, error: __error instanceof Error ? __error.message : 'Unknown error' };
+    } catch (_error) {
+      return { installed: false, _error: _error instanceof Error ? _error.message : 'Unknown error' };
     }
   }
 
@@ -612,7 +615,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         return Object.keys(packageJson.scripts || {});
       }
       return [];
-    } catch (__error) {
+    } catch (_error) {
       return [];
     }
   }

@@ -73,19 +73,19 @@ export function PasswordCreationStep({
 
 
 
-  const handlePasswordChange = (value: string) => {
+  const handlePasswordChange = (_value: string) => {
     setFormData(prev => ({
       ...prev,
       password: value,
-      error: undefined
+      _error: undefined
     }));
   };
 
-  const handleConfirmPasswordChange = (value: string) => {
+  const handleConfirmPasswordChange = (_value: string) => {
     setFormData(prev => ({
       ...prev,
       confirmPassword: value,
-      error: undefined
+      _error: undefined
     }));
   };
 
@@ -130,7 +130,7 @@ export function PasswordCreationStep({
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
-                onChange={(e) => handlePasswordChange(e.target.value)}
+                onChange={(e) => handlePasswordChange(e.target._value)}
                 onBlur={() => handleBlur('password')}
                 placeholder="Entrez votre mot de passe"
                 className={`pl-10 ${hasPasswordError ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -167,7 +167,7 @@ export function PasswordCreationStep({
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={formData.confirmPassword}
-                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                onChange={(e) => handleConfirmPasswordChange(e.target._value)}
                 onBlur={() => handleBlur('confirmPassword')}
                 placeholder="Confirmez votre mot de passe"
                 className={`pl-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}

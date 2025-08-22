@@ -12,7 +12,7 @@ import { glob } from 'glob';
  */
 export interface JSDocTemplate {
   pattern: RegExp;
-  template: (match: RegExpMatchArray, context: TemplateContext) => string;
+  template: (_match: RegExpMatchArray, _context: TemplateContext) => string;
   description: string;
 }
 
@@ -49,7 +49,7 @@ export class JSDocTemplateGenerator {
     // React Component Template
     this.templates.set('react-component', {
       pattern: /export\s+(?:function|const)\s+(\w+)\s*(?:=\s*)?(?:\([^)]*\)\s*=>\s*{|\(\s*\{([^}]+)\}\s*:\s*([^)]+)\))/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const componentName = match[1];
         const props = match[2]?.split(',').map(p => p.trim().split(':')[0].trim()).filter(Boolean) || [];
         
@@ -71,7 +71,7 @@ export class JSDocTemplateGenerator {
     // React Hook Template
     this.templates.set('react-hook', {
       pattern: /export\s+(?:function|const)\s+(use\w+)\s*(?:=\s*)?(?:\([^)]*\)\s*(?:=>\s*{|{))/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const hookName = match[1];
         return `/**\n * ${hookName} custom hook.\n * @returns Hook return value.\n */\n`;
       },
@@ -81,7 +81,7 @@ export class JSDocTemplateGenerator {
     // API Route Handler Template
     this.templates.set('api-handler', {
       pattern: /(?:router\.|app\.)(get|post|put|delete|patch)\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(?:async\s+)?\(?(\w+)\s*,\s*(\w+)\)?\s*=>/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const method = match[1].toUpperCase();
         const route = match[2];
         const reqParam = match[3] || 'req';
@@ -95,7 +95,7 @@ export class JSDocTemplateGenerator {
     // Utility Function Template
     this.templates.set('utility-function', {
       pattern: /export\s+(?:function|const)\s+(\w+)\s*(?:=\s*)?(?:\(([^)]*)\)\s*(?::\s*([^{=]+))?\s*(?:=>\s*{|{))/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const functionName = match[1];
         const params = match[2]?.split(',').map(p => p.trim().split(':')[0].trim()).filter(Boolean) || [];
         const returnType = match[3]?.trim();
@@ -121,7 +121,7 @@ export class JSDocTemplateGenerator {
     // Type/Interface Template
     this.templates.set('type-definition', {
       pattern: /export\s+(?:interface|type)\s+(\w+)/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const typeName = match[1];
         return `/**\n * ${typeName} type definition.\n */\n`;
       },
@@ -131,7 +131,7 @@ export class JSDocTemplateGenerator {
     // Class Template
     this.templates.set('class-definition', {
       pattern: /export\s+class\s+(\w+)/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const className = match[1];
         return `/**\n * ${className} class.\n */\n`;
       },
@@ -141,7 +141,7 @@ export class JSDocTemplateGenerator {
     // Method Template
     this.templates.set('class-method', {
       pattern: /(?:public|private|protected)?\s*(?:async\s+)?(\w+)\s*\(([^)]*)\)(?:\s*:\s*([^{]+))?\s*{/g,
-      template: (match, context) => {
+      template: (match, _context) => {
         const methodName = match[1];
         const params = match[2]?.split(',').map(p => p.trim().split(':')[0].trim()).filter(Boolean) || [];
         const returnType = match[3]?.trim();
@@ -219,9 +219,9 @@ export class JSDocTemplateGenerator {
       billId: 'Unique identifier for the bill',
       
       // Data objects
-      data: 'Data object for the component',
+      _data: 'Data object for the component',
       config: 'Configuration object',
-      options: 'Options object for customization',
+      _options: 'Options object for customization',
       settings: 'Settings configuration object',
       
       // Collections
@@ -245,19 +245,19 @@ export class JSDocTemplateGenerator {
       res: 'Express response object',
       next: 'Express next middleware function',
       id: 'Unique identifier',
-      data: 'Data object to process',
-      options: 'Configuration options',
+      _data: 'Data object to process',
+      _options: 'Configuration options',
       config: 'Configuration object',
-      params: 'Parameters object',
+      _params: 'Parameters object',
       query: 'Query parameters',
       body: 'Request body data',
       headers: 'HTTP headers object',
       payload: 'Data payload',
       callback: 'Callback function',
-      error: 'Error object',
-      result: 'Operation result',
-      value: 'Value to process',
-      key: 'Key identifier',
+      _error: 'Error object',
+      _result: 'Operation result',
+      _value: 'Value to process',
+      _key: 'Key identifier',
       path: 'File or URL path',
       url: 'URL string',
       filename: 'Name of the file',
@@ -277,46 +277,46 @@ export class JSDocTemplateGenerator {
     const words = functionName.replace(/([A-Z])/g, ' $1').toLowerCase().trim();
     
     // Common function patterns
-    if (functionName.startsWith('get')) return `Get ${words.substring(4)}`;
-    if (functionName.startsWith('set')) return `Set ${words.substring(4)}`;
-    if (functionName.startsWith('create')) return `Create ${words.substring(7)}`;
-    if (functionName.startsWith('update')) return `Update ${words.substring(7)}`;
-    if (functionName.startsWith('delete')) return `Delete ${words.substring(7)}`;
-    if (functionName.startsWith('fetch')) return `Fetch ${words.substring(6)}`;
-    if (functionName.startsWith('load')) return `Load ${words.substring(5)}`;
-    if (functionName.startsWith('save')) return `Save ${words.substring(5)}`;
-    if (functionName.startsWith('validate')) return `Validate ${words.substring(9)}`;
-    if (functionName.startsWith('parse')) return `Parse ${words.substring(6)}`;
-    if (functionName.startsWith('format')) return `Format ${words.substring(7)}`;
-    if (functionName.startsWith('calculate')) return `Calculate ${words.substring(10)}`;
-    if (functionName.startsWith('generate')) return `Generate ${words.substring(9)}`;
-    if (functionName.startsWith('transform')) return `Transform ${words.substring(10)}`;
-    if (functionName.startsWith('handle')) return `Handle ${words.substring(7)}`;
-    if (functionName.startsWith('process')) return `Process ${words.substring(8)}`;
-    if (functionName.startsWith('check')) return `Check ${words.substring(6)}`;
-    if (functionName.startsWith('verify')) return `Verify ${words.substring(7)}`;
-    if (functionName.startsWith('find')) return `Find ${words.substring(5)}`;
-    if (functionName.startsWith('search')) return `Search ${words.substring(7)}`;
-    if (functionName.startsWith('filter')) return `Filter ${words.substring(7)}`;
-    if (functionName.startsWith('sort')) return `Sort ${words.substring(5)}`;
-    if (functionName.startsWith('map')) return `Map ${words.substring(4)}`;
-    if (functionName.startsWith('reduce')) return `Reduce ${words.substring(7)}`;
-    if (functionName.startsWith('build')) return `Build ${words.substring(6)}`;
-    if (functionName.startsWith('render')) return `Render ${words.substring(7)}`;
-    if (functionName.startsWith('init')) return `Initialize ${words.substring(5)}`;
-    if (functionName.startsWith('setup')) return `Setup ${words.substring(6)}`;
-    if (functionName.startsWith('cleanup')) return `Cleanup ${words.substring(8)}`;
-    if (functionName.startsWith('reset')) return `Reset ${words.substring(6)}`;
-    if (functionName.startsWith('clear')) return `Clear ${words.substring(6)}`;
-    if (functionName.startsWith('add')) return `Add ${words.substring(4)}`;
-    if (functionName.startsWith('remove')) return `Remove ${words.substring(7)}`;
-    if (functionName.startsWith('toggle')) return `Toggle ${words.substring(7)}`;
-    if (functionName.startsWith('enable')) return `Enable ${words.substring(7)}`;
-    if (functionName.startsWith('disable')) return `Disable ${words.substring(8)}`;
-    if (functionName.startsWith('start')) return `Start ${words.substring(6)}`;
-    if (functionName.startsWith('stop')) return `Stop ${words.substring(5)}`;
-    if (functionName.startsWith('pause')) return `Pause ${words.substring(6)}`;
-    if (functionName.startsWith('resume')) return `Resume ${words.substring(7)}`;
+    if (functionName.startsWith('get')) {return `Get ${words.substring(4)}`;}
+    if (functionName.startsWith('set')) {return `Set ${words.substring(4)}`;}
+    if (functionName.startsWith('create')) {return `Create ${words.substring(7)}`;}
+    if (functionName.startsWith('update')) {return `Update ${words.substring(7)}`;}
+    if (functionName.startsWith('delete')) {return `Delete ${words.substring(7)}`;}
+    if (functionName.startsWith('fetch')) {return `Fetch ${words.substring(6)}`;}
+    if (functionName.startsWith('load')) {return `Load ${words.substring(5)}`;}
+    if (functionName.startsWith('save')) {return `Save ${words.substring(5)}`;}
+    if (functionName.startsWith('validate')) {return `Validate ${words.substring(9)}`;}
+    if (functionName.startsWith('parse')) {return `Parse ${words.substring(6)}`;}
+    if (functionName.startsWith('format')) {return `Format ${words.substring(7)}`;}
+    if (functionName.startsWith('calculate')) {return `Calculate ${words.substring(10)}`;}
+    if (functionName.startsWith('generate')) {return `Generate ${words.substring(9)}`;}
+    if (functionName.startsWith('transform')) {return `Transform ${words.substring(10)}`;}
+    if (functionName.startsWith('handle')) {return `Handle ${words.substring(7)}`;}
+    if (functionName.startsWith('process')) {return `Process ${words.substring(8)}`;}
+    if (functionName.startsWith('check')) {return `Check ${words.substring(6)}`;}
+    if (functionName.startsWith('verify')) {return `Verify ${words.substring(7)}`;}
+    if (functionName.startsWith('find')) {return `Find ${words.substring(5)}`;}
+    if (functionName.startsWith('search')) {return `Search ${words.substring(7)}`;}
+    if (functionName.startsWith('filter')) {return `Filter ${words.substring(7)}`;}
+    if (functionName.startsWith('sort')) {return `Sort ${words.substring(5)}`;}
+    if (functionName.startsWith('map')) {return `Map ${words.substring(4)}`;}
+    if (functionName.startsWith('reduce')) {return `Reduce ${words.substring(7)}`;}
+    if (functionName.startsWith('build')) {return `Build ${words.substring(6)}`;}
+    if (functionName.startsWith('render')) {return `Render ${words.substring(7)}`;}
+    if (functionName.startsWith('init')) {return `Initialize ${words.substring(5)}`;}
+    if (functionName.startsWith('setup')) {return `Setup ${words.substring(6)}`;}
+    if (functionName.startsWith('cleanup')) {return `Cleanup ${words.substring(8)}`;}
+    if (functionName.startsWith('reset')) {return `Reset ${words.substring(6)}`;}
+    if (functionName.startsWith('clear')) {return `Clear ${words.substring(6)}`;}
+    if (functionName.startsWith('add')) {return `Add ${words.substring(4)}`;}
+    if (functionName.startsWith('remove')) {return `Remove ${words.substring(7)}`;}
+    if (functionName.startsWith('toggle')) {return `Toggle ${words.substring(7)}`;}
+    if (functionName.startsWith('enable')) {return `Enable ${words.substring(7)}`;}
+    if (functionName.startsWith('disable')) {return `Disable ${words.substring(8)}`;}
+    if (functionName.startsWith('start')) {return `Start ${words.substring(6)}`;}
+    if (functionName.startsWith('stop')) {return `Stop ${words.substring(5)}`;}
+    if (functionName.startsWith('pause')) {return `Pause ${words.substring(6)}`;}
+    if (functionName.startsWith('resume')) {return `Resume ${words.substring(7)}`;}
 
     return `${words.charAt(0).toUpperCase() + words.slice(1)} function`;
   }
@@ -340,21 +340,21 @@ export class JSDocTemplateGenerator {
     const cleanType = returnType.replace(/Promise<|>|\s/g, '');
     
     if (returnType.includes('Promise')) {
-      if (cleanType === 'void') return 'Promise that resolves when operation completes';
-      if (cleanType === 'boolean') return 'Promise resolving to boolean result';
-      if (cleanType === 'string') return 'Promise resolving to string result';
-      if (cleanType === 'number') return 'Promise resolving to numeric result';
-      if (cleanType.includes('[]')) return 'Promise resolving to array of results';
+      if (cleanType === 'void') {return 'Promise that resolves when operation completes';}
+      if (cleanType === 'boolean') {return 'Promise resolving to boolean result';}
+      if (cleanType === 'string') {return 'Promise resolving to string result';}
+      if (cleanType === 'number') {return 'Promise resolving to numeric result';}
+      if (cleanType.includes('[]')) {return 'Promise resolving to array of results';}
       return `Promise resolving to ${cleanType}`;
     }
     
-    if (returnType.includes('boolean')) return 'Boolean result';
-    if (returnType.includes('string')) return 'String result';
-    if (returnType.includes('number')) return 'Numeric result';
-    if (returnType.includes('[]')) return 'Array result';
-    if (returnType.includes('JSX.Element')) return 'JSX element';
-    if (returnType.includes('ReactNode')) return 'React node element';
-    if (returnType.includes('void')) return 'No return value';
+    if (returnType.includes('boolean')) {return 'Boolean result';}
+    if (returnType.includes('string')) {return 'String result';}
+    if (returnType.includes('number')) {return 'Numeric result';}
+    if (returnType.includes('[]')) {return 'Array result';}
+    if (returnType.includes('JSX.Element')) {return 'JSX element';}
+    if (returnType.includes('ReactNode')) {return 'React node element';}
+    if (returnType.includes('void')) {return 'No return value';}
     
     return `${returnType} result`;
   }
@@ -371,7 +371,7 @@ export class JSDocTemplateGenerator {
     // Determine file type
     const fileType = this.determineFileType(filePath, content);
     
-    const context: TemplateContext = {
+    const _context: TemplateContext = {
       fileName,
       fileType,
       imports: this.extractImports(content),
@@ -382,7 +382,7 @@ export class JSDocTemplateGenerator {
     let templatesApplied = 0;
 
     // Apply templates in order
-    for (const [templateName, template] of this.templates.entries()) {
+    for (const [_templateName, template] of this.templates.entries()) {
       const matches = Array.from(content.matchAll(template.pattern));
       
       for (const match of matches) {
@@ -396,7 +396,7 @@ export class JSDocTemplateGenerator {
           continue;
         }
 
-        const jsdoc = template.template(match, context);
+        const jsdoc = template.template(match, _context);
         const matchIndex = updatedContent.indexOf(match[0]);
         
         updatedContent = updatedContent.substring(0, matchIndex) + 
@@ -422,10 +422,10 @@ export class JSDocTemplateGenerator {
    * @returns File type classification.
    */
   private determineFileType(filePath: string, content: string): TemplateContext['fileType'] {
-    if (filePath.includes('hooks/') || /use\w+/.test(content)) return 'hook';
-    if (filePath.includes('components/') || content.includes('JSX.Element')) return 'component';
-    if (filePath.includes('routes/') || filePath.includes('api/')) return 'api';
-    if (content.includes('export interface') || content.includes('export type')) return 'type';
+    if (filePath.includes('hooks/') || /use\w+/.test(content)) {return 'hook';}
+    if (filePath.includes('components/') || content.includes('JSX.Element')) {return 'component';}
+    if (filePath.includes('routes/') || filePath.includes('api/')) {return 'api';}
+    if (content.includes('export interface') || content.includes('export type')) {return 'type';}
     return 'utility';
   }
 
@@ -453,11 +453,18 @@ export class JSDocTemplateGenerator {
    * Bulk apply templates to multiple files.
    * @param pattern - Glob pattern for files to process.
    * @param options - Processing options.
+   * @param options.exclude
+   * @param options.maxFiles
+   * @param options.dryRun
+   * @param _options
+   * @param _options.exclude
+   * @param _options.maxFiles
+   * @param _options.dryRun
    * @returns Promise resolving to processing summary.
    */
   public async bulkApplyTemplates(
     pattern: string = '**/*.{ts,tsx}',
-    options: {
+    _options: {
       exclude?: string[];
       maxFiles?: number;
       dryRun?: boolean;
@@ -488,7 +495,7 @@ export class JSDocTemplateGenerator {
         }
         
         filesProcessed++;
-      } catch (error) {
+      } catch (_error) {
         skippedFiles.push(file);
       }
     }

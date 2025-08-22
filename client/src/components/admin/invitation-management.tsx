@@ -124,7 +124,7 @@ export function InvitationManagement({
       });
       setCancellingInvitation(null);
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -145,7 +145,7 @@ export function InvitationManagement({
         description: t('invitationResentSuccessfully'),
       });
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: t('error'),
         description: error.message,

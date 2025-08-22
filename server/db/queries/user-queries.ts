@@ -408,7 +408,7 @@ export async function getUserSummary(userContext: UserContext) {
     }
     
     // Count by role
-    if (roleDistribution.hasOwnProperty(user.role)) {
+    if (Object.prototype.hasOwnProperty.call(roleDistribution, user.role)) {
       roleDistribution[user.role as keyof typeof roleDistribution]++;
     }
     

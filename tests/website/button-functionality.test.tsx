@@ -20,7 +20,8 @@ import HomePage from '@/pages/home';
  * @param root0.children
  * @param root0.initialLocation
  * @param root0.isAuthenticated
- */
+  * @returns Promise resolving to result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/',

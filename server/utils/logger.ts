@@ -23,7 +23,7 @@ export interface LogContext {
  * @returns Function result.
  */
 export function logInfo(message: string, context?: LogContext) {
-  console.log(`[INFO] ${message}`, context ? JSON.stringify(context) : '');
+  console.warn(`[INFO] ${message}`, context ? JSON.stringify(context) : '');
 }
 
 /**

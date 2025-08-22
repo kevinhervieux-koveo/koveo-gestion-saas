@@ -71,7 +71,7 @@ describe('Bills Validation Tests', () => {
         const result = billCategorySchema.safeParse(category);
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data).toBe(category);
+          expect(result._data).toBe(category);
         }
       });
     });
@@ -102,7 +102,7 @@ describe('Bills Validation Tests', () => {
         const result = paymentTypeSchema.safeParse(type);
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data).toBe(type);
+          expect(result._data).toBe(type);
         }
       });
     });
@@ -132,7 +132,7 @@ describe('Bills Validation Tests', () => {
         const result = schedulePaymentSchema.safeParse(schedule);
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data).toBe(schedule);
+          expect(result._data).toBe(schedule);
         }
       });
     });
@@ -162,7 +162,7 @@ describe('Bills Validation Tests', () => {
         const result = billStatusSchema.safeParse(status);
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data).toBe(status);
+          expect(result._data).toBe(status);
         }
       });
     });

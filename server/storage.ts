@@ -1287,7 +1287,7 @@ export class MemStorage implements IStorage {
    * @example
    * ```typescript
    * const users = await storage.getUsers();
-   * console.log(`Found ${users.length} users`);
+   * console.warn(`Found ${users.length} users`);
    * ```
    */
   async getUsers(): Promise<User[]> {
@@ -1304,7 +1304,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const user = await storage.getUser('user-123');
    * if (user) {
-   *   console.log(`User: ${user.email}`);
+   *   console.warn(`User: ${user.email}`);
    * }
    * ```
    */
@@ -1322,7 +1322,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const user = await storage.getUserByEmail('john@example.com');
    * if (user) {
-   *   console.log(`Found user: ${user.name}`);
+   *   console.warn(`Found user: ${user.name}`);
    * }
    * ```
    */
@@ -1401,7 +1401,7 @@ export class MemStorage implements IStorage {
    * @example
    * ```typescript
    * const orgs = await storage.getOrganizations();
-   * console.log(`Managing ${orgs.length} organizations`);
+   * console.warn(`Managing ${orgs.length} organizations`);
    * ```
    */
   async getOrganizations(): Promise<Organization[]> {
@@ -1418,7 +1418,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const org = await storage.getOrganization('org-456');
    * if (org) {
-   *   console.log(`Organization: ${org.name} in ${org.city}`);
+   *   console.warn(`Organization: ${org.name} in ${org.city}`);
    * }
    * ```
    */
@@ -1436,7 +1436,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const org = await storage.getOrganizationByName('ABC Property Management');
    * if (org) {
-   *   console.log(`Found organization with ID: ${org.id}`);
+   *   console.warn(`Found organization with ID: ${org.id}`);
    * }
    * ```
    */
@@ -1525,7 +1525,7 @@ export class MemStorage implements IStorage {
    * @example
    * ```typescript
    * const buildings = await storage.getBuildingsByOrganization('org-456');
-   * console.log(`Organization manages ${buildings.length} buildings`);
+   * console.warn(`Organization manages ${buildings.length} buildings`);
    * ```
    */
   async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
@@ -1560,7 +1560,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const building = await storage.getBuilding('bldg-789');
    * if (building) {
-   *   console.log(`Building: ${building.name} has ${building.totalUnits} units`);
+   *   console.warn(`Building: ${building.name} has ${building.totalUnits} units`);
    * }
    * ```
    */
@@ -1652,7 +1652,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const deleted = await storage.deleteBuilding('bldg-789');
    * if (deleted) {
-   *   console.log('Building successfully deactivated');
+   *   console.warn('Building successfully deactivated');
    * }
    * ```
    */
@@ -1682,7 +1682,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const residences = await storage.getResidences();
    * const activeResidences = residences.filter(r => r.isActive);
-   * console.log(`Found ${activeResidences.length} active residences`);
+   * console.warn(`Found ${activeResidences.length} active residences`);
    * ```
    */
   async getResidences(): Promise<Residence[]> {
@@ -1699,7 +1699,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const residence = await storage.getResidence('res-123');
    * if (residence) {
-   *   console.log(`Unit ${residence.unitNumber}: ${residence.bedrooms} bed, ${residence.bathrooms} bath`);
+   *   console.warn(`Unit ${residence.unitNumber}: ${residence.bedrooms} bed, ${residence.bathrooms} bath`);
    * }
    * ```
    */
@@ -1716,7 +1716,7 @@ export class MemStorage implements IStorage {
    * @example
    * ```typescript
    * const residences = await storage.getResidencesByBuilding('bldg-789');
-   * console.log(`Building has ${residences.length} residential units`);
+   * console.warn(`Building has ${residences.length} residential units`);
    * const vacantUnits = residences.filter(r => !r.isOccupied);
    * ```
    */
@@ -1809,7 +1809,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const deleted = await storage.deleteResidence('res-123');
    * if (deleted) {
-   *   console.log('Residence successfully deactivated');
+   *   console.warn('Residence successfully deactivated');
    * }
    * ```
    */
@@ -1889,7 +1889,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const pillar = await storage.getPillar('pillar-1');
    * if (pillar) {
-   *   console.log(`Pillar: ${pillar.name} - Status: ${pillar.status}`);
+   *   console.warn(`Pillar: ${pillar.name} - Status: ${pillar.status}`);
    * }
    * ```
    */
@@ -1970,7 +1970,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const statuses = await storage.getWorkspaceStatuses();
    * const completedComponents = statuses.filter(s => s.status === 'complete');
-   * console.log(`${completedComponents.length} components completed`);
+   * console.warn(`${completedComponents.length} components completed`);
    * ```
    */
   async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> {
@@ -1987,7 +1987,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const status = await storage.getWorkspaceStatus('TypeScript Configuration');
    * if (status) {
-   *   console.log(`Component status: ${status.status}`);
+   *   console.warn(`Component status: ${status.status}`);
    * }
    * ```
    */
@@ -2075,8 +2075,8 @@ export class MemStorage implements IStorage {
   /**
    *
    */
-  async getFrameworkConfig(key: string): Promise<FrameworkConfiguration | undefined> {
-    return this.frameworkConfigs.get(key);
+  async getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined> {
+    return this.frameworkConfigs.get(_key);
   }
 
   /**
@@ -2319,7 +2319,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const deleted = await storage.deleteFeature('feat-456');
    * if (deleted) {
-   *   console.log('Feature and related items deleted successfully');
+   *   console.warn('Feature and related items deleted successfully');
    * }
    * ```
    */
@@ -2339,7 +2339,7 @@ export class MemStorage implements IStorage {
    * @example
    * ```typescript
    * const items = await storage.getActionableItemsByFeature('feat-456');
-   * console.log(`Feature has ${items.length} actionable items`);
+   * console.warn(`Feature has ${items.length} actionable items`);
    * ```
    */
   async getActionableItemsByFeature(featureId: string): Promise<ActionableItem[]> {
@@ -2358,7 +2358,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const item = await storage.getActionableItem('item-789');
    * if (item) {
-   *   console.log(`Item: ${item.title} - Status: ${item.status}`);
+   *   console.warn(`Item: ${item.title} - Status: ${item.status}`);
    * }
    * ```
    */
@@ -2456,7 +2456,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const deleted = await storage.deleteActionableItem('item-789');
    * if (deleted) {
-   *   console.log('Actionable item deleted successfully');
+   *   console.warn('Actionable item deleted successfully');
    * }
    * ```
    */
@@ -2474,7 +2474,7 @@ export class MemStorage implements IStorage {
    * ```typescript
    * const deleted = await storage.deleteActionableItemsByFeature('feat-456');
    * if (deleted) {
-   *   console.log('All feature actionable items deleted');
+   *   console.warn('All feature actionable items deleted');
    * }
    * ```
    */

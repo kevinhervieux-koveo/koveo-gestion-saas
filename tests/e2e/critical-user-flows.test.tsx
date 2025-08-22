@@ -393,7 +393,7 @@ describe('Critical Quebec Property Management User Flows', () => {
           json: () => Promise.resolve([
             {
               metricType: 'quebec_compliance_score',
-              value: '87.5',
+              _value: '87.5',
               timestamp: new Date().toISOString(),
               quebecSpecific: true
             }

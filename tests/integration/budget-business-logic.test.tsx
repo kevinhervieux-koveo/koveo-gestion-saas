@@ -96,7 +96,7 @@ describe('Budget Business Logic Integration Tests', () => {
     mockUseLanguage.mockReturnValue({
       language: 'en',
       setLanguage: jest.fn(),
-      t: jest.fn((key) => key),
+      t: jest.fn((_key) => _key),
       translations: {},
     });
 
@@ -150,7 +150,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should show positive cash flow
@@ -211,7 +211,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should show negative cash flow
@@ -274,7 +274,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Check individual property contributions
@@ -364,7 +364,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Starting balance: $100,000
@@ -432,7 +432,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Balance would be $100,000 - $50,000 = $50,000, below minimum of $75,000
@@ -485,7 +485,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
@@ -540,7 +540,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
@@ -596,7 +596,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
@@ -672,13 +672,13 @@ describe('Budget Business Logic Integration Tests', () => {
 
       // Set multi-year range
       const startYearInput = screen.getByDisplayValue(new Date().getFullYear().toString());
-      fireEvent.change(startYearInput, { target: { value: '2023' } });
+      fireEvent.change(startYearInput, { target: { _value: '2023' } });
 
       const endYearInput = screen.getByDisplayValue((new Date().getFullYear() + 3).toString());
-      fireEvent.change(endYearInput, { target: { value: '2024' } });
+      fireEvent.change(endYearInput, { target: { _value: '2024' } });
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should show cumulative totals across years
@@ -730,14 +730,14 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Change year range
       const startYearInput = screen.getByDisplayValue(new Date().getFullYear().toString());
-      fireEvent.change(startYearInput, { target: { value: '2024' } });
+      fireEvent.change(startYearInput, { target: { _value: '2024' } });
 
       const endYearInput = screen.getByDisplayValue((new Date().getFullYear() + 3).toString());
-      fireEvent.change(endYearInput, { target: { value: '2024' } });
+      fireEvent.change(endYearInput, { target: { _value: '2024' } });
 
       await waitFor(() => {
         // Should fetch new data for the selected year range
@@ -821,7 +821,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should handle null/zero ownership percentages gracefully
@@ -872,7 +872,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should show zero values for empty data
@@ -917,7 +917,7 @@ describe('Budget Business Logic Integration Tests', () => {
       );
 
       const buildingSelect = screen.getByDisplayValue('Select a building...');
-      fireEvent.change(buildingSelect, { target: { value: 'building-1' } });
+      fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       await waitFor(() => {
         // Should handle malformed JSON gracefully and show bank account info

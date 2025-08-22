@@ -76,11 +76,15 @@ endpoint(variables)
       
       return response.text() as unknown as TData;
     },
-    onSuccess: async (data: TData, variables: TVariables) => {
+    onSuccess: async (_data: TData, variables: TVariables) => {
       // Show success message  /**
    * If function.
    * @param config.successMessage - config.successMessage parameter.
+   */  /**
+   * If function.
+   * @param config.successMessage - config.successMessage parameter.
    */
+
 
       if (config.successMessage) {
         const message = typeof config.successMessage === 'function'
@@ -104,12 +108,20 @@ successMessage(data, variables)
       // Invalidate specified queries  /**
    * If function.
    * @param config.invalidateQueries - config.invalidateQueries parameter.
+   */  /**
+   * If function.
+   * @param config.invalidateQueries - config.invalidateQueries parameter.
    */
+
 
       if (config.invalidateQueries) {  /**
    * For function.
    * @param const queryKey of config.invalidateQueries - const queryKey of config.invalidateQueries parameter.
+   */  /**
+   * For function.
+   * @param const queryKey of config.invalidateQueries - const queryKey of config.invalidateQueries parameter.
    */
+
 
         for (const queryKey of config.invalidateQueries) {
           await queryClient.invalidateQueries({ queryKey: [queryKey] });
@@ -119,13 +131,17 @@ successMessage(data, variables)
       // Execute success callback  /**
    * If function.
    * @param config.onSuccessCallback - config.onSuccessCallback parameter.
+   */  /**
+   * If function.
+   * @param config.onSuccessCallback - config.onSuccessCallback parameter.
    */
+
 
       if (config.onSuccessCallback) {
         await config.onSuccessCallback(data, variables);
       }
     },
-    onError: async (error: TError, variables: TVariables) => {
+    onError: async (_error: TError, variables: TVariables) => {
       // Show error message
       const message = config.errorMessage
         ? typeof config.errorMessage === 'function'
@@ -151,7 +167,11 @@ errorMessage(error, variables)
       // Execute error callback  /**
    * If function.
    * @param config.onErrorCallback - config.onErrorCallback parameter.
+   */  /**
+   * If function.
+   * @param config.onErrorCallback - config.onErrorCallback parameter.
    */
+
 
       if (config.onErrorCallback) {
         await config.onErrorCallback(error, variables);

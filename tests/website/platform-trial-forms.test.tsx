@@ -18,7 +18,8 @@ import HomePage from '@/pages/home';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
- */
+  * @returns Promise resolving to result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -317,7 +318,7 @@ describe('Platform Trial Forms Tests', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 375,
+        _value: 375,
       });
 
       render(
@@ -389,7 +390,7 @@ describe('Platform Trial Forms Tests', () => {
       ];
 
       mockErrors.forEach(error => {
-        expect(error).toMatch(/(please|required|must|should)/i);
+        expect(_error).toMatch(/(please|required|must|should)/i);
         expect(error.length).toBeGreaterThan(10);
       });
     });
@@ -531,7 +532,7 @@ export async function fillFormData(
 ): Promise<void> {
   const user = userEvent.setup();
   
-  for (const [fieldName, value] of Object.entries(formData)) {
+  for (const [_fieldName, value] of Object.entries(formData)) {
     const field = screen.queryByLabelText(new RegExp(fieldName, 'i')) ||
                   screen.queryByPlaceholderText(new RegExp(fieldName, 'i')) ||
                   screen.queryByTestId(fieldName) ||
@@ -539,7 +540,7 @@ export async function fillFormData(
     
     if (field) {
       await user.clear(field);
-      await user.type(field, value);
+      await user.type(field, _value);
     }
   }
 }

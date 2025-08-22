@@ -13,7 +13,7 @@ import * as path from 'path';
 interface ComponentAnalysis {
   name: string;
   filePath: string;
-  props: string[];
+  _props: string[];
   hooks: string[];
   patterns: string[];
   complexity: number;
@@ -188,7 +188,7 @@ const generateRefactorSuggestion = (component: ComponentAnalysis): string => {
   }
   
   if (component.patterns.includes('modal-dialog') && component.similarComponents.length > 1) {
-    return `Extract BaseModal component with common props: ${component.props.filter(p => p.includes('open') || p.includes('close') || p.includes('title')).join(', ')}`;
+    return `Extract BaseModal component with common _props: ${component.props.filter(p => p.includes('open') || p.includes('close') || p.includes('title')).join(', ')}`;
   }
   
   if (component.patterns.includes('card-layout') && component.similarComponents.length > 2) {
@@ -226,7 +226,7 @@ describe('Enhanced UI Component Redundancy Detection', () => {
             componentFiles.push(fullPath);
           }
         }
-      } catch (__error) {
+      } catch (_error) {
         // Directory might not exist
       }
     };
@@ -251,8 +251,8 @@ describe('Enhanced UI Component Redundancy Detection', () => {
 
   describe('Component Structure Analysis', () => {
     it('should analyze all UI components and identify patterns', () => {
-      console.log('\n=== COMPONENT STRUCTURE ANALYSIS ===\n');
-      console.log(`Total components analyzed: ${componentAnalyses.length}`);
+      console.warn('\n=== COMPONENT STRUCTURE ANALYSIS ===\n');
+      console.warn(`Total components analyzed: ${componentAnalyses.length}`);
       
       // Group by patterns
       const patternGroups = new Map<string, ComponentAnalysis[]>();
@@ -265,11 +265,11 @@ describe('Enhanced UI Component Redundancy Detection', () => {
         });
       });
       
-      console.log('\nPattern distribution:');
+      console.warn('\nPattern distribution:');
       [...patternGroups.entries()]
         .sort((a, b) => b[1].length - a[1].length)
         .forEach(([pattern, components]) => {
-          console.log(`- ${pattern}: ${components.length} components`);
+          console.warn(`- ${pattern}: ${components.length} components`);
         });
       
       // Complexity analysis
@@ -279,10 +279,10 @@ describe('Enhanced UI Component Redundancy Detection', () => {
         high: componentAnalyses.filter(c => c.complexity > 15).length
       };
       
-      console.log('\nComplexity distribution:');
-      console.log(`- Low (≤5): ${complexityStats.low} components`);
-      console.log(`- Medium (6-15): ${complexityStats.medium} components`);
-      console.log(`- High (>15): ${complexityStats.high} components`);
+      console.warn('\nComplexity distribution:');
+      console.warn(`- Low (≤5): ${complexityStats.low} components`);
+      console.warn(`- Medium (6-15): ${complexityStats.medium} components`);
+      console.warn(`- High (>15): ${complexityStats.high} components`);
       
       expect(componentAnalyses.length).toBeGreaterThan(0);
     });
@@ -290,25 +290,25 @@ describe('Enhanced UI Component Redundancy Detection', () => {
     it('should identify components with similar patterns', () => {
       const componentsWithSimilar = componentAnalyses.filter(c => c.similarComponents.length > 0);
       
-      console.log('\n=== SIMILAR COMPONENT PATTERNS ===\n');
-      console.log(`Components with similar patterns: ${componentsWithSimilar.length}`);
+      console.warn('\n=== SIMILAR COMPONENT PATTERNS ===\n');
+      console.warn(`Components with similar patterns: ${componentsWithSimilar.length}`);
       
       componentsWithSimilar
         .sort((a, b) => b.similarComponents.length - a.similarComponents.length)
         .slice(0, 10)
         .forEach(component => {
-          console.log(`\n📦 ${component.name}`);
-          console.log(`   File: ${component.filePath.replace('./client/src/', '')}`);
-          console.log(`   Patterns: ${component.patterns.join(', ')}`);
-          console.log(`   Similar to: ${component.similarComponents.slice(0, 3).join(', ')}${component.similarComponents.length > 3 ? '...' : ''}`);
-          console.log(`   Complexity: ${component.complexity}`);
+          console.warn(`\n📦 ${component.name}`);
+          console.warn(`   File: ${component.filePath.replace('./client/src/', '')}`);
+          console.warn(`   Patterns: ${component.patterns.join(', ')}`);
+          console.warn(`   Similar to: ${component.similarComponents.slice(0, 3).join(', ')}${component.similarComponents.length > 3 ? '...' : ''}`);
+          console.warn(`   Complexity: ${component.complexity}`);
         });
       
       expect(componentsWithSimilar.length).toBeGreaterThan(0);
     });
 
     it('should analyze prop patterns and commonalities', () => {
-      const allProps = componentAnalyses.flatMap(c => c.props);
+      const allProps = componentAnalyses.flatMap(c => c._props);
       const propFrequency = new Map<string, number>();
       
       allProps.forEach(prop => {
@@ -319,13 +319,13 @@ describe('Enhanced UI Component Redundancy Detection', () => {
         .filter(([_, count]) => count >= 3)
         .sort((a, b) => b[1] - a[1]);
       
-      console.log('\n=== PROP PATTERN ANALYSIS ===\n');
-      console.log(`Total unique props: ${propFrequency.size}`);
-      console.log(`Common props (used 3+ times): ${commonProps.length}`);
+      console.warn('\n=== PROP PATTERN ANALYSIS ===\n');
+      console.warn(`Total unique _props: ${propFrequency.size}`);
+      console.warn(`Common props (used 3+ times): ${commonProps.length}`);
       
-      console.log('\nMost common props:');
+      console.warn('\nMost common _props:');
       commonProps.slice(0, 15).forEach(([prop, count]) => {
-        console.log(`- ${prop}: ${count} components`);
+        console.warn(`- ${prop}: ${count} components`);
       });
       
       // Suggest interface consolidation
@@ -341,9 +341,9 @@ describe('Enhanced UI Component Redundancy Detection', () => {
       }
       
       if (interfaceSuggestions.length > 0) {
-        console.log('\n💡 Suggested interface consolidation:');
+        console.warn('\n💡 Suggested interface consolidation:');
         interfaceSuggestions.forEach(suggestion => {
-          console.log(`- ${suggestion}`);
+          console.warn(`- ${suggestion}`);
         });
       }
       
@@ -355,27 +355,27 @@ describe('Enhanced UI Component Redundancy Detection', () => {
     it('should generate comprehensive redundancy report', () => {
       const redundancyResults = generateRedundancyReport(componentAnalyses);
       
-      console.log('\n=== REDUNDANCY ANALYSIS REPORT ===\n');
-      console.log(`Components with redundancy potential: ${redundancyResults.length}`);
+      console.warn('\n=== REDUNDANCY ANALYSIS REPORT ===\n');
+      console.warn(`Components with redundancy potential: ${redundancyResults.length}`);
       
       // Group by reusability opportunity
       const highOpportunity = redundancyResults.filter(r => r.reusabilityOpportunity === 'high');
       const mediumOpportunity = redundancyResults.filter(r => r.reusabilityOpportunity === 'medium');
       const lowOpportunity = redundancyResults.filter(r => r.reusabilityOpportunity === 'low');
       
-      console.log(`- High reusability potential: ${highOpportunity.length}`);
-      console.log(`- Medium reusability potential: ${mediumOpportunity.length}`);
-      console.log(`- Low reusability potential: ${lowOpportunity.length}`);
+      console.warn(`- High reusability potential: ${highOpportunity.length}`);
+      console.warn(`- Medium reusability potential: ${mediumOpportunity.length}`);
+      console.warn(`- Low reusability potential: ${lowOpportunity.length}`);
       
       // Show top redundancy candidates
-      console.log('\n🔥 TOP REDUNDANCY CANDIDATES:\n');
-      redundancyResults.slice(0, 8).forEach((result, index) => {
-        console.log(`${index + 1}. ${result.componentName}`);
-        console.log(`   Redundancy Score: ${result.redundancyScore}/100`);
-        console.log(`   Patterns: ${result.duplicatePatterns.join(', ')}`);
-        console.log(`   Opportunity: ${result.reusabilityOpportunity.toUpperCase()}`);
-        console.log(`   💡 Suggestion: ${result.suggestedRefactor}`);
-        console.log('');
+      console.warn('\n🔥 TOP REDUNDANCY CANDIDATES:\n');
+      redundancyResults.slice(0, 8).forEach((result, _index) => {
+        console.warn(`${index + 1}. ${result.componentName}`);
+        console.warn(`   Redundancy Score: ${result.redundancyScore}/100`);
+        console.warn(`   Patterns: ${result.duplicatePatterns.join(', ')}`);
+        console.warn(`   Opportunity: ${result.reusabilityOpportunity.toUpperCase()}`);
+        console.warn(`   💡 Suggestion: ${result.suggestedRefactor}`);
+        console.warn('');
       });
       
       expect(redundancyResults.length).toBeGreaterThan(0);
@@ -398,17 +398,17 @@ describe('Enhanced UI Component Redundancy Detection', () => {
         .filter(([_, components]) => components.length >= 3)
         .sort((a, b) => b[1].length - a[1].length);
       
-      console.log('\n=== COMPONENT EXTRACTION OPPORTUNITIES ===\n');
-      console.log(`Patterns suitable for extraction: ${extractionOpportunities.length}`);
+      console.warn('\n=== COMPONENT EXTRACTION OPPORTUNITIES ===\n');
+      console.warn(`Patterns suitable for extraction: ${extractionOpportunities.length}`);
       
       extractionOpportunities.forEach(([pattern, components]) => {
-        console.log(`\n🧩 ${pattern.toUpperCase()} PATTERN`);
-        console.log(`   Used in ${components.length} components`);
-        console.log(`   Components: ${components.slice(0, 5).join(', ')}${components.length > 5 ? '...' : ''}`);
+        console.warn(`\n🧩 ${pattern.toUpperCase()} PATTERN`);
+        console.warn(`   Used in ${components.length} components`);
+        console.warn(`   Components: ${components.slice(0, 5).join(', ')}${components.length > 5 ? '...' : ''}`);
         
         // Generate extraction suggestion
         const suggestion = generateExtractionSuggestion(pattern, components);
-        console.log(`   💡 Extraction: ${suggestion}`);
+        console.warn(`   💡 Extraction: ${suggestion}`);
       });
       
       expect(extractionOpportunities.length).toBeGreaterThan(0);
@@ -428,39 +428,39 @@ describe('Enhanced UI Component Redundancy Detection', () => {
         extractionOpportunities: [...new Set(componentAnalyses.flatMap(c => c.patterns))].length
       };
       
-      console.log('\n=== CODEBASE REDUNDANCY METRICS ===\n');
-      console.log(`📊 Overall Statistics:`);
-      console.log(`   Total Components: ${metrics.totalComponents}`);
-      console.log(`   Components with Redundancy: ${metrics.componentsWithRedundancy} (${metrics.redundancyPercentage}%)`);
-      console.log(`   High-Priority Refactor Candidates: ${metrics.highOpportunityComponents}`);
-      console.log(`   Average Complexity Score: ${metrics.averageComplexity}/100`);
-      console.log(`   Unique Patterns Identified: ${metrics.extractionOpportunities}`);
+      console.warn('\n=== CODEBASE REDUNDANCY METRICS ===\n');
+      console.warn(`📊 Overall Statistics:`);
+      console.warn(`   Total Components: ${metrics.totalComponents}`);
+      console.warn(`   Components with Redundancy: ${metrics.componentsWithRedundancy} (${metrics.redundancyPercentage}%)`);
+      console.warn(`   High-Priority Refactor Candidates: ${metrics.highOpportunityComponents}`);
+      console.warn(`   Average Complexity Score: ${metrics.averageComplexity}/100`);
+      console.warn(`   Unique Patterns Identified: ${metrics.extractionOpportunities}`);
       
       // Redundancy health assessment
-      console.log('\n🏥 Codebase Health Assessment:');
+      console.warn('\n🏥 Codebase Health Assessment:');
       if (metrics.redundancyPercentage > 40) {
-        console.log('   🔴 HIGH REDUNDANCY: Significant refactoring opportunities');
-        console.log('   📈 Recommended: Start with high-priority components');
+        console.warn('   🔴 HIGH REDUNDANCY: Significant refactoring opportunities');
+        console.warn('   📈 Recommended: Start with high-priority components');
       } else if (metrics.redundancyPercentage > 20) {
-        console.log('   🟡 MODERATE REDUNDANCY: Some consolidation beneficial');
-        console.log('   ⚖️ Recommended: Focus on pattern extraction');
+        console.warn('   🟡 MODERATE REDUNDANCY: Some consolidation beneficial');
+        console.warn('   ⚖️ Recommended: Focus on pattern extraction');
       } else {
-        console.log('   🟢 LOW REDUNDANCY: Well-structured component base');
-        console.log('   ✨ Recommended: Maintain current patterns');
+        console.warn('   🟢 LOW REDUNDANCY: Well-structured component base');
+        console.warn('   ✨ Recommended: Maintain current patterns');
       }
       
       // Provide actionable recommendations
-      console.log('\n🎯 Action Items:');
+      console.warn('\n🎯 Action Items:');
       if (metrics.highOpportunityComponents > 0) {
-        console.log(`   1. Refactor ${metrics.highOpportunityComponents} high-priority components`);
+        console.warn(`   1. Refactor ${metrics.highOpportunityComponents} high-priority components`);
       }
       if (metrics.averageComplexity > 10) {
-        console.log(`   2. Break down complex components (avg complexity: ${metrics.averageComplexity})`);
+        console.warn(`   2. Break down complex components (avg complexity: ${metrics.averageComplexity})`);
       }
       if (metrics.extractionOpportunities > 15) {
-        console.log(`   3. Extract common patterns into reusable components`);
+        console.warn(`   3. Extract common patterns into reusable components`);
       }
-      console.log(`   4. Consider creating design system components for repeated patterns`);
+      console.warn(`   4. Consider creating design system components for repeated patterns`);
       
       expect(metrics.totalComponents).toBeGreaterThan(0);
     });

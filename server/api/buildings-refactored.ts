@@ -72,14 +72,14 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.log(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Get user access information
       const userAccess = await getUserBuildingAccess(currentUser.id);
       let accessibleBuildings: unknown[] = [];
 
       if (userAccess.isKoveoUser) {
-        console.log(`🌟 Koveo organization user detected - granting access to ALL buildings`);
+        console.warn(`🌟 Koveo organization user detected - granting access to ALL buildings`);
         
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await getAllBuildingsWithOrg();
@@ -121,7 +121,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(`✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`);
+      console.warn(`✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`);
 
       res.json({
         buildings: buildingsWithStats,
@@ -132,10 +132,10 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         }
       });
 
-    } catch (__error) {
-      console.error('Failed to fetch manager buildings:', error);
+    } catch (_error) {
+      console.error('Failed to fetch manager buildings:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch buildings'
       });
     }
@@ -151,7 +151,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       
       if (!currentUser) {
         return res.status(401).json({
-          error: 'Unauthorized',
+          _error: 'Unauthorized',
           message: 'Authentication required'
         });
       }
@@ -159,21 +159,21 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (__validationError) {
+      } catch (___validationError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid building ID format'
         });
       }
 
-      console.log(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Check if user has access to this building
       const accessCheck = await checkBuildingAccess(currentUser.id, buildingId, currentUser.role);
       
       if (!accessCheck.hasAccess) {
         return res.status(403).json({
-          error: 'Forbidden',
+          _error: 'Forbidden',
           message: 'You do not have access to this building'
         });
       }
@@ -183,7 +183,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       
       if (!building) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -198,10 +198,10 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         building: buildingWithStats
       });
 
-    } catch (__error) {
-      console.error('Failed to fetch building details:', error);
+    } catch (_error) {
+      console.error('Failed to fetch building details:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch building details'
       });
     }
@@ -234,27 +234,27 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         buildingData = validateBuildingCreate(req.body);
       } catch (_validationError: unknown) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: validationError.message || 'Invalid building data'
         });
       }
 
-      console.log(`🏢 Admin ${currentUser.id} creating building: ${buildingData.name}`);
+      console.warn(`🏢 Admin ${currentUser.id} creating building: ${buildingData.name}`);
 
       // Create building
       const newBuilding = await createBuilding(buildingData);
 
-      console.log(`✅ Building created successfully with ID: ${newBuilding.id}`);
+      console.warn(`✅ Building created successfully with ID: ${newBuilding.id}`);
 
       res.status(201).json({
         message: 'Building created successfully',
         building: newBuilding
       });
 
-    } catch (__error) {
-      console.error('❌ Error creating building:', error);
+    } catch (_error) {
+      console.error('❌ Error creating building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to create building'
       });
     }
@@ -286,9 +286,9 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (__validationError) {
+      } catch (___validationError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid building ID format'
         });
       }
@@ -299,17 +299,17 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         buildingData = validateBuildingUpdate(req.body);
       } catch (_validationError: unknown) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: validationError.message || 'Invalid building data'
         });
       }
 
-      console.log(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
+      console.warn(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
 
       // Check if building exists
       if (!(await buildingExists(buildingId))) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -317,17 +317,17 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Update building
       const updatedBuilding = await updateBuilding(buildingId, buildingData);
 
-      console.log(`✅ Building updated successfully: ${buildingId}`);
+      console.warn(`✅ Building updated successfully: ${buildingId}`);
 
       res.json({
         message: 'Building updated successfully',
         building: updatedBuilding
       });
 
-    } catch (__error) {
-      console.error('❌ Error updating building:', error);
+    } catch (_error) {
+      console.error('❌ Error updating building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to update building'
       });
     }
@@ -359,19 +359,19 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (__validationError) {
+      } catch (___validationError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid building ID format'
         });
       }
 
-      console.log(`🔍 Admin ${currentUser.id} analyzing deletion impact for building: ${buildingId}`);
+      console.warn(`🔍 Admin ${currentUser.id} analyzing deletion impact for building: ${buildingId}`);
 
       // Check if building exists
       if (!(await buildingExists(buildingId))) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
@@ -389,10 +389,10 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         }
       });
 
-    } catch (__error) {
-      console.error('❌ Error analyzing building deletion impact:', error);
+    } catch (_error) {
+      console.error('❌ Error analyzing building deletion impact:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to analyze deletion impact'
       });
     }
@@ -424,19 +424,19 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Validate building ID
       try {
         validateBuildingId(buildingId);
-      } catch (__validationError) {
+      } catch (___validationError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid building ID format'
         });
       }
 
-      console.log(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
+      console.warn(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
 
       // Perform cascade delete
       const deletedBuilding = await cascadeDeleteBuilding(buildingId);
 
-      console.log(`✅ Building cascading delete completed: ${buildingId}`);
+      console.warn(`✅ Building cascading delete completed: ${buildingId}`);
 
       res.json({
         message: 'Building and related entities deleted successfully',
@@ -446,14 +446,14 @@ export function registerBuildingRoutesRefactored(app: Express): void {
     } catch (_error: unknown) {
       if (error.message === 'Building not found') {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'Building not found'
         });
       }
 
-      console.error('❌ Error cascading delete building:', error);
+      console.error('❌ Error cascading delete building:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to delete building and related entities'
       });
     }

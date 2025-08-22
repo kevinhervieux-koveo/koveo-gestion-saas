@@ -41,13 +41,13 @@ export class DynamicFinancialCalculator {
     if (!forceRefresh) {
       const cached = await this.getCachedData(buildingId, cacheKey, startDate, endDate);
       if (cached) {
-        console.log(`💾 Cache hit for building ${buildingId}, period ${startDate} to ${endDate}`);
+        console.warn(`💾 Cache hit for building ${buildingId}, period ${startDate} to ${endDate}`);
         return cached;
       }
     }
 
     // Calculate fresh data
-    console.log(`⚡ Calculating fresh financial data for building ${buildingId}`);
+    console.warn(`⚡ Calculating fresh financial data for building ${buildingId}`);
     const financialData = await this.calculateFinancialData(buildingId, startDate, endDate);
     
     // Cache the result
@@ -280,8 +280,8 @@ export class DynamicFinancialCalculator {
    */
   private generateCacheKey(startDate: string, endDate: string, params?: Record<string, any>): string {
     const baseKey = `financial_${startDate}_${endDate}`;
-    if (params && Object.keys(params).length > 0) {
-      const paramStr = Object.entries(params)
+    if (params && Object.keys(_params).length > 0) {
+      const paramStr = Object.entries(_params)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}=${v}`)
         .join('&');
@@ -328,13 +328,15 @@ export class DynamicFinancialCalculator {
    * @param startDate
    * @param endDate
    * @param data
+   * @param data
+   * @param _data
    */
   private async cacheFinancialData(
     buildingId: string,
     cacheKey: string,
     startDate: string,
     endDate: string,
-    data: FinancialPeriodData
+    _data: FinancialPeriodData
   ): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + this.CACHE_DURATION_HOURS);
@@ -380,7 +382,7 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-    console.log(`🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`);
+    console.warn(`🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`);
     
     await db.execute(sql`
       DELETE FROM financial_cache WHERE building_id = ${buildingId}
@@ -422,7 +424,7 @@ export class DynamicFinancialCalculator {
    * @param buildingId
    */
   async refreshBuildingCache(buildingId: string): Promise<void> {
-    console.log(`🔄 Force refreshing all cache for building ${buildingId}`);
+    console.warn(`🔄 Force refreshing all cache for building ${buildingId}`);
     await this.invalidateCache(buildingId, 'manual refresh');
   }
 }

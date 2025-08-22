@@ -306,17 +306,17 @@ describe('Database Query Scoping Tests', () => {
     test('should apply different scoping for different roles on same entity', async () => {
       const testCases = [
         {
-          context: { userId: 'admin-123', role: 'admin' as const },
+          _context: { userId: 'admin-123', role: 'admin' as const },
           shouldScope: false,
           description: 'admin should have no scoping'
         },
         {
-          context: { userId: 'manager-123', role: 'manager' as const, buildingIds: ['building-1'] },
+          _context: { userId: 'manager-123', role: 'manager' as const, buildingIds: ['building-1'] },
           shouldScope: true,
           description: 'manager should be scoped to their buildings'
         },
         {
-          context: { userId: 'tenant-123', role: 'tenant' as const, residenceIds: ['residence-1'] },
+          _context: { userId: 'tenant-123', role: 'tenant' as const, residenceIds: ['residence-1'] },
           shouldScope: true,
           description: 'tenant should be scoped to their residences'
         }

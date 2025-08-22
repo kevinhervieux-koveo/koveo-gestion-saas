@@ -24,13 +24,13 @@ const renderWithProviders = (component: React.ReactElement) => {
 Object.defineProperty(window, 'innerWidth', {
   writable: true,
   configurable: true,
-  value: 375,
+  _value: 375,
 });
 
 Object.defineProperty(window, 'innerHeight', {
   writable: true,
   configurable: true,
-  value: 667,
+  _value: 667,
 });
 
 describe('Mobile Navigation Tests', () => {
@@ -336,7 +336,7 @@ describe('Mobile Navigation Tests', () => {
       // Mock history API
       const mockBack = jest.fn();
       Object.defineProperty(window, 'history', {
-        value: { back: mockBack },
+        _value: { back: mockBack },
         writable: true,
       });
       

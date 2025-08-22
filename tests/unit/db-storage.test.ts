@@ -21,7 +21,7 @@ jest.mock('drizzle-orm/neon-http', () => ({
 }));
 
 jest.mock('drizzle-orm', () => ({
-  eq: jest.fn((column, value) => ({ column, value, type: 'eq' })),
+  eq: jest.fn((column, _value) => ({ column, value, type: 'eq' })),
   desc: jest.fn((column) => ({ column, type: 'desc' })),
 }));
 
@@ -54,7 +54,7 @@ jest.mock('@shared/schema', () => ({
   },
   qualityMetrics: {},
   frameworkConfiguration: {
-    key: 'frameworkConfiguration.key',
+    _key: 'frameworkConfiguration.key',
   },
   improvementSuggestions: {
     id: 'improvementSuggestions.id',
@@ -94,7 +94,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getUsers();
-      expect(result).toEqual(mockUsers);
+      expect(_result).toEqual(mockUsers);
     });
 
     it('should get user by id', async () => {
@@ -107,7 +107,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getUser('1');
-      expect(result).toEqual(mockUser);
+      expect(_result).toEqual(mockUser);
     });
 
     it('should get user by email', async () => {
@@ -120,7 +120,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getUserByEmail('user@test.com');
-      expect(result).toEqual(mockUser);
+      expect(_result).toEqual(mockUser);
     });
 
     it('should create user', async () => {
@@ -139,7 +139,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.createUser(userData as Parameters<typeof dbStorage.createUser>[0]);
-      expect(result).toEqual(mockCreatedUser);
+      expect(_result).toEqual(mockCreatedUser);
     });
 
     it('should update user', async () => {
@@ -154,7 +154,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.updateUser('1', updates);
-      expect(result).toEqual(mockUpdatedUser);
+      expect(_result).toEqual(mockUpdatedUser);
     });
   });
 
@@ -171,7 +171,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getOrganizations();
-      expect(result).toEqual(mockOrgs);
+      expect(_result).toEqual(mockOrgs);
     });
 
     it('should get buildings by organization', async () => {
@@ -187,7 +187,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getBuildingsByOrganization('org1');
-      expect(result).toEqual(mockBuildings);
+      expect(_result).toEqual(mockBuildings);
     });
   });
 
@@ -205,7 +205,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getFeaturesByStatus('completed');
-      expect(result).toEqual(mockFeatures);
+      expect(_result).toEqual(mockFeatures);
     });
 
     it('should get public roadmap features', async () => {
@@ -218,7 +218,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getPublicRoadmapFeatures();
-      expect(result).toEqual(mockFeatures);
+      expect(_result).toEqual(mockFeatures);
     });
 
     it('should delete feature', async () => {
@@ -229,7 +229,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.deleteFeature('1');
-      expect(result).toBe(true);
+      expect(_result).toBe(true);
     });
   });
 
@@ -257,7 +257,7 @@ describe('DatabaseStorage', () => {
       });
 
       const result = await dbStorage.getTopImprovementSuggestions(2);
-      expect(result).toHaveLength(2);
+      expect(_result).toHaveLength(2);
     });
   });
 });

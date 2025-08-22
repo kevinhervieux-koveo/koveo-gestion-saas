@@ -4,9 +4,12 @@ import { AlertCircle } from 'lucide-react';
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Not found function.
+   */ /**
    * Not found function.
    */
+
  NotFound() {
   return (
     <div className='min-h-screen w-full flex items-center justify-center bg-gray-50'>

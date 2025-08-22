@@ -15,7 +15,7 @@ import { applyFilterSort } from './utils';
  * @template T - The type of data items being filtered and sorted.
  */
 interface UseFilterSortOptions<T> {
-  data: T[];
+  _data: T[];
   config: FilterSortConfig;
   initialState?: Partial<FilterSortState>;
 }
@@ -83,7 +83,7 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  *   setSearch,
  *   clearFilters
  * } = useFilterSort({
- *   data: suggestions,
+ *   _data: suggestions,
  *   config: filterConfig,
  *   initialState: { sort: { field: 'createdAt', direction: 'desc' } }
  * });
@@ -94,7 +94,7 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * @param options
  * @returns Function result.
  */
-export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
+export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
 
   // Load initial state from localStorage if persistence is enabled
@@ -105,13 +105,25 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
   /**
    * If function.
    * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
+   */  /**
+   * If function.
+   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
+   */
+
+  /**
+   * If function.
+   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
    */
 
     if (config.persistState && config.storageKey) {
       const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);  /**
    * If function.
    * @param stored - stored parameter.
+   */  /**
+   * If function.
+   * @param stored - stored parameter.
    */
+
 
       if (stored) {
         try {
@@ -119,8 +131,12 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
         }  /**
    * Catch function.
    * @param __e - __e parameter.
+   */  /**
+   * Catch function.
+   * @param __e - __e parameter.
    */
- catch (__e) {
+
+ catch (___e) {
           console.warn('Failed to parse stored filter state', __e);
         }
       }
@@ -153,7 +169,11 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
       setState((prev) => {  /**
    * If function.
    * @param !config.allowMultipleFilters - !config.allowMultipleFilters parameter.
+   */  /**
+   * If function.
+   * @param !config.allowMultipleFilters - !config.allowMultipleFilters parameter.
    */
+
 
         if (!config.allowMultipleFilters) {
           // Replace existing filter for the same field
@@ -194,13 +214,21 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
       setState((prev) => {  /**
    * If function.
    * @param prev.sort?.field === field - prev.sort?.field === field parameter.
+   */  /**
+   * If function.
+   * @param prev.sort?.field === field - prev.sort?.field === field parameter.
    */
+
 
         if (prev.sort?.field === field) {
           // Toggle direction or clear  /**
    * If function.
    * @param prev.sort.direction === 'asc' - prev.sort.direction === 'asc' parameter.
+   */  /**
+   * If function.
+   * @param prev.sort.direction === 'asc' - prev.sort.direction === 'asc' parameter.
    */
+
 
           if (prev.sort.direction === 'asc') {
             return { ...prev, sort: { field, direction: 'desc' } };

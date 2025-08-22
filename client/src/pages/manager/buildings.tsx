@@ -19,7 +19,10 @@ import { BuildingForm, BuildingCard } from '@/components/buildings';
  */
 export default function  /**
    * Buildings function.
+   */  /**
+   * Buildings function.
    */
+
  Buildings() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,7 +55,11 @@ export default function  /**
   const buildings = useMemo(() => {  /**
    * If function.
    * @param !searchTerm - !searchTerm parameter.
+   */  /**
+   * If function.
+   * @param !searchTerm - !searchTerm parameter.
    */
+
 
     if (!searchTerm) {
       return allBuildings;
@@ -93,7 +100,11 @@ export default function  /**
   // Loading state  /**
    * If function.
    * @param isLoading - isLoading parameter.
+   */  /**
+   * If function.
+   * @param isLoading - isLoading parameter.
    */
+
 
   if (isLoading) {
     return (
@@ -117,9 +128,13 @@ export default function  /**
   // Error state  /**
    * If function.
    * @param error - Error object.
+   */  /**
+   * If function.
+   * @param error - Error object.
    */
 
-  if (error) {
+
+  if (_error) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Buildings" subtitle="Error loading buildings" />
@@ -158,7 +173,7 @@ export default function  /**
               <Input
                 placeholder="Search buildings by name or address..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target._value)}
                 className="pl-10"
               />
             </div>

@@ -48,7 +48,11 @@ const translateCategory = (category: string, language: 'en' | 'fr') => {
   const translation = categoryTranslations[category];  /**
    * If function.
    * @param translation - translation parameter.
+   */  /**
+   * If function.
+   * @param translation - translation parameter.
    */
+
 
   if (translation) {
     return language === 'fr' ? translation.fr : translation.en;
@@ -205,7 +209,10 @@ interface InflationConfig {
  */
 export default function  /**
    * Budget function.
+   */  /**
+   * Budget function.
    */
+
  Budget() {
   const { language } = useLanguage();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
@@ -244,18 +251,22 @@ export default function  /**
   const queryClient = useQueryClient();
 
   // Get buildings for selection
-  const { data: buildings = [] } = useQuery({
+  const { _data: buildings = [] } = useQuery({
     queryKey: ['/api/buildings'],
   });
 
   // Get residences for selected building
-  const { data: residences = [] } = useQuery({
+  const { _data: residences = [] } = useQuery({
     queryKey: ['/api/residences', selectedBuilding],
     queryFn: async () => {
       const params = new URLSearchParams();  /**
    * If function.
    * @param selectedBuilding - selectedBuilding parameter.
+   */  /**
+   * If function.
+   * @param selectedBuilding - selectedBuilding parameter.
    */
+
 
       if (selectedBuilding) {
         params.append('buildingId', selectedBuilding);
@@ -263,7 +274,11 @@ export default function  /**
       const response = await fetch(`/api/residences?${params}`);  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
       if (!response.ok) {throw new Error('Failed to fetch residences');}
       return response.json();
@@ -272,7 +287,7 @@ export default function  /**
   });
 
   // Get budget data
-  const { data: budgetData, isLoading: budgetLoading } = useQuery({
+  const { _data: budgetData, isLoading: budgetLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, startYear, endYear, viewType, startMonth, endMonth],
     queryFn: () => {
       const params = new URLSearchParams({
@@ -283,6 +298,14 @@ export default function  /**
    * If function.
    * @param viewType === 'monthly' - viewType === 'monthly' parameter.
    */
+  /**
+   * If function.
+   * @param viewType === 'monthly' - viewType === 'monthly' parameter.
+   */  /**
+   * If function.
+   * @param viewType === 'monthly' - viewType === 'monthly' parameter.
+   */
+
   /**
    * If function.
    * @param viewType === 'monthly' - viewType === 'monthly' parameter.
@@ -300,7 +323,7 @@ export default function  /**
   });
 
   // Get budget summary
-  const { data: budgetSummary, isLoading: summaryLoading } = useQuery({
+  const { _data: budgetSummary, isLoading: summaryLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, 'summary', startYear, endYear, startMonth, endMonth, viewType],
     queryFn: () => {
       const params = new URLSearchParams({
@@ -319,7 +342,7 @@ export default function  /**
   });
 
   // Get bank account info
-  const { data: bankAccountInfo } = useQuery<BankAccountInfo>({
+  const { _data: bankAccountInfo } = useQuery<BankAccountInfo>({
     queryKey: ['/api/budgets', selectedBuilding, 'bank-account'],
     queryFn: () => fetch(`/api/budgets/${selectedBuilding}/bank-account`).then(res => res.json()),
     enabled: !!selectedBuilding,
@@ -329,7 +352,11 @@ export default function  /**
   const minimumBalanceSettings = useMemo(() => {  /**
    * If function.
    * @param !bankAccountInfo?.bankAccountMinimums - !bankAccountInfo?.bankAccountMinimums parameter.
+   */  /**
+   * If function.
+   * @param !bankAccountInfo?.bankAccountMinimums - !bankAccountInfo?.bankAccountMinimums parameter.
    */
+
 
     if (!bankAccountInfo?.bankAccountMinimums) {return [];}
     try {
@@ -343,7 +370,11 @@ export default function  /**
   const chartData: BudgetData[] = useMemo(() => {  /**
    * If function.
    * @param !budgetSummary?.summary - !budgetSummary?.summary parameter.
+   */  /**
+   * If function.
+   * @param !budgetSummary?.summary - !budgetSummary?.summary parameter.
    */
+
 
     if (!budgetSummary?.summary) {return [];}
     
@@ -354,25 +385,33 @@ export default function  /**
         item.spendings.reduce((sum: number, expense: string) => sum + parseFloat(expense || '0'), 0) : 0;
       
       // Build income and expense categories
-      const incomeByCategory: { [key: string]: number } = {};
-      const expensesByCategory: { [key: string]: number } = {};  /**
+      const incomeByCategory: { [_key: string]: number } = {};
+      const expensesByCategory: { [_key: string]: number } = {};  /**
+   * If function.
+   * @param item.incomeTypes && item.incomes - item.incomeTypes && item.incomes parameter.
+   */  /**
    * If function.
    * @param item.incomeTypes && item.incomes - item.incomeTypes && item.incomes parameter.
    */
 
+
       
       if (item.incomeTypes && item.incomes) {
-        item.incomeTypes.forEach((type: string, index: number) => {
+        item.incomeTypes.forEach((type: string, _index: number) => {
           incomeByCategory[type] = parseFloat(item.incomes[index] || '0');
         });
       }  /**
    * If function.
    * @param item.spendingTypes && item.spendings - item.spendingTypes && item.spendings parameter.
+   */  /**
+   * If function.
+   * @param item.spendingTypes && item.spendings - item.spendingTypes && item.spendings parameter.
    */
+
 
       
       if (item.spendingTypes && item.spendings) {
-        item.spendingTypes.forEach((type: string, index: number) => {
+        item.spendingTypes.forEach((type: string, _index: number) => {
           expensesByCategory[type] = parseFloat(item.spendings[index] || '0');
         });
       }
@@ -394,7 +433,11 @@ export default function  /**
   const minimumBalanceForChart = useMemo(() => {  /**
    * If function.
    * @param !minimumBalanceSettings?.length - !minimumBalanceSettings?.length parameter.
+   */  /**
+   * If function.
+   * @param !minimumBalanceSettings?.length - !minimumBalanceSettings?.length parameter.
    */
+
 
     if (!minimumBalanceSettings?.length) {return null;}
     return minimumBalanceSettings.reduce((sum, m) => sum + m.amount, 0);
@@ -408,6 +451,14 @@ export default function  /**
   /**
    * If function.
    * @param !chartData?.length - !chartData?.length parameter.
+   */  /**
+   * If function.
+   * @param !chartData?.length - !chartData?.length parameter.
+   */
+
+  /**
+   * If function.
+   * @param !chartData?.length - !chartData?.length parameter.
    */
 
     if (!chartData?.length) {return [];}
@@ -416,10 +467,18 @@ export default function  /**
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
     
-    return chartData.map((item, index) => {  /**
+    return chartData.map((item, _index) => {  /**
    * If function.
    * @param index === 0 - index === 0 parameter.
    */
+  /**
+   * If function.
+   * @param index === 0 - index === 0 parameter.
+   */  /**
+   * If function.
+   * @param index === 0 - index === 0 parameter.
+   */
+
   /**
    * If function.
    * @param index === 0 - index === 0 parameter.
@@ -465,14 +524,18 @@ export default function  /**
   const filteredChartData = useMemo(() => {  /**
    * If function.
    * @param !chartDataWithBalance?.length || selectedCategories.length === 0 - !chartDataWithBalance?.length || selectedCategories.length === 0 parameter.
+   */  /**
+   * If function.
+   * @param !chartDataWithBalance?.length || selectedCategories.length === 0 - !chartDataWithBalance?.length || selectedCategories.length === 0 parameter.
    */
+
 
     if (!chartDataWithBalance?.length || selectedCategories.length === 0) {return chartDataWithBalance || [];}
     
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
     
-    return chartDataWithBalance.map((item, index) => {
+    return chartDataWithBalance.map((item, _index) => {
       let filteredIncome = 0;
       let filteredExpenses = 0;
       
@@ -489,6 +552,14 @@ export default function  /**
    * If function.
    * @param originalCatName - originalCatName parameter.
    */
+  /**
+   * If function.
+   * @param originalCatName - originalCatName parameter.
+   */  /**
+   * If function.
+   * @param originalCatName - originalCatName parameter.
+   */
+
   /**
    * If function.
    * @param originalCatName - originalCatName parameter.
@@ -534,7 +605,11 @@ export default function  /**
   const specialContribution = useMemo(() => {  /**
    * If function.
    * @param !filteredChartData?.length - !filteredChartData?.length parameter.
+   */  /**
+   * If function.
+   * @param !filteredChartData?.length - !filteredChartData?.length parameter.
    */
+
 
     if (!filteredChartData?.length) {return 0;}
     const netCashFlow = filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0);
@@ -545,7 +620,11 @@ export default function  /**
   const propertyContributions = useMemo(() => {  /**
    * If function.
    * @param !selectedBuilding || !residences?.length || specialContribution === 0 - !selectedBuilding || !residences?.length || specialContribution === 0 parameter.
+   */  /**
+   * If function.
+   * @param !selectedBuilding || !residences?.length || specialContribution === 0 - !selectedBuilding || !residences?.length || specialContribution === 0 parameter.
    */
+
 
     if (!selectedBuilding || !residences?.length || specialContribution === 0) {return [];}
     
@@ -596,7 +675,7 @@ export default function  /**
 
   // Update bank account mutation
   const updateBankAccount = useMutation({
-    mutationFn: async (data: { 
+    mutationFn: async (_data: { 
       buildingId: string; 
       bankAccountNumber: string; 
       notes: string; 
@@ -617,7 +696,21 @@ export default function  /**
    * @param bankAccountStartDate - bankAccountStartDate parameter.
    * @param bankAccountStartAmount - bankAccountStartAmount parameter.
    * @returns String result.
+   */  /**
+   * Fetch .
+   * @param `/api/budgets/${data.buildingId}/bank-account` - `/api/budgets/${data.buildingId}/bank-account` parameter.
+   * @param {
+        method - {
+        method parameter.
+   * @param headers - HTTP headers object.
+   * @param } - } parameter.
+   * @param body - Request body data.
+   * @param bankAccountNotes - bankAccountNotes parameter.
+   * @param bankAccountStartDate - bankAccountStartDate parameter.
+   * @param bankAccountStartAmount - bankAccountStartAmount parameter.
+   * @returns String result.
    */
+
  fetch(`/api/budgets/${data.buildingId}/bank-account`, {
         method: 'PUT',
         headers: {
@@ -670,7 +763,7 @@ export default function  /**
     setMinimumBalances(prev => [...prev, newMinimum]);
   }, []);
 
-  const updateMinimumBalance = useCallback((id: string, field: 'amount' | 'description', value: string | number) => {
+  const updateMinimumBalance = useCallback((id: string, field: 'amount' | 'description', _value: string | number) => {
     setMinimumBalances(prev => prev.map(min => 
       min.id === id ? { ...min, [field]: value } : min
     ));
@@ -697,7 +790,7 @@ export default function  /**
     setInflationSettings(prev => [...prev, newSetting]);
   }, [chartData]);
 
-  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, value: unknown) => {
+  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, _value: unknown) => {
     setInflationSettings(prev => prev.map(setting => 
       setting.id === id ? { ...setting, [field]: value } : setting
     ));
@@ -711,7 +804,11 @@ export default function  /**
   const initializeDialog = () => {  /**
    * If function.
    * @param bankAccountInfo - bankAccountInfo parameter.
+   */  /**
+   * If function.
+   * @param bankAccountInfo - bankAccountInfo parameter.
    */
+
 
     if (bankAccountInfo) {
       setBankAccountNumber(bankAccountInfo.bankAccountNumber || '');
@@ -722,7 +819,11 @@ export default function  /**
       // Parse existing minimum balances  /**
    * If function.
    * @param bankAccountInfo.bankAccountMinimums - bankAccountInfo.bankAccountMinimums parameter.
+   */  /**
+   * If function.
+   * @param bankAccountInfo.bankAccountMinimums - bankAccountInfo.bankAccountMinimums parameter.
    */
+
 
       if (bankAccountInfo.bankAccountMinimums) {
         try {
@@ -747,7 +848,11 @@ export default function  /**
   const handleUpdateBankAccount = useCallback(() => {  /**
    * If function.
    * @param !selectedBuilding - !selectedBuilding parameter.
+   */  /**
+   * If function.
+   * @param !selectedBuilding - !selectedBuilding parameter.
    */
+
 
     if (!selectedBuilding) {
       toast({
@@ -927,7 +1032,7 @@ export default function  /**
                     
                     <div className='space-y-2'>
                       <Label className='text-sm font-medium'>{language === 'fr' ? 'Type de vue' : 'View Type'}</Label>
-                      <Select value={viewType} onValueChange={(value: 'yearly' | 'monthly') => setViewType(value)}>
+                      <Select value={viewType} onValueChange={(_value: 'yearly' | 'monthly') => setViewType(_value)}>
                         <SelectTrigger className='h-9'>
                           <SelectValue />
                         </SelectTrigger>
@@ -943,7 +1048,7 @@ export default function  /**
                         <div className='space-y-2'>
                           <Label className='text-sm font-medium'>{language === 'fr' ? 'De (Mois/Année)' : 'From (Month/Year)'}</Label>
                           <div className='grid grid-cols-2 gap-2'>
-                            <Select value={startMonth.toString()} onValueChange={(value) => setStartMonth(parseInt(value))}>
+                            <Select value={startMonth.toString()} onValueChange={(_value) => setStartMonth(parseInt(_value))}>
                               <SelectTrigger className='h-9'>
                                 <SelectValue />
                               </SelectTrigger>
@@ -958,7 +1063,7 @@ export default function  /**
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                            <Select value={startYear.toString()} onValueChange={(_value) => setStartYear(parseInt(_value))}>
                               <SelectTrigger className='h-9'>
                                 <SelectValue />
                               </SelectTrigger>
@@ -976,7 +1081,7 @@ export default function  /**
                         <div className='space-y-2'>
                           <Label className='text-sm font-medium'>{language === 'fr' ? 'À (Mois/Année)' : 'To (Month/Year)'}</Label>
                           <div className='grid grid-cols-2 gap-2'>
-                            <Select value={endMonth.toString()} onValueChange={(value) => setEndMonth(parseInt(value))}>
+                            <Select value={endMonth.toString()} onValueChange={(_value) => setEndMonth(parseInt(_value))}>
                               <SelectTrigger className='h-9'>
                                 <SelectValue />
                               </SelectTrigger>
@@ -991,7 +1096,7 @@ export default function  /**
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                            <Select value={endYear.toString()} onValueChange={(_value) => setEndYear(parseInt(_value))}>
                               <SelectTrigger className='h-9'>
                                 <SelectValue />
                               </SelectTrigger>
@@ -1010,7 +1115,7 @@ export default function  /**
                       <>
                         <div className='space-y-2'>
                           <Label className='text-sm font-medium'>{language === 'fr' ? 'De' : 'From'}</Label>
-                          <Select value={startYear.toString()} onValueChange={(value) => setStartYear(parseInt(value))}>
+                          <Select value={startYear.toString()} onValueChange={(_value) => setStartYear(parseInt(_value))}>
                             <SelectTrigger className='h-9'>
                               <SelectValue />
                             </SelectTrigger>
@@ -1026,7 +1131,7 @@ export default function  /**
                         
                         <div className='space-y-2'>
                           <Label className='text-sm font-medium'>{language === 'fr' ? 'À' : 'To'}</Label>
-                          <Select value={endYear.toString()} onValueChange={(value) => setEndYear(parseInt(value))}>
+                          <Select value={endYear.toString()} onValueChange={(_value) => setEndYear(parseInt(_value))}>
                             <SelectTrigger className='h-9'>
                               <SelectValue />
                             </SelectTrigger>
@@ -1081,7 +1186,11 @@ export default function  /**
                             onChange={(e) => {  /**
    * If function.
    * @param e.target.checked - e.target.checked parameter.
+   */  /**
+   * If function.
+   * @param e.target.checked - e.target.checked parameter.
    */
+
 
                               if (e.target.checked) {
                                 setSelectedCategories([...selectedCategories, category]);
@@ -1258,11 +1367,15 @@ export default function  /**
                       <CartesianGrid strokeDasharray='3 3' />
                       <XAxis 
                         dataKey='date' 
-                        tickFormatter={(value) => {
+                        tickFormatter={(_value) => {
                           const [year, month] = value.split('-');  /**
    * If function.
    * @param viewType === 'yearly' - viewType === 'yearly' parameter.
+   */  /**
+   * If function.
+   * @param viewType === 'yearly' - viewType === 'yearly' parameter.
    */
+
 
                           if (viewType === 'yearly') {
                             // For yearly view, only show year (and only for January dates)
@@ -1273,24 +1386,32 @@ export default function  /**
                           }
                         }}
                       />
-                      <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                      <YAxis tickFormatter={(_value) => `$${(value / 1000).toFixed(0)}k`} />
                       <ChartTooltip 
                         content={({ active, payload, label }) => {  /**
    * If function.
    * @param active && payload && payload.length - active && payload && payload.length parameter.
+   */  /**
+   * If function.
+   * @param active && payload && payload.length - active && payload && payload.length parameter.
    */
+
 
                           if (active && payload && payload.length) {
                             const [year, month] = String(label).split('-');
                             return (
                               <div className="bg-white p-3 border rounded shadow-lg">
                                 <p className="font-medium mb-2">{`${year}-${month}`}</p>
-                                {payload.map((entry, index) => {
+                                {payload.map((entry, _index) => {
                                   let name = '';
                                   let color = entry.color;  /**
    * If function.
    * @param entry.dataKey === 'totalIncome' - entry.dataKey === 'totalIncome' parameter.
+   */  /**
+   * If function.
+   * @param entry.dataKey === 'totalIncome' - entry.dataKey === 'totalIncome' parameter.
    */
+
 
                                   
                                   if (entry.dataKey === 'totalIncome') {
@@ -1299,28 +1420,44 @@ export default function  /**
                                   } else  /**
    * If function.
    * @param entry.dataKey === 'totalExpenses' - entry.dataKey === 'totalExpenses' parameter.
+   */  /**
+   * If function.
+   * @param entry.dataKey === 'totalExpenses' - entry.dataKey === 'totalExpenses' parameter.
    */
+
  if (entry.dataKey === 'totalExpenses') {
                                     name = language === 'fr' ? 'Dépenses totales' : 'Total Expenses';
                                     color = 'hsl(0, 70%, 50%)';
                                   } else  /**
    * If function.
    * @param entry.dataKey === 'bankBalance' - entry.dataKey === 'bankBalance' parameter.
+   */  /**
+   * If function.
+   * @param entry.dataKey === 'bankBalance' - entry.dataKey === 'bankBalance' parameter.
    */
+
  if (entry.dataKey === 'bankBalance') {
                                     name = language === 'fr' ? 'Solde bancaire' : 'Bank Balance';
                                     color = 'hsl(200, 80%, 60%)';
                                   } else  /**
    * If function.
    * @param typeof entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
+   */  /**
+   * If function.
+   * @param typeof entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
    */
+
  if (typeof entry.value === 'number' && entry.value === minimumBalanceForChart) {
                                     name = language === 'fr' ? 'Solde minimum requis' : 'Required Minimum Balance';
                                     color = 'hsl(0, 80%, 60%)';
                                   }  /**
    * If function.
    * @param name - name parameter.
+   */  /**
+   * If function.
+   * @param name - name parameter.
    */
+
 
                                   
                                   if (name) {  /**
@@ -1333,7 +1470,18 @@ export default function  /**
                                           className="w-3 h-3 flex-shrink-0"
                                           style={{ backgroundColor parameter.
    * @returns '0'} $ result.
+   */  /**
+   * Return function.
+   * @param <div key={index} className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 flex-shrink-0"
+                                          style={{ backgroundColor - <div key={index} className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 flex-shrink-0"
+                                          style={{ backgroundColor parameter.
+   * @returns '0'} $ result.
    */
+
 
                                     return (
                                       <div key={index} className="flex items-center gap-2">
@@ -1510,7 +1658,11 @@ export default function  /**
                       onOpenChange={(open) => {  /**
    * If function.
    * @param open - open parameter.
+   */  /**
+   * If function.
+   * @param open - open parameter.
    */
+
 
                         if (open) {
                           initializeDialog();
@@ -1540,7 +1692,7 @@ export default function  /**
                               id='bankAccountNumber'
                               type='text'
                               value={bankAccountNumber}
-                              onChange={(e) => setBankAccountNumber(e.target.value)}
+                              onChange={(e) => setBankAccountNumber(e.target._value)}
                               placeholder={bankAccountTranslations.accountNumberPlaceholder}
                             />
                           </div>
@@ -1551,7 +1703,7 @@ export default function  /**
                               id='startDate'
                               type='date'
                               value={bankAccountStartDate}
-                              onChange={(e) => setBankAccountStartDate(e.target.value)}
+                              onChange={(e) => setBankAccountStartDate(e.target._value)}
                             />
                           </div>
                         </div>
@@ -1563,7 +1715,7 @@ export default function  /**
                             type='number'
                             step='0.01'
                             value={bankAccountStartAmount}
-                            onChange={(e) => setBankAccountStartAmount(e.target.value)}
+                            onChange={(e) => setBankAccountStartAmount(e.target._value)}
                             placeholder={bankAccountTranslations.startAmountPlaceholder}
                           />
                         </div>
@@ -1573,7 +1725,7 @@ export default function  /**
                           <Textarea
                             id='reconciliationNote'
                             value={reconciliationNote}
-                            onChange={(e) => setReconciliationNote(e.target.value)}
+                            onChange={(e) => setReconciliationNote(e.target._value)}
                             placeholder={bankAccountTranslations.reconciliationNotePlaceholder}
                             rows={3}
                           />
@@ -1611,7 +1763,11 @@ export default function  /**
                     onOpenChange={(open) => {  /**
    * If function.
    * @param open - open parameter.
+   */  /**
+   * If function.
+   * @param open - open parameter.
    */
+
 
                       if (open) {
                         setMinimumBalances(minimumBalanceSettings.map(m => ({ ...m })));
@@ -1648,7 +1804,7 @@ export default function  /**
                             
                             {minimumBalances.length > 0 ? (
                               <div className='space-y-2 max-h-32 overflow-y-auto border rounded p-2'>
-                                {minimumBalances.map((minimum, index) => (
+                                {minimumBalances.map((minimum, _index) => (
                                   <MinimumBalanceRow 
                                     key={minimum.id} 
                                     minimum={minimum} 
@@ -1699,7 +1855,11 @@ export default function  /**
                                 }  /**
    * Catch function.
    * @param _error - _error parameter.
+   */  /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
+
  catch (_error) {
                                   toast({
                                     title: language === 'fr' ? 'Erreur' : 'Error',
@@ -1785,12 +1945,20 @@ export default function  /**
   /**
    * If function.
    * @param value === '' - value === '' parameter.
+   */  /**
+   * If function.
+   * @param value === '' - value === '' parameter.
+   */
+
+  /**
+   * If function.
+   * @param value === '' - value === '' parameter.
    */
 
                                       if (value === '') {
                                         setGeneralIncomeInflation(0);
                                       } else {
-                                        const numValue = parseFloat(value);
+                                        const numValue = parseFloat(_value);
                                         if (!isNaN(numValue)) {
                                           setGeneralIncomeInflation(numValue);
                                         }
@@ -1817,7 +1985,7 @@ export default function  /**
                                       if (value === '') {
                                         setGeneralExpenseInflation(0);
                                       } else {
-                                        const numValue = parseFloat(value);
+                                        const numValue = parseFloat(_value);
                                         if (!isNaN(numValue)) {
                                           setGeneralExpenseInflation(numValue);
                                         }
@@ -2027,7 +2195,7 @@ const MinimumBalanceRow = memo(({
 }: {
   minimum: MinimumBalanceSetting;
   bankAccountTranslations: any;
-  onUpdate: (id: string, field: 'amount' | 'description', value: string | number) => void;
+  onUpdate: (id: string, field: 'amount' | 'description', _value: string | number) => void;
   onRemove: (id: string) => void;
 }) => (
   <div className='flex flex-col sm:grid sm:grid-cols-12 gap-2 items-center'>
@@ -2037,7 +2205,7 @@ const MinimumBalanceRow = memo(({
         type='number'
         step='0.01'
         value={minimum.amount || ''}
-        onChange={(e) => onUpdate(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
+        onChange={(e) => onUpdate(minimum.id, 'amount', parseFloat(e.target._value) || 0)}
         className='text-xs'
       />
     </div>
@@ -2045,7 +2213,7 @@ const MinimumBalanceRow = memo(({
       <Input
         placeholder={bankAccountTranslations.descriptionPlaceholder}
         value={minimum.description}
-        onChange={(e) => onUpdate(minimum.id, 'description', e.target.value)}
+        onChange={(e) => onUpdate(minimum.id, 'description', e.target._value)}
         className='text-xs'
       />
     </div>

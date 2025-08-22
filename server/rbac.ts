@@ -68,7 +68,7 @@ export interface AccessContext {
  * @example
  * ```typescript
  * const orgIds = await getUserAccessibleOrganizations('user-uuid');
- * console.log(orgIds); // ['demo-org-id', 'user-org-id', ...]
+ * console.warn(orgIds); // ['demo-org-id', 'user-org-id', ...]
  * ```
  */
 /**
@@ -78,7 +78,7 @@ export interface AccessContext {
  */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
-    console.log('Getting accessible organizations for user:', userId);
+    console.warn('Getting accessible organizations for user:', userId);
     
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
@@ -91,7 +91,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
       }
     });
     
-    console.log('User organizations found:', userOrgs.map(uo => ({ 
+    console.warn('User organizations found:', userOrgs.map(uo => ({ 
       orgId: uo.organizationId, 
       orgName: uo.organization?.name, 
       canAccessAll: uo.canAccessAllOrganizations 
@@ -102,7 +102,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
       where: eq(schema.organizations.name, 'Demo')
     });
     
-    console.log('Demo org found:', demoOrg?.id);
+    console.warn('Demo org found:', demoOrg?.id);
 
     const accessibleOrgIds = new Set<string>();
     
@@ -114,12 +114,12 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     // Check each user organization membership
     for (const userOrg of userOrgs) {
       if (userOrg.canAccessAllOrganizations || userOrg.organization?.name?.toLowerCase() === 'koveo') {
-        console.log('User has full access - adding all organizations');
+        console.warn('User has full access - adding all organizations');
         // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true)
         });
-        console.log('All organizations found:', allOrgs.map(o => ({ id: o.id, name: o.name })));
+        console.warn('All organizations found:', allOrgs.map(o => ({ id: o.id, name: o.name })));
         allOrgs.forEach(org => accessibleOrgIds.add(org.id));
         break;
       } else {
@@ -129,9 +129,9 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     }
 
     const result = Array.from(accessibleOrgIds);
-    console.log('Final accessible org IDs:', result);
+    console.warn('Final accessible org IDs:', _result);
     return result;
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error getting user accessible organizations:', _error);
     return [];
   }
@@ -148,7 +148,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
  * @example
  * ```typescript
  * const residenceIds = await getUserAccessibleResidences('tenant-user-uuid');
- * console.log(residenceIds); // ['residence-uuid-1', 'residence-uuid-2']
+ * console.warn(residenceIds); // ['residence-uuid-1', 'residence-uuid-2']
  * ```
  */
 /**
@@ -166,7 +166,7 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
     });
 
     return userResidences.map(ur => ur.residenceId);
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error getting user accessible residences:', _error);
     return [];
   }
@@ -200,8 +200,8 @@ export async function isOpenDemoUser(userId: string): Promise<boolean> {
     });
     
     return !!userOrg;
-  } catch (error) {
-    console.error('Error checking if user is Open Demo user:', error);
+  } catch (_error) {
+    console.error('Error checking if user is Open Demo user:', _error);
     return false;
   }
 }
@@ -218,7 +218,7 @@ export async function canUserPerformWriteOperation(userId: string, action: 'crea
   // Check if user is from Open Demo organization (view-only)
   const isOpenDemo = await isOpenDemoUser(userId);
   if (isOpenDemo) {
-    console.log(`Open Demo user ${userId} attempted restricted action: ${action}`);
+    console.warn(`Open Demo user ${userId} attempted restricted action: ${action}`);
     return false; // Open Demo users cannot perform any write operations
   }
   
@@ -284,8 +284,8 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
     if (!building) {return false;}
 
     return await canUserAccessOrganization(userId, building.organizationId);
-  } catch (__error) {
-    console.error('Error checking building access:', error);
+  } catch (_error) {
+    console.error('Error checking building access:', _error);
     return false;
   }
 }
@@ -338,8 +338,8 @@ export async function canUserAccessResidence(userId: string, residenceId: string
     // Tenants/residents can only access their own residences
     const accessibleResidences = await getUserAccessibleResidences(userId);
     return accessibleResidences.includes(residenceId);
-  } catch (__error) {
-    console.error('Error checking residence access:', error);
+  } catch (_error) {
+    console.error('Error checking residence access:', _error);
     return false;
   }
 }
@@ -382,8 +382,8 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
       }
 
       next();
-    } catch (__error) {
-      console.error('Organization access check error:', error);
+    } catch (_error) {
+      console.error('Organization access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR'
@@ -430,8 +430,8 @@ export function requireBuildingAccess(param: string = 'buildingId') {
       }
 
       next();
-    } catch (__error) {
-      console.error('Building access check error:', error);
+    } catch (_error) {
+      console.error('Building access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR'
@@ -478,8 +478,8 @@ export function requireResidenceAccess(param: string = 'residenceId') {
       }
 
       next();
-    } catch (__error) {
-      console.error('Residence access check error:', error);
+    } catch (_error) {
+      console.error('Residence access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR'

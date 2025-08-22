@@ -56,7 +56,7 @@ describe('Documentation Validation', () => {
     let currentSection: string[] = [];
     let sectionStart = 0;
 
-    lines.forEach((line, index) => {
+    lines.forEach((line, _index) => {
       if (line.startsWith('#') || index === lines.length - 1) {
         if (currentSection.length > 0) {
           const sectionContent = currentSection.join('\n').trim();
@@ -118,12 +118,12 @@ describe('Documentation Validation', () => {
 
       // Report duplicates
       if (duplicates.length > 0) {
-        console.log('\nFound duplicate content in documentation:');
+        console.warn('\nFound duplicate content in documentation:');
         duplicates.forEach(dup => {
-          console.log(`\nDuplicate content (hash: ${dup.hash}):`);
+          console.warn(`\nDuplicate content (hash: ${dup.hash}):`);
           dup.sections.forEach(section => {
-            console.log(`  - ${section.file}:${section.line}`);
-            console.log(`    Preview: ${section.content.substring(0, 100)}...`);
+            console.warn(`  - ${section.file}:${section.line}`);
+            console.warn(`    Preview: ${section.content.substring(0, 100)}...`);
           });
         });
       }
@@ -271,7 +271,7 @@ describe('Documentation Validation', () => {
         const content = fs.readFileSync(path.join(rootDir, file), 'utf-8');
         const lines = content.split('\n');
 
-        lines.forEach((line, index) => {
+        lines.forEach((line, _index) => {
           // Check for multiple consecutive blank lines
           if (line === '' && lines[index + 1] === '' && lines[index + 2] === '') {
             formattingIssues.push(`${file}:${index + 1}: Multiple consecutive blank lines`);
@@ -372,7 +372,7 @@ describe('Documentation Validation', () => {
         let codeBlockStart = 0;
         let language = '';
 
-        lines.forEach((line, index) => {
+        lines.forEach((line, _index) => {
           if (line.startsWith('```')) {
             if (!inCodeBlock) {
               inCodeBlock = true;

@@ -17,7 +17,7 @@ export function registerDemoSyncRoutes(app: Express): void {
    */
   app.post('/api/demo/sync', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
-      console.log('🎯 Manual demo sync triggered by:', req.user?.email);
+      console.warn('🎯 Manual demo sync triggered by:', req.user?.email);
       
       await DemoSyncService.runSync();
       
@@ -27,13 +27,13 @@ export function registerDemoSyncRoutes(app: Express): void {
         timestamp: new Date().toISOString()
       });
       
-    } catch (error) {
-      console.error('Demo sync API error:', error);
+    } catch (_error) {
+      console.error('Demo sync API _error:', _error);
       
       res.status(500).json({
         success: false,
         message: 'Demo synchronization failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        _error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
     }
@@ -57,13 +57,13 @@ export function registerDemoSyncRoutes(app: Express): void {
         timestamp: new Date().toISOString()
       });
       
-    } catch (error) {
-      console.error('Demo sync status error:', error);
+    } catch (_error) {
+      console.error('Demo sync status _error:', _error);
       
       res.status(500).json({
         success: false,
         message: 'Unable to get demo sync status',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        _error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
     }

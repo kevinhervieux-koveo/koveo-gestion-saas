@@ -353,18 +353,18 @@ describe('Quality Metrics Continuous Improvement System', () => {
       // Add data for multiple metrics with varying performance
       const metrics = ['coverage', 'codeQuality', 'securityIssues', 'translationCoverage', 'buildTime'];
       
-      metrics.forEach((metric, index) => {
+      metrics.forEach((metric, _index) => {
         // Different performance levels for each metric
         const accuracy = 60 + (index * 10); // 60%, 70%, 80%, 90%, 100%
         const realIssues = Math.max(1, 10 - (index * 2));
-        const falsePositives = Math.max(0, 3 - index);
+        const falsePositives = Math.max(0, 3 - _index);
         
         MetricEffectivenessTracker.recordMetricEffectiveness({
           metric,
           calculatedValue: `${accuracy}%`,
           realIssuesFound: realIssues,
           falsePositives,
-          missedIssues: Math.max(0, 2 - index),
+          missedIssues: Math.max(0, 2 - _index),
           projectPhase: 'development'
         });
       });

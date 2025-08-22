@@ -64,7 +64,7 @@ export function TokenValidationStep({
 
       console.warn('📡 API response status:', response.status);
       const result = await response.json();
-      console.warn('📄 API response data:', result);
+      console.warn('📄 API response _data:', _result);
 
       if (response.ok && result.isValid) {
         const validationData: TokenValidationData = {
@@ -89,14 +89,14 @@ export function TokenValidationStep({
           inviterName: '',
           expiresAt: '',
           isValid: false,
-          error: result.message || 'Token invalide'
+          _error: result.message || 'Token invalide'
         };
 
         setValidationResult(errorData);
         onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
       }
-    } catch (__error) {
+    } catch (_error) {
       const errorData: TokenValidationData = {
         token,
         email: '',
@@ -105,7 +105,7 @@ export function TokenValidationStep({
         inviterName: '',
         expiresAt: '',
         isValid: false,
-        error: 'Erreur de connexion au serveur'
+        _error: 'Erreur de connexion au serveur'
       };
 
       setValidationResult(errorData);

@@ -126,8 +126,8 @@ describe('Routes Integration Tests', () => {
   describe('GET /api/quality-metrics', () => {
     it('should return quality metrics', async () => {
       const mockMetrics = [
-        { metricType: 'Code Coverage', value: '95%' },
-        { metricType: 'Code Quality', value: 'A+' },
+        { metricType: 'Code Coverage', _value: '95%' },
+        { metricType: 'Code Quality', _value: 'A+' },
       ];
       mockStorage.getQualityMetrics.mockResolvedValue(mockMetrics as any);
 

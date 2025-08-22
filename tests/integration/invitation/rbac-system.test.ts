@@ -53,7 +53,7 @@ describe('Invitation RBAC System Integration', () => {
       path: '/api/invitations',
       method: 'POST',
       body: {},
-      params: {},
+      _params: {},
       connection: { remoteAddress: '127.0.0.1' }
     } as any;
 

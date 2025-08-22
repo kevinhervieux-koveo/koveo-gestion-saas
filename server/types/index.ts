@@ -128,7 +128,7 @@ export interface ValidationResult {
  */
 export interface PerformanceMetric {
   name: string;
-  value: number;
+  _value: number;
   unit: string;
   timestamp: Date;
   metadata?: Record<string, any>;

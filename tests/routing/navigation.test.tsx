@@ -99,7 +99,7 @@ describe('Navigation Integration Tests', () => {
         fireEvent.click(orgLink);
       });
       
-      expect(hook.value).toBe('/admin/organizations');
+      expect(hook._value).toBe('/admin/organizations');
     });
   });
 
@@ -120,7 +120,7 @@ describe('Navigation Integration Tests', () => {
         fireEvent.click(dashboardLink);
       });
       
-      expect(hook.value).toBe('/owner/dashboard');
+      expect(hook._value).toBe('/owner/dashboard');
     });
   });
 
@@ -145,7 +145,7 @@ describe('Navigation Integration Tests', () => {
         fireEvent.click(buildingsLink);
       });
       
-      expect(hook.value).toBe('/manager/buildings');
+      expect(hook._value).toBe('/manager/buildings');
     });
   });
 
@@ -202,14 +202,14 @@ describe('Navigation Integration Tests', () => {
         ]
       };
 
-      for (const [role, items] of Object.entries(expectedPaths)) {
+      for (const [_role, items] of Object.entries(expectedPaths)) {
         renderSidebar(role);
         
         for (const item of items) {
           await waitFor(() => {
             const link = screen.getByText(item.label);
             fireEvent.click(link);
-            expect(hook.value).toBe(item.path);
+            expect(hook._value).toBe(item.path);
           });
         }
       }

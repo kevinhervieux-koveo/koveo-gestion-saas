@@ -73,7 +73,7 @@ function loadPermissionsData() {
     try {
       const data = readFileSync(path, 'utf-8');
       return JSON.parse(data);
-    } catch (__error) {
+    } catch (_error) {
       // Continue to next path
       continue;
     }

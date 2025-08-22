@@ -135,7 +135,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
-        if (err) {console.error('Session destruction error:', err);}
+        if (err) {console.error('Session destruction _error:', err);}
       });
       return res.status(401).json({ 
         message: 'User account not found or inactive',
@@ -169,8 +169,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     } as any;
     
     next();
-  } catch (__error) {
-    console.error('Authentication error:', __error);
+  } catch (_error) {
+    console.error('Authentication _error:', _error);
     return res.status(500).json({ 
       message: 'Authentication error',
       code: 'AUTH_ERROR' 
@@ -273,8 +273,8 @@ export function authorize(permission: string) {
       }
 
       next();
-    } catch (__error) {
-      console.error('Authorization error:', __error);
+    } catch (_error) {
+      console.error('Authorization _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR'
@@ -353,7 +353,7 @@ export function setupAuthRoutes(app: any) {
           const { salt, hash } = hashPassword(password);
           const hashedPassword = `${salt}:${hash}`;
           await storage.updateUser(user.id, { password: hashedPassword });
-          console.log(`Password upgraded to hashed format for user: ${user.id}`);
+          console.warn(`Password upgraded to hashed format for user: ${user.id}`);
         }
       }
       
@@ -383,8 +383,8 @@ export function setupAuthRoutes(app: any) {
         message: 'Login successful'
       });
 
-    } catch (__error) {
-      console.error('Login error:', __error);
+    } catch (_error) {
+      console.error('Login _error:', _error);
       res.status(500).json({ 
         message: 'Login failed',
         code: 'LOGIN_ERROR' 
@@ -396,7 +396,7 @@ export function setupAuthRoutes(app: any) {
   app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
-        console.error('Logout error:', err);
+        console.error('Logout _error:', err);
         return res.status(500).json({ 
           message: 'Logout failed',
           code: 'LOGOUT_ERROR' 
@@ -462,8 +462,8 @@ export function setupAuthRoutes(app: any) {
         message: 'User created successfully'
       });
 
-    } catch (__error) {
-      console.error('Registration error:', __error);
+    } catch (_error) {
+      console.error('Registration _error:', _error);
       res.status(500).json({ 
         message: 'Registration failed',
         code: 'REGISTRATION_ERROR' 
@@ -514,7 +514,7 @@ export function setupAuthRoutes(app: any) {
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
       
-      console.log('Generated reset URL:', resetUrl);
+      console.warn('Generated reset URL:', resetUrl);
       
       const emailSent = await emailService.sendPasswordResetEmail(
         email.toLowerCase(),
@@ -535,8 +535,8 @@ export function setupAuthRoutes(app: any) {
         success: true 
       });
 
-    } catch (__error) {
-      console.error('Password reset request error:', __error);
+    } catch (_error) {
+      console.error('Password reset request _error:', _error);
       res.status(500).json({ 
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR' 
@@ -639,8 +639,8 @@ export function setupAuthRoutes(app: any) {
         success: true 
       });
 
-    } catch (__error) {
-      console.error('Password reset error:', __error);
+    } catch (_error) {
+      console.error('Password reset _error:', _error);
       res.status(500).json({ 
         message: 'Password reset failed',
         code: 'PASSWORD_RESET_ERROR' 

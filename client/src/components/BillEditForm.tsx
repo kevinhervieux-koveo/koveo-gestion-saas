@@ -72,7 +72,15 @@ const billFormSchema = z.object({
 /**
  * BillEditForm component.
  * @param props - Component props.
- * @param props.bill - bill parameter.
+ * @param props.bill - Bill parameter.
+ * @param props.onSuccess - Callback function called when operation succeeds.
+ * @param props.onCancel - Callback function called when operation is cancelled.
+ * @returns JSX element.
+ */
+/**
+ * BillEditForm component.
+ * @param props - Component props.
+ * @param props.bill - Bill parameter.
  * @param props.onSuccess - Callback function called when operation succeeds.
  * @param props.onCancel - Callback function called when operation is cancelled.
  * @returns JSX element.
@@ -117,10 +125,14 @@ export function BillEditForm({
           ...updates,
           costs: [updates.totalAmount] // Single cost for now
         })
-      });  /**
+      }); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
       
       if (!response.ok) {

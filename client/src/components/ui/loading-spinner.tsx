@@ -27,7 +27,10 @@ import { Loader2 } from 'lucide-react';
  */
 export function  /**
    * Loading spinner function.
+   */  /**
+   * Loading spinner function.
    */
+
  LoadingSpinner() {
   return (
     <div className='flex-1 flex items-center justify-center bg-gray-50'>

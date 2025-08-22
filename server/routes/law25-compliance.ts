@@ -40,7 +40,11 @@ interface Law25ComplianceData {
 function  /**
    * Run law25 compliance scan function.
    * @returns Law25ComplianceData result.
+   */  /**
+   * Run law25 compliance scan function.
+   * @returns Law25ComplianceData result.
    */
+
  runLaw25ComplianceScan(): Law25ComplianceData {
   try {
     // Run Semgrep with Law 25 rules
@@ -74,6 +78,7 @@ function  /**
       const severity = violation.extra?.severity || 'info';
       
       // Categorize violations
+
 
       switch (law25Aspect) {
         case 'data-collection':
@@ -128,8 +133,16 @@ function  /**
       violations: processedViolations
     };
     
-  } catch (__error) {
-    console.warn('Law 25 compliance scan failed:', __error);
+  }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
+    console.warn('Law 25 compliance scan failed:', _error);
     
     // Return default/fallback data
     return {
@@ -160,14 +173,20 @@ function  /**
  * @param res - Express response object.
  * @returns Promise resolving to API response.
  */
+/**
+ * GET / - API endpoint handler.
+ * @param req - Express request object.
+ * @param res - Express response object.
+ * @returns Promise resolving to API response.
+ */
 router.get('/', (req, res) => {
   try {
     const complianceData = runLaw25ComplianceScan();
     res.json(complianceData);
-  } catch (__error) {
-    console.error('Error generating Law 25 compliance data:', __error);
+  } catch (_error) {
+    console.error('Error generating Law 25 compliance _data:', _error);
     res.status(500).json({ 
-      error: 'Failed to generate compliance data',
+      _error: 'Failed to generate compliance data',
       complianceScore: 0,
       totalViolations: 0,
       criticalViolations: 0,

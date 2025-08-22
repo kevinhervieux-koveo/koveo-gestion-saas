@@ -41,7 +41,11 @@ interface TrialRequestFormProps {
 export function  /**
    * Trial request form function.
    * @param { children } - { children } parameter.
+   */  /**
+   * Trial request form function.
+   * @param { children } - { children } parameter.
    */
+
  TrialRequestForm({ children }: TrialRequestFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,11 +103,15 @@ export function  /**
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof TrialRequestFormData, value: string) => {
+  const handleInputChange = (field: keyof TrialRequestFormData, _value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));  /**
    * If function.
    * @param errors[field] - errors[field] parameter.
+   */  /**
+   * If function.
+   * @param errors[field] - errors[field] parameter.
    */
+
 
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -129,7 +137,11 @@ export function  /**
       });  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
 
       if (!response.ok) {
@@ -161,9 +173,13 @@ export function  /**
     }  /**
    * Catch function.
    * @param error - Error object.
+   */  /**
+   * Catch function.
+   * @param error - Error object.
    */
- catch (error) {
-      console.error('Error submitting trial request:', error);
+
+ catch (_error) {
+      console.error('Error submitting trial request:', _error);
       toast({
         title: 'Erreur',
         description: 'Une erreur est survenue lors de l\'envoi de votre demande. Veuillez réessayer.',
@@ -208,7 +224,7 @@ export function  /**
                   <Input
                     id="firstName"
                     value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    onChange={(e) => handleInputChange('firstName', e.target._value)}
                     className={errors.firstName ? 'border-red-500' : ''}
                     data-testid="input-first-name"
                   />
@@ -221,7 +237,7 @@ export function  /**
                   <Input
                     id="lastName"
                     value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    onChange={(e) => handleInputChange('lastName', e.target._value)}
                     className={errors.lastName ? 'border-red-500' : ''}
                     data-testid="input-last-name"
                   />
@@ -238,7 +254,7 @@ export function  /**
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange('email', e.target._value)}
                     className={errors.email ? 'border-red-500' : ''}
                     data-testid="input-email"
                   />
@@ -252,7 +268,7 @@ export function  /**
                     id="phone"
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onChange={(e) => handleInputChange('phone', e.target._value)}
                     className={errors.phone ? 'border-red-500' : ''}
                     placeholder="(514) 555-0123"
                     data-testid="input-phone"
@@ -268,7 +284,7 @@ export function  /**
                 <Input
                   id="company"
                   value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  onChange={(e) => handleInputChange('company', e.target._value)}
                   className={errors.company ? 'border-red-500' : ''}
                   data-testid="input-company"
                 />
@@ -293,7 +309,7 @@ export function  /**
                 <Input
                   id="address"
                   value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  onChange={(e) => handleInputChange('address', e.target._value)}
                   data-testid="input-address"
                 />
               </div>
@@ -303,7 +319,7 @@ export function  /**
                   <Input
                     id="city"
                     value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    onChange={(e) => handleInputChange('city', e.target._value)}
                     data-testid="input-city"
                   />
                 </div>
@@ -312,7 +328,7 @@ export function  /**
                   <select
                     id="province"
                     value={formData.province}
-                    onChange={(e) => handleInputChange('province', e.target.value)}
+                    onChange={(e) => handleInputChange('province', e.target._value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     data-testid="select-province"
                   >
@@ -362,7 +378,7 @@ export function  /**
                     type="number"
                     min="1"
                     value={formData.numberOfBuildings}
-                    onChange={(e) => handleInputChange('numberOfBuildings', e.target.value)}
+                    onChange={(e) => handleInputChange('numberOfBuildings', e.target._value)}
                     className={errors.numberOfBuildings ? 'border-red-500' : ''}
                     data-testid="input-buildings"
                   />
@@ -377,7 +393,7 @@ export function  /**
                     type="number"
                     min="1"
                     value={formData.numberOfResidences}
-                    onChange={(e) => handleInputChange('numberOfResidences', e.target.value)}
+                    onChange={(e) => handleInputChange('numberOfResidences', e.target._value)}
                     className={errors.numberOfResidences ? 'border-red-500' : ''}
                     data-testid="input-residences"
                   />
@@ -403,7 +419,7 @@ export function  /**
                 <Textarea
                   id="message"
                   value={formData.message}
-                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  onChange={(e) => handleInputChange('message', e.target._value)}
                   placeholder="Décrivez vos besoins en gestion immobilière, défis actuels, ou questions spécifiques..."
                   rows={4}
                   data-testid="textarea-message"

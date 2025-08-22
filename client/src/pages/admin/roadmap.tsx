@@ -132,13 +132,13 @@ export default function OwnerRoadmap() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       toast({
         title: 'Sync Completed',
         description: data.message || 'All features have been synchronized to production.',
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Sync Failed',
         description: error.message || 'Failed to synchronize features to production.',
@@ -154,7 +154,7 @@ export default function OwnerRoadmap() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch features from the database
-  const { data: features = [], isLoading, error } = useQuery({
+  const { _data: features = [], isLoading, error } = useQuery({
     queryKey: ['/api/features', 'roadmap'],
     queryFn: async () => {
       const res = await fetch('/api/features?roadmap=true', { 
@@ -168,8 +168,8 @@ export default function OwnerRoadmap() {
   });
 
   // Minimal debug logging only for actual errors
-  if (error) {
-    console.error('Features query error:', error);
+  if (_error) {
+    console.error('Features query _error:', _error);
   }
 
   /**
@@ -194,7 +194,7 @@ export default function OwnerRoadmap() {
         console.error('Failed to fetch actionable items:', response.statusText);
       }
     } catch (_error) {
-      console.error('Failed to fetch actionable items:', error);
+      console.error('Failed to fetch actionable items:', _error);
     }
   }, []);
 
@@ -209,7 +209,7 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -284,7 +284,7 @@ export default function OwnerRoadmap() {
         description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',
@@ -457,7 +457,7 @@ export default function OwnerRoadmap() {
             type='text'
             placeholder='Search features by name, description, or category...'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target._value)}
             className='pl-10 pr-4'
           />
         </div>
@@ -718,7 +718,7 @@ export default function OwnerRoadmap() {
                                           <Label htmlFor={`status-${feature.id}`} className='text-xs text-gray-600'>Status:</Label>
                                           <Select
                                             value={feature.status}
-                                            onValueChange={(value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
+                                            onValueChange={(_value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
                                             disabled={statusMutation.isPending}
                                           >
                                             <SelectTrigger id={`status-${feature.id}`} className='w-32 h-7 text-xs'>
@@ -768,7 +768,7 @@ export default function OwnerRoadmap() {
                                       </div>
                                     ) : (
                                       <div className='divide-y divide-gray-200'>
-                                        {items.map((item, index) => (
+                                        {items.map((item, _index) => (
                                           <div key={item.id || index} className='p-3 pl-12 hover:bg-white transition-colors'>
                                             <div className='flex items-start space-x-3'>
                                               <button
@@ -792,7 +792,7 @@ export default function OwnerRoadmap() {
                                                   <div className='flex items-center gap-2'>
                                                     <Select
                                                       value={item.status}
-                                                      onValueChange={(value) => handleActionableItemStatusChange(item, value)}
+                                                      onValueChange={(_value) => handleActionableItemStatusChange(item, _value)}
                                                       disabled={actionableItemMutation.isPending}
                                                     >
                                                       <SelectTrigger className='w-24 h-6 text-xs'>

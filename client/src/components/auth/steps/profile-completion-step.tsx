@@ -58,7 +58,7 @@ export function ProfileCompletionStep({
     ...data
   });
   
-  const [touched, setTouched] = useState<{[key: string]: boolean}>({});
+  const [touched, setTouched] = useState<{[_key: string]: boolean}>({});
 
 
 
@@ -88,11 +88,11 @@ export function ProfileCompletionStep({
 
 
 
-  const handleInputChange = (field: keyof ProfileCompletionData, value: string) => {
+  const handleInputChange = (field: keyof ProfileCompletionData, _value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
-      error: undefined
+      _error: undefined
     }));
   };
 
@@ -106,12 +106,12 @@ export function ProfileCompletionStep({
     const value = formData[field];
     
     if (['firstName', 'lastName', 'language'].includes(field)) {
-      if (!value || String(value).trim().length === 0) {
+      if (!value || String(_value).trim().length === 0) {
         return `${label} est requis`;
       }
     }
     
-    if (field === 'phone' && value && !validatePhone(String(value))) {
+    if (field === 'phone' && value && !validatePhone(String(_value))) {
       return 'Format de téléphone invalide (ex: 514-123-4567)';
     }
     
@@ -149,7 +149,7 @@ export function ProfileCompletionStep({
                   id="firstName"
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  onChange={(e) => handleInputChange('firstName', e.target._value)}
                   onBlur={() => handleBlur('firstName')}
                   placeholder="Votre prénom"
                   className={getFieldError('firstName', 'Prénom') ? 'border-red-500' : ''}
@@ -168,7 +168,7 @@ export function ProfileCompletionStep({
                   id="lastName"
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  onChange={(e) => handleInputChange('lastName', e.target._value)}
                   onBlur={() => handleBlur('lastName')}
                   placeholder="Votre nom de famille"
                   className={getFieldError('lastName', 'Nom de famille') ? 'border-red-500' : ''}
@@ -191,7 +191,7 @@ export function ProfileCompletionStep({
                     id="phone"
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onChange={(e) => handleInputChange('phone', e.target._value)}
                     onBlur={() => handleBlur('phone')}
                     placeholder="514-123-4567"
                     className={`pl-10 ${getFieldError('phone', 'Téléphone') ? 'border-red-500' : ''}`}
@@ -207,7 +207,7 @@ export function ProfileCompletionStep({
                 <Label htmlFor="language" className="text-sm font-medium text-gray-700">
                   Langue préférée *
                 </Label>
-                <Select value={formData.language} onValueChange={(value) => handleInputChange('language', value)}>
+                <Select value={formData.language} onValueChange={(_value) => handleInputChange('language', _value)}>
                   <SelectTrigger className="w-full">
                     <Globe className="h-4 w-4 mr-2 text-gray-400" />
                     <SelectValue placeholder="Choisir une langue" />

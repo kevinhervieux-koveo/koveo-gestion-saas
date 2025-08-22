@@ -164,7 +164,8 @@ export const QUEBEC_TEST_REQUIREMENTS = {
 
 /**
  * Test Execution Summary Helper.
- */
+  * @returns Function result.
+*/
 export function getTestExecutionSummary(): {
   totalSuites: number;
   criticalTests: string[];

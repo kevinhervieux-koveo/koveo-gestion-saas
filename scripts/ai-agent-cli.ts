@@ -22,34 +22,36 @@ import { agentDashboard } from '../tools/ai-agent-dashboard';
  * DisplayResult function.
  * @param title
  * @param data
+ * @param data
+ * @param _data
  * @param format
  * @returns Function result.
  */
-function displayResult(title: string, data: any, format: 'json' | 'table' | 'summary' = 'summary'): void {
-  console.log(chalk.blue.bold(`\n📊 ${title}\n`));
+function displayResult(title: string, _data: any, format: 'json' | 'table' | 'summary' = 'summary'): void {
+  console.warn(chalk.blue.bold(`\n📊 ${title}\n`));
   
   switch (format) {
     case 'json':
-      console.log(JSON.stringify(data, null, 2));
+      console.warn(JSON.stringify(data, null, 2));
       break;
     case 'table':
-      console.table(data);
+      console.table(_data);
       break;
     case 'summary':
     default:
       if (typeof data === 'string') {
-        console.log(data);
-      } else if (Array.isArray(data)) {
-        data.forEach((item, index) => {
-          console.log(chalk.gray(`${index + 1}.`), item);
+        console.warn(_data.replace("_", ""));
+      } else if (Array.isArray(_data)) {
+        data.forEach((item, _index) => {
+          console.warn(chalk.gray(`${index + 1}.`), item);
         });
       } else {
-        Object.entries(data).forEach(([key, value]) => {
-          console.log(chalk.cyan(`${key}:`), value);
+        Object.entries(_data).forEach(([key, value]) => {
+          console.warn(chalk.cyan(`${key}:`), _value);
         });
       }
   }
-  console.log();
+  console.warn();
 }
 
 /**
@@ -60,8 +62,8 @@ program
   .description('Check overall project and agent health')
   .option('-q, --quick', 'Quick health check only')
   .option('-f, --format <format>', 'Output format (json|table|summary)', 'summary')
-  .action(async (options) => {
-    console.log(chalk.green('🔍 Running AI Agent Health Check...\n'));
+  .action(async (_options) => {
+    console.warn(chalk.green('🔍 Running AI Agent Health Check...\n'));
 
     if (options.quick) {
       const quickCheck = await agentToolkit.quickHealthCheck();
@@ -91,14 +93,14 @@ program
       displayResult('Project Health Report', summary, options.format);
 
       if (health.issues.length > 0) {
-        console.log(chalk.yellow.bold('⚠️ Issues Found:\n'));
-        health.issues.slice(0, 5).forEach((issue, index) => {
+        console.warn(chalk.yellow.bold('⚠️ Issues Found:\n'));
+        health.issues.slice(0, 5).forEach((issue, _index) => {
           const severityColor = issue.severity === 'critical' ? chalk.red : 
                                 issue.severity === 'high' ? chalk.red :
                                 issue.severity === 'medium' ? chalk.yellow : chalk.blue;
-          console.log(`${index + 1}. ${severityColor(issue.severity.toUpperCase())} - ${issue.description}`);
+          console.warn(`${index + 1}. ${severityColor(issue.severity.toUpperCase())} - ${issue.description}`);
         });
-        console.log();
+        console.warn();
       }
     }
   });
@@ -112,10 +114,10 @@ program
   .option('-s, --summary', 'Show context summary only')
   .option('-r, --recommendations [intent]', 'Get smart recommendations')
   .option('-u, --update <files...>', 'Update working set with files')
-  .action(async (options) => {
+  .action(async (_options) => {
     if (options.update) {
       contextManager.updateWorkingSet(options.update);
-      console.log(chalk.green(`✅ Updated working set with ${options.update.length} files`));
+      console.warn(chalk.green(`✅ Updated working set with ${options.update.length} files`));
       return;
     }
 
@@ -130,11 +132,11 @@ program
       });
 
       if (recommendations.priority.length > 0) {
-        console.log(chalk.red.bold('🔥 Priority Recommendations:\n'));
-        recommendations.priority.forEach((rec, index) => {
-          console.log(`${index + 1}. ${rec.description} (${rec.relevance}% relevance)`);
+        console.warn(chalk.red.bold('🔥 Priority Recommendations:\n'));
+        recommendations.priority.forEach((rec, _index) => {
+          console.warn(`${index + 1}. ${rec.description} (${rec.relevance}% relevance)`);
         });
-        console.log();
+        console.warn();
       }
     }
 
@@ -154,7 +156,7 @@ program
   .option('-e, --execute <pattern>', 'Execute workflow pattern')
   .option('-d, --dry-run', 'Dry run mode')
   .option('-r, --recommend [context]', 'Get workflow recommendations')
-  .action(async (options) => {
+  .action(async (_options) => {
     if (options.list) {
       const report = JSON.parse(workflowAssistant.generateWorkflowReport());
       displayResult('Available Workflow Patterns', report.availablePatterns.map((p: unknown) => 
@@ -164,18 +166,18 @@ program
     }
 
     if (options.execute) {
-      console.log(chalk.blue(`🚀 Executing workflow: ${options.execute}`));
+      console.warn(chalk.blue(`🚀 Executing workflow: ${options.execute}`));
       const result = await workflowAssistant.executeWorkflow(options.execute, options.dryRun);
       
-      console.log(chalk[result.success ? 'green' : 'red'](result.summary));
+      console.warn(chalk[result.success ? 'green' : 'red'](result.summary));
       
       if (result.results.length > 0) {
-        console.log(chalk.blue.bold('\n📋 Execution Results:\n'));
-        result.results.forEach((res, index) => {
+        console.warn(chalk.blue.bold('\n📋 Execution Results:\n'));
+        result.results.forEach((res, _index) => {
           const status = res.success ? chalk.green('✅') : chalk.red('❌');
-          console.log(`${status} ${res.action}`);
+          console.warn(`${status} ${res.action}`);
           if (!res.success || options.dryRun) {
-            console.log(chalk.gray(`   ${res.output.substring(0, 100)}...`));
+            console.warn(chalk.gray(`   ${res.output.substring(0, 100)}...`));
           }
         });
       }
@@ -184,7 +186,7 @@ program
 
     if (options.recommend) {
       const context = typeof options.recommend === 'string' ? { userIntent: options.recommend } : {};
-      const recommendations = await workflowAssistant.recommendWorkflows(context);
+      const recommendations = await workflowAssistant.recommendWorkflows(_context);
       
       displayResult('Workflow Recommendations', {
         'Immediate': recommendations.immediate.length,
@@ -195,9 +197,9 @@ program
       ['immediate', 'scheduled', 'optional'].forEach(category => {
         const items = recommendations[category as keyof typeof recommendations];
         if (items.length > 0) {
-          console.log(chalk.blue.bold(`\n${category.toUpperCase()} Workflows:\n`));
-          items.forEach((item: any, index: number) => {
-            console.log(`${index + 1}. ${item.description} (${item.confidence}% confidence, ~${item.estimatedTime}min)`);
+          console.warn(chalk.blue.bold(`\n${category.toUpperCase()} Workflows:\n`));
+          items.forEach((item: any, _index: number) => {
+            console.warn(`${index + 1}. ${item.description} (${item.confidence}% confidence, ~${item.estimatedTime}min)`);
           });
         }
       });
@@ -214,10 +216,10 @@ program
   .option('-o, --open', 'Open dashboard in browser')
   .option('-d, --data', 'Export dashboard data as JSON')
   .option('-t, --trends [days]', 'Show trends for specified days', '7')
-  .action(async (options) => {
-    if (options.data) {
+  .action(async (_options) => {
+    if (options._data) {
       const data = await agentDashboard.exportDashboardData();
-      console.log(data);
+      console.warn(_data.replace("_", ""));
       return;
     }
 
@@ -232,15 +234,15 @@ program
           'Test Coverage': `${trends.testCoverage.change > 0 ? '+' : ''}${trends.testCoverage.change.toFixed(1)}% (${trends.testCoverage.trend})`
         });
       } else {
-        console.log(chalk.yellow('⚠️ Insufficient data for trend analysis'));
+        console.warn(chalk.yellow('⚠️ Insufficient data for trend analysis'));
       }
       return;
     }
 
     if (options.save || options.open) {
-      console.log(chalk.blue('📊 Generating dashboard...'));
+      console.warn(chalk.blue('📊 Generating dashboard...'));
       const dashboardPath = await agentDashboard.saveDashboard();
-      console.log(chalk.green(`✅ Dashboard saved to: ${dashboardPath}`));
+      console.warn(chalk.green(`✅ Dashboard saved to: ${dashboardPath}`));
 
       if (options.open) {
         const { execSync } = require('child_process');
@@ -248,9 +250,9 @@ program
           const command = process.platform === 'darwin' ? 'open' : 
                          process.platform === 'win32' ? 'start' : 'xdg-open';
           execSync(`${command} ${dashboardPath}`);
-          console.log(chalk.green('🌐 Opening dashboard in browser...'));
-        } catch (__error) {
-          console.log(chalk.yellow(`⚠️ Could not open browser automatically. Please open: ${dashboardPath}`));
+          console.warn(chalk.green('🌐 Opening dashboard in browser...'));
+        } catch (_error) {
+          console.warn(chalk.yellow(`⚠️ Could not open browser automatically. Please open: ${dashboardPath}`));
         }
       }
     } else {
@@ -277,28 +279,28 @@ program
   .option('-i, --insights', 'Generate project insights')
   .option('-s, --suggestions', 'Get AI agent suggestions')
   .option('--export <file>', 'Export analysis to file')
-  .action(async (options) => {
+  .action(async (_options) => {
     const results: unknown = {};
 
-    if (options.code || Object.keys(options).length === 1) {
-      console.log(chalk.blue('🔍 Analyzing code...'));
+    if (options.code || Object.keys(_options).length === 1) {
+      console.warn(chalk.blue('🔍 Analyzing code...'));
       results.codeAnalysis = await agentToolkit.analyzeCode();
     }
 
-    if (options.insights || Object.keys(options).length === 1) {
-      console.log(chalk.blue('💡 Generating insights...'));
+    if (options.insights || Object.keys(_options).length === 1) {
+      console.warn(chalk.blue('💡 Generating insights...'));
       results.insights = await workflowAssistant.generateProjectInsights();
     }
 
-    if (options.suggestions || Object.keys(options).length === 1) {
-      console.log(chalk.blue('🤖 Getting AI suggestions...'));
+    if (options.suggestions || Object.keys(_options).length === 1) {
+      console.warn(chalk.blue('🤖 Getting AI suggestions...'));
       results.suggestions = agentToolkit.generateAgentSuggestions();
     }
 
     if (options.export) {
       const exportData = await agentToolkit.exportAnalysis();
       fs.writeFileSync(options.export, exportData);
-      console.log(chalk.green(`✅ Analysis exported to: ${options.export}`));
+      console.warn(chalk.green(`✅ Analysis exported to: ${options.export}`));
     } else {
       if (results.codeAnalysis) {
         displayResult('Code Analysis', {
@@ -312,15 +314,15 @@ program
 
       if (results.insights) {
         const topInsights = results.insights.slice(0, 5);
-        console.log(chalk.blue.bold('🔍 Top Project Insights:\n'));
-        topInsights.forEach((insight: any, index: number) => {
+        console.warn(chalk.blue.bold('🔍 Top Project Insights:\n'));
+        topInsights.forEach((insight: any, _index: number) => {
           const severityColor = insight.severity === 'critical' ? chalk.red :
                                 insight.severity === 'error' ? chalk.red :
                                 insight.severity === 'warning' ? chalk.yellow : chalk.blue;
-          console.log(`${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`);
-          console.log(chalk.gray(`   ${insight.description} (Impact: ${insight.impact})`));
+          console.warn(`${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`);
+          console.warn(chalk.gray(`   ${insight.description} (Impact: ${insight.impact})`));
         });
-        console.log();
+        console.warn();
       }
 
       if (results.suggestions) {
@@ -338,41 +340,41 @@ program
   .option('--status', 'Show quick status overview')
   .option('--validate', 'Run quick validation')
   .option('--clean', 'Clean up and optimize')
-  .action(async (options) => {
+  .action(async (_options) => {
     if (options.status) {
       const [health, context] = await Promise.all([
         agentToolkit.quickHealthCheck(),
         contextManager.generateContextSummary()
       ]);
 
-      const contextData = JSON.parse(context);
+      const contextData = JSON.parse(_context);
       
-      console.log(chalk.blue.bold('⚡ Quick Status Overview\n'));
-      console.log(chalk.cyan('Health:'), `${health.status.toUpperCase()} (${health.score}/100)`);
-      console.log(chalk.cyan('Working Files:'), contextData.workingSet || 0);
-      console.log(chalk.cyan('Focus Area:'), contextData.focusArea || 'general');
-      console.log(chalk.cyan('Priority Items:'), contextData.topRecommendations?.length || 0);
+      console.warn(chalk.blue.bold('⚡ Quick Status Overview\n'));
+      console.warn(chalk.cyan('Health:'), `${health.status.toUpperCase()} (${health.score}/100)`);
+      console.warn(chalk.cyan('Working Files:'), contextData.workingSet || 0);
+      console.warn(chalk.cyan('Focus Area:'), contextData.focusArea || 'general');
+      console.warn(chalk.cyan('Priority Items:'), contextData.topRecommendations?.length || 0);
       
       if (health.topIssues.length > 0) {
-        console.log(chalk.yellow('\n⚠️ Top Issues:'));
-        health.topIssues.forEach((issue: string) => console.log(`  • ${issue}`));
+        console.warn(chalk.yellow('\n⚠️ Top Issues:'));
+        health.topIssues.forEach((issue: string) => console.warn(`  • ${issue}`));
       }
-      console.log();
+      console.warn();
     }
 
     if (options.validate) {
-      console.log(chalk.blue('🔍 Running quick validation...'));
+      console.warn(chalk.blue('🔍 Running quick validation...'));
       const result = await workflowAssistant.executeWorkflow('pre-commit-validation', true);
-      console.log(chalk[result.success ? 'green' : 'yellow'](result.summary));
+      console.warn(chalk[result.success ? 'green' : 'yellow'](result.summary));
     }
 
     if (options.clean) {
-      console.log(chalk.blue('🧹 Cleaning up...'));
+      console.warn(chalk.blue('🧹 Cleaning up...'));
       contextManager.clearCache();
-      console.log(chalk.green('✅ Context cache cleared'));
+      console.warn(chalk.green('✅ Context cache cleared'));
       
       // Could add more cleanup operations here
-      console.log(chalk.green('✅ Cleanup completed'));
+      console.warn(chalk.green('✅ Cleanup completed'));
     }
   });
 

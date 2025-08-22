@@ -263,7 +263,7 @@ describe('API Security Integration Tests', () => {
       }
       res.json({ 
         message: 'Sensitive data access granted',
-        data: 'CONFIDENTIAL_INFORMATION' 
+        _data: 'CONFIDENTIAL_INFORMATION' 
       });
     });
 
@@ -504,7 +504,7 @@ describe('API Security Integration Tests', () => {
         .set('Authorization', `Bearer ${testData.adminToken}`);
 
       expect(adminResponse.status).toBe(200);
-      expect(adminResponse.body.data).toBe('CONFIDENTIAL_INFORMATION');
+      expect(adminResponse.body._data).toBe('CONFIDENTIAL_INFORMATION');
 
       // Other roles should be denied
       const roles = [testData.managerToken, testData.residentToken, testData.tenantToken];

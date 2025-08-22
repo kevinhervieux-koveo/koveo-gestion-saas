@@ -4,23 +4,34 @@ import { useState, useEffect, useCallback } from 'react';
  *
  */
 /**
- * useFullscreen custom hook.
+ * UseFullscreen custom hook.
  * @returns Hook return value.
  */
 /**
  * Use fullscreen function.
  */
-export function  /**
+export function /**
+   * Use fullscreen function.
+   */ /**
    * Use fullscreen function.
    */
+
  useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = useCallback(async () => {
-    try {  /**
+    try { /**
    * If function.
    * @param !document.fullscreenElement - !document.fullscreenElement parameter.
    */
+  /**
+   * If function.
+   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+   */ /**
+   * If function.
+   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+   */
+
   /**
    * If function.
    * @param !document.fullscreenElement - !document.fullscreenElement parameter.
@@ -31,7 +42,7 @@ export function  /**
       } else {
         await document.exitFullscreen();
       }
-    }  /**
+    } /**
    * Catch function.
    * @param error - Error object.
    */
@@ -42,23 +53,39 @@ export function  /**
   /**
    * Catch function.
    * @param error - Error object.
+   */ /**
+   * Catch function.
+   * @param error - Error object.
    */
- catch (error) {
-      console.error('Error toggling fullscreen:', error);
+
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (_error) {
+      console.error('Error toggling fullscreen:', _error);
     }
   }, []);
 
   const exitFullscreen = useCallback(async () => {
-    try {  /**
+    try { /**
    * If function.
-   * @param document.fullscreenElement - document.fullscreenElement parameter.
+   * @param document.fullscreenElement - Document.fullscreenElement parameter.
+   */ /**
+   * If function.
+   * @param document.fullscreenElement - Document.fullscreenElement parameter.
    */
+
 
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       }
-    } catch (error) {
-      console.error('Error exiting fullscreen:', error);
+    } catch (_error) {
+      console.error('Error exiting fullscreen:', _error);
     }
   }, []);
 
@@ -67,8 +94,8 @@ export function  /**
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       }
-    } catch (error) {
-      console.error('Error entering fullscreen:', error);
+    } catch (_error) {
+      console.error('Error entering fullscreen:', _error);
     }
   }, []);
 

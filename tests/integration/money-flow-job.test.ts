@@ -126,7 +126,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const error = new Error('Database connection failed');
       
       (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValue(error);
+        .mockRejectedValue(_error);
 
       await moneyFlowJob.executeMoneyFlowJob();
 
@@ -152,8 +152,8 @@ describe('MoneyFlowJob Integration Tests', () => {
       };
 
       (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValueOnce(error) // First attempt fails
-        .mockRejectedValueOnce(error) // Second attempt fails
+        .mockRejectedValueOnce(_error) // First attempt fails
+        .mockRejectedValueOnce(_error) // Second attempt fails
         .mockResolvedValueOnce(mockResult); // Third attempt succeeds
 
       (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
@@ -176,7 +176,7 @@ describe('MoneyFlowJob Integration Tests', () => {
 
       const result = await moneyFlowJob.generateForBill(billId);
 
-      expect(result).toBe(entriesCreated);
+      expect(_result).toBe(entriesCreated);
       expect(moneyFlowAutomationService.generateForBill).toHaveBeenCalledWith(billId);
     });
 
@@ -185,7 +185,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const error = new Error('Bill not found');
 
       (moneyFlowAutomationService.generateForBill as jest.Mock)
-        .mockRejectedValue(error);
+        .mockRejectedValue(_error);
 
       await expect(moneyFlowJob.generateForBill(billId)).rejects.toThrow('Bill not found');
     });
@@ -201,7 +201,7 @@ describe('MoneyFlowJob Integration Tests', () => {
 
       const result = await moneyFlowJob.generateForResidence(residenceId);
 
-      expect(result).toBe(entriesCreated);
+      expect(_result).toBe(entriesCreated);
       expect(moneyFlowAutomationService.generateForResidence).toHaveBeenCalledWith(residenceId);
     });
 
@@ -210,7 +210,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const error = new Error('Residence not found');
 
       (moneyFlowAutomationService.generateForResidence as jest.Mock)
-        .mockRejectedValue(error);
+        .mockRejectedValue(_error);
 
       await expect(moneyFlowJob.generateForResidence(residenceId)).rejects.toThrow('Residence not found');
     });
@@ -240,7 +240,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const error = new Error('Database query failed');
 
       (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockRejectedValue(error);
+        .mockRejectedValue(_error);
 
       await expect(moneyFlowJob.getStatistics()).rejects.toThrow('Database query failed');
     });
@@ -387,7 +387,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const error = new Error('Test error');
       
       (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValue(error);
+        .mockRejectedValue(_error);
 
       await moneyFlowJob.executeMoneyFlowJob();
 

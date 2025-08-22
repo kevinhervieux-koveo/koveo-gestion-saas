@@ -381,8 +381,8 @@ function main() {
       process.exit(0);
     }
     
-  } catch (__error) {
-    console.error(`${colors.red}❌ Erreur lors de l'exécution des tests:${colors.reset}`, error);
+  } catch (_error) {
+    console.error(`${colors.red}❌ Erreur lors de l'exécution des tests:${colors.reset}`, _error);
     process.exit(1);
   }
 }

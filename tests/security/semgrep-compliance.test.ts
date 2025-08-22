@@ -32,7 +32,7 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         const ruleId = result.check_id;
         rulesCoverage[ruleId] = (rulesCoverage[ruleId] || 0) + 1;
       });
-    } catch (error) {
+    } catch (_error) {
       console.warn('Compliance semgrep analysis failed:', error.message);
       complianceResults = { results: [] };
     }
@@ -45,9 +45,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (consentIssues.length > 0) {
-        console.log(`🍁 Found ${consentIssues.length} consent processing patterns:`);
+        console.warn(`🍁 Found ${consentIssues.length} consent processing patterns:`);
         consentIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -60,9 +60,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (rightsIssues.length > 0) {
-        console.log(`⚖️ Found ${rightsIssues.length} data subject rights implementation gaps:`);
+        console.warn(`⚖️ Found ${rightsIssues.length} data subject rights implementation gaps:`);
         rightsIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}: ${violation.extra?.message || 'Rights implementation needed'}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}: ${violation.extra?.message || 'Rights implementation needed'}`);
         });
       }
 
@@ -75,9 +75,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (piaIssues.length > 0) {
-        console.log(`📊 Found ${piaIssues.length} operations requiring privacy impact assessment:`);
+        console.warn(`📊 Found ${piaIssues.length} operations requiring privacy impact assessment:`);
         piaIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -90,9 +90,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (languageIssues.length > 0) {
-        console.log(`🗣️ Found ${languageIssues.length} Quebec French compliance items:`);
+        console.warn(`🗣️ Found ${languageIssues.length} Quebec French compliance items:`);
         languageIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -105,9 +105,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (breachIssues.length > 0) {
-        console.log(`🚨 Found ${breachIssues.length} breach notification compliance items:`);
+        console.warn(`🚨 Found ${breachIssues.length} breach notification compliance items:`);
         breachIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -122,9 +122,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (tenantPrivacy.length > 0) {
-        console.log(`🏠 Found ${tenantPrivacy.length} tenant privacy protection requirements:`);
+        console.warn(`🏠 Found ${tenantPrivacy.length} tenant privacy protection requirements:`);
         tenantPrivacy.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -137,9 +137,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (buildingSecurity.length > 0) {
-        console.log(`🔐 Found ${buildingSecurity.length} building security compliance items:`);
+        console.warn(`🔐 Found ${buildingSecurity.length} building security compliance items:`);
         buildingSecurity.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -152,9 +152,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (maintenanceData.length > 0) {
-        console.log(`🔧 Found ${maintenanceData.length} maintenance data confidentiality items:`);
+        console.warn(`🔧 Found ${maintenanceData.length} maintenance data confidentiality items:`);
         maintenanceData.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -167,9 +167,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (financialDocs.length > 0) {
-        console.log(`💰 Found ${financialDocs.length} financial document security requirements:`);
+        console.warn(`💰 Found ${financialDocs.length} financial document security requirements:`);
         financialDocs.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -184,9 +184,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (strictMode.length > 0) {
-        console.log(`📝 Found ${strictMode.length} TypeScript strict mode violations:`);
+        console.warn(`📝 Found ${strictMode.length} TypeScript strict mode violations:`);
         strictMode.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -199,9 +199,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (errorHandling.length > 0) {
-        console.log(`🛡️ Found ${errorHandling.length} error handling improvements needed:`);
+        console.warn(`🛡️ Found ${errorHandling.length} error handling improvements needed:`);
         errorHandling.slice(0, 8).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -214,9 +214,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (apiDocs.length > 0) {
-        console.log(`📚 Found ${apiDocs.length} API endpoints needing documentation:`);
+        console.warn(`📚 Found ${apiDocs.length} API endpoints needing documentation:`);
         apiDocs.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -229,9 +229,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (logging.length > 0) {
-        console.log(`📊 Found ${logging.length} logging standard improvements:`);
+        console.warn(`📊 Found ${logging.length} logging standard improvements:`);
         logging.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -246,9 +246,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (rbacImpl.length > 0) {
-        console.log(`👥 Found ${rbacImpl.length} RBAC implementation items:`);
+        console.warn(`👥 Found ${rbacImpl.length} RBAC implementation items:`);
         rbacImpl.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -261,9 +261,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (sessionSecurity.length > 0) {
-        console.log(`🔐 Found ${sessionSecurity.length} session management security items:`);
+        console.warn(`🔐 Found ${sessionSecurity.length} session management security items:`);
         sessionSecurity.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -276,9 +276,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (auditTrail.length > 0) {
-        console.log(`📋 Found ${auditTrail.length} audit trail implementation items:`);
+        console.warn(`📋 Found ${auditTrail.length} audit trail implementation items:`);
         auditTrail.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -293,9 +293,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (frenchCompleteness.length > 0) {
-        console.log(`🍁 Found ${frenchCompleteness.length} Quebec French translation gaps:`);
+        console.warn(`🍁 Found ${frenchCompleteness.length} Quebec French translation gaps:`);
         frenchCompleteness.slice(0, 8).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -308,9 +308,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (culturalAdaptation.length > 0) {
-        console.log(`🌐 Found ${culturalAdaptation.length} cultural adaptation items:`);
+        console.warn(`🌐 Found ${culturalAdaptation.length} cultural adaptation items:`);
         culturalAdaptation.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -323,9 +323,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
       ) || [];
 
       if (quebecFormats.length > 0) {
-        console.log(`📮 Found ${quebecFormats.length} Quebec address format items:`);
+        console.warn(`📮 Found ${quebecFormats.length} Quebec address format items:`);
         quebecFormats.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -344,9 +344,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         }
       });
 
-      console.log('\n📊 Rules Coverage by Domain:');
+      console.warn('\n📊 Rules Coverage by Domain:');
       Object.entries(domains).forEach(([domain, count]) => {
-        console.log(`   - ${domain}: ${count} findings`);
+        console.warn(`   - ${domain}: ${count} findings`);
       });
 
       // Should have coverage across multiple domains
@@ -359,9 +359,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         .slice(0, 10);
 
       if (sortedRules.length > 0) {
-        console.log('\n🔝 Top 10 Most Triggered Rules:');
-        sortedRules.forEach(([ruleId, count], index) => {
-          console.log(`   ${index + 1}. ${ruleId}: ${count} findings`);
+        console.warn('\n🔝 Top 10 Most Triggered Rules:');
+        sortedRules.forEach(([ruleId, count], _index) => {
+          console.warn(`   ${index + 1}. ${ruleId}: ${count} findings`);
         });
       }
 
@@ -383,11 +383,11 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         averageFindingsPerRule: totalFindings / Math.max(Object.keys(rulesCoverage).length, 1)
       };
 
-      console.log('\n📈 Rule Effectiveness Analysis:');
-      console.log(`   Rules defined: ${coverage.totalRules}`);
-      console.log(`   Total findings: ${coverage.totalFindings}`);
-      console.log(`   Files analyzed: ${coverage.uniqueFiles}`);
-      console.log(`   Avg findings per rule: ${coverage.averageFindingsPerRule.toFixed(2)}`);
+      console.warn('\n📈 Rule Effectiveness Analysis:');
+      console.warn(`   Rules defined: ${coverage.totalRules}`);
+      console.warn(`   Total findings: ${coverage.totalFindings}`);
+      console.warn(`   Files analyzed: ${coverage.uniqueFiles}`);
+      console.warn(`   Avg findings per rule: ${coverage.averageFindingsPerRule.toFixed(2)}`);
 
       expect(coverage.totalRules).toBeGreaterThan(0);
       expect(coverage.uniqueFiles).toBeGreaterThan(0);
@@ -403,7 +403,7 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         rulesCoverage,
         domainAnalysis: {},
         severityBreakdown: {
-          error: complianceResults.results?.filter(r => r.extra?.severity === 'ERROR').length || 0,
+          _error: complianceResults.results?.filter(r => r.extra?.severity === 'ERROR').length || 0,
           warning: complianceResults.results?.filter(r => r.extra?.severity === 'WARNING').length || 0,
           info: complianceResults.results?.filter(r => r.extra?.severity === 'INFO').length || 0
         }
@@ -417,23 +417,23 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         path.join(process.cwd(), 'reports', 'compliance-analysis.json'),
         JSON.stringify(report, null, 2)
       );
-      console.log('📄 Comprehensive compliance report saved to reports/compliance-analysis.json');
-    } catch (error) {
+      console.warn('📄 Comprehensive compliance report saved to reports/compliance-analysis.json');
+    } catch (_error) {
       console.warn('Could not save compliance report:', error.message);
     }
 
     // Display final summary
-    console.log('\n🎯 COMPREHENSIVE COMPLIANCE ANALYSIS COMPLETE');
-    console.log('===============================================');
-    console.log(`📊 Total Rules Analyzed: ${Object.keys(rulesCoverage).length}`);
-    console.log(`🔍 Total Findings: ${report.analysis.totalFindings}`);
-    console.log(`⚠️  Critical Issues: ${report.analysis.severityBreakdown.error}`);
-    console.log(`⚡ Recommendations Generated: ${report.recommendations.length}`);
+    console.warn('\n🎯 COMPREHENSIVE COMPLIANCE ANALYSIS COMPLETE');
+    console.warn('===============================================');
+    console.warn(`📊 Total Rules Analyzed: ${Object.keys(rulesCoverage).length}`);
+    console.warn(`🔍 Total Findings: ${report.analysis.totalFindings}`);
+    console.warn(`⚠️  Critical Issues: ${report.analysis.severityBreakdown.error}`);
+    console.warn(`⚡ Recommendations Generated: ${report.recommendations.length}`);
     
     if (report.analysis.severityBreakdown.error === 0) {
-      console.log('✅ No critical compliance issues detected');
+      console.warn('✅ No critical compliance issues detected');
     } else {
-      console.log('❗ Critical compliance issues require attention');
+      console.warn('❗ Critical compliance issues require attention');
     }
   });
 });
@@ -603,7 +603,7 @@ rules:
     pattern-either:
       - pattern: |
           catch ($ERROR) {
-            console.log($ERROR)
+            console.warn($ERROR)
           }
       - pattern: |
           catch ($ERROR) {
@@ -640,7 +640,7 @@ rules:
   - id: koveo.quality.logging-standards
     pattern-either:
       - pattern: |
-          console.log($MSG)
+          console.warn($MSG)
       - pattern: |
           console.error($MSG)
     pattern-not: |

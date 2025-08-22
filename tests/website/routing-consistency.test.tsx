@@ -20,7 +20,8 @@ import App from '@/App';
  * @param root0.children
  * @param root0.initialLocation
  * @param root0.userRole
- */
+  * @returns Function result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/',
@@ -422,7 +423,7 @@ describe('Routing Consistency Tests', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 375,
+        _value: 375,
       });
       
       render(

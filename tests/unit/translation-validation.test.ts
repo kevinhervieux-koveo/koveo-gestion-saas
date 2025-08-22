@@ -43,12 +43,12 @@ describe('Translation Files Language Validation', () => {
             try {
               const jsonData = JSON.parse(content);
               validator.validateJSON(jsonData, `Translation file: ${file}`);
-            } catch (__error) {
-              console.warn(`Failed to parse JSON file ${file}:`, __error);
+            } catch (_error) {
+              console.warn(`Failed to parse JSON file ${file}:`, _error);
             }
           }
         }
-      } catch (__error) {
+      } catch (_error) {
         // Pattern not found, continue
       }
     }
@@ -89,7 +89,7 @@ describe('Translation Files Language Validation', () => {
           const content = readFileSync(file, 'utf-8');
           const lines = content.split('\n');
           
-          lines.forEach((line, index) => {
+          lines.forEach((line, _index) => {
             // Look for hardcoded strings in JSX (simplified regex)
             const stringMatches = line.match(/>([^<>{]*[a-zA-Z]{3,}[^<>{}]*)</g);
             
@@ -123,18 +123,18 @@ describe('Translation Files Language Validation', () => {
       
       if (hardcodedStrings.length > 0) {
         console.warn('\n=== CHAÎNES CODÉES EN DUR AVEC VIOLATIONS LINGUISTIQUES ===');
-        hardcodedStrings.slice(0, 20).forEach((item, index) => {
-          console.log(`${index + 1}. ${item.file}:${item.line}`);
-          console.log(`   Texte: "${item.text}"`);
-          console.log(`   Violations: ${item.violations.map((v: any) => v.term).join(', ')}`);
-          console.log('');
+        hardcodedStrings.slice(0, 20).forEach((item, _index) => {
+          console.warn(`${index + 1}. ${item.file}:${item.line}`);
+          console.warn(`   Texte: "${item.text}"`);
+          console.warn(`   Violations: ${item.violations.map((v: any) => v.term).join(', ')}`);
+          console.warn('');
         });
       }
       
       expect(hardcodedStrings.length).toBeGreaterThanOrEqual(0);
       
-    } catch (__error) {
-      console.warn('❌ Erreur lors de l\'analyse des composants:', __error);
+    } catch (_error) {
+      console.warn('❌ Erreur lors de l\'analyse des composants:', _error);
     }
   });
 
@@ -144,42 +144,42 @@ describe('Translation Files Language Validation', () => {
   it('should validate Quebec-specific property management terms are used correctly', () => {
     const testCases = [
       {
-        context: 'Condo fees',
+        _context: 'Condo fees',
         correct: 'charges de copropriété',
         incorrect: ['condo fees', 'strata fees', 'maintenance fees']
       },
       {
-        context: 'Property manager',
+        _context: 'Property manager',
         correct: 'gestionnaire immobilier',
         incorrect: ['property manager', 'building manager']
       },
       {
-        context: 'Tenant',
+        _context: 'Tenant',
         correct: 'locataire',
         incorrect: ['tenant', 'renter']
       },
       {
-        context: 'Lease agreement',
+        _context: 'Lease agreement',
         correct: 'contrat de bail',
         incorrect: ['lease agreement', 'rental agreement']
       },
       {
-        context: 'Common areas',
+        _context: 'Common areas',
         correct: 'parties communes',
         incorrect: ['common areas', 'shared spaces']
       },
       {
-        context: 'Board of directors',
+        _context: 'Board of directors',
         correct: 'conseil d\'administration',
         incorrect: ['board of directors', 'HOA board']
       },
       {
-        context: 'Annual general meeting',
+        _context: 'Annual general meeting',
         correct: 'assemblée générale annuelle',
         incorrect: ['annual general meeting', 'AGM', 'yearly meeting']
       },
       {
-        context: 'Contingency fund',
+        _context: 'Contingency fund',
         correct: 'fonds de prévoyance',
         incorrect: ['contingency fund', 'reserve fund', 'emergency fund']
       }
@@ -287,7 +287,7 @@ describe('Translation Files Language Validation', () => {
       if (violations.length > 0) {
         // Check for either 'text' or 'term' property since structure varies
         const firstViolation = violations[0];
-        const hasTextOrTerm = firstViolation.hasOwnProperty('text') || firstViolation.hasOwnProperty('term');
+        const hasTextOrTerm = Object.prototype.hasOwnProperty.call(firstViolation, 'text') || Object.prototype.hasOwnProperty.call(firstViolation, 'term');
         expect(hasTextOrTerm).toBe(true);
       }
     });
@@ -301,39 +301,39 @@ describe('Translation Files Language Validation', () => {
       {
         englishTerm: 'condominium corporation',
         quebecTerm: 'syndicat de copropriété',
-        context: 'Legal entity'
+        _context: 'Legal entity'
       },
       {
         englishTerm: 'strata council',
         quebecTerm: 'conseil d\'administration',
-        context: 'Governance'
+        _context: 'Governance'
       },
       {
         englishTerm: 'special assessment',
         quebecTerm: 'contribution spéciale',
-        context: 'Finances'
+        _context: 'Finances'
       },
       {
         englishTerm: 'exclusive use area',
         quebecTerm: 'partie privative',
-        context: 'Property division'
+        _context: 'Property division'
       },
       {
         englishTerm: 'common property',
         quebecTerm: 'parties communes',
-        context: 'Shared areas'
+        _context: 'Shared areas'
       },
       {
         englishTerm: 'unit entitlement',
         quebecTerm: 'quote-part',
-        context: 'Ownership percentage'
+        _context: 'Ownership percentage'
       }
     ];
 
     legalTerminologyTests.forEach(test => {
       // English terms should trigger more violations than Quebec terms
-      const englishViolations = validateText(test.englishTerm, test.context);
-      const quebecViolations = validateText(test.quebecTerm, test.context);
+      const englishViolations = validateText(test.englishTerm, test._context);
+      const quebecViolations = validateText(test.quebecTerm, test._context);
       
       // At minimum, English should have equal or more violations
       expect(englishViolations.length).toBeGreaterThanOrEqual(quebecViolations.length);

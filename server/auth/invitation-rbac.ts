@@ -84,7 +84,7 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach(callback => {
       try {
         callback(alert);
-      } catch (___error) {
+      } catch (____error) {
         console.error('Error in security alert callback:', _error);
       }
     });
@@ -106,7 +106,7 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null
       });
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to log security alert:', _error);
     }
   }
@@ -206,7 +206,7 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
     const key = `${req.user?.id || req.ip}:${req.method}:${req.path}`;
     const now = Date.now();
     
-    const current = rateLimitStore.get(key);
+    const current = rateLimitStore.get(_key);
     
     if (!current || now > current.resetTime) {
       rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
@@ -388,11 +388,16 @@ export class InvitationPermissionValidator {
  * @param options.requireOwnership
  * @param options.allowSelfAccess
  * @param options.auditAction
+ * @param _options
+ * @param _options.validateContext
+ * @param _options.requireOwnership
+ * @param _options.allowSelfAccess
+ * @param _options.auditAction
  * @returns Function result.
  */
 export function requireInvitationPermission(
   action: string,
-  options: {
+  _options: {
     validateContext?: boolean;
     requireOwnership?: boolean;
     allowSelfAccess?: boolean;
@@ -502,8 +507,8 @@ export function requireInvitationPermission(
       );
 
       next();
-    } catch (__error) {
-      console.error('Invitation RBAC error:', error);
+    } catch (_error) {
+      console.error('Invitation RBAC _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'RBAC_ERROR'
@@ -584,8 +589,8 @@ export async function createEnhancedInvitationAuditLog(
       newStatus
     });
 
-  } catch (__error) {
-    console.error('Failed to create enhanced audit log:', error);
+  } catch (_error) {
+    console.error('Failed to create enhanced audit log:', _error);
   }
 }
 
@@ -666,8 +671,8 @@ export function withPermissionInheritance(baseAction: string) {
         userRole: req.user.role
       });
 
-    } catch (__error) {
-      console.error('Permission inheritance error:', error);
+    } catch (_error) {
+      console.error('Permission inheritance _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'INHERITANCE_ERROR'
@@ -682,5 +687,5 @@ InvitationSecurityMonitor.onAlert((alert) => {
   // - Send alerts to security team
   // - Log to external monitoring service
   // - Trigger automated responses
-  console.log(`🔔 Security Alert Handler: ${alert.type} - ${alert.description}`);
+  console.warn(`🔔 Security Alert Handler: ${alert.type} - ${alert.description}`);
 });

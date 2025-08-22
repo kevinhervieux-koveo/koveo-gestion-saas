@@ -190,8 +190,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
 
       const template = templates[language];
       
-      console.log('Sending password reset email with URL:', resetUrl);
-      console.log('Email tracking settings applied: click tracking disabled');
+      console.warn('Sending password reset email with URL:', resetUrl);
+      console.warn('Email tracking settings applied: click tracking disabled');
 
       await this.mailService.send({
         to,
@@ -231,8 +231,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (__error) {
-      console.error('Password reset email error:', error);
+    } catch (_error) {
+      console.error('Password reset email _error:', _error);
       return false;
     }
   }
@@ -249,7 +249,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
    * const emailService = new EmailService();
    * const success = await emailService.sendTestEmail('admin@example.com');
    * if (success) {
-   *   console.log('SendGrid configuration is working');
+   *   console.warn('SendGrid configuration is working');
    * }
    * ```
    */
@@ -267,8 +267,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (__error) {
-      console.error('Test email error:', error);
+    } catch (_error) {
+      console.error('Test email _error:', _error);
       return false;
     }
   }

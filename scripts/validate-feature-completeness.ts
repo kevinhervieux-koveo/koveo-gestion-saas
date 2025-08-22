@@ -26,7 +26,7 @@ interface FeatureValidation {
  * Main feature validation function.
  */
 async function validateFeatureCompleteness() {
-  console.log(chalk.blue('🔍 Validating Feature Completeness...'));
+  console.warn(chalk.blue('🔍 Validating Feature Completeness...'));
   
   const features = [
     'Document Management',
@@ -55,9 +55,9 @@ async function validateFeatureCompleteness() {
   const incompleteFeatures = validations.filter(v => v.completeness < 80);
   const averageCompleteness = validations.reduce((sum, v) => sum + v.completeness, 0) / validations.length;
   
-  console.log(chalk.green(`✅ Feature Validation Complete`));
-  console.log(chalk.gray(`   Average Completeness: ${averageCompleteness.toFixed(1)}%`));
-  console.log(chalk.gray(`   Features needing attention: ${incompleteFeatures.length}`));
+  console.warn(chalk.green(`✅ Feature Validation Complete`));
+  console.warn(chalk.gray(`   Average Completeness: ${averageCompleteness.toFixed(1)}%`));
+  console.warn(chalk.gray(`   Features needing attention: ${incompleteFeatures.length}`));
   
   return incompleteFeatures.length === 0 && averageCompleteness >= 85;
 }
@@ -236,7 +236,7 @@ async function findFiles(patterns: string[]): Promise<string[]> {
         });
         
         let output = '';
-        find.stdout.on('data', (data) => {
+        find.stdout.on('data', (_data) => {
           output += data.toString();
         });
         
@@ -286,7 +286,7 @@ Generated on: ${new Date().toISOString()}
 
 ${validations
   .sort((a, b) => b.completeness - a.completeness)
-  .map((validation, index) => `
+  .map((validation, _index) => `
 ### ${index + 1}. ${validation.feature}
 
 **Completeness:** ${validation.completeness.toFixed(0)}% ${validation.completeness === 100 ? '✅' : validation.completeness >= 75 ? '⚠️' : '❌'}

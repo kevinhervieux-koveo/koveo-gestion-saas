@@ -31,13 +31,13 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(categoryAnalysis.utilities).toBe(850);
       expect(categoryAnalysis.insurance).toBe(2500);
       
-      console.log('🏢 Demo Organization Financial Health Report:');
-      console.log(`  📊 Buildings: ${demoBuildings.length}`);
-      console.log(`  💸 Total Annual Expenses: $${totalExpenses.toLocaleString()}`);
-      console.log(`  💰 Estimated Annual Income: $${estimatedIncome.toLocaleString()}`);
-      console.log(`  📈 Cash Flow Ratio: ${(cashFlowRatio * 100).toFixed(1)}%`);
-      console.log(`  ⚠️  Special Assessment Required: ${specialAssessmentNeeded ? 'Yes' : 'No'}`);
-      console.log(`  📋 Expense Categories:`, categoryAnalysis);
+      console.warn('🏢 Demo Organization Financial Health Report:');
+      console.warn(`  📊 Buildings: ${demoBuildings.length}`);
+      console.warn(`  💸 Total Annual Expenses: $${totalExpenses.toLocaleString()}`);
+      console.warn(`  💰 Estimated Annual Income: $${estimatedIncome.toLocaleString()}`);
+      console.warn(`  📈 Cash Flow Ratio: ${(cashFlowRatio * 100).toFixed(1)}%`);
+      console.warn(`  ⚠️  Special Assessment Required: ${specialAssessmentNeeded ? 'Yes' : 'No'}`);
+      console.warn(`  📋 Expense Categories:`, categoryAnalysis);
     });
 
     it('simulates complete budget workflow from Demo data', () => {
@@ -78,11 +78,11 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(paymentSchedule[0].specialAssessment).toBeCloseTo(-49502.8, 1);
       expect(paymentSchedule[1].specialAssessment).toBe(0);
       
-      console.log('💼 Complete Budget Workflow Simulation:');
-      console.log(`  📈 Annual Income: $${annualIncome.toLocaleString()}`);
-      console.log(`  📉 Annual Expenses: $${annualExpenses.toLocaleString()}`);
-      console.log(`  ⚖️  Annual Balance: $${(-annualDeficit).toLocaleString()}`);
-      console.log(`  🏠 Assessment per Unit: $${(-assessmentPerUnit).toLocaleString()}`);
+      console.warn('💼 Complete Budget Workflow Simulation:');
+      console.warn(`  📈 Annual Income: $${annualIncome.toLocaleString()}`);
+      console.warn(`  📉 Annual Expenses: $${annualExpenses.toLocaleString()}`);
+      console.warn(`  ⚖️  Annual Balance: $${(-annualDeficit).toLocaleString()}`);
+      console.warn(`  🏠 Assessment per Unit: $${(-assessmentPerUnit).toLocaleString()}`);
     });
   });
 
@@ -117,11 +117,11 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(inflationImpact).toBeGreaterThan(0);
       expect(inflationImpact).toBeCloseTo(3697.4, 1);
       
-      console.log('📊 5-Year Inflation Impact Analysis:');
+      console.warn('📊 5-Year Inflation Impact Analysis:');
       projectedExpenses.forEach(p => {
-        console.log(`  ${p.year}: $${p.expenses.toLocaleString()} (${p.increase > 0 ? '+$' + p.increase.toLocaleString() : '$0'})`);
+        console.warn(`  ${p.year}: $${p.expenses.toLocaleString()} (${p.increase > 0 ? '+$' + p.increase.toLocaleString() : '$0'})`);
       });
-      console.log(`  💰 Total Inflation Impact: $${inflationImpact.toLocaleString()}`);
+      console.warn(`  💰 Total Inflation Impact: $${inflationImpact.toLocaleString()}`);
     });
 
     it('calculates optimal reserve fund requirements', () => {
@@ -147,13 +147,13 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(currentBalance).toBe(75000);
       expect(reserveDeficit).toBeLessThan(0); // We have surplus reserves
       
-      console.log('🏦 Reserve Fund Analysis:');
+      console.warn('🏦 Reserve Fund Analysis:');
       Object.entries(reserves).forEach(([type, amount]) => {
-        console.log(`  ${type}: $${amount.toLocaleString()}`);
+        console.warn(`  ${type}: $${amount.toLocaleString()}`);
       });
-      console.log(`  📊 Total Required: $${totalReserveRequired.toLocaleString()}`);
-      console.log(`  💰 Current Balance: $${currentBalance.toLocaleString()}`);
-      console.log(`  ${reserveDeficit < 0 ? '✅ Surplus' : '⚠️ Deficit'}: $${Math.abs(reserveDeficit).toLocaleString()}`);
+      console.warn(`  📊 Total Required: $${totalReserveRequired.toLocaleString()}`);
+      console.warn(`  💰 Current Balance: $${currentBalance.toLocaleString()}`);
+      console.warn(`  ${reserveDeficit < 0 ? '✅ Surplus' : '⚠️ Deficit'}: $${Math.abs(reserveDeficit).toLocaleString()}`);
     });
 
     it('performs cash flow stress testing', () => {
@@ -191,13 +191,13 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       const viableScenarios = stressResults.filter(s => s.isViable).length;
       const criticalScenarios = stressResults.filter(s => !s.isViable).length;
       
-      console.log('🧪 Cash Flow Stress Test Results:');
+      console.warn('🧪 Cash Flow Stress Test Results:');
       stressResults.forEach(result => {
         const status = result.isViable ? '✅' : '❌';
-        console.log(`  ${status} ${result.name}: $${result.netCashFlow.toLocaleString()} monthly`);
+        console.warn(`  ${status} ${result.name}: $${result.netCashFlow.toLocaleString()} monthly`);
       });
-      console.log(`  📊 Viable Scenarios: ${viableScenarios}/${stressResults.length}`);
-      console.log(`  ⚠️  Critical Scenarios: ${criticalScenarios}/${stressResults.length}`);
+      console.warn(`  📊 Viable Scenarios: ${viableScenarios}/${stressResults.length}`);
+      console.warn(`  ⚠️  Critical Scenarios: ${criticalScenarios}/${stressResults.length}`);
     });
   });
 
@@ -241,10 +241,10 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(grandTotal).toBeGreaterThan(0);
       expect(processingTime).toBeLessThan(50); // Should process quickly
       
-      console.log('⚡ Performance Test Results:');
-      console.log(`  📊 Processed ${largeDataset.length} bills in ${processingTime.toFixed(2)}ms`);
-      console.log(`  💰 Grand Total: $${grandTotal.toLocaleString()}`);
-      console.log(`  📈 Performance: ${(largeDataset.length / processingTime * 1000).toFixed(0)} bills/second`);
+      console.warn('⚡ Performance Test Results:');
+      console.warn(`  📊 Processed ${largeDataset.length} bills in ${processingTime.toFixed(2)}ms`);
+      console.warn(`  💰 Grand Total: $${grandTotal.toLocaleString()}`);
+      console.warn(`  📈 Performance: ${(largeDataset.length / processingTime * 1000).toFixed(0)} bills/second`);
     });
 
     it('validates memory efficiency with repeated calculations', () => {
@@ -281,11 +281,11 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(iterations).toBe(100);
       expect(memoryIncrease).toBeLessThan(1000000); // Less than 1MB increase
       
-      console.log('🧠 Memory Efficiency Test:');
-      console.log(`  🔄 Iterations: ${iterations}`);
-      console.log(`  📊 Initial Memory: ${(initialMemory / 1024 / 1024).toFixed(2)}MB`);
-      console.log(`  📈 Final Memory: ${(finalMemory / 1024 / 1024).toFixed(2)}MB`);
-      console.log(`  💾 Memory Increase: ${(memoryIncrease / 1024).toFixed(2)}KB`);
+      console.warn('🧠 Memory Efficiency Test:');
+      console.warn(`  🔄 Iterations: ${iterations}`);
+      console.warn(`  📊 Initial Memory: ${(initialMemory / 1024 / 1024).toFixed(2)}MB`);
+      console.warn(`  📈 Final Memory: ${(finalMemory / 1024 / 1024).toFixed(2)}MB`);
+      console.warn(`  💾 Memory Increase: ${(memoryIncrease / 1024).toFixed(2)}KB`);
     });
   });
 
@@ -317,10 +317,10 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(validItems.length).toBe(1); // Only the zero amount item
       expect(validItems[0].category).toBe('zero');
       
-      console.log('🛡️ Corruption Resilience Test:');
-      console.log(`  📊 Original Items: ${corruptedData.length}`);
-      console.log(`  ✅ Valid Items: ${validItems.length}`);
-      console.log(`  💰 Safe Total: $${safeTotal.toLocaleString()}`);
+      console.warn('🛡️ Corruption Resilience Test:');
+      console.warn(`  📊 Original Items: ${corruptedData.length}`);
+      console.warn(`  ✅ Valid Items: ${validItems.length}`);
+      console.warn(`  💰 Safe Total: $${safeTotal.toLocaleString()}`);
     });
 
     it('handles extreme date ranges and large numbers', () => {
@@ -347,11 +347,11 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       expect(multiplied).toBe(1000);
       expect(microAmount.toFixed(3)).toBe('0.001');
       
-      console.log('🔢 Extreme Values Test:');
-      console.log(`  📅 Date Range: ${yearRange} years`);
-      console.log(`  💰 Max Amount: $${extremeData.amount.toLocaleString()}`);
-      console.log(`  📊 Daily Rate: $${dailyAmount.toFixed(2)}`);
-      console.log(`  🔍 Micro Amount: $${microAmount}`);
+      console.warn('🔢 Extreme Values Test:');
+      console.warn(`  📅 Date Range: ${yearRange} years`);
+      console.warn(`  💰 Max Amount: $${extremeData.amount.toLocaleString()}`);
+      console.warn(`  📊 Daily Rate: $${dailyAmount.toFixed(2)}`);
+      console.warn(`  🔍 Micro Amount: $${microAmount}`);
     });
 
     it('validates calculation consistency across different number formats', () => {
@@ -390,10 +390,10 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       
       expect(formatted.every(f => f.formatted.startsWith('$'))).toBe(true);
       
-      console.log('🔄 Number Format Consistency:');
+      console.warn('🔄 Number Format Consistency:');
       normalizedAmounts.forEach(amount => {
         const status = amount.isValid ? '✅' : '❌';
-        console.log(`  ${status} ${amount.input} → ${amount.normalized}`);
+        console.warn(`  ${status} ${amount.input} → ${amount.normalized}`);
       });
     });
   });

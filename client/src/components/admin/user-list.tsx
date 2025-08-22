@@ -69,7 +69,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   const { t } = useLanguage();
   
   const updateUserMutation = useUpdateMutation<User, { role: string; isActive: boolean }>(
-    (data) => `/api/users/${user?.id}`,
+    (_data) => `/api/users/${user?.id}`,
     {
       successMessage: 'User updated successfully',
       invalidateQueries: ['/api/users'],
@@ -85,10 +85,10 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       name: 'role',
       label: t('role'),
       type: 'select',
-      options: [
-        { value: 'admin', label: t('admin') },
-        { value: 'manager', label: t('manager') },
-        { value: 'tenant', label: t('tenant') },
+      _options: [
+        { _value: 'admin', label: t('admin') },
+        { _value: 'manager', label: t('manager') },
+        { _value: 'tenant', label: t('tenant') },
       ],
     },
     {
@@ -116,7 +116,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
           role: user.role,
           isActive: user.isActive,
         }}
-        onSubmit={(data) => updateUserMutation.mutate(data as { role: string; isActive: boolean })}
+        onSubmit={(_data) => updateUserMutation.mutate(data as { role: string; isActive: boolean })}
         isLoading={updateUserMutation.isPending}
         submitText={t('updateUser')}
         showCancel
@@ -225,7 +225,7 @@ export function UserListComponent({
   // Table column configuration
   const columns: TableColumn<User>[] = [
     {
-      key: 'avatar',
+      _key: 'avatar',
       label: '',
       accessor: (user) => (
         <Avatar className="h-8 w-8">
@@ -238,7 +238,7 @@ export function UserListComponent({
       width: '12'
     },
     {
-      key: 'user',
+      _key: 'user',
       label: t('user'),
       accessor: (user) => (
         <div>
@@ -252,7 +252,7 @@ export function UserListComponent({
       ),
     },
     {
-      key: 'role',
+      _key: 'role',
       label: t('role'),
       accessor: 'role',
       hideOnMobile: true,
@@ -266,7 +266,7 @@ export function UserListComponent({
       ),
     },
     {
-      key: 'status',
+      _key: 'status',
       label: t('status'),
       accessor: 'isActive',
       hideOnMobile: true,
@@ -280,14 +280,14 @@ export function UserListComponent({
       ),
     },
     {
-      key: 'lastLogin',
+      _key: 'lastLogin',
       label: t('lastLogin'),
       accessor: (user) => formatDate(user.lastLoginAt),
       hideOnMobile: true,
       className: 'text-sm text-muted-foreground'
     },
     {
-      key: 'joinedDate',
+      _key: 'joinedDate',
       label: t('joinedDate'),
       accessor: (user) => formatDate(user.createdAt),
       hideOnMobile: true,

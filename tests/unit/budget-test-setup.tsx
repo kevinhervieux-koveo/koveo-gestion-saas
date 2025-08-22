@@ -30,7 +30,7 @@ jest.mock('@/hooks/use-language', () => ({
   useLanguage: jest.fn(() => ({
     language: 'en' as const,
     setLanguage: jest.fn(),
-    t: jest.fn((key: string) => key),
+    t: jest.fn((_key: string) => _key),
   })),
 }));
 
@@ -102,7 +102,8 @@ import {
 /**
  *
  * @param buildingId
- */
+  * @returns Function result.
+*/
 function createDemoBudgetData(buildingId: string) {
   const demoBills = getDemoBills();
   
@@ -236,7 +237,7 @@ export const createBudgetTestQueryClient = () => new QueryClient({
           
           // Return all residences for all Demo buildings
           const buildings = getDemoBuildings();
-          return buildings.flatMap((building, index) => 
+          return buildings.flatMap((building, _index) => 
             createDemoResidences(building.id, 101 + (index * 100), 5)
           );
         }
@@ -255,7 +256,7 @@ import { createContext } from 'react';
 const MockLanguageContext = createContext({
   language: 'en' as const,
   setLanguage: jest.fn(),
-  t: jest.fn((key: string) => key),
+  t: jest.fn((_key: string) => _key),
 });
 
 // Mock LanguageProvider for tests
@@ -264,7 +265,7 @@ const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <MockLanguageContext.Provider value={{
       language: 'en' as const,
       setLanguage: jest.fn(),
-      t: jest.fn((key: string) => key),
+      t: jest.fn((_key: string) => _key),
     }}>
       {children}
     </MockLanguageContext.Provider>

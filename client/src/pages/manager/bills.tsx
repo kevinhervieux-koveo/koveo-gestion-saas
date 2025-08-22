@@ -52,18 +52,18 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const MONTHS = [
-  { value: '1', label: 'January' },
-  { value: '2', label: 'February' },
-  { value: '3', label: 'March' },
-  { value: '4', label: 'April' },
-  { value: '5', label: 'May' },
-  { value: '6', label: 'June' },
-  { value: '7', label: 'July' },
-  { value: '8', label: 'August' },
-  { value: '9', label: 'September' },
-  { value: '10', label: 'October' },
-  { value: '11', label: 'November' },
-  { value: '12', label: 'December' }
+  { _value: '1', label: 'January' },
+  { _value: '2', label: 'February' },
+  { _value: '3', label: 'March' },
+  { _value: '4', label: 'April' },
+  { _value: '5', label: 'May' },
+  { _value: '6', label: 'June' },
+  { _value: '7', label: 'July' },
+  { _value: '8', label: 'August' },
+  { _value: '9', label: 'September' },
+  { _value: '10', label: 'October' },
+  { _value: '11', label: 'November' },
+  { _value: '12', label: 'December' }
 ];
 
 /**
@@ -79,9 +79,12 @@ interface BillFilters {
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Bills function.
+   */ /**
    * Bills function.
    */
+
  Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
@@ -94,46 +97,78 @@ export default function  /**
   const queryClient = useQueryClient();
 
   // Fetch buildings for filter dropdown
-  const { data: buildings = [] } = useQuery<Building[]>({
+  const { _data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
 
   // Fetch bills based on filters
-  const { data: bills = [], isLoading } = useQuery<Bill[]>({
+  const { _data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();  /**
+      const params = new URLSearchParams(); /**
    * If function.
-   * @param filters.buildingId - filters.buildingId parameter.
+   * @param filters.buildingId - Filters.buildingId parameter.
+   */ /**
+   * If function.
+   * @param filters.buildingId - Filters.buildingId parameter.
    */
 
-      if (filters.buildingId) {params.set('buildingId', filters.buildingId);}  /**
+
+      if (filters.buildingId) {params.set('buildingId', filters.buildingId);} /**
+   * If function.
+   * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
+   */ /**
    * If function.
    * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
    */
 
-      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}  /**
+
+      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);} /**
    * If function.
-   * @param filters.year - filters.year parameter.
+   * @param filters.year - Filters.year parameter.
+   */ /**
+   * If function.
+   * @param filters.year - Filters.year parameter.
    */
 
-      if (filters.year) {params.set('year', filters.year);}  /**
+
+      if (filters.year) {params.set('year', filters.year);} /**
+   * If function.
+   * @param filters.months.length > 0 - filters.months.length > 0 parameter.
+   */ /**
    * If function.
    * @param filters.months.length > 0 - filters.months.length > 0 parameter.
    */
 
+
       if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
       
-      const url = `/api/bills${params.toString() ? '?' + params.  /**
+      const url = `/api/bills${params.toString() ? '?' + params. /**
    * To string function.
    * @returns ''}`;
       const response = await fetch(url, result.
    */
 toString() : ''}`;
-      const response = await fetch(url, { credentials: 'include' });  /**
+      const response = await fetch(url, { credentials: 'include' }); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -159,17 +194,21 @@ toString() : ''}`;
 
   // Group bills by category
   const billsByCategory = bills.reduce((acc: Record<string, Bill[]>, bill: Bill) => {
-    const category = bill.category || 'other';  /**
+    const category = bill.category || 'other'; /**
+   * If function.
+   * @param !acc[category] - !acc[category] parameter.
+   */ /**
    * If function.
    * @param !acc[category] - !acc[category] parameter.
    */
+
 
     if (!acc[category]) {acc[category] = [];}
     acc[category].push(bill);
     return acc;
   }, {});
 
-  const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
+  const handleFilterChange = (_key: keyof BillFilters, _value: string | string[]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -177,7 +216,15 @@ toString() : ''}`;
     setFilters(prev => ({
       ...prev,
       months: prev.months.includes(monthValue)
-        ? prev.months.  /**
+        ? prev.months. /**
+   * Filter .
+   * @param m => m !== monthValue - m => m !== monthValue parameter.
+   * @returns [...prev.months, monthValue]
+    }));
+  };
+
+  const handleAllMonthsToggle = () => result.
+   */ /**
    * Filter .
    * @param m => m !== monthValue - m => m !== monthValue parameter.
    * @returns [...prev.months, monthValue]
@@ -186,33 +233,46 @@ toString() : ''}`;
 
   const handleAllMonthsToggle = () => result.
    */
+
 filter(m => m !== monthValue)
         : [...prev.months, monthValue]
     }));
   };
 
   const handleAllMonthsToggle = () => {
-    const allMonthValues = MONTHS.map(m => m.value);
+    const allMonthValues = MONTHS.map(m => m._value);
     setFilters(prev => ({
       ...prev,
       months: prev.months.length === allMonthValues.length ? [] : allMonthValues
     }));
   };
 
-  const getMonthsDisplayText = () => {  /**
+  const getMonthsDisplayText = () => { /**
+   * If function.
+   * @param filters.months.length === 0 - filters.months.length === 0 parameter.
+   */ /**
    * If function.
    * @param filters.months.length === 0 - filters.months.length === 0 parameter.
    */
 
-    if (filters.months.length === 0) {return 'All months';}  /**
+
+    if (filters.months.length === 0) {return 'All months';} /**
+   * If function.
+   * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
+   */ /**
    * If function.
    * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
    */
 
-    if (filters.months.length === MONTHS.length) {return 'All months';}  /**
+
+    if (filters.months.length === MONTHS.length) {return 'All months';} /**
+   * If function.
+   * @param filters.months.length === 1 - filters.months.length === 1 parameter.
+   */ /**
    * If function.
    * @param filters.months.length === 1 - filters.months.length === 1 parameter.
    */
+
 
     if (filters.months.length === 1) {
       const month = MONTHS.find(m => m.value === filters.months[0]);
@@ -227,10 +287,14 @@ filter(m => m !== monthValue)
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
-  const getYearOptions = () => {  /**
+  const getYearOptions = () => { /**
    * If function.
-   * @param showAllYears - showAllYears parameter.
+   * @param showAllYears - ShowAllYears parameter.
+   */ /**
+   * If function.
+   * @param showAllYears - ShowAllYears parameter.
    */
+
 
     if (showAllYears) {
       // Show all years from building construction year to 25 years forward
@@ -268,7 +332,7 @@ filter(m => m !== monthValue)
                     <BuildingIcon className='w-4 h-4' />
                     Building
                   </Label>
-                  <Select value={filters.buildingId} onValueChange={(value) => handleFilterChange('buildingId', value)}>
+                  <Select value={filters.buildingId} onValueChange={(_value) => handleFilterChange('buildingId', _value)}>
                     <SelectTrigger id='building-filter'>
                       <SelectValue placeholder='Select building' />
                     </SelectTrigger>
@@ -287,7 +351,7 @@ filter(m => m !== monthValue)
                     <Tag className='w-4 h-4' />
                     Category
                   </Label>
-                  <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
+                  <Select value={filters.category} onValueChange={(_value) => handleFilterChange('category', _value)}>
                     <SelectTrigger id='category-filter'>
                       <SelectValue placeholder='All categories' />
                     </SelectTrigger>
@@ -308,7 +372,7 @@ filter(m => m !== monthValue)
                     Year
                   </Label>
                   <div className='space-y-2'>
-                    <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                    <Select value={filters.year} onValueChange={(_value) => handleFilterChange('year', _value)}>
                       <SelectTrigger id='year-filter'>
                         <SelectValue />
                       </SelectTrigger>
@@ -389,8 +453,8 @@ filter(m => m !== monthValue)
                           <div key={month.value} className='flex items-center space-x-2'>
                             <Checkbox
                               id={`month-${month.value}`}
-                              checked={filters.months.includes(month.value)}
-                              onCheckedChange={() => handleMonthToggle(month.value)}
+                              checked={filters.months.includes(month._value)}
+                              onCheckedChange={() => handleMonthToggle(month._value)}
                             />
                             <Label
                               htmlFor={`month-${month.value}`}
@@ -678,10 +742,14 @@ function BillDetail({
     }
   });
 
-  const handleSetEndDate = () => {  /**
+  const handleSetEndDate = () => { /**
    * If function.
-   * @param endDate - endDate parameter.
+   * @param endDate - EndDate parameter.
+   */ /**
+   * If function.
+   * @param endDate - EndDate parameter.
    */
+
 
     if (endDate) {
       updateBillMutation.mutate({ endDate });
@@ -705,7 +773,7 @@ function BillDetail({
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       setUploadedFile(null);
       onSuccess();
@@ -734,11 +802,15 @@ function BillDetail({
     }
   });
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];  /**
+  const handleFileUpload = (_event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; /**
    * If function.
-   * @param file - file parameter.
+   * @param file - File parameter.
+   */ /**
+   * If function.
+   * @param file - File parameter.
    */
+
 
     if (file) {
       setUploadedFile(file);
@@ -816,7 +888,7 @@ function BillDetail({
             <Input
               type='date'
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => setEndDate(e.target._value)}
               className='w-48'
             />
             <Button 
@@ -838,7 +910,7 @@ function BillDetail({
         <div>
           <Label className='text-sm font-medium'>Payment Breakdown</Label>
           <div className='space-y-1 mt-1'>
-            {bill.costs.map((cost, index) => (
+            {bill.costs.map((cost, _index) => (
               <div key={index} className='flex justify-between text-sm'>
                 <span>Payment {index + 1}:</span>
                 <span>${Number(cost).toLocaleString()}</span>

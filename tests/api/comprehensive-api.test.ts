@@ -64,7 +64,7 @@ describe('Comprehensive API Integration Tests', () => {
         .post('/api/quality-metrics')
         .send({
           metricType: 'code_coverage',
-          value: '95.5',
+          _value: '95.5',
           category: 'Testing'
         });
       
@@ -76,7 +76,7 @@ describe('Comprehensive API Integration Tests', () => {
         .put('/api/quality-metrics/test-id')
         .send({
           metricType: 'security_vulnerabilities',
-          value: '2'
+          _value: '2'
         });
       
       expect([200, 400, 401, 404]).toContain(response.status);
@@ -195,7 +195,7 @@ describe('Comprehensive API Integration Tests', () => {
         .post('/api/ai/analyze')
         .send({
           type: 'quality_metrics',
-          data: { coverage: 95, vulnerabilities: 2 }
+          _data: { coverage: 95, vulnerabilities: 2 }
         });
       
       expect([200, 400, 401]).toContain(response.status);
@@ -357,7 +357,7 @@ describe('Comprehensive API Integration Tests', () => {
     test('Should handle large datasets in quality metrics', async () => {
       const largeMetricsData = Array(100).fill(null).map((_, i) => ({
         metricType: 'code_coverage',
-        value: String(Math.random() * 100),
+        _value: String(Math.random() * 100),
         timestamp: new Date().toISOString()
       }));
       

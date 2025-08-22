@@ -151,8 +151,8 @@ export function registerDemandRoutes(app: Express) {
       }
 
       res.json(filteredResults);
-    } catch (__error) {
-      console.error('Error fetching demands:', error);
+    } catch (_error) {
+      console.error('Error fetching demands:', _error);
       res.status(500).json({ message: 'Failed to fetch demands' });
     }
   });
@@ -247,8 +247,8 @@ export function registerDemandRoutes(app: Express) {
       }
 
       res.json(demandData);
-    } catch (__error) {
-      console.error('Error fetching demand:', error);
+    } catch (_error) {
+      console.error('Error fetching demand:', _error);
       res.status(500).json({ message: 'Failed to fetch demand' });
     }
   });
@@ -294,8 +294,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newDemand[0]);
-    } catch (__error) {
-      console.error('Error creating demand:', error);
+    } catch (_error) {
+      console.error('Error creating demand:', _error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid demand data', errors: error.errors });
       }
@@ -349,8 +349,8 @@ export function registerDemandRoutes(app: Express) {
         // Restrict what residents can update
         const allowedFields = ['description', 'type', 'assignationResidenceId', 'assignationBuildingId'];
         const restrictedUpdates: unknown = {};
-        for (const [key, value] of Object.entries(updates)) {
-          if (allowedFields.includes(key)) {
+        for (const [_key, value] of Object.entries(updates)) {
+          if (allowedFields.includes(_key)) {
             restrictedUpdates[key] = value;
           }
         }
@@ -368,8 +368,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.json(updatedDemand[0]);
-    } catch (__error) {
-      console.error('Error updating demand:', error);
+    } catch (_error) {
+      console.error('Error updating demand:', _error);
       res.status(500).json({ message: 'Failed to update demand' });
     }
   });
@@ -425,8 +425,8 @@ export function registerDemandRoutes(app: Express) {
       await db.delete(demands).where(eq(demands.id, id));
 
       res.json({ message: 'Demand deleted successfully' });
-    } catch (__error) {
-      console.error('Error deleting demand:', error);
+    } catch (_error) {
+      console.error('Error deleting demand:', _error);
       res.status(500).json({ message: 'Failed to delete demand' });
     }
   });
@@ -472,8 +472,8 @@ export function registerDemandRoutes(app: Express) {
         .orderBy(asc(demandComments.orderIndex), asc(demandComments.createdAt));
 
       res.json(comments);
-    } catch (__error) {
-      console.error('Error fetching demand comments:', error);
+    } catch (_error) {
+      console.error('Error fetching demand comments:', _error);
       res.status(500).json({ message: 'Failed to fetch demand comments' });
     }
   });
@@ -523,8 +523,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newComment[0]);
-    } catch (__error) {
-      console.error('Error creating demand comment:', error);
+    } catch (_error) {
+      console.error('Error creating demand comment:', _error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
       }

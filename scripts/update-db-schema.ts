@@ -70,8 +70,8 @@ async function updateSchema() {
     console.warn('✅ Updated default status for features');
 
     console.warn('\n✨ Database schema updated successfully!');
-  } catch (__error) {
-    console.error('❌ Error updating schema:', error);
+  } catch (_error) {
+    console.error('❌ Error updating schema:', _error);
     process.exit(1);
   }
 }

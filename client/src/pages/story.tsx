@@ -28,9 +28,12 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Tells the story behind Koveo and our mission for Quebec property management.
  * Now displays real company history from histoire.pdf when available.
  */
-export default function  /**
+export default function /**
+   * Story page function.
+   */ /**
    * Story page function.
    */
+
  StoryPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
@@ -38,13 +41,17 @@ export default function  /**
   const [showPdfSection, setShowPdfSection] = useState(false);
 
   // Fetch company history from object storage
-  const { data: companyHistory, isLoading: historyLoading } = useQuery({
+  const { _data: companyHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['company-history'],
     queryFn: async () => {
-      const response = await fetch('/api/company/history');  /**
+      const response = await fetch('/api/company/history'); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
       if (!response.ok) {throw new Error('Failed to fetch company history');}
       return response.json();
@@ -222,7 +229,7 @@ export default function  /**
                 {/* Display sections from the PDF content */}
                 {companyHistory.content.sections && companyHistory.content.sections.length > 0 && (
                   <div className="grid gap-6">
-                    {companyHistory.content.sections.map((section: any, index: number) => (
+                    {companyHistory.content.sections.map((section: any, _index: number) => (
                       <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`history-section-${index}`}>
                         <CardHeader>
                           <div className="flex items-center space-x-4">
@@ -268,7 +275,7 @@ export default function  /**
                       Nos valeurs fondamentales
                     </h3>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {companyHistory.content.values.map((value: string, index: number) => (
+                      {companyHistory.content.values.map((_value: string, _index: number) => (
                         <div 
                           key={index}
                           className="bg-white p-4 rounded-lg border border-gray-200 flex items-center space-x-3"
@@ -368,7 +375,7 @@ export default function  /**
 
           <div className="max-w-4xl mx-auto">
             <div className="space-y-8">
-              {timeline.map((event, index) => (
+              {timeline.map((event, _index) => (
                 <div key={index} className="flex items-start space-x-6" data-testid={`timeline-${index}`}>
                   <div className="flex-shrink-0">
                     <div className="bg-blue-600 rounded-full p-3">
@@ -405,7 +412,7 @@ export default function  /**
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {values.map((value, index) => (
+          {values.map((value, _index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`value-${index}`}>
               <CardHeader>
                 <div className="flex items-center space-x-4">
@@ -440,7 +447,7 @@ export default function  /**
               <div>
                 <h3 className="text-2xl font-semibold mb-6">Expertise québécoise</h3>
                 <div className="space-y-4">
-                  {teamHighlights.map((highlight, index) => (
+                  {teamHighlights.map((highlight, _index) => (
                     <div key={index} className="flex items-start space-x-3" data-testid={`team-highlight-${index}`}>
                       <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-700">{highlight}</span>
@@ -476,7 +483,7 @@ export default function  /**
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {achievements.map((achievement, index) => (
+          {achievements.map((achievement, _index) => (
             <Card key={index} className="text-center hover:shadow-lg transition-shadow" data-testid={`achievement-${index}`}>
               <CardHeader>
                 <achievement.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />

@@ -76,7 +76,7 @@ const buildingValidationRules = {
 
 describe('Buildings API Integration Validation Tests', () => {
   // Mock validation function
-  const validateField = (fieldName: string, value: unknown) => {
+  const validateField = (fieldName: string, _value: unknown) => {
     const rules = buildingValidationRules[fieldName as keyof typeof buildingValidationRules];
     if (!rules) {return { valid: true };}
 
@@ -94,7 +94,7 @@ describe('Buildings API Integration Validation Tests', () => {
     }
 
     // Type validation
-    if (rules.type === 'integer' && (!Number.isInteger(value) || typeof value !== 'number')) {
+    if (rules.type === 'integer' && (!Number.isInteger(_value) || typeof value !== 'number')) {
       errors.push(`${fieldName} must be an integer`);
     }
 
@@ -119,19 +119,19 @@ describe('Buildings API Integration Validation Tests', () => {
     }
 
     // Enum validation
-    if (rules.enum && !rules.enum.includes(value)) {
+    if (rules.enum && !rules.enum.includes(_value)) {
       errors.push(`${fieldName} must be one of: ${rules.enum.join(', ')}`);
     }
 
     // Pattern validation
-    if (rules.pattern && typeof value === 'string' && !rules.pattern.test(value)) {
+    if (rules.pattern && typeof value === 'string' && !rules.pattern.test(_value)) {
       errors.push(`${fieldName} format is invalid`);
     }
 
     // UUID validation (simplified)
     if (rules.format === 'uuid' && typeof value === 'string') {
       const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidPattern.test(value)) {
+      if (!uuidPattern.test(_value)) {
         errors.push(`${fieldName} must be a valid UUID`);
       }
     }
@@ -449,7 +449,7 @@ describe('Buildings API Integration Validation Tests', () => {
       };
 
       Object.entries(frenchTexts).forEach(([field, value]) => {
-        const result = validateField(field, value);
+        const result = validateField(field, _value);
         expect(result.valid).toBe(true);
       });
     });

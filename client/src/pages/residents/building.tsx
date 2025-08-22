@@ -24,15 +24,18 @@ interface BuildingWithStats extends BuildingType {
 /**
  *
  */
-export default function  /**
+export default function /**
+   * My building function.
+   */ /**
    * My building function.
    */
+
  MyBuilding() {
   const [, navigate] = useLocation();
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
 
   // Fetch buildings accessible to the user
-  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
+  const { _data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
     queryKey: ['/api/manager/buildings'],
   });
 
@@ -40,10 +43,14 @@ export default function  /**
   const selectedBuilding = buildings.find(b => b.id === selectedBuildingId) || buildings[0];
 
   // Set initial building selection
-  useEffect(() => {  /**
+  useEffect(() => { /**
+   * If function.
+   * @param buildings.length > 0 && !selectedBuildingId - buildings.length > 0 && !selectedBuildingId parameter.
+   */ /**
    * If function.
    * @param buildings.length > 0 && !selectedBuildingId - buildings.length > 0 && !selectedBuildingId parameter.
    */
+
 
     if (buildings.length > 0 && !selectedBuildingId) {
       setSelectedBuildingId(buildings[0].id);
@@ -51,18 +58,26 @@ export default function  /**
   }, [buildings, selectedBuildingId]);
 
   // Fetch building contacts
-  const { data: contacts, isLoading: isLoadingContacts } = useQuery({
+  const { _data: contacts, isLoading: isLoadingContacts } = useQuery({
     queryKey: ['/api/contacts/building', selectedBuildingId],
-    queryFn: async () => {  /**
+    queryFn: async () => { /**
+   * If function.
+   * @param !selectedBuildingId - !selectedBuildingId parameter.
+   */ /**
    * If function.
    * @param !selectedBuildingId - !selectedBuildingId parameter.
    */
 
+
       if (!selectedBuildingId) {return [];}
-      const response = await fetch(`/api/contacts/building/${selectedBuildingId}`);  /**
+      const response = await fetch(`/api/contacts/building/${selectedBuildingId}`); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
       if (!response.ok) {return [];}
       return response.json();
@@ -70,18 +85,26 @@ export default function  /**
     enabled: !!selectedBuildingId,
   });
 
-  const handleViewDocuments = () => {  /**
+  const handleViewDocuments = () => { /**
    * If function.
-   * @param selectedBuildingId - selectedBuildingId parameter.
+   * @param selectedBuildingId - SelectedBuildingId parameter.
+   */ /**
+   * If function.
+   * @param selectedBuildingId - SelectedBuildingId parameter.
    */
+
 
     if (selectedBuildingId) {
       navigate(`/residents/building/documents?buildingId=${selectedBuildingId}`);
     }
-  };  /**
+  }; /**
    * If function.
-   * @param isLoadingBuildings - isLoadingBuildings parameter.
+   * @param isLoadingBuildings - IsLoadingBuildings parameter.
+   */ /**
+   * If function.
+   * @param isLoadingBuildings - IsLoadingBuildings parameter.
    */
+
 
 
   if (isLoadingBuildings) {
@@ -98,10 +121,14 @@ export default function  /**
         </div>
       </div>
     );
-  }  /**
+  } /**
+   * If function.
+   * @param buildings.length === 0 - buildings.length === 0 parameter.
+   */ /**
    * If function.
    * @param buildings.length === 0 - buildings.length === 0 parameter.
    */
+
 
 
   if (buildings.length === 0) {
@@ -236,25 +263,34 @@ export default function  /**
                         {(() => {
                           try {
                             const amenities = typeof selectedBuilding.amenities === 'string' 
-                              ? JSON.  /**
+                              ? JSON. /**
    * Parse .
-   * @param selectedBuilding.amenities - selectedBuilding.amenities parameter.
+   * @param selectedBuilding.amenities - SelectedBuilding.amenities parameter.
+   * @returns String result.
+   */ /**
+   * Parse .
+   * @param selectedBuilding.amenities - SelectedBuilding.amenities parameter.
    * @returns String result.
    */
+
 parse(selectedBuilding.amenities)
                               : selectedBuilding.amenities;
                             return Array.isArray(amenities) 
-                              ? amenities.map((amenity: string, index: number) => (
+                              ? amenities.map((amenity: string, _index: number) => (
                                   <span key={index} className='px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm'>
                                     {amenity}
                                   </span>
                                 ))
                               : null;
-                          }  /**
+                          } /**
+   * Catch function.
+   * @param _e - _e parameter.
+   */ /**
    * Catch function.
    * @param _e - _e parameter.
    */
- catch (_e) {
+
+ catch (__e) {
                             return <span className='text-sm text-muted-foreground'>Unable to display amenities</span>;
                           }
                         })()}

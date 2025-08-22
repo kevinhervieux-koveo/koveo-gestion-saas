@@ -102,9 +102,12 @@ const statusLabels = {
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Manager demands page function.
+   */ /**
    * Manager demands page function.
    */
+
  ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,34 +119,38 @@ export default function  /**
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   // Fetch demands
-  const { data: demands = [], isLoading } = useQuery({
+  const { _data: demands = [], isLoading } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
+  const { _data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
 
   // Fetch residences
-  const { data: residences = [] } = useQuery<Residence[]>({
+  const { _data: residences = [] } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
   });
 
   // Review demand mutation
   const reviewDemandMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: ReviewFormData }) => {
+    mutationFn: async ({ id, data }: { id: string; _data: ReviewFormData }) => {
       const response = await fetch(`/api/demands/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });  /**
+      }); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
       if (!response.ok) {
         throw new Error('Failed to review demand');
@@ -158,7 +165,7 @@ export default function  /**
         description: 'Demand reviewed successfully',
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast({
         title: 'Error',
         description: 'Failed to review demand',
@@ -205,10 +212,14 @@ export default function  /**
     ['completed', 'rejected'].includes(d.status)
   );
 
-  const handleReviewDemand = (data: ReviewFormData) => {  /**
+  const handleReviewDemand = (_data: ReviewFormData) => { /**
    * If function.
-   * @param selectedDemand - selectedDemand parameter.
+   * @param selectedDemand - SelectedDemand parameter.
+   */ /**
+   * If function.
+   * @param selectedDemand - SelectedDemand parameter.
    */
+
 
     if (selectedDemand) {
       reviewDemandMutation.mutate({ id: selectedDemand.id, data });
@@ -234,14 +245,14 @@ export default function  /**
   const quickApprove = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      data: { status: 'approved', reviewNotes: 'Approved by manager' }
+      _data: { status: 'approved', reviewNotes: 'Approved by manager' }
     });
   };
 
   const quickReject = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      data: { status: 'rejected', reviewNotes: 'Rejected by manager' }
+      _data: { status: 'rejected', reviewNotes: 'Rejected by manager' }
     });
   };
 
@@ -342,10 +353,14 @@ export default function  /**
         </CardContent>
       </Card>
     );
-  };  /**
+  }; /**
    * If function.
-   * @param isLoading - isLoading parameter.
+   * @param isLoading - IsLoading parameter.
+   */ /**
+   * If function.
+   * @param isLoading - IsLoading parameter.
    */
+
 
 
   if (isLoading) {
@@ -385,7 +400,7 @@ export default function  /**
           <Input
             placeholder="Search demands, users..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target._value)}
             className="pl-10"
           />
         </div>

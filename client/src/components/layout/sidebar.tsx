@@ -65,7 +65,7 @@ export function Sidebar() {
 
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
-    const isExpanded = expandedMenus.includes(section.key);
+    const isExpanded = expandedMenus.includes(section._key);
     
     // Translation mapping for section names
     const getTranslatedSectionName = (name: string) => {
@@ -82,7 +82,7 @@ export function Sidebar() {
 
     return (
       <button
-        onClick={() => toggleMenu(section.key)}
+        onClick={() => toggleMenu(section._key)}
         className='w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors'
       >
         <div className='flex items-center space-x-3'>
@@ -145,7 +145,7 @@ export function Sidebar() {
   };
 
   const renderMenuSection = (section: NavigationSection) => {
-    const isExpanded = expandedMenus.includes(section.key);
+    const isExpanded = expandedMenus.includes(section._key);
 
     return (
       <div key={section.key}>
@@ -160,8 +160,8 @@ export function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (_error) {
+      console.error('Logout failed:', _error);
       // Fallback: still redirect to login page
       window.location.href = '/login';
     }

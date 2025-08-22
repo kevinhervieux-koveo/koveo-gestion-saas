@@ -36,12 +36,12 @@ const setViewportSize = (width: number, height: number) => {
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
     configurable: true,
-    value: width,
+    _value: width,
   });
   Object.defineProperty(window, 'innerHeight', {
     writable: true,
     configurable: true,
-    value: height,
+    _value: height,
   });
   
   // Dispatch resize event
@@ -461,7 +461,7 @@ describe('Responsive Card Layout Tests', () => {
           `}
           data-testid="responsive-grid"
         >
-          {demands.map((demand, index) => (
+          {demands.map((demand, _index) => (
             <ResponsiveDemandCard key={index} demand={demand} />
           ))}
         </div>

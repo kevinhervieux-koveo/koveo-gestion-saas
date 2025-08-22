@@ -58,7 +58,7 @@ ${colors.bright}Options:${colors.reset}
   --verbose, -v       Show detailed test output
 
 ${colors.bright}Examples:${colors.reset}
-  # Run all tests including integration (requires API key)
+  # Run all tests including integration (requires API _key)
   npx tsx scripts/validate-llm-form-mapping.ts --integration
 
   # Generate a detailed report
@@ -153,7 +153,7 @@ function runTests(testPattern: string, verbose: boolean = false): {
           total: result.numTotalTests || 0
         };
       }
-    } catch (__parseError) {
+    } catch (___parseError) {
       // Use default summary
     }
     
@@ -397,8 +397,8 @@ function main() {
       process.exit(0);
     }
     
-  } catch (__error) {
-    console.error(`${colors.red}❌ Error during validation:${colors.reset}`, error);
+  } catch (_error) {
+    console.error(`${colors.red}❌ Error during validation:${colors.reset}`, _error);
     process.exit(1);
   }
 }

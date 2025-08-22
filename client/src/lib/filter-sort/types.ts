@@ -7,11 +7,17 @@
 /**
  * SortDirection type definition.
  */
+/**
+ * SortDirection type definition.
+ */
 export type SortDirection = 'asc' | 'desc';
 
 /**
  * Filter operation types for data filtering.
  * Defines all available comparison operators for filtering data.
+ */
+/**
+ * FilterOperator type definition.
  */
 /**
  * FilterOperator type definition.
@@ -39,6 +45,9 @@ export type FilterOperator =
 /**
  * FilterType type definition.
  */
+/**
+ * FilterType type definition.
+ */
 export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi_select' | 'boolean';
 
 /**
@@ -48,9 +57,12 @@ export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi_select' 
 /**
  * FilterOption type definition.
  */
+/**
+ * FilterOption type definition.
+ */
 export interface FilterOption {
   label: string;
-  value: string | number | boolean;
+  _value: string | number | boolean;
   icon?: React.ComponentType<{ className?: string }>;
   color?: string;
 }
@@ -58,6 +70,9 @@ export interface FilterOption {
 /**
  * Configuration for a single filter component.
  * Defines the behavior, appearance, and options for filter controls.
+ */
+/**
+ * FilterConfig type definition.
  */
 /**
  * FilterConfig type definition.
@@ -83,15 +98,21 @@ export interface FilterConfig {
 /**
  * FilterValue type definition.
  */
+/**
+ * FilterValue type definition.
+ */
 export interface FilterValue {
   field: string;
   operator: FilterOperator;
-  value: any;
+  _value: any;
 }
 
 /**
  * Configuration for sortable columns.
  * Defines how data can be sorted by specific fields.
+ */
+/**
+ * SortConfig type definition.
  */
 /**
  * SortConfig type definition.
@@ -110,6 +131,9 @@ export interface SortConfig {
 /**
  * SortValue type definition.
  */
+/**
+ * SortValue type definition.
+ */
 export interface SortValue {
   field: string;
   direction: SortDirection;
@@ -118,6 +142,9 @@ export interface SortValue {
 /**
  * Complete filter and sort state.
  * Represents the current state of all filters, sort, and search applied to data.
+ */
+/**
+ * FilterSortState type definition.
  */
 /**
  * FilterSortState type definition.
@@ -135,6 +162,9 @@ export interface FilterSortState {
 /**
  * FilterSortPreset type definition.
  */
+/**
+ * FilterSortPreset type definition.
+ */
 export interface FilterSortPreset {
   id: string;
   name: string;
@@ -147,6 +177,9 @@ export interface FilterSortPreset {
 /**
  * Complete configuration for filter and sort functionality.
  * Defines all available filters, sort options, presets, and behavior settings.
+ */
+/**
+ * FilterSortConfig type definition.
  */
 /**
  * FilterSortConfig type definition.

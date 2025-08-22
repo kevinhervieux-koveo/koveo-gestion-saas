@@ -234,7 +234,7 @@ describe('Deployment Health Checks', () => {
             if (!res.headersSent) {
               res.status(200).json({ status: 'second' });
             }
-          } catch (error) {
+          } catch (_error) {
             // Expected - cannot send headers after they are sent
           }
         }, 10);
@@ -368,10 +368,10 @@ describe('Deployment Health Checks', () => {
           }
           
           res.status(200).json({ status: 'healthy', database: 'connected' });
-        } catch (error) {
+        } catch (_error) {
           res.status(503).json({ 
             status: 'unhealthy', 
-            error: 'Database connection failed',
+            _error: 'Database connection failed',
             database: 'disconnected'
           });
         }

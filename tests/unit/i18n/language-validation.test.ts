@@ -185,9 +185,9 @@ const testTranslations = {
 };
 
 // Mock translation function
-const translate = (key: string, params: Record<string, unknown> = {}, language: 'en' | 'fr' = 'en'): string => {
+const translate = (_key: string, _params: Record<string, unknown> = {}, language: 'en' | 'fr' = 'en'): string => {
   const keys = key.split('.');
-  let value: unknown = mockTranslations[language];
+  const _value: unknown = mockTranslations[language];
   
   for (const k of keys) {
     value = value?.[k];
@@ -363,9 +363,9 @@ describe('Language Validation Tests', () => {
 
     it('should validate French grammar for pluralization', () => {
       const pluralTestCases = [
-        { count: 0, key: 'date.days_ago', expectedPattern: /0 jour/ },
-        { count: 1, key: 'date.days_ago', expectedPattern: /1 jour/ },
-        { count: 2, key: 'date.days_ago', expectedPattern: /2 jours/ }
+        { count: 0, _key: 'date.days_ago', expectedPattern: /0 jour/ },
+        { count: 1, _key: 'date.days_ago', expectedPattern: /1 jour/ },
+        { count: 2, _key: 'date.days_ago', expectedPattern: /2 jours/ }
       ];
       
       pluralTestCases.forEach(({ count, key, expectedPattern }) => {
@@ -392,12 +392,12 @@ describe('Language Validation Tests', () => {
   describe('Parameter Interpolation', () => {
     it('should correctly interpolate parameters in English', () => {
       const result = translate('validation.min_length', { min: 5 }, 'en');
-      expect(result).toBe('Must be at least 5 characters');
+      expect(_result).toBe('Must be at least 5 characters');
     });
 
     it('should correctly interpolate parameters in French', () => {
       const result = translate('validation.min_length', { min: 5 }, 'fr');
-      expect(result).toBe('Doit contenir au moins 5 caractères');
+      expect(_result).toBe('Doit contenir au moins 5 caractères');
     });
 
     it('should handle multiple parameters', () => {
@@ -424,7 +424,7 @@ describe('Language Validation Tests', () => {
 
     it('should handle missing parameters gracefully', () => {
       const result = translate('validation.min_length', {} as Record<string, any>, 'en');
-      expect(result).toBe('Must be at least {min} characters');
+      expect(_result).toBe('Must be at least {min} characters');
     });
   });
 
@@ -492,11 +492,11 @@ describe('Language Validation Tests', () => {
       
       currencyTests.forEach(({ amount, en: _en, fr: _fr }) => {
         // These would be format functions in real implementation
-        const formatCAD = (value: number, locale: string) => {
+        const formatCAD = (_value: number, locale: string) => {
           return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: 'CAD'
-          }).format(value);
+          }).format(_value);
         };
         
         const enFormatted = formatCAD(amount, 'en-CA');
@@ -558,9 +558,9 @@ describe('Language Validation Tests', () => {
       
       // Keys should follow consistent naming patterns
       enKeys.forEach(key => {
-        expect(key).toMatch(/^[a-z][a-z0-9_.]*$/); // lowercase, dots, underscores
-        expect(key).not.toContain('..'); // No double dots
-        expect(key).not.toMatch(/^_|_$/); // No leading/trailing underscores
+        expect(_key).toMatch(/^[a-z][a-z0-9_.]*$/); // lowercase, dots, underscores
+        expect(_key).not.toContain('..'); // No double dots
+        expect(_key).not.toMatch(/^_|_$/); // No leading/trailing underscores
       });
     });
 

@@ -11,7 +11,7 @@
 
 import { execSync } from 'child_process';
 
-console.log('🔄 Starting Demo organization import...');
+console.warn('🔄 Starting Demo organization import...');
 
 try {
   // Run the sync script in import mode
@@ -19,8 +19,8 @@ try {
     stdio: 'inherit',
     env: process.env 
   });
-  console.log('✅ Demo organization import completed');
-} catch (__error) {
-  console.error('❌ Demo organization import failed:', error);
+  console.warn('✅ Demo organization import completed');
+} catch (_error) {
+  console.error('❌ Demo organization import failed:', _error);
   process.exit(1);
 }

@@ -57,14 +57,14 @@ class DeploymentValidator {
     
     const icon = status === 'PASS' ? '✅' : status === 'FAIL' ? '❌' : '⚠️';
     const prefix = critical ? '🚨 CRITICAL' : '';
-    console.log(`${icon} ${prefix} ${test}: ${message}`);
+    console.warn(`${icon} ${prefix} ${test}: ${message}`);
   }
 
   /**
    *
    */
   private async checkDatabaseConnection(): Promise<void> {
-    console.log('\n🔍 Checking database connection...');
+    console.warn('\n🔍 Checking database connection...');
     
     if (!process.env.DATABASE_URL) {
       this.addResult(
@@ -86,7 +86,7 @@ class DeploymentValidator {
         'PASS',
         'Database connection successful'
       );
-    } catch (error) {
+    } catch (_error) {
       this.addResult(
         'Database Connection',
         'FAIL',
@@ -100,7 +100,7 @@ class DeploymentValidator {
    *
    */
   private checkEnvironmentVariables(): void {
-    console.log('\n🔍 Checking environment variables...');
+    console.warn('\n🔍 Checking environment variables...');
     
     const requiredVars = ['DATABASE_URL'];
     const optionalVars = ['PORT', 'NODE_ENV', 'FRONTEND_URL'];
@@ -143,7 +143,7 @@ class DeploymentValidator {
    *
    */
   private checkPackageJson(): void {
-    console.log('\n🔍 Checking package.json configuration...');
+    console.warn('\n🔍 Checking package.json configuration...');
     
     const packageJsonPath = path.resolve(this.projectRoot, 'package.json');
     
@@ -220,7 +220,7 @@ class DeploymentValidator {
         );
       }
 
-    } catch (error) {
+    } catch (_error) {
       this.addResult(
         'Package.json Parsing',
         'FAIL',
@@ -234,7 +234,7 @@ class DeploymentValidator {
    *
    */
   private checkBuildArtifacts(): void {
-    console.log('\n🔍 Checking build artifacts...');
+    console.warn('\n🔍 Checking build artifacts...');
     
     const buildPaths = [
       { path: path.resolve(this.projectRoot, 'server/public/index.html'), name: 'Client Build (index.html)', critical: true },
@@ -285,7 +285,7 @@ class DeploymentValidator {
    *
    */
   private async checkServerStartup(): Promise<void> {
-    console.log('\n🔍 Checking server startup capability...');
+    console.warn('\n🔍 Checking server startup capability...');
     
     try {
       // Import server modules to check for syntax errors
@@ -313,7 +313,7 @@ class DeploymentValidator {
         );
       }
 
-    } catch (error) {
+    } catch (_error) {
       this.addResult(
         'Server Startup',
         'FAIL',
@@ -327,7 +327,7 @@ class DeploymentValidator {
    *
    */
   private checkSystemRequirements(): void {
-    console.log('\n🔍 Checking system requirements...');
+    console.warn('\n🔍 Checking system requirements...');
     
     // Node.js version
     const nodeVersion = process.version;
@@ -390,7 +390,7 @@ class DeploymentValidator {
    *
    */
   private async runTests(): Promise<void> {
-    console.log('\n🔍 Running critical deployment tests...');
+    console.warn('\n🔍 Running critical deployment tests...');
     
     try {
       // Run the pre-deployment test suite
@@ -410,8 +410,8 @@ class DeploymentValidator {
           'Some critical deployment tests failed',
           true
         );
-        console.log('\n❌ Test failures:');
-        console.log(stderr);
+        console.warn('\n❌ Test failures:');
+        console.warn(stderr);
       } else {
         this.addResult(
           'Critical Tests',
@@ -419,7 +419,7 @@ class DeploymentValidator {
           'All critical deployment tests passed'
         );
       }
-    } catch (error) {
+    } catch (_error) {
       this.addResult(
         'Critical Tests',
         'FAIL',
@@ -433,9 +433,9 @@ class DeploymentValidator {
    *
    */
   private generateReport(): void {
-    console.log('\n' + '='.repeat(60));
-    console.log('📋 DEPLOYMENT VALIDATION REPORT');
-    console.log('='.repeat(60));
+    console.warn('\n' + '='.repeat(60));
+    console.warn('📋 DEPLOYMENT VALIDATION REPORT');
+    console.warn('='.repeat(60));
     
     const totalTests = this.results.length;
     const passed = this.results.filter(r => r.status === 'PASS').length;
@@ -443,42 +443,42 @@ class DeploymentValidator {
     const warnings = this.results.filter(r => r.status === 'WARN').length;
     const criticalFailures = this.results.filter(r => r.status === 'FAIL' && r.critical).length;
     
-    console.log(`📊 Total Tests: ${totalTests}`);
-    console.log(`✅ Passed: ${passed}`);
-    console.log(`❌ Failed: ${failed}`);
-    console.log(`⚠️ Warnings: ${warnings}`);
-    console.log(`🚨 Critical Failures: ${criticalFailures}`);
+    console.warn(`📊 Total Tests: ${totalTests}`);
+    console.warn(`✅ Passed: ${passed}`);
+    console.warn(`❌ Failed: ${failed}`);
+    console.warn(`⚠️ Warnings: ${warnings}`);
+    console.warn(`🚨 Critical Failures: ${criticalFailures}`);
     
-    console.log('\n📋 DEPLOYMENT RECOMMENDATION:');
+    console.warn('\n📋 DEPLOYMENT RECOMMENDATION:');
     
     if (criticalFailures > 0) {
-      console.log('🚨 DEPLOYMENT BLOCKED: Critical issues must be resolved');
-      console.log('\n❌ Critical failures:');
+      console.warn('🚨 DEPLOYMENT BLOCKED: Critical issues must be resolved');
+      console.warn('\n❌ Critical failures:');
       this.results
         .filter(r => r.status === 'FAIL' && r.critical)
-        .forEach(r => console.log(`   • ${r.test}: ${r.message}`));
+        .forEach(r => console.warn(`   • ${r.test}: ${r.message}`));
       
-      console.log('\n🔧 Action Required: Fix critical issues before deployment');
+      console.warn('\n🔧 Action Required: Fix critical issues before deployment');
       process.exit(1);
     } else if (failed > 0) {
-      console.log('⚠️ DEPLOYMENT RISKY: Some issues detected');
-      console.log('Consider fixing these issues before deployment:');
+      console.warn('⚠️ DEPLOYMENT RISKY: Some issues detected');
+      console.warn('Consider fixing these issues before deployment:');
       this.results
         .filter(r => r.status === 'FAIL')
-        .forEach(r => console.log(`   • ${r.test}: ${r.message}`));
+        .forEach(r => console.warn(`   • ${r.test}: ${r.message}`));
       
       process.exit(1);
     } else {
-      console.log('✅ DEPLOYMENT APPROVED: All critical checks passed');
+      console.warn('✅ DEPLOYMENT APPROVED: All critical checks passed');
       
       if (warnings > 0) {
-        console.log('\n⚠️ Warnings (non-blocking):');
+        console.warn('\n⚠️ Warnings (non-blocking):');
         this.results
           .filter(r => r.status === 'WARN')
-          .forEach(r => console.log(`   • ${r.test}: ${r.message}`));
+          .forEach(r => console.warn(`   • ${r.test}: ${r.message}`));
       }
       
-      console.log('\n🚀 Ready for deployment!');
+      console.warn('\n🚀 Ready for deployment!');
       process.exit(0);
     }
   }
@@ -487,10 +487,10 @@ class DeploymentValidator {
    *
    */
   async validate(): Promise<void> {
-    console.log('🚀 Starting deployment validation...');
-    console.log(`📍 Project root: ${this.projectRoot}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🕒 Timestamp: ${new Date().toISOString()}`);
+    console.warn('🚀 Starting deployment validation...');
+    console.warn(`📍 Project root: ${this.projectRoot}`);
+    console.warn(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.warn(`🕒 Timestamp: ${new Date().toISOString()}`);
     
     // Run all validation checks
     this.checkSystemRequirements();
@@ -503,8 +503,8 @@ class DeploymentValidator {
     // Run test suite (if available)
     try {
       await this.runTests();
-    } catch (error) {
-      console.log('\n⚠️ Could not run test suite (this may be expected in some environments)');
+    } catch (_error) {
+      console.warn('\n⚠️ Could not run test suite (this may be expected in some environments)');
     }
     
     // Generate final report
@@ -516,7 +516,7 @@ class DeploymentValidator {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new DeploymentValidator();
   validator.validate().catch(error => {
-    console.error('💥 Validation failed with error:', error);
+    console.error('💥 Validation failed with _error:', _error);
     process.exit(1);
   });
 }

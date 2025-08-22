@@ -8,8 +8,8 @@ describe('Financial System Consistency Tests', () => {
     // Ensure database is connected before tests
     try {
       await db.select().from(bills).limit(1);
-    } catch (__error) {
-      console.warn('Database connection issue in tests:', error);
+    } catch (_error) {
+      console.warn('Database connection issue in tests:', _error);
     }
   });
   describe('Payment Plan Validation', () => {

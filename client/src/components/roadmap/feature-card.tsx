@@ -177,7 +177,7 @@ Please provide a complete implementation with both frontend and backend code.`;
                   <Label htmlFor={`status-${feature.id}`}>Status:</Label>
                   <Select
                     value={feature.status}
-                    onValueChange={(value) => onUpdateStatus(feature.id, value)}
+                    onValueChange={(_value) => onUpdateStatus(feature.id, _value)}
                   >
                     <SelectTrigger id={`status-${feature.id}`} className='w-32'>
                       <SelectValue />

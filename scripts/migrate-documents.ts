@@ -145,11 +145,11 @@ async function createResidentDocument(doc: LegacyDocument, residenceId: string, 
  * @returns Function result.
  */
 async function migrateDocuments() {
-  console.log('🚀 Starting document migration...');
+  console.warn('🚀 Starting document migration...');
 
   try {
     // Check if legacy documents table exists and has data
-    console.log('📋 Checking for existing documents...');
+    console.warn('📋 Checking for existing documents...');
     
     let legacyDocuments: LegacyDocument[] = [];
     try {
@@ -170,15 +170,15 @@ async function migrateDocuments() {
         tenant: String(row.tenant),
       }));
       
-      console.log(`📄 Found ${legacyDocuments.length} legacy documents to migrate`);
-    } catch (__error) {
-      console.log('ℹ️  No legacy documents table found or no documents to migrate');
-      console.log('✅ Migration completed - no data to migrate');
+      console.warn(`📄 Found ${legacyDocuments.length} legacy documents to migrate`);
+    } catch (_error) {
+      console.warn('ℹ️  No legacy documents table found or no documents to migrate');
+      console.warn('✅ Migration completed - no data to migrate');
       return;
     }
 
     if (legacyDocuments.length === 0) {
-      console.log('✅ Migration completed - no documents to migrate');
+      console.warn('✅ Migration completed - no documents to migrate');
       return;
     }
 
@@ -186,8 +186,8 @@ async function migrateDocuments() {
     const buildingIds = await getBuildingIds();
     const residenceIds = await getResidenceIds();
 
-    console.log(`🏢 Found ${buildingIds.length} buildings`);
-    console.log(`🏠 Found ${residenceIds.length} residences`);
+    console.warn(`🏢 Found ${buildingIds.length} buildings`);
+    console.warn(`🏠 Found ${residenceIds.length} residences`);
 
     // Use first building/residence as default if available
     const defaultBuildingId = buildingIds[0];
@@ -202,7 +202,7 @@ async function migrateDocuments() {
     for (const doc of legacyDocuments) {
       const target = determineDocumentTarget(doc);
 
-      console.log(`📝 Processing document: ${doc.name} (target: ${target})`);
+      console.warn(`📝 Processing document: ${doc.name} (target: ${target})`);
 
       switch (target) {
         case 'building':
@@ -211,7 +211,7 @@ async function migrateDocuments() {
             await db.insert(schema.documentsBuildings).values(buildingDoc);
             buildingDocsCreated++;
           } else {
-            console.log(`⚠️  Skipping building document ${doc.name} - no buildings available`);
+            console.warn(`⚠️  Skipping building document ${doc.name} - no buildings available`);
             skippedDocs++;
           }
           break;
@@ -222,7 +222,7 @@ async function migrateDocuments() {
             await db.insert(schema.documentsResidents).values(residentDoc);
             residentDocsCreated++;
           } else {
-            console.log(`⚠️  Skipping resident document ${doc.name} - no residences available`);
+            console.warn(`⚠️  Skipping resident document ${doc.name} - no residences available`);
             skippedDocs++;
           }
           break;
@@ -241,29 +241,29 @@ async function migrateDocuments() {
           break;
 
         case 'skip':
-          console.log(`⏭️  Skipping document ${doc.name} - no target flags set`);
+          console.warn(`⏭️  Skipping document ${doc.name} - no target flags set`);
           skippedDocs++;
           break;
       }
     }
 
     // Summary
-    console.log('\n📊 Migration Summary:');
-    console.log(`   Building documents created: ${buildingDocsCreated}`);
-    console.log(`   Resident documents created: ${residentDocsCreated}`);
-    console.log(`   Documents skipped: ${skippedDocs}`);
-    console.log(`   Total documents processed: ${legacyDocuments.length}`);
+    console.warn('\n📊 Migration Summary:');
+    console.warn(`   Building documents created: ${buildingDocsCreated}`);
+    console.warn(`   Resident documents created: ${residentDocsCreated}`);
+    console.warn(`   Documents skipped: ${skippedDocs}`);
+    console.warn(`   Total documents processed: ${legacyDocuments.length}`);
 
-    console.log('\n✅ Document migration completed successfully!');
-    console.log('\n💡 Next steps:');
-    console.log('   1. Verify the migrated documents in the new tables');
-    console.log('   2. Update API endpoints to use new document tables');
-    console.log('   3. Update frontend to work with separate document types');
-    console.log('   4. Test document functionality end-to-end');
-    console.log('   5. Once verified, you can remove the legacy documents table');
+    console.warn('\n✅ Document migration completed successfully!');
+    console.warn('\n💡 Next steps:');
+    console.warn('   1. Verify the migrated documents in the new tables');
+    console.warn('   2. Update API endpoints to use new document tables');
+    console.warn('   3. Update frontend to work with separate document types');
+    console.warn('   4. Test document functionality end-to-end');
+    console.warn('   5. Once verified, you can remove the legacy documents table');
 
-  } catch (__error) {
-    console.error('❌ Migration failed:', error);
+  } catch (_error) {
+    console.error('❌ Migration failed:', _error);
     throw error;
   }
 }
@@ -276,16 +276,16 @@ async function migrateDocuments() {
  * @returns Function result.
  */
 async function rollbackMigration() {
-  console.log('🔄 Rolling back document migration...');
+  console.warn('🔄 Rolling back document migration...');
 
   try {
     // Clear the new tables
     await db.delete(schema.documentsBuildings);
     await db.delete(schema.documentsResidents);
 
-    console.log('✅ Migration rollback completed');
-  } catch (__error) {
-    console.error('❌ Rollback failed:', error);
+    console.warn('✅ Migration rollback completed');
+  } catch (_error) {
+    console.error('❌ Rollback failed:', _error);
     throw error;
   }
 }

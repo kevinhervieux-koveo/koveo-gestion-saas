@@ -182,9 +182,9 @@ export function registerDocumentRoutes(app: Express): void {
             entityId: null 
           }));
           allDocuments.push(...enhancedLegacyDocs);
-        } catch (__error) {
+        } catch (_error) {
           // Legacy table might not exist, silently continue
-          console.log('Legacy documents table not accessible, skipping');
+          console.warn('Legacy documents table not accessible, skipping');
         }
       }
       
@@ -198,8 +198,8 @@ export function registerDocumentRoutes(app: Express): void {
         residentCount: allDocuments.filter(d => d.documentCategory === 'resident').length,
         legacyCount: allDocuments.filter(d => d.documentCategory === 'legacy').length
       });
-    } catch (__error) {
-      console.error('Error fetching documents:', error);
+    } catch (_error) {
+      console.error('Error fetching documents:', _error);
       res.status(500).json({ message: 'Failed to fetch documents' });
     }
   });
@@ -242,8 +242,8 @@ export function registerDocumentRoutes(app: Express): void {
               document.entityType = 'building';
               document.entityId = document.buildingId;
             }
-          } catch (__error) {
-            console.log('Building document not found, continuing search');
+          } catch (_error) {
+            console.warn('Building document not found, continuing search');
           }
         }
         
@@ -261,8 +261,8 @@ export function registerDocumentRoutes(app: Express): void {
               document.entityType = 'residence';
               document.entityId = document.residenceId;
             }
-          } catch (__error) {
-            console.log('Resident document not found, continuing search');
+          } catch (_error) {
+            console.warn('Resident document not found, continuing search');
           }
         }
       }
@@ -282,8 +282,8 @@ export function registerDocumentRoutes(app: Express): void {
             document.entityType = 'legacy';
             document.entityId = null;
           }
-        } catch (__error) {
-          console.log('Legacy document not accessible');
+        } catch (_error) {
+          console.warn('Legacy document not accessible');
         }
       }
       
@@ -292,8 +292,8 @@ export function registerDocumentRoutes(app: Express): void {
       }
       
       res.json(document);
-    } catch (__error) {
-      console.error('Error fetching document:', error);
+    } catch (_error) {
+      console.error('Error fetching document:', _error);
       res.status(500).json({ message: 'Failed to fetch document' });
     }
   });
@@ -421,7 +421,7 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
       
-    } catch (__error) {
+    } catch (_error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           message: 'Invalid document data', 
@@ -429,7 +429,7 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
       
-      console.error('Error creating document:', error);
+      console.error('Error creating document:', _error);
       res.status(500).json({ message: 'Failed to create document' });
     }
   });
@@ -473,8 +473,8 @@ export function registerDocumentRoutes(app: Express): void {
               updatedDocument.entityType = 'building';
               updatedDocument.entityId = updatedDocument.buildingId;
             }
-          } catch (__error) {
-            console.log('Building document not found for update, trying resident documents');
+          } catch (_error) {
+            console.warn('Building document not found for update, trying resident documents');
           }
         }
         
@@ -493,8 +493,8 @@ export function registerDocumentRoutes(app: Express): void {
               updatedDocument.entityType = 'residence';
               updatedDocument.entityId = updatedDocument.residenceId;
             }
-          } catch (__error) {
-            console.log('Resident document not found for update');
+          } catch (_error) {
+            console.warn('Resident document not found for update');
           }
         }
       }
@@ -515,8 +515,8 @@ export function registerDocumentRoutes(app: Express): void {
             updatedDocument.entityType = 'legacy';
             updatedDocument.entityId = null;
           }
-        } catch (__error) {
-          console.log('Legacy document not accessible for update');
+        } catch (_error) {
+          console.warn('Legacy document not accessible for update');
         }
       }
       
@@ -525,7 +525,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
       
       res.json(updatedDocument);
-    } catch (__error) {
+    } catch (_error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           message: 'Invalid document data', 
@@ -533,7 +533,7 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
       
-      console.error('Error updating document:', error);
+      console.error('Error updating document:', _error);
       res.status(500).json({ message: 'Failed to update document' });
     }
   });
@@ -565,8 +565,8 @@ export function registerDocumentRoutes(app: Express): void {
               userRole,
               organizationId
             );
-          } catch (__error) {
-            console.log('Building document not found for deletion, trying resident documents');
+          } catch (_error) {
+            console.warn('Building document not found for deletion, trying resident documents');
           }
         }
         
@@ -578,8 +578,8 @@ export function registerDocumentRoutes(app: Express): void {
               userRole,
               organizationId
             );
-          } catch (__error) {
-            console.log('Resident document not found for deletion');
+          } catch (_error) {
+            console.warn('Resident document not found for deletion');
           }
         }
       }
@@ -593,8 +593,8 @@ export function registerDocumentRoutes(app: Express): void {
             userRole,
             organizationId
           );
-        } catch (__error) {
-          console.log('Legacy document not accessible for deletion');
+        } catch (_error) {
+          console.warn('Legacy document not accessible for deletion');
         }
       }
       
@@ -603,8 +603,8 @@ export function registerDocumentRoutes(app: Express): void {
       }
       
       res.status(204).send();
-    } catch (__error) {
-      console.error('Error deleting document:', error);
+    } catch (_error) {
+      console.error('Error deleting document:', _error);
       res.status(500).json({ message: 'Failed to delete document' });
     }
   });
@@ -647,8 +647,8 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: documentType as 'building' | 'residence'
       });
       res.json({ uploadURL });
-    } catch (__error) {
-      console.error('Error getting upload URL:', error);
+    } catch (_error) {
+      console.error('Error getting upload URL:', _error);
       res.status(500).json({ message: 'Failed to get upload URL' });
     }
   });
@@ -695,8 +695,8 @@ export function registerDocumentRoutes(app: Express): void {
             userRole,
             organizationId
           );
-        } catch (__error) {
-          console.log('Document not found in building documents, trying resident documents');
+        } catch (_error) {
+          console.warn('Document not found in building documents, trying resident documents');
         }
         
         // If not found in building documents, try resident documents
@@ -714,8 +714,8 @@ export function registerDocumentRoutes(app: Express): void {
               userRole,
               organizationId
             );
-          } catch (__error) {
-            console.log('Document not found in resident documents');
+          } catch (_error) {
+            console.warn('Document not found in resident documents');
           }
         }
       }
@@ -735,8 +735,8 @@ export function registerDocumentRoutes(app: Express): void {
             userRole,
             organizationId
           );
-        } catch (__error) {
-          console.log('Document not accessible for update');
+        } catch (_error) {
+          console.warn('Document not accessible for update');
         }
       }
       
@@ -748,8 +748,8 @@ export function registerDocumentRoutes(app: Express): void {
         message: 'Document file updated successfully',
         document: updatedDocument 
       });
-    } catch (__error) {
-      console.error('Error updating document file:', error);
+    } catch (_error) {
+      console.error('Error updating document file:', _error);
       res.status(500).json({ message: 'Failed to update document file' });
     }
   });
@@ -799,14 +799,14 @@ export function registerDocumentRoutes(app: Express): void {
         }
         const objectFile = await objectStorageService.getObjectEntityFile(fileUrl);
         await objectStorageService.downloadObject(objectFile, res);
-      } catch (__storageError) {
+      } catch (___storageError) {
         if (storageError instanceof ObjectNotFoundError) {
           return res.status(404).json({ message: 'Document file not found' });
         }
         throw storageError;
       }
-    } catch (__error) {
-      console.error('Error downloading document:', error);
+    } catch (_error) {
+      console.error('Error downloading document:', _error);
       res.status(500).json({ message: 'Failed to download document' });
     }
   });
@@ -852,8 +852,8 @@ export function registerDocumentRoutes(app: Express): void {
         message: 'Document file updated successfully',
         document: updatedDocument 
       });
-    } catch (__error) {
-      console.error('Error updating document file:', error);
+    } catch (_error) {
+      console.error('Error updating document file:', _error);
       res.status(500).json({ message: 'Failed to update document file' });
     }
   });

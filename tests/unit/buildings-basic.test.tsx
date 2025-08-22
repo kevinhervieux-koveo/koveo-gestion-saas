@@ -311,16 +311,16 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should reject invalid numeric ranges', () => {
       const invalidData = [
-        { field: 'yearBuilt', value: 1799, error: 'Invalid year built' },
-        { field: 'yearBuilt', value: new Date().getFullYear() + 10, error: 'Invalid year built' },
-        { field: 'totalUnits', value: -1, error: 'Invalid total units' },
-        { field: 'totalUnits', value: 10001, error: 'Invalid total units' },
-        { field: 'totalFloors', value: 0, error: 'Invalid total floors' },
-        { field: 'totalFloors', value: 201, error: 'Invalid total floors' },
-        { field: 'parkingSpaces', value: -1, error: 'Invalid parking spaces' },
-        { field: 'parkingSpaces', value: 50001, error: 'Invalid parking spaces' },
-        { field: 'storageSpaces', value: -1, error: 'Invalid storage spaces' },
-        { field: 'storageSpaces', value: 50001, error: 'Invalid storage spaces' },
+        { field: 'yearBuilt', _value: 1799, _error: 'Invalid year built' },
+        { field: 'yearBuilt', _value: new Date().getFullYear() + 10, _error: 'Invalid year built' },
+        { field: 'totalUnits', _value: -1, _error: 'Invalid total units' },
+        { field: 'totalUnits', _value: 10001, _error: 'Invalid total units' },
+        { field: 'totalFloors', _value: 0, _error: 'Invalid total floors' },
+        { field: 'totalFloors', _value: 201, _error: 'Invalid total floors' },
+        { field: 'parkingSpaces', _value: -1, _error: 'Invalid parking spaces' },
+        { field: 'parkingSpaces', _value: 50001, _error: 'Invalid parking spaces' },
+        { field: 'storageSpaces', _value: -1, _error: 'Invalid storage spaces' },
+        { field: 'storageSpaces', _value: 50001, _error: 'Invalid storage spaces' },
       ];
       
       invalidData.forEach(({ field, value, error }) => {
@@ -332,7 +332,7 @@ describe('Buildings Management Unit Tests', () => {
         
         const result = validateBuildingForm(form);
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain(error);
+        expect(result.errors).toContain(_error);
       });
     });
   });
@@ -443,7 +443,7 @@ describe('Buildings Management Unit Tests', () => {
       };
       
       // Mock validation function for testing
-      const validateBuildingForm = (data: unknown) => {
+      const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
         
@@ -477,7 +477,7 @@ describe('Buildings Management Unit Tests', () => {
       };
       
       // Mock validation function for testing
-      const validateBuildingForm = (data: unknown) => {
+      const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
         
@@ -507,7 +507,7 @@ describe('Buildings Management Unit Tests', () => {
       };
       
       // Mock validation function for testing
-      const validateBuildingForm = (data: unknown) => {
+      const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
         const currentYear = new Date().getFullYear();

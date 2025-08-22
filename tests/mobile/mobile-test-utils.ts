@@ -34,19 +34,19 @@ export const mockMobileViewport = (device: keyof typeof MOBILE_DEVICES) => {
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
     configurable: true,
-    value: width,
+    _value: width,
   });
   
   Object.defineProperty(window, 'innerHeight', {
     writable: true,
     configurable: true,
-    value: height,
+    _value: height,
   });
   
   Object.defineProperty(navigator, 'userAgent', {
     writable: true,
     configurable: true,
-    value: userAgent,
+    _value: userAgent,
   });
   
   window.dispatchEvent(new Event('resize'));
@@ -176,19 +176,19 @@ export const orientation = {
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
-      value: Math.min(width, height),
+      _value: Math.min(width, height),
     });
     
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: Math.max(width, height),
+      _value: Math.max(width, height),
     });
     
     Object.defineProperty(screen, 'orientation', {
       writable: true,
       configurable: true,
-      value: { angle: 0, type: 'portrait-primary' },
+      _value: { angle: 0, type: 'portrait-primary' },
     });
     
     window.dispatchEvent(new Event('orientationchange'));
@@ -204,19 +204,19 @@ export const orientation = {
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
-      value: Math.max(width, height),
+      _value: Math.max(width, height),
     });
     
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: Math.min(width, height),
+      _value: Math.min(width, height),
     });
     
     Object.defineProperty(screen, 'orientation', {
       writable: true,
       configurable: true,
-      value: { angle: 90, type: 'landscape-primary' },
+      _value: { angle: 90, type: 'landscape-primary' },
     });
     
     window.dispatchEvent(new Event('orientationchange'));
@@ -234,7 +234,7 @@ export const networkConditions = {
     Object.defineProperty(navigator, 'connection', {
       writable: true,
       configurable: true,
-      value: {
+      _value: {
         effectiveType: '3g',
         downlink: 1.5,
         rtt: 300,
@@ -250,7 +250,7 @@ export const networkConditions = {
     Object.defineProperty(navigator, 'onLine', {
       writable: true,
       configurable: true,
-      value: false,
+      _value: false,
     });
     
     window.dispatchEvent(new Event('offline'));
@@ -263,7 +263,7 @@ export const networkConditions = {
     Object.defineProperty(navigator, 'onLine', {
       writable: true,
       configurable: true,
-      value: true,
+      _value: true,
     });
     
     window.dispatchEvent(new Event('online'));
@@ -292,21 +292,21 @@ export const accessibility = {
   simulateScreenReader: {
     next: () => {
       fireEvent.keyDown(document.activeElement || document.body, {
-        key: 'ArrowDown',
+        _key: 'ArrowDown',
         code: 'ArrowDown',
       });
     },
     
     previous: () => {
       fireEvent.keyDown(document.activeElement || document.body, {
-        key: 'ArrowUp',
+        _key: 'ArrowUp',
         code: 'ArrowUp',
       });
     },
     
     activate: () => {
       fireEvent.keyDown(document.activeElement || document.body, {
-        key: 'Enter',
+        _key: 'Enter',
         code: 'Enter',
       });
     },
@@ -356,7 +356,7 @@ export const forms = {
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: viewport * 0.6, // Keyboard typically takes ~40% of screen
+      _value: viewport * 0.6, // Keyboard typically takes ~40% of screen
     });
     
     window.dispatchEvent(new Event('resize'));
@@ -374,7 +374,7 @@ export const forms = {
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: device.height,
+      _value: device.height,
     });
     
     window.dispatchEvent(new Event('resize'));
@@ -407,7 +407,7 @@ export const propertyManagement = {
     
     // Fill description
     fireEvent.change(descriptionInput, {
-      target: { value: 'Leaky faucet in unit 4B bathroom' }
+      target: { _value: 'Leaky faucet in unit 4B bathroom' }
     });
     
     // Submit form
@@ -429,7 +429,7 @@ export const propertyManagement = {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     fireEvent.change(messageInput, {
-      target: { value: 'Monthly maintenance reminder for your unit' }
+      target: { _value: 'Monthly maintenance reminder for your unit' }
     });
     
     touchEvents.tap(sendButton);

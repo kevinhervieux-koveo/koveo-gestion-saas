@@ -255,7 +255,7 @@ describe('Dashboard Components Tests', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 360,
+        _value: 360,
       });
       
       renderWithProviders(

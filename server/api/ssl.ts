@@ -53,7 +53,7 @@ export function registerSSLRoutes(app: Express): void {
       
       if (!validationResult.success) {
         return res.status(400).json({
-          error: 'Bad Request',
+          _error: 'Bad Request',
           message: 'Invalid domain format',
           details: validationResult.error.errors.map(err => ({
             field: err.path.join('.'),
@@ -72,7 +72,7 @@ export function registerSSLRoutes(app: Express): void {
 
       if (certificateRecord.length === 0) {
         return res.status(404).json({
-          error: 'Not Found',
+          _error: 'Not Found',
           message: `No SSL certificate found for domain: ${domain}`
         });
       }
@@ -122,13 +122,13 @@ export function registerSSLRoutes(app: Express): void {
 
       res.json({
         success: true,
-        data: responseData
+        _data: responseData
       });
 
-    } catch (___error) {
+    } catch (____error) {
       console.error(`Failed to fetch SSL certificate for domain ${req.params.domain}:`, _error);
       res.status(500).json({
-        error: 'Internal Server Error',
+        _error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificate information'
       });
     }
@@ -145,7 +145,7 @@ export function registerSSLRoutes(app: Express): void {
       // This could be enhanced with proper RBAC using the permissions system
       if (req.user?.role !== 'admin') {
         return res.status(403).json({
-          error: 'Forbidden',
+          _error: 'Forbidden',
           message: 'Insufficient permissions to view all SSL certificates'
         });
       }
@@ -195,14 +195,14 @@ export function registerSSLRoutes(app: Express): void {
 
       res.json({
         success: true,
-        data: certificatesWithStatus,
+        _data: certificatesWithStatus,
         count: certificatesWithStatus.length
       });
 
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to fetch SSL certificates:', _error);
       res.status(500).json({
-        error: 'Internal Server Error',
+        _error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificates'
       });
     }
@@ -220,7 +220,7 @@ export function registerSSLRoutes(app: Express): void {
       
       if (!validationResult.success) {
         return res.status(400).json({
-          error: 'Bad Request',
+          _error: 'Bad Request',
           message: 'Invalid domain format',
           details: validationResult.error.errors.map(err => ({
             field: err.path.join('.'),
@@ -238,7 +238,7 @@ export function registerSSLRoutes(app: Express): void {
 
       if (certificateRecord.length === 0) {
         return res.status(404).json({
-          error: 'Not Found',
+          _error: 'Not Found',
           message: `No SSL certificate found for domain: ${domain}`
         });
       }
@@ -296,13 +296,13 @@ export function registerSSLRoutes(app: Express): void {
 
       res.json({
         success: true,
-        data: statusInfo
+        _data: statusInfo
       });
 
-    } catch (___error) {
+    } catch (____error) {
       console.error(`Failed to fetch SSL certificate status for domain ${req.params.domain}:`, _error);
       res.status(500).json({
-        error: 'Internal Server Error',
+        _error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificate status'
       });
     }

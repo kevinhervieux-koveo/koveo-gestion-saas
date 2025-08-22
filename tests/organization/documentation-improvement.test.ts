@@ -134,7 +134,7 @@ describe('Documentation Continuous Improvement', () => {
       });
 
       // Generate report
-      console.log('\n=== Documentation Quality Report ===\n');
+      console.warn('\n=== Documentation Quality Report ===\n');
       
       // Summary statistics
       const avgReadability = allMetrics.reduce((sum, m) => sum + m.readabilityScore, 0) / allMetrics.length;
@@ -142,22 +142,22 @@ describe('Documentation Continuous Improvement', () => {
       const docsWithTOC = allMetrics.filter(m => m.hasTableOfContents).length;
       const docsWithExamples = allMetrics.filter(m => m.hasExamples).length;
       
-      console.log('Summary:');
-      console.log(`- Total documentation files: ${allMetrics.length}`);
-      console.log(`- Total word count: ${totalWords}`);
-      console.log(`- Average readability score: ${avgReadability.toFixed(1)}/100`);
-      console.log(`- Docs with Table of Contents: ${docsWithTOC}/${allMetrics.length}`);
-      console.log(`- Docs with examples: ${docsWithExamples}/${allMetrics.length}`);
+      console.warn('Summary:');
+      console.warn(`- Total documentation files: ${allMetrics.length}`);
+      console.warn(`- Total word count: ${totalWords}`);
+      console.warn(`- Average readability score: ${avgReadability.toFixed(1)}/100`);
+      console.warn(`- Docs with Table of Contents: ${docsWithTOC}/${allMetrics.length}`);
+      console.warn(`- Docs with examples: ${docsWithExamples}/${allMetrics.length}`);
       
       // Files needing improvement
       const filesNeedingImprovement = allMetrics.filter(m => m.improvementSuggestions.length > 0);
       
       if (filesNeedingImprovement.length > 0) {
-        console.log('\nFiles needing improvement:');
+        console.warn('\nFiles needing improvement:');
         filesNeedingImprovement.forEach(metrics => {
-          console.log(`\n${metrics.file}:`);
+          console.warn(`\n${metrics.file}:`);
           metrics.improvementSuggestions.forEach(suggestion => {
-            console.log(`  - ${suggestion}`);
+            console.warn(`  - ${suggestion}`);
           });
         });
       }
@@ -206,9 +206,9 @@ describe('Documentation Continuous Improvement', () => {
       );
 
       if (undocumentedRoutes.length > 0) {
-        console.log('\nUndocumented API routes:');
+        console.warn('\nUndocumented API routes:');
         undocumentedRoutes.forEach(route => {
-          console.log(`  - ${route}`);
+          console.warn(`  - ${route}`);
         });
       }
 
@@ -235,9 +235,9 @@ describe('Documentation Continuous Improvement', () => {
       });
 
       if (undocumentedComponents.length > 0) {
-        console.log('\nComponents without documentation:');
+        console.warn('\nComponents without documentation:');
         undocumentedComponents.forEach(comp => {
-          console.log(`  - ${comp}`);
+          console.warn(`  - ${comp}`);
         });
       }
 
@@ -270,7 +270,7 @@ describe('Documentation Continuous Improvement', () => {
 
 ## API Reference
 ### Methods
-- \`methodName(params)\`: Description
+- \`methodName(_params)\`: Description
 
 ### Properties
 - \`propertyName\`: Description
@@ -317,7 +317,7 @@ describe('Documentation Continuous Improvement', () => {
         const content = fs.readFileSync(filePath, 'utf-8');
         const lines = content.split('\n');
         
-        lines.forEach((line, index) => {
+        lines.forEach((line, _index) => {
           if (line.includes('TODO') || line.includes('FIXME') || line.includes('XXX')) {
             todos.push({
               file: path.relative(rootDir, filePath),
@@ -329,9 +329,9 @@ describe('Documentation Continuous Improvement', () => {
       });
 
       if (todos.length > 0) {
-        console.log('\nDocumentation TODOs:');
+        console.warn('\nDocumentation TODOs:');
         todos.forEach(todo => {
-          console.log(`  ${todo.file}:${todo.line}: ${todo.todo}`);
+          console.warn(`  ${todo.file}:${todo.line}: ${todo.todo}`);
         });
       }
 
@@ -356,7 +356,7 @@ describe('Documentation Continuous Improvement', () => {
         
         // Check for proper heading hierarchy
         let lastHeadingLevel = 0;
-        lines.forEach((line, index) => {
+        lines.forEach((line, _index) => {
           const headingMatch = line.match(/^(#+)\s/);
           if (headingMatch) {
             const level = headingMatch[1].length;
@@ -378,15 +378,15 @@ describe('Documentation Continuous Improvement', () => {
         let match;
         while ((match = codeBlockRegex.exec(content)) !== null) {
           if (match[1] === '') {
-            const lineNum = content.substring(0, match.index).split('\n').length;
+            const lineNum = content.substring(0, match._index).split('\n').length;
             violations.push(`${file}:${lineNum}: Code block without language specification`);
           }
         }
       });
 
       if (violations.length > 0) {
-        console.log('\nDocumentation standard violations:');
-        violations.forEach(v => console.log(`  - ${v}`));
+        console.warn('\nDocumentation standard violations:');
+        violations.forEach(v => console.warn(`  - ${v}`));
       }
 
       // Allow some violations (calibrated to current documentation state)
@@ -421,8 +421,8 @@ describe('Documentation Continuous Improvement', () => {
       });
 
       if (missingSections.length > 0) {
-        console.log('\nMissing common sections:');
-        missingSections.forEach(m => console.log(`  - ${m}`));
+        console.warn('\nMissing common sections:');
+        missingSections.forEach(m => console.warn(`  - ${m}`));
       }
 
       // Some docs might not need all sections (calibrated for diverse doc types)

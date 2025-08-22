@@ -66,9 +66,9 @@ jest.mock('@/hooks/use-auth', () => ({
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQuery: jest.fn().mockReturnValue({
-    data: [],
+    _data: [],
     isLoading: false,
-    error: null
+    _error: null
   }),
   useMutation: jest.fn().mockReturnValue({
     mutate: jest.fn(),
@@ -165,7 +165,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerDashboard, 'Owner Dashboard', '/owner/dashboard');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     // Log violations for debugging but don't fail the test initially
@@ -176,7 +176,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerDocumentation, 'Owner Documentation', '/owner/documentation');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -186,7 +186,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerPillars, 'Owner Pillars', '/owner/pillars');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -196,7 +196,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerRoadmap, 'Owner Roadmap', '/owner/roadmap');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -206,7 +206,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerQuality, 'Owner Quality', '/owner/quality');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -216,7 +216,7 @@ describe('Page Language Validation - Owner Pages', () => {
     const result = await validatePageComponent(OwnerSuggestions, 'Owner Suggestions', '/owner/suggestions');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -228,7 +228,7 @@ describe('Page Language Validation - Manager Pages', () => {
     const result = await validatePageComponent(ManagerBuildings, 'Manager Buildings', '/manager/buildings');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -238,7 +238,7 @@ describe('Page Language Validation - Manager Pages', () => {
     const result = await validatePageComponent(ManagerResidences, 'Manager Residences', '/manager/residences');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -248,7 +248,7 @@ describe('Page Language Validation - Manager Pages', () => {
     const result = await validatePageComponent(ManagerBudget, 'Manager Budget', '/manager/budget');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -258,7 +258,7 @@ describe('Page Language Validation - Manager Pages', () => {
     const result = await validatePageComponent(ManagerBills, 'Manager Bills', '/manager/bills');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -268,7 +268,7 @@ describe('Page Language Validation - Manager Pages', () => {
     const result = await validatePageComponent(ManagerDemands, 'Manager Demands', '/manager/demands');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -280,7 +280,7 @@ describe('Page Language Validation - Residents Pages', () => {
     const result = await validatePageComponent(ResidentsDashboard, 'Residents Dashboard', '/dashboard');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -290,7 +290,7 @@ describe('Page Language Validation - Residents Pages', () => {
     const result = await validatePageComponent(ResidentsResidence, 'Residents Residence', '/residents/residence');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -300,7 +300,7 @@ describe('Page Language Validation - Residents Pages', () => {
     const result = await validatePageComponent(ResidentsBuilding, 'Residents Building', '/residents/building');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -310,7 +310,7 @@ describe('Page Language Validation - Residents Pages', () => {
     const result = await validatePageComponent(ResidentsDemands, 'Residents Demands', '/residents/demands');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -322,7 +322,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(SettingsSettings, 'Settings', '/settings/settings');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -332,7 +332,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(SettingsBugReports, 'Bug Reports', '/settings/bug-reports');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -342,7 +342,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(SettingsIdeaBox, 'Idea Box', '/settings/idea-box');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -352,7 +352,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(PillarsPage, 'Pillars', '/pillars');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -362,7 +362,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(NotFoundPage, 'Not Found', '/404');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -372,7 +372,7 @@ describe('Page Language Validation - Settings & Other Pages', () => {
     const result = await validatePageComponent(LoginPage, 'Login', '/login');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -384,7 +384,7 @@ describe('Component Language Validation', () => {
     const result = await validatePageComponent(Sidebar, 'Sidebar Component');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -394,7 +394,7 @@ describe('Component Language Validation', () => {
     const result = await validatePageComponent(LanguageSwitcher, 'Language Switcher Component');
     
     if (!result.isValid) {
-      console.log(`\n${result.report}`);
+      console.warn(`\n${result.report}`);
     }
     
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
@@ -453,7 +453,7 @@ describe('Full Application Language Audit', () => {
         
         if (result.violations.length > 0) {
           detailedReport += `   Top violations:\n`;
-          result.violations.slice(0, 3).forEach((violation, index) => {
+          result.violations.slice(0, 3).forEach((violation, _index) => {
             detailedReport += `   ${index + 1}. [${violation.type}] "${violation.term}"`;
             if (violation.suggestion) {
               detailedReport += ` → ${violation.suggestion}`;
@@ -491,7 +491,7 @@ describe('Full Application Language Audit', () => {
     detailedReport += `4. Éviter les termes légaux anglophones pour la copropriété\n`;
     detailedReport += `5. Réviser les traductions avec un expert en français québécois\n`;
 
-    console.log(detailedReport);
+    console.warn(detailedReport);
     
     // For CI/CD: fail if there are critical errors
     expect(totalErrors).toBeLessThan(50); // Adjust threshold as needed

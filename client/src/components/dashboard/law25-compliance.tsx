@@ -45,7 +45,7 @@ interface Law25ComplianceData {
 export function Law25Compliance() {
   const { t: _t } = useLanguage();
 
-  const { data: complianceData, isLoading } = useQuery<Law25ComplianceData>({
+  const { _data: complianceData, isLoading } = useQuery<Law25ComplianceData>({
     queryKey: ['/api/law25-compliance'],
     staleTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes
@@ -221,7 +221,7 @@ export function Law25Compliance() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {complianceData.violations.slice(0, 10).map((violation, index) => (
+              {complianceData.violations.slice(0, 10).map((violation, _index) => (
                 <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
                   <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
                     violation.severity === 'error' ? 'bg-red-500' : 

@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router as WouterRouter } from 'wouter';
 // Mock memoryLocation for testing
-const mockMemoryLocation = (options: { path: string }) => {
+const mockMemoryLocation = (_options: { path: string }) => {
   return () => [options.path, jest.fn()];
 };
 import App from '../../client/src/App';

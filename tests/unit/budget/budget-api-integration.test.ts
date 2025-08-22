@@ -21,7 +21,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       // Validate transformation
       expect(budgetExpenses.length).toBe(demoBills.length);
       
-      budgetExpenses.forEach((expense, index) => {
+      budgetExpenses.forEach((expense, _index) => {
         const originalBill = demoBills[index];
         expect(expense.id).toBe(originalBill.id);
         expect(expense.amount).toBe(originalBill.totalAmount);
@@ -30,7 +30,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
         expect(expense.description).toContain(originalBill.billNumber);
       });
       
-      console.log(`Transformed ${budgetExpenses.length} Demo bills into budget expenses`);
+      console.warn(`Transformed ${budgetExpenses.length} Demo bills into budget expenses`);
     });
 
     it('generates income entries for Demo buildings', () => {
@@ -39,7 +39,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       // Generate income entries (Budget component logic)
       const budgetIncomes = [];
       
-      demoBuildings.forEach((building, index) => {
+      demoBuildings.forEach((building, _index) => {
         budgetIncomes.push({
           id: `demo-income-${building.id}-fees`,
           buildingId: building.id,
@@ -68,8 +68,8 @@ describe('Budget API Integration and Data Flow Testing', () => {
       const totalIncome = budgetIncomes.reduce((sum, income) => sum + income.amount, 0);
       expect(totalIncome).toBe(5000); // 2 buildings × (2250 + 250)
       
-      console.log(`Generated ${budgetIncomes.length} income entries for Demo buildings`);
-      console.log(`Total monthly income: $${totalIncome.toLocaleString()}`);
+      console.warn(`Generated ${budgetIncomes.length} income entries for Demo buildings`);
+      console.warn(`Total monthly income: $${totalIncome.toLocaleString()}`);
     });
   });
 
@@ -113,7 +113,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       expect(budgetSummary.specialContributions.length).toBe(1);
       expect(budgetSummary.specialContributions[0].perUnit).toBeCloseTo(549.72, 2);
       
-      console.log('Demo Budget Summary:', budgetSummary);
+      console.warn('Demo Budget Summary:', budgetSummary);
     });
 
     it('handles empty budget data gracefully', () => {
@@ -169,7 +169,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       expect(totalMinimumRequired).toBe(85000);
       expect(demoBankAccount.balance).toBeLessThan(totalMinimumRequired);
       
-      console.log('Demo Bank Account:', demoBankAccount);
+      console.warn('Demo Bank Account:', demoBankAccount);
     });
 
     it('calculates balance changes over time', () => {
@@ -204,7 +204,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       const finalBalance = balanceHistory[balanceHistory.length - 1].balance;
       expect(finalBalance).toBeGreaterThan(initialBalance);
       
-      console.log('Demo Balance History:', balanceHistory);
+      console.warn('Demo Balance History:', balanceHistory);
     });
   });
 
@@ -244,7 +244,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       const building1Ownership = building1Residences.reduce((sum, r) => sum + r.ownershipPercentage, 0);
       expect(building1Ownership).toBe(50.0); // 5 units × 10%
       
-      console.log(`Generated ${residences.length} residences for Demo buildings`);
+      console.warn(`Generated ${residences.length} residences for Demo buildings`);
     });
 
     it('calculates special contributions per residence', () => {
@@ -279,7 +279,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       expect(contributions[0].contribution).toBeCloseTo(1020, 2); // 8.5% of $12,000
       expect(contributions[1].contribution).toBeCloseTo(1200, 2); // 10% of $12,000
       
-      console.log('Special Contributions by Residence:', contributions);
+      console.warn('Special Contributions by Residence:', contributions);
     });
   });
 
@@ -325,10 +325,10 @@ describe('Budget API Integration and Data Flow Testing', () => {
       expect(annualIncome).toBe(60000); // 12 × $5,000
       expect(annualExpenses).toBeCloseTo(12687.5, 2); // Includes seasonal variations
       
-      console.log('Demo Chart Data Summary:');
-      console.log(`  Annual Income: $${annualIncome.toLocaleString()}`);
-      console.log(`  Annual Expenses: $${annualExpenses.toLocaleString()}`);
-      console.log(`  Net Annual Cash Flow: $${(annualIncome - annualExpenses).toLocaleString()}`);
+      console.warn('Demo Chart Data Summary:');
+      console.warn(`  Annual Income: $${annualIncome.toLocaleString()}`);
+      console.warn(`  Annual Expenses: $${annualExpenses.toLocaleString()}`);
+      console.warn(`  Net Annual Cash Flow: $${(annualIncome - annualExpenses).toLocaleString()}`);
     });
 
     it('handles chart data with running balance calculations', () => {
@@ -342,7 +342,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       
       // Calculate running balance for chart
       let runningBalance = startingBalance;
-      const chartData = monthlyData.map((data, index) => {
+      const chartData = monthlyData.map((data, _index) => {
         const netCashFlow = data.income - data.expenses;
         runningBalance += netCashFlow;
         
@@ -365,7 +365,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       const finalBalance = startingBalance + chartData.reduce((sum, d) => sum + d.netCashFlow, 0);
       expect(chartData[3].runningBalance).toBe(finalBalance);
       
-      console.log('Chart Data with Running Balance:', chartData);
+      console.warn('Chart Data with Running Balance:', chartData);
     });
   });
 

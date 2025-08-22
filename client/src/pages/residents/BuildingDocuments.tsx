@@ -12,16 +12,16 @@ import { useLocation } from "wouter";
 
 // Document categories
 const DOCUMENT_CATEGORIES = [
-  { value: 'bylaw', label: 'Bylaws' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'other', label: 'Other' },
+  { _value: 'bylaw', label: 'Bylaws' },
+  { _value: 'financial', label: 'Financial' },
+  { _value: 'maintenance', label: 'Maintenance' },
+  { _value: 'legal', label: 'Legal' },
+  { _value: 'meeting_minutes', label: 'Meeting Minutes' },
+  { _value: 'insurance', label: 'Insurance' },
+  { _value: 'contracts', label: 'Contracts' },
+  { _value: 'permits', label: 'Permits' },
+  { _value: 'inspection', label: 'Inspection' },
+  { _value: 'other', label: 'Other' },
 ] as const;
 
 /**
@@ -48,7 +48,7 @@ interface Building {
   id: string;
   name: string;
   address: string;
-  [key: string]: any;
+  [_key: string]: any;
 }
 
 /**
@@ -64,11 +64,20 @@ function  /**
    * Format file size.
    * @param bytes? - bytes? parameter.
    * @returns String result.
+   */  /**
+   * Format file size.
+   * @param bytes? - bytes? parameter.
+   * @returns String result.
    */
+
  formatFileSize(bytes?: number): string {  /**
    * If function.
    * @param !bytes - !bytes parameter.
+   */  /**
+   * If function.
+   * @param !bytes - !bytes parameter.
    */
+
 
   if (!bytes) {return 'Unknown size';}
   
@@ -90,7 +99,12 @@ function  /**
    * Format date.
    * @param dateString - dateString parameter.
    * @returns String result.
+   */  /**
+   * Format date.
+   * @param dateString - dateString parameter.
+   * @returns String result.
    */
+
  formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -112,8 +126,13 @@ function  /**
    * Get category label.
    * @param value - Value to process.
    * @returns String result.
+   */  /**
+   * Get category label.
+   * @param value - Value to process.
+   * @returns String result.
    */
- getCategoryLabel(value: string): string {
+
+ getCategoryLabel(_value: string): string {
   // Return the actual document type as a formatted label
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
@@ -123,7 +142,10 @@ function  /**
  */
 export default function  /**
    * Residents building documents function.
+   */  /**
+   * Residents building documents function.
    */
+
  ResidentsBuildingDocuments() {
   const [, navigate] = useLocation();
   const urlParams = new URLSearchParams(window.location.search);
@@ -140,25 +162,37 @@ export default function  /**
   const { toast } = useToast();
 
   // Get building info
-  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
+  const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ["/api/manager/buildings"],
   });
 
   const building = buildingsResponse?.buildings?.find(b => b.id === buildingId);
 
   // Get documents for this specific building
-  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
+  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {  /**
    * If function.
    * @param !buildingId - !buildingId parameter.
+   */  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
    */
+
 
       if (!buildingId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -200,7 +234,11 @@ export default function  /**
     // Apply user filters  /**
    * If function.
    * @param searchTerm - searchTerm parameter.
+   */  /**
+   * If function.
+   * @param searchTerm - searchTerm parameter.
    */
+
 
     if (searchTerm) {
       filtered = filtered.filter(doc => 
@@ -209,7 +247,11 @@ export default function  /**
     }  /**
    * If function.
    * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
+   */  /**
+   * If function.
+   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
    */
+
 
 
     if (selectedCategory !== "all") {
@@ -217,7 +259,11 @@ export default function  /**
     }  /**
    * If function.
    * @param selectedYear !== "all" - selectedYear !== "all" parameter.
+   */  /**
+   * If function.
+   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
    */
+
 
 
     if (selectedYear !== "all") {
@@ -227,7 +273,11 @@ export default function  /**
     }  /**
    * If function.
    * @param selectedVisibility !== "all" - selectedVisibility !== "all" parameter.
+   */  /**
+   * If function.
+   * @param selectedVisibility !== "all" - selectedVisibility !== "all" parameter.
    */
+
 
 
     if (selectedVisibility !== "all") {
@@ -243,7 +293,11 @@ filter(doc => {
         } else  /**
    * If function.
    * @param selectedVisibility === "hidden" - selectedVisibility === "hidden" parameter.
+   */  /**
+   * If function.
+   * @param selectedVisibility === "hidden" - selectedVisibility === "hidden" parameter.
    */
+
  if (selectedVisibility === "hidden") {
           return doc.isVisibleToTenants === false || doc.isVisibleToTenants === undefined;
         }
@@ -317,6 +371,14 @@ forEach(doc => {
   /**
    * Catch function.
    * @param _error - _error parameter.
+   */  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
  catch (_error) {
       toast({
@@ -331,7 +393,11 @@ forEach(doc => {
     try {  /**
    * If function.
    * @param document.fileUrl - document.fileUrl parameter.
+   */  /**
+   * If function.
+   * @param document.fileUrl - document.fileUrl parameter.
    */
+
 
       if (document.fileUrl) {
         window.open(document.fileUrl, '_blank');
@@ -339,14 +405,22 @@ forEach(doc => {
         const response = await fetch(`/api/documents/${document.id}/view`);  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
         if (!response.ok) {throw new Error('Failed to get document view URL');}
         
         const data = await response.json();  /**
    * If function.
    * @param data.viewUrl - data.viewUrl parameter.
+   */  /**
+   * If function.
+   * @param data.viewUrl - data.viewUrl parameter.
    */
+
 
         if (data.viewUrl) {
           window.open(data.viewUrl, '_blank');
@@ -362,7 +436,11 @@ forEach(doc => {
   };  /**
    * If function.
    * @param !buildingId - !buildingId parameter.
+   */  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
    */
+
 
 
   if (!buildingId) {
@@ -411,7 +489,7 @@ forEach(doc => {
                 <Input
                   placeholder="Search documents..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target._value)}
                   className="pl-9"
                 />
               </div>
@@ -498,7 +576,11 @@ forEach(doc => {
                     Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {  /**
    * If function.
    * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
+   */  /**
+   * If function.
+   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
    */
+
 
                       if (categoryDocuments.length === 0) {return null;}
                       
@@ -668,7 +750,11 @@ forEach(doc => {
                         const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;  /**
    * If function.
    * @param pageNum > totalPages - pageNum > totalPages parameter.
+   */  /**
+   * If function.
+   * @param pageNum > totalPages - pageNum > totalPages parameter.
    */
+
 
                         if (pageNum > totalPages) {return null;}
                         return (

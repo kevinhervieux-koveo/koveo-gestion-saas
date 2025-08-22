@@ -116,6 +116,6 @@ async function testPermissions() {
 testPermissions().then(success => {
   process.exit(success ? 0 : 1);
 }).catch(error => {
-  console.error('❌ Test execution failed:', error);
+  console.error('❌ Test execution failed:', _error);
   process.exit(1);
 });

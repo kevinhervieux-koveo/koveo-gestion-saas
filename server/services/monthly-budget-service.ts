@@ -30,7 +30,7 @@ export class MonthlyBudgetService {
     budgetsCreated: number;
     buildingsProcessed: number;
   }> {
-    console.log('🔄 Starting monthly budget population...');
+    console.warn('🔄 Starting monthly budget population...');
     
     let budgetsCreated = 0;
     let buildingsProcessed = 0;
@@ -42,21 +42,21 @@ export class MonthlyBudgetService {
         .from(buildings)
         .where(eq(buildings.isActive, true));
 
-      console.log(`🏢 Found ${activeBuildings.length} active buildings`);
+      console.warn(`🏢 Found ${activeBuildings.length} active buildings`);
 
       for (const building of activeBuildings) {
         try {
           const buildingBudgets = await this.populateBudgetsForBuilding(building);
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
-          console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
-        } catch (__error) {
-          console.error(`❌ Error processing building ${building.name}:`, error);
+          console.warn(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
+        } catch (_error) {
+          console.error(`❌ Error processing building ${building.name}:`, _error);
           // Continue with other buildings
         }
       }
 
-      console.log(`✅ Monthly budget population completed:
+      console.warn(`✅ Monthly budget population completed:
         - Buildings processed: ${buildingsProcessed}
         - Budget entries created: ${budgetsCreated}`);
 
@@ -65,8 +65,8 @@ export class MonthlyBudgetService {
         buildingsProcessed
       };
 
-    } catch (__error) {
-      console.error('❌ Error populating monthly budgets:', error);
+    } catch (_error) {
+      console.error('❌ Error populating monthly budgets:', _error);
       throw error;
     }
   }
@@ -88,12 +88,12 @@ export class MonthlyBudgetService {
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
-    console.log(`📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0,10)} to ${endDate.toISOString().slice(0,10)}`);
+    console.warn(`📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0,10)} to ${endDate.toISOString().slice(0,10)}`);
 
     // Get distinct income and expense categories for this building
     const { incomeCategories, expenseCategories } = await this.getCategoriesForBuilding(building.id);
     
-    console.log(`📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`);
+    console.warn(`📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`);
 
     // Remove existing budget entries for this building to avoid duplicates
     await this.cleanupExistingBudgets(building.id);
@@ -276,7 +276,7 @@ export class MonthlyBudgetService {
       .delete(monthlyBudgets)
       .where(eq(monthlyBudgets.buildingId, buildingId));
     
-    console.log(`🧹 Cleaned up existing budget entries for building ${buildingId}`);
+    console.warn(`🧹 Cleaned up existing budget entries for building ${buildingId}`);
   }
 
   /**
@@ -289,13 +289,13 @@ export class MonthlyBudgetService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(monthlyBudgets).values(batch);
-      } catch (__error) {
-        console.error(`❌ Error inserting budget batch ${i / batchSize + 1}:`, error);
+      } catch (_error) {
+        console.error(`❌ Error inserting budget batch ${i / batchSize + 1}:`, _error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
             await db.insert(monthlyBudgets).values(entry);
-          } catch (__individualError) {
+          } catch (___individualError) {
             console.error(`❌ Error inserting individual budget entry:`, individualError);
             // Skip this entry and continue
           }
@@ -349,7 +349,7 @@ export class MonthlyBudgetService {
    * @param buildingId
    */
   async repopulateBudgetsForBuilding(buildingId: string): Promise<number> {
-    console.log(`🔄 Repopulating budgets for building ${buildingId}`);
+    console.warn(`🔄 Repopulating budgets for building ${buildingId}`);
 
     const building = await db
       .select()
@@ -363,7 +363,7 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
-    console.log(`✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`);
+    console.warn(`✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`);
     return budgetsCreated;
   }
 

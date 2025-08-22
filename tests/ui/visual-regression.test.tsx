@@ -194,7 +194,7 @@ describe('Visual Regression Tests - Card Text Overflow', () => {
 
   describe('Text Overflow Prevention', () => {
     it('should prevent title text from overflowing card boundaries', () => {
-      screenshotTestData.forEach((demand, index) => {
+      screenshotTestData.forEach((demand, _index) => {
         const { rerender } = renderWithProviders(<DemandCardFromScreenshot demand={demand} />);
         
         const card = screen.getByTestId('screenshot-card');
@@ -399,7 +399,7 @@ describe('Visual Regression Tests - Card Text Overflow', () => {
     it('should maintain consistent card sizes in grid layout', () => {
       const GridLayout = () => (
         <div className="grid grid-cols-3 gap-4 p-4" data-testid="card-grid">
-          {screenshotTestData.slice(0, 6).map((demand, index) => (
+          {screenshotTestData.slice(0, 6).map((demand, _index) => (
             <DemandCardFromScreenshot key={index} demand={demand} />
           ))}
         </div>
@@ -432,7 +432,7 @@ describe('Visual Regression Tests - Card Text Overflow', () => {
       
       const MixedGridLayout = () => (
         <div className="grid grid-cols-3 gap-4" data-testid="mixed-grid">
-          {mixedContentData.map((demand, index) => (
+          {mixedContentData.map((demand, _index) => (
             <DemandCardFromScreenshot key={index} demand={demand} />
           ))}
         </div>

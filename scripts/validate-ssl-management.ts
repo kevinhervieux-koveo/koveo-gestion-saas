@@ -89,8 +89,8 @@ class SSLManagementValidator {
         });
       }
 
-    } catch (__error) {
-      this.addResult('SSL Renewal Job', 'FAIL', 'Failed to get job status', { error: String(error) });
+    } catch (_error) {
+      this.addResult('SSL Renewal Job', 'FAIL', 'Failed to get job status', { _error: String(_error) });
     }
   }
 
@@ -121,8 +121,8 @@ class SSLManagementValidator {
         this.addResult('Database - Admin Users', 'PASS', 'Admin users available for notifications');
       }
 
-    } catch (__error) {
-      this.addResult('Database', 'FAIL', 'Database connectivity or schema issues', { error: String(error) });
+    } catch (_error) {
+      this.addResult('Database', 'FAIL', 'Database connectivity or schema issues', { _error: String(_error) });
     }
   }
 
@@ -157,8 +157,8 @@ class SSLManagementValidator {
         this.addResult('Notification Service', 'FAIL', 'Notification count method returned invalid type');
       }
 
-    } catch (__error) {
-      this.addResult('Notification Service', 'FAIL', 'Notification service validation failed', { error: String(error) });
+    } catch (_error) {
+      this.addResult('Notification Service', 'FAIL', 'Notification service validation failed', { _error: String(_error) });
     }
   }
 
@@ -235,8 +235,8 @@ class SSLManagementValidator {
         this.addResult('Certificate Status Logic', 'FAIL', 'Certificate status calculation incorrect', { status });
       }
 
-    } catch (__error) {
-      this.addResult('Certificate Status Logic', 'FAIL', 'Cannot validate certificate status logic', { error: String(error) });
+    } catch (_error) {
+      this.addResult('Certificate Status Logic', 'FAIL', 'Cannot validate certificate status logic', { _error: String(_error) });
     }
   }
 
@@ -317,7 +317,7 @@ class SSLManagementValidator {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new SSLManagementValidator();
   validator.runAllValidations().catch(error => {
-    console.error('❌ Validation script failed:', error);
+    console.error('❌ Validation script failed:', _error);
     process.exit(1);
   });
 }

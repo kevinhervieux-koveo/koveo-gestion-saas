@@ -54,7 +54,7 @@ export function PromptDisplay({
         title: 'Prompt Copied!',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (__error) {
+    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the prompt to clipboard.',
@@ -102,7 +102,7 @@ export function PromptDisplay({
                     id="promptTitle"
                     placeholder="Enter title..."
                     value={promptTitle}
-                    onChange={(e) => setPromptTitle(e.target.value)}
+                    onChange={(e) => setPromptTitle(e.target._value)}
                     className="text-sm h-8 w-40"
                   />
                   <Button

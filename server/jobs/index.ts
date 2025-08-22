@@ -15,7 +15,7 @@ import { moneyFlowJob } from './money_flow_job';
  */
 export async function startJobs(): Promise<void> {
   try {
-    console.log('Starting background jobs...');
+    console.warn('Starting background jobs...');
     
     // Start SSL renewal job
     await sslRenewalJob.start();
@@ -23,9 +23,9 @@ export async function startJobs(): Promise<void> {
     // Start Money Flow automation job
     await moneyFlowJob.start();
     
-    console.log('All background jobs started successfully');
-  } catch (___error) {
-    console.error('Failed to start background jobs:', ___error);
+    console.warn('All background jobs started successfully');
+  } catch (____error) {
+    console.error('Failed to start background jobs:', _error);
     throw ___error;
   }
 }
@@ -38,12 +38,12 @@ export async function startJobs(): Promise<void> {
  * @returns Function result.
  */
 export function stopJobs(): void {
-  console.log('Stopping background jobs...');
+  console.warn('Stopping background jobs...');
   
   sslRenewalJob.stop();
   moneyFlowJob.stop();
   
-  console.log('All background jobs stopped');
+  console.warn('All background jobs stopped');
 }
 
 /**
@@ -62,13 +62,13 @@ export function getJobsStatus(): Record<string, any> {
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, stopping background jobs...');
+  console.warn('Received SIGTERM, stopping background jobs...');
   stopJobs();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('Received SIGINT, stopping background jobs...');
+  console.warn('Received SIGINT, stopping background jobs...');
   stopJobs();
   process.exit(0);
 });

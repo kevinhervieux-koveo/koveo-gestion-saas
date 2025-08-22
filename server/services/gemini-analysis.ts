@@ -40,8 +40,8 @@ interface AnalysisResult {
  *   priority: "high"
  * };
  * const context = await getDocumentationContext();
- * const analysis = await analyzeFeatureWithGemini(feature, context);
- * console.log(analysis.actionableItems.length); // Number of implementation steps
+ * const analysis = await analyzeFeatureWithGemini(feature, _context);
+ * console.warn(analysis.actionableItems.length); // Number of implementation steps
  * ```
  */
 /**
@@ -182,7 +182,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${error}`);
+      throw new Error(`Gemini API _error: ${response.status} - ${error}`);
     }
 
     const result = await response.json();
@@ -198,12 +198,12 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         throw new Error(`AI analysis failed to generate multiple actionable items. Expected 3-8 items, got ${analysis.actionableItems?.length || 0}. Please try again.`);
       }
       
-      console.log(`✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`);
+      console.warn(`✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`);
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');
     }
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error analyzing feature with Gemini:', _error);
     throw new Error(`Failed to analyze feature: ${_error}`);
   }
@@ -220,7 +220,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
  * 
  * @example
  * ```typescript
- * const analysis = await analyzeFeatureWithGemini(feature, context);
+ * const analysis = await analyzeFeatureWithGemini(feature, _context);
  * const dbItems = formatActionableItemsForDatabase(feature.id, analysis);
  * await storage.createActionableItems(dbItems);
  * ```
@@ -235,7 +235,7 @@ export function formatActionableItemsForDatabase(
   featureId: string,
   analysisResult: AnalysisResult
 ): Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[] {
-  return analysisResult.actionableItems.map((item, index) => ({
+  return analysisResult.actionableItems.map((item, _index) => ({
     featureId,
     title: item.title,
     description: item.description,
@@ -264,7 +264,7 @@ export function formatActionableItemsForDatabase(
  * @example
  * ```typescript
  * const context = await getDocumentationContext();
- * const analysis = await analyzeFeatureWithGemini(feature, context);
+ * const analysis = await analyzeFeatureWithGemini(feature, _context);
  * // Context ensures AI suggestions align with system architecture
  * ```
  */

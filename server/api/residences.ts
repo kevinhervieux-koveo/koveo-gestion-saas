@@ -31,8 +31,8 @@ export function registerResidenceRoutes(app: Express) {
         ));
 
       res.json(userResidencesList);
-    } catch (__error) {
-      console.error('Error fetching user residences:', error);
+    } catch (_error) {
+      console.error('Error fetching user residences:', _error);
       res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
@@ -65,8 +65,8 @@ export function registerResidenceRoutes(app: Express) {
         ));
 
       res.json(assignedUsers);
-    } catch (__error) {
-      console.error('Error fetching assigned users:', error);
+    } catch (_error) {
+      console.error('Error fetching assigned users:', _error);
       res.status(500).json({ message: 'Failed to fetch assigned users' });
     }
   });
@@ -91,8 +91,8 @@ export function registerResidenceRoutes(app: Express) {
         .where(eq(users.id, userId));
 
       res.json({ message: 'User updated successfully' });
-    } catch (__error) {
-      console.error('Error updating assigned user:', error);
+    } catch (_error) {
+      console.error('Error updating assigned user:', _error);
       res.status(500).json({ message: 'Failed to update assigned user' });
     }
   });
@@ -190,8 +190,8 @@ export function registerResidenceRoutes(app: Express) {
       }));
 
       res.json(residencesList);
-    } catch (__error) {
-      console.error('Error fetching residences:', error);
+    } catch (_error) {
+      console.error('Error fetching residences:', _error);
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
@@ -264,8 +264,8 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants
       });
-    } catch (__error) {
-      console.error('Error fetching residence:', error);
+    } catch (_error) {
+      console.error('Error fetching residence:', _error);
       res.status(500).json({ message: 'Failed to fetch residence' });
     }
   });
@@ -297,15 +297,15 @@ export function registerResidenceRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the updated residence
       try {
         delayedUpdateService.scheduleResidenceUpdate(id);
-        console.log(`🏠 Scheduled delayed update for updated residence ${id}`);
-      } catch (__error) {
-        console.error('Failed to schedule delayed update for updated residence:', error);
+        console.warn(`🏠 Scheduled delayed update for updated residence ${id}`);
+      } catch (_error) {
+        console.error('Failed to schedule delayed update for updated residence:', _error);
         // Don't fail the residence update if scheduling fails
       }
 
       res.json(updated[0]);
-    } catch (__error) {
-      console.error('Error updating residence:', error);
+    } catch (_error) {
+      console.error('Error updating residence:', _error);
       res.status(500).json({ message: 'Failed to update residence' });
     }
   });
@@ -371,8 +371,8 @@ export function registerResidenceRoutes(app: Express) {
         message: `Successfully created ${createdResidences.length} residences`,
         residences: createdResidences
       });
-    } catch (__error) {
-      console.error('Error generating residences:', error);
+    } catch (_error) {
+      console.error('Error generating residences:', _error);
       res.status(500).json({ message: 'Failed to generate residences' });
     }
   });

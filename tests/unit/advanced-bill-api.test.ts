@@ -159,7 +159,7 @@ describe('Advanced Bill API Endpoints', () => {
         .expect(500);
 
       expect(response.body.message).toBe('Failed to generate future bills');
-      expect(response.body.error).toBe('Database connection failed');
+      expect(response.body._error).toBe('Database connection failed');
     });
 
     it('should handle complex recurrent bills with multiple costs', async () => {
@@ -267,7 +267,7 @@ describe('Advanced Bill API Endpoints', () => {
         .expect(500);
 
       expect(response.body.message).toBe('Failed to mark bill as paid');
-      expect(response.body.error).toBe('Payment processing failed');
+      expect(response.body._error).toBe('Payment processing failed');
     });
 
     it('should enforce permissions for marking bills as paid', async () => {
@@ -366,7 +366,7 @@ describe('Advanced Bill API Endpoints', () => {
         .expect(500);
 
       expect(response.body.message).toBe('Failed to get generated bills statistics');
-      expect(response.body.error).toBe('Database query failed');
+      expect(response.body._error).toBe('Database query failed');
     });
 
     it('should enforce access control for viewing statistics', async () => {
@@ -474,7 +474,7 @@ describe('Advanced Bill API Endpoints', () => {
         .expect(500);
 
       expect(response.body.message).toBe('Failed to update generated bills');
-      expect(response.body.error).toBe('Update operation failed');
+      expect(response.body._error).toBe('Update operation failed');
     });
   });
 
@@ -540,7 +540,7 @@ describe('Advanced Bill API Endpoints', () => {
         .expect(500);
 
       expect(response.body.message).toBe('Failed to delete generated bills');
-      expect(response.body.error).toBe('Deletion failed');
+      expect(response.body._error).toBe('Deletion failed');
     });
 
     it('should enforce admin/manager permissions for deletion', async () => {

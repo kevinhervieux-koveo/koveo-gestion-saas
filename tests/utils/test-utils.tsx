@@ -59,7 +59,7 @@ export const findByTextWithTimeout = async (text: string, timeout = 10000) => {
   return await screen.findByText(text, {}, { timeout });
 };
 
-export const findByRoleWithTimeout = async (role: any, options: Parameters<typeof screen.findByRole>[1] = {}, timeout = 10000) => {
+export const findByRoleWithTimeout = async (role: any, _options: Parameters<typeof screen.findByRole>[1] = {}, timeout = 10000) => {
   return await screen.findByRole(role, options, { timeout });
 };
 

@@ -58,9 +58,12 @@ interface Building {
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Residences function.
+   */ /**
    * Residences function.
    */
+
  Residences() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,30 +74,54 @@ export default function  /**
   const itemsPerPage = 10;
 
   // Fetch residences with search and filters
-  const { data: residences, isLoading: residencesLoading, refetch } = useQuery({
+  const { _data: residences, isLoading: residencesLoading, refetch } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
     queryFn: async () => {
-      const params = new URLSearchParams();  /**
+      const params = new URLSearchParams(); /**
    * If function.
-   * @param searchTerm - searchTerm parameter.
+   * @param searchTerm - SearchTerm parameter.
+   */ /**
+   * If function.
+   * @param searchTerm - SearchTerm parameter.
    */
 
-      if (searchTerm) {params.append('search', searchTerm);}  /**
+
+      if (searchTerm) {params.append('search', searchTerm);} /**
+   * If function.
+   * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
+   */ /**
    * If function.
    * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
    */
 
-      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);}  /**
+
+      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);} /**
+   * If function.
+   * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
+   */ /**
    * If function.
    * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
    */
 
+
       if (selectedFloor && selectedFloor !== 'all') {params.append('floor', selectedFloor);}
       
-      const response = await fetch(`/api/residences?${params}`);  /**
+      const response = await fetch(`/api/residences?${params}`); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -110,7 +137,7 @@ export default function  /**
   });
 
   // Fetch buildings for filter dropdown - use manager endpoint for proper permissions
-  const { data: buildingsData } = useQuery({
+  const { _data: buildingsData } = useQuery({
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await fetch('/api/manager/buildings');
@@ -122,8 +149,8 @@ export default function  /**
   // Extract buildings array from the response
   const buildings = buildingsData?.buildings || [];
 
-  // Fetch all residences to get complete floor list for filter (without search/filter params)
-  const { data: allResidences } = useQuery({
+  // Fetch all residences to get complete floor list for filter (without search/filter _params)
+  const { _data: allResidences } = useQuery({
     queryKey: ['/api/residences/all'],
     queryFn: async () => {
       const response = await fetch('/api/residences');
@@ -139,18 +166,18 @@ export default function  /**
     : [];
 
   // Reset page when filters change
-  const handleBuildingChange = (value: string) => {
-    setSelectedBuilding(value);
+  const handleBuildingChange = (_value: string) => {
+    setSelectedBuilding(_value);
     setCurrentPage(1);
   };
 
-  const handleFloorChange = (value: string) => {
-    setSelectedFloor(value);
+  const handleFloorChange = (_value: string) => {
+    setSelectedFloor(_value);
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
+  const handleSearchChange = (_value: string) => {
+    setSearchTerm(_value);
     setCurrentPage(1);
   };
 
@@ -183,7 +210,7 @@ export default function  /**
                   <Input
                     placeholder='Search by unit number or tenant name...'
                     value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target._value)}
                     className='w-full'
                   />
                 </div>
@@ -404,23 +431,31 @@ export default function  /**
                   max={totalPages}
                   value={currentPage}
                   onChange={(e) => {
-                    const page = parseInt(e.target.value);  /**
+                    const page = parseInt(e.target._value); /**
+   * If function.
+   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
+   */ /**
    * If function.
    * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
    */
+
 
                     if (page >= 1 && page <= totalPages) {
                       setCurrentPage(page);
                     }
                   }}
                   onBlur={(e) => {
-                    const page = parseInt(e.target.value);
+                    const page = parseInt(e.target._value);
                     if (isNaN(page) || page < 1) {
                       setCurrentPage(1);
-                    } else  /**
+                    } else /**
+   * If function.
+   * @param page > totalPages - page > totalPages parameter.
+   */ /**
    * If function.
    * @param page > totalPages - page > totalPages parameter.
    */
+
  if (page > totalPages) {
                       setCurrentPage(totalPages);
                     }

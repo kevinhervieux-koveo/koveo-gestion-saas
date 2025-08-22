@@ -148,11 +148,11 @@ export function registerBillRoutes(app: Express) {
         .orderBy(desc(bills.startDate));
 
       res.json(billsList);
-    } catch (__error) {
-      console.error('Error fetching bills:', error);
+    } catch (_error) {
+      console.error('Error fetching bills:', _error);
       res.status(500).json({ 
         message: 'Failed to fetch bills',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -195,11 +195,11 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(bill[0]);
-    } catch (__error) {
-      console.error('Error fetching bill:', error);
+    } catch (_error) {
+      console.error('Error fetching bill:', _error);
       res.status(500).json({ 
         message: 'Failed to fetch bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -246,18 +246,18 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the new bill
       try {
         delayedUpdateService.scheduleBillUpdate(newBill[0].id);
-        console.log(`💰 Scheduled delayed update for new bill ${newBill[0].id}`);
-      } catch (__error) {
-        console.error('Failed to schedule delayed update for new bill:', error);
+        console.warn(`💰 Scheduled delayed update for new bill ${newBill[0].id}`);
+      } catch (_error) {
+        console.error('Failed to schedule delayed update for new bill:', _error);
         // Don't fail the bill creation if scheduling fails
       }
 
       res.status(201).json(newBill[0]);
-    } catch (__error) {
-      console.error('Error creating bill:', error);
+    } catch (_error) {
+      console.error('Error creating bill:', _error);
       res.status(500).json({ 
         message: 'Failed to create bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -307,11 +307,11 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(updatedBill[0]);
-    } catch (__error) {
-      console.error('Error updating bill:', error);
+    } catch (_error) {
+      console.error('Error updating bill:', _error);
       res.status(500).json({ 
         message: 'Failed to update bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -362,18 +362,18 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the updated bill
       try {
         delayedUpdateService.scheduleBillUpdate(id);
-        console.log(`💰 Scheduled delayed update for updated bill ${id}`);
-      } catch (__error) {
-        console.error('Failed to schedule delayed update for updated bill:', error);
+        console.warn(`💰 Scheduled delayed update for updated bill ${id}`);
+      } catch (_error) {
+        console.error('Failed to schedule delayed update for updated bill:', _error);
         // Don't fail the bill update if scheduling fails
       }
 
       res.json(updatedBill[0]);
-    } catch (__error) {
-      console.error('Error updating bill:', error);
+    } catch (_error) {
+      console.error('Error updating bill:', _error);
       res.status(500).json({ 
         message: 'Failed to update bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -401,11 +401,11 @@ export function registerBillRoutes(app: Express) {
         message: 'Bill deleted successfully',
         bill: deletedBill[0]
       });
-    } catch (__error) {
-      console.error('Error deleting bill:', error);
+    } catch (_error) {
+      console.error('Error deleting bill:', _error);
       res.status(500).json({ 
         message: 'Failed to delete bill',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -450,9 +450,9 @@ export function registerBillRoutes(app: Express) {
       if (req.file.mimetype.startsWith('image/')) {
         try {
           analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
-          console.log('🤖 Gemini analysis completed:', analysisResult);
-        } catch (__error) {
-          console.error('AI analysis failed:', error);
+          console.warn('🤖 Gemini analysis completed:', analysisResult);
+        } catch (_error) {
+          console.error('AI analysis failed:', _error);
           // Continue without AI analysis
         }
       }
@@ -481,21 +481,21 @@ export function registerBillRoutes(app: Express) {
         analysisResult
       });
 
-    } catch (__error) {
-      console.error('Error uploading document:', error);
+    } catch (_error) {
+      console.error('Error uploading document:', _error);
       
       // Clean up temporary file if it exists
       if (req.file?.path) {
         try {
           fs.unlinkSync(req.file.path);
-        } catch (__cleanupError) {
+        } catch (___cleanupError) {
           console.error('Error cleaning up temp file:', cleanupError);
         }
       }
       
       res.status(500).json({ 
         message: 'Failed to upload document',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -561,11 +561,11 @@ export function registerBillRoutes(app: Express) {
         scheduleSignestion
       });
 
-    } catch (__error) {
-      console.error('Error applying AI analysis:', error);
+    } catch (_error) {
+      console.error('Error applying AI analysis:', _error);
       res.status(500).json({ 
         message: 'Failed to apply AI analysis',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -639,11 +639,11 @@ export function registerBillRoutes(app: Express) {
         billsCreated: result.billsCreated,
         generatedUntil: result.generatedUntil,
       });
-    } catch (__error) {
-      console.error('Error generating future bills:', error);
+    } catch (_error) {
+      console.error('Error generating future bills:', _error);
       res.status(500).json({ 
         message: 'Failed to generate future bills',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -673,11 +673,11 @@ export function registerBillRoutes(app: Express) {
       ];
 
       res.json(categories);
-    } catch (__error) {
-      console.error('Error fetching bill categories:', error);
+    } catch (_error) {
+      console.error('Error fetching bill categories:', _error);
       res.status(500).json({ 
         message: 'Failed to fetch bill categories',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -756,11 +756,11 @@ export function registerBillRoutes(app: Express) {
         parentBill: bill[0],
         generatedBills: stats
       });
-    } catch (__error) {
-      console.error('Error getting generated bills stats:', error);
+    } catch (_error) {
+      console.error('Error getting generated bills stats:', _error);
       res.status(500).json({ 
         message: 'Failed to get generated bills statistics',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

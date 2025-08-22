@@ -92,7 +92,7 @@ export default function Permissions() {
   const itemsPerPage = 5;
 
   // Fetch permissions matrix (includes all permission data grouped by resource)
-  const { data: permissionsMatrix, isLoading: matrixLoading } = useQuery<{
+  const { _data: permissionsMatrix, isLoading: matrixLoading } = useQuery<{
     permissionsByResource: Record<string, Permission[]>;
     roleMatrix: Record<string, string[]>;
     permissions: Permission[];
@@ -102,12 +102,12 @@ export default function Permissions() {
   });
 
   // Fetch user permissions
-  const { data: userPermissions, isLoading: userPermissionsLoading } = useQuery<UserPermission[]>({
+  const { _data: userPermissions, isLoading: userPermissionsLoading } = useQuery<UserPermission[]>({
     queryKey: ['/api/user-permissions'],
   });
 
   // Fetch users
-  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
+  const { _data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
 
@@ -130,7 +130,7 @@ export default function Permissions() {
   const roles = ['admin', 'manager', 'tenant', 'resident'];
   
   // Fetch permission categories for filtering
-  const { data: permissionCategories } = useQuery<any[]>({
+  const { _data: permissionCategories } = useQuery<any[]>({
     queryKey: ['/api/permission-categories'],
   });
   
@@ -154,13 +154,13 @@ export default function Permissions() {
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   // Reset page when filters change
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
+  const handleSearchChange = (_value: string) => {
+    setSearchQuery(_value);
     setCurrentPage(1);
   };
 
-  const handleRoleChange = (value: string) => {
-    setFilterRole(value);
+  const handleRoleChange = (_value: string) => {
+    setFilterRole(_value);
     setCurrentPage(1);
   };
   
@@ -180,8 +180,8 @@ export default function Permissions() {
 
   // Mutations for managing permissions
   const grantUserPermissionMutation = useMutation({
-    mutationFn: (data: { userId: string; permissionId: string; reason?: string }) => 
-      apiRequest('POST', '/api/user-permissions', data),
+    mutationFn: (_data: { userId: string; permissionId: string; reason?: string }) => 
+      apiRequest('POST', '/api/user-permissions', _data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-permissions'] });
       toast({
@@ -189,7 +189,7 @@ export default function Permissions() {
         description: 'User permission has been successfully granted.'
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to grant permission',
@@ -201,7 +201,7 @@ export default function Permissions() {
   const validatePermissionMutation = useMutation({
     mutationFn: (permission: string) => 
       apiRequest('POST', '/api/permissions/validate', { permission }),
-    onSuccess: (data: unknown) => {
+    onSuccess: (_data: unknown) => {
       toast({
         title: 'Permission Validation',
         description: `${data.message} for role: ${data.role}`,
@@ -312,7 +312,7 @@ export default function Permissions() {
                         <Input
                           placeholder="Search users..."
                           value={searchQuery}
-                          onChange={(e) => handleSearchChange(e.target.value)}
+                          onChange={(e) => handleSearchChange(e.target._value)}
                           className="pl-10"
                         />
                       </div>
@@ -526,13 +526,13 @@ export default function Permissions() {
                             max={totalPages}
                             value={currentPage}
                             onChange={(e) => {
-                              const page = parseInt(e.target.value);
+                              const page = parseInt(e.target._value);
                               if (page >= 1 && page <= totalPages) {
                                 setCurrentPage(page);
                               }
                             }}
                             onBlur={(e) => {
-                              const page = parseInt(e.target.value);
+                              const page = parseInt(e.target._value);
                               if (isNaN(page) || page < 1) {
                                 setCurrentPage(1);
                               } else if (page > totalPages) {
@@ -585,7 +585,7 @@ export default function Permissions() {
                         <Input
                           placeholder="Search permissions..."
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onChange={(e) => setSearchQuery(e.target._value)}
                           className="pl-10"
                         />
                       </div>

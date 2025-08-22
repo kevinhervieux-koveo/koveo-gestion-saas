@@ -151,14 +151,14 @@ describe('Building Validation Tests', () => {
         
         validPostalCodes.forEach(postalCode => {
           const data = { ...validBuildingData, postalCode };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
 
       it('should accept postal codes without spaces', () => {
         const data = { ...validBuildingData, postalCode: 'H3A1A1' };
-        const result = buildingFormSchema.safeParse(data);
+        const result = buildingFormSchema.safeParse(_data);
         expect(result.success).toBe(true);
       });
 
@@ -167,14 +167,14 @@ describe('Building Validation Tests', () => {
         
         invalidPostalCodes.forEach(postalCode => {
           const data = { ...validBuildingData, postalCode };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
 
       it('should handle lowercase postal codes', () => {
         const data = { ...validBuildingData, postalCode: 'h3a 1a1' };
-        const result = buildingFormSchema.safeParse(data);
+        const result = buildingFormSchema.safeParse(_data);
         expect(result.success).toBe(true);
       });
     });
@@ -185,7 +185,7 @@ describe('Building Validation Tests', () => {
         
         provinces.forEach(province => {
           const data = { ...validBuildingData, province: province as any };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -195,7 +195,7 @@ describe('Building Validation Tests', () => {
         
         invalidProvinces.forEach(province => {
           const data = { ...validBuildingData, province: province as any };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
@@ -219,7 +219,7 @@ describe('Building Validation Tests', () => {
         
         validTypes.forEach(buildingType => {
           const data = { ...validBuildingData, buildingType: buildingType as any };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -229,7 +229,7 @@ describe('Building Validation Tests', () => {
         
         invalidTypes.forEach(buildingType => {
           const data = { ...validBuildingData, buildingType: buildingType as any };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
@@ -272,7 +272,7 @@ describe('Building Validation Tests', () => {
         
         validYears.forEach(year => {
           const data = { ...validBuildingData, yearBuilt: year };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -282,7 +282,7 @@ describe('Building Validation Tests', () => {
         
         invalidYears.forEach(year => {
           const data = { ...validBuildingData, yearBuilt: year };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
@@ -292,7 +292,7 @@ describe('Building Validation Tests', () => {
         
         validUnits.forEach(units => {
           const data = { ...validBuildingData, totalUnits: units };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -302,7 +302,7 @@ describe('Building Validation Tests', () => {
         
         invalidUnits.forEach(units => {
           const data = { ...validBuildingData, totalUnits: units };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
@@ -312,7 +312,7 @@ describe('Building Validation Tests', () => {
         
         validFloors.forEach(floors => {
           const data = { ...validBuildingData, totalFloors: floors };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -322,7 +322,7 @@ describe('Building Validation Tests', () => {
         
         invalidFloors.forEach(floors => {
           const data = { ...validBuildingData, totalFloors: floors };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(false);
         });
       });
@@ -336,7 +336,7 @@ describe('Building Validation Tests', () => {
             parkingSpaces: spaces,
             storageSpaces: spaces,
           };
-          const result = buildingFormSchema.safeParse(data);
+          const result = buildingFormSchema.safeParse(_data);
           expect(result.success).toBe(true);
         });
       });
@@ -406,7 +406,7 @@ describe('Building Validation Tests', () => {
       
       invalidUuids.forEach(uuid => {
         const data = { organizationId: uuid };
-        const result = buildingSearchSchema.safeParse(data);
+        const result = buildingSearchSchema.safeParse(_data);
         expect(result.success).toBe(false);
       });
     });
@@ -421,7 +421,7 @@ describe('Building Validation Tests', () => {
   describe('Business Logic Validation', () => {
     it('should validate logical consistency between floors and units', () => {
       // This would be implemented as a custom validation function
-      const validateBuildingLogic = (data: any) => {
+      const validateBuildingLogic = (_data: any) => {
         if (data.totalFloors && data.totalUnits) {
           const maxUnitsPerFloor = 50; // Business rule
           return data.totalUnits <= data.totalFloors * maxUnitsPerFloor;
@@ -445,7 +445,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate parking ratio constraints', () => {
-      const validateParkingRatio = (data: any) => {
+      const validateParkingRatio = (_data: any) => {
         if (data.parkingSpaces && data.totalUnits) {
           const maxParkingRatio = 2; // Max 2 parking spaces per unit
           return data.parkingSpaces <= data.totalUnits * maxParkingRatio;
@@ -467,7 +467,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate Quebec-specific business rules', () => {
-      const validateQuebecRules = (data: any) => {
+      const validateQuebecRules = (_data: any) => {
         // Example: In Quebec, condo buildings typically have fewer rental restrictions
         if (data.province === 'QC' && data.buildingType === 'condo') {
           return true; // Quebec condos have specific regulations
@@ -484,7 +484,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate year built against building type expectations', () => {
-      const validateYearBuildingType = (data: any) => {
+      const validateYearBuildingType = (_data: any) => {
         // Modern condos are typically built after 1980
         if (data.buildingType === 'condo' && data.yearBuilt && data.yearBuilt < 1980) {
           return false; // Unusual but not impossible

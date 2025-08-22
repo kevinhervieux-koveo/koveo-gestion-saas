@@ -32,7 +32,7 @@ interface TestResult {
  */
 function runTestSuite(suitePath: string): TestResult {
   const suiteName = path.basename(suitePath, '.test.ts');
-  console.log(chalk.blue(`\nRunning ${suiteName}...`));
+  console.warn(chalk.blue(`\nRunning ${suiteName}...`));
   
   try {
     const output = execSync(
@@ -169,7 +169,7 @@ Generated: ${timestamp}
  * @returns Function result.
  */
 async function validateOrganization() {
-  console.log(chalk.bold.green('\n🔍 Organization Validation Starting...\n'));
+  console.warn(chalk.bold.green('\n🔍 Organization Validation Starting...\n'));
 
   const testSuites = [
     'tests/organization/project-structure.test.ts',
@@ -185,9 +185,9 @@ async function validateOrganization() {
     const suitePath = path.join(rootDir, suite);
     if (fs.existsSync(suitePath)) {
       const result = runTestSuite(suitePath);
-      results.push(result);
+      results.push(_result);
     } else {
-      console.log(chalk.yellow(`⚠️  Test suite not found: ${suite}`));
+      console.warn(chalk.yellow(`⚠️  Test suite not found: ${suite}`));
     }
   }
 
@@ -197,18 +197,18 @@ async function validateOrganization() {
   fs.writeFileSync(reportPath, report);
 
   // Print summary
-  console.log(chalk.bold.blue('\n📊 Validation Summary:\n'));
+  console.warn(chalk.bold.blue('\n📊 Validation Summary:\n'));
   
   const passed = results.filter(r => r.passed).length;
   const failed = results.filter(r => !r.passed).length;
   
   results.forEach(result => {
     const status = result.passed ? chalk.green('✅') : chalk.red('❌');
-    console.log(`${status} ${result.suite}`);
+    console.warn(`${status} ${result.suite}`);
   });
 
-  console.log(chalk.bold(`\nTotal: ${passed} passed, ${failed} failed`));
-  console.log(chalk.cyan(`\n📄 Full report saved to: ${reportPath}\n`));
+  console.warn(chalk.bold(`\nTotal: ${passed} passed, ${failed} failed`));
+  console.warn(chalk.cyan(`\n📄 Full report saved to: ${reportPath}\n`));
 
   // Exit with appropriate code
   process.exit(failed > 0 ? 1 : 0);
@@ -216,6 +216,6 @@ async function validateOrganization() {
 
 // Run validation
 validateOrganization().catch(error => {
-  console.error(chalk.red('Validation failed with error:'), error);
+  console.error(chalk.red('Validation failed with _error:'), _error);
   process.exit(1);
 });

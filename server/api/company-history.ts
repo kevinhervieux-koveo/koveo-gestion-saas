@@ -125,13 +125,13 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         message: "Fichier trouvé mais le type de contenu n'est pas supporté pour la lecture directe."
       });
 
-    } catch (error) {
-      console.error('Error fetching company history:', error);
+    } catch (_error) {
+      console.error('Error fetching company history:', _error);
       
       // Return fallback content on error
       return res.json({
         found: false,
-        error: true,
+        _error: true,
         content: {
           title: "Notre Histoire",
           subtitle: "L'évolution de Koveo Gestion au Québec",
@@ -184,8 +184,8 @@ export function registerCompanyHistoryRoutes(app: Express): void {
               available: true
             });
           }
-        } catch (error) {
-          console.log(`Document ${docName} not found:`, error.message);
+        } catch (_error) {
+          console.warn(`Document ${docName} not found:`, error.message);
         }
       }
 
@@ -195,11 +195,11 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         searchPaths: publicPaths
       });
 
-    } catch (error) {
-      console.error('Error listing company documents:', error);
+    } catch (_error) {
+      console.error('Error listing company documents:', _error);
       res.status(500).json({ 
         message: 'Erreur lors de la recherche des documents d\'entreprise',
-        error: error.message 
+        _error: error.message 
       });
     }
   });

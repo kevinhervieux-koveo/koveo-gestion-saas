@@ -200,7 +200,7 @@ describe('LLM Form Mapping Validation', () => {
       { title: '3. Third Action Item' }
     ];
     
-    mockActionableItems.forEach((item, index) => {
+    mockActionableItems.forEach((item, _index) => {
       const expectedNumber = index + 1;
       expect(item.title).toMatch(new RegExp(`^${expectedNumber}\\.\\s+`));
     });

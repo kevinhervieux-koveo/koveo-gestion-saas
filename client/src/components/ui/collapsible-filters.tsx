@@ -9,9 +9,9 @@ interface FilterConfig {
   id: string;
   label: string;
   type: 'select' | 'multiselect' | 'checkbox' | 'custom';
-  options?: { value: string; label: string }[];
+  options?: { _value: string; label: string }[];
   value?: any;
-  onChange: (value: unknown) => void;
+  onChange: (_value: unknown) => void;
   customComponent?: React.ReactNode;
 }
 
@@ -76,7 +76,20 @@ export function  /**
    * @param className = '' - className = '' parameter.
    * @param defaultExpanded = false - defaultExpanded = false parameter.
    * @param } - } parameter.
+   */  /**
+   * Collapsible filters function.
+   * @param {
+  title - {
+  title parameter.
+   * @param filters - filters parameter.
+   * @param activeFilters = [] - activeFilters = [] parameter.
+   * @param onReset - onReset parameter.
+   * @param resetLabel - resetLabel parameter.
+   * @param className = '' - className = '' parameter.
+   * @param defaultExpanded = false - defaultExpanded = false parameter.
+   * @param } - } parameter.
    */
+
  CollapsibleFilters({
   title,
   filters,
@@ -158,7 +171,11 @@ export function  /**
               {filters.map((filter) => {  /**
    * If function.
    * @param filter.type === 'custom' - filter.type === 'custom' parameter.
+   */  /**
+   * If function.
+   * @param filter.type === 'custom' - filter.type === 'custom' parameter.
    */
+
 
                 if (filter.type === 'custom') {
                   return (
@@ -170,7 +187,11 @@ export function  /**
                 }  /**
    * If function.
    * @param filter.type === 'select' - filter.type === 'select' parameter.
+   */  /**
+   * If function.
+   * @param filter.type === 'select' - filter.type === 'select' parameter.
    */
+
 
                 
                 if (filter.type === 'select') {
@@ -179,7 +200,7 @@ export function  /**
                       <Label className='text-sm font-medium'>{filter.label}</Label>
                       <select
                         value={filter.value || ''}
-                        onChange={(e) => filter.onChange(e.target.value)}
+                        onChange={(e) => filter.onChange(e.target._value)}
                         className='w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
                         {filter.options?.map((option) => (
@@ -193,7 +214,11 @@ export function  /**
                 }  /**
    * If function.
    * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
+   */  /**
+   * If function.
+   * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
    */
+
 
                 
                 if (filter.type === 'multiselect') {
@@ -201,7 +226,7 @@ export function  /**
                     <div key={filter.id} className='space-y-2 col-span-full'>
                       <div className='flex items-center justify-between'>
                         <Label className='text-sm font-medium'>{filter.label}</Label>
-                        {Array.isArray(filter.value) && filter.value.length > 0 && (
+                        {Array.isArray(filter._value) && filter.value.length > 0 && (
                           <div className='flex items-center gap-2'>
                             <span className='text-xs text-muted-foreground'>
                               {filter.value.length} {translations.selected}
@@ -225,17 +250,21 @@ export function  /**
                             <label key={option.value} className='flex items-center space-x-2 text-sm hover:bg-muted/50 p-1 rounded cursor-pointer'>
                               <input
                                 type='checkbox'
-                                checked={Array.isArray(filter.value) && filter.value.includes(option.value)}
+                                checked={Array.isArray(filter._value) && filter.value.includes(option._value)}
                                 onChange={(e) => {
-                                  const currentValue = Array.isArray(filter.value) ? filter.value : [];  /**
+                                  const currentValue = Array.isArray(filter._value) ? filter._value : [];  /**
+   * If function.
+   * @param e.target.checked - e.target.checked parameter.
+   */  /**
    * If function.
    * @param e.target.checked - e.target.checked parameter.
    */
 
+
                                   if (e.target.checked) {
                                     filter.onChange([...currentValue, option.value]);
                                   } else {
-                                    filter.onChange(currentValue.filter((v: unknown) => v !== option.value));
+                                    filter.onChange(currentValue.filter((v: unknown) => v !== option._value));
                                   }
                                 }}
                                 className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2'

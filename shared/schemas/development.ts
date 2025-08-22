@@ -198,7 +198,7 @@ export const qualityMetrics = pgTable('quality_metrics', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   metricType: text('metric_type').notNull(),
-  value: text('value').notNull(),
+  _value: text('value').notNull(),
   timestamp: timestamp('timestamp').defaultNow(),
 });
 
@@ -206,8 +206,8 @@ export const frameworkConfiguration = pgTable('framework_configuration', {
   id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  key: text('key').notNull().unique(),
-  value: text('value').notNull(),
+  _key: text('key').notNull().unique(),
+  _value: text('value').notNull(),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -274,12 +274,12 @@ export const insertWorkspaceStatusSchema = createInsertSchema(workspaceStatus).p
 
 export const insertQualityMetricSchema = createInsertSchema(qualityMetrics).pick({
   metricType: true,
-  value: true,
+  _value: true,
 });
 
 export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfiguration).pick({
-  key: true,
-  value: true,
+  _key: true,
+  _value: true,
   description: true,
 });
 

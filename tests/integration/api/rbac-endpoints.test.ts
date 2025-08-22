@@ -97,7 +97,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
       expect(response1.status).toBe(200);
       expect(response1.body.role).toBe('manager');
 
-      // Second permissions request (should use cached session data)
+      // Second permissions request (should use cached session _data)
       const response2 = await agent.get('/api/user/permissions');
       expect(response2.status).toBe(200);
       expect(response2.body.role).toBe('manager');

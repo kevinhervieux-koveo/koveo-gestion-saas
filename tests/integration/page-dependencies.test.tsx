@@ -68,7 +68,7 @@ describe('Page Dependencies Integration', () => {
           // Try to require from node_modules path
           try {
             require(`${process.cwd()}/node_modules/${dep}`);
-          } catch (_nodeModulesError) {
+          } catch (__nodeModulesError) {
             throw new Error(`Missing essential dependency: ${dep}`);
           }
         }
@@ -79,7 +79,7 @@ describe('Page Dependencies Integration', () => {
   describe('Page Import Validation', () => {
     it('should be able to import all page components without errors', async () => {
       const allPages = getAllPageFiles(pagesDir);
-      const importErrors: Array<{page: string, error: string}> = [];
+      const importErrors: Array<{page: string, _error: string}> = [];
 
       // Test a sample of critical pages to avoid overwhelming the test
       const criticalPages = allPages.filter(page => 
@@ -94,10 +94,10 @@ describe('Page Dependencies Integration', () => {
           // Use dynamic import to test the module
           const modulePath = page.fullPath.replace(process.cwd(), '').replace(/\\/g, '/');
           await import(modulePath);
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
           importErrors.push({
             page: page.path,
-            error: error.message
+            _error: error.message
           });
         }
       }

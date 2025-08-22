@@ -7,7 +7,7 @@ const mockStorage = {
       { id: '3', name: 'Security Pillar', description: 'Test pillar', status: 'active', order: '3', configuration: {}, createdAt: new Date() }
     ];
   },
-  async createPillar(data: unknown) {
+  async createPillar(_data: unknown) {
     return { id: 'new-id', ...data, createdAt: new Date() };
   },
   async getWorkspaceStatuses() {
@@ -18,8 +18,8 @@ const mockStorage = {
   },
   async getQualityMetrics() {
     return [
-      { id: '1', metricType: 'Code Coverage', value: 85, threshold: 80, status: 'passing', recordedAt: new Date() },
-      { id: '2', metricType: 'Code Quality', value: 92, threshold: 85, status: 'passing', recordedAt: new Date() }
+      { id: '1', metricType: 'Code Coverage', _value: 85, threshold: 80, status: 'passing', recordedAt: new Date() },
+      { id: '2', metricType: 'Code Quality', _value: 92, threshold: 85, status: 'passing', recordedAt: new Date() }
     ];
   }
 };

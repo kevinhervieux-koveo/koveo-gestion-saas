@@ -24,7 +24,7 @@ const readSourceFiles = (dir: string, extensions: string[] = ['.tsx', '.ts', '.c
           files.push(fullPath);
         }
       }
-    } catch (__error) {
+    } catch (_error) {
       // Directory might not exist or be accessible
     }
   };
@@ -321,18 +321,18 @@ describe('Code Redundancy Detection Tests', () => {
       const duplicateInputs = findDuplicatePatterns(allFormPatterns.inputPatterns);
       const duplicateValidations = findDuplicatePatterns(allFormPatterns.validationPatterns);
       
-      console.log('Form Redundancy Analysis:');
-      console.log(`- Total input patterns: ${allFormPatterns.inputPatterns.length}`);
-      console.log(`- Duplicate input patterns: ${duplicateInputs.size}`);
-      console.log(`- Total validation patterns: ${allFormPatterns.validationPatterns.length}`);
-      console.log(`- Duplicate validation patterns: ${duplicateValidations.size}`);
+      console.warn('Form Redundancy Analysis:');
+      console.warn(`- Total input patterns: ${allFormPatterns.inputPatterns.length}`);
+      console.warn(`- Duplicate input patterns: ${duplicateInputs.size}`);
+      console.warn(`- Total validation patterns: ${allFormPatterns.validationPatterns.length}`);
+      console.warn(`- Duplicate validation patterns: ${duplicateValidations.size}`);
       
       // Generate reusable component suggestions
       if (duplicateInputs.size > 0) {
-        console.log('\nSuggested Reusable Input Components:');
+        console.warn('\nSuggested Reusable Input Components:');
         duplicateInputs.forEach((count, pattern) => {
           if (count >= 3) { // Only suggest if used 3+ times
-            console.log(generateReusableComponent(pattern, count));
+            console.warn(generateReusableComponent(pattern, count));
           }
         });
       }
@@ -360,11 +360,11 @@ describe('Code Redundancy Detection Tests', () => {
       const duplicateValidations = findDuplicatePatterns(validationPatterns);
       const duplicateErrors = findDuplicatePatterns(errorHandlingPatterns);
       
-      console.log('\nValidation Redundancy Analysis:');
-      console.log(`- Total validation rules: ${validationPatterns.length}`);
-      console.log(`- Duplicate validation rules: ${duplicateValidations.size}`);
-      console.log(`- Total error patterns: ${errorHandlingPatterns.length}`);
-      console.log(`- Duplicate error patterns: ${duplicateErrors.size}`);
+      console.warn('\nValidation Redundancy Analysis:');
+      console.warn(`- Total validation rules: ${validationPatterns.length}`);
+      console.warn(`- Duplicate validation rules: ${duplicateValidations.size}`);
+      console.warn(`- Total error patterns: ${errorHandlingPatterns.length}`);
+      console.warn(`- Duplicate error patterns: ${duplicateErrors.size}`);
       
       // Calculate redundancy score
       const validationRedundancyScore = calculateRedundancyScore(duplicateValidations);
@@ -387,9 +387,9 @@ describe('Code Redundancy Detection Tests', () => {
       
       const duplicateConfigs = findDuplicatePatterns(fieldConfigs);
       
-      console.log('\nForm Field Configuration Analysis:');
-      console.log(`- Total field configurations: ${fieldConfigs.length}`);
-      console.log(`- Duplicate configurations: ${duplicateConfigs.size}`);
+      console.warn('\nForm Field Configuration Analysis:');
+      console.warn(`- Total field configurations: ${fieldConfigs.length}`);
+      console.warn(`- Duplicate configurations: ${duplicateConfigs.size}`);
       
       // Suggest standardized field components
       const commonFields = new Map<string, number>();
@@ -400,12 +400,12 @@ describe('Code Redundancy Detection Tests', () => {
         }
       });
       
-      console.log('\nMost common field types:');
+      console.warn('\nMost common field types:');
       [...commonFields.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .forEach(([type, count]) => {
-          console.log(`- ${type}: ${count} occurrences`);
+          console.warn(`- ${type}: ${count} occurrences`);
         });
       
       expect(fieldConfigs.length).toBeGreaterThan(0);
@@ -434,19 +434,19 @@ describe('Code Redundancy Detection Tests', () => {
       const duplicateClasses = findDuplicatePatterns(allButtonPatterns.buttonClasses);
       const duplicateVariants = findDuplicatePatterns(allButtonPatterns.buttonVariants);
       
-      console.log('\nButton Redundancy Analysis:');
-      console.log(`- Total button components: ${allButtonPatterns.buttonComponents.length}`);
-      console.log(`- Duplicate button classes: ${duplicateClasses.size}`);
-      console.log(`- Total button variants: ${allButtonPatterns.buttonVariants.length}`);
-      console.log(`- Duplicate variants: ${duplicateVariants.size}`);
+      console.warn('\nButton Redundancy Analysis:');
+      console.warn(`- Total button components: ${allButtonPatterns.buttonComponents.length}`);
+      console.warn(`- Duplicate button classes: ${duplicateClasses.size}`);
+      console.warn(`- Total button variants: ${allButtonPatterns.buttonVariants.length}`);
+      console.warn(`- Duplicate variants: ${duplicateVariants.size}`);
       
       // Generate button component library suggestions
       if (duplicateClasses.size > 0) {
-        console.log('\nSuggested Button Component Library:');
+        console.warn('\nSuggested Button Component Library:');
         duplicateClasses.forEach((count, className) => {
           if (count >= 3) {
-            console.log(`// Used ${count} times: ${className}`);
-            console.log(generateReusableComponent(`button className="${className}"`, count));
+            console.warn(`// Used ${count} times: ${className}`);
+            console.warn(generateReusableComponent(`button className="${className}"`, count));
           }
         });
       }
@@ -467,9 +467,9 @@ describe('Code Redundancy Detection Tests', () => {
       
       const duplicateActions = findDuplicatePatterns(actionPatterns);
       
-      console.log('\nButton Action Patterns:');
-      console.log(`- Total action patterns: ${actionPatterns.length}`);
-      console.log(`- Duplicate action patterns: ${duplicateActions.size}`);
+      console.warn('\nButton Action Patterns:');
+      console.warn(`- Total action patterns: ${actionPatterns.length}`);
+      console.warn(`- Duplicate action patterns: ${duplicateActions.size}`);
       
       // Identify common action types
       const actionTypes = new Map<string, number>();
@@ -481,9 +481,9 @@ describe('Code Redundancy Detection Tests', () => {
         if (action.includes('handleCreate')) {actionTypes.set('create', (actionTypes.get('create') || 0) + 1);}
       });
       
-      console.log('\nCommon action types:');
+      console.warn('\nCommon action types:');
       actionTypes.forEach((count, type) => {
-        console.log(`- ${type}: ${count} occurrences`);
+        console.warn(`- ${type}: ${count} occurrences`);
       });
       
       expect(actionPatterns.length).toBeGreaterThan(0);
@@ -512,18 +512,18 @@ describe('Code Redundancy Detection Tests', () => {
       const duplicateClasses = findDuplicatePatterns(allCardPatterns.cardClasses);
       const duplicateLayouts = findDuplicatePatterns(allCardPatterns.cardLayouts);
       
-      console.log('\nCard Redundancy Analysis:');
-      console.log(`- Total card components: ${allCardPatterns.cardComponents.length}`);
-      console.log(`- Duplicate card classes: ${duplicateClasses.size}`);
-      console.log(`- Total layout patterns: ${allCardPatterns.cardLayouts.length}`);
-      console.log(`- Duplicate layout patterns: ${duplicateLayouts.size}`);
+      console.warn('\nCard Redundancy Analysis:');
+      console.warn(`- Total card components: ${allCardPatterns.cardComponents.length}`);
+      console.warn(`- Duplicate card classes: ${duplicateClasses.size}`);
+      console.warn(`- Total layout patterns: ${allCardPatterns.cardLayouts.length}`);
+      console.warn(`- Duplicate layout patterns: ${duplicateLayouts.size}`);
       
       // Generate card component suggestions
       if (duplicateClasses.size > 0) {
-        console.log('\nSuggested Card Components:');
+        console.warn('\nSuggested Card Components:');
         duplicateClasses.forEach((count, className) => {
           if (count >= 2) {
-            console.log(generateReusableComponent(`card className="${className}"`, count));
+            console.warn(generateReusableComponent(`card className="${className}"`, count));
           }
         });
       }
@@ -544,9 +544,9 @@ describe('Code Redundancy Detection Tests', () => {
       
       const duplicateStructures = findDuplicatePatterns(contentStructures);
       
-      console.log('\nCard Structure Analysis:');
-      console.log(`- Total structure patterns: ${contentStructures.length}`);
-      console.log(`- Duplicate structures: ${duplicateStructures.size}`);
+      console.warn('\nCard Structure Analysis:');
+      console.warn(`- Total structure patterns: ${contentStructures.length}`);
+      console.warn(`- Duplicate structures: ${duplicateStructures.size}`);
       
       expect(contentStructures.length).toBeGreaterThan(0);
     });
@@ -577,23 +577,23 @@ describe('Code Redundancy Detection Tests', () => {
       const duplicateSpacing = findDuplicatePatterns(allFormattingPatterns.spacingPatterns);
       const duplicateTypography = findDuplicatePatterns(allFormattingPatterns.typographyPatterns);
       
-      console.log('\nFormatting Redundancy Analysis:');
-      console.log(`- Total color patterns: ${allFormattingPatterns.colorPatterns.length}`);
-      console.log(`- Duplicate color patterns: ${duplicateColors.size}`);
-      console.log(`- Total spacing patterns: ${allFormattingPatterns.spacingPatterns.length}`);
-      console.log(`- Duplicate spacing patterns: ${duplicateSpacing.size}`);
-      console.log(`- Total typography patterns: ${allFormattingPatterns.typographyPatterns.length}`);
-      console.log(`- Duplicate typography patterns: ${duplicateTypography.size}`);
+      console.warn('\nFormatting Redundancy Analysis:');
+      console.warn(`- Total color patterns: ${allFormattingPatterns.colorPatterns.length}`);
+      console.warn(`- Duplicate color patterns: ${duplicateColors.size}`);
+      console.warn(`- Total spacing patterns: ${allFormattingPatterns.spacingPatterns.length}`);
+      console.warn(`- Duplicate spacing patterns: ${duplicateSpacing.size}`);
+      console.warn(`- Total typography patterns: ${allFormattingPatterns.typographyPatterns.length}`);
+      console.warn(`- Duplicate typography patterns: ${duplicateTypography.size}`);
       
       // Calculate total redundancy score
       const colorRedundancy = calculateRedundancyScore(duplicateColors);
       const spacingRedundancy = calculateRedundancyScore(duplicateSpacing);
       const typographyRedundancy = calculateRedundancyScore(duplicateTypography);
       
-      console.log(`\nRedundancy Scores:`);
-      console.log(`- Color redundancy: ${colorRedundancy}`);
-      console.log(`- Spacing redundancy: ${spacingRedundancy}`);
-      console.log(`- Typography redundancy: ${typographyRedundancy}`);
+      console.warn(`\nRedundancy Scores:`);
+      console.warn(`- Color redundancy: ${colorRedundancy}`);
+      console.warn(`- Spacing redundancy: ${spacingRedundancy}`);
+      console.warn(`- Typography redundancy: ${typographyRedundancy}`);
       
       expect(allFormattingPatterns.colorPatterns.length).toBeGreaterThan(0);
       expect(allFormattingPatterns.spacingPatterns.length).toBeGreaterThan(0);
@@ -614,18 +614,18 @@ describe('Code Redundancy Detection Tests', () => {
       
       const duplicateCombinations = findDuplicatePatterns(styleCombinatiors);
       
-      console.log('\nStyle Combination Analysis:');
-      console.log(`- Total style combinations: ${styleCombinatiors.length}`);
-      console.log(`- Duplicate combinations: ${duplicateCombinations.size}`);
+      console.warn('\nStyle Combination Analysis:');
+      console.warn(`- Total style combinations: ${styleCombinatiors.length}`);
+      console.warn(`- Duplicate combinations: ${duplicateCombinations.size}`);
       
       // Show most common combinations
       const sortedCombinations = [...duplicateCombinations.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
       
-      console.log('\nMost common style combinations:');
+      console.warn('\nMost common style combinations:');
       sortedCombinations.forEach(([combination, count]) => {
-        console.log(`- "${combination}": ${count} times`);
+        console.warn(`- "${combination}": ${count} times`);
       });
       
       expect(styleCombinatiors.length).toBeGreaterThan(0);
@@ -648,9 +648,9 @@ describe('Code Redundancy Detection Tests', () => {
       
       const duplicateComponents = findDuplicatePatterns(componentPatterns);
       
-      console.log('\nComponent Pattern Analysis:');
-      console.log(`- Total component patterns: ${componentPatterns.length}`);
-      console.log(`- Similar component patterns: ${duplicateComponents.size}`);
+      console.warn('\nComponent Pattern Analysis:');
+      console.warn(`- Total component patterns: ${componentPatterns.length}`);
+      console.warn(`- Similar component patterns: ${duplicateComponents.size}`);
       
       expect(componentPatterns.length).toBeGreaterThan(0);
     });
@@ -664,15 +664,15 @@ describe('Code Redundancy Detection Tests', () => {
           
           // Find prop destructuring patterns
           const props = content.match(/{\s*([^}]+)\s*}.*?=>/g) || [];
-          propPatterns.push(...props);
+          propPatterns.push(..._props);
         }
       });
       
       const duplicateProps = findDuplicatePatterns(propPatterns);
       
-      console.log('\nProp Pattern Analysis:');
-      console.log(`- Total prop patterns: ${propPatterns.length}`);
-      console.log(`- Duplicate prop patterns: ${duplicateProps.size}`);
+      console.warn('\nProp Pattern Analysis:');
+      console.warn(`- Total prop patterns: ${propPatterns.length}`);
+      console.warn(`- Duplicate prop patterns: ${duplicateProps.size}`);
       
       expect(propPatterns.length).toBeGreaterThan(0);
     });
@@ -680,7 +680,7 @@ describe('Code Redundancy Detection Tests', () => {
 
   describe('Redundancy Reduction Recommendations', () => {
     it('should generate comprehensive refactoring suggestions', () => {
-      console.log('\n=== COMPREHENSIVE REFACTORING RECOMMENDATIONS ===\n');
+      console.warn('\n=== COMPREHENSIVE REFACTORING RECOMMENDATIONS ===\n');
       
       // Analyze all source files for redundancy
       const redundancyReport = {
@@ -703,42 +703,42 @@ describe('Code Redundancy Detection Tests', () => {
         redundancyReport.components += (content.match(/const\s+\w+.*?=>/g) || []).length;
       });
       
-      console.log('CURRENT STATE:');
-      console.log(`- Total files analyzed: ${redundancyReport.totalFiles}`);
-      console.log(`- Form elements: ${redundancyReport.forms}`);
-      console.log(`- Button elements: ${redundancyReport.buttons}`);
-      console.log(`- Card references: ${redundancyReport.cards}`);
-      console.log(`- Style applications: ${redundancyReport.styling}`);
-      console.log(`- Components: ${redundancyReport.components}`);
+      console.warn('CURRENT STATE:');
+      console.warn(`- Total files analyzed: ${redundancyReport.totalFiles}`);
+      console.warn(`- Form elements: ${redundancyReport.forms}`);
+      console.warn(`- Button elements: ${redundancyReport.buttons}`);
+      console.warn(`- Card references: ${redundancyReport.cards}`);
+      console.warn(`- Style applications: ${redundancyReport.styling}`);
+      console.warn(`- Components: ${redundancyReport.components}`);
       
-      console.log('\nRECOMMENDATIONS:');
+      console.warn('\nRECOMMENDATIONS:');
       
-      console.log('\n1. CREATE DESIGN SYSTEM COMPONENTS:');
-      console.log('   - StandardButton with variants (primary, secondary, danger)');
-      console.log('   - StandardInput with built-in validation');
-      console.log('   - StandardCard with consistent layout');
-      console.log('   - StandardForm with error handling');
+      console.warn('\n1. CREATE DESIGN SYSTEM COMPONENTS:');
+      console.warn('   - StandardButton with variants (primary, secondary, danger)');
+      console.warn('   - StandardInput with built-in validation');
+      console.warn('   - StandardCard with consistent layout');
+      console.warn('   - StandardForm with error handling');
       
-      console.log('\n2. IMPLEMENT CSS DESIGN TOKENS:');
-      console.log('   - Color palette variables');
-      console.log('   - Spacing scale constants');
-      console.log('   - Typography hierarchy');
-      console.log('   - Border radius and shadow tokens');
+      console.warn('\n2. IMPLEMENT CSS DESIGN TOKENS:');
+      console.warn('   - Color palette variables');
+      console.warn('   - Spacing scale constants');
+      console.warn('   - Typography hierarchy');
+      console.warn('   - Border radius and shadow tokens');
       
-      console.log('\n3. REFACTOR FORM HANDLING:');
-      console.log('   - Create useForm hook with validation');
-      console.log('   - Standardize error display patterns');
-      console.log('   - Implement field component library');
+      console.warn('\n3. REFACTOR FORM HANDLING:');
+      console.warn('   - Create useForm hook with validation');
+      console.warn('   - Standardize error display patterns');
+      console.warn('   - Implement field component library');
       
-      console.log('\n4. OPTIMIZE STYLING APPROACH:');
-      console.log('   - Reduce inline styles in favor of classes');
-      console.log('   - Create utility class combinations');
-      console.log('   - Implement CSS-in-JS constants');
+      console.warn('\n4. OPTIMIZE STYLING APPROACH:');
+      console.warn('   - Reduce inline styles in favor of classes');
+      console.warn('   - Create utility class combinations');
+      console.warn('   - Implement CSS-in-JS constants');
       
-      console.log('\n5. COMPONENT ARCHITECTURE:');
-      console.log('   - Extract common patterns into hooks');
-      console.log('   - Create higher-order components for repeated logic');
-      console.log('   - Implement compound component patterns');
+      console.warn('\n5. COMPONENT ARCHITECTURE:');
+      console.warn('   - Extract common patterns into hooks');
+      console.warn('   - Create higher-order components for repeated logic');
+      console.warn('   - Implement compound component patterns');
       
       expect(redundancyReport.totalFiles).toBeGreaterThan(0);
     });
@@ -782,7 +782,7 @@ describe('Code Redundancy Detection Tests', () => {
         }
       ];
       
-      console.log('\n=== REFACTORING PRIORITY MATRIX ===\n');
+      console.warn('\n=== REFACTORING PRIORITY MATRIX ===\n');
       
       refactoringPriorities
         .sort((a, b) => {
@@ -794,11 +794,11 @@ describe('Code Redundancy Detection Tests', () => {
           
           return bScore - aScore;
         })
-        .forEach((priority, index) => {
-          console.log(`${index + 1}. ${priority.area} (Impact: ${priority.impact}, Effort: ${priority.effort})`);
-          console.log(`   ${priority.description}`);
-          console.log(`   Estimated savings: ${priority.estimatedSavings}`);
-          console.log('');
+        .forEach((priority, _index) => {
+          console.warn(`${index + 1}. ${priority.area} (Impact: ${priority.impact}, Effort: ${priority.effort})`);
+          console.warn(`   ${priority.description}`);
+          console.warn(`   Estimated savings: ${priority.estimatedSavings}`);
+          console.warn('');
         });
       
       expect(refactoringPriorities.length).toBe(5);

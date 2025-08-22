@@ -78,7 +78,13 @@ function  /**
    * @param { document - { document parameter.
    * @param onSave - onSave parameter.
    * @param onCancel } - onCancel } parameter.
+   */  /**
+   * Edit document form function.
+   * @param { document - { document parameter.
+   * @param onSave - onSave parameter.
+   * @param onCancel } - onCancel } parameter.
    */
+
  EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -93,11 +99,11 @@ function  /**
   });
 
   const updateDocumentMutation = useMutation({
-    mutationFn: async (data: DocumentFormData) => {
-      const response = await apiRequest('PUT', `/api/documents/${document.id}`, data);
+    mutationFn: async (_data: DocumentFormData) => {
+      const response = await apiRequest('PUT', `/api/documents/${document.id}`, _data);
       return { response, data };
     },
-    onSuccess: ({ response, data }: { response: any; data: DocumentFormData }) => {
+    onSuccess: ({ response, data }: { _response: any; _data: DocumentFormData }) => {
       const queryClient = useQueryClient();
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       // Create updated document object with the response data
@@ -108,7 +114,7 @@ function  /**
       };
       onSave(updatedDocument);
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: "Update failed",
         description: error.message || "Failed to update document. Please try again.",
@@ -117,8 +123,8 @@ function  /**
     }
   });
 
-  const handleSubmit = (data: DocumentFormData) => {
-    updateDocumentMutation.mutate(data);
+  const handleSubmit = (_data: DocumentFormData) => {
+    updateDocumentMutation.mutate(_data);
   };
 
   return (
@@ -222,7 +228,7 @@ interface BuildingDocument {
 interface User {
   id: string;
   role: string;
-  [key: string]: any;
+  [_key: string]: any;
 }
 
 /**
@@ -232,7 +238,7 @@ interface Building {
   id: string;
   name: string;
   address: string;
-  [key: string]: any;
+  [_key: string]: any;
 }
 
 /**
@@ -240,7 +246,10 @@ interface Building {
  */
 export default function  /**
    * Building documents function.
+   */  /**
+   * Building documents function.
    */
+
  BuildingDocuments() {
   // Get buildingId from URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -266,30 +275,42 @@ export default function  /**
   const queryClient = useQueryClient();
 
   // Get current user info
-  const { data: user } = useQuery<User>({
+  const { _data: user } = useQuery<User>({
     queryKey: ["/api/auth/user"],
   });
 
   // Get building info
-  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
+  const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ["/api/manager/buildings"],
   });
 
   const building = buildingsResponse?.buildings?.find(b => b.id === buildingId);
 
   // Get documents for this specific building
-  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
+  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {  /**
    * If function.
    * @param !buildingId - !buildingId parameter.
+   */  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
    */
+
 
       if (!buildingId) {return {documents: []};}
       const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -318,7 +339,11 @@ export default function  /**
     let filtered = documents;  /**
    * If function.
    * @param searchTerm - searchTerm parameter.
+   */  /**
+   * If function.
+   * @param searchTerm - searchTerm parameter.
    */
+
 
 
     if (searchTerm) {
@@ -328,7 +353,11 @@ export default function  /**
     }  /**
    * If function.
    * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
+   */  /**
+   * If function.
+   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
    */
+
 
 
     if (selectedCategory !== "all") {
@@ -336,7 +365,11 @@ export default function  /**
     }  /**
    * If function.
    * @param selectedYear !== "all" - selectedYear !== "all" parameter.
+   */  /**
+   * If function.
+   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
    */
+
 
 
     if (selectedYear !== "all") {
@@ -353,7 +386,7 @@ export default function  /**
     const grouped: Record<string, BuildingDocument[]> = {};
     
     DOCUMENT_CATEGORIES.forEach(category => {
-      grouped[category.value] = filteredDocuments.filter(doc => doc.type === category.value);
+      grouped[category.value] = filteredDocuments.filter(doc => doc.type === category._value);
     });
 
     return grouped;
@@ -361,10 +394,14 @@ export default function  /**
 
   // Create document mutation
   const createDocumentMutation = useMutation({
-    mutationFn: async (data: DocumentFormData) => {  /**
+    mutationFn: async (_data: DocumentFormData) => {  /**
+   * If function.
+   * @param !user?.id - !user?.id parameter.
+   */  /**
    * If function.
    * @param !user?.id - !user?.id parameter.
    */
+
 
       if (!user?.id) {
         throw new Error("User not authenticated");
@@ -383,7 +420,11 @@ export default function  /**
       // Add file data if uploaded  /**
    * If function.
    * @param uploadedFile - uploadedFile parameter.
+   */  /**
+   * If function.
+   * @param uploadedFile - uploadedFile parameter.
    */
+
 
       if (uploadedFile) {
         documentData.fileUrl = uploadedFile.fileUrl;
@@ -404,7 +445,7 @@ export default function  /**
         description: uploadedFile ? "Document and file uploaded successfully!" : "Document created successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to create document",
@@ -415,26 +456,42 @@ export default function  /**
 
   // Update document mutation
   const updateDocumentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
+    mutationFn: async ({ id, data }: { id: string; _data: Partial<DocumentFormData> }) => {
       const updateData: unknown = {};  /**
+   * If function.
+   * @param data.name - data.name parameter.
+   */  /**
    * If function.
    * @param data.name - data.name parameter.
    */
 
+
       if (data.name) {updateData.name = data.name;}  /**
+   * If function.
+   * @param data.type - data.type parameter.
+   */  /**
    * If function.
    * @param data.type - data.type parameter.
    */
 
+
       if (data.type) {updateData.type = data.type;}  /**
+   * If function.
+   * @param data.dateReference - data.dateReference parameter.
+   */  /**
    * If function.
    * @param data.dateReference - data.dateReference parameter.
    */
 
+
       if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string  /**
    * If function.
    * @param data.buildingId - data.buildingId parameter.
+   */  /**
+   * If function.
+   * @param data.buildingId - data.buildingId parameter.
    */
+
 
       if (data.buildingId) {updateData.buildingId = data.buildingId;}
       updateData.uploadedBy = user?.id; // Use full user ID
@@ -448,7 +505,7 @@ export default function  /**
         description: "Document updated successfully",
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to update document",
@@ -469,7 +526,7 @@ export default function  /**
         description: "Document deleted successfully",
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete document",
@@ -496,7 +553,7 @@ export default function  /**
         description: "The file has been uploaded successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       setUploadingDocumentId(null);
       toast({
         title: "Upload failed",
@@ -517,20 +574,28 @@ export default function  /**
     },
   });
 
-  const handleCreateDocument = (data: DocumentFormData) => {
-    createDocumentMutation.mutate(data);
+  const handleCreateDocument = (_data: DocumentFormData) => {
+    createDocumentMutation.mutate(_data);
   };
 
   // Handle file upload for new document
   const handleNewDocumentUpload =  /**
    * Async function.
    * @returns Promise resolving to .
+   */  /**
+   * Async function.
+   * @returns Promise resolving to .
    */
+
  async (): Promise<{ method: "PUT"; url: string }> => {
     setIsUploadingNewFile(true); // Start upload tracking  /**
    * If function.
    * @param !building - !building parameter.
+   */  /**
+   * If function.
+   * @param !building - !building parameter.
    */
+
 
     
     if (!building) {
@@ -552,7 +617,11 @@ export default function  /**
     });  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
     
     if (!response.ok) {
@@ -564,11 +633,15 @@ export default function  /**
     return { method: "PUT" as const, url: data.uploadURL };
   };
 
-  const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
+  const handleNewDocumentUploadComplete = (_result: UploadResult<any, any>) => {
     setIsUploadingNewFile(false); // Upload finished  /**
    * If function.
    * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
    */
+
 
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
@@ -591,11 +664,15 @@ export default function  /**
     }
   };
 
-  const handleFileUploadComplete = (documentId: string) => (result: UploadResult<any, any>) => {
+  const handleFileUploadComplete = (documentId: string) => (_result: UploadResult<any, any>) => {
     const uploadedFile = result.successful[0];  /**
    * If function.
    * @param uploadedFile && uploadedFile.uploadURL - uploadedFile && uploadedFile.uploadURL parameter.
+   */  /**
+   * If function.
+   * @param uploadedFile && uploadedFile.uploadURL - uploadedFile && uploadedFile.uploadURL parameter.
    */
+
 
     if (uploadedFile && uploadedFile.uploadURL) {
       const fileData = {
@@ -629,6 +706,14 @@ export default function  /**
   /**
    * Catch function.
    * @param _error - _error parameter.
+   */  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
  catch (_error) {
       toast({
@@ -640,7 +725,11 @@ export default function  /**
   };  /**
    * If function.
    * @param !buildingId - !buildingId parameter.
+   */  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
    */
+
 
 
   if (!buildingId) {
@@ -677,7 +766,7 @@ export default function  /**
                 <Input
                   placeholder="Search documents..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target._value)}
                   className="pl-9"
                 />
               </div>
@@ -945,12 +1034,16 @@ export default function  /**
                                   const data = await response.json();
                                   return { method: "PUT", url: data.uploadURL };
                                 }}
-                                onComplete={async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+                                onComplete={async (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
                                   try {
                                     const uploadedFile = result.successful[0];  /**
    * If function.
    * @param uploadedFile?.uploadURL - uploadedFile?.uploadURL parameter.
+   */  /**
+   * If function.
+   * @param uploadedFile?.uploadURL - uploadedFile?.uploadURL parameter.
    */
+
 
                                     if (uploadedFile?.uploadURL) {
                                       await apiRequest('POST', `/api/documents/${selectedDocument.id}/upload`, {
@@ -1056,7 +1149,11 @@ export default function  /**
                 const categoryDocuments = documentsByCategory[category.value] || [];  /**
    * If function.
    * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
+   */  /**
+   * If function.
+   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
    */
+
 
                 if (categoryDocuments.length === 0) {return null;}
                 

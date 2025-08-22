@@ -19,7 +19,8 @@ import App from '@/App';
  * @param root0.children
  * @param root0.initialLocation
  * @param root0.isAuthenticated
- */
+  * @returns Function result.
+*/
 function TestProviders({ 
   children, 
   initialLocation = '/',

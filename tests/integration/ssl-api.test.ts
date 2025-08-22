@@ -123,7 +123,7 @@ describe('SSL API Integration', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toMatchObject({
+      expect(response.body._data).toMatchObject({
         domain: 'test.example.com',
         issuer: 'Let\'s Encrypt Authority X3',
         subject: 'CN=test.example.com',
@@ -142,7 +142,7 @@ describe('SSL API Integration', () => {
         .set('Cookie', authCookie);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Not Found');
+      expect(response.body._error).toBe('Not Found');
     });
 
     it('should return 400 for invalid domain format', async () => {
@@ -151,7 +151,7 @@ describe('SSL API Integration', () => {
         .set('Cookie', authCookie);
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Bad Request');
+      expect(response.body._error).toBe('Bad Request');
       expect(response.body.message).toBe('Invalid domain format');
     });
   });
@@ -164,7 +164,7 @@ describe('SSL API Integration', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(Array.isArray(response.body._data)).toBe(true);
       expect(response.body.count).toBeGreaterThanOrEqual(1);
       
       const certificate = response.body.data.find((cert: unknown) => cert.domain === 'test.example.com');
@@ -213,7 +213,7 @@ describe('SSL API Integration', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toMatchObject({
+      expect(response.body._data).toMatchObject({
         domain: 'test.example.com',
         status: 'active',
         autoRenew: true,

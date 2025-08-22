@@ -62,7 +62,7 @@ describe('Monthly Budget Service', () => {
     it('should create budget entries for 3 years from construction date', async () => {
       const result = await monthlyBudgetService.populateBudgetsForBuilding(testBuildingId);
       
-      expect(result).toBeGreaterThan(0);
+      expect(_result).toBeGreaterThan(0);
       
       // Should create 3 years * 12 months = 36 entries
       const budgetCount = await db
@@ -375,7 +375,7 @@ describe('Monthly Budget Service', () => {
       
       try {
         const result = await monthlyBudgetService.populateBudgetsForBuilding(emptyBuildingId);
-        expect(result).toBeGreaterThanOrEqual(0);
+        expect(_result).toBeGreaterThanOrEqual(0);
         
         // Should still create budget entries with zero amounts
         const budgets = await db

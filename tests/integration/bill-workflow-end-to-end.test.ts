@@ -179,7 +179,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
         expect(bill.status).toBe('paid');
       });
 
-      console.log('✅ Complete bill lifecycle test passed');
+      console.warn('✅ Complete bill lifecycle test passed');
     });
 
     it('should handle complex split payment workflow', async () => {
@@ -253,7 +253,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
       expect(statsResponse.body.generatedBills.paidAmount).toBe(20000);
       expect(statsResponse.body.generatedBills.pendingBills).toBe(2);
 
-      console.log('✅ Complex split payment workflow test passed');
+      console.warn('✅ Complex split payment workflow test passed');
     });
   });
 
@@ -331,7 +331,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
       expect(statsResponse.body.generatedBills.paidBills).toBe(4);
       expect(statsResponse.body.generatedBills.paidAmount).toBe(4800); // 4 * $1200
 
-      console.log('✅ 25-year projection workflow test passed');
+      console.warn('✅ 25-year projection workflow test passed');
     });
 
     it('should handle regeneration after parent changes', async () => {
@@ -422,7 +422,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
         expect(parseFloat(bill.totalAmount)).toBe(400);
       });
 
-      console.log('✅ Regeneration after parent changes test passed');
+      console.warn('✅ Regeneration after parent changes test passed');
     });
   });
 
@@ -458,7 +458,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
 
       expect(paymentResponse404.body.message).toBe('Bill not found');
 
-      console.log('✅ Error handling test passed');
+      console.warn('✅ Error handling test passed');
     });
 
     it('should handle concurrent operations safely', async () => {
@@ -499,7 +499,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
 
       expect(finalBills.length).toBe(5); // Should have 5 bills, not duplicates
 
-      console.log('✅ Concurrent operations test passed');
+      console.warn('✅ Concurrent operations test passed');
     });
 
     it('should handle large dataset operations efficiently', async () => {
@@ -562,7 +562,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
       expect(statsResponse.body.generatedBills.paidBills).toBe(20);
       expect(statsResponse.body.generatedBills.paidAmount).toBe(1000); // 20 * $50
 
-      console.log('✅ Large dataset operations test passed');
+      console.warn('✅ Large dataset operations test passed');
     });
   });
 
@@ -703,7 +703,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
           .expect(200)
       ));
 
-      console.log('✅ Property management company workflow simulation passed');
+      console.warn('✅ Property management company workflow simulation passed');
     });
   });
 
@@ -771,7 +771,7 @@ describe('Bill Workflow End-to-End Integration Tests', () => {
       // Memory increase should be reasonable (less than 10MB)
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
 
-      console.log('✅ Performance and monitoring test passed');
+      console.warn('✅ Performance and monitoring test passed');
     });
   });
 });

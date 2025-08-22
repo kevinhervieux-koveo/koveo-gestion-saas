@@ -14,130 +14,130 @@ import chalk from 'chalk';
  * @returns Function result.
  */
 async function demoAIAgentTools() {
-  console.log(chalk.blue.bold('🤖 AI Agent Tools Demo\n'));
+  console.warn(chalk.blue.bold('🤖 AI Agent Tools Demo\n'));
 
   try {
     // Demo 1: Import and test basic functionality
-    console.log(chalk.yellow('1. Testing Tool Imports...'));
+    console.warn(chalk.yellow('1. Testing Tool Imports...'));
     
     const { agentToolkit } = await import('../tools/ai-agent-toolkit');
     const { contextManager } = await import('../tools/smart-context-manager');
     const { workflowAssistant } = await import('../tools/intelligent-workflow-assistant');
     const { agentDashboard } = await import('../tools/ai-agent-dashboard');
     
-    console.log(chalk.green('✅ All tools imported successfully'));
-    console.log();
+    console.warn(chalk.green('✅ All tools imported successfully'));
+    console.warn();
 
     // Demo 2: Quick Health Check (simplified)
-    console.log(chalk.yellow('2. Testing Quick Health Check...'));
+    console.warn(chalk.yellow('2. Testing Quick Health Check...'));
     try {
       const quickCheck = await agentToolkit.quickHealthCheck();
       const statusColor = quickCheck.status === 'healthy' ? chalk.green :
                          quickCheck.status === 'warning' ? chalk.yellow : chalk.red;
-      console.log(chalk.green(`✅ Status: ${statusColor(quickCheck.status.toUpperCase())}`));
-      console.log(chalk.cyan(`   Score: ${quickCheck.score}/100`));
-    } catch (__error) {
-      console.log(chalk.yellow(`⚠️ Health check test skipped: Simplified mode`));
+      console.warn(chalk.green(`✅ Status: ${statusColor(quickCheck.status.toUpperCase())}`));
+      console.warn(chalk.cyan(`   Score: ${quickCheck.score}/100`));
+    } catch (_error) {
+      console.warn(chalk.yellow(`⚠️ Health check test skipped: Simplified mode`));
     }
-    console.log();
+    console.warn();
 
     // Demo 3: Context Management
-    console.log(chalk.yellow('3. Testing Context Management...'));
+    console.warn(chalk.yellow('3. Testing Context Management...'));
     try {
       const testFiles = ['package.json', 'tsconfig.json', 'vite.config.ts'];
       contextManager.updateWorkingSet(testFiles, 'demo');
       
       const contextSummary = JSON.parse(contextManager.generateContextSummary());
-      console.log(chalk.green(`✅ Working Set: ${contextSummary.workingSet} files`));
-      console.log(chalk.cyan(`   Focus Area: ${contextSummary.focusArea}`));
-    } catch (__error) {
-      console.log(chalk.yellow(`⚠️ Context test simplified: ${error}`));
+      console.warn(chalk.green(`✅ Working Set: ${contextSummary.workingSet} files`));
+      console.warn(chalk.cyan(`   Focus Area: ${contextSummary.focusArea}`));
+    } catch (_error) {
+      console.warn(chalk.yellow(`⚠️ Context test simplified: ${error}`));
     }
-    console.log();
+    console.warn();
 
     // Demo 4: Workflow Patterns
-    console.log(chalk.yellow('4. Testing Workflow Detection...'));
+    console.warn(chalk.yellow('4. Testing Workflow Detection...'));
     try {
       const workflowSuggestions = workflowAssistant.detectWorkflowPatterns(
         ['client/src/App.tsx', 'server/index.ts'], 
         ['shared/schema.ts']
       );
-      console.log(chalk.green(`✅ Generated ${workflowSuggestions.length} workflow suggestions`));
+      console.warn(chalk.green(`✅ Generated ${workflowSuggestions.length} workflow suggestions`));
       
-      workflowSuggestions.slice(0, 2).forEach((suggestion, index) => {
-        console.log(chalk.cyan(`   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`));
+      workflowSuggestions.slice(0, 2).forEach((suggestion, _index) => {
+        console.warn(chalk.cyan(`   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`));
       });
-    } catch (__error) {
-      console.log(chalk.yellow(`⚠️ Workflow test simplified: Pattern detection works`));
+    } catch (_error) {
+      console.warn(chalk.yellow(`⚠️ Workflow test simplified: Pattern detection works`));
     }
-    console.log();
+    console.warn();
 
     // Demo 5: Dashboard Metrics (basic)
-    console.log(chalk.yellow('5. Testing Dashboard Metrics...'));
+    console.warn(chalk.yellow('5. Testing Dashboard Metrics...'));
     try {
       const metrics = await agentDashboard.collectMetrics();
-      console.log(chalk.green(`✅ Metrics collected successfully`));
-      console.log(chalk.cyan(`   Timestamp: ${new Date(metrics.timestamp).toLocaleTimeString()}`));
-      console.log(chalk.cyan(`   Project Health: ${metrics.projectHealth.overallScore}/100`));
-    } catch (__error) {
-      console.log(chalk.yellow(`⚠️ Dashboard test simplified: Metrics system works`));
+      console.warn(chalk.green(`✅ Metrics collected successfully`));
+      console.warn(chalk.cyan(`   Timestamp: ${new Date(metrics.timestamp).toLocaleTimeString()}`));
+      console.warn(chalk.cyan(`   Project Health: ${metrics.projectHealth.overallScore}/100`));
+    } catch (_error) {
+      console.warn(chalk.yellow(`⚠️ Dashboard test simplified: Metrics system works`));
     }
-    console.log();
+    console.warn();
 
     // Demo 6: CLI Tool Test
-    console.log(chalk.yellow('6. Testing CLI Tool...'));
-    console.log(chalk.green('✅ CLI tool available at: scripts/ai-agent-cli.ts'));
-    console.log(chalk.cyan('   Commands available:'));
-    console.log(chalk.cyan('   • health - Project health analysis'));
-    console.log(chalk.cyan('   • context - Workspace context management'));
-    console.log(chalk.cyan('   • workflow - Workflow automation'));
-    console.log(chalk.cyan('   • dashboard - Real-time dashboard'));
-    console.log(chalk.cyan('   • analyze - Comprehensive analysis'));
-    console.log(chalk.cyan('   • quick - Quick operations'));
-    console.log();
+    console.warn(chalk.yellow('6. Testing CLI Tool...'));
+    console.warn(chalk.green('✅ CLI tool available at: scripts/ai-agent-cli.ts'));
+    console.warn(chalk.cyan('   Commands available:'));
+    console.warn(chalk.cyan('   • health - Project health analysis'));
+    console.warn(chalk.cyan('   • context - Workspace context management'));
+    console.warn(chalk.cyan('   • workflow - Workflow automation'));
+    console.warn(chalk.cyan('   • dashboard - Real-time dashboard'));
+    console.warn(chalk.cyan('   • analyze - Comprehensive analysis'));
+    console.warn(chalk.cyan('   • quick - Quick operations'));
+    console.warn();
 
     // Summary
-    console.log(chalk.green.bold('🎉 AI Agent Tools Demo Complete!\n'));
+    console.warn(chalk.green.bold('🎉 AI Agent Tools Demo Complete!\n'));
     
-    console.log(chalk.blue('✅ Successfully Created:'));
-    console.log(chalk.cyan('  📦 AI Agent Toolkit - Project health & code analysis'));
-    console.log(chalk.cyan('  🧠 Smart Context Manager - Intelligent workspace management'));
-    console.log(chalk.cyan('  ⚡ Workflow Assistant - Automated development workflows'));
-    console.log(chalk.cyan('  📊 Agent Dashboard - Real-time monitoring & visualization'));
-    console.log(chalk.cyan('  💻 CLI Interface - Command-line access to all tools'));
-    console.log();
+    console.warn(chalk.blue('✅ Successfully Created:'));
+    console.warn(chalk.cyan('  📦 AI Agent Toolkit - Project health & code analysis'));
+    console.warn(chalk.cyan('  🧠 Smart Context Manager - Intelligent workspace management'));
+    console.warn(chalk.cyan('  ⚡ Workflow Assistant - Automated development workflows'));
+    console.warn(chalk.cyan('  📊 Agent Dashboard - Real-time monitoring & visualization'));
+    console.warn(chalk.cyan('  💻 CLI Interface - Command-line access to all tools'));
+    console.warn();
 
-    console.log(chalk.blue('🚀 Key Capabilities:'));
-    console.log(chalk.cyan('  • Project health scoring across 6 dimensions'));
-    console.log(chalk.cyan('  • Intelligent file relationship analysis'));
-    console.log(chalk.cyan('  • Automated workflow pattern detection'));
-    console.log(chalk.cyan('  • Real-time development metrics'));
-    console.log(chalk.cyan('  • Smart context-aware recommendations'));
-    console.log(chalk.cyan('  • Security and performance monitoring'));
-    console.log(chalk.cyan('  • Interactive HTML dashboard generation'));
-    console.log();
+    console.warn(chalk.blue('🚀 Key Capabilities:'));
+    console.warn(chalk.cyan('  • Project health scoring across 6 dimensions'));
+    console.warn(chalk.cyan('  • Intelligent file relationship analysis'));
+    console.warn(chalk.cyan('  • Automated workflow pattern detection'));
+    console.warn(chalk.cyan('  • Real-time development metrics'));
+    console.warn(chalk.cyan('  • Smart context-aware recommendations'));
+    console.warn(chalk.cyan('  • Security and performance monitoring'));
+    console.warn(chalk.cyan('  • Interactive HTML dashboard generation'));
+    console.warn();
 
-    console.log(chalk.blue('💡 Usage Examples:'));
-    console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts health'));
-    console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts dashboard --save'));
-    console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts analyze --export report.json'));
-    console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts workflow --recommend'));
-    console.log(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts quick --status'));
-    console.log();
+    console.warn(chalk.blue('💡 Usage Examples:'));
+    console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts health'));
+    console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts dashboard --save'));
+    console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts analyze --export report.json'));
+    console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts workflow --recommend'));
+    console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts quick --status'));
+    console.warn();
 
-    console.log(chalk.blue('📚 Documentation:'));
-    console.log(chalk.cyan('  • tools/README.md - Comprehensive tool documentation'));
-    console.log(chalk.cyan('  • ORGANIZATION_VALIDATION_REPORT.md - Current project status'));
-    console.log(chalk.cyan('  • replit.md - Updated with new tooling information'));
-    console.log();
+    console.warn(chalk.blue('📚 Documentation:'));
+    console.warn(chalk.cyan('  • tools/README.md - Comprehensive tool documentation'));
+    console.warn(chalk.cyan('  • ORGANIZATION_VALIDATION_REPORT.md - Current project status'));
+    console.warn(chalk.cyan('  • replit.md - Updated with new tooling information'));
+    console.warn();
 
-  } catch (__error) {
-    console.error(chalk.red('❌ Demo failed:'), error);
+  } catch (_error) {
+    console.error(chalk.red('❌ Demo failed:'), _error);
     process.exit(1);
   }
 }
 
 // Run the demo
-demoAIAgentTools().catch(console.error);
+demoAIAgentTools().catch(console._error);
 
 export default demoAIAgentTools;

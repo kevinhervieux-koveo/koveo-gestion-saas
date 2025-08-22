@@ -54,7 +54,7 @@ interface SslCertificateData {
  */
 interface SslApiResponse {
   success: boolean;
-  data: SslCertificateData;
+  _data: SslCertificateData;
 }
 
 // Form validation schema
@@ -298,7 +298,7 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
                 <CardDescription>SSL Certificate Details</CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {getStatusBadge(data.data)}
+                {getStatusBadge(data._data)}
                 <Button 
                   variant="outline" 
                   size="sm" 

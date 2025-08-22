@@ -15,7 +15,7 @@ describe('AI Form Response Validation (Integration)', () => {
   // Skip these tests if no API key is available
   const skipIfNoApiKey = () => {
     if (!process.env.GEMINI_API_KEY) {
-      console.log('⚠️  Skipping AI integration tests - GEMINI_API_KEY not set');
+      console.warn('⚠️  Skipping AI integration tests - GEMINI_API_KEY not set');
       return true;
     }
     return false;
@@ -114,8 +114,8 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(typeof analysisResult.estimatedTotalEffort).toBe('string');
       expect(analysisResult.estimatedTotalEffort).toMatch(/\d+.*?(hour|day|week)/i);
 
-    } catch (__error) {
-      console.error('AI Integration Test Error:', error);
+    } catch (_error) {
+      console.error('AI Integration Test Error:', _error);
       throw error;
     }
   }, 30000); // 30 second timeout for API call
@@ -153,8 +153,8 @@ describe('AI Form Response Validation (Integration)', () => {
       
       expect(hasQuebecReference).toBe(true);
 
-    } catch (__error) {
-      console.error('Quebec Compliance Test Error:', error);
+    } catch (_error) {
+      console.error('Quebec Compliance Test Error:', _error);
       throw error;
     }
   }, 30000);
@@ -181,8 +181,8 @@ describe('AI Form Response Validation (Integration)', () => {
 
       expect(referencedTerms.length).toBeGreaterThan(1); // At least 2 tech stack terms mentioned
 
-    } catch (__error) {
-      console.error('Tech Stack Reference Test Error:', error);
+    } catch (_error) {
+      console.error('Tech Stack Reference Test Error:', _error);
       throw error;
     }
   }, 30000);
@@ -229,8 +229,8 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(analysisResult.actionableItems.length).toBeGreaterThan(2);
       expect(analysisResult.summary.length).toBeGreaterThan(50);
 
-    } catch (__error) {
-      console.error('Comprehensive Field Test Error:', error);
+    } catch (_error) {
+      console.error('Comprehensive Field Test Error:', _error);
       throw error;
     }
   }, 30000);
@@ -274,8 +274,8 @@ describe('AI Form Response Validation (Integration)', () => {
       expect(typeof analysisResult.summary).toBe('string');
       expect(analysisResult.summary.length).toBeGreaterThan(10);
 
-    } catch (__error) {
-      console.error('Edge Case Test Error:', error);
+    } catch (_error) {
+      console.error('Edge Case Test Error:', _error);
       throw error;
     }
   }, 30000);
@@ -314,8 +314,8 @@ describe('AI Form Response Validation (Integration)', () => {
       
       expect(authMentioned1 || authMentioned2).toBe(true);
 
-    } catch (__error) {
-      console.error('Consistency Test Error:', error);
+    } catch (_error) {
+      console.error('Consistency Test Error:', _error);
       throw error;
     }
   }, 60000); // Longer timeout for two API calls
@@ -328,7 +328,7 @@ describe('AI Service Performance and Reliability', () => {
   
   const skipIfNoApiKey = () => {
     if (!process.env.GEMINI_API_KEY) {
-      console.log('⚠️  Skipping AI performance tests - GEMINI_API_KEY not set');
+      console.warn('⚠️  Skipping AI performance tests - GEMINI_API_KEY not set');
       return true;
     }
     return false;
@@ -370,8 +370,8 @@ describe('AI Service Performance and Reliability', () => {
       expect(analysisResult).toHaveProperty('actionableItems');
       expect(analysisResult.actionableItems.length).toBeGreaterThan(0);
 
-    } catch (__error) {
-      console.error('Performance Test Error:', error);
+    } catch (_error) {
+      console.error('Performance Test Error:', _error);
       throw error;
     }
   }, 35000);

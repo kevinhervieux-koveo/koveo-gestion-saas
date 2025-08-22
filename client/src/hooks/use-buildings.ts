@@ -16,15 +16,18 @@ import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from
  * @returns Function result.
  */
 /**
- * useBuildings custom hook.
+ * UseBuildings custom hook.
  * @returns Hook return value.
  */
 /**
  * Use buildings function.
  */
-export function  /**
+export function /**
+   * Use buildings function.
+   */ /**
    * Use buildings function.
    */
+
  useBuildings() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -75,7 +78,7 @@ export function  /**
 
   // Fetch buildings data
   const { 
-    data: buildingsResponse, 
+    _data: buildingsResponse, 
     isLoading, 
     error 
   } = useQuery<{buildings: BuildingData[]}>({
@@ -85,7 +88,7 @@ export function  /**
 
   // Fetch organizations for admin users
   const { 
-    data: organizationsResponse 
+    _data: organizationsResponse 
   } = useQuery<{organizations: Organization[]}>({
     queryKey: ['/api/admin/organizations'],
     enabled: isAuthenticated && user?.role === 'admin',
@@ -93,7 +96,7 @@ export function  /**
 
   // Mutation for creating building
   const createBuildingMutation = useMutation({
-    mutationFn: async (data: BuildingFormData) => {
+    mutationFn: async (_data: BuildingFormData) => {
       const response = await fetch('/api/admin/buildings', {
         method: 'POST',
         headers: {
@@ -101,10 +104,22 @@ export function  /**
         },
         credentials: 'include',
         body: JSON.stringify(data),
-      });  /**
+      }); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
   /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -131,7 +146,7 @@ export function  /**
       setIsAddDialogOpen(false);
       form.reset();
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create building.',
@@ -142,7 +157,7 @@ export function  /**
 
   // Mutation for updating building
   const updateBuildingMutation = useMutation({
-    mutationFn: async (data: BuildingFormData & { id: string }) => {
+    mutationFn: async (_data: BuildingFormData & { id: string }) => {
       const response = await fetch(`/api/admin/buildings/${data.id}`, {
         method: 'PUT',
         headers: {
@@ -169,7 +184,7 @@ export function  /**
       setEditingBuilding(null);
       editForm.reset();
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update building.',
@@ -200,7 +215,7 @@ export function  /**
       });
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
     },
-    onError: (error: unknown) => {
+    onError: (_error: unknown) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete building.',
@@ -210,8 +225,8 @@ export function  /**
   });
 
   // Event handlers
-  const handleCreateBuilding = (data: BuildingFormData) => {
-    createBuildingMutation.mutate(data);
+  const handleCreateBuilding = (_data: BuildingFormData) => {
+    createBuildingMutation.mutate(_data);
   };
 
   const handleEditBuilding = (building: BuildingData) => {
@@ -234,10 +249,14 @@ export function  /**
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBuilding = (data: BuildingFormData) => {  /**
+  const handleUpdateBuilding = (_data: BuildingFormData) => { /**
    * If function.
-   * @param editingBuilding - editingBuilding parameter.
+   * @param editingBuilding - EditingBuilding parameter.
+   */ /**
+   * If function.
+   * @param editingBuilding - EditingBuilding parameter.
    */
+
 
     if (editingBuilding) {
       updateBuildingMutation.mutate({ id: editingBuilding.id, ...data });
@@ -248,10 +267,14 @@ export function  /**
     setDeletingBuilding(building);
   };
 
-  const confirmDeleteBuilding = () => {  /**
+  const confirmDeleteBuilding = () => { /**
    * If function.
-   * @param deletingBuilding - deletingBuilding parameter.
+   * @param deletingBuilding - DeletingBuilding parameter.
+   */ /**
+   * If function.
+   * @param deletingBuilding - DeletingBuilding parameter.
    */
+
 
     if (deletingBuilding) {
       deleteBuildingMutation.mutate(deletingBuilding.id);

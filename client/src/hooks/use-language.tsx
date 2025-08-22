@@ -8,7 +8,7 @@ import { Language, translations } from '@/lib/i18n';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof typeof translations.en) => string;
+  t: (_key: keyof typeof translations.en) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -45,15 +45,19 @@ interface LanguageProviderProps {
  * Language provider function.
  * @param { children } - { children } parameter.
  */
-export function  /**
+export function /**
+   * Language provider function.
+   * @param { children } - { children } parameter.
+   */ /**
    * Language provider function.
    * @param { children } - { children } parameter.
    */
+
  LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('en');
 
-  const t = (key: keyof typeof translations.en): string => {
-    return translations[language][key] || key;
+  const t = (_key: keyof typeof translations.en): string => {
+    return translations[language][_key] || _key;
   };
 
   return (
@@ -81,20 +85,27 @@ export function  /**
  * @returns Function result.
  */
 /**
- * useLanguage custom hook.
+ * UseLanguage custom hook.
  * @returns Hook return value.
  */
 /**
  * Use language function.
  */
-export function  /**
+export function /**
+   * Use language function.
+   */ /**
    * Use language function.
    */
+
  useLanguage() {
-  const context = useContext(LanguageContext);  /**
+  const context = useContext(LanguageContext); /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */ /**
    * If function.
    * @param context === undefined - context === undefined parameter.
    */
+
 
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');

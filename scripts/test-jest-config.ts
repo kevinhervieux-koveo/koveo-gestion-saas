@@ -39,12 +39,12 @@ try {
     console.warn('   ✅ Jest configuration is valid');
     
     // Extract key config information
-    const config = JSON.parse(result);
+    const config = JSON.parse(_result);
     console.warn(`   📊 Test environment: ${config.configs[0].testEnvironment}`);
     console.warn(`   📂 Root directory: ${config.configs[0].rootDir}`);
     console.warn(`   🎯 Test match patterns: ${config.configs[0].testMatch.length} patterns`);
     
-  } catch (__configError) {
+  } catch (___configError) {
     console.warn('   ❌ Jest configuration has issues:');
     console.warn(`   ${configError}`);
   }
@@ -66,12 +66,12 @@ try {
     const passMatches = testResult.match(/(\d+) passing/g) || [];
     const failMatches = testResult.match(/(\d+) failing/g) || [];
     
-    const passed = passMatches.reduce((sum, match) => {
+    const passed = passMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
     
-    const failed = failMatches.reduce((sum, match) => {
+    const failed = failMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
@@ -82,7 +82,7 @@ try {
       console.warn('   ⚠️  Some tests failed, but Jest configuration is working');
     }
     
-  } catch (__testError) {
+  } catch (___testError) {
     console.warn('   ❌ Test execution failed:');
     console.warn(`   ${testError.toString().slice(0, 300)}...`);
     
@@ -127,7 +127,7 @@ try {
   console.warn('• ✅ Set up transform ignore patterns');
   console.warn('• ✅ Extended test timeout to 10 seconds');
 
-} catch (__error) {
-  console.error('\n💥 Jest configuration test failed:', error);
+} catch (_error) {
+  console.error('\n💥 Jest configuration test failed:', _error);
   process.exit(1);
 }

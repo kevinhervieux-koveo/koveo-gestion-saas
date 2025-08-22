@@ -57,7 +57,7 @@ function getProjectFiles(): string[] {
           files.push(fullPath);
         }
       }
-    } catch (__error) {
+    } catch (_error) {
       // Skip directories we can't read
     }
     
@@ -82,7 +82,7 @@ function fixUnusedVariables(content: string): string {
   content = content.replace(/} catch \((\w+)\) \{/g, '} catch (__$1) {');
   
   // Fix unused function parameters (common patterns)
-  content = content.replace(/\((\w+): [^,)]+\) => \{[^}]*\}/g, (match) => {
+  content = content.replace(/\((\w+): [^,)]+\) => \{[^}]*\}/g, (_match) => {
     if (match.includes('req:') || match.includes('res:') || match.includes('next:')) {
       return match.replace(/\((\w+):/g, '(_$1:');
     }
@@ -107,7 +107,7 @@ function fixEmptyBlocks(content: string): string {
   content = content.replace(/catch[^{]*\{\s*\}/g, 'catch (_error) {\n    // Error handled silently\n  }');
   
   // Fix empty if blocks
-  content = content.replace(/if[^{]*\{\s*\}/g, (match) => {
+  content = content.replace(/if[^{]*\{\s*\}/g, (_match) => {
     return match.replace(/\{\s*\}/, '{\n    // No action needed\n  }');
   });
   
@@ -212,7 +212,7 @@ function fixAnyTypes(content: string): string {
   // Replace common any patterns with better types
   content = content.replace(/: any\[\]/g, ': unknown[]');
   content = content.replace(/: any\s*=/g, ': unknown =');
-  content = content.replace(/\(.*: any\)/g, (match) => {
+  content = content.replace(/\(.*: any\)/g, (_match) => {
     return match.replace(/: any/g, ': unknown');
   });
   
@@ -243,11 +243,11 @@ function processFile(filePath: string): void {
     // Only write if content changed
     if (content !== originalContent) {
       fs.writeFileSync(filePath, content);
-      console.log(`✅ Fixed: ${filePath}`);
+      console.warn(`✅ Fixed: ${filePath}`);
     }
     
-  } catch (__error) {
-    console.error(`❌ Error processing ${filePath}:`, error);
+  } catch (_error) {
+    console.error(`❌ Error processing ${filePath}:`, _error);
   }
 }
 
@@ -260,10 +260,10 @@ function processFile(filePath: string): void {
  * @returns Function result.
  */
 async function main(): Promise<void> {
-  console.log('🚀 Starting comprehensive validation issue fixes...\n');
+  console.warn('🚀 Starting comprehensive validation issue fixes...\n');
   
   const files = getProjectFiles();
-  console.log(`📁 Found ${files.length} files to process\n`);
+  console.warn(`📁 Found ${files.length} files to process\n`);
   
   let processed = 0;
   let fixed = 0;
@@ -284,23 +284,23 @@ async function main(): Promise<void> {
     }
     
     if (processed % 50 === 0) {
-      console.log(`📊 Progress: ${processed}/${files.length} files processed, ${fixed} files fixed`);
+      console.warn(`📊 Progress: ${processed}/${files.length} files processed, ${fixed} files fixed`);
     }
   }
   
-  console.log(`\n✅ Completed! Processed ${processed} files, fixed ${fixed} files\n`);
+  console.warn(`\n✅ Completed! Processed ${processed} files, fixed ${fixed} files\n`);
   
   // Run ESLint fix again after our changes
-  console.log('🔧 Running ESLint auto-fix on remaining issues...');
+  console.warn('🔧 Running ESLint auto-fix on remaining issues...');
   try {
     execSync('npx eslint --fix . --ext .ts,.tsx,.js,.jsx', { stdio: 'inherit' });
-    console.log('✅ ESLint auto-fix completed');
-  } catch (__error) {
-    console.log('⚠️ ESLint auto-fix completed with some remaining issues');
+    console.warn('✅ ESLint auto-fix completed');
+  } catch (_error) {
+    console.warn('⚠️ ESLint auto-fix completed with some remaining issues');
   }
   
-  console.log('\n🎯 Fix completed! Run "npm run validate" to check remaining issues.');
+  console.warn('\n🎯 Fix completed! Run "npm run validate" to check remaining issues.');
 }
 
 // Run the script
-main().catch(console.error);
+main().catch(console._error);

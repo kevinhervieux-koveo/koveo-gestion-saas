@@ -34,13 +34,13 @@ router.post('/cleanup-storage', async (req, res) => {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
           }
-        } catch (__error) {
-          console.log(`Could not normalize path for ${doc.fileUrl}`);
+        } catch (_error) {
+          console.warn(`Could not normalize path for ${doc.fileUrl}`);
         }
       }
     });
 
-    console.log(`Found ${referencedObjectPaths.size} files referenced in database`);
+    console.warn(`Found ${referencedObjectPaths.size} files referenced in database`);
 
     // Get private object directory for hierarchical structure
     const privateDir = objectStorageService.getPrivateObjectDir();
@@ -86,9 +86,9 @@ router.post('/cleanup-storage', async (req, res) => {
         await file.delete();
         deletedFiles.push(objectPath);
         deletedCount++;
-        console.log(`Deleted orphaned file: ${objectPath}`);
-      } catch (__error) {
-        console.error(`Failed to delete ${objectPath}:`, error);
+        console.warn(`Deleted orphaned file: ${objectPath}`);
+      } catch (_error) {
+        console.error(`Failed to delete ${objectPath}:`, _error);
       }
     }
 
@@ -103,11 +103,11 @@ router.post('/cleanup-storage', async (req, res) => {
       }
     });
 
-  } catch (__error) {
-    console.error('Error during storage cleanup:', error);
+  } catch (_error) {
+    console.error('Error during storage cleanup:', _error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to cleanup storage: ' + error.message 
+      _error: 'Failed to cleanup storage: ' + error.message 
     });
   }
 });
@@ -137,11 +137,11 @@ router.get('/storage-stats', async (req, res) => {
       message: `Database contains ${totalDbFiles} documents with attached files`
     });
 
-  } catch (__error) {
-    console.error('Error getting storage stats:', error);
+  } catch (_error) {
+    console.error('Error getting storage stats:', _error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to get storage statistics' 
+      _error: 'Failed to get storage statistics' 
     });
   }
 });
@@ -159,7 +159,7 @@ router.post('/auto-cleanup', async (req, res) => {
     
     const result = await cleanupResponse.json();
     
-    console.log('Auto-cleanup completed:', result);
+    console.warn('Auto-cleanup completed:', _result);
     
     res.json({
       success: true,
@@ -167,11 +167,11 @@ router.post('/auto-cleanup', async (req, res) => {
       result
     });
     
-  } catch (__error) {
-    console.error('Auto-cleanup failed:', error);
+  } catch (_error) {
+    console.error('Auto-cleanup failed:', _error);
     res.status(500).json({ 
       success: false, 
-      error: 'Auto-cleanup failed: ' + error.message 
+      _error: 'Auto-cleanup failed: ' + error.message 
     });
   }
 });

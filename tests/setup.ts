@@ -20,13 +20,13 @@ try {
   // Try ES module import first
   const mswModule = require('./mocks/server');
   server = mswModule.server;
-} catch (__error) {
+} catch (_error) {
   try {
     // Fallback for ES module environment
     import('./mocks/server.js').then(module => {
       server = module.server;
     });
-  } catch (__fallbackError) {
+  } catch (___fallbackError) {
     console.warn('MSW server setup failed, tests will run without API mocking');
   }
 }
@@ -46,7 +46,7 @@ afterAll(() => {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  _value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -77,7 +77,7 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 
 // Global test configuration for DOM APIs
 Object.defineProperty(global, 'performance', {
-  value: {
+  _value: {
     now: () => Date.now(),
     mark: () => {},
     measure: () => {},
@@ -89,7 +89,7 @@ Object.defineProperty(global, 'performance', {
 
 // Mock DOM APIs that may be missing in test environment
 Object.defineProperty(global, 'File', {
-  value: class MockFile {
+  _value: class MockFile {
     name: string;
     size: number;
     type: string;
@@ -103,10 +103,10 @@ Object.defineProperty(global, 'File', {
 });
 
 Object.defineProperty(global, 'FormData', {
-  value: class MockFormData {
+  _value: class MockFormData {
     private data = new Map<string, unknown>();
-    append(name: string, value: unknown) {
-      this.data.set(name, value);
+    append(name: string, _value: unknown) {
+      this.data.set(name, _value);
     }
     get(name: string) {
       return this.data.get(name);
@@ -117,7 +117,7 @@ Object.defineProperty(global, 'FormData', {
 
 // Mock Node and Element for DOM testing
 Object.defineProperty(global, 'Node', {
-  value: {
+  _value: {
     ELEMENT_NODE: 1,
     TEXT_NODE: 3,
     COMMENT_NODE: 8
@@ -126,7 +126,7 @@ Object.defineProperty(global, 'Node', {
 });
 
 Object.defineProperty(global, 'Element', {
-  value: class MockElement {
+  _value: class MockElement {
     tagName: string = '';
     nodeType: number = 1;
   },

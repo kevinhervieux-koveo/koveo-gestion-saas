@@ -28,14 +28,14 @@ export class CleanupScheduler {
    */
   public startAutoCleanup(): void {
     if (this.cleanupJob) {
-      console.log('⚠️  Cleanup scheduler already running');
+      console.warn('⚠️  Cleanup scheduler already running');
       return;
     }
 
     // Run every 6 hours at minute 0 (00:00, 06:00, 12:00, 18:00)
     this.cleanupJob = cron.schedule('0 */6 * * *', async () => {
       try {
-        console.log('🧹 Starting automatic storage cleanup...');
+        console.warn('🧹 Starting automatic storage cleanup...');
         
         // Call the cleanup API
         const response = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
@@ -45,24 +45,24 @@ export class CleanupScheduler {
         
         if (response.ok) {
           const result = await response.json();
-          console.log('✅ Automatic cleanup completed:', result.message);
+          console.warn('✅ Automatic cleanup completed:', result.message);
           
           if (result.details?.deletedOrphaned > 0) {
-            console.log(`🗑️  Cleaned up ${result.details.deletedOrphaned} orphaned files`);
+            console.warn(`🗑️  Cleaned up ${result.details.deletedOrphaned} orphaned files`);
           }
         } else {
           console.error('❌ Automatic cleanup failed:', response.statusText);
         }
         
-      } catch (__error) {
-        console.error('❌ Automatic cleanup error:', error);
+      } catch (_error) {
+        console.error('❌ Automatic cleanup _error:', _error);
       }
     }, {
       scheduled: true,
       timezone: "UTC"
     });
 
-    console.log('✅ Storage cleanup scheduler started - runs every 6 hours');
+    console.warn('✅ Storage cleanup scheduler started - runs every 6 hours');
   }
 
   /**
@@ -72,7 +72,7 @@ export class CleanupScheduler {
     if (this.cleanupJob) {
       this.cleanupJob.stop();
       this.cleanupJob = null;
-      console.log('🛑 Storage cleanup scheduler stopped');
+      console.warn('🛑 Storage cleanup scheduler stopped');
     }
   }
 
@@ -81,7 +81,7 @@ export class CleanupScheduler {
    */
   public async runCleanupNow(): Promise<any> {
     try {
-      console.log('🧹 Running manual storage cleanup...');
+      console.warn('🧹 Running manual storage cleanup...');
       
       const response = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
         method: 'POST',
@@ -90,14 +90,14 @@ export class CleanupScheduler {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Manual cleanup completed:', result.message);
+        console.warn('✅ Manual cleanup completed:', result.message);
         return result;
       } else {
         throw new Error(`Cleanup failed: ${response.statusText}`);
       }
       
-    } catch (__error) {
-      console.error('❌ Manual cleanup error:', error);
+    } catch (_error) {
+      console.error('❌ Manual cleanup _error:', _error);
       throw error;
     }
   }

@@ -99,7 +99,7 @@ class SecurityReportGenerator {
       }
 
       console.warn(`   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`);
-    } catch (__error) {
+    } catch (_error) {
       console.warn('   Warning: Could not collect vulnerability data');
     }
   }
@@ -119,7 +119,7 @@ class SecurityReportGenerator {
       
       this.metrics.compliance.quebec_law25 = 'COMPLIANT';
       console.warn('   ✅ Quebec Law 25: COMPLIANT');
-    } catch (__error) {
+    } catch (_error) {
       this.metrics.compliance.quebec_law25 = 'NON_COMPLIANT';
       console.warn('   ❌ Quebec Law 25: NON_COMPLIANT');
       this.metrics.recommendations.push('Address Quebec Law 25 compliance issues identified in security check');
@@ -170,7 +170,7 @@ class SecurityReportGenerator {
         console.warn('   ❌ Authentication: NOT_FOUND');
         this.metrics.recommendations.push('Implement proper authentication system');
       }
-    } catch (__error) {
+    } catch (_error) {
       this.metrics.compliance.authentication = 'NEEDS_REVIEW';
       console.warn('   ⚠️  Authentication: ASSESSMENT_FAILED');
     }
@@ -213,7 +213,7 @@ class SecurityReportGenerator {
         console.warn('   ❌ Data Protection: NON_COMPLIANT');
         this.metrics.recommendations.push('Implement comprehensive data protection measures');
       }
-    } catch (__error) {
+    } catch (_error) {
       this.metrics.compliance.data_protection = 'NEEDS_REVIEW';
       console.warn('   ⚠️  Data Protection: ASSESSMENT_FAILED');
     }
@@ -290,7 +290,7 @@ Quebec Law 25 requires organizations to:
 
 ## 📋 Recommendations
 
-${this.metrics.recommendations.map((rec, index) => `${index + 1}. ${rec}`).join('\n')}
+${this.metrics.recommendations.map((rec, _index) => `${index + 1}. ${rec}`).join('\n')}
 
 ## 🎯 Action Items
 
@@ -380,7 +380,7 @@ ${this.metrics.vulnerabilities.critical > 0 ?
 if (require.main === module) {
   const generator = new SecurityReportGenerator();
   generator.generateReport().catch(error => {
-    console.error('❌ Security report generation failed:', error);
+    console.error('❌ Security report generation failed:', _error);
     process.exit(1);
   });
 }

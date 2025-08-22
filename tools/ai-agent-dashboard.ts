@@ -97,9 +97,9 @@ export class AIAgentDashboard {
     if (fs.existsSync(historyPath)) {
       try {
         const data = fs.readFileSync(historyPath, 'utf-8');
-        this.metricsHistory = JSON.parse(data);
-      } catch (__error) {
-        console.warn('Failed to load metrics history:', __error);
+        this.metricsHistory = JSON.parse(_data);
+      } catch (_error) {
+        console.warn('Failed to load metrics history:', _error);
         this.metricsHistory = [];
       }
     }

@@ -46,10 +46,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Auth provider function.
  * @param { children } - { children } parameter.
  */
-export function  /**
+export function /**
+   * Auth provider function.
+   * @param { children } - { children } parameter.
+   */ /**
    * Auth provider function.
    * @param { children } - { children } parameter.
    */
+
  AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -71,18 +75,26 @@ export function  /**
       try {
         const response = await fetch('/api/auth/user', {
           credentials: 'include',
-        });  /**
+        }); /**
+   * If function.
+   * @param response.status === 401 - response.status === 401 parameter.
+   */ /**
    * If function.
    * @param response.status === 401 - response.status === 401 parameter.
    */
 
+
         
         if (response.status === 401) {
           return null; // Not authenticated
-        }  /**
+        } /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
         
         if (!response.ok) {
@@ -90,8 +102,12 @@ export function  /**
         }
         
         return await response.json() as User;
-      } catch (_error) {
-        console.debug('Auth check failed:', _error);
+      } /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
+        console.warn('Auth check failed:', _error);
         return null;
       }
     },
@@ -107,8 +123,9 @@ export function  /**
     
     // If user is null (unauthorized) and we're not on a public page, redirect to home
 
+
     if (userData === null && !isPublicPage && !isLoading) {
-      console.debug('Unauthorized access detected, redirecting to home page');
+      console.warn('Unauthorized access detected, redirecting to home page');
       setLocation('/');
     }
   }, [userData, isPublicPage, isLoading, setLocation]);
@@ -122,7 +139,15 @@ export function  /**
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-      });
+      }); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
 
 
       if (!response.ok) {
@@ -132,7 +157,7 @@ export function  /**
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       setUser(data.user);
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
@@ -173,12 +198,18 @@ export function  /**
    * @param password - User's password.
    * @returns Promise resolving to user data.
    */
-  const login =  /**
+  const login = /**
    * Async function.
-   * @param email - email parameter.
-   * @param password - password parameter.
+   * @param email - Email parameter.
+   * @param password - Password parameter.
+   * @returns Promise resolving to .
+   */ /**
+   * Async function.
+   * @param email - Email parameter.
+   * @param password - Password parameter.
    * @returns Promise resolving to .
    */
+
  async (email: string, password: string): Promise<{ user: User }> => {
     const result = await loginMutation.mutateAsync({ email, password });
     return result;
@@ -187,10 +218,14 @@ export function  /**
   /**
    * Logout function that ends the user session.
    */
-  const logout =  /**
+  const logout = /**
+   * Async function.
+   * @returns Promise resolving to void=.
+   */ /**
    * Async function.
    * @returns Promise resolving to void=.
    */
+
  async (): Promise<void> => {
     await logoutMutation.mutateAsync();
   };
@@ -201,10 +236,18 @@ export function  /**
    * @param role - Single role string or array of roles to check.
    * @returns True if user has the required role(s).
    */
-  const hasRole = (role: string | string[]): boolean => {  /**
+  const hasRole = (role: string | string[]): boolean => { /**
    * If function.
    * @param !user - !user parameter.
    */
+  /**
+   * If function.
+   * @param !user - !user parameter.
+   */ /**
+   * If function.
+   * @param !user - !user parameter.
+   */
+
   /**
    * If function.
    * @param !user - !user parameter.
@@ -228,7 +271,7 @@ export function  /**
     return roles.includes(user.role);
   };
 
-  const value: AuthContextType = {
+  const _value: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -239,7 +282,7 @@ export function  /**
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={_value}>
       {children}
     </AuthContext.Provider>
   );
@@ -260,15 +303,23 @@ export function  /**
  * Use auth function.
  * @returns AuthContextType result.
  */
-export function  /**
+export function /**
+   * Use auth function.
+   * @returns AuthContextType result.
+   */ /**
    * Use auth function.
    * @returns AuthContextType result.
    */
+
  useAuth(): AuthContextType {
-  const context = useContext(AuthContext);  /**
+  const context = useContext(AuthContext); /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */ /**
    * If function.
    * @param context === undefined - context === undefined parameter.
    */
+
 
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

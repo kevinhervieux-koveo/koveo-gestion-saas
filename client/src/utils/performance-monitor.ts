@@ -115,8 +115,8 @@ class PerformanceMonitor {
           }
         });
         observer.observe({ entryTypes: ['paint'] });
-      } catch (__error) {
-        console.warn('Failed to observe paint metrics:', error);
+      } catch (_error) {
+        console.warn('Failed to observe paint metrics:', _error);
       }
     }
   }
@@ -169,8 +169,8 @@ class PerformanceMonitor {
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
 
-    } catch (__error) {
-      console.warn('Failed to set up performance observers:', error);
+    } catch (_error) {
+      console.warn('Failed to set up performance observers:', _error);
     }
   }
 }

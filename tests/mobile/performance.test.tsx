@@ -291,7 +291,7 @@ describe('Mobile Performance Tests', () => {
             .then(response => response.json())
             .catch(error => {
               if (error.name === 'AbortError') {
-                console.log('Request aborted');
+                console.warn('Request aborted');
               }
             });
           
@@ -319,7 +319,7 @@ describe('Mobile Performance Tests', () => {
       // Mock cache API
       global.caches = {
         open: jest.fn().mockResolvedValue({
-          match: mockCacheGet,
+          _match: mockCacheGet,
           put: mockCacheSet,
         })
       } as any;

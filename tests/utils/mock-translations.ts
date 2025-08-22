@@ -98,7 +98,7 @@ export const mockTranslations = {
   }
 };
 
-export const translate = (key: string, params: Record<string, any> = {}, lang: string = 'en'): string => {
+export const translate = (_key: string, _params: Record<string, any> = {}, lang: string = 'en'): string => {
   const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
   let translation = translations[key as keyof typeof translations];
   
@@ -107,14 +107,14 @@ export const translate = (key: string, params: Record<string, any> = {}, lang: s
   }
   
   // Replace parameters in translation
-  Object.keys(params).forEach(param => {
+  Object.keys(_params).forEach(param => {
     translation = translation.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
   });
   
   return translation;
 };
 
-export const hasTranslation = (key: string, lang: string = 'en'): boolean => {
+export const hasTranslation = (_key: string, lang: string = 'en'): boolean => {
   const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
   return key in translations;
 };

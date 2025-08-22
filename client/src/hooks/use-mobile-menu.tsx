@@ -15,21 +15,36 @@ const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undef
  * Hook to use mobile menu context.
  */
 /**
- * useMobileMenu component.
+ * UseMobileMenu component.
  * @returns JSX element.
  */
 /**
- * useMobileMenu custom hook.
+ * UseMobileMenu custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use mobile menu function.
+ */
+/**
+ * UseMobileMenu component.
+ * @returns JSX element.
+ */
+/**
+ * UseMobileMenu custom hook.
  * @returns Hook return value.
  */
 /**
  * Use mobile menu function.
  */
 export const useMobileMenu = () => {
-  const context = useContext(MobileMenuContext);  /**
+  const context = useContext(MobileMenuContext); /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */ /**
    * If function.
    * @param context === undefined - context === undefined parameter.
    */
+
 
   if (context === undefined) {
     throw new Error('useMobileMenu must be used within a MobileMenuProvider');
@@ -65,10 +80,14 @@ interface MobileMenuProviderProps {
  * Mobile menu provider function.
  * @param { children } - { children } parameter.
  */
-export function  /**
+export function /**
+   * Mobile menu provider function.
+   * @param { children } - { children } parameter.
+   */ /**
    * Mobile menu provider function.
    * @param { children } - { children } parameter.
    */
+
  MobileMenuProvider({ children }: MobileMenuProviderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

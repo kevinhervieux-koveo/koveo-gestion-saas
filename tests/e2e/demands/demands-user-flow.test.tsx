@@ -657,7 +657,7 @@ describe('Demands E2E User Flow Tests', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 375,
+        _value: 375,
       });
 
       global.dispatchEvent(new Event('resize'));

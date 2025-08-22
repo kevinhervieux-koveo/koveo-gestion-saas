@@ -24,7 +24,7 @@ interface QualityMetric {
  * Main consolidation quality check.
  */
 async function runConsolidationQuality() {
-  console.log(chalk.blue('🎯 Running Enhanced Quality Check with Consolidation Focus...'));
+  console.warn(chalk.blue('🎯 Running Enhanced Quality Check with Consolidation Focus...'));
   
   const metrics: QualityMetric[] = [];
   
@@ -51,13 +51,13 @@ async function runConsolidationQuality() {
     const averageScore = metrics.reduce((sum, m) => sum + m.score, 0) / metrics.length;
     const totalIssues = metrics.reduce((sum, m) => sum + m.issues.length, 0);
     
-    console.log(chalk.green(`✅ Consolidation Quality Check Complete`));
-    console.log(chalk.gray(`   Average Quality Score: ${averageScore.toFixed(1)}/10`));
-    console.log(chalk.gray(`   Total Issues: ${totalIssues}`));
+    console.warn(chalk.green(`✅ Consolidation Quality Check Complete`));
+    console.warn(chalk.gray(`   Average Quality Score: ${averageScore.toFixed(1)}/10`));
+    console.warn(chalk.gray(`   Total Issues: ${totalIssues}`));
     
     return averageScore >= 8.0 && totalIssues < 10;
     
-  } catch (error) {
+  } catch (_error) {
     console.error(chalk.red(`❌ Error during quality check: ${error}`));
     return false;
   }
@@ -105,7 +105,7 @@ async function checkCodeConsolidation(): Promise<QualityMetric> {
       improvements
     };
     
-  } catch (error) {
+  } catch (_error) {
     return {
       category: 'Code Consolidation',
       score: 5,
@@ -149,7 +149,7 @@ async function checkUtilityUsage(): Promise<QualityMetric> {
       improvements
     };
     
-  } catch (error) {
+  } catch (_error) {
     return {
       category: 'Utility Usage',
       score: 5,
@@ -194,7 +194,7 @@ async function checkHookPatterns(): Promise<QualityMetric> {
       improvements
     };
     
-  } catch (error) {
+  } catch (_error) {
     return {
       category: 'Hook Patterns', 
       score: 7,
@@ -233,7 +233,7 @@ async function checkAPIPatterns(): Promise<QualityMetric> {
       improvements
     };
     
-  } catch (error) {
+  } catch (_error) {
     return {
       category: 'API Patterns',
       score: 7,
@@ -255,7 +255,7 @@ async function findFilesContaining(pattern: string): Promise<string[]> {
     });
     
     let output = '';
-    grep.stdout.on('data', (data) => {
+    grep.stdout.on('data', (_data) => {
       output += data.toString();
     });
     
@@ -290,7 +290,7 @@ Total Issues Identified: **${totalIssues}**
 
 ## Quality Metrics by Category
 
-${metrics.map((metric, index) => `
+${metrics.map((metric, _index) => `
 ### ${index + 1}. ${metric.category}
 
 **Score:** ${metric.score}/10

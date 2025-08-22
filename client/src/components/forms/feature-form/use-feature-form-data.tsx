@@ -114,8 +114,8 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (__error) {
-      console.error('Failed to save draft:', __error);
+    } catch (_error) {
+      console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -138,8 +138,8 @@ export function useFeatureFormData(feature: Feature | null) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (__error) {
-      console.error('Failed to load draft:', __error);
+    } catch (_error) {
+      console.error('Failed to load draft:', _error);
     }
   }, [getDraftKey]);
 
@@ -157,8 +157,8 @@ export function useFeatureFormData(feature: Feature | null) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (__error) {
-      console.error('Failed to clear draft:', __error);
+    } catch (_error) {
+      console.error('Failed to clear draft:', _error);
     }
   }, [getDraftKey, toast]);
 
@@ -166,7 +166,7 @@ export function useFeatureFormData(feature: Feature | null) {
    * Updates form data when input values change.
    * @returns Void.
    */
-  const updateFormData = useCallback((field: string, value: string | boolean | unknown) => {
+  const updateFormData = useCallback((field: string, _value: string | boolean | unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
   }, []);
@@ -175,7 +175,7 @@ export function useFeatureFormData(feature: Feature | null) {
    * Updates RBAC role permissions.
    * @returns Void.
    */
-  const updateRBACRole = useCallback((role: string, field: string, value: boolean | string) => {
+  const updateRBACRole = useCallback((role: string, field: string, _value: boolean | string) => {
     setFormData(prev => ({
       ...prev,
       rbacRoles: {

@@ -19,8 +19,8 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       expect(maintenanceBills.length).toBeGreaterThan(0);
       expect(maintenanceTotal).toBeGreaterThan(0);
       
-      console.log(`Demo Organization Total Expenses: $${totalExpenses.toLocaleString()}`);
-      console.log(`Maintenance Expenses: $${maintenanceTotal.toLocaleString()}`);
+      console.warn(`Demo Organization Total Expenses: $${totalExpenses.toLocaleString()}`);
+      console.warn(`Maintenance Expenses: $${maintenanceTotal.toLocaleString()}`);
     });
 
     it('categorizes expenses correctly from Demo bills', () => {
@@ -45,7 +45,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
         expect(amount).toBeGreaterThan(0);
       });
       
-      console.log('Demo Organization Expenses by Category:', expensesByCategory);
+      console.warn('Demo Organization Expenses by Category:', expensesByCategory);
     });
 
     it('calculates net cash flow with realistic income and expenses', () => {
@@ -64,18 +64,18 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       expect(totalExpenses).toBeGreaterThan(0);
       expect(typeof netCashFlow).toBe('number');
       
-      console.log(`Demo Organization Cash Flow Analysis:`);
-      console.log(`  Total Income: $${totalIncome.toLocaleString()}`);
-      console.log(`  Total Expenses: $${totalExpenses.toLocaleString()}`);
-      console.log(`  Net Cash Flow: $${netCashFlow.toLocaleString()}`);
+      console.warn(`Demo Organization Cash Flow Analysis:`);
+      console.warn(`  Total Income: $${totalIncome.toLocaleString()}`);
+      console.warn(`  Total Expenses: $${totalExpenses.toLocaleString()}`);
+      console.warn(`  Net Cash Flow: $${netCashFlow.toLocaleString()}`);
       
       // Determine if special contributions are needed
       if (netCashFlow < 0) {
         const specialContribution = Math.abs(netCashFlow);
         const perUnitContribution = specialContribution / (demoBuildings.length * unitsPerBuilding);
         
-        console.log(`  Special Contribution Required: $${specialContribution.toLocaleString()}`);
-        console.log(`  Per Unit Assessment: $${perUnitContribution.toLocaleString()}`);
+        console.warn(`  Special Contribution Required: $${specialContribution.toLocaleString()}`);
+        console.warn(`  Per Unit Assessment: $${perUnitContribution.toLocaleString()}`);
         
         expect(specialContribution).toBeGreaterThan(0);
         expect(perUnitContribution).toBeGreaterThan(0);
@@ -109,10 +109,10 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const finalBalance = startingBalance + (monthlyCashFlow * 12);
       expect(balanceHistory[12]).toBeCloseTo(finalBalance, 2);
       
-      console.log('Demo Bank Account Balance Projection:');
-      console.log(`  Starting Balance: $${startingBalance.toLocaleString()}`);
-      console.log(`  Monthly Cash Flow: $${monthlyCashFlow.toLocaleString()}`);
-      console.log(`  Ending Balance: $${balanceHistory[12].toLocaleString()}`);
+      console.warn('Demo Bank Account Balance Projection:');
+      console.warn(`  Starting Balance: $${startingBalance.toLocaleString()}`);
+      console.warn(`  Monthly Cash Flow: $${monthlyCashFlow.toLocaleString()}`);
+      console.warn(`  Ending Balance: $${balanceHistory[12].toLocaleString()}`);
     });
 
     it('validates minimum balance requirements', () => {
@@ -132,10 +132,10 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const deficit = totalMinimumRequired - currentBalance;
       expect(deficit).toBe(10000);
       
-      console.log('Demo Minimum Balance Analysis:');
-      console.log(`  Total Required: $${totalMinimumRequired.toLocaleString()}`);
-      console.log(`  Current Balance: $${currentBalance.toLocaleString()}`);
-      console.log(`  Deficit: $${deficit.toLocaleString()}`);
+      console.warn('Demo Minimum Balance Analysis:');
+      console.warn(`  Total Required: $${totalMinimumRequired.toLocaleString()}`);
+      console.warn(`  Current Balance: $${currentBalance.toLocaleString()}`);
+      console.warn(`  Deficit: $${deficit.toLocaleString()}`);
     });
   });
 
@@ -177,10 +177,10 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const totalContributions = propertyContributions.reduce((sum, prop) => sum + prop.contribution, 0);
       expect(totalContributions).toBeCloseTo(shortfall, 2);
       
-      console.log('Demo Special Contribution Breakdown:');
-      console.log(`  Total Shortfall: $${shortfall.toLocaleString()}`);
-      console.log(`  Base Contribution per Unit: $${baseContribution.toLocaleString()}`);
-      console.log(`  Number of Properties: ${propertyContributions.length}`);
+      console.warn('Demo Special Contribution Breakdown:');
+      console.warn(`  Total Shortfall: $${shortfall.toLocaleString()}`);
+      console.warn(`  Base Contribution per Unit: $${baseContribution.toLocaleString()}`);
+      console.warn(`  Number of Properties: ${propertyContributions.length}`);
     });
 
     it('handles different ownership percentages correctly', () => {
@@ -207,7 +207,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const totalContributions = contributions.reduce((sum, c) => sum + c.amount, 0);
       expect(totalContributions).toBeCloseTo(5100, 2); // 51% of $10,000
       
-      console.log('Ownership-Based Contributions:', contributions);
+      console.warn('Ownership-Based Contributions:', contributions);
     });
   });
 
@@ -305,7 +305,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
         expect(calc.processed).toBe(true);
       });
       
-      console.log(`Processed ${calculations.length} bills in ${processingTime.toFixed(2)}ms`);
+      console.warn(`Processed ${calculations.length} bills in ${processingTime.toFixed(2)}ms`);
     });
   });
 });

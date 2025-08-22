@@ -313,7 +313,7 @@ describe('Sidebar Component', () => {
       const adminSection = screen.getByText('Admin');
       adminSection.focus();
       
-      fireEvent.keyDown(adminSection, { key: 'Enter' });
+      fireEvent.keyDown(adminSection, { _key: 'Enter' });
       
       expect(screen.getByText('Organizations')).toBeInTheDocument();
     });

@@ -26,9 +26,12 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Features page component for Koveo Gestion.
  * Detailed presentation of platform features for Quebec property management.
  */
-export default function  /**
+export default function /**
+   * Features page function.
+   */ /**
    * Features page function.
    */
+
  FeaturesPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
@@ -194,7 +197,7 @@ export default function  /**
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
-          {coreFeatures.map((feature, index) => (
+          {coreFeatures.map((feature, _index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`core-feature-${index}`}>
               <CardHeader>
                 <div className="flex items-center space-x-4">
@@ -235,7 +238,7 @@ export default function  /**
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {advancedFeatures.map((feature, index) => (
+            {advancedFeatures.map((feature, _index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow" data-testid={`advanced-feature-${index}`}>
                 <CardHeader>
                   <feature.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -272,7 +275,7 @@ export default function  /**
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {quebecCompliance.map((item, index) => (
+          {quebecCompliance.map((item, _index) => (
             <div key={index} className="flex items-start space-x-4" data-testid={`compliance-item-${index}`}>
               <Lock className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
               <div>

@@ -22,7 +22,7 @@ interface TestResult {
  */
 const runRedundancyTests = (): Promise<TestResult> => {
   return new Promise((resolve) => {
-    console.log(chalk.blue('🔍 Running UI Component Redundancy Analysis...'));
+    console.warn(chalk.blue('🔍 Running UI Component Redundancy Analysis...'));
     
     const jest = spawn('npx', [
       'jest',
@@ -39,7 +39,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
     let output = '';
     let errorOutput = '';
 
-    jest.stdout?.on('data', (data) => {
+    jest.stdout?.on('data', (_data) => {
       const text = data.toString();
       output += text;
       
@@ -49,7 +49,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
       }
     });
 
-    jest.stderr?.on('data', (data) => {
+    jest.stderr?.on('data', (_data) => {
       errorOutput += data.toString();
     });
 
@@ -57,26 +57,26 @@ const runRedundancyTests = (): Promise<TestResult> => {
       const passed = code === 0;
       
       if (passed) {
-        console.log(chalk.green('✅ Redundancy Analysis: PASSED'));
-        console.log(chalk.gray('   All component redundancy checks completed successfully'));
+        console.warn(chalk.green('✅ Redundancy Analysis: PASSED'));
+        console.warn(chalk.gray('   All component redundancy checks completed successfully'));
       } else {
-        console.log(chalk.red('❌ Redundancy Analysis: FAILED'));
-        console.log(chalk.gray('   Component redundancy issues detected'));
+        console.warn(chalk.red('❌ Redundancy Analysis: FAILED'));
+        console.warn(chalk.gray('   Component redundancy issues detected'));
       }
 
       resolve({
         passed,
         output,
-        error: errorOutput
+        _error: errorOutput
       });
     });
 
-    jest.on('error', (error) => {
-      console.log(chalk.red(`❌ Error running redundancy tests: ${error.message}`));
+    jest.on('error', (_error) => {
+      console.warn(chalk.red(`❌ Error running redundancy tests: ${error.message}`));
       resolve({
         passed: false,
         output,
-        error: error.message
+        _error: error.message
       });
     });
   });
@@ -87,7 +87,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
  */
 const runStyleAnalysis = (): Promise<TestResult> => {
   return new Promise((resolve) => {
-    console.log(chalk.blue('🎨 Running Style Consolidation Analysis...'));
+    console.warn(chalk.blue('🎨 Running Style Consolidation Analysis...'));
     
     const jest = spawn('npx', [
       'jest',
@@ -102,11 +102,11 @@ const runStyleAnalysis = (): Promise<TestResult> => {
     let output = '';
     let errorOutput = '';
 
-    jest.stdout?.on('data', (data) => {
+    jest.stdout?.on('data', (_data) => {
       output += data.toString();
     });
 
-    jest.stderr?.on('data', (data) => {
+    jest.stderr?.on('data', (_data) => {
       errorOutput += data.toString();
     });
 
@@ -114,24 +114,24 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       const passed = code === 0;
       
       if (passed) {
-        console.log(chalk.green('✅ Style Analysis: PASSED'));
+        console.warn(chalk.green('✅ Style Analysis: PASSED'));
       } else {
-        console.log(chalk.yellow('⚠️  Style Analysis: WARNINGS'));
-        console.log(chalk.gray('   Some style consolidation opportunities identified'));
+        console.warn(chalk.yellow('⚠️  Style Analysis: WARNINGS'));
+        console.warn(chalk.gray('   Some style consolidation opportunities identified'));
       }
 
       resolve({
         passed,
         output,
-        error: errorOutput
+        _error: errorOutput
       });
     });
 
-    jest.on('error', (error) => {
+    jest.on('error', (_error) => {
       resolve({
         passed: false,
         output,
-        error: error.message
+        _error: error.message
       });
     });
   });
@@ -143,38 +143,38 @@ const runStyleAnalysis = (): Promise<TestResult> => {
  * @param styleResult
  */
 const generateSummary = (redundancyResult: TestResult, styleResult: TestResult) => {
-  console.log('\n' + chalk.bold('📊 REDUNDANCY ANALYSIS SUMMARY'));
-  console.log('='.repeat(50));
+  console.warn('\n' + chalk.bold('📊 REDUNDANCY ANALYSIS SUMMARY'));
+  console.warn('='.repeat(50));
   
   // Extract key metrics from test output
   const redundancyMetrics = extractMetrics(redundancyResult.output);
   
-  console.log(chalk.cyan('Key Findings:'));
+  console.warn(chalk.cyan('Key Findings:'));
   
   if (redundancyMetrics.totalComponents > 0) {
-    console.log(`• Total Components Analyzed: ${redundancyMetrics.totalComponents}`);
+    console.warn(`• Total Components Analyzed: ${redundancyMetrics.totalComponents}`);
   }
   
   if (redundancyMetrics.redundancyPercentage > 0) {
     const color = redundancyMetrics.redundancyPercentage > 40 ? 'red' : 
                   redundancyMetrics.redundancyPercentage > 20 ? 'yellow' : 'green';
-    console.log(chalk[color](`• Redundancy Rate: ${redundancyMetrics.redundancyPercentage}%`));
+    console.warn(chalk[color](`• Redundancy Rate: ${redundancyMetrics.redundancyPercentage}%`));
   }
   
   if (redundancyMetrics.highPriorityComponents > 0) {
-    console.log(chalk.red(`• High-Priority Refactor Candidates: ${redundancyMetrics.highPriorityComponents}`));
+    console.warn(chalk.red(`• High-Priority Refactor Candidates: ${redundancyMetrics.highPriorityComponents}`));
   }
   
   // Status assessment
   if (redundancyResult.passed && styleResult.passed) {
-    console.log(chalk.green('\n✅ Overall Status: PASSED'));
-    console.log(chalk.gray('   Redundancy tracking active - continue monitoring'));
+    console.warn(chalk.green('\n✅ Overall Status: PASSED'));
+    console.warn(chalk.gray('   Redundancy tracking active - continue monitoring'));
   } else {
-    console.log(chalk.yellow('\n⚠️  Overall Status: ATTENTION NEEDED'));
-    console.log(chalk.gray('   Review redundancy findings and consider refactoring'));
+    console.warn(chalk.yellow('\n⚠️  Overall Status: ATTENTION NEEDED'));
+    console.warn(chalk.gray('   Review redundancy findings and consider refactoring'));
   }
   
-  console.log('\n' + chalk.gray('Run with --verbose for detailed component analysis'));
+  console.warn('\n' + chalk.gray('Run with --verbose for detailed component analysis'));
 };
 
 /**
@@ -209,7 +209,7 @@ const extractMetrics = (output: string) => {
  * @returns Function result.
  */
 async function main() {
-  console.log(chalk.bold.blue('🚀 Starting Redundancy Analysis Pipeline\n'));
+  console.warn(chalk.bold.blue('🚀 Starting Redundancy Analysis Pipeline\n'));
   
   try {
     // Run redundancy analysis
@@ -225,19 +225,19 @@ async function main() {
     // Redundancy analysis is informational, so we don't fail validation
     // unless there are critical errors (not just redundancy findings)
     if (redundancyResult.passed) {
-      console.log(chalk.green('\n✅ Redundancy Analysis completed successfully'));
+      console.warn(chalk.green('\n✅ Redundancy Analysis completed successfully'));
       process.exit(0);
     } else {
       // Check if it's a test failure or actual error
       if (redundancyResult.error && !redundancyResult.error.includes('expect(')) {
-        console.log(chalk.red('\n❌ Redundancy Analysis failed with errors'));
+        console.warn(chalk.red('\n❌ Redundancy Analysis failed with errors'));
         process.exit(1);
       } else {
-        console.log(chalk.yellow('\n⚠️  Redundancy Analysis completed with findings'));
+        console.warn(chalk.yellow('\n⚠️  Redundancy Analysis completed with findings'));
         process.exit(0); // Don't fail validation for redundancy findings
       }
     }
-  } catch (__error) {
+  } catch (_error) {
     console.error(chalk.red(`\n❌ Failed to run redundancy analysis: ${error}`));
     process.exit(1);
   }
@@ -246,7 +246,7 @@ async function main() {
 // Run if called directly
 if (require.main === module) {
   main().catch(error => {
-    console.error(chalk.red(`Fatal error: ${error}`));
+    console.error(chalk.red(`Fatal _error: ${error}`));
     process.exit(1);
   });
 }

@@ -19,7 +19,8 @@ import { translations } from '@/lib/i18n';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
- */
+  * @returns Function result.
+*/
 function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -69,8 +70,8 @@ describe('Website Translation Tests', () => {
       const englishKeys = Object.keys(translations.en);
       const frenchKeys = Object.keys(translations.fr);
       
-      const missingFrenchKeys = englishKeys.filter(key => !frenchKeys.includes(key));
-      const extraFrenchKeys = frenchKeys.filter(key => !englishKeys.includes(key));
+      const missingFrenchKeys = englishKeys.filter(key => !frenchKeys.includes(_key));
+      const extraFrenchKeys = frenchKeys.filter(key => !englishKeys.includes(_key));
       
       expect(missingFrenchKeys).toEqual([]);
       expect(extraFrenchKeys).toEqual([]);
@@ -79,9 +80,9 @@ describe('Website Translation Tests', () => {
 
     it('should use Quebec French terminology correctly', () => {
       const quebecTerms = [
-        { key: 'emailAddress', french: translations.fr.emailAddress },
-        { key: 'sendWelcomeEmail', french: translations.fr.sendWelcomeEmail },
-        { key: 'userManagement', french: translations.fr.userManagement },
+        { _key: 'emailAddress', french: translations.fr.emailAddress },
+        { _key: 'sendWelcomeEmail', french: translations.fr.sendWelcomeEmail },
+        { _key: 'userManagement', french: translations.fr.userManagement },
       ];
 
       quebecTerms.forEach(({ key, french }) => {

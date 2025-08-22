@@ -84,19 +84,19 @@ export function ReplitAIMonitoring() {
   const [activeTab, setActiveTab] = useState('overview');
   
   // Fetch AI metrics
-  const { data: metrics, isLoading: _metricsLoading } = useQuery<AIMetrics>({
+  const { _data: metrics, isLoading: _metricsLoading } = useQuery<AIMetrics>({
     queryKey: ['/api/ai/metrics'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch recent AI interactions
-  const { data: interactions = [], isLoading: interactionsLoading } = useQuery<AIInteraction[]>({
+  const { _data: interactions = [], isLoading: interactionsLoading } = useQuery<AIInteraction[]>({
     queryKey: ['/api/ai/interactions'],
     refetchInterval: 15000, // Refresh every 15 seconds
   });
 
   // Fetch AI insights
-  const { data: insights = [], isLoading: insightsLoading } = useQuery<AIInsight[]>({
+  const { _data: insights = [], isLoading: insightsLoading } = useQuery<AIInsight[]>({
     queryKey: ['/api/ai/insights'],
     refetchInterval: 60000, // Refresh every minute
   });

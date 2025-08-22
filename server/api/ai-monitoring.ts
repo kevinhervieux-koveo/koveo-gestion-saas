@@ -110,9 +110,9 @@ export async function getAIMetrics(req: Request, res: Response) {
       lastAnalysis: metrics.lastAnalysis || new Date(),
       aiEfficiency: parseFloat(metrics.aiEfficiency || '0'),
     });
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error fetching AI metrics:', _error);
-    res.status(500).json({ error: 'Failed to fetch AI metrics' });
+    res.status(500).json({ _error: 'Failed to fetch AI metrics' });
   }
 }
 
@@ -157,9 +157,9 @@ export async function getAIInteractions(req: Request, res: Response) {
       .limit(50);
 
     res.json(interactions);
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error fetching AI interactions:', _error);
-    res.status(500).json({ error: 'Failed to fetch AI interactions' });
+    res.status(500).json({ _error: 'Failed to fetch AI interactions' });
   }
 }
 
@@ -204,9 +204,9 @@ export async function getAIInsights(req: Request, res: Response) {
       .limit(20);
 
     res.json(insights);
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error fetching AI insights:', _error);
-    res.status(500).json({ error: 'Failed to fetch AI insights' });
+    res.status(500).json({ _error: 'Failed to fetch AI insights' });
   }
 }
 
@@ -312,9 +312,9 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       message: 'AI analysis triggered successfully',
       insightsGenerated: numberOfInsights 
     });
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error triggering AI analysis:', _error);
-    res.status(500).json({ error: 'Failed to trigger AI analysis' });
+    res.status(500).json({ _error: 'Failed to trigger AI analysis' });
   }
 }
 
@@ -364,7 +364,7 @@ export async function applyAISuggestion(req: Request, res: Response) {
       .returning();
 
     if (!updatedInsight) {
-      return res.status(404).json({ error: 'Insight not found' });
+      return res.status(404).json({ _error: 'Insight not found' });
     }
 
     // Record the interaction
@@ -390,9 +390,9 @@ export async function applyAISuggestion(req: Request, res: Response) {
       message: 'Suggestion applied successfully',
       insight: updatedInsight 
     });
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error applying AI suggestion:', _error);
-    res.status(500).json({ error: 'Failed to apply AI suggestion' });
+    res.status(500).json({ _error: 'Failed to apply AI suggestion' });
   }
 }
 
@@ -521,8 +521,8 @@ export async function recordAIInteraction(req: Request, res: Response) {
     await updateAIMetrics();
 
     res.json(newInteraction);
-  } catch (___error) {
+  } catch (____error) {
     console.error('Error recording AI interaction:', _error);
-    res.status(500).json({ error: 'Failed to record AI interaction' });
+    res.status(500).json({ _error: 'Failed to record AI interaction' });
   }
 }

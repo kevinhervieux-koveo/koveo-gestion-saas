@@ -176,7 +176,7 @@ async function checkBuildOutput(): Promise<ValidationResult> {
   // Find all JavaScript files in the build output
   const jsFiles = await glob(path.join(distPath, '**/*.js'));
   
-  console.log(`Checking ${jsFiles.length} JavaScript files in build output...`);
+  console.warn(`Checking ${jsFiles.length} JavaScript files in build output...`);
   
   for (const file of jsFiles) {
     const fileErrors = await checkFileForRemovedRoutes(file);
@@ -206,10 +206,10 @@ async function checkBuildOutput(): Promise<ValidationResult> {
  * @returns Function result.
  */
 async function validateRoutes(): Promise<void> {
-  console.log('🔍 Validating routes in Koveo Gestion...\n');
+  console.warn('🔍 Validating routes in Koveo Gestion...\n');
   
   // Check source files
-  console.log('📝 Checking source files...');
+  console.warn('📝 Checking source files...');
   const sourceResult = await checkSourceFiles();
   
   if (sourceResult.errors.length > 0) {
@@ -223,7 +223,7 @@ async function validateRoutes(): Promise<void> {
   }
   
   // Check build output
-  console.log('\n📦 Checking build output...');
+  console.warn('\n📦 Checking build output...');
   const buildResult = await checkBuildOutput();
   
   if (buildResult.errors.length > 0) {
@@ -237,17 +237,17 @@ async function validateRoutes(): Promise<void> {
   }
   
   // Summary
-  console.log('\n' + '='.repeat(50));
+  console.warn('\n' + '='.repeat(50));
   const totalErrors = sourceResult.errors.length + buildResult.errors.length;
   const totalWarnings = sourceResult.warnings.length + buildResult.warnings.length;
   
   if (totalErrors === 0) {
-    console.log('✅ Route validation passed!');
-    console.log(`   - No removed routes found in source or build`);
-    console.log(`   - All routes are properly configured`);
+    console.warn('✅ Route validation passed!');
+    console.warn(`   - No removed routes found in source or build`);
+    console.warn(`   - All routes are properly configured`);
     
     if (totalWarnings > 0) {
-      console.log(`   - ${totalWarnings} warning(s) to review`);
+      console.warn(`   - ${totalWarnings} warning(s) to review`);
     }
     
     process.exit(0);
@@ -265,6 +265,6 @@ async function validateRoutes(): Promise<void> {
 
 // Run validation
 validateRoutes().catch(error => {
-  console.error('Fatal error during route validation:', error);
+  console.error('Fatal error during route validation:', _error);
   process.exit(1);
 });

@@ -34,7 +34,7 @@ const MOBILE_VIEWPORTS = {
 // Mock global functions for mobile testing
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  _value: jest.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
@@ -96,8 +96,8 @@ describe('Expanded Mobile UI Coverage', () => {
 
   const setMobileViewport = (viewport: keyof typeof MOBILE_VIEWPORTS) => {
     const { width, height } = MOBILE_VIEWPORTS[viewport];
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: width });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: height });
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, _value: width });
+    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, _value: height });
     window.dispatchEvent(new Event('resize'));
   };
 
@@ -265,7 +265,7 @@ describe('Expanded Mobile UI Coverage', () => {
       expect(firstFocusable).toHaveFocus();
 
       // Test keyboard navigation
-      fireEvent.keyDown(firstFocusable, { key: 'Tab' });
+      fireEvent.keyDown(firstFocusable, { _key: 'Tab' });
       const nextFocusable = document.activeElement;
       expect(nextFocusable).not.toBe(firstFocusable);
     });
@@ -426,7 +426,7 @@ describe('Expanded Mobile UI Coverage', () => {
       // Mock offline mode
       Object.defineProperty(navigator, 'onLine', {
         writable: true,
-        value: false
+        _value: false
       });
 
       renderWithProviders(OwnerDashboard);
@@ -443,7 +443,7 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ResidentsDemands);
 
       // Fill form while offline
-      Object.defineProperty(navigator, 'onLine', { value: false });
+      Object.defineProperty(navigator, 'onLine', { _value: false });
       
       const titleInput = screen.getByLabelText(/titre/i);
       await user.type(titleInput, 'Demande hors ligne');
@@ -455,7 +455,7 @@ describe('Expanded Mobile UI Coverage', () => {
       expect(screen.getByText(/sauvegardé localement/i)).toBeInTheDocument();
 
       // Simulate coming back online
-      Object.defineProperty(navigator, 'onLine', { value: true });
+      Object.defineProperty(navigator, 'onLine', { _value: true });
       window.dispatchEvent(new Event('online'));
 
       await waitFor(() => {

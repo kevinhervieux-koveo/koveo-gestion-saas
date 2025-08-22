@@ -23,10 +23,10 @@ export function registerUserRoutes(app: Express): void {
     try {
       const users = await storage.getUsers();
       res.json(users);
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to fetch users:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch users',
       });
     }
@@ -41,7 +41,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!id) {
         return res.status(400).json({
-          error: 'Bad request',
+          _error: 'Bad request',
           message: 'User ID is required',
         });
       }
@@ -49,7 +49,7 @@ export function registerUserRoutes(app: Express): void {
       const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'User not found',
         });
       }
@@ -57,10 +57,10 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to fetch user:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch user',
       });
     }
@@ -75,7 +75,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!email) {
         return res.status(400).json({
-          error: 'Bad request',
+          _error: 'Bad request',
           message: 'Email is required',
         });
       }
@@ -83,7 +83,7 @@ export function registerUserRoutes(app: Express): void {
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'User not found',
         });
       }
@@ -91,10 +91,10 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to fetch user by email:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch user',
       });
     }
@@ -111,7 +111,7 @@ export function registerUserRoutes(app: Express): void {
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(409).json({
-          error: 'Conflict',
+          _error: 'Conflict',
           message: 'User with this email already exists',
         });
       }
@@ -121,10 +121,10 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
-    } catch (___error) {
+    } catch (____error) {
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid user data',
           details: _error.issues,
         });
@@ -132,7 +132,7 @@ export function registerUserRoutes(app: Express): void {
 
       console.error('Failed to create user:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to create user',
       });
     }
@@ -147,7 +147,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!id) {
         return res.status(400).json({
-          error: 'Bad request',
+          _error: 'Bad request',
           message: 'User ID is required',
         });
       }
@@ -163,7 +163,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!user) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'User not found',
         });
       }
@@ -171,10 +171,10 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (___error) {
+    } catch (____error) {
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
-          error: 'Validation error',
+          _error: 'Validation error',
           message: 'Invalid user data',
           details: _error.issues,
         });
@@ -182,7 +182,7 @@ export function registerUserRoutes(app: Express): void {
 
       console.error('Failed to update user:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to update user',
       });
     }
@@ -197,7 +197,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!id) {
         return res.status(400).json({
-          error: 'Bad request',
+          _error: 'Bad request',
           message: 'User ID is required',
         });
       }
@@ -210,7 +210,7 @@ export function registerUserRoutes(app: Express): void {
 
       if (!user) {
         return res.status(404).json({
-          error: 'Not found',
+          _error: 'Not found',
           message: 'User not found',
         });
       }
@@ -219,10 +219,10 @@ export function registerUserRoutes(app: Express): void {
         message: 'User deactivated successfully',
         id: user.id,
       });
-    } catch (___error) {
+    } catch (____error) {
       console.error('Failed to deactivate user:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to deactivate user',
       });
     }
@@ -239,7 +239,7 @@ export function registerUserRoutes(app: Express): void {
       
       if (!userRole) {
         return res.status(400).json({
-          error: 'Bad request',
+          _error: 'Bad request',
           message: 'User role not found in session',
         });
       }
@@ -247,7 +247,7 @@ export function registerUserRoutes(app: Express): void {
       // Validate the role exists in permissions
       if (!permissions[userRole as keyof typeof permissions]) {
         return res.status(400).json({
-          error: 'Bad request', 
+          _error: 'Bad request', 
           message: 'Invalid user role',
         });
       }
@@ -272,10 +272,10 @@ export function registerUserRoutes(app: Express): void {
       const validatedResponse = permissionsResponseSchema.parse(responseData);
       
       res.json(validatedResponse);
-    } catch (___error) {
+    } catch (____error) {
       if (_error instanceof z.ZodError) {
         return res.status(500).json({
-          error: 'Internal server error',
+          _error: 'Internal server error',
           message: 'Failed to validate permissions response',
           details: _error.issues,
         });
@@ -283,7 +283,7 @@ export function registerUserRoutes(app: Express): void {
 
       console.error('Failed to fetch user permissions:', _error);
       res.status(500).json({
-        error: 'Internal server error',
+        _error: 'Internal server error',
         message: 'Failed to fetch user permissions',
       });
     }

@@ -23,7 +23,7 @@ declare global {
  * Asset module declarations.
  */
 declare module '@assets/*' {
-  const value: string;
+  const _value: string;
   export default value;
 }
 
@@ -72,7 +72,7 @@ declare module 'wouter/memory' {
   interface StubHistory {
     history: string[];
     reset: () => void;
-    value: string;
+    _value: string;
   }
   
   /**

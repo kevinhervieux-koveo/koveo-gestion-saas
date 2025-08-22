@@ -24,9 +24,12 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Security page component for Koveo Gestion.
  * Comprehensive overview of security features and compliance measures.
  */
-export default function  /**
+export default function /**
+   * Security page function.
+   */ /**
    * Security page function.
    */
+
  SecurityPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
@@ -204,7 +207,7 @@ export default function  /**
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
-          {securityFeatures.map((feature, index) => (
+          {securityFeatures.map((feature, _index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`security-feature-${index}`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -250,7 +253,7 @@ export default function  /**
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {complianceStandards.map((standard, index) => (
+            {complianceStandards.map((standard, _index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow" data-testid={`compliance-${index}`}>
                 <CardHeader>
                   <standard.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -286,7 +289,7 @@ export default function  /**
             <div>
               <h3 className="text-xl font-semibold mb-4">Mesures de confidentialité</h3>
               <div className="space-y-3">
-                {privacyFeatures.map((feature, index) => (
+                {privacyFeatures.map((feature, _index) => (
                   <div key={index} className="flex items-start space-x-2" data-testid={`privacy-feature-${index}`}>
                     <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">{feature}</span>
@@ -320,7 +323,7 @@ export default function  /**
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {technicalSafeguards.map((safeguard, index) => (
+            {technicalSafeguards.map((safeguard, _index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`safeguard-${index}`}>
                 <CardHeader>
                   <CardTitle className="text-lg text-center">{safeguard.category}</CardTitle>

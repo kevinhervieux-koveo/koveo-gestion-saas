@@ -18,7 +18,7 @@ const resetPasswordSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
       'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
   confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((_data) => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',
   path: ['confirmPassword'],
 });
@@ -31,9 +31,12 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Reset password page function.
+   */ /**
    * Reset password page function.
    */
+
  ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
@@ -54,10 +57,14 @@ export default function  /**
   // Extract token from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');  /**
+    const tokenParam = urlParams.get('token'); /**
+   * If function.
+   * @param !tokenParam - !tokenParam parameter.
+   */ /**
    * If function.
    * @param !tokenParam - !tokenParam parameter.
    */
+
 
     
     if (!tokenParam) {
@@ -73,10 +80,14 @@ export default function  /**
     setToken(tokenParam);
   }, [navigate, toast]);
 
-  const onSubmit = async (data: ResetPasswordForm) => {  /**
+  const onSubmit = async (_data: ResetPasswordForm) => { /**
+   * If function.
+   * @param !token - !token parameter.
+   */ /**
    * If function.
    * @param !token - !token parameter.
    */
+
 
     if (!token) {
       toast({
@@ -99,36 +110,56 @@ export default function  /**
         title: 'Mot de passe réinitialisé',
         description: 'Votre mot de passe a été mis à jour avec succès.',
       });
-    }  /**
+    } /**
+   * Catch function.
+   * @param error - Error object.
+   */ /**
    * Catch function.
    * @param error - Error object.
    */
- catch (error: unknown) {
-      console.error('Reset password error:', error);
-      let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.';  /**
+
+ catch (_error: unknown) {
+      console.error('Reset password _error:', _error);
+      let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.'; /**
+   * If function.
+   * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
+   */ /**
    * If function.
    * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
    */
 
+
       
       if (error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED') {
         errorMessage = 'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.';
-      } else  /**
+      } else /**
+   * If function.
+   * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
+   */ /**
    * If function.
    * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
    */
+
  if (error.code === 'TOKEN_ALREADY_USED') {
         errorMessage = 'Ce lien de réinitialisation a déjà été utilisé.';
-      } else  /**
+      } else /**
+   * If function.
+   * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
+   */ /**
    * If function.
    * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
    */
+
  if (error.code === 'PASSWORD_TOO_SHORT') {
         errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
-      } else  /**
+      } else /**
+   * If function.
+   * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
+   */ /**
    * If function.
    * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
    */
+
  if (error.code === 'PASSWORD_TOO_WEAK') {
         errorMessage = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
       }
@@ -141,10 +172,14 @@ export default function  /**
     } finally {
       setIsSubmitting(false);
     }
-  };  /**
+  }; /**
    * If function.
-   * @param resetComplete - resetComplete parameter.
+   * @param resetComplete - ResetComplete parameter.
+   */ /**
+   * If function.
+   * @param resetComplete - ResetComplete parameter.
    */
+
 
 
   if (resetComplete) {
@@ -170,10 +205,14 @@ export default function  /**
         </Card>
       </div>
     );
-  }  /**
+  } /**
+   * If function.
+   * @param !token - !token parameter.
+   */ /**
    * If function.
    * @param !token - !token parameter.
    */
+
 
 
   if (!token) {

@@ -26,7 +26,7 @@ interface ComponentPattern {
 interface ExtractableComponent {
   name: string;
   description: string;
-  props: string[];
+  _props: string[];
   template: string;
   usage: string[];
   benefits: string[];
@@ -75,10 +75,10 @@ const extractProps = (pattern: string): string[] => {
     });
   }
   
-  return Array.from(props);
+  return Array.from(_props);
 };
 
-const generateComponentTemplate = (type: ComponentPattern['type'], props: string[]): ExtractableComponent => {
+const generateComponentTemplate = (type: ComponentPattern['type'], _props: string[]): ExtractableComponent => {
   const templates = {
     button: {
       name: 'StandardButton',
@@ -147,7 +147,7 @@ const StandardButton: React.FC<StandardButtonProps> = ({
       name: 'StandardForm',
       description: 'Reusable form wrapper with validation and error handling',
       template: `interface StandardFormProps {
-  onSubmit: (data: unknown) => Promise<void> | void;
+  onSubmit: (_data: unknown) => Promise<void> | void;
   children: React.ReactNode;
   className?: string;
   validationSchema?: any;
@@ -174,10 +174,10 @@ const StandardForm: React.FC<StandardFormProps> = ({
       const data = Object.fromEntries(formData.entries());
       
       if (validationSchema) {
-        const result = validationSchema.safeParse(data);
+        const result = validationSchema.safeParse(_data);
         if (!result.success) {
           const fieldErrors: Record<string, string> = {};
-          result.error.errors.forEach((error: unknown) => {
+          result.error.errors.forEach((_error: unknown) => {
             fieldErrors[error.path[0]] = error.message;
           });
           setErrors(fieldErrors);
@@ -185,9 +185,9 @@ const StandardForm: React.FC<StandardFormProps> = ({
         }
       }
       
-      await onSubmit(data);
-    } catch (__error) {
-      console.error('Form submission error:', error);
+      await onSubmit(_data);
+    } catch (_error) {
+      console.error('Form submission _error:', _error);
     } finally {
       setIsSubmitting(false);
     }
@@ -315,9 +315,9 @@ const StandardCard: React.FC<StandardCardProps> = ({
   description?: string;
   value?: string;
   defaultValue?: string;
-  onChange?: (value: string) => void;
+  onChange?: (_value: string) => void;
   onBlur?: () => void;
-  validation?: (value: string) => string | undefined;
+  validation?: (_value: string) => string | undefined;
 }
 
 const StandardInput: React.FC<StandardInputProps> = ({
@@ -341,8 +341,8 @@ const StandardInput: React.FC<StandardInputProps> = ({
   
   const handleBlur = () => {
     setTouched(true);
-    if (validation && value) {
-      const validationError = validation(value);
+    if (validation && _value) {
+      const validationError = validation(_value);
       setError(validationError || '');
     }
     onBlur?.();
@@ -521,15 +521,15 @@ const StandardModal: React.FC<StandardModalProps> = ({
       name: 'StandardTable',
       description: 'Data table with sorting, pagination, and selection',
       template: `interface Column<T> {
-  key: keyof T;
+  _key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: T[keyof T], row: T) => React.ReactNode;
+  render?: (_value: T[keyof T], row: T) => React.ReactNode;
   width?: string;
 }
 
 interface StandardTableProps<T> {
-  data: T[];
+  _data: T[];
   columns: Column<T>[];
   loading?: boolean;
   emptyMessage?: string;
@@ -617,9 +617,9 @@ function StandardTable<T extends { id: string | number }>({
             )}
             {columns.map((column) => (
               <th
-                key={String(column.key)}
+                key={String(column._key)}
                 className={\`px-3 py-3.5 text-left text-sm font-semibold text-gray-900 \${sortable && column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}\`}
-                onClick={() => column.sortable && handleSort(column.key)}
+                onClick={() => column.sortable && handleSort(column._key)}
                 style={{ width: column.width }}
               >
                 <div className="flex items-center gap-1">
@@ -656,7 +656,7 @@ function StandardTable<T extends { id: string | number }>({
                   </td>
                 )}
                 {columns.map((column) => (
-                  <td key={String(column.key)} className="px-3 py-4 text-sm text-gray-900">
+                  <td key={String(column._key)} className="px-3 py-4 text-sm text-gray-900">
                     {column.render
                       ? column.render(row[column.key], row)
                       : String(row[column.key])
@@ -701,9 +701,9 @@ function StandardTable<T extends { id: string | number }>({
 }`,
       usage: [
         'const columns = [',
-        '  { key: "name", label: "Name", sortable: true },',
-        '  { key: "email", label: "Email", sortable: true },',
-        '  { key: "role", label: "Role", render: (role) => <Badge>{role}</Badge> }',
+        '  { _key: "name", label: "Name", sortable: true },',
+        '  { _key: "email", label: "Email", sortable: true },',
+        '  { _key: "role", label: "Role", render: (role) => <Badge>{role}</Badge> }',
         '];',
         '<StandardTable data={users} columns={columns} loading={isLoading} />'
       ],
@@ -719,7 +719,7 @@ function StandardTable<T extends { id: string | number }>({
   const template = templates[type];
   return {
     ...template,
-    props: props.length > 0 ? props : template.props || []
+    _props: props.length > 0 ? _props : template.props || []
   } as ExtractableComponent;
 };
 
@@ -743,7 +743,7 @@ describe('Component Extraction Analysis Tests', () => {
             sourceFiles.push(fullPath);
           }
         }
-      } catch (__error) {
+      } catch (_error) {
         // Directory might not exist
       }
     };
@@ -785,21 +785,21 @@ describe('Component Extraction Analysis Tests', () => {
       
       const extractableButtons = buttonPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
       
-      console.log('\n=== BUTTON COMPONENT ANALYSIS ===\n');
-      console.log(`Total button patterns found: ${buttonPatterns.length}`);
-      console.log(`Extractable button patterns: ${extractableButtons.length}`);
+      console.warn('\n=== BUTTON COMPONENT ANALYSIS ===\n');
+      console.warn(`Total button patterns found: ${buttonPatterns.length}`);
+      console.warn(`Extractable button patterns: ${extractableButtons.length}`);
       
-      extractableButtons.forEach((pattern, index) => {
-        console.log(`\n${index + 1}. Button Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
-        console.log(`   Occurrences: ${pattern.occurrences}`);
-        console.log(`   Files: ${pattern.files.length} files`);
-        console.log(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
+      extractableButtons.forEach((pattern, _index) => {
+        console.warn(`\n${index + 1}. Button Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(`   Occurrences: ${pattern.occurrences}`);
+        console.warn(`   Files: ${pattern.files.length} files`);
+        console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
       
       if (extractableButtons.length > 0) {
         const buttonComponent = generateComponentTemplate('button', []);
-        console.log('\n=== SUGGESTED BUTTON COMPONENT ===\n');
-        console.log(buttonComponent.template);
+        console.warn('\n=== SUGGESTED BUTTON COMPONENT ===\n');
+        console.warn(buttonComponent.template);
       }
       
       expect(buttonPatterns.length).toBeGreaterThan(0);
@@ -839,21 +839,21 @@ describe('Component Extraction Analysis Tests', () => {
       
       const extractableForms = formPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
       
-      console.log('\n=== FORM COMPONENT ANALYSIS ===\n');
-      console.log(`Total form patterns found: ${formPatterns.length}`);
-      console.log(`Extractable form patterns: ${extractableForms.length}`);
+      console.warn('\n=== FORM COMPONENT ANALYSIS ===\n');
+      console.warn(`Total form patterns found: ${formPatterns.length}`);
+      console.warn(`Extractable form patterns: ${extractableForms.length}`);
       
-      extractableForms.forEach((pattern, index) => {
-        console.log(`\n${index + 1}. Form Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
-        console.log(`   Occurrences: ${pattern.occurrences}`);
-        console.log(`   Files: ${pattern.files.length} files`);
-        console.log(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
+      extractableForms.forEach((pattern, _index) => {
+        console.warn(`\n${index + 1}. Form Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(`   Occurrences: ${pattern.occurrences}`);
+        console.warn(`   Files: ${pattern.files.length} files`);
+        console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
       
       if (extractableForms.length > 0) {
         const formComponent = generateComponentTemplate('form', []);
-        console.log('\n=== SUGGESTED FORM COMPONENT ===\n');
-        console.log(formComponent.template);
+        console.warn('\n=== SUGGESTED FORM COMPONENT ===\n');
+        console.warn(formComponent.template);
       }
       
       expect(formPatterns.length).toBeGreaterThan(0);
@@ -896,21 +896,21 @@ describe('Component Extraction Analysis Tests', () => {
       
       const extractableCards = cardPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
       
-      console.log('\n=== CARD COMPONENT ANALYSIS ===\n');
-      console.log(`Total card patterns found: ${cardPatterns.length}`);
-      console.log(`Extractable card patterns: ${extractableCards.length}`);
+      console.warn('\n=== CARD COMPONENT ANALYSIS ===\n');
+      console.warn(`Total card patterns found: ${cardPatterns.length}`);
+      console.warn(`Extractable card patterns: ${extractableCards.length}`);
       
-      extractableCards.forEach((pattern, index) => {
-        console.log(`\n${index + 1}. Card Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
-        console.log(`   Occurrences: ${pattern.occurrences}`);
-        console.log(`   Files: ${pattern.files.length} files`);
-        console.log(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
+      extractableCards.forEach((pattern, _index) => {
+        console.warn(`\n${index + 1}. Card Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(`   Occurrences: ${pattern.occurrences}`);
+        console.warn(`   Files: ${pattern.files.length} files`);
+        console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
       
       if (extractableCards.length > 0) {
         const cardComponent = generateComponentTemplate('card', []);
-        console.log('\n=== SUGGESTED CARD COMPONENT ===\n');
-        console.log(cardComponent.template);
+        console.warn('\n=== SUGGESTED CARD COMPONENT ===\n');
+        console.warn(cardComponent.template);
       }
       
       expect(cardPatterns.length).toBeGreaterThan(0);
@@ -950,21 +950,21 @@ describe('Component Extraction Analysis Tests', () => {
       
       const extractableInputs = inputPatterns.filter(p => p.occurrences >= 3 || p.extractionPotential === 'high');
       
-      console.log('\n=== INPUT COMPONENT ANALYSIS ===\n');
-      console.log(`Total input patterns found: ${inputPatterns.length}`);
-      console.log(`Extractable input patterns: ${extractableInputs.length}`);
+      console.warn('\n=== INPUT COMPONENT ANALYSIS ===\n');
+      console.warn(`Total input patterns found: ${inputPatterns.length}`);
+      console.warn(`Extractable input patterns: ${extractableInputs.length}`);
       
-      extractableInputs.forEach((pattern, index) => {
-        console.log(`\n${index + 1}. Input Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
-        console.log(`   Occurrences: ${pattern.occurrences}`);
-        console.log(`   Files: ${pattern.files.length} files`);
-        console.log(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
+      extractableInputs.forEach((pattern, _index) => {
+        console.warn(`\n${index + 1}. Input Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(`   Occurrences: ${pattern.occurrences}`);
+        console.warn(`   Files: ${pattern.files.length} files`);
+        console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
       
       if (extractableInputs.length > 0) {
         const inputComponent = generateComponentTemplate('input', []);
-        console.log('\n=== SUGGESTED INPUT COMPONENT ===\n');
-        console.log(inputComponent.template);
+        console.warn('\n=== SUGGESTED INPUT COMPONENT ===\n');
+        console.warn(inputComponent.template);
       }
       
       expect(inputPatterns.length).toBeGreaterThan(0);
@@ -1007,20 +1007,20 @@ describe('Component Extraction Analysis Tests', () => {
       
       const extractableModals = modalPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
       
-      console.log('\n=== MODAL COMPONENT ANALYSIS ===\n');
-      console.log(`Total modal patterns found: ${modalPatterns.length}`);
-      console.log(`Extractable modal patterns: ${extractableModals.length}`);
+      console.warn('\n=== MODAL COMPONENT ANALYSIS ===\n');
+      console.warn(`Total modal patterns found: ${modalPatterns.length}`);
+      console.warn(`Extractable modal patterns: ${extractableModals.length}`);
       
-      extractableModals.forEach((pattern, index) => {
-        console.log(`\n${index + 1}. Modal Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
-        console.log(`   Occurrences: ${pattern.occurrences}`);
-        console.log(`   Files: ${pattern.files.length} files`);
+      extractableModals.forEach((pattern, _index) => {
+        console.warn(`\n${index + 1}. Modal Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(`   Occurrences: ${pattern.occurrences}`);
+        console.warn(`   Files: ${pattern.files.length} files`);
       });
       
       if (extractableModals.length > 0) {
         const modalComponent = generateComponentTemplate('modal', []);
-        console.log('\n=== SUGGESTED MODAL COMPONENT ===\n');
-        console.log(modalComponent.template);
+        console.warn('\n=== SUGGESTED MODAL COMPONENT ===\n');
+        console.warn(modalComponent.template);
       }
       
       expect(modalPatterns.length).toBeGreaterThan(0);
@@ -1029,55 +1029,55 @@ describe('Component Extraction Analysis Tests', () => {
 
   describe('Comprehensive Component Library Generation', () => {
     it('should generate complete component library recommendations', () => {
-      console.log('\n=== COMPREHENSIVE COMPONENT LIBRARY RECOMMENDATIONS ===\n');
+      console.warn('\n=== COMPREHENSIVE COMPONENT LIBRARY RECOMMENDATIONS ===\n');
       
       const componentTypes: ComponentPattern['type'][] = ['button', 'form', 'card', 'input', 'modal', 'table'];
       
       componentTypes.forEach(type => {
         const component = generateComponentTemplate(type, []);
         
-        console.log(`\n## ${component.name}\n`);
-        console.log(`**Description**: ${component.description}\n`);
+        console.warn(`\n## ${component.name}\n`);
+        console.warn(`**Description**: ${component.description}\n`);
         
-        console.log('**Benefits**:');
+        console.warn('**Benefits**:');
         component.benefits.forEach(benefit => {
-          console.log(`- ${benefit}`);
+          console.warn(`- ${benefit}`);
         });
         
-        console.log('\n**Usage Examples**:');
+        console.warn('\n**Usage Examples**:');
         component.usage.forEach(example => {
-          console.log(`\`\`\`tsx\n${example}\n\`\`\``);
+          console.warn(`\`\`\`tsx\n${example}\n\`\`\``);
         });
         
-        console.log('\n---\n');
+        console.warn('\n---\n');
       });
       
-      console.log('\n## Implementation Strategy\n');
-      console.log('1. **Phase 1**: Implement StandardButton and StandardInput (highest impact, lowest effort)');
-      console.log('2. **Phase 2**: Add StandardCard and StandardForm (medium effort, high value)');  
-      console.log('3. **Phase 3**: Complete with StandardModal and StandardTable (higher complexity)');
+      console.warn('\n## Implementation Strategy\n');
+      console.warn('1. **Phase 1**: Implement StandardButton and StandardInput (highest impact, lowest effort)');
+      console.warn('2. **Phase 2**: Add StandardCard and StandardForm (medium effort, high _value)');  
+      console.warn('3. **Phase 3**: Complete with StandardModal and StandardTable (higher complexity)');
       
-      console.log('\n## File Structure Recommendation\n');
-      console.log('```');
-      console.log('client/src/components/');
-      console.log('├── ui/');
-      console.log('│   ├── Button/');
-      console.log('│   │   ├── StandardButton.tsx');
-      console.log('│   │   ├── StandardButton.test.tsx');
-      console.log('│   │   └── index.ts');
-      console.log('│   ├── Input/');
-      console.log('│   │   ├── StandardInput.tsx');
-      console.log('│   │   ├── StandardInput.test.tsx');
-      console.log('│   │   └── index.ts');
-      console.log('│   ├── Card/');
-      console.log('│   ├── Form/');
-      console.log('│   ├── Modal/');
-      console.log('│   ├── Table/');
-      console.log('│   └── index.ts');
-      console.log('└── shared/');
-      console.log('    ├── types.ts');
-      console.log('    └── constants.ts');
-      console.log('```');
+      console.warn('\n## File Structure Recommendation\n');
+      console.warn('```');
+      console.warn('client/src/components/');
+      console.warn('├── ui/');
+      console.warn('│   ├── Button/');
+      console.warn('│   │   ├── StandardButton.tsx');
+      console.warn('│   │   ├── StandardButton.test.tsx');
+      console.warn('│   │   └── index.ts');
+      console.warn('│   ├── Input/');
+      console.warn('│   │   ├── StandardInput.tsx');
+      console.warn('│   │   ├── StandardInput.test.tsx');
+      console.warn('│   │   └── index.ts');
+      console.warn('│   ├── Card/');
+      console.warn('│   ├── Form/');
+      console.warn('│   ├── Modal/');
+      console.warn('│   ├── Table/');
+      console.warn('│   └── index.ts');
+      console.warn('└── shared/');
+      console.warn('    ├── types.ts');
+      console.warn('    └── constants.ts');
+      console.warn('```');
       
       expect(componentTypes.length).toBe(6);
     });

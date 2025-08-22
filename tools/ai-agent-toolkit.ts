@@ -57,7 +57,7 @@ export interface ProjectHealth {
  */
 export class AIAgentToolkit {
   private projectRoot: string;
-  private context: AgentContext;
+  private _context: AgentContext;
 
   /**
    * Initialize AI Agent Toolkit.
@@ -170,8 +170,8 @@ export class AIAgentToolkit {
           `${file}: ${match.replace(/TODO:?\s*/i, '')}`
         ));
       });
-    } catch (__error) {
-      console.warn('Error scanning for TODOs:', __error);
+    } catch (_error) {
+      console.warn('Error scanning for TODOs:', _error);
     }
 
     return tasks;
@@ -400,7 +400,7 @@ export class AIAgentToolkit {
         }
       }
 
-    } catch (__error) {
+    } catch (_error) {
       score -= 5; // Penalty for security check failure
     }
 
@@ -452,7 +452,7 @@ export class AIAgentToolkit {
         }
       });
 
-    } catch (__error) {
+    } catch (_error) {
       score -= 5; // Penalty for performance check failure
     }
 
@@ -497,7 +497,7 @@ export class AIAgentToolkit {
 
     const report = {
       timestamp: new Date().toISOString(),
-      context: this.context,
+      _context: this.context,
       health,
       codeAnalysis,
       suggestions

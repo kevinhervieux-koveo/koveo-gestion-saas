@@ -34,7 +34,7 @@ export interface SSLServiceOptions {
 export interface DNSRecord {
   name: string;
   type: string;
-  value: string;
+  _value: string;
   ttl?: number;
 }
 
@@ -44,13 +44,14 @@ export interface DNSRecord {
 export class SSLService {
   private client?: acme.Client;
   private accountKey?: Buffer;
-  private options: Required<SSLServiceOptions>;
+  private _options: Required<SSLServiceOptions>;
 
   /**
    *
    * @param options
+   * @param _options
    */
-  constructor(options: SSLServiceOptions) {
+  constructor(_options: SSLServiceOptions) {
     this.options = {
       email: options.email,
       staging: options.staging || false,
@@ -82,7 +83,7 @@ export class SSLService {
 
       // Create account if it doesn't exist
       await this.ensureAccount();
-    } catch (___error) {
+    } catch (____error) {
       throw new Error(`Failed to initialize SSL service: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -107,7 +108,7 @@ export class SSLService {
 
       // Create Certificate Signing Request (CSR)
       const csr = await acme.crypto.createCsr({
-        key: certificateKey,
+        _key: certificateKey,
         commonName: domain
       });
 
@@ -132,7 +133,7 @@ export class SSLService {
 
       return certData;
 
-    } catch (___error) {
+    } catch (____error) {
       throw new Error(`Failed to request certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -153,7 +154,7 @@ export class SSLService {
       // For basic validation, just check if domain resolves
       // In production, you might want more sophisticated checks
       return txtRecords !== undefined;
-    } catch (___error) {
+    } catch (____error) {
       console.error(`Domain ownership validation failed for ${domain}:`, _error);
       return false;
     }
@@ -169,12 +170,12 @@ export class SSLService {
       const existingCert = await this.getCertificate(domain);
       
       if (existingCert && this.shouldRotateCertificate(existingCert)) {
-        console.log(`Rotating certificate for ${domain}`);
+        console.warn(`Rotating certificate for ${domain}`);
         return await this.requestCertificate(domain);
       }
 
       return existingCert || await this.requestCertificate(domain);
-    } catch (___error) {
+    } catch (____error) {
       throw new Error(`Failed to rotate certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   }
@@ -203,8 +204,8 @@ export class SSLService {
       ]);
 
       return await this.parseCertificate(certificate, privateKey);
-    } catch (__error) {
-      console.error(`Failed to get certificate for ${domain}:`, error);
+    } catch (_error) {
+      console.error(`Failed to get certificate for ${domain}:`, _error);
       return null;
     }
   }
@@ -222,8 +223,8 @@ export class SSLService {
         }))
       );
       return certificates;
-    } catch (__error) {
-      console.error('Failed to list certificates:', error);
+    } catch (_error) {
+      console.error('Failed to list certificates:', _error);
       return [];
     }
   }
@@ -247,7 +248,7 @@ export class SSLService {
 
       // Remove from storage
       await this.removeCertificateFromStorage(domain);
-    } catch (__error) {
+    } catch (_error) {
       throw new Error(`Failed to revoke certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -290,10 +291,10 @@ export class SSLService {
         termsOfServiceAgreed: true,
         contact: [`mailto:${this.options.email}`]
       });
-    } catch (__error) {
+    } catch (_error) {
       // Account might already exist, which is fine
       if (!error || !error.toString().includes('account already exists')) {
-        console.warn('Account creation warning:', error);
+        console.warn('Account creation warning:', _error);
       }
     }
   }
@@ -331,17 +332,17 @@ export class SSLService {
     const dnsRecord: DNSRecord = {
       name: `_acme-challenge.${authz.identifier.value}`,
       type: 'TXT',
-      value: keyAuthorization,
+      _value: keyAuthorization,
       ttl: 300
     };
 
-    console.log('\n=== DNS Challenge Required ===');
-    console.log(`Domain: ${authz.identifier.value}`);
-    console.log(`Record Name: ${dnsRecord.name}`);
-    console.log(`Record Type: ${dnsRecord.type}`);
-    console.log(`Record Value: ${dnsRecord.value}`);
-    console.log('Please create this DNS record and wait for propagation before continuing.');
-    console.log('===============================\n');
+    console.warn('\n=== DNS Challenge Required ===');
+    console.warn(`Domain: ${authz.identifier.value}`);
+    console.warn(`Record Name: ${dnsRecord.name}`);
+    console.warn(`Record Type: ${dnsRecord.type}`);
+    console.warn(`Record Value: ${dnsRecord.value}`);
+    console.warn('Please create this DNS record and wait for propagation before continuing.');
+    console.warn('===============================\n');
 
     // Wait for user confirmation or automated DNS provider integration
     await this.waitForDNSPropagation(dnsRecord);
@@ -355,7 +356,7 @@ export class SSLService {
    */
   private async removeDNSChallenge(authz: any, challenge: any, keyAuthorization: string): Promise<void> {
     const recordName = `_acme-challenge.${authz.identifier.value}`;
-    console.log(`DNS challenge completed. You can now remove the TXT record: ${recordName}`);
+    console.warn(`DNS challenge completed. You can now remove the TXT record: ${recordName}`);
   }
 
   /**
@@ -368,24 +369,24 @@ export class SSLService {
     const { promisify } = await import('util');
     const resolveTxt = promisify(dns.resolveTxt);
 
-    console.log('Waiting for DNS propagation...');
+    console.warn('Waiting for DNS propagation...');
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const txtRecords = await resolveTxt(record.name);
         const found = txtRecords.some(records => 
-          records.some(txt => txt === record.value)
+          records.some(txt => txt === record._value)
         );
 
         if (found) {
-          console.log('DNS record propagated successfully!');
+          console.warn('DNS record propagated successfully!');
           return;
         }
-      } catch (__error) {
+      } catch (_error) {
         // DNS resolution failed, continue waiting
       }
 
-      console.log(`Attempt ${attempt}/${maxAttempts} - DNS record not yet propagated, waiting 10 seconds...`);
+      console.warn(`Attempt ${attempt}/${maxAttempts} - DNS record not yet propagated, waiting 10 seconds...`);
       await new Promise(resolve => setTimeout(resolve, 10000));
     }
 
@@ -437,7 +438,7 @@ export class SSLService {
         serialNumber: cert.serialNumber,
         fingerprint: forge.md.sha256.create().update(forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes()).digest().toHex()
       };
-    } catch (__error) {
+    } catch (_error) {
       throw new Error(`Failed to parse certificate: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -476,8 +477,8 @@ export class SSLService {
     const domainDir = path.join(this.options.storageDir, domain);
     try {
       await fs.rm(domainDir, { recursive: true, force: true });
-    } catch (__error) {
-      console.warn(`Failed to remove certificate storage for ${domain}:`, error);
+    } catch (_error) {
+      console.warn(`Failed to remove certificate storage for ${domain}:`, _error);
     }
   }
 }
@@ -489,10 +490,11 @@ export class SSLService {
 /**
  * CreateSSLService function.
  * @param options
+ * @param _options
  * @returns Function result.
  */
-export async function createSSLService(options: SSLServiceOptions): Promise<SSLService> {
-  const service = new SSLService(options);
+export async function createSSLService(_options: SSLServiceOptions): Promise<SSLService> {
+  const service = new SSLService(_options);
   await service.initialize();
   return service;
 }

@@ -79,15 +79,15 @@ export class OptimizedDatabaseStorage implements IStorage {
   private async initializeOptimizations(): Promise<void> {
     // Skip database optimization during tests
     if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID || process.env.SKIP_DB_OPTIMIZATION) {
-      console.log('⚠️ Database optimizations skipped in test environment');
+      console.warn('⚠️ Database optimizations skipped in test environment');
       return;
     }
     
     try {
       await QueryOptimizer.applyCoreOptimizations();
-      console.log('✅ Database optimizations applied');
-    } catch (___error) {
-      console.warn('⚠️ Failed to apply database optimizations:', ___error);
+      console.warn('✅ Database optimizations applied');
+    } catch (____error) {
+      console.warn('⚠️ Failed to apply database optimizations:', _error);
     }
   }
 
@@ -117,7 +117,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     // Cache result
     if (cacheKey && result !== undefined) {
-      queryCache.set(cacheType, cacheKey, result);
+      queryCache.set(cacheType, cacheKey, _result);
     }
 
     return result;
@@ -143,9 +143,10 @@ export class OptimizedDatabaseStorage implements IStorage {
   /**
    * Gets paginated users with optimized query structure.
    * @param options
+   * @param _options
    */
-  async getPaginatedUsers(options: PaginationOptions): Promise<{ users: User[], total: number }> {
-    PaginationHelper.validatePagination(options);
+  async getPaginatedUsers(_options: PaginationOptions): Promise<{ users: User[], total: number }> {
+    PaginationHelper.validatePagination(_options);
     
     const cacheKey = `paginated_users:${options.page}:${options.pageSize}:${options.sortBy}:${options.sortDirection}`;
     
@@ -175,7 +176,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .offset((options.page - 1) * options.pageSize);
     
     const result = { users, total };
-    queryCache.set('users', cacheKey, result);
+    queryCache.set('users', cacheKey, _result);
     
     return result;
   }
@@ -943,8 +944,9 @@ export class OptimizedDatabaseStorage implements IStorage {
   /**
    * Gets framework config by key.
    * @param key
+   * @param _key
    */
-  async getFrameworkConfig(key: string): Promise<FrameworkConfiguration | undefined> {
+  async getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined> {
     return this.withOptimizations(
       'getFrameworkConfig',
       `framework_config:${key}`,
@@ -953,7 +955,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         const result = await db
           .select()
           .from(schema.frameworkConfiguration)
-          .where(eq(schema.frameworkConfiguration.key, key));
+          .where(eq(schema.frameworkConfiguration.key, _key));
         return result[0];
       }
     );
@@ -970,7 +972,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .values(config)
         .onConflictDoUpdate({
           target: schema.frameworkConfiguration.key,
-          set: { value: config.value, updatedAt: new Date() }
+          set: { _value: config.value, updatedAt: new Date() }
         })
         .returning();
     });

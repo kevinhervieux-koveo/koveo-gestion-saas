@@ -97,8 +97,8 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
   });
 
   const createOrganizationMutation = useMutation({
-    mutationFn: async (data: InsertOrganization) => {
-      const response = await apiRequest('POST', '/api/organizations', data);
+    mutationFn: async (_data: InsertOrganization) => {
+      const response = await apiRequest('POST', '/api/organizations', _data);
       return response.json();
     },
     onSuccess: () => {
@@ -110,8 +110,8 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       form.reset();
       onOpenChange(false);
     },
-    onError: (error: unknown) => {
-      console.error('Create organization error:', error);
+    onError: (_error: unknown) => {
+      console.error('Create organization _error:', _error);
       toast({
         title: 'Error',
         description: (error as Error)?.message || 'Failed to create organization',
@@ -120,7 +120,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
     },
   });
 
-  const onSubmit = (data: OrganizationFormData) => {
+  const onSubmit = (_data: OrganizationFormData) => {
     // Convert empty strings to undefined for optional fields
     const cleanData: InsertOrganization = {
       ...data,
@@ -269,7 +269,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
                         onChange={(e) => {
                           // Auto-format postal code to uppercase
                           const value = e.target.value.toUpperCase();
-                          field.onChange(value);
+                          field.onChange(_value);
                         }}
                       />
                     </FormControl>

@@ -11,6 +11,9 @@ const THEMES = { light: '', dark: '.dark' } as const;
 /**
  * ChartConfig type definition.
  */
+/**
+ * ChartConfig type definition.
+ */
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -37,15 +40,22 @@ const ChartContext = React.createContext<ChartContextProps | null>(null);
 
 function  /**
    * Use chart function.
+   */  /**
+   * Use chart function.
    */
+
  useChart() {
   const context = React.useContext(ChartContext);  /**
+   * If function.
+   * @param !context - !context parameter.
+   */  /**
    * If function.
    * @param !context - !context parameter.
    */
 
 
-  if (!context) {
+
+  if (!_context) {
     throw new Error('useChart must be used within a <ChartContainer />');
   }
 
@@ -85,7 +95,11 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color);  /**
    * If function.
    * @param !colorConfig.length - !colorConfig.length parameter.
+   */  /**
+   * If function.
+   * @param !colorConfig.length - !colorConfig.length parameter.
    */
+
 
 
   if (!colorConfig.length) {
@@ -150,7 +164,11 @@ const ChartTooltipContent = React.forwardRef<
     const tooltipLabel = React.useMemo(() => {  /**
    * If function.
    * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
+   */  /**
+   * If function.
+   * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
    */
+
 
       if (hideLabel || !payload?.length) {
         return null;
@@ -158,14 +176,18 @@ const ChartTooltipContent = React.forwardRef<
 
       const [item] = payload;
       const key = `${labelKey || item?.dataKey || item?.name || 'value'}`;
-      const itemConfig = getPayloadConfigFromPayload(config, item, key);
+      const itemConfig = getPayloadConfigFromPayload(config, item, _key);
       const value =
         !labelKey && typeof label === 'string'
           ? config[label as keyof typeof config]?.label || label
           : itemConfig?.label;  /**
    * If function.
    * @param labelFormatter - labelFormatter parameter.
+   */  /**
+   * If function.
+   * @param labelFormatter - labelFormatter parameter.
    */
+
 
 
       if (labelFormatter) {
@@ -175,10 +197,14 @@ const ChartTooltipContent = React.forwardRef<
       }  /**
    * If function.
    * @param !value - !value parameter.
+   */  /**
+   * If function.
+   * @param !value - !value parameter.
    */
 
 
-      if (!value) {
+
+      if (!_value) {
         return null;
       }
 
@@ -186,7 +212,11 @@ const ChartTooltipContent = React.forwardRef<
     }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);  /**
    * If function.
    * @param !active || !payload?.length - !active || !payload?.length parameter.
+   */  /**
+   * If function.
+   * @param !active || !payload?.length - !active || !payload?.length parameter.
    */
+
 
 
     if (!active || !payload?.length) {
@@ -205,9 +235,9 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className='grid gap-1.5'>
-          {payload.map((item, index) => {
+          {payload.map((item, _index) => {
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
-            const itemConfig = getPayloadConfigFromPayload(config, item, key);
+            const itemConfig = getPayloadConfigFromPayload(config, item, _key);
             const indicatorColor = color || item.payload.fill || item.color;
 
             return (
@@ -289,7 +319,11 @@ const ChartLegendContent = React.forwardRef<
   const { config } = useChart();  /**
    * If function.
    * @param !payload?.length - !payload?.length parameter.
+   */  /**
+   * If function.
+   * @param !payload?.length - !payload?.length parameter.
    */
+
 
 
   if (!payload?.length) {
@@ -307,7 +341,7 @@ const ChartLegendContent = React.forwardRef<
     >
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
-        const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        const itemConfig = getPayloadConfigFromPayload(config, item, _key);
 
         return (
           <div
@@ -345,11 +379,21 @@ function  /**
    * @param config - Configuration object.
    * @param payload - Data payload.
    * @param key - Key identifier.
+   */  /**
+   * Get payload config from payload.
+   * @param config - Configuration object.
+   * @param payload - Data payload.
+   * @param key - Key identifier.
    */
- getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key: string) {  /**
+
+ getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string) {  /**
+   * If function.
+   * @param typeof payload !== 'object' || payload === null - typeof payload !== 'object' || payload === null parameter.
+   */  /**
    * If function.
    * @param typeof payload !== 'object' || payload === null - typeof payload !== 'object' || payload === null parameter.
    */
+
 
   if (typeof payload !== 'object' || payload === null) {
     return undefined;
@@ -363,7 +407,11 @@ function  /**
   let configLabelKey: string = key;  /**
    * If function.
    * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
+   */  /**
+   * If function.
+   * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
    */
+
 
 
   if (key in payload && typeof payload[key as keyof typeof payload] === 'string') {
@@ -375,7 +423,15 @@ function  /**
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
+   */  /**
+   * If function.
+   * @param payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
    */
+
  if (
     payloadPayload &&
     key in payloadPayload &&

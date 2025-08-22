@@ -31,7 +31,7 @@ describe('Semgrep Performance Analysis', () => {
         { cwd: process.cwd(), timeout: 60000 }
       );
       performanceResults = JSON.parse(stdout);
-    } catch (error) {
+    } catch (_error) {
       console.warn('Performance semgrep analysis failed:', error.message);
       performanceResults = { results: [] };
     }
@@ -44,9 +44,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (rerenderIssues.length > 0) {
-        console.log(`🔄 Found ${rerenderIssues.length} potential re-render issues:`);
+        console.warn(`🔄 Found ${rerenderIssues.length} potential re-render issues:`);
         rerenderIssues.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line} - ${violation.extra.message}`);
+          console.warn(`   - ${violation.path}:${violation.start.line} - ${violation.extra.message}`);
         });
       }
 
@@ -60,9 +60,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (memoIssues.length > 0) {
-        console.log(`🧠 Found ${memoIssues.length} expensive calculations that could use useMemo:`);
+        console.warn(`🧠 Found ${memoIssues.length} expensive calculations that could use useMemo:`);
         memoIssues.slice(0, 8).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -75,9 +75,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (callbackIssues.length > 0) {
-        console.log(`⚡ Found ${callbackIssues.length} event handlers that could use useCallback:`);
+        console.warn(`⚡ Found ${callbackIssues.length} event handlers that could use useCallback:`);
         callbackIssues.slice(0, 8).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -90,9 +90,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (largeComponents.length > 0) {
-        console.log(`🌳 Found ${largeComponents.length} potentially large component trees:`);
+        console.warn(`🌳 Found ${largeComponents.length} potentially large component trees:`);
         largeComponents.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -107,9 +107,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (n1Queries.length > 0) {
-        console.log(`🗄️ Found ${n1Queries.length} potential N+1 query patterns:`);
+        console.warn(`🗄️ Found ${n1Queries.length} potential N+1 query patterns:`);
         n1Queries.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -123,9 +123,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (indexIssues.length > 0) {
-        console.log(`📊 Found ${indexIssues.length} queries that might benefit from indexes:`);
+        console.warn(`📊 Found ${indexIssues.length} queries that might benefit from indexes:`);
         indexIssues.slice(0, 6).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -138,9 +138,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (inefficientOps.length > 0) {
-        console.log(`⚠️ Found ${inefficientOps.length} inefficient database operations:`);
+        console.warn(`⚠️ Found ${inefficientOps.length} inefficient database operations:`);
         inefficientOps.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -155,9 +155,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (cachingIssues.length > 0) {
-        console.log(`📦 Found ${cachingIssues.length} API requests that could benefit from caching:`);
+        console.warn(`📦 Found ${cachingIssues.length} API requests that could benefit from caching:`);
         cachingIssues.slice(0, 6).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -170,9 +170,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (fetchingIssues.length > 0) {
-        console.log(`🌐 Found ${fetchingIssues.length} inefficient data fetching patterns:`);
+        console.warn(`🌐 Found ${fetchingIssues.length} inefficient data fetching patterns:`);
         fetchingIssues.slice(0, 6).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -185,9 +185,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (batchingIssues.length > 0) {
-        console.log(`📤 Found ${batchingIssues.length} opportunities for request batching:`);
+        console.warn(`📤 Found ${batchingIssues.length} opportunities for request batching:`);
         batchingIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -202,9 +202,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (memoryLeaks.length > 0) {
-        console.log(`🧠 Found ${memoryLeaks.length} potential memory leak patterns:`);
+        console.warn(`🧠 Found ${memoryLeaks.length} potential memory leak patterns:`);
         memoryLeaks.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -218,9 +218,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (stringIssues.length > 0) {
-        console.log(`🔤 Found ${stringIssues.length} inefficient string operations:`);
+        console.warn(`🔤 Found ${stringIssues.length} inefficient string operations:`);
         stringIssues.slice(0, 6).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -233,9 +233,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (arrayIssues.length > 0) {
-        console.log(`📝 Found ${arrayIssues.length} inefficient array operations:`);
+        console.warn(`📝 Found ${arrayIssues.length} inefficient array operations:`);
         arrayIssues.slice(0, 6).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -250,9 +250,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (largeImports.length > 0) {
-        console.log(`📦 Found ${largeImports.length} potentially large imports:`);
+        console.warn(`📦 Found ${largeImports.length} potentially large imports:`);
         largeImports.forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -265,9 +265,9 @@ describe('Semgrep Performance Analysis', () => {
       ) || [];
 
       if (lazyLoadingIssues.length > 0) {
-        console.log(`⏳ Found ${lazyLoadingIssues.length} components that could be lazy loaded:`);
+        console.warn(`⏳ Found ${lazyLoadingIssues.length} components that could be lazy loaded:`);
         lazyLoadingIssues.slice(0, 5).forEach(violation => {
-          console.log(`   - ${violation.path}:${violation.start.line}`);
+          console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
 
@@ -288,17 +288,17 @@ describe('Semgrep Performance Analysis', () => {
       categories[category] = (categories[category] || 0) + 1;
     });
 
-    console.log('\n🚀 Performance Analysis Summary:');
-    console.log(`   Total performance issues found: ${totalIssues}`);
-    console.log(`   Critical issues: ${criticalIssues}`);
-    console.log('   Issues by category:');
+    console.warn('\n🚀 Performance Analysis Summary:');
+    console.warn(`   Total performance issues found: ${totalIssues}`);
+    console.warn(`   Critical issues: ${criticalIssues}`);
+    console.warn('   Issues by category:');
     
     Object.entries(categories).forEach(([category, count]) => {
-      console.log(`     - ${category}: ${count}`);
+      console.warn(`     - ${category}: ${count}`);
     });
 
     if (totalIssues === 0) {
-      console.log('✅ No performance issues detected');
+      console.warn('✅ No performance issues detected');
     }
 
     // Save detailed results for further analysis
@@ -307,8 +307,8 @@ describe('Semgrep Performance Analysis', () => {
         'reports/performance-analysis.json',
         JSON.stringify(performanceResults, null, 2)
       );
-      console.log('📊 Detailed performance report saved to reports/performance-analysis.json');
-    } catch (error) {
+      console.warn('📊 Detailed performance report saved to reports/performance-analysis.json');
+    } catch (_error) {
       console.warn('Could not save performance report:', error.message);
     }
   });

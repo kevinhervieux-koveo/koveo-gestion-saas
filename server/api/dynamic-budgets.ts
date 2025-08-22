@@ -29,14 +29,14 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     
     if (isNaN(startYearNum) || isNaN(endYearNum) || startYearNum > endYearNum) {
       return res.status(400).json({
-        error: 'Invalid year range',
+        _error: 'Invalid year range',
         message: 'Start year must be less than or equal to end year'
       });
     }
 
     if (endYearNum - startYearNum > 30) {
       return res.status(400).json({
-        error: 'Date range too large',
+        _error: 'Date range too large',
         message: 'Maximum range is 30 years'
       });
     }
@@ -45,7 +45,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     const endDate = `${endYearNum}-12-31`;
     const shouldForceRefresh = forceRefresh === 'true';
 
-    console.log(`📊 Financial data request for building ${buildingId}, ${startDate} to ${endDate}`);
+    console.warn(`📊 Financial data request for building ${buildingId}, ${startDate} to ${endDate}`);
 
     // Get financial data using dynamic calculator
     const financialData = await dynamicFinancialCalculator.getFinancialData(
@@ -65,7 +65,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 
     res.json({
       success: true,
-      data: responseData,
+      _data: responseData,
       summary: financialData.summary,
       meta: {
         buildingId,
@@ -78,10 +78,10 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       }
     });
 
-  } catch (__error) {
-    console.error('❌ Error getting dynamic financial data:', error);
+  } catch (_error) {
+    console.error('❌ Error getting dynamic financial _data:', _error);
     res.status(500).json({
-      error: 'Failed to get financial data',
+      _error: 'Failed to get financial data',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -97,7 +97,7 @@ router.get('/summary', requireAuth, async (req, res) => {
     
     if (!buildingIds) {
       return res.status(400).json({
-        error: 'Missing building IDs',
+        _error: 'Missing building IDs',
         message: 'Provide buildingIds as comma-separated values'
       });
     }
@@ -107,7 +107,7 @@ router.get('/summary', requireAuth, async (req, res) => {
     
     if (ids.length === 0 || ids.length > 50) {
       return res.status(400).json({
-        error: 'Invalid building count',
+        _error: 'Invalid building count',
         message: 'Provide 1-50 building IDs'
       });
     }
@@ -115,7 +115,7 @@ router.get('/summary', requireAuth, async (req, res) => {
     const startDate = `${yearNum}-01-01`;
     const endDate = `${yearNum}-12-31`;
 
-    console.log(`📈 Summary request for ${ids.length} buildings, year ${yearNum}`);
+    console.warn(`📈 Summary request for ${ids.length} buildings, year ${yearNum}`);
 
     // Get data for all buildings concurrently
     const summaryPromises = ids.map(async (buildingId) => {
@@ -130,11 +130,11 @@ router.get('/summary', requireAuth, async (req, res) => {
           success: true,
           ...data.summary
         };
-      } catch (__error) {
+      } catch (_error) {
         return {
           buildingId: buildingId.trim(),
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          _error: error instanceof Error ? error.message : 'Unknown error'
         };
       }
     });
@@ -158,7 +158,7 @@ router.get('/summary', requireAuth, async (req, res) => {
 
     res.json({
       success: true,
-      data: {
+      _data: {
         buildings: successful,
         aggregate,
         failed: failed.length > 0 ? failed : undefined
@@ -172,10 +172,10 @@ router.get('/summary', requireAuth, async (req, res) => {
       }
     });
 
-  } catch (__error) {
-    console.error('❌ Error getting financial summary:', error);
+  } catch (_error) {
+    console.error('❌ Error getting financial summary:', _error);
     res.status(500).json({
-      error: 'Failed to get financial summary',
+      _error: 'Failed to get financial summary',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -196,10 +196,10 @@ router.delete('/:buildingId/cache', requireAuth, requireRole(['admin', 'manager'
       message: `Cache invalidated for building ${buildingId}`
     });
 
-  } catch (__error) {
-    console.error('❌ Error invalidating cache:', error);
+  } catch (_error) {
+    console.error('❌ Error invalidating cache:', _error);
     res.status(500).json({
-      error: 'Failed to invalidate cache',
+      _error: 'Failed to invalidate cache',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -215,14 +215,14 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
     
     res.json({
       success: true,
-      data: stats,
+      _data: stats,
       generatedAt: new Date().toISOString()
     });
 
-  } catch (__error) {
-    console.error('❌ Error getting cache stats:', error);
+  } catch (_error) {
+    console.error('❌ Error getting cache stats:', _error);
     res.status(500).json({
-      error: 'Failed to get cache statistics',
+      _error: 'Failed to get cache statistics',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -243,10 +243,10 @@ router.post('/:buildingId/refresh', requireAuth, requireRole(['admin', 'manager'
       message: `Cache refreshed for building ${buildingId}`
     });
 
-  } catch (__error) {
-    console.error('❌ Error refreshing cache:', error);
+  } catch (_error) {
+    console.error('❌ Error refreshing cache:', _error);
     res.status(500).json({
-      error: 'Failed to refresh cache',
+      _error: 'Failed to refresh cache',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -288,11 +288,11 @@ function transformToYearlyData(financialData: unknown) {
     yearData.monthCount += 1;
 
     // Aggregate categories
-    for (const [category, amount] of Object.entries(monthData.incomeByCategory || {})) {
+    for (const [_category, amount] of Object.entries(monthData.incomeByCategory || {})) {
       yearData.incomeByCategory[category] = (yearData.incomeByCategory[category] || 0) + (amount as number);
     }
     
-    for (const [category, amount] of Object.entries(monthData.expensesByCategory || {})) {
+    for (const [_category, amount] of Object.entries(monthData.expensesByCategory || {})) {
       yearData.expensesByCategory[category] = (yearData.expensesByCategory[category] || 0) + (amount as number);
     }
   }

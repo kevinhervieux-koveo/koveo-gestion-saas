@@ -18,7 +18,7 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
+  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [_key: string]: unknown }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -53,12 +53,12 @@ jest.mock('@tanstack/react-query', () => ({
   useMutation: () => ({
     mutate: jest.fn(),
     isPending: false,
-    error: null,
+    _error: null,
   }),
   useQuery: () => ({
-    data: { buildings: [] },
+    _data: { buildings: [] },
     isLoading: false,
-    error: null,
+    _error: null,
   }),
 }));
 
@@ -164,7 +164,7 @@ describe('Buildings Management Page', () => {
       buildings: mockBuildings,
       organizations: mockOrganizations,
       isLoading: false,
-      error: null,
+      _error: null,
       form: { 
         reset: jest.fn(),
         handleSubmit: jest.fn(() => jest.fn()),
@@ -204,19 +204,19 @@ describe('Buildings Management Page', () => {
     mockCreateMutation.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
-      error: null,
+      _error: null,
     });
 
     mockUpdateMutation.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
-      error: null,
+      _error: null,
     });
 
     mockDeleteMutation.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
-      error: null,
+      _error: null,
     });
   });
 

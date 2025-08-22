@@ -6,19 +6,19 @@ const mockRequestFullscreen = jest.fn();
 const mockExitFullscreen = jest.fn();
 
 Object.defineProperty(document, 'documentElement', {
-  value: {
+  _value: {
     requestFullscreen: mockRequestFullscreen,
   },
   writable: true,
 });
 
 Object.defineProperty(document, 'exitFullscreen', {
-  value: mockExitFullscreen,
+  _value: mockExitFullscreen,
   writable: true,
 });
 
 Object.defineProperty(document, 'fullscreenElement', {
-  value: null,
+  _value: null,
   writable: true,
 });
 
@@ -27,7 +27,7 @@ describe('useFullscreen Hook', () => {
     jest.clearAllMocks();
     // Reset fullscreen state
     Object.defineProperty(document, 'fullscreenElement', {
-      value: null,
+      _value: null,
       writable: true,
     });
   });
@@ -97,7 +97,7 @@ describe('useFullscreen Hook', () => {
     beforeEach(() => {
       // Mock fullscreen state
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
     });
@@ -147,7 +147,7 @@ describe('useFullscreen Hook', () => {
       
       // Simulate entering fullscreen
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
       
@@ -162,7 +162,7 @@ describe('useFullscreen Hook', () => {
       const { result } = renderHook(() => useFullscreen());
       
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
       
@@ -177,7 +177,7 @@ describe('useFullscreen Hook', () => {
       const { result } = renderHook(() => useFullscreen());
       
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
       
@@ -192,7 +192,7 @@ describe('useFullscreen Hook', () => {
       const { result } = renderHook(() => useFullscreen());
       
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
       
@@ -207,7 +207,7 @@ describe('useFullscreen Hook', () => {
   describe('Cross-browser Compatibility', () => {
     it('does not call enterFullscreen if already in fullscreen', async () => {
       Object.defineProperty(document, 'fullscreenElement', {
-        value: document.documentElement,
+        _value: document.documentElement,
         writable: true,
       });
       

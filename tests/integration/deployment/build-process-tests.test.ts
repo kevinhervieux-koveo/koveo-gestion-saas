@@ -95,7 +95,7 @@ describe('Build Process Validation Tests', () => {
     test('should create client build output', async () => {
       // Skip if we can't run build commands in test environment
       if (process.env.CI || process.env.NODE_ENV === 'test') {
-        console.log('Skipping build test in CI/test environment');
+        console.warn('Skipping build test in CI/test environment');
         return;
       }
 
@@ -116,8 +116,8 @@ describe('Build Process Validation Tests', () => {
           expect(fs.existsSync(outputPath)).toBe(true);
         });
         
-      } catch (error) {
-        console.warn('Build test failed:', error);
+      } catch (_error) {
+        console.warn('Build test failed:', _error);
         // Don't fail the test if build fails - this might be expected in some environments
       }
     }, 90000); // 90 second timeout for build
@@ -186,7 +186,7 @@ describe('Build Process Validation Tests', () => {
     test('should create server build output', async () => {
       // Skip if we can't run build commands in test environment
       if (process.env.CI || process.env.NODE_ENV === 'test') {
-        console.log('Skipping server build test in CI/test environment');
+        console.warn('Skipping server build test in CI/test environment');
         return;
       }
 
@@ -205,8 +205,8 @@ describe('Build Process Validation Tests', () => {
         const stats = fs.statSync(serverBuildPath);
         expect(stats.size).toBeGreaterThan(1000); // At least 1KB
         
-      } catch (error) {
-        console.warn('Server build test failed:', error);
+      } catch (_error) {
+        console.warn('Server build test failed:', _error);
         // Don't fail the test if build fails - this might be expected in some environments
       }
     }, 60000); // 60 second timeout
@@ -239,7 +239,7 @@ describe('Build Process Validation Tests', () => {
     test('should complete full build without errors', async () => {
       // Skip if we can't run build commands in test environment
       if (process.env.CI || process.env.NODE_ENV === 'test') {
-        console.log('Skipping full build test in CI/test environment');
+        console.warn('Skipping full build test in CI/test environment');
         return;
       }
 
@@ -257,8 +257,8 @@ describe('Build Process Validation Tests', () => {
         // Should produce output
         expect(stdout.length).toBeGreaterThan(0);
         
-      } catch (error) {
-        console.warn('Full build test failed:', error);
+      } catch (_error) {
+        console.warn('Full build test failed:', _error);
         throw new Error(`Build process failed: ${error}`);
       }
     }, 150000); // 2.5 minute timeout
@@ -325,7 +325,7 @@ describe('Build Process Validation Tests', () => {
           // Should have proper module structure
           expect(serverContent.includes('listen') || serverContent.includes('server')).toBe(true);
           
-        } catch (error) {
+        } catch (_error) {
           throw new Error(`Built server validation failed: ${error}`);
         }
       } else {

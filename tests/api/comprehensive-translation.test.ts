@@ -67,10 +67,11 @@ class MockAPIClient {
   /**
    *
    * @param key
+   * @param _key
    */
-  private getTranslation(key: string): string {
+  private getTranslation(_key: string): string {
     const keys = key.split('.');
-    let value: any = mockTranslations[this.language];
+    const _value: any = mockTranslations[this.language];
     
     for (const k of keys) {
       value = value?.[k];
@@ -84,7 +85,7 @@ class MockAPIClient {
    */
   async getBuildings() {
     return {
-      data: [
+      _data: [
         {
           id: '1',
           name: 'Building A',
@@ -98,14 +99,15 @@ class MockAPIClient {
   /**
    *
    * @param data
+   * @param _data
    */
-  async createBuilding(data: any) {
+  async createBuilding(_data: any) {
     if (!data.name) {
       throw new Error(this.getTranslation('validation.required'));
     }
     
     return {
-      data: { id: '2', ...data },
+      _data: { id: '2', ...data },
       message: this.getTranslation('messages.created'),
     };
   }
@@ -115,7 +117,7 @@ class MockAPIClient {
    */
   async getBudget() {
     return {
-      data: {
+      _data: {
         totalIncome: 50000,
         totalExpenses: 30000,
         categories: this.language === 'fr' 
@@ -150,7 +152,7 @@ class MockAPIClient {
     }
     
     return {
-      data: userData,
+      _data: userData,
       message: this.getTranslation('messages.success'),
     };
   }
@@ -194,7 +196,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('returns English validation errors', async () => {
       try {
         await apiClient.createBuilding({});
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toBe('This field is required');
       }
     });
@@ -202,7 +204,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('returns English error messages', async () => {
       try {
         await apiClient.getNotFound();
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toBe('Resource not found');
       }
     });
@@ -217,7 +219,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('validates user data with English messages', async () => {
       try {
         await apiClient.validateUser({ email: 'invalid', password: '123' });
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toContain('Please enter a valid email address');
         expect(error.message).toContain('Password must be at least 8 characters');
       }
@@ -237,7 +239,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('returns French validation errors', async () => {
       try {
         await apiClient.createBuilding({});
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toBe('Ce champ est obligatoire');
       }
     });
@@ -245,7 +247,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('returns French error messages', async () => {
       try {
         await apiClient.getNotFound();
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toBe('Ressource non trouvée');
       }
     });
@@ -260,7 +262,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('validates user data with French messages', async () => {
       try {
         await apiClient.validateUser({ email: 'invalid', password: '123' });
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toContain('Veuillez entrer une adresse courriel valide');
         expect(error.message).toContain('Le mot de passe doit contenir au moins 8 caractères');
       }
@@ -269,7 +271,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('uses Quebec French terminology', async () => {
       try {
         await apiClient.validateUser({ password: '123' });
-      } catch (error) {
+      } catch (_error) {
         // Should use "courriel" instead of "email" in Quebec French
         expect(error.message).toContain('courriel');
       }
@@ -312,7 +314,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('provides legally compliant French terminology', async () => {
       try {
         await apiClient.validateUser({});
-      } catch (error) {
+      } catch (_error) {
         // Quebec Law 25 requires specific terminology
         expect(error.message).toContain('obligatoire'); // Required
         expect(error.message).not.toContain('requis'); // Avoid anglicism
@@ -322,7 +324,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('handles privacy-related messages in French', async () => {
       try {
         await apiClient.getUnauthorized();
-      } catch (error) {
+      } catch (_error) {
         expect(error.message).toBe('Accès refusé');
       }
     });
@@ -342,12 +344,12 @@ describe('Comprehensive Translation API Tests', () => {
       const testCases = [
         { 
           lang: 'en' as const, 
-          data: { email: '', password: '' },
+          _data: { email: '', password: '' },
           expectedErrors: ['This field is required']
         },
         { 
           lang: 'fr' as const, 
-          data: { email: '', password: '' },
+          _data: { email: '', password: '' },
           expectedErrors: ['Ce champ est obligatoire']
         },
       ];
@@ -356,8 +358,8 @@ describe('Comprehensive Translation API Tests', () => {
         apiClient.setLanguage(testCase.lang);
         
         try {
-          await apiClient.validateUser(testCase.data);
-        } catch (error) {
+          await apiClient.validateUser(testCase._data);
+        } catch (_error) {
           testCase.expectedErrors.forEach(expectedError => {
             expect(error.message).toContain(expectedError);
           });
@@ -376,7 +378,7 @@ describe('Comprehensive Translation API Tests', () => {
         apiClient.setLanguage('en');
         try {
           await (apiClient as any)[test.method]();
-        } catch (error) {
+        } catch (_error) {
           expect(error.message).toBe(test.en);
         }
 
@@ -384,7 +386,7 @@ describe('Comprehensive Translation API Tests', () => {
         apiClient.setLanguage('fr');
         try {
           await (apiClient as any)[test.method]();
-        } catch (error) {
+        } catch (_error) {
           expect(error.message).toBe(test.fr);
         }
       }

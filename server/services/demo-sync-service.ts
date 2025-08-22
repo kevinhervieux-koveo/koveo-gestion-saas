@@ -40,7 +40,7 @@ export class DemoSyncService {
    * Synchronize organization data from Demo to Open Demo.
    */
   public static async syncOrganizationData(): Promise<void> {
-    console.log('🔄 Starting Demo → Open Demo synchronization...');
+    console.warn('🔄 Starting Demo → Open Demo synchronization...');
     
     const demoOrg = await this.getDemoOrg();
     const openDemoOrg = await this.getOpenDemoOrg();
@@ -72,10 +72,10 @@ export class DemoSyncService {
       // Sync maintenance requests
       await this.syncMaintenanceRequests(demoOrg.id, openDemoOrg.id);
 
-      console.log('✅ Demo → Open Demo synchronization completed successfully');
+      console.warn('✅ Demo → Open Demo synchronization completed successfully');
       
-    } catch (error) {
-      console.error('❌ Demo synchronization failed:', error);
+    } catch (_error) {
+      console.error('❌ Demo synchronization failed:', _error);
       throw error;
     }
   }
@@ -86,7 +86,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncBuildings(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  📋 Syncing buildings...');
+    console.warn('  📋 Syncing buildings...');
     
     // Get all buildings from Demo organization
     const demoBuildings = await db.query.buildings.findMany({
@@ -133,7 +133,7 @@ export class DemoSyncService {
       }
     }
 
-    console.log(`  ✅ Synced ${demoBuildings.length} buildings`);
+    console.warn(`  ✅ Synced ${demoBuildings.length} buildings`);
   }
 
   /**
@@ -142,7 +142,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncResidences(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  🏠 Syncing residences...');
+    console.warn('  🏠 Syncing residences...');
     
     // Get Demo buildings and their residences
     const demoBuildings = await db.query.buildings.findMany({
@@ -212,7 +212,7 @@ export class DemoSyncService {
       }
     }
 
-    console.log(`  ✅ Synced ${totalResidences} residences`);
+    console.warn(`  ✅ Synced ${totalResidences} residences`);
   }
 
   /**
@@ -221,7 +221,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncDocuments(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  📄 Syncing documents...');
+    console.warn('  📄 Syncing documents...');
     
     // Get all documents associated with Demo organization buildings
     const demoBuildingIds = await db.query.buildings.findMany({
@@ -243,7 +243,7 @@ export class DemoSyncService {
       doc.buildings?.some(db => demoBuildingIds.some(building => building.id === db.buildingId))
     );
 
-    console.log(`  ✅ Found ${relevantDocuments.length} documents to sync`);
+    console.warn(`  ✅ Found ${relevantDocuments.length} documents to sync`);
   }
 
   /**
@@ -252,7 +252,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncBudgets(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  💰 Syncing budgets...');
+    console.warn('  💰 Syncing budgets...');
     
     // Get Demo buildings
     const demoBuildingIds = (await db.query.buildings.findMany({
@@ -266,7 +266,7 @@ export class DemoSyncService {
       where: inArray(schema.budgets.buildingId, demoBuildingIds)
     });
 
-    console.log(`  ✅ Found ${budgets.length} budgets to sync`);
+    console.warn(`  ✅ Found ${budgets.length} budgets to sync`);
   }
 
   /**
@@ -275,7 +275,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncBills(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  🧾 Syncing bills...');
+    console.warn('  🧾 Syncing bills...');
     
     // Get Demo residences through buildings
     const demoBuildings = await db.query.buildings.findMany({
@@ -293,7 +293,7 @@ export class DemoSyncService {
       where: inArray(schema.bills.residenceId, demoResidenceIds)
     });
 
-    console.log(`  ✅ Found ${bills.length} bills to sync`);
+    console.warn(`  ✅ Found ${bills.length} bills to sync`);
   }
 
   /**
@@ -302,7 +302,7 @@ export class DemoSyncService {
    * @param openDemoOrgId
    */
   private static async syncMaintenanceRequests(demoOrgId: string, openDemoOrgId: string): Promise<void> {
-    console.log('  🔧 Syncing maintenance requests...');
+    console.warn('  🔧 Syncing maintenance requests...');
     
     // Get Demo residences
     const demoBuildings = await db.query.buildings.findMany({
@@ -320,7 +320,7 @@ export class DemoSyncService {
       where: inArray(schema.maintenanceRequests.residenceId, demoResidenceIds)
     });
 
-    console.log(`  ✅ Found ${maintenanceRequests.length} maintenance requests to sync`);
+    console.warn(`  ✅ Found ${maintenanceRequests.length} maintenance requests to sync`);
   }
 
   /**
@@ -329,9 +329,9 @@ export class DemoSyncService {
   public static async runSync(): Promise<void> {
     try {
       await this.syncOrganizationData();
-      console.log('🎉 Demo synchronization completed successfully');
-    } catch (error) {
-      console.error('💥 Demo synchronization failed:', error);
+      console.warn('🎉 Demo synchronization completed successfully');
+    } catch (_error) {
+      console.error('💥 Demo synchronization failed:', _error);
       throw error;
     }
   }

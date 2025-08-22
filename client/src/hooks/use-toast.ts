@@ -41,7 +41,10 @@ let count = 0;
  */
 function  /**
    * Gen id function.
+   */  /**
+   * Gen id function.
    */
+
  genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
@@ -107,7 +110,17 @@ const addToRemoveQueue = (toastId: string) => {
  * @param action - action parameter.
  * @returns State result.
  */
-export const reducer = (state: State, action: Action): State => {
+/**
+ * Reduce .
+ * @param state - state parameter.
+ * @param action - action parameter.
+ * @returns State result.
+ */
+export const reducer = (state: State, action: Action): State => {  /**
+   * Switch function.
+   * @param action.type - action.type parameter.
+   */
+
   switch (action.type) {
     case 'ADD_TOAST':
       return {
@@ -126,6 +139,7 @@ export const reducer = (state: State, action: Action): State => {
 
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
+
 
       if (toastId) {
         addToRemoveQueue(toastId);
@@ -147,7 +161,11 @@ export const reducer = (state: State, action: Action): State => {
         ),
       };
     }
-    case 'REMOVE_TOAST':
+    case 'REMOVE_TOAST':  /**
+   * If function.
+   * @param action.toastId === undefined - action.toastId === undefined parameter.
+   */
+
       if (action.toastId === undefined) {
         return {
           ...state,
@@ -184,7 +202,11 @@ let memoryState: State = { toasts: [] };
 function  /**
    * Dispatch function.
    * @param action - action parameter.
+   */  /**
+   * Dispatch function.
+   * @param action - action parameter.
    */
+
  dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
@@ -226,11 +248,15 @@ type Toast = Omit<ToasterToast, 'id'>;
 function  /**
    * Toast function.
    * @param { ...props } - { ...props } parameter.
+   */  /**
+   * Toast function.
+   * @param { ...props } - { ...props } parameter.
    */
+
  toast({ ...props }: Toast) {
   const id = genId();
 
-  const update = (props: ToasterToast) =>
+  const update = (_props: ToasterToast) =>
     dispatch({
       type: 'UPDATE_TOAST',
       toast: { ...props, id },
@@ -246,7 +272,11 @@ function  /**
       onOpenChange: (open) => {  /**
    * If function.
    * @param !open - !open parameter.
+   */  /**
+   * If function.
+   * @param !open - !open parameter.
    */
+
 
         if (!open) {
           dismiss();
@@ -294,7 +324,10 @@ function  /**
  */
 function  /**
    * Use toast function.
+   */  /**
+   * Use toast function.
    */
+
  useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
@@ -304,7 +337,11 @@ function  /**
       const index = listeners.indexOf(setState);  /**
    * If function.
    * @param index > -1 - index > -1 parameter.
+   */  /**
+   * If function.
+   * @param index > -1 - index > -1 parameter.
    */
+
 
       if (index > -1) {
         listeners.splice(index, 1);

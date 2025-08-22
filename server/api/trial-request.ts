@@ -51,11 +51,11 @@ router.post('/trial-request', async (req, res) => {
       });
     }
 
-    const data: TrialRequestData = validationResult.data;
+    const _data: TrialRequestData = validationResult.data;
 
     // Check if SendGrid is configured
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('Trial request received but SendGrid not configured:', data);
+      console.warn('Trial request received but SendGrid not configured:', _data);
       return res.status(500).json({
         message: 'Email service not configured'
       });
@@ -203,31 +203,31 @@ Cette demande a été soumise via le site web Koveo Gestion.
     await mailService.send(emailData);
     
     // Log successful request
-    console.log(`✅ Trial request email sent successfully for ${data.company} (${data.email})`);
-    console.log(`   Buildings: ${data.numberOfBuildings}, Residences: ${data.numberOfResidences}`);
+    console.warn(`✅ Trial request email sent successfully for ${data.company} (${data.email})`);
+    console.warn(`   Buildings: ${data.numberOfBuildings}, Residences: ${data.numberOfResidences}`);
 
     res.status(200).json({
       message: 'Trial request sent successfully',
       success: true
     });
 
-  } catch (error) {
-    console.error('❌ Error processing trial request:', error);
+  } catch (_error) {
+    console.error('❌ Error processing trial request:', _error);
     
     // Send appropriate error response
-    if (error && typeof error === 'object' && 'code' in error) {
+    if (error && typeof error === 'object' && 'code' in _error) {
       const sgError = error as { code: number; message: string };
       console.error('SendGrid error details:', sgError);
       
       return res.status(500).json({
         message: 'Failed to send trial request email',
-        error: 'Email service error'
+        _error: 'Email service error'
       });
     }
     
     res.status(500).json({
       message: 'Internal server error',
-      error: 'Failed to process request'
+      _error: 'Failed to process request'
     });
   }
 });
@@ -238,7 +238,8 @@ export default router;
 /**
  *
  * @param app
- */
+  * @returns Function result.
+*/
 export function registerTrialRequestRoutes(app: express.Application) {
   app.use('/', router);
 }

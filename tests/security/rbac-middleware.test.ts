@@ -28,7 +28,7 @@ const createMockRequest = (overrides: Partial<Request> = {}): Partial<Request> =
   session: {},
   user: undefined,
   body: {},
-  params: {},
+  _params: {},
   query: {},
   headers: {},
   ip: '127.0.0.1',

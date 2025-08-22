@@ -10,47 +10,47 @@ import type { UploadResult } from '@uppy/core';
  * Document categories for building documents.
  */
 export const BUILDING_DOCUMENT_CATEGORIES = [
-  { value: 'bylaw', label: 'Bylaws' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'other', label: 'Other' },
+  { _value: 'bylaw', label: 'Bylaws' },
+  { _value: 'financial', label: 'Financial' },
+  { _value: 'maintenance', label: 'Maintenance' },
+  { _value: 'legal', label: 'Legal' },
+  { _value: 'meeting_minutes', label: 'Meeting Minutes' },
+  { _value: 'insurance', label: 'Insurance' },
+  { _value: 'contracts', label: 'Contracts' },
+  { _value: 'permits', label: 'Permits' },
+  { _value: 'inspection', label: 'Inspection' },
+  { _value: 'other', label: 'Other' },
 ] as const;
 
 /**
  * Document categories for residence documents.
  */
 export const RESIDENCE_DOCUMENT_CATEGORIES = [
-  { value: 'lease', label: 'Lease Documents' },
-  { value: 'inspection', label: 'Inspections' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'correspondence', label: 'Correspondence' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'other', label: 'Other' },
+  { _value: 'lease', label: 'Lease Documents' },
+  { _value: 'inspection', label: 'Inspections' },
+  { _value: 'maintenance', label: 'Maintenance' },
+  { _value: 'financial', label: 'Financial' },
+  { _value: 'insurance', label: 'Insurance' },
+  { _value: 'legal', label: 'Legal' },
+  { _value: 'correspondence', label: 'Correspondence' },
+  { _value: 'permits', label: 'Permits' },
+  { _value: 'utilities', label: 'Utilities' },
+  { _value: 'other', label: 'Other' },
 ] as const;
 
 /**
  * General document categories for resident use.
  */
 export const GENERAL_DOCUMENT_CATEGORIES = [
-  { value: 'lease', label: 'Lease Agreement' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'inspection', label: 'Inspections' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'legal', label: 'Legal Documents' },
-  { value: 'correspondence', label: 'Correspondence' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'other', label: 'Other' },
+  { _value: 'lease', label: 'Lease Agreement' },
+  { _value: 'insurance', label: 'Insurance' },
+  { _value: 'inspection', label: 'Inspections' },
+  { _value: 'maintenance', label: 'Maintenance' },
+  { _value: 'financial', label: 'Financial' },
+  { _value: 'legal', label: 'Legal Documents' },
+  { _value: 'correspondence', label: 'Correspondence' },
+  { _value: 'utilities', label: 'Utilities' },
+  { _value: 'other', label: 'Other' },
 ] as const;
 
 /**
@@ -60,18 +60,27 @@ export const GENERAL_DOCUMENT_CATEGORIES = [
  */
 /**
  * Get displayable file url.
- * @param fileUrl - fileUrl parameter.
+ * @param fileUrl - FileUrl parameter.
  * @returns String result.
  */
-export function  /**
+export function /**
    * Get displayable file url.
-   * @param fileUrl - fileUrl parameter.
+   * @param fileUrl - FileUrl parameter.
+   * @returns String result.
+   */ /**
+   * Get displayable file url.
+   * @param fileUrl - FileUrl parameter.
    * @returns String result.
    */
- getDisplayableFileUrl(fileUrl: string): string {  /**
+
+ getDisplayableFileUrl(fileUrl: string): string { /**
+   * If function.
+   * @param !fileUrl - !fileUrl parameter.
+   */ /**
    * If function.
    * @param !fileUrl - !fileUrl parameter.
    */
+
 
   if (!fileUrl) {
     return '';
@@ -86,10 +95,14 @@ export function  /**
   if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
     // Extract the path part after the bucket name
     const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com'));  /**
+    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com')); /**
+   * If function.
+   * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
+   */ /**
    * If function.
    * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
    */
+
 
     if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
       const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
@@ -113,20 +126,22 @@ export const documentApi = {
   /**
    * Create a new document.
    * @param data - Document data to create.
+   * @param _data
    * @returns Promise with the created document.
    */
-  create: (data: Record<string, unknown>) => {
-    return apiRequest('POST', '/api/documents', data);
+  create: (_data: Record<string, unknown>) => {
+    return apiRequest('POST', '/api/documents', _data);
   },
 
   /**
    * Update an existing document.
    * @param id - Document ID to update.
    * @param data - Updated document data.
+   * @param _data
    * @returns Promise with the updated document.
    */
-  update: (id: string, data: Record<string, unknown>) => {
-    return apiRequest('PUT', `/api/documents/${id}`, data);
+  update: (id: string, _data: Record<string, unknown>) => {
+    return apiRequest('PUT', `/api/documents/${id}`, _data);
   },
 
   /**
@@ -159,29 +174,41 @@ export const documentApi = {
 export function createUploadHandler(
   documentId: string,
   onSuccess?: () => void,
-  onError?: (error: Error) => void
+  onError?: (_error: Error) => void
 ) {
-  return (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    try {  /**
+  return (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    try { /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */ /**
    * If function.
    * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
    */
 
+
       if (result.successful && result.successful.length > 0) {
         onSuccess?.();
-      } else  /**
+      } else /**
+   * If function.
+   * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
+   */ /**
    * If function.
    * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
    */
+
  if (result.failed && result.failed.length > 0) {
         const error = new Error(`Upload failed: ${result.failed[0].error}`);
-        onError?.(error);
+        onError?.(_error);
       }
-    }  /**
+    } /**
+   * Catch function.
+   * @param error - Error object.
+   */ /**
    * Catch function.
    * @param error - Error object.
    */
- catch (error) {
+
+ catch (_error) {
       onError?.(error as Error);
     }
   };
@@ -195,19 +222,26 @@ export function createUploadHandler(
  */
 /**
  * Get category label.
- * @param categories - categories parameter.
+ * @param categories - Categories parameter.
  * @param value - Value to process.
+ * @param _value
  * @returns String result.
  */
-export function  /**
+export function /**
    * Get category label.
-   * @param categories - categories parameter.
+   * @param categories - Categories parameter.
+   * @param value - Value to process.
+   * @returns String result.
+   */ /**
+   * Get category label.
+   * @param categories - Categories parameter.
    * @param value - Value to process.
    * @returns String result.
    */
+
  getCategoryLabel(
-  categories: readonly { value: string; label: string }[],
-  value: string
+  categories: readonly { _value: string; label: string }[],
+  _value: string
 ): string {
-  return categories.find(cat => cat.value === value)?.label || value;
+  return categories.find(cat => cat.value === _value)?.label || value;
 }

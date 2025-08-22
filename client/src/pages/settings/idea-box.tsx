@@ -7,9 +7,12 @@ import { Lightbulb, Plus, ThumbsUp, MessageSquare, Filter, TrendingUp } from 'lu
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Idea box function.
+   */ /**
    * Idea box function.
    */
+
  IdeaBox() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

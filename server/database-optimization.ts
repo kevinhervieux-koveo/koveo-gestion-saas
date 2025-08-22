@@ -32,8 +32,9 @@ export class PaginationHelper {
   /**
    * Generates LIMIT and OFFSET clause for pagination.
    * @param options
+   * @param _options
    */
-  static getPaginationClause(options: PaginationOptions): string {
+  static getPaginationClause(_options: PaginationOptions): string {
     const offset = (options.page - 1) * options.pageSize;
     return `LIMIT ${options.pageSize} OFFSET ${offset}`;
   }
@@ -41,8 +42,9 @@ export class PaginationHelper {
   /**
    * Generates ORDER BY clause for sorting.
    * @param options
+   * @param _options
    */
-  static getSortClause(options: PaginationOptions): string {
+  static getSortClause(_options: PaginationOptions): string {
     if (!options.sortBy) {return '';}
     return `ORDER BY ${options.sortBy} ${options.sortDirection || 'ASC'}`;
   }
@@ -59,8 +61,9 @@ export class PaginationHelper {
   /**
    * Validates pagination parameters.
    * @param options
+   * @param _options
    */
-  static validatePagination(options: PaginationOptions): void {
+  static validatePagination(_options: PaginationOptions): void {
     if (options.page < 1) {
       throw new Error('Page number must be 1 or greater');
     }
@@ -162,7 +165,7 @@ export const DatabaseOptimization = {
     'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_quality_metrics_timestamp ON quality_metrics(timestamp)',
     
     // Framework configuration indexes
-    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_framework_config_key ON framework_configuration(key)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_framework_config_key ON framework_configuration(_key)',
     'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_framework_config_updated ON framework_configuration(updated_at)',
     
     // Workspace status indexes
@@ -351,7 +354,7 @@ export class QueryOptimizer {
    * Applies all core database indexes for Quebec property management.
    */
   static async applyCoreOptimizations(): Promise<void> {
-    console.log('Applying core database optimizations...');
+    console.warn('Applying core database optimizations...');
     
     const allIndexes = [
       ...DatabaseOptimization.coreIndexes,
@@ -364,9 +367,9 @@ export class QueryOptimizer {
     for (const indexQuery of allIndexes) {
       try {
         await sql`${indexQuery}`;
-        console.log(`✓ Applied: ${indexQuery}`);
-      } catch (___error) {
-        console.warn(`⚠ Failed to apply index: ${indexQuery}`, ___error);
+        console.warn(`✓ Applied: ${indexQuery}`);
+      } catch (____error) {
+        console.warn(`⚠ Failed to apply _index: ${indexQuery}`, _error);
       }
     }
     
@@ -374,9 +377,9 @@ export class QueryOptimizer {
     for (const indexQuery of DatabaseOptimization.coveringIndexes) {
       try {
         await sql`${indexQuery}`;
-        console.log(`✓ Applied covering index: ${indexQuery}`);
-      } catch (___error) {
-        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, ___error);
+        console.warn(`✓ Applied covering _index: ${indexQuery}`);
+      } catch (____error) {
+        console.warn(`⚠ Failed to apply covering _index: ${indexQuery}`, _error);
       }
     }
     
@@ -384,20 +387,20 @@ export class QueryOptimizer {
     for (const viewQuery of DatabaseOptimization.materializedViews) {
       try {
         await sql`${viewQuery}`;
-        console.log(`✓ Created materialized view`);
-      } catch (___error) {
-        console.warn(`⚠ Failed to create materialized view`, ___error);
+        console.warn(`✓ Created materialized view`);
+      } catch (____error) {
+        console.warn(`⚠ Failed to create materialized view`, _error);
       }
     }
     
-    console.log('Database optimizations complete');
+    console.warn('Database optimizations complete');
   }
   
   /**
    * Analyzes query performance and suggests optimizations.
    */
   static async analyzeQueryPerformance(): Promise<void> {
-    console.log('Analyzing query performance...');
+    console.warn('Analyzing query performance...');
     
     try {
       // Enable query logging temporarily
@@ -413,7 +416,7 @@ export class QueryOptimizer {
         LIMIT 10
       `;
       
-      console.log('Slow queries detected:', slowQueries);
+      console.warn('Slow queries detected:', slowQueries);
       
       // Check index usage
       const indexUsage = await sql`
@@ -424,10 +427,10 @@ export class QueryOptimizer {
         LIMIT 20
       `;
       
-      console.log('Index usage statistics:', indexUsage);
+      console.warn('Index usage statistics:', indexUsage);
       
-    } catch (__error) {
-      console.warn('Query performance analysis failed:', __error);
+    } catch (_error) {
+      console.warn('Query performance analysis failed:', _error);
     }
   }
   
@@ -453,8 +456,9 @@ export class QueryOptimizer {
    * Optimizes query structure for better performance.
    * @param baseQuery
    * @param options
+   * @param _options
    */
-  static optimizeQuery(baseQuery: string, options: QueryOptimizationOptions = {}): string {
+  static optimizeQuery(baseQuery: string, _options: QueryOptimizationOptions = {}): string {
     let optimizedQuery = baseQuery;
     
     // Add LIMIT clause if not present and limit specified
@@ -465,12 +469,12 @@ export class QueryOptimizer {
     // Replace IN with EXISTS for better performance
     if (options.useExists && optimizedQuery.toLowerCase().includes(' in (')) {
       // This is a simplified replacement - in practice, this would need more sophisticated parsing
-      console.log('Consider replacing IN subqueries with EXISTS for better performance');
+      console.warn('Consider replacing IN subqueries with EXISTS for better performance');
     }
     
     // Suggest JOIN order optimization
     if (optimizedQuery.toLowerCase().includes('join') && options.optimizeJoins) {
-      console.log('Tip: Place most selective tables first in JOIN sequence');
+      console.warn('Tip: Place most selective tables first in JOIN sequence');
     }
     
     return optimizedQuery;
@@ -480,7 +484,7 @@ export class QueryOptimizer {
    * Refreshes materialized views for up-to-date aggregated data.
    */
   static async refreshMaterializedViews(): Promise<void> {
-    console.log('Refreshing materialized views...');
+    console.warn('Refreshing materialized views...');
     
     const views = [
       'mv_building_stats',
@@ -491,9 +495,9 @@ export class QueryOptimizer {
     for (const view of views) {
       try {
         await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`;
-        console.log(`✓ Refreshed: ${view}`);
-      } catch (__error) {
-        console.warn(`⚠ Failed to refresh ${view}:`, __error);
+        console.warn(`✓ Refreshed: ${view}`);
+      } catch (_error) {
+        console.warn(`⚠ Failed to refresh ${view}:`, _error);
       }
     }
   }
@@ -508,30 +512,30 @@ export class DatabaseMaintenance {
    * Performs routine database maintenance for optimal performance.
    */
   static async performMaintenance(): Promise<void> {
-    console.log('Starting database maintenance...');
+    console.warn('Starting database maintenance...');
     
     try {
       // Update table statistics
       await sql`ANALYZE`;
-      console.log('✓ Updated table statistics');
+      console.warn('✓ Updated table statistics');
       
       // Clean up unused space
       await sql`VACUUM`;
-      console.log('✓ Cleaned up unused space');
+      console.warn('✓ Cleaned up unused space');
       
       // Reindex for optimal performance
       await sql`REINDEX DATABASE CONCURRENTLY ${process.env.PGDATABASE}`;
-      console.log('✓ Rebuilt indexes');
+      console.warn('✓ Rebuilt indexes');
       
       // Refresh materialized views
       await QueryOptimizer.refreshMaterializedViews();
-      console.log('✓ Refreshed materialized views');
+      console.warn('✓ Refreshed materialized views');
       
-    } catch (__error) {
-      console.warn('Database maintenance completed with warnings:', __error);
+    } catch (_error) {
+      console.warn('Database maintenance completed with warnings:', _error);
     }
     
-    console.log('Database maintenance complete');
+    console.warn('Database maintenance complete');
   }
   
   /**
@@ -560,8 +564,8 @@ export class DatabaseMaintenance {
       
       return metrics;
       
-    } catch (__error) {
-      console.warn('Failed to get performance metrics:', __error);
+    } catch (_error) {
+      console.warn('Failed to get performance metrics:', _error);
       return [];
     }
   }

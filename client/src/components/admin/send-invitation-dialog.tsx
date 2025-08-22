@@ -56,7 +56,7 @@ const invitationSchema = z.object({
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
-}).refine((data) => {
+}).refine((_data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
@@ -75,7 +75,7 @@ const bulkInvitationSchema = z.object({
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
-}).refine((data) => {
+}).refine((_data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
@@ -221,7 +221,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch organizations (filtered by user access)
-  const { data: organizations } = useQuery<Organization[]>({
+  const { _data: organizations } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
       console.warn('Fetching organizations...');
@@ -233,9 +233,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       
       try {
         const data = JSON.parse(text);
-        console.warn('Organizations parsed successfully:', data);
+        console.warn('Organizations parsed successfully:', _data);
         return data;
-      } catch (_e) {
+      } catch (__e) {
         console.error('Failed to parse organizations JSON:', _e);
         console.error('Raw text was:', text);
         throw new Error('Invalid JSON response');
@@ -245,7 +245,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch buildings
-  const { data: buildings } = useQuery<BuildingType[]>({
+  const { _data: buildings } = useQuery<BuildingType[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/buildings');
@@ -255,7 +255,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch residences
-  const { data: residences } = useQuery<Residence[]>({
+  const { _data: residences } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/residences');
@@ -344,7 +344,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Single invitation mutation
   const singleInvitationMutation = useMutation({
-    mutationFn: async (data: InvitationFormData) => {
+    mutationFn: async (_data: InvitationFormData) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
       
@@ -363,7 +363,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -374,7 +374,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Bulk invitation mutation
   const bulkInvitationMutation = useMutation({
-    mutationFn: async (data: BulkInvitationFormData) => {
+    mutationFn: async (_data: BulkInvitationFormData) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
       
@@ -392,7 +392,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       const successCount = data.results?.length || 0;
       const _errorCount = data.errors?.length || 0;
       
@@ -406,7 +406,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -415,11 +415,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     }
   });
 
-  const onSingleSubmit = (data: InvitationFormData) => {
-    singleInvitationMutation.mutate(data);
+  const onSingleSubmit = (_data: InvitationFormData) => {
+    singleInvitationMutation.mutate(_data);
   };
 
-  const onBulkSubmit = (data: BulkInvitationFormData) => {
+  const onBulkSubmit = (_data: BulkInvitationFormData) => {
     const validEmails = bulkEmails.filter(email => email.trim() !== '');
     bulkInvitationMutation.mutate({ ...data, emails: validEmails });
   };
@@ -430,11 +430,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     }
   };
 
-  const removeEmailField = (index: number) => {
-    setBulkEmails(bulkEmails.filter((_, i) => i !== index));
+  const removeEmailField = (_index: number) => {
+    setBulkEmails(bulkEmails.filter((_, i) => i !== _index));
   };
 
-  const updateEmail = (index: number, email: string) => {
+  const updateEmail = (_index: number, email: string) => {
     const newEmails = [...bulkEmails];
     newEmails[index] = email;
     setBulkEmails(newEmails);
@@ -467,7 +467,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={invitationMode} onValueChange={(value) => setInvitationMode(value as 'single' | 'bulk')}>
+        <Tabs value={invitationMode} onValueChange={(_value) => setInvitationMode(value as 'single' | 'bulk')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="single" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
@@ -539,7 +539,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         <select
                           {...field}
                           onChange={(e) => {
-                            field.onChange(e.target.value);
+                            field.onChange(e.target._value);
                             // Reset building and residence when organization changes
                             singleForm.setValue('buildingId', '');
                             singleForm.setValue('residenceId', '');
@@ -587,7 +587,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <select
                             {...field}
                             onChange={(e) => {
-                              field.onChange(e.target.value);
+                              field.onChange(e.target._value);
                               // Reset residence when building changes
                               singleForm.setValue('residenceId', '');
                             }}
@@ -648,7 +648,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       <FormControl>
                         <select
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) => field.onChange(parseInt(e.target._value))}
                           value={field.value.toString()}
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -714,13 +714,13 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     </Badge>
                   </div>
                   
-                  {bulkEmails.map((email, index) => (
+                  {bulkEmails.map((email, _index) => (
                     <div key={index} className="flex gap-2">
                       <Input
                         placeholder={t('enterEmailAddress')}
                         type="email"
                         value={email}
-                        onChange={(e) => updateEmail(index, e.target.value)}
+                        onChange={(e) => updateEmail(index, e.target._value)}
                         className="flex-1"
                       />
                       {bulkEmails.length > 1 && (
@@ -728,7 +728,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => removeEmailField(index)}
+                          onClick={() => removeEmailField(_index)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -787,7 +787,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       <FormItem>
                         <FormLabel>{t('expiresIn')}</FormLabel>
                         <Select 
-                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          onValueChange={(_value) => field.onChange(parseInt(_value))} 
                           defaultValue={field.value.toString()}
                         >
                           <FormControl>
@@ -817,7 +817,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         <select
                           {...field}
                           onChange={(e) => {
-                            field.onChange(e.target.value);
+                            field.onChange(e.target._value);
                             // Reset building and residence when organization changes
                             bulkForm.setValue('buildingId', '');
                             bulkForm.setValue('residenceId', '');
@@ -853,7 +853,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <select
                             {...field}
                             onChange={(e) => {
-                              field.onChange(e.target.value);
+                              field.onChange(e.target._value);
                               // Reset residence when building changes
                               bulkForm.setValue('residenceId', '');
                             }}

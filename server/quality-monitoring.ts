@@ -18,7 +18,7 @@ interface MetricThresholds {
   /** Critical threshold value for metric monitoring */
   critical?: number;
   /** Additional custom threshold properties */
-  [key: string]: number | undefined;
+  [_key: string]: number | undefined;
 }
 
 /**
@@ -31,7 +31,7 @@ interface QualityMetricConfig {
   /** Threshold configuration for warning and critical levels */
   thresholds: MetricThresholds;
   /** Function to generate improvement suggestions when thresholds are exceeded */
-  generateSuggestion: (value: any, thresholdType: string, threshold: number) => InsertImprovementSuggestion;
+  generateSuggestion: (_value: any, thresholdType: string, threshold: number) => InsertImprovementSuggestion;
 }
 
 /**
@@ -68,7 +68,7 @@ interface QualityMetricConfig {
 export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
   registerQualityAnalyzer({
     metricName: config.metricName,
-    analyze: async (value: unknown) => {
+    analyze: async (_value: unknown) => {
       const suggestions: InsertImprovementSuggestion[] = [];
       
       // Parse numeric values if they're strings with units

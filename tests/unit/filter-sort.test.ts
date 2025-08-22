@@ -19,7 +19,7 @@ const localStorageMock = {
   clear: jest.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+  _value: localStorageMock,
 });
 
 // Mock data for testing - Quebec property management specific
@@ -60,11 +60,11 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'priority',
       label: 'Priority',
       type: 'select',
-      options: [
-        { label: 'Critical', value: 'Critical' },
-        { label: 'High', value: 'High' },
-        { label: 'Medium', value: 'Medium' },
-        { label: 'Low', value: 'Low' },
+      _options: [
+        { label: 'Critical', _value: 'Critical' },
+        { label: 'High', _value: 'High' },
+        { label: 'Medium', _value: 'Medium' },
+        { label: 'Low', _value: 'Low' },
       ],
       defaultOperator: 'equals',
     },
@@ -73,10 +73,10 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'status',
       label: 'Status',
       type: 'select',
-      options: [
-        { label: 'New', value: 'New' },
-        { label: 'Acknowledged', value: 'Acknowledged' },
-        { label: 'Done', value: 'Done' },
+      _options: [
+        { label: 'New', _value: 'New' },
+        { label: 'Acknowledged', _value: 'Acknowledged' },
+        { label: 'Done', _value: 'Done' },
       ],
       defaultOperator: 'equals',
     },
@@ -85,10 +85,10 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'category',
       label: 'Category',
       type: 'select',
-      options: [
-        { label: 'Security', value: 'Security' },
-        { label: 'Performance', value: 'Performance' },
-        { label: 'Documentation', value: 'Documentation' },
+      _options: [
+        { label: 'Security', _value: 'Security' },
+        { label: 'Performance', _value: 'Performance' },
+        { label: 'Documentation', _value: 'Documentation' },
       ],
       defaultOperator: 'equals',
     },
@@ -113,8 +113,8 @@ const mockFilterConfig: FilterSortConfig = {
       name: 'Critical & New',
       description: 'Critical priority items that are new',
       filters: [
-        { field: 'priority', operator: 'equals', value: 'Critical' },
-        { field: 'status', operator: 'equals', value: 'New' },
+        { field: 'priority', operator: 'equals', _value: 'Critical' },
+        { field: 'status', operator: 'equals', _value: 'New' },
       ],
     },
     {
@@ -122,7 +122,7 @@ const mockFilterConfig: FilterSortConfig = {
       name: 'Quebec Compliance',
       description: 'Security and documentation items for Quebec Law 25',
       filters: [
-        { field: 'category', operator: 'in', value: ['Security', 'Documentation'] },
+        { field: 'category', operator: 'in', _value: ['Security', 'Documentation'] },
       ],
       sort: { field: 'priority', direction: 'asc' },
     },
@@ -145,31 +145,31 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     describe('applyFilter', () => {
       it('should handle equals operator correctly', () => {
         const item = { priority: 'High' };
-        const filter: FilterValue = { field: 'priority', operator: 'equals', value: 'High' };
+        const filter: FilterValue = { field: 'priority', operator: 'equals', _value: 'High' };
         
         expect(applyFilter(item, filter)).toBe(true);
         
-        const filter2: FilterValue = { field: 'priority', operator: 'equals', value: 'Low' };
+        const filter2: FilterValue = { field: 'priority', operator: 'equals', _value: 'Low' };
         expect(applyFilter(item, filter2)).toBe(false);
       });
 
       it('should handle not_equals operator correctly', () => {
         const item = { priority: 'High' };
-        const filter: FilterValue = { field: 'priority', operator: 'not_equals', value: 'Low' };
+        const filter: FilterValue = { field: 'priority', operator: 'not_equals', _value: 'Low' };
         
         expect(applyFilter(item, filter)).toBe(true);
         
-        const filter2: FilterValue = { field: 'priority', operator: 'not_equals', value: 'High' };
+        const filter2: FilterValue = { field: 'priority', operator: 'not_equals', _value: 'High' };
         expect(applyFilter(item, filter2)).toBe(false);
       });
 
       it('should handle contains operator for Quebec text search', () => {
         const item = { title: 'Quebec Law 25 Compliance Documentation' };
-        const filter: FilterValue = { field: 'title', operator: 'contains', value: 'quebec' };
+        const filter: FilterValue = { field: 'title', operator: 'contains', _value: 'quebec' };
         
         expect(applyFilter(item, filter)).toBe(true);
         
-        const filter2: FilterValue = { field: 'title', operator: 'contains', value: 'ontario' };
+        const filter2: FilterValue = { field: 'title', operator: 'contains', _value: 'ontario' };
         expect(applyFilter(item, filter2)).toBe(false);
       });
 
@@ -178,7 +178,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const filter: FilterValue = { 
           field: 'category', 
           operator: 'in', 
-          value: ['Security', 'Documentation'] 
+          _value: ['Security', 'Documentation'] 
         };
         
         expect(applyFilter(item, filter)).toBe(true);
@@ -186,7 +186,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const filter2: FilterValue = { 
           field: 'category', 
           operator: 'in', 
-          value: ['Performance', 'Testing'] 
+          _value: ['Performance', 'Testing'] 
         };
         expect(applyFilter(item, filter2)).toBe(false);
       });
@@ -197,7 +197,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const item3 = { notes: null };
         const item4 = { notes: undefined };
         
-        const filter: FilterValue = { field: 'notes', operator: 'is_empty', value: null };
+        const filter: FilterValue = { field: 'notes', operator: 'is_empty', _value: null };
         
         expect(applyFilter(item1, filter)).toBe(true);
         expect(applyFilter(item2, filter)).toBe(false);
@@ -208,16 +208,16 @@ describe('Filter and Sort System - Quebec Property Management', () => {
       it('should handle numeric comparison operators', () => {
         const item = { score: 85 };
         
-        const gtFilter: FilterValue = { field: 'score', operator: 'greater_than', value: 80 };
+        const gtFilter: FilterValue = { field: 'score', operator: 'greater_than', _value: 80 };
         expect(applyFilter(item, gtFilter)).toBe(true);
         
-        const ltFilter: FilterValue = { field: 'score', operator: 'less_than', value: 90 };
+        const ltFilter: FilterValue = { field: 'score', operator: 'less_than', _value: 90 };
         expect(applyFilter(item, ltFilter)).toBe(true);
         
-        const gteFilter: FilterValue = { field: 'score', operator: 'greater_than_or_equal', value: 85 };
+        const gteFilter: FilterValue = { field: 'score', operator: 'greater_than_or_equal', _value: 85 };
         expect(applyFilter(item, gteFilter)).toBe(true);
         
-        const lteFilter: FilterValue = { field: 'score', operator: 'less_than_or_equal', value: 85 };
+        const lteFilter: FilterValue = { field: 'score', operator: 'less_than_or_equal', _value: 85 };
         expect(applyFilter(item, lteFilter)).toBe(true);
       });
     });
@@ -225,27 +225,27 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     describe('applyFilters', () => {
       it('should apply multiple filters correctly', () => {
         const filters: FilterValue[] = [
-          { field: 'priority', operator: 'equals', value: 'High' },
-          { field: 'status', operator: 'equals', value: 'New' },
+          { field: 'priority', operator: 'equals', _value: 'High' },
+          { field: 'status', operator: 'equals', _value: 'New' },
         ];
         
         const result = applyFilters(mockSuggestions, filters);
-        expect(result).toHaveLength(1);
+        expect(_result).toHaveLength(1);
         expect(result[0].title).toBe('Improve Law 25 Compliance Documentation');
       });
 
       it('should return all items when no filters applied', () => {
         const result = applyFilters(mockSuggestions, []);
-        expect(result).toHaveLength(3);
+        expect(_result).toHaveLength(3);
       });
 
       it('should handle Quebec-specific category filtering', () => {
         const filters: FilterValue[] = [
-          { field: 'category', operator: 'in', value: ['Security', 'Documentation'] },
+          { field: 'category', operator: 'in', _value: ['Security', 'Documentation'] },
         ];
         
         const result = applyFilters(mockSuggestions, filters);
-        expect(result).toHaveLength(2);
+        expect(_result).toHaveLength(2);
         expect(result.map(r => r.category)).toEqual(['Security', 'Documentation']);
       });
     });
@@ -255,7 +255,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const searchFields = ['title', 'description'];
         const result = applySearch(mockSuggestions, 'quebec', searchFields);
         
-        expect(result).toHaveLength(3);
+        expect(_result).toHaveLength(3);
         expect(result.map(r => r.id)).toEqual(['1', '2', '3']);
       });
 
@@ -263,18 +263,18 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const searchFields = ['title'];
         const result = applySearch(mockSuggestions, 'PROPERTY', searchFields);
         
-        expect(result).toHaveLength(1);
+        expect(_result).toHaveLength(1);
         expect(result[0].title).toBe('Optimize Property Search Performance');
       });
 
       it('should return all items for empty search', () => {
         const result = applySearch(mockSuggestions, '', ['title']);
-        expect(result).toHaveLength(3);
+        expect(_result).toHaveLength(3);
       });
 
       it('should search across multiple fields when no specific fields provided', () => {
         const result = applySearch(mockSuggestions, 'Legal');
-        expect(result).toHaveLength(1);
+        expect(_result).toHaveLength(1);
         expect(result[0].id).toBe('3');
       });
     });
@@ -301,7 +301,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
 
       it('should handle null sort gracefully', () => {
         const result = applySort(mockSuggestions, null);
-        expect(result).toEqual(mockSuggestions);
+        expect(_result).toEqual(mockSuggestions);
       });
 
       it('should handle null values in sort field', () => {
@@ -324,7 +324,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     describe('applyFilterSort - Combined Operations', () => {
       it('should apply filters, search, and sort together', () => {
         const filters: FilterValue[] = [
-          { field: 'category', operator: 'in', value: ['Security', 'Documentation'] },
+          { field: 'category', operator: 'in', _value: ['Security', 'Documentation'] },
         ];
         const search = 'quebec';
         const sort: SortValue = { field: 'priority', direction: 'asc' };
@@ -332,7 +332,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         
         const result = applyFilterSort(mockSuggestions, filters, search, sort, searchFields);
         
-        expect(result).toHaveLength(2);
+        expect(_result).toHaveLength(2);
         // Should be sorted by priority: Critical before High
         expect(result[0].priority).toBe('Critical');
         expect(result[1].priority).toBe('High');
@@ -368,7 +368,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should initialize with default state', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -384,7 +384,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should add and remove filters correctly', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -393,7 +393,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'priority',
           operator: 'equals',
-          value: 'High',
+          _value: 'High',
         });
       });
 
@@ -414,7 +414,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle sorting operations', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -439,7 +439,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle search functionality', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -463,7 +463,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should apply presets correctly', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -481,7 +481,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should persist state to localStorage when enabled', () => {
       renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: { ...mockFilterConfig, persistState: true, storageKey: 'test-key' },
         })
       );
@@ -493,7 +493,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle multiple filters when allowMultipleFilters is true', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: { ...mockFilterConfig, allowMultipleFilters: true },
         })
       );
@@ -502,7 +502,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'priority',
           operator: 'equals',
-          value: 'High',
+          _value: 'High',
         });
       });
 
@@ -510,7 +510,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'status',
           operator: 'equals',
-          value: 'New',
+          _value: 'New',
         });
       });
 
@@ -521,7 +521,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should replace filter when allowMultipleFilters is false', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: { ...mockFilterConfig, allowMultipleFilters: false },
         })
       );
@@ -530,7 +530,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'priority',
           operator: 'equals',
-          value: 'High',
+          _value: 'High',
         });
       });
 
@@ -538,24 +538,24 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'priority',
           operator: 'equals',
-          value: 'Medium',
+          _value: 'Medium',
         });
       });
 
       expect(result.current.filters).toHaveLength(1);
-      expect(result.current.filters[0].value).toBe('Medium');
+      expect(result.current.filters[0]._value).toBe('Medium');
     });
 
     it('should reset to initial state', () => {
       const initialState = {
-        filters: [{ field: 'priority', operator: 'equals' as const, value: 'High' }],
+        filters: [{ field: 'priority', operator: 'equals' as const, _value: 'High' }],
         sort: { field: 'createdAt', direction: 'desc' as const },
         search: 'test',
       };
 
       const { result } = renderHook(() =>
         useFilterSort({
-          data: mockSuggestions,
+          _data: mockSuggestions,
           config: mockFilterConfig,
           initialState,
         })
@@ -566,7 +566,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         result.current.addFilter({
           field: 'status',
           operator: 'equals',
-          value: 'Done',
+          _value: 'Done',
         });
         result.current.setSearch('different search');
       });

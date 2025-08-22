@@ -13,17 +13,21 @@ import { useToast } from '@/hooks/use-toast';
  * @returns Loading state and setter.
  */
 /**
- * useLoadingState custom hook.
+ * UseLoadingState custom hook.
  * @returns Hook return value.
  */
 /**
  * Use loading state function.
  * @param initialState = false - initialState = false parameter.
  */
-export function  /**
+export function /**
+   * Use loading state function.
+   * @param initialState = false - initialState = false parameter.
+   */ /**
    * Use loading state function.
    * @param initialState = false - initialState = false parameter.
    */
+
  useLoadingState(initialState = false) {
   const [isLoading, setIsLoading] = useState(initialState);
   
@@ -54,9 +58,18 @@ export function  /**
  * @returns Delete mutation.
  */
 /**
- * useDeleteMutation component.
+ * UseDeleteMutation component.
  * @param props - Component props.
- * @param props.deleteFn - deleteFn parameter.
+ * @param props.deleteFn - DeleteFn parameter.
+ * @param props.successMessage = 'Item deleted successfully' - successMessage = 'Item deleted successfully' parameter.
+ * @param props.errorMessage = 'Failed to delete item' - errorMessage = 'Failed to delete item' parameter.
+ * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
+ * @returns JSX element.
+ */
+/**
+ * UseDeleteMutation component.
+ * @param props - Component props.
+ * @param props.deleteFn - DeleteFn parameter.
  * @param props.successMessage = 'Item deleted successfully' - successMessage = 'Item deleted successfully' parameter.
  * @param props.errorMessage = 'Failed to delete item' - errorMessage = 'Failed to delete item' parameter.
  * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
@@ -109,13 +122,23 @@ export function useDeleteMutation({
  * @returns Create/update mutation.
  */
 /**
- * useCreateUpdateMutation component.
+ * UseCreateUpdateMutation component.
  * @param props - Component props.
- * @param props.mutationFn - mutationFn parameter.
+ * @param props.mutationFn - MutationFn parameter.
  * @param props.successMessage = 'Item saved successfully' - successMessage = 'Item saved successfully' parameter.
  * @param props.errorMessage = 'Failed to save item' - errorMessage = 'Failed to save item' parameter.
  * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
- * @param props.onSuccessCallback - onSuccessCallback parameter.
+ * @param props.onSuccessCallback - OnSuccessCallback parameter.
+ * @returns JSX element.
+ */
+/**
+ * UseCreateUpdateMutation component.
+ * @param props - Component props.
+ * @param props.mutationFn - MutationFn parameter.
+ * @param props.successMessage = 'Item saved successfully' - successMessage = 'Item saved successfully' parameter.
+ * @param props.errorMessage = 'Failed to save item' - errorMessage = 'Failed to save item' parameter.
+ * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
+ * @param props.onSuccessCallback - OnSuccessCallback parameter.
  * @returns JSX element.
  */
 export function useCreateUpdateMutation({
@@ -125,7 +148,7 @@ export function useCreateUpdateMutation({
   queryKeysToInvalidate = [],
   onSuccessCallback,
 }: {
-  mutationFn: (data: unknown) => Promise<unknown>;
+  mutationFn: (_data: unknown) => Promise<unknown>;
   successMessage?: string;
   errorMessage?: string;
   queryKeysToInvalidate?: string[];
@@ -163,17 +186,21 @@ export function useCreateUpdateMutation({
  * @returns Form state management.
  */
 /**
- * useFormState custom hook.
+ * UseFormState custom hook.
  * @returns Hook return value.
  */
 /**
  * Use form state function.
  * @param initialOpen = false - initialOpen = false parameter.
  */
-export function  /**
+export function /**
+   * Use form state function.
+   * @param initialOpen = false - initialOpen = false parameter.
+   */ /**
    * Use form state function.
    * @param initialOpen = false - initialOpen = false parameter.
    */
+
  useFormState(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [selectedItem, setSelectedItem] = useState<unknown>(null);
@@ -211,7 +238,7 @@ export function useSearchFilter<T = Record<string, unknown>>(
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [filters, setFilters] = useState<T>(initialFilters);
 
-  const updateFilter = useCallback((key: keyof T, value: T[keyof T]) => {
+  const updateFilter = useCallback((_key: keyof T, _value: T[keyof T]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
 

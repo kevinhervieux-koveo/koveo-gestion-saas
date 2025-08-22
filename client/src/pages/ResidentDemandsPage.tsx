@@ -105,9 +105,12 @@ const typeLabels = {
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Resident demands page function.
+   */ /**
    * Resident demands page function.
    */
+
  ResidentDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,23 +121,23 @@ export default function  /**
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Fetch demands
-  const { data: demands = [], isLoading } = useQuery({
+  const { _data: demands = [], isLoading } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
+  const { _data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
 
   // Fetch residences
-  const { data: residences = [] } = useQuery<Residence[]>({
+  const { _data: residences = [] } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
   });
 
   // Fetch current user
-  const { data: currentUser } = useQuery({
+  const { _data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
   });
 
@@ -146,17 +149,21 @@ export default function  /**
 
   // Create demand mutation
   const createDemandMutation = useMutation({
-    mutationFn: async (data: DemandFormData) => {
+    mutationFn: async (_data: DemandFormData) => {
       const response = await fetch('/api/demands', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });  /**
+      }); /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
+
 
       if (!response.ok) {
         throw new Error('Failed to create demand');
@@ -172,7 +179,7 @@ export default function  /**
         description: 'Demand created successfully',
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast({
         title: 'Error',
         description: 'Failed to create demand',
@@ -213,8 +220,8 @@ export default function  /**
     ['completed', 'rejected', 'cancelled'].includes(d.status)
   );
 
-  const handleCreateDemand = (data: DemandFormData) => {
-    createDemandMutation.mutate(data);
+  const handleCreateDemand = (_data: DemandFormData) => {
+    createDemandMutation.mutate(_data);
   };
 
   const handleDemandClick = (demand: Demand) => {
@@ -258,10 +265,14 @@ export default function  /**
         </CardContent>
       </Card>
     );
-  };  /**
+  }; /**
    * If function.
-   * @param isLoading - isLoading parameter.
+   * @param isLoading - IsLoading parameter.
+   */ /**
+   * If function.
+   * @param isLoading - IsLoading parameter.
    */
+
 
 
   if (isLoading) {
@@ -385,7 +396,7 @@ export default function  /**
           <Input
             placeholder="Search demands..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target._value)}
             className="pl-10"
           />
         </div>

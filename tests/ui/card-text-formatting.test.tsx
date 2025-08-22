@@ -473,7 +473,7 @@ describe('Card Text Formatting Tests', () => {
       
       const MultiCardLayout = () => (
         <div className="grid grid-cols-3 gap-4" data-testid="card-grid">
-          {cardData.map((demand, index) => (
+          {cardData.map((demand, _index) => (
             <DemandCard key={index} demand={demand} />
           ))}
         </div>

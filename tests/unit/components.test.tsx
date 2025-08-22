@@ -68,7 +68,7 @@ jest.mock('../../client/src/hooks/use-mobile-menu', () => ({
 jest.mock('../../client/src/config/navigation', () => ({
   getFilteredNavigation: () => [
     {
-      key: 'owner',
+      _key: 'owner',
       labelKey: 'navigation.owner',
       label: 'Propriétaire',
       icon: () => <div data-testid="home-icon">Home</div>,
@@ -84,7 +84,7 @@ jest.mock('../../client/src/config/navigation', () => ({
       ]
     },
     {
-      key: 'tenant',
+      _key: 'tenant',
       labelKey: 'navigation.tenant', 
       label: 'Locataire',
       icon: () => <div data-testid="user-icon">User</div>,

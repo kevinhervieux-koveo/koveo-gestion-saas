@@ -33,7 +33,7 @@ interface QualityTestResult {
  * @returns Function result.
  */
 async function runQualityMetricTests(): Promise<QualityTestResult> {
-  const result: QualityTestResult = {
+  const _result: QualityTestResult = {
     success: false,
     testsPassed: 0,
     testsTotal: 0,
@@ -75,12 +75,12 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
     const passMatches = allResults.match(/(\d+) passing/g) || [];
     const failMatches = allResults.match(/(\d+) failing/g) || [];
     
-    result.testsPassed = passMatches.reduce((sum, match) => {
+    result.testsPassed = passMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
 
-    const testsFailed = failMatches.reduce((sum, match) => {
+    const testsFailed = failMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
@@ -93,9 +93,9 @@ async function runQualityMetricTests(): Promise<QualityTestResult> {
     console.warn(`   Tests Total: ${result.testsTotal}`);
     console.warn(`   Success Rate: ${result.testsTotal > 0 ? Math.round((result.testsPassed / result.testsTotal) * 100) : 0}%`);
 
-  } catch (__error) {
+  } catch (_error) {
     result.errors.push(`Test execution failed: ${error}`);
-    console.error('❌ Quality metrics tests failed:', error);
+    console.error('❌ Quality metrics tests failed:', _error);
   }
 
   return result;
@@ -211,8 +211,8 @@ async function recordCurrentMetrics(): Promise<void> {
 
     console.warn('✅ Effectiveness tracking setup ready');
     
-  } catch (__error) {
-    console.error('❌ Failed to record current metrics:', error);
+  } catch (_error) {
+    console.error('❌ Failed to record current metrics:', _error);
   }
 }
 
@@ -257,8 +257,8 @@ async function main(): Promise<void> {
     console.warn('   • Continue tracking real issues vs false positives');
     console.warn('   • Run this validation regularly as part of CI/CD');
 
-  } catch (__error) {
-    console.error('\n💥 Quality metrics validation failed:', error);
+  } catch (_error) {
+    console.error('\n💥 Quality metrics validation failed:', _error);
     process.exit(1);
   }
 }
@@ -266,7 +266,7 @@ async function main(): Promise<void> {
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
-    console.error('Fatal error:', error);
+    console.error('Fatal _error:', _error);
     process.exit(1);
   });
 }

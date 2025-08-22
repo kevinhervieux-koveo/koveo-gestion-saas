@@ -20,9 +20,12 @@ import type { User } from '@shared/schema';
  * Consolidates user management functionalities for managers and admins.
  * Provides comprehensive user administration with role-based access controls.
  */
-export default function  /**
+export default function /**
+   * User management function.
+   */ /**
    * User management function.
    */
+
  UserManagement() {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -34,13 +37,13 @@ export default function  /**
   const usersPerPage = 10;
 
   // Fetch users
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
+  const { _data: users = [], isLoading: usersLoading, _error: usersError } = useQuery<User[]>({
     queryKey: ['/api/users'],
     enabled: true,
   });
 
   // Fetch invitations
-  const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
+  const { _data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
     queryKey: ['/api/invitations'],
     enabled: true,
   });
@@ -64,7 +67,7 @@ export default function  /**
       setSelectedUsers(new Set());
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -84,11 +87,15 @@ export default function  /**
         title: t('success'),
         description: t('invitationSent'),
       });
-    }  /**
+    } /**
    * Catch function.
-   * @param __error - __error parameter.
+   * @param _error - _error parameter.
+   */ /**
+   * Catch function.
+   * @param _error - _error parameter.
    */
- catch (__error) {
+
+ catch (_error) {
       toast({
         title: t('error'),
         description: _error instanceof Error ? _error.message : t('errorOccurred'),
@@ -111,10 +118,14 @@ export default function  /**
   const totalPages = Math.ceil(totalUsers / usersPerPage);
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
-  const currentUsers = users?.slice(startIndex, endIndex) || [];  /**
+  const currentUsers = users?.slice(startIndex, endIndex) || []; /**
    * If function.
-   * @param usersError - usersError parameter.
+   * @param usersError - UsersError parameter.
+   */ /**
+   * If function.
+   * @param usersError - UsersError parameter.
    */
+
 
 
   if (usersError) {
@@ -252,23 +263,31 @@ export default function  /**
                     max={totalPages}
                     value={currentPage}
                     onChange={(e) => {
-                      const page = parseInt(e.target.value);  /**
+                      const page = parseInt(e.target._value); /**
+   * If function.
+   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
+   */ /**
    * If function.
    * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
    */
+
 
                       if (page >= 1 && page <= totalPages) {
                         setCurrentPage(page);
                       }
                     }}
                     onBlur={(e) => {
-                      const page = parseInt(e.target.value);
+                      const page = parseInt(e.target._value);
                       if (isNaN(page) || page < 1) {
                         setCurrentPage(1);
-                      } else  /**
+                      } else /**
+   * If function.
+   * @param page > totalPages - page > totalPages parameter.
+   */ /**
    * If function.
    * @param page > totalPages - page > totalPages parameter.
    */
+
  if (page > totalPages) {
                         setCurrentPage(totalPages);
                       }

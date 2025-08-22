@@ -38,8 +38,8 @@ export function registerContactRoutes(app: Express) {
         ));
 
       res.json(entityContacts);
-    } catch (__error) {
-      console.error('Error fetching contacts:', error);
+    } catch (_error) {
+      console.error('Error fetching contacts:', _error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -78,8 +78,8 @@ export function registerContactRoutes(app: Express) {
         ));
 
       res.json(residenceContacts);
-    } catch (__error) {
-      console.error('Error fetching residence contacts:', error);
+    } catch (_error) {
+      console.error('Error fetching residence contacts:', _error);
       res.status(500).json({ message: 'Failed to fetch residence contacts' });
     }
   });
@@ -122,8 +122,8 @@ export function registerContactRoutes(app: Express) {
         ));
 
       res.json(entityContacts);
-    } catch (__error) {
-      console.error('Error fetching contacts:', error);
+    } catch (_error) {
+      console.error('Error fetching contacts:', _error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -175,8 +175,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newContact);
-    } catch (__error) {
-      console.error('Error creating contact:', error);
+    } catch (_error) {
+      console.error('Error creating contact:', _error);
       res.status(500).json({ message: 'Failed to create contact' });
     }
   });
@@ -217,8 +217,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.json(updatedContact);
-    } catch (__error) {
-      console.error('Error updating contact:', error);
+    } catch (_error) {
+      console.error('Error updating contact:', _error);
       res.status(500).json({ message: 'Failed to update contact' });
     }
   });
@@ -257,8 +257,8 @@ export function registerContactRoutes(app: Express) {
         .where(eq(contacts.id, id));
 
       res.json({ message: 'Contact deleted successfully' });
-    } catch (__error) {
-      console.error('Error deleting contact:', error);
+    } catch (_error) {
+      console.error('Error deleting contact:', _error);
       res.status(500).json({ message: 'Failed to delete contact' });
     }
   });

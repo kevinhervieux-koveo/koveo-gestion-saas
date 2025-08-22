@@ -35,18 +35,18 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async (data: ForgotPasswordForm) => {
+  const onSubmit = async (_data: ForgotPasswordForm) => {
     setIsSubmitting(true);
     try {
-      await apiRequest('/api/auth/forgot-password', 'POST', data);
+      await apiRequest('/api/auth/forgot-password', 'POST', _data);
 
       setEmailSent(true);
       toast({
         title: 'E-mail envoyé',
         description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
       });
-    } catch (error: unknown) {
-      console.error('Forgot password error:', error);
+    } catch (_error: unknown) {
+      console.error('Forgot password _error:', _error);
       toast({
         title: 'Erreur',
         description: error.message || 'Une erreur est survenue lors de l\'envoi de l\'e-mail.',

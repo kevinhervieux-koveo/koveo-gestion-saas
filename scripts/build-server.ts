@@ -41,8 +41,8 @@ function buildServer() {
     
     console.warn('✅ Server build completed successfully');
     
-  } catch (__error) {
-    console.error('❌ Build failed:', error);
+  } catch (_error) {
+    console.error('❌ Build failed:', _error);
     process.exit(1);
   }
 }

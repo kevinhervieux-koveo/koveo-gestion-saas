@@ -16,7 +16,8 @@ import HomePage from '@/pages/home';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
- */
+  * @returns Function result.
+*/
 function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {

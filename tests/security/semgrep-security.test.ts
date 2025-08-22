@@ -13,14 +13,14 @@ describe('Semgrep Security Tests', () => {
   beforeAll(async () => {
     // Run semgrep scan before running tests
     try {
-      console.log('🔍 Running semgrep security scan...');
+      console.warn('🔍 Running semgrep security scan...');
       const output = execSync('semgrep --config=.semgrep.yml --json --quiet .', {
         encoding: 'utf-8',
         timeout: 60000
       });
       semgrepResults = JSON.parse(output);
-      console.log(`📊 Semgrep found ${semgrepResults.results?.length || 0} potential issues`);
-    } catch (error) {
+      console.warn(`📊 Semgrep found ${semgrepResults.results?.length || 0} potential issues`);
+    } catch (_error) {
       console.error('Semgrep scan failed:', error.message);
       semgrepResults = { results: [] };
     }
@@ -286,18 +286,18 @@ describe('Semgrep Security Tests', () => {
       const warningIssues = semgrepResults.results?.filter(r => r.extra?.severity === 'WARNING') || [];
       const infoIssues = semgrepResults.results?.filter(r => r.extra?.severity === 'INFO') || [];
       
-      console.log('\n🔒 SECURITY SCAN SUMMARY');
-      console.log('========================');
-      console.log(`Total Issues Found: ${totalIssues}`);
-      console.log(`  🔴 Critical (ERROR): ${errorIssues.length}`);
-      console.log(`  🟡 Warning: ${warningIssues.length}`);
-      console.log(`  ℹ️  Info: ${infoIssues.length}`);
+      console.warn('\n🔒 SECURITY SCAN SUMMARY');
+      console.warn('========================');
+      console.warn(`Total Issues Found: ${totalIssues}`);
+      console.warn(`  🔴 Critical (ERROR): ${errorIssues.length}`);
+      console.warn(`  🟡 Warning: ${warningIssues.length}`);
+      console.warn(`  ℹ️  Info: ${infoIssues.length}`);
       
       if (errorIssues.length > 0) {
-        console.log('\n🔴 CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION:');
+        console.warn('\n🔴 CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION:');
         errorIssues.forEach(issue => {
-          console.log(`  - ${issue.check_id}: ${issue.path}:${issue.start.line}`);
-          console.log(`    ${issue.message}`);
+          console.warn(`  - ${issue.check_id}: ${issue.path}:${issue.start.line}`);
+          console.warn(`    ${issue.message}`);
         });
       }
       
@@ -316,7 +316,7 @@ describe('Semgrep Security Tests', () => {
         console.error('\n❌ PRODUCTION DEPLOYMENT BLOCKED - Critical security issues found!');
         console.error('Please resolve all ERROR-level security issues before deployment.');
       } else {
-        console.log('\n✅ SECURITY VALIDATION PASSED - Ready for production deployment');
+        console.warn('\n✅ SECURITY VALIDATION PASSED - Ready for production deployment');
       }
       
       // This test will pass but log important information
@@ -342,8 +342,8 @@ describe('Semgrep Security Tests', () => {
         path.join(__dirname, '../..', 'security-report.json'),
         JSON.stringify(report, null, 2)
       );
-      console.log('\n📄 Security report saved to security-report.json');
-    } catch (error) {
+      console.warn('\n📄 Security report saved to security-report.json');
+    } catch (_error) {
       console.warn('Could not save security report:', error.message);
     }
   });

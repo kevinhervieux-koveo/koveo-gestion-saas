@@ -91,16 +91,16 @@ interface ResidenceDocument {
 }
 
 const DOCUMENT_CATEGORIES = [
-  { value: 'lease', label: 'Lease Agreement' },
-  { value: 'inspection', label: 'Inspection Report' },
-  { value: 'maintenance', label: 'Maintenance Request' },
-  { value: 'financial', label: 'Financial Document' },
-  { value: 'insurance', label: 'Insurance Document' },
-  { value: 'correspondence', label: 'Correspondence' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'renovation', label: 'Renovation' },
-  { value: 'inventory', label: 'Inventory' },
-  { value: 'other', label: 'Other' }
+  { _value: 'lease', label: 'Lease Agreement' },
+  { _value: 'inspection', label: 'Inspection Report' },
+  { _value: 'maintenance', label: 'Maintenance Request' },
+  { _value: 'financial', label: 'Financial Document' },
+  { _value: 'insurance', label: 'Insurance Document' },
+  { _value: 'correspondence', label: 'Correspondence' },
+  { _value: 'utilities', label: 'Utilities' },
+  { _value: 'renovation', label: 'Renovation' },
+  { _value: 'inventory', label: 'Inventory' },
+  { _value: 'other', label: 'Other' }
 ];
 
 const documentSchema = z.object({
@@ -114,9 +114,12 @@ const documentSchema = z.object({
 /**
  *
  */
-export default function  /**
+export default function /**
+   * Residence documents function.
+   */ /**
    * Residence documents function.
    */
+
  ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -145,17 +148,17 @@ export default function  /**
   const queryClient = useQueryClient();
 
   // Get current user info
-  const { data: user } = useQuery<User>({
+  const { _data: user } = useQuery<User>({
     queryKey: ["/api/auth/user"],
   });
 
   // Get residences info
-  const { data: residences = [] } = useQuery<Residence[]>({
+  const { _data: residences = [] } = useQuery<Residence[]>({
     queryKey: ["/api/residences"],
   });
 
   // Get buildings info for context
-  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
+  const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ["/api/manager/buildings"],
   });
 
@@ -163,18 +166,38 @@ export default function  /**
   const building = buildingsResponse?.buildings?.find(b => b.id === residence?.buildingId);
 
   // Get documents for this specific residence
-  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
+  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", { type: "resident", residenceId }],
-    queryFn: async () => {  /**
+    queryFn: async () => { /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */ /**
    * If function.
    * @param !residenceId - !residenceId parameter.
    */
 
+
       if (!residenceId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);  /**
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
-   */  /**
+   */ /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */ /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
+  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
@@ -245,7 +268,7 @@ export default function  /**
   });
 
   // Handle document creation
-  const handleCreateDocument = async (data: z.infer<typeof documentSchema>) => {
+  const handleCreateDocument = async (_data: z.infer<typeof documentSchema>) => {
     try {
       const createData = {
         ...data,
@@ -272,10 +295,22 @@ export default function  /**
       setUploadedFile(null);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    }  /**
+    } /**
    * Catch function.
    * @param _error - _error parameter.
    */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */ /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+
   /**
    * Catch function.
    * @param _error - _error parameter.
@@ -294,10 +329,14 @@ export default function  /**
   };
 
   // Handle document update
-  const handleUpdateDocument = async (data: z.infer<typeof documentSchema>) => {  /**
+  const handleUpdateDocument = async (_data: z.infer<typeof documentSchema>) => { /**
+   * If function.
+   * @param !selectedDocument - !selectedDocument parameter.
+   */ /**
    * If function.
    * @param !selectedDocument - !selectedDocument parameter.
    */
+
 
     if (!selectedDocument) {return;}
 
@@ -369,11 +408,19 @@ export default function  /**
     return { method: 'PUT' as const, url: uploadURL };
   };
 
-  const handleNewDocumentUploadComplete = (result: unknown) => {
-    setIsUploadingNewFile(false);  /**
+  const handleNewDocumentUploadComplete = (_result: unknown) => {
+    setIsUploadingNewFile(false); /**
    * If function.
    * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
    */
+  /**
+   * If function.
+   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+   */ /**
+   * If function.
+   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+   */
+
   /**
    * If function.
    * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
@@ -398,7 +445,7 @@ export default function  /**
     return { method: 'PUT' as const, url: uploadURL };
   };
 
-  const handleFileUploadComplete = (result: any, documentId: string) => {
+  const handleFileUploadComplete = (_result: any, documentId: string) => {
     setUploadingDocumentId(null);
     if (result.successful && result.successful[0]) {
       const file = result.successful[0];
@@ -409,10 +456,14 @@ export default function  /**
         mimeType: file.type,
       });
     }
-  };  /**
+  }; /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */ /**
    * If function.
    * @param !residenceId - !residenceId parameter.
    */
+
 
 
   if (!residenceId) {
@@ -428,10 +479,14 @@ export default function  /**
         </div>
       </div>
     );
-  }  /**
+  } /**
+   * If function.
+   * @param !residence - !residence parameter.
+   */ /**
    * If function.
    * @param !residence - !residence parameter.
    */
+
 
 
   if (!residence) {
@@ -664,7 +719,7 @@ export default function  /**
                   id="search"
                   placeholder="Search by document name..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target._value)}
                   className="mt-1"
                 />
               </div>
@@ -898,10 +953,14 @@ export default function  /**
         <Dialog 
           open={isViewDialogOpen} 
           onOpenChange={(open) => {
-            setIsViewDialogOpen(open);  /**
+            setIsViewDialogOpen(open); /**
+   * If function.
+   * @param !open - !open parameter.
+   */ /**
    * If function.
    * @param !open - !open parameter.
    */
+
 
             if (!open) {
               setSelectedDocument(null);
@@ -931,7 +990,7 @@ export default function  /**
                           maxNumberOfFiles={1}
                           maxFileSize={50 * 1024 * 1024}
                           onGetUploadParameters={() => handleFileUpload(selectedDocument.id)}
-                          onComplete={(result) => handleFileUploadComplete(result, selectedDocument.id)}
+                          onComplete={(_result) => handleFileUploadComplete(result, selectedDocument.id)}
                           buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                           disabled={uploadingDocumentId === selectedDocument.id}
                         >

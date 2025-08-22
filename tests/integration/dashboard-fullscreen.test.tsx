@@ -333,7 +333,7 @@ describe('Dashboard Fullscreen Integration', () => {
       
       // Test keyboard navigation
       fullscreenButton.focus();
-      fireEvent.keyDown(fullscreenButton, { key: 'Enter' });
+      fireEvent.keyDown(fullscreenButton, { _key: 'Enter' });
 
       expect(mockToggleFullscreen).toHaveBeenCalled();
     });

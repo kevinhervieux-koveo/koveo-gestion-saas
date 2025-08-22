@@ -28,8 +28,8 @@ async function runBuild() {
     
     console.warn('✅ Build completed successfully!');
     
-  } catch (__error) {
-    console.error('❌ Build failed:', error);
+  } catch (_error) {
+    console.error('❌ Build failed:', _error);
     process.exit(1);
   }
 }

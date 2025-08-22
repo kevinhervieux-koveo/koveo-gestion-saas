@@ -119,8 +119,8 @@ export class MemoryOptimizer {
     this.cleanupCallbacks.forEach((callback) => {
       try {
         callback();
-      } catch (__error) {
-        console.warn('Memory cleanup callback failed:', error);
+      } catch (_error) {
+        console.warn('Memory cleanup callback failed:', _error);
       }
     });
 
@@ -189,11 +189,15 @@ export function useMemoryCleanup(cleanupFn: () => void): void {
  * @param options.width
  * @param options.height
  * @param options.quality
+ * @param _options
+ * @param _options.width
+ * @param _options.height
+ * @param _options.quality
  * @returns Function result.
  */
 export function loadImageOptimized(
   src: string,
-  options: { width?: number; height?: number; quality?: number } = {}
+  _options: { width?: number; height?: number; quality?: number } = {}
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();

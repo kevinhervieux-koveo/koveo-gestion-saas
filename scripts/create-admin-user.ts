@@ -75,8 +75,8 @@ async function createAdminUser() {
       console.warn('🇨🇦 Law 25 Compliance: This account follows Quebec privacy regulations');
     }
 
-  } catch (__error) {
-    console.error('❌ Error creating admin user:', error);
+  } catch (_error) {
+    console.error('❌ Error creating admin user:', _error);
     throw error;
   } finally {
     await pool.end();
@@ -158,8 +158,8 @@ async function createSampleUsers() {
     console.warn('🎯 Test accounts ready for Quebec property management system');
     console.warn('🔐 All passwords follow the same pattern: [Role]123!');
 
-  } catch (__error) {
-    console.error('❌ Error creating sample users:', error);
+  } catch (_error) {
+    console.error('❌ Error creating sample users:', _error);
   }
 }
 
@@ -187,8 +187,8 @@ async function main() {
 }
 
 // Run the script if called directly
-main().catch((error) => {
-  console.error('💥 Script failed:', error);
+main().catch((_error) => {
+  console.error('💥 Script failed:', _error);
   process.exit(1);
 });
 

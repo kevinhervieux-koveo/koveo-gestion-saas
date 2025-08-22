@@ -257,7 +257,7 @@ const MultilingualDemandsList = ({ language = 'en' }: { language?: 'en' | 'fr' }
       
       {/* Demands List */}
       <div className="space-y-4" data-testid="demands-list">
-        {demands.map((demand, index) => (
+        {demands.map((demand, _index) => (
           <div
             key={demand.id}
             className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"

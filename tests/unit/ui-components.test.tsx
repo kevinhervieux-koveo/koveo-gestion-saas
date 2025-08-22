@@ -200,7 +200,7 @@ describe('UI Components Tests', () => {
       render(<Input onChange={handleChange} data-testid="input" />);
       
       const input = screen.getByTestId('input');
-      fireEvent.change(input, { target: { value: 'test value' } });
+      fireEvent.change(input, { target: { _value: 'test value' } });
       
       expect(handleChange).toHaveBeenCalled();
     });

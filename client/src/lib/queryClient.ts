@@ -52,7 +52,7 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
  * @param options.on401 - How to handle 401 responses.
  * @returns Configured query function for React Query.
  */
-export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
+export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join('/') as string, {
@@ -92,14 +92,14 @@ export const queryClient = new QueryClient({
   },
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
-    onError: (error) => {
-      console.error('Query error:', error);
+    onError: (_error) => {
+      console.error('Query _error:', _error);
     },
   }),
   // Limit mutation cache size
   mutationCache: new MutationCache({
-    onError: (error) => {
-      console.error('Mutation error:', error);
+    onError: (_error) => {
+      console.error('Mutation _error:', _error);
     },
   }),
 });
