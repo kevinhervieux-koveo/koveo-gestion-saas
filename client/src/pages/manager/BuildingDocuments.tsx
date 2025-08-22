@@ -21,57 +21,14 @@ import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Building, Calen
 import { Header } from "@/components/layout/header";
 import type { UploadResult } from "@uppy/core";
 
-// Utility function to convert raw object storage URLs to server routes
-/**
- *
- * @param fileUrl
- */
-/**
- * GetDisplayableFileUrl function.
- * @param fileUrl
- * @returns Function result.
- */
-function getDisplayableFileUrl(fileUrl: string): string {
-  if (!fileUrl) {return '';}
-  
-  // If it's already a proper server route, return as-is
-  if (fileUrl.startsWith('/objects/') || fileUrl.startsWith('/public-objects/')) {
-    return fileUrl;
-  }
-  
-  // If it's a Google Cloud Storage URL, convert to objects route
-  if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
-    // Extract the path part after the bucket name
-    const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com'));
-    if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
-      const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
-      return `/objects/${pathAfterBucket}`;
-    }
-  }
-  
-  // If it starts with /objects/, use as-is
-  if (fileUrl.startsWith('/objects/')) {
-    return fileUrl;
-  }
-  
-  // For other formats, try to use as objects route
-  return `/objects/${fileUrl.replace(/^\/+/, '')}`;
-}
-
-// Document categories
-const DOCUMENT_CATEGORIES = [
-  { value: 'bylaw', label: 'Bylaws' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'other', label: 'Other' },
-] as const;
+import { 
+  getDisplayableFileUrl, 
+  BUILDING_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES,
+  documentApi,
+  getCategoryLabel,
+  createUploadHandler
+} from '@/lib/documents';
+import { useDeleteMutation, useCreateUpdateMutation, useFormState } from '@/lib/common-hooks';
 
 // Form schema for creating/editing building documents
 const documentFormSchema = z.object({
