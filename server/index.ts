@@ -24,7 +24,14 @@ app.use(express.urlencoded({ extended: false }));
 // Export app for testing
 export { app };
 
-// Health check endpoints for API monitoring (NOT for frontend serving)
+// FAST health check endpoint for deployment platform - responds immediately
+app.get('/', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'text/plain');
+  res.status(200).send('OK');
+});
+
+// Dedicated health check endpoint for detailed monitoring
 app.get('/api/health', (req, res) => {
   // API health check with timeout protection
   const timeout = setTimeout(() => {
@@ -167,58 +174,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup static file serving IMMEDIATELY for production
-const isDevelopment = process.env.NODE_ENV === 'development';
-if (!isDevelopment) {
-  log('🏗️ Setting up production static file serving immediately');
-  const distPath = path.resolve(__dirname, 'public');
-  
-  log(`📁 Looking for build files in: ${distPath}`);
-  log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
-  
-  if (fs.existsSync(distPath)) {
-    const indexPath = path.resolve(distPath, 'index.html');
-    log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
-    
-    // Serve static files with proper cache headers
-    app.use(express.static(distPath, {
-      maxAge: '1d',
-      setHeaders: (res, path) => {
-        if (path.endsWith('.html')) {
-          res.setHeader('Cache-Control', 'no-cache');
-        }
-      }
-    }));
-    
-    log('✅ Static files middleware registered immediately');
-    
-    // Add SPA fallback routing immediately after static files
-    app.get('*', (_req: Request, res: Response, next) => {
-      // Skip API routes - let them fall through to API handlers
-      if (_req.path.startsWith('/api')) {
-        return next();
-      }
-      
-      const indexPath = path.resolve(distPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send(`Application not found. Index path: ${indexPath}`);
-      }
-    });
-    
-    log('✅ SPA fallback routing registered immediately');
-  } else {
-    log(`⚠️ Build directory not found: ${distPath}`, 'error');
-    
-    // List what's actually in the directory
-    const parentDir = path.dirname(distPath);
-    if (fs.existsSync(parentDir)) {
-      const contents = fs.readdirSync(parentDir);
-      log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
-    }
-  }
-}
+// Static file serving will be set up AFTER server starts to avoid blocking health checks
 
 // Features API route - Placed here to ensure it takes precedence over Vite middleware
 app.get('/api/features', async (req, res) => {
@@ -335,8 +291,11 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         log(`   - http://0.0.0.0:${port}/healthz`);
         log(`   - http://0.0.0.0:${port}/ready`);
         
-        // Initialize everything else in background after server is listening
-        setTimeout(() => initializeApplication(), 100);
+        // Initialize application immediately (health checks are already working)
+        initializeApplication().catch(error => {
+          log(`Application initialization failed: ${error}`, 'error');
+          // Don't crash - health checks still work
+        });
       }
     );
 
@@ -573,7 +532,57 @@ async function initializeApplication() {
         }
       }
     } else {
-      log('🏗️ Production static serving already configured at startup');
+      log('🏗️ Setting up production static file serving');
+      const distPath = path.resolve(__dirname, 'public');
+      
+      log(`📁 Looking for build files in: ${distPath}`);
+      log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
+      
+      if (fs.existsSync(distPath)) {
+        const indexPath = path.resolve(distPath, 'index.html');
+        log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
+        
+        // Serve static files with proper cache headers
+        app.use(express.static(distPath, {
+          maxAge: '1d',
+          setHeaders: (res, path) => {
+            if (path.endsWith('.html')) {
+              res.setHeader('Cache-Control', 'no-cache');
+            }
+          }
+        }));
+        
+        // Add SPA fallback routing AFTER static files
+        app.get('*', (_req: Request, res: Response, next) => {
+          // Skip API routes - let them fall through to API handlers
+          if (_req.path.startsWith('/api')) {
+            return next();
+          }
+          
+          // Skip the root health check
+          if (_req.path === '/') {
+            return next();
+          }
+          
+          const indexPath = path.resolve(distPath, 'index.html');
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send(`Application not found. Index path: ${indexPath}`);
+          }
+        });
+        
+        log('✅ Static files and SPA routing configured');
+      } else {
+        log(`⚠️ Build directory not found: ${distPath}`, 'error');
+        
+        // List what's actually in the directory
+        const parentDir = path.dirname(distPath);
+        if (fs.existsSync(parentDir)) {
+          const contents = fs.readdirSync(parentDir);
+          log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
+        }
+      }
     }
 
     // Setup error handling
