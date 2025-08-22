@@ -70,6 +70,7 @@
     "validate:quick": "npm run lint:check && npm run typecheck",
     "validate:pre-commit": "npm run format:check && npm run lint:check && npm run typecheck",
     "validate:deployment": "tsx scripts/deployment-validation.ts",
+    "validate:dependencies": "npm run audit:security && npm run audit:licenses",
     "clean": "rm -rf dist coverage .turbo node_modules/.cache",
     "clean:all": "npm run clean && rm -rf node_modules",
     "docs:generate": "typedoc --out docs --entryPoints client/src server --exclude '**/node_modules/**' --exclude '**/tests/**' --name 'Koveo Gestion Documentation'",

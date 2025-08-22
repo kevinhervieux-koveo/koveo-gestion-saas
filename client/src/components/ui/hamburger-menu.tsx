@@ -33,12 +33,12 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
   // Navigation items for public pages
   const publicNavItems = [
-    { icon: Home, label: 'Accueil', path: '/', testId: 'nav-home' },
-    { icon: Wrench, label: 'Fonctionnalités', path: '/features', testId: 'nav-features' },
-    { icon: Shield, label: 'Sécurité', path: '/security', testId: 'nav-security' },
-    { icon: BookOpen, label: 'Notre histoire', path: '/story', testId: 'nav-story' },
-    { icon: FileText, label: 'Politique de confidentialité', path: '/privacy-policy', testId: 'nav-privacy' },
-    { icon: Scale, label: 'Conditions d\'utilisation', path: '/terms-of-service', testId: 'nav-terms' },
+    { icon: Home, label: t('home'), path: '/', testId: 'nav-home' },
+    { icon: Wrench, label: t('features'), path: '/features', testId: 'nav-features' },
+    { icon: Shield, label: t('security'), path: '/security', testId: 'nav-security' },
+    { icon: BookOpen, label: t('ourStory'), path: '/story', testId: 'nav-story' },
+    { icon: FileText, label: t('privacyPolicy'), path: '/privacy-policy', testId: 'nav-privacy' },
+    { icon: Scale, label: t('termsOfService'), path: '/terms-of-service', testId: 'nav-terms' },
   ];
 
   return (
@@ -50,7 +50,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
         onClick={toggleMenu}
         className="relative z-50"
         data-testid="hamburger-button"
-        aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+        aria-label={isOpen ? t('closeMenu') : t('openMenu')}
       >
         {isOpen ? (
           <X className="h-6 w-6" />
@@ -84,13 +84,13 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       >
         {/* Menu Header */}
         <div className="flex items-center justify-between p-4 border-b" style={{ backgroundColor: '#ffffff' }}>
-          <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('menu')}</h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={closeMenu}
             data-testid="close-menu-button"
-            aria-label="Fermer le menu"
+            aria-label={t('closeMenu')}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -102,7 +102,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           <nav className="flex-1 p-4 space-y-2" style={{ backgroundColor: '#ffffff' }}>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
-                Navigation
+                {t('navigation')}
               </h3>
               {publicNavItems.map((item) => (
                 <Button
@@ -121,7 +121,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
             {/* Authentication Section */}
             <div className="pt-4 border-t space-y-1">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
-                Compte
+                {t('account')}
               </h3>
               {isAuthenticated ? (
                 <>
@@ -132,7 +132,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                     data-testid="nav-dashboard"
                   >
                     <LayoutDashboard className="mr-3 h-5 w-5" />
-                    <span>Tableau de bord</span>
+                    <span>{t('dashboard')}</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -141,7 +141,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                     data-testid="nav-logout"
                   >
                     <LogOut className="mr-3 h-5 w-5" />
-                    <span>Déconnexion</span>
+                    <span>{t('logout')}</span>
                   </Button>
                 </>
               ) : (
@@ -153,7 +153,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                     data-testid="nav-login"
                   >
                     <LogIn className="mr-3 h-5 w-5" />
-                    <span>Se connecter</span>
+                    <span>{t('login')}</span>
                   </Button>
                   <TrialRequestForm>
                     <Button
@@ -161,7 +161,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                       data-testid="nav-get-started"
                     >
                       <LogIn className="mr-3 h-5 w-5" />
-                      <span>Commencer</span>
+                      <span>{t('getStarted')}</span>
                     </Button>
                   </TrialRequestForm>
                 </>
@@ -172,13 +172,13 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           {/* Menu Footer */}
           <div className="p-4 border-t bg-gray-50" style={{ backgroundColor: '#f9fafb' }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Langue</span>
+              <span className="text-sm text-gray-600">{t('language')}</span>
               <LanguageSwitcher />
             </div>
             <div className="mt-3 text-xs text-gray-500 text-center">
-              © 2025 Koveo Gestion
+              {t('copyright')}
               <br />
-              Conforme à la Loi 25 du Québec
+              {t('law25Compliant')}
             </div>
           </div>
         </div>
