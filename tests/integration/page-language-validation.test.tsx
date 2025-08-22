@@ -36,7 +36,7 @@ import LoginPage from '@/pages/auth/login';
 
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import LanguageSwitcher from '@/components/ui/language-switcher';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 /**
  * Integration test suite for Quebec French language validation across all client pages.
