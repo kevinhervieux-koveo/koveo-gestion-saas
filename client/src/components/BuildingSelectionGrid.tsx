@@ -4,25 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Building as BuildingIcon } from 'lucide-react';
 import type { Building } from '@shared/schema';
 
-// Building selection grid component
 /**
- * @param root0
- * @param root0.buildings
- * @param root0.onBuildingSelect
- */
-/**
- * BuildingSelectionGrid function.
- * @param root0
- * @param root0.buildings
- * @param root0.onBuildingSelect
- * @returns Function result.
+ * Building selection grid component.
+ * @param root0 - Component props
+ * @param root0.buildings - Array of buildings to display
+ * @param root0.onBuildingSelect - Callback when building is selected.
+ * @returns Building selection grid JSX.
  */
 export function BuildingSelectionGrid({ 
   buildings, 
   onBuildingSelect 
 }: { 
   buildings: Building[]; 
-  onBuildingSelect: (buildingId: string) => void;
+  onBuildingSelect: (_buildingId: string) => void;
 }) {
   return (
     <div className='space-y-6'>
@@ -50,18 +44,12 @@ export function BuildingSelectionGrid({
   );
 }
 
-// Building card component
 /**
- * @param root0
- * @param root0.building
- * @param root0.onSelect
- */
-/**
- * BuildingCard function.
- * @param root0
- * @param root0.building
- * @param root0.onSelect
- * @returns Function result.
+ * Individual building card component.
+ * @param root0 - Component props
+ * @param root0.building - Building data to display
+ * @param root0.onSelect - Callback when card is selected.
+ * @returns Building card JSX.
  */
 function BuildingCard({ 
   building, 

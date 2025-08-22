@@ -3,13 +3,14 @@ import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+// Select components imported but not used in current implementation
+// import { 
+//   Select, 
+//   SelectContent, 
+//   SelectItem, 
+//   SelectTrigger, 
+//   SelectValue 
+// } from '@/components/ui/select';
 import { 
   Users, 
   UserCheck, 
@@ -26,7 +27,7 @@ import { z } from 'zod';
 
 // Types
 /**
- *
+ * Props for BulkActionsBar component.
  */
 interface BulkActionsBarProps {
   selectedCount: number;
@@ -35,7 +36,7 @@ interface BulkActionsBarProps {
 }
 
 /**
- *
+ * Available bulk action types.
  */
 type BulkActionType = 
   | 'activate'
@@ -47,7 +48,7 @@ type BulkActionType =
   | 'send_welcome_email';
 
 /**
- *
+ * Configuration for a bulk action.
  */
 interface BulkAction {
   type: BulkActionType;
@@ -62,20 +63,13 @@ interface BulkAction {
 }
 
 /**
- * Bulk Actions Bar Component - Refactored using reusable components
+ * Bulk Actions Bar Component - Refactored using reusable components.
  * Reduced from 358+ lines to ~150 lines by leveraging BaseDialog and StandardForm.
- * @param root0
- * @param root0.selectedCount
- * @param root0.onBulkAction
- * @param root0.isLoading
- */
-/**
- * BulkActionsBar function.
- * @param root0
- * @param root0.selectedCount
- * @param root0.onBulkAction
- * @param root0.isLoading
- * @returns Function result.
+ * @param root0 - Component props
+ * @param root0.selectedCount - Number of selected items
+ * @param root0.onBulkAction - Callback for executing bulk actions
+ * @param root0.isLoading - Loading state indicator
+ * @returns Bulk actions bar JSX
  */
 export function BulkActionsBar({ selectedCount, onBulkAction, isLoading }: BulkActionsBarProps) {
   const { t } = useLanguage();

@@ -85,6 +85,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Load .replit configuration.
+   * @returns Configuration object parsed from .replit file
    */
   private loadReplitConfig(): Record<string, unknown> {
     const replitFile = path.join(this.projectRoot, '.replit');
@@ -105,6 +106,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Detect available Replit capabilities.
+   * @returns Array of available capability strings
    */
   private detectCapabilities(): string[] {
     const capabilities: string[] = [];
@@ -140,6 +142,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Audit available secrets without exposing values.
+   * @returns Record mapping secret names to boolean availability
    */
   private auditSecrets(): Record<string, boolean> {
     const secrets: Record<string, boolean> = {};
@@ -165,6 +168,7 @@ export class ReplitIntegrationEnhancer {
 
   /**
    * Detect connected databases.
+   * @returns Array of database connection information
    */
   private detectDatabases(): Array<{ name: string; type: string; connected: boolean }> {
     const databases = [];
