@@ -6,6 +6,11 @@ import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 import * as path from 'path';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// ES Module compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure port for deployment platform compatibility
 // Replit deployment expects port 5000
