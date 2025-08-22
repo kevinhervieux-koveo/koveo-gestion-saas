@@ -220,7 +220,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         duration: 2000,
       });
     } catch (__error) {
-      console.error('Failed to save draft:', _error);
+      console.error('Failed to save draft:', __error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -244,7 +244,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setIsDirty(false);
       }
     } catch (__error) {
-      console.error('Failed to load draft:', _error);
+      console.error('Failed to load draft:', __error);
     }
   }, [feature?.id, getDraftKey]);
 
@@ -262,7 +262,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Saved draft has been removed.',
       });
     } catch (__error) {
-      console.error('Failed to clear draft:', _error);
+      console.error('Failed to clear draft:', __error);
     }
   }, [feature?.id, toast, getDraftKey]);
 
@@ -578,7 +578,7 @@ ${formData.additionalNotes || 'No additional notes'}
           }
         });
       } catch (__error) {
-        console.error('Error clearing invalid drafts:', _error);
+        console.error('Error clearing invalid drafts:', __error);
       }
       
       loadDraft();

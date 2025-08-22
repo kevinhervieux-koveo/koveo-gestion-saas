@@ -115,7 +115,7 @@ export function useFeatureFormData(feature: Feature | null) {
         duration: 2000,
       });
     } catch (__error) {
-      console.error('Failed to save draft:', _error);
+      console.error('Failed to save draft:', __error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -139,7 +139,7 @@ export function useFeatureFormData(feature: Feature | null) {
         setIsDirty(false);
       }
     } catch (__error) {
-      console.error('Failed to load draft:', _error);
+      console.error('Failed to load draft:', __error);
     }
   }, [getDraftKey]);
 
@@ -158,7 +158,7 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Saved draft has been removed.',
       });
     } catch (__error) {
-      console.error('Failed to clear draft:', _error);
+      console.error('Failed to clear draft:', __error);
     }
   }, [getDraftKey, toast]);
 

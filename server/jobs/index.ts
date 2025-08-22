@@ -25,8 +25,8 @@ export async function startJobs(): Promise<void> {
     
     console.log('All background jobs started successfully');
   } catch (___error) {
-    console.error('Failed to start background jobs:', _error);
-    throw _error;
+    console.error('Failed to start background jobs:', ___error);
+    throw ___error;
   }
 }
 

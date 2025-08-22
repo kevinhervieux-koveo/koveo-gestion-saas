@@ -165,9 +165,7 @@ export const PermissionsSchema = z.object({
   manager: RolePermissionsSchema,
   tenant: RolePermissionsSchema,
   resident: RolePermissionsSchema
-}).strict({
-  message: 'Permissions object must contain exactly the four required roles: admin, manager, tenant, resident'
-});
+}).strict();
 
 /**
  * Type definitions inferred from the Zod schemas.
@@ -257,7 +255,7 @@ export function validatePermissionsWithFallback(
     return { success: false, error: result.error, usedFallback: false };
   } catch (__error) {
     if (options.allowFallback) {
-      console.error('Permissions validation error, using minimal fallback:', error);
+      console.error('Permissions validation error, using minimal fallback:', __error);
       const fallbackPermissions = {
         admin: ['read:user'],
         manager: ['read:user'],
@@ -266,7 +264,7 @@ export function validatePermissionsWithFallback(
       return { success: true, data: fallbackPermissions, usedFallback: true };
     }
     
-    throw error;
+    throw __error;
   }
 }
 

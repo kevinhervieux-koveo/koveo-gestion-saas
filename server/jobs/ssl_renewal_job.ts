@@ -92,8 +92,8 @@ class SSLRenewalJob {
       }
 
     } catch (___error) {
-      this.log('error', 'Failed to start SSL renewal job', { error: _error instanceof Error ? _error.message : 'Unknown error' });
-      throw _error;
+      this.log('error', 'Failed to start SSL renewal job', { error: ___error instanceof Error ? ___error.message : 'Unknown error' });
+      throw ___error;
     }
   }
 
@@ -157,17 +157,17 @@ class SSLRenewalJob {
             failureCount++;
             this.log('error', `Failed to renew certificate for ${certificate.domain}`, {
               domain: certificate.domain,
-              error: _error instanceof Error ? _error.message : 'Unknown error'
+              error: ___error instanceof Error ? ___error.message : 'Unknown error'
             });
 
-            await this.handleRenewalFailure(certificate, _error instanceof Error ? _error.message : 'Unknown error');
+            await this.handleRenewalFailure(certificate, ___error instanceof Error ? ___error.message : 'Unknown error');
             
             // Send failure notification if configured
             if (this.config.enableExpiryNotifications) {
               const newAttempts = (certificate.renewalAttempts || 0) + 1;
               await notificationService.sendSSLRenewalFailureAlert(
                 certificate.domain,
-                _error instanceof Error ? _error.message : 'Unknown error',
+                ___error instanceof Error ? ___error.message : 'Unknown error',
                 newAttempts,
                 certificate.maxRenewalAttempts || this.config.maxRetryAttempts
               );
@@ -195,8 +195,8 @@ class SSLRenewalJob {
       }
 
     } catch (___error) {
-      this.log('error', 'SSL renewal job failed', { error: _error instanceof Error ? _error.message : 'Unknown error' });
-      throw _error;
+      this.log('error', 'SSL renewal job failed', { error: ___error instanceof Error ? ___error.message : 'Unknown error' });
+      throw ___error;
     } finally {
       this.isRunning = false;
     }
@@ -274,14 +274,14 @@ class SSLRenewalJob {
           }
         } catch (___error) {
           this.log('error', `Failed to send expiry notification for ${certificate.domain}`, {
-            error: _error instanceof Error ? _error.message : 'Unknown error'
+            error: ___error instanceof Error ? ___error.message : 'Unknown error'
           });
         }
       }
 
     } catch (___error) {
       this.log('error', 'Failed to check for expiring certificates', {
-        error: _error instanceof Error ? _error.message : 'Unknown error'
+        error: ___error instanceof Error ? ___error.message : 'Unknown error'
       });
     }
   }
@@ -407,7 +407,7 @@ class SSLRenewalJob {
       }
 
     } catch (__error) {
-      throw new Error(`Certificate renewal failed for ${certificate.domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Certificate renewal failed for ${certificate.domain}: ${__error instanceof Error ? __error.message : 'Unknown error'}`);
     }
   }
 
