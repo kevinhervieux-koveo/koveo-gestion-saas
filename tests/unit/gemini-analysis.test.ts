@@ -18,8 +18,6 @@ process.env.GEMINI_API_KEY = 'test-api-key';
 describe('Gemini Analysis Service Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the fetch mock to have all methods available
-    (global.fetch as jest.MockedFunction<typeof fetch>).mockClear();
   });
 
   describe('analyzeFeatureWithGemini', () => {
