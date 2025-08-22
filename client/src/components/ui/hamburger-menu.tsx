@@ -95,14 +95,14 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
-          backgroundColor: '#ff0000', // Bright red for testing
+          backgroundColor: '#ffffff',
           borderLeft: '1px solid #e5e7eb',
           opacity: '1',
           zIndex: '1000'
         }}
         data-testid="menu-panel"
       >
-        <div className="p-6 h-full flex flex-col" style={{ backgroundColor: '#ff0000' }}>
+        <div className="p-6 h-full flex flex-col" style={{ backgroundColor: '#ffffff', width: '100%', height: '100%' }}>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-semibold">Menu</h2>
@@ -118,7 +118,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1">
+          <nav className="flex-1" style={{ backgroundColor: '#ffffff' }}>
             <ul className="space-y-2">
               {publicNavItems.map((item) => {
                 const IconComponent = item.icon;
@@ -141,7 +141,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
           {/* User Section */}
           {user && (
-            <div className="mt-auto border-t pt-4">
+            <div className="mt-auto border-t pt-4" style={{ backgroundColor: '#ffffff' }}>
               <div className="flex items-center mb-4 p-3 bg-muted/50 rounded-lg">
                 <User className="h-8 w-8 text-muted-foreground mr-3" />
                 <div>
