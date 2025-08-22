@@ -24,25 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 // Export app for testing
 export { app };
 
-// Health check detection for deployment platform - responds fast for health checks
-app.get('/', (req, res, next) => {
-  // Check if this is a health check request (common health check patterns)
-  const userAgent = req.get('User-Agent') || '';
-  const isHealthCheck = userAgent.includes('GoogleHC') || 
-                       userAgent.includes('HealthCheck') ||
-                       userAgent.includes('uptime') ||
-                       req.get('X-Health-Check') === 'true';
-  
-  if (isHealthCheck) {
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Content-Type', 'text/plain');
-    res.status(200).send('OK');
-    return;
-  }
-  
-  // For regular users, continue to static file serving
-  next();
-});
+// Remove root route health check - let it serve React app normally
 
 // Dedicated health check endpoint for detailed monitoring
 app.get('/api/health', (req, res) => {
@@ -102,6 +84,13 @@ app.get('/healthz', (req, res) => {
   res.status(200).send('OK');
   
   clearTimeout(timeout);
+});
+
+// Additional health check endpoint for deployment platform 
+app.get('/health', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Content-Type', 'text/plain');
+  res.status(200).send('OK');
 });
 
 app.get('/ready', (req, res) => {
