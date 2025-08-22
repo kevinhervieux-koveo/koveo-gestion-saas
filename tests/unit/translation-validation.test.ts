@@ -126,7 +126,7 @@ describe('Translation Files Language Validation', () => {
         hardcodedStrings.slice(0, 20).forEach((item, index) => {
           console.log(`${index + 1}. ${item.file}:${item.line}`);
           console.log(`   Texte: "${item.text}"`);
-          console.log(`   Violations: ${item.violations.map(v => v.term).join(', ')}`);
+          console.log(`   Violations: ${item.violations.map((v: any) => v.term).join(', ')}`);
           console.log('');
         });
       }
