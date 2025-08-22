@@ -95,12 +95,14 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
-          backgroundColor: 'white',
-          borderLeft: '1px solid #e5e7eb'
+          backgroundColor: '#ff0000', // Bright red for testing
+          borderLeft: '1px solid #e5e7eb',
+          opacity: '1',
+          zIndex: '1000'
         }}
         data-testid="menu-panel"
       >
-        <div className="p-6 h-full flex flex-col bg-white">
+        <div className="p-6 h-full flex flex-col" style={{ backgroundColor: '#ff0000' }}>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-semibold">Menu</h2>
