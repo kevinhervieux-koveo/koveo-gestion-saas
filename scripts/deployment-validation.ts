@@ -15,7 +15,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const execAsync = promisify(exec);
 
 interface ValidationResult {
@@ -467,7 +470,7 @@ class DeploymentValidator {
 }
 
 // Run validation if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new DeploymentValidator();
   validator.validate().catch(error => {
     console.error('💥 Validation failed with error:', error);
