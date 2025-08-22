@@ -61,28 +61,83 @@ export default function /**
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  // Demo users available for testing
-  const demoUsers = [
-    {
-      email: 'demo.manager.open@example.com',
-      role: 'manager',
+  // Demo roles and users available for testing
+  const demoRoles = {
+    manager: {
       displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
-      description: language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management'
+      description: language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management',
+      detailedDescription: language === 'fr' 
+        ? 'Accès complet à toutes les fonctionnalités de gestion immobilière, incluant la gestion des locataires, maintenance, finances et rapports.'
+        : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
+      users: [
+        {
+          email: 'demo.manager1@koveo.com',
+          name: language === 'fr' ? 'Marie Dubois' : 'Marie Dubois',
+          building: language === 'fr' ? 'Tour Horizon, 125 unités' : 'Horizon Tower, 125 units'
+        },
+        {
+          email: 'demo.manager2@koveo.com',
+          name: language === 'fr' ? 'Jean Tremblay' : 'Jean Tremblay',
+          building: language === 'fr' ? 'Résidence Élite, 89 unités' : 'Elite Residence, 89 units'
+        },
+        {
+          email: 'demo.manager3@koveo.com',
+          name: language === 'fr' ? 'Sophie Lavoie' : 'Sophie Lavoie',
+          building: language === 'fr' ? 'Complexe Prestige, 156 unités' : 'Prestige Complex, 156 units'
+        }
+      ]
     },
-    {
-      email: 'demo.tenant.open@example.com', 
-      role: 'tenant',
+    tenant: {
       displayName: language === 'fr' ? 'Locataire' : 'Tenant',
-      description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access'
+      description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
+      detailedDescription: language === 'fr'
+        ? 'Accès aux fonctionnalités essentielles pour les locataires: demandes de maintenance, documents, communications avec la gestion.'
+        : 'Access to essential tenant features: maintenance requests, documents, communication with management.',
+      users: [
+        {
+          email: 'demo.tenant1@koveo.com',
+          name: language === 'fr' ? 'Alexandre Bergeron' : 'Alexandre Bergeron',
+          building: language === 'fr' ? 'Appartement 4B - Tour Horizon' : 'Apartment 4B - Horizon Tower'
+        },
+        {
+          email: 'demo.tenant2@koveo.com',
+          name: language === 'fr' ? 'Isabelle Roy' : 'Isabelle Roy',
+          building: language === 'fr' ? 'Appartement 12A - Résidence Élite' : 'Apartment 12A - Elite Residence'
+        },
+        {
+          email: 'demo.tenant3@koveo.com',
+          name: language === 'fr' ? 'Michel Bouchard' : 'Michel Bouchard',
+          building: language === 'fr' ? 'Appartement 7C - Complexe Prestige' : 'Apartment 7C - Prestige Complex'
+        }
+      ]
     },
-    {
-      email: 'demo.resident.open@example.com',
-      role: 'resident', 
+    resident: {
       displayName: language === 'fr' ? 'Résident' : 'Resident',
-      description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access'
+      description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
+      detailedDescription: language === 'fr'
+        ? 'Accès étendu pour les résidents propriétaires: gestion de leur unité, participation aux décisions, accès aux documents financiers.'
+        : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
+      users: [
+        {
+          email: 'demo.resident1@koveo.com',
+          name: language === 'fr' ? 'Catherine Morin' : 'Catherine Morin',
+          building: language === 'fr' ? 'Propriétaire - Unité 15D, Tour Horizon' : 'Owner - Unit 15D, Horizon Tower'
+        },
+        {
+          email: 'demo.resident2@koveo.com',
+          name: language === 'fr' ? 'Robert Gagnon' : 'Robert Gagnon',
+          building: language === 'fr' ? 'Propriétaire - Unité 8B, Résidence Élite' : 'Owner - Unit 8B, Elite Residence'
+        },
+        {
+          email: 'demo.resident3@koveo.com',
+          name: language === 'fr' ? 'Nathalie Côté' : 'Nathalie Côté',
+          building: language === 'fr' ? 'Propriétaire - Unité 22A, Complexe Prestige' : 'Owner - Unit 22A, Prestige Complex'
+        }
+      ]
     }
-  ];
+  };
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -97,7 +152,7 @@ export default function /**
       setIsLoggingIn(true);
       setLoginError('');
       
-      const response = await login(data.email, data.password);
+      const response = await login(_data.email, _data.password);
       
       toast({
         title: language === 'fr' ? 'Connexion réussie' : 'Login successful',
@@ -124,7 +179,7 @@ export default function /**
    * @param error - Error object.
    */
  catch (_error: unknown) {
-      const errorMessage = error.message || 'Login failed';
+      const errorMessage = _error.message || 'Login failed';
       setLoginError(errorMessage);
       
       toast({
@@ -143,7 +198,7 @@ export default function /**
     handleLogin(_data);
   };
 
-  const handleDemoLogin = async (demoUserEmail: string) => {
+  const handleDemoLogin = async (demoUserEmail: string, userName: string) => {
     try {
       setIsLoggingIn(true);
       setLoginError('');
@@ -153,11 +208,11 @@ export default function /**
       toast({
         title: language === 'fr' ? 'Demo Mode Activé' : 'Demo Mode Activated',
         description: language === 'fr' 
-          ? 'Vous accédez maintenant à la démonstration en lecture seule'
-          : 'You are now accessing the read-only demo',
+          ? `Connecté(e) en tant que ${userName}`
+          : `Logged in as ${userName}`,
       });
     } catch (_error: unknown) {
-      const errorMessage = error.message || 'Demo login failed';
+      const errorMessage = (_error as Error).message || 'Demo login failed';
       setLoginError(errorMessage);
       
       toast({
@@ -170,6 +225,14 @@ export default function /**
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  const handleRoleSelect = (roleKey: string) => {
+    setSelectedRole(roleKey);
+  };
+
+  const handleBackToRoles = () => {
+    setSelectedRole(null);
   };
 
   return (
@@ -224,29 +287,83 @@ export default function /**
 
             {isDemoMode ? (
               <div className="space-y-3">
-                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                  {language === 'fr' 
-                    ? 'Choisissez un rôle pour tester la plateforme :' 
-                    : 'Choose a role to test the platform:'}
-                </div>
-                {demoUsers.map((user) => (
-                  <Card 
-                    key={user.email} 
-                    className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200 hover:border-blue-300"
-                    onClick={() => handleDemoLogin(user.email)}
-                    data-testid={`demo-login-${user.role}`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-sm">{user.displayName}</h3>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{user.description}</p>
-                        </div>
-                        <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {!selectedRole ? (
+                  // Role Selection View
+                  <>
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                      {language === 'fr' 
+                        ? 'Choisissez un rôle pour tester la plateforme :' 
+                        : 'Choose a role to test the platform:'}
+                    </div>
+                    {Object.entries(demoRoles).map(([roleKey, role]) => (
+                      <Card 
+                        key={roleKey} 
+                        className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200 hover:border-blue-300"
+                        onClick={() => handleRoleSelect(roleKey)}
+                        data-testid={`demo-role-${roleKey}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-medium text-sm">{role.displayName}</h3>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{role.description}</p>
+                            </div>
+                            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                ) : (
+                  // Role Detail View with Demo Users
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleBackToRoles}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        ← {language === 'fr' ? 'Retour' : 'Back'}
+                      </Button>
+                      <h3 className="font-medium text-lg">{demoRoles[selectedRole].displayName}</h3>
+                      <div></div>
+                    </div>
+                    
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        {demoRoles[selectedRole].detailedDescription}
+                      </p>
+                    </div>
+                    
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {language === 'fr' 
+                        ? 'Sélectionnez un utilisateur de démonstration :' 
+                        : 'Select a demo user:'}
+                    </div>
+                    
+                    {demoRoles[selectedRole].users.map((user, index) => (
+                      <Card 
+                        key={user.email} 
+                        className="cursor-pointer hover:shadow-md transition-shadow border border-green-200 hover:border-green-300"
+                        onClick={() => handleDemoLogin(user.email, user.name)}
+                        data-testid={`demo-user-${selectedRole}-${index}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-sm">{user.name}</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{user.building}</p>
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-1">{user.email}</p>
+                            </div>
+                            <Building className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
+                
                 <div className="text-xs text-center text-amber-600 dark:text-amber-400 px-2">
                   <AlertCircle className="w-3 h-3 inline mr-1" />
                   {language === 'fr' 
