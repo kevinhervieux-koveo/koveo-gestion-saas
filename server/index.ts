@@ -8,13 +8,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 // Configure port for deployment platform compatibility
-// Support Cloud Run, Railway, Heroku, and other platforms
-let port = parseInt(process.env.PORT || process.env.REPL_PORT || '8080', 10);
+// Replit deployment expects port 5000
+let port = parseInt(process.env.PORT || '5000', 10);
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
-  console.error(`Invalid port: ${process.env.PORT || process.env.REPL_PORT || '8080'}. Using default 8080.`);
-  port = 8080;
+  console.error(`Invalid port: ${process.env.PORT || '5000'}. Using default 5000.`);
+  port = 5000;
 }
 
 const app = express();
@@ -24,7 +24,24 @@ app.use(express.urlencoded({ extended: false }));
 // Export app for testing
 export { app };
 
-// Remove root route health check - let it serve React app normally
+// Fast health check endpoint at root for deployment platform - responds immediately
+app.get('/', (req, res, next) => {
+  // Check if this is a health check based on common patterns
+  const isHealthCheck = req.path === '/' && (
+    req.get('User-Agent')?.includes('GoogleHC') ||
+    req.get('User-Agent')?.includes('uptime') ||
+    req.get('User-Agent')?.includes('health') ||
+    req.method === 'HEAD'
+  );
+  
+  if (isHealthCheck) {
+    res.status(200).send('OK');
+    return;
+  }
+  
+  // For regular requests, continue to static file serving
+  next();
+});
 
 // Dedicated health check endpoint for detailed monitoring
 app.get('/api/health', (req, res) => {
@@ -86,11 +103,14 @@ app.get('/healthz', (req, res) => {
   clearTimeout(timeout);
 });
 
-// Additional health check endpoint for deployment platform 
+// Simple health check endpoint that responds immediately - no database or expensive operations
 app.get('/health', (req, res) => {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', 'text/plain');
   res.status(200).send('OK');
+});
+
+// Fast root health check specifically for deployment platform
+app.head('/', (req, res) => {
+  res.status(200).end();
 });
 
 app.get('/ready', (req, res) => {
@@ -354,11 +374,14 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         log(`   - http://0.0.0.0:${port}/healthz`);
         log(`   - http://0.0.0.0:${port}/ready`);
         
-        // Initialize application immediately (health checks are already working)
-        initializeApplication().catch(error => {
-          log(`Application initialization failed: ${error}`, 'error');
-          // Don't crash - health checks still work
-        });
+        // Initialize application in background after server is listening
+        // This ensures health checks work immediately while app initializes
+        setTimeout(() => {
+          initializeApplication().catch(error => {
+            log(`Application initialization failed: ${error}`, 'error');
+            // Don't crash - health checks still work
+          });
+        }, 100);
       }
     );
 
