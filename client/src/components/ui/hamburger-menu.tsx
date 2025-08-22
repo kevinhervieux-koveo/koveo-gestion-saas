@@ -91,18 +91,18 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
       {/* Menu Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
           backgroundColor: '#f9fafb',
           borderLeft: '1px solid #e5e7eb',
-          opacity: '1',
-          zIndex: '1000'
+          zIndex: '1000',
+          position: 'fixed'
         }}
         data-testid="menu-panel"
       >
-        <div className="p-6 h-full flex flex-col" style={{ backgroundColor: '#f9fafb', width: '100%', height: '100%' }}>
+        <div className="p-6 h-full flex flex-col bg-gray-50" style={{ backgroundColor: '#f9fafb !important', width: '100%', height: '100vh', position: 'relative', zIndex: '1001' }}>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-semibold">Menu</h2>
@@ -118,7 +118,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1">
+          <nav className="flex-1 bg-gray-50" style={{ backgroundColor: '#f9fafb !important' }}>
             <ul className="space-y-2">
               {publicNavItems.map((item) => {
                 const IconComponent = item.icon;
@@ -126,7 +126,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                   <li key={item.path}>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start h-12"
+                      className="w-full justify-start h-12 bg-transparent hover:bg-gray-100"
                       onClick={() => handleNavigation(item.path)}
                       data-testid={item.testId}
                     >
@@ -141,7 +141,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
           {/* Language and Auth Section */}
           {!user && (
-            <div className="mt-auto border-t pt-4 space-y-3">
+            <div className="mt-auto border-t border-gray-300 pt-4 space-y-3 bg-gray-50" style={{ backgroundColor: '#f9fafb !important' }}>
               {/* Language Switcher */}
               <div className="flex items-center justify-center space-x-2">
                 <Globe className="h-4 w-4 text-gray-500" />
