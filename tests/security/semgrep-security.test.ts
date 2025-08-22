@@ -3,9 +3,9 @@
  * Tests for SQL injection, XSS, authentication, and Quebec Law 25 compliance
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 describe('Semgrep Security Tests', () => {
   let semgrepResults;
