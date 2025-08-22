@@ -86,8 +86,8 @@ export class OptimizedDatabaseStorage implements IStorage {
     try {
       await QueryOptimizer.applyCoreOptimizations();
       console.warn('✅ Database optimizations applied');
-    } catch (____error) {
-      console.warn('⚠️ Failed to apply database optimizations:', _error);
+    } catch (error) {
+      console.warn('⚠️ Failed to apply database optimizations:', error);
     }
   }
 
@@ -117,7 +117,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     // Cache result
     if (cacheKey && result !== undefined) {
-      queryCache.set(cacheType, cacheKey, _result);
+      queryCache.set(cacheType, cacheKey, result);
     }
 
     return result;

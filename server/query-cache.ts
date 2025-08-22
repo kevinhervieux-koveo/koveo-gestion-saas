@@ -87,12 +87,12 @@ class QueryCacheManager {
     const result = cache.get(_key);
     if (result !== undefined) {
       this.hitCounts.set(cacheType, (this.hitCounts.get(cacheType) || 0) + 1);
-      console.warn(`Cache hit: ${cacheType}:${key}`);
+      console.warn(`Cache hit: ${cacheType}:${_key}`);
       return result;
     }
 
     this.missCounts.set(cacheType, (this.missCounts.get(cacheType) || 0) + 1);
-    console.warn(`Cache miss: ${cacheType}:${key}`);
+    console.warn(`Cache miss: ${cacheType}:${_key}`);
     return undefined;
   }
 
@@ -108,8 +108,8 @@ class QueryCacheManager {
     const cache = this.caches.get(cacheType);
     if (!cache) {return;}
 
-    cache.set(key, _data);
-    console.warn(`Cached: ${cacheType}:${key}`);
+    cache.set(_key, _data);
+    console.warn(`Cached: ${cacheType}:${_key}`);
   }
 
   /**
@@ -125,7 +125,7 @@ class QueryCacheManager {
       // Remove entries matching pattern
       for (const key of cache.keys()) {
         if (this.matchesPattern(key, pattern)) {
-          cache.delete(_key);
+          cache.delete(key);
           console.warn(`Invalidated: ${cacheType}:${key}`);
         }
       }
