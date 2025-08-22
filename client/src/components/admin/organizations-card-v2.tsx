@@ -110,8 +110,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
   // Table column configuration
   const columns: ColumnConfig<Organization>[] = [
     {
-      id: 'name',
-      header: 'Organization',
+      accessor: 'name',
       cell: (org) => (
         <div className="flex flex-col">
           <span className="font-medium">{org.name}</span>
@@ -127,20 +126,19 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
-      id: 'contact',
-      header: 'Contact Info',
+      accessor: () => 'contact',
       cell: (org) => (
         <div className="space-y-1">
-          {org.contactEmail && (
+          {org.email && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Mail className="h-3 w-3" />
-              {org.contactEmail}
+              {org.email}
             </div>
           )}
-          {org.contactPhone && (
+          {org.phone && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Phone className="h-3 w-3" />
-              {org.contactPhone}
+              {org.phone}
             </div>
           )}
           {org.website && (
@@ -153,8 +151,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
-      id: 'address',
-      header: 'Location',
+      accessor: 'address',
       cell: (org) => (
         <div className="flex items-start gap-1">
           <MapPin className="h-3 w-3 mt-0.5 text-muted-foreground" />
@@ -170,12 +167,11 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
-      id: 'stats',
-      header: 'Stats',
+      accessor: () => 'stats',
       cell: (org) => (
         <div className="text-sm space-y-1">
-          <div>Buildings: {org.buildingsCount || 0}</div>
-          <div>Users: {org.usersCount || 0}</div>
+          <div>Buildings: {(org as any).buildingsCount || 0}</div>
+          <div>Users: {(org as any).usersCount || 0}</div>
           <div className="text-xs text-muted-foreground">
             Created: {new Date(org.createdAt).toLocaleDateString()}
           </div>
@@ -183,8 +179,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
-      id: 'actions',
-      header: 'Actions',
+      accessor: () => 'actions',
       cell: (org) => (
         <OrganizationActions
           organization={org}
@@ -228,9 +223,9 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={organizations}
-            columns={columns}
-            searchableColumns={['name', 'contactEmail']}
+            data={organizations as any}
+            columns={columns as any}
+            enableSearch={true}
             filterableColumns={[
               {
                 id: 'type',

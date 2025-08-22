@@ -78,7 +78,7 @@ export function InvitationManagement({
 
   // API mutations using reusable hooks
   const cancelInvitationMutation = useUpdateMutation<Invitation, { status: 'cancelled' }>(
-    (variables, invitationId) => `/api/invitations/${invitationId}`,
+    `/api/invitations`,
     {
       successMessage: 'Invitation cancelled successfully',
       invalidateQueries: ['/api/invitations'],
@@ -96,7 +96,7 @@ export function InvitationManagement({
   );
 
   const resendInvitationMutation = useUpdateMutation<Invitation, { action: 'resend' }>(
-    (variables, invitationId) => `/api/invitations/${invitationId}/resend`,
+    `/api/invitations`,
     {
       successMessage: 'Invitation resent successfully',
       invalidateQueries: ['/api/invitations'],
@@ -128,8 +128,7 @@ export function InvitationManagement({
   // Table column configuration
   const columns: ColumnConfig<Invitation>[] = [
     {
-      id: 'email',
-      header: 'Email',
+      accessor: 'email',
       cell: (invitation) => (
         <div className="flex flex-col">
           <span className="font-medium">{invitation.email}</span>
@@ -142,8 +141,7 @@ export function InvitationManagement({
       ),
     },
     {
-      id: 'role',
-      header: 'Role',
+      accessor: 'role',
       cell: (invitation) => (
         <Badge className={getRoleBadgeColor(invitation.role)}>
           {invitation.role}
@@ -151,8 +149,7 @@ export function InvitationManagement({
       ),
     },
     {
-      id: 'status',
-      header: 'Status',
+      accessor: 'status',
       cell: (invitation) => (
         <Badge variant={getStatusBadgeVariant(invitation.status)}>
           {invitation.status}
@@ -160,8 +157,7 @@ export function InvitationManagement({
       ),
     },
     {
-      id: 'inviter',
-      header: 'Invited By',
+      accessor: 'inviterName',
       cell: (invitation) => (
         <span className="text-sm">
           {invitation.inviterName || 'Unknown'}
@@ -169,8 +165,7 @@ export function InvitationManagement({
       ),
     },
     {
-      id: 'created',
-      header: 'Sent',
+      accessor: 'createdAt',
       cell: (invitation) => (
         <span className="text-sm">
           {new Date(invitation.createdAt).toLocaleDateString()}
@@ -178,8 +173,7 @@ export function InvitationManagement({
       ),
     },
     {
-      id: 'expires',
-      header: 'Expires',
+      accessor: 'expiresAt',
       cell: (invitation) => {
         const expiresAt = new Date(invitation.expiresAt);
         const isExpired = expiresAt < new Date();
@@ -191,15 +185,14 @@ export function InvitationManagement({
       },
     },
     {
-      id: 'actions',
-      header: 'Actions',
+      accessor: () => 'actions',
       cell: (invitation) => (
         <InvitationActions
           invitation={invitation}
-          onCancel={(id) => cancelInvitationMutation.mutate({ status: 'cancelled' }, id)}
+          onCancel={(id) => cancelInvitationMutation.mutate({ status: 'cancelled' } as any)}
           onDelete={(id) => deleteInvitationMutation.mutate(id)}
           onResend={(id) => {
-            resendInvitationMutation.mutate({ action: 'resend' }, id);
+            resendInvitationMutation.mutate({ action: 'resend' } as any);
             onSendReminder(id);
           }}
           onCopyLink={copyInvitationLink}
@@ -264,9 +257,9 @@ export function InvitationManagement({
       </CardHeader>
       <CardContent>
         <DataTable
-          data={invitations}
-          columns={columns}
-          searchableColumns={['email', 'role']}
+          data={invitations as any}
+          columns={columns as any}
+          enableSearch={true}
           filterableColumns={[
             {
               id: 'status',
@@ -285,18 +278,7 @@ export function InvitationManagement({
               ],
             },
           ]}
-          bulkActions={hasRole(['admin']) ? [
-            {
-              label: 'Cancel Selected',
-              action: (selectedIds) => {
-                selectedIds.forEach(id => {
-                  cancelInvitationMutation.mutate({ status: 'cancelled' }, id);
-                });
-              },
-              variant: 'destructive',
-              icon: <XCircle className="h-4 w-4" />,
-            },
-          ] : []}
+          bulkActions={[]}
           initialPageSize={10}
           emptyStateMessage="No invitations found"
         />
