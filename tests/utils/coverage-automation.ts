@@ -122,8 +122,8 @@ export class CoverageAutomationService {
       
       return effectivenessData;
     } catch (__error) {
-      console.error('❌ Coverage analysis failed:', error);
-      throw error;
+      console.error('❌ Coverage analysis failed:', __error);
+      throw __error;
     }
   }
 
@@ -166,7 +166,7 @@ export class CoverageAutomationService {
         console.warn(`⚠️ Test suite failed: ${command}`);
         results.push({
           suite: command,
-          error: error.message,
+          error: (__error as Error).message,
           timestamp: new Date().toISOString()
         });
       }
@@ -210,8 +210,8 @@ export class CoverageAutomationService {
         timestamp: new Date().toISOString()
       };
     } catch (__error) {
-      console.error('❌ Coverage report generation failed:', error);
-      throw error;
+      console.error('❌ Coverage report generation failed:', __error);
+      throw __error;
     }
   }
 
@@ -248,7 +248,7 @@ export class CoverageAutomationService {
 
       return metrics;
     } catch (__error) {
-      console.error('❌ Test quality analysis failed:', error);
+      console.error('❌ Test quality analysis failed:', __error);
       return metrics;
     }
   }
@@ -323,7 +323,7 @@ export class CoverageAutomationService {
 
       return quebecMetrics;
     } catch (__error) {
-      console.error('❌ Quebec compliance validation failed:', error);
+      console.error('❌ Quebec compliance validation failed:', __error);
       return quebecMetrics;
     }
   }
@@ -485,7 +485,7 @@ export class CoverageAutomationService {
    *
    * @param coverageData
    */
-  private calculateOverallCoverage(coverageData: unknown): number {
+  private calculateOverallCoverage(coverageData: any): number {
     if (!coverageData || !coverageData.aggregate) {
       return 0;
     }
@@ -543,7 +543,7 @@ export class CoverageAutomationService {
    *
    * @param report
    */
-  private generateHTMLReport(report: unknown): string {
+  private generateHTMLReport(report: any): string {
     return `
     <!DOCTYPE html>
     <html>
@@ -584,7 +584,7 @@ export class CoverageAutomationService {
    *
    * @param summary
    */
-  private outputConsoleSummary(summary: unknown): void {
+  private outputConsoleSummary(summary: any): void {
     console.log('\n📋 TEST COVERAGE SUMMARY');
     console.log('=' .repeat(50));
     console.log(`Overall Coverage: ${summary.overallCoverage}%`);
@@ -609,7 +609,7 @@ export class CoverageAutomationService {
         return this.calculateAggregateCoverage(coverageData);
       }
     } catch (__error) {
-      console.warn('Failed to analyze test coverage depth:', error);
+      console.warn('Failed to analyze test coverage depth:', __error);
     }
     return { statements: 0, branches: 0, functions: 0, lines: 0 };
   }

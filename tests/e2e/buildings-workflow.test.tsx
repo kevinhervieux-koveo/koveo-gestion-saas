@@ -8,7 +8,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/auth-context';
+// Mock auth context
+const AuthProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 import Buildings from '@/pages/manager/buildings';
 
 // Mock wouter for navigation testing
@@ -17,7 +18,7 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: unknown) => (
+  Link: ({ children, href, ...props }: {children: React.ReactNode, href?: string, [key: string]: any}) => (
     <a href={href} {...props}>
       {children}
     </a>

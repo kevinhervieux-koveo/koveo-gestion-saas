@@ -29,6 +29,7 @@ describe('User API Routes', () => {
 
   const mockUser: User = {
     id: 'user-123',
+    username: 'marie.dubois',
     firstName: 'Marie',
     lastName: 'Dubois',
     email: 'marie@koveo.ca',
@@ -44,6 +45,7 @@ describe('User API Routes', () => {
   };
 
   const mockUserData: InsertUser = {
+    username: 'jean.tremblay',
     firstName: 'Jean',
     lastName: 'Tremblay',
     email: 'jean@koveo.ca',
@@ -179,6 +181,7 @@ describe('User API Routes', () => {
       mockStorage.getUserByEmail.mockResolvedValue(undefined); // No existing user
       const newUser = {
         id: 'new-user-123',
+        username: mockUserData.username,
         firstName: mockUserData.firstName,
         lastName: mockUserData.lastName,
         email: mockUserData.email,
