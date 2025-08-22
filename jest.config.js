@@ -9,14 +9,19 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/client/src/$1',
-    '^@shared/(.*)$': '<rootDir>/shared/$1',
+    // Asset mocks must come BEFORE general path mappings
+    '^@/assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
-    '^@/lib/db$': '<rootDir>/server/db.ts',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/mocks/styleMock.js',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
+    // Path mappings
+    '^@/(.*)$': '<rootDir>/client/src/$1',
+    '^@shared/(.*)$': '<rootDir>/shared/$1',
+    '^@/lib/db$': '<rootDir>/server/db.ts',
+    // Router mocks
     'wouter/memory': '<rootDir>/tests/mocks/wouter-memory-mock.js',
     '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js',
+    // Build tool mocks
     '^../vite$': '<rootDir>/tests/mocks/viteMock.js',
     '^./vite$': '<rootDir>/tests/mocks/viteMock.js'
   },
