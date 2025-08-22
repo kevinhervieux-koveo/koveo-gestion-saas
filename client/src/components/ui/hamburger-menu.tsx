@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
-import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings } from 'lucide-react';
+import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings, Globe, UserPlus } from 'lucide-react';
 
 interface HamburgerMenuProps {
   className?: string;
@@ -17,7 +17,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -98,7 +98,8 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           backgroundColor: '#ffffff',
           borderLeft: '1px solid #e5e7eb',
           opacity: '1',
-          zIndex: '1000'
+          zIndex: '1000',
+          boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
         }}
         data-testid="menu-panel"
       >
@@ -139,6 +140,41 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
             </ul>
           </nav>
 
+          {/* Language and Auth Section */}
+          {!user && (
+            <div className="mt-auto border-t pt-4 space-y-3" style={{ backgroundColor: '#ffffff' }}>
+              {/* Language Switcher */}
+              <div className="flex items-center justify-center space-x-2">
+                <Globe className="h-4 w-4 text-gray-500" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => {
+                    toggleLanguage();
+                    closeMenu();
+                  }}
+                  data-testid="language-toggle"
+                >
+                  {language === 'en' ? 'Français' : 'English'}
+                </Button>
+              </div>
+              
+              {/* Authentication Buttons */}
+              <div className="space-y-2">
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => handleNavigation('/login')}
+                  data-testid="nav-login"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {t('signIn')}
+                </Button>
+              </div>
+            </div>
+          )}
+          
           {/* User Section */}
           {user && (
             <div className="mt-auto border-t pt-4" style={{ backgroundColor: '#ffffff' }}>
