@@ -58,7 +58,10 @@ interface Building {
 /**
  *
  */
-export default function Residences() {
+export default function  /**
+   * Residences function.
+   */
+ Residences() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
@@ -71,12 +74,36 @@ export default function Residences() {
   const { data: residences, isLoading: residencesLoading, refetch } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) {params.append('search', searchTerm);}
-      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);}
+      const params = new URLSearchParams();  /**
+   * If function.
+   * @param searchTerm - searchTerm parameter.
+   */
+
+      if (searchTerm) {params.append('search', searchTerm);}  /**
+   * If function.
+   * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
+   */
+
+      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);}  /**
+   * If function.
+   * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
+   */
+
       if (selectedFloor && selectedFloor !== 'all') {params.append('floor', selectedFloor);}
       
-      const response = await fetch(`/api/residences?${params}`);
+      const response = await fetch(`/api/residences?${params}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {throw new Error('Failed to fetch residences');}
       return response.json() as Promise<Residence[]>;
     }
@@ -377,7 +404,11 @@ export default function Residences() {
                   max={totalPages}
                   value={currentPage}
                   onChange={(e) => {
-                    const page = parseInt(e.target.value);
+                    const page = parseInt(e.target.value);  /**
+   * If function.
+   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
+   */
+
                     if (page >= 1 && page <= totalPages) {
                       setCurrentPage(page);
                     }
@@ -386,7 +417,11 @@ export default function Residences() {
                     const page = parseInt(e.target.value);
                     if (isNaN(page) || page < 1) {
                       setCurrentPage(1);
-                    } else if (page > totalPages) {
+                    } else  /**
+   * If function.
+   * @param page > totalPages - page > totalPages parameter.
+   */
+ if (page > totalPages) {
                       setCurrentPage(totalPages);
                     }
                   }}

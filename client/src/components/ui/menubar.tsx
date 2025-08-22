@@ -14,7 +14,11 @@ import { cn } from '@/lib/utils';
 
  */
 
-function MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
+function  /**
+   * Menubar menu function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu {...props} />;
 }
 
@@ -26,7 +30,11 @@ function MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.
 
  */
 
-function MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
+function  /**
+   * Menubar group function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group {...props} />;
 }
 
@@ -38,7 +46,11 @@ function MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive
 
  */
 
-function MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
+function  /**
+   * Menubar portal function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal {...props} />;
 }
 
@@ -50,7 +62,11 @@ function MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitiv
 
  */
 
-function MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
+function  /**
+   * Menubar radio group function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
   return <MenubarPrimitive.RadioGroup {...props} />;
 }
 
@@ -62,7 +78,11 @@ function MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrim
 
  */
 
-function MenubarSub({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
+function  /**
+   * Menubar sub function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ MenubarSub({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot='menubar-sub' {...props} />;
 }
 

@@ -114,7 +114,10 @@ const documentSchema = z.object({
 /**
  *
  */
-export default function ResidenceDocuments() {
+export default function  /**
+   * Residence documents function.
+   */
+ ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const residenceId = urlParams.get('residenceId');
@@ -162,9 +165,29 @@ export default function ResidenceDocuments() {
   // Get documents for this specific residence
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", { type: "resident", residenceId }],
-    queryFn: async () => {
+    queryFn: async () => {  /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */
+
       if (!residenceId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
+
       if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
@@ -249,7 +272,19 @@ export default function ResidenceDocuments() {
       setUploadedFile(null);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
       toast({ 
         title: "Error", 
         description: "Failed to create document",
@@ -259,7 +294,11 @@ export default function ResidenceDocuments() {
   };
 
   // Handle document update
-  const handleUpdateDocument = async (data: z.infer<typeof documentSchema>) => {
+  const handleUpdateDocument = async (data: z.infer<typeof documentSchema>) => {  /**
+   * If function.
+   * @param !selectedDocument - !selectedDocument parameter.
+   */
+
     if (!selectedDocument) {return;}
 
     try {
@@ -331,7 +370,15 @@ export default function ResidenceDocuments() {
   };
 
   const handleNewDocumentUploadComplete = (result: unknown) => {
-    setIsUploadingNewFile(false);
+    setIsUploadingNewFile(false);  /**
+   * If function.
+   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+   */
+  /**
+   * If function.
+   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+   */
+
     if (result.successful && result.successful[0]) {
       const file = result.successful[0];
       setUploadedFile({
@@ -362,7 +409,11 @@ export default function ResidenceDocuments() {
         mimeType: file.type,
       });
     }
-  };
+  };  /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */
+
 
   if (!residenceId) {
     return (
@@ -377,7 +428,11 @@ export default function ResidenceDocuments() {
         </div>
       </div>
     );
-  }
+  }  /**
+   * If function.
+   * @param !residence - !residence parameter.
+   */
+
 
   if (!residence) {
     return (
@@ -843,7 +898,11 @@ export default function ResidenceDocuments() {
         <Dialog 
           open={isViewDialogOpen} 
           onOpenChange={(open) => {
-            setIsViewDialogOpen(open);
+            setIsViewDialogOpen(open);  /**
+   * If function.
+   * @param !open - !open parameter.
+   */
+
             if (!open) {
               setSelectedDocument(null);
               setIsEditMode(false);

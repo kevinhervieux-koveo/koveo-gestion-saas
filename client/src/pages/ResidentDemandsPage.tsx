@@ -105,7 +105,10 @@ const typeLabels = {
 /**
  *
  */
-export default function ResidentDemandsPage() {
+export default function  /**
+   * Resident demands page function.
+   */
+ ResidentDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -150,7 +153,11 @@ export default function ResidentDemandsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {
         throw new Error('Failed to create demand');
       }
@@ -251,7 +258,11 @@ export default function ResidentDemandsPage() {
         </CardContent>
       </Card>
     );
-  };
+  };  /**
+   * If function.
+   * @param isLoading - isLoading parameter.
+   */
+
 
   if (isLoading) {
     return (

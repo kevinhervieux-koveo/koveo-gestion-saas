@@ -37,7 +37,11 @@ interface Law25ComplianceData {
  * RunLaw25ComplianceScan function.
  * @returns Function result.
  */
-function runLaw25ComplianceScan(): Law25ComplianceData {
+function  /**
+   * Run law25 compliance scan function.
+   * @returns Law25ComplianceData result.
+   */
+ runLaw25ComplianceScan(): Law25ComplianceData {
   try {
     // Run Semgrep with Law 25 rules
     const semgrepOutput = execSync(
@@ -64,12 +68,13 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
       dataSubjectRights: 0
     };
     
-    const processedViolations = violations.map((violation: unknown) => {
+    const processedViolations = violations.map((violation: any) => {
       const metadata = violation.extra?.metadata || {};
       const law25Aspect = metadata.law25 || 'general';
       const severity = violation.extra?.severity || 'info';
       
       // Categorize violations
+
       switch (law25Aspect) {
         case 'data-collection':
           categories.dataCollection++;
@@ -123,7 +128,15 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
       violations: processedViolations
     };
     
-  } catch (__error) {
+  }  /**
+   * Catch function.
+   * @param __error - __error parameter.
+   */
+  /**
+   * Catch function.
+   * @param __error - __error parameter.
+   */
+ catch (__error) {
     console.warn('Law 25 compliance scan failed:', error);
     
     // Return default/fallback data
@@ -148,6 +161,12 @@ function runLaw25ComplianceScan(): Law25ComplianceData {
 /**
  * GET /api/law25-compliance
  * Returns Quebec Law 25 compliance status and violations.
+ */
+/**
+ * GET / - API endpoint handler.
+ * @param req - Express request object.
+ * @param res - Express response object.
+ * @returns Promise resolving to API response.
  */
 router.get('/', (req, res) => {
   try {

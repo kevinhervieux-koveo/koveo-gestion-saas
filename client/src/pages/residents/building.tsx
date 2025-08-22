@@ -24,7 +24,10 @@ interface BuildingWithStats extends BuildingType {
 /**
  *
  */
-export default function MyBuilding() {
+export default function  /**
+   * My building function.
+   */
+ MyBuilding() {
   const [, navigate] = useLocation();
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
 
@@ -37,7 +40,11 @@ export default function MyBuilding() {
   const selectedBuilding = buildings.find(b => b.id === selectedBuildingId) || buildings[0];
 
   // Set initial building selection
-  useEffect(() => {
+  useEffect(() => {  /**
+   * If function.
+   * @param buildings.length > 0 && !selectedBuildingId - buildings.length > 0 && !selectedBuildingId parameter.
+   */
+
     if (buildings.length > 0 && !selectedBuildingId) {
       setSelectedBuildingId(buildings[0].id);
     }
@@ -46,20 +53,36 @@ export default function MyBuilding() {
   // Fetch building contacts
   const { data: contacts, isLoading: isLoadingContacts } = useQuery({
     queryKey: ['/api/contacts/building', selectedBuildingId],
-    queryFn: async () => {
+    queryFn: async () => {  /**
+   * If function.
+   * @param !selectedBuildingId - !selectedBuildingId parameter.
+   */
+
       if (!selectedBuildingId) {return [];}
-      const response = await fetch(`/api/contacts/building/${selectedBuildingId}`);
+      const response = await fetch(`/api/contacts/building/${selectedBuildingId}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {return [];}
       return response.json();
     },
     enabled: !!selectedBuildingId,
   });
 
-  const handleViewDocuments = () => {
+  const handleViewDocuments = () => {  /**
+   * If function.
+   * @param selectedBuildingId - selectedBuildingId parameter.
+   */
+
     if (selectedBuildingId) {
       navigate(`/residents/building/documents?buildingId=${selectedBuildingId}`);
     }
-  };
+  };  /**
+   * If function.
+   * @param isLoadingBuildings - isLoadingBuildings parameter.
+   */
+
 
   if (isLoadingBuildings) {
     return (
@@ -75,7 +98,11 @@ export default function MyBuilding() {
         </div>
       </div>
     );
-  }
+  }  /**
+   * If function.
+   * @param buildings.length === 0 - buildings.length === 0 parameter.
+   */
+
 
   if (buildings.length === 0) {
     return (
@@ -209,7 +236,12 @@ export default function MyBuilding() {
                         {(() => {
                           try {
                             const amenities = typeof selectedBuilding.amenities === 'string' 
-                              ? JSON.parse(selectedBuilding.amenities)
+                              ? JSON.  /**
+   * Parse .
+   * @param selectedBuilding.amenities - selectedBuilding.amenities parameter.
+   * @returns String result.
+   */
+parse(selectedBuilding.amenities)
                               : selectedBuilding.amenities;
                             return Array.isArray(amenities) 
                               ? amenities.map((amenity: string, index: number) => (
@@ -218,7 +250,11 @@ export default function MyBuilding() {
                                   </span>
                                 ))
                               : null;
-                          } catch (_e) {
+                          }  /**
+   * Catch function.
+   * @param _e - _e parameter.
+   */
+ catch (_e) {
                             return <span className='text-sm text-muted-foreground'>Unable to display amenities</span>;
                           }
                         })()}

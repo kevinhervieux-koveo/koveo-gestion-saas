@@ -24,7 +24,13 @@ import { Language } from '@/lib/i18n';
  * LanguageSwitcher function
  * @returns Function result
  */
-export function LanguageSwitcher() {
+/**
+ * Language switcher function.
+ */
+export function  /**
+   * Language switcher function.
+   */
+ LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   return (

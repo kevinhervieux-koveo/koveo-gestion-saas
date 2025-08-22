@@ -26,7 +26,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Features page component for Koveo Gestion.
  * Detailed presentation of platform features for Quebec property management.
  */
-export default function FeaturesPage() {
+export default function  /**
+   * Features page function.
+   */
+ FeaturesPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

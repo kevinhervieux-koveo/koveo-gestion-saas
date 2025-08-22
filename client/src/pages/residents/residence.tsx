@@ -166,7 +166,10 @@ type DocumentFormData = z.infer<typeof documentSchema>;
 /**
  *
  */
-export default function MyResidence() {
+export default function  /**
+   * My residence function.
+   */
+ MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -199,7 +202,11 @@ export default function MyResidence() {
   // Get the selected residence
   const selectedResidence = accessibleResidences.find(r => r.id === selectedResidenceId) || accessibleResidences[0];
 
-  // Update selected residence when residences are loaded
+  // Update selected residence when residences are loaded  /**
+   * If function.
+   * @param selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 - selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 parameter.
+   */
+
   if (selectedResidence && !selectedResidenceId && accessibleResidences.length > 0) {
     setSelectedResidenceId(selectedResidence.id);
   }
@@ -214,7 +221,35 @@ export default function MyResidence() {
   const { data: assignedUsers, refetch: refetchAssignedUsers } = useQuery<AssignedUser[]>({
     queryKey: ['/api/residences', selectedResidence?.id, 'assigned-users'],
     queryFn: async () => {
-      const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);
+      const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
+
       if (!response.ok) {throw new Error('Failed to fetch assigned users');}
       return response.json();
     },
@@ -236,7 +271,11 @@ export default function MyResidence() {
   // Filter documents by category and year
   const filteredDocuments = documents?.filter(doc => {
     const categoryMatch = categoryFilter === 'all' || doc.type === categoryFilter;
-    const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().toString() : '';
+    const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().  /**
+   * To string function.
+   * @returns Array result.
+   */
+toString() : '';
     const yearMatch = yearFilter === 'all' || docYear === yearFilter;
     return categoryMatch && yearMatch;
   }) || [];
@@ -291,10 +330,22 @@ export default function MyResidence() {
     setIsContactDialogOpen(true);
   };
 
-  const handleAddContact = async (data: ContactFormData) => {
+  const handleAddContact = async (data: ContactFormData) => {  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
+   */
+  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
+   */
+
     if (!selectedResidence) {return;}
 
-    try {
+    try {  /**
+   * If function.
+   * @param editingContact - editingContact parameter.
+   */
+
       if (editingContact) {
         // Update existing contact
         const response = await fetch(`/api/contacts/${editingContact.id}`, {
@@ -306,7 +357,15 @@ export default function MyResidence() {
             phone: data.phone || undefined,
             contactCategory: data.contactCategory,
           }),
-        });
+        });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
         
         if (!response.ok) {throw new Error('Failed to update contact');}
         toast({ title: 'Contact updated successfully' });
@@ -336,7 +395,27 @@ export default function MyResidence() {
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
       toast({ 
         title: editingContact ? 'Error updating contact' : 'Error adding contact', 
         description: 'Please try again later',
@@ -368,8 +447,16 @@ export default function MyResidence() {
   };
 
   // File upload handlers
-  const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
-    setIsUploadingNewFile(true);
+  const handleNewDocumentUpload =  /**
+   * Async function.
+   * @returns Promise resolving to .
+   */
+ async (): Promise<{ method: "PUT"; url: string }> => {
+    setIsUploadingNewFile(true);  /**
+   * If function.
+   * @param !selectedResidence - !selectedResidence parameter.
+   */
+
     
     if (!selectedResidence) {
       setIsUploadingNewFile(false);
@@ -388,7 +475,11 @@ export default function MyResidence() {
         residenceId: selectedResidence.id,
         documentType: 'residence'
       })
-    });
+    });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
     
     if (!response.ok) {
       setIsUploadingNewFile(false);
@@ -400,7 +491,11 @@ export default function MyResidence() {
   };
 
   const handleNewDocumentUploadComplete = (result: unknown) => {
-    setIsUploadingNewFile(false);
+    setIsUploadingNewFile(false);  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */
+
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       setUploadedFile({
@@ -461,7 +556,11 @@ export default function MyResidence() {
     }
   };
 
-  const handleEditDocument = async (data: DocumentFormData) => {
+  const handleEditDocument = async (data: DocumentFormData) => {  /**
+   * If function.
+   * @param !selectedDocument - !selectedDocument parameter.
+   */
+
     if (!selectedDocument) {return;}
 
     try {
@@ -515,18 +614,38 @@ export default function MyResidence() {
     }
   };
 
-  const formatFileSize = (size?: string) => {
+  const formatFileSize = (size?: string) => {  /**
+   * If function.
+   * @param !size - !size parameter.
+   */
+
     if (!size) {return 'Unknown size';}
-    const bytes = parseInt(size);
-    if (bytes < 1024) {return `${bytes} B`;}
+    const bytes = parseInt(size);  /**
+   * If function.
+   * @param bytes < 1024 - bytes < 1024 parameter.
+   */
+
+    if (bytes < 1024) {return `${bytes} B`;}  /**
+   * If function.
+   * @param bytes < 1048576 - bytes < 1048576 parameter.
+   */
+
     if (bytes < 1048576) {return `${(bytes / 1024).toFixed(1)} KB`;}
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string) => {  /**
+   * If function.
+   * @param !dateString - !dateString parameter.
+   */
+
     if (!dateString) {return 'No date';}
     return new Date(dateString).toLocaleDateString();
-  };
+  };  /**
+   * If function.
+   * @param residencesLoading - residencesLoading parameter.
+   */
+
 
   if (residencesLoading) {
     return (
@@ -539,7 +658,11 @@ export default function MyResidence() {
         </div>
       </div>
     );
-  }
+  }  /**
+   * If function.
+   * @param accessibleResidences.length === 0 - accessibleResidences.length === 0 parameter.
+   */
+
 
   if (accessibleResidences.length === 0) {
     return (

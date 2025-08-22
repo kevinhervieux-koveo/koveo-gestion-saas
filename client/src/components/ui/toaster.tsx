@@ -16,8 +16,24 @@ import {
 
  */
 
-export function Toaster() {
-  const { toasts } = useToast();
+/**
+ * Toaster function.
+ */
+export function  /**
+   * Toaster function.
+   */
+ Toaster() {
+  const { toasts } = useToast();  /**
+   * Return function.
+   * @param <ToastProvider>
+      {toasts.map(function ({ id - <ToastProvider>
+      {toasts.map(function ({ id parameter.
+   * @param title - title parameter.
+   * @param description - description parameter.
+   * @param action - action parameter.
+   * @param ...props } - ...props } parameter.
+   */
+
 
   return (
     <ToastProvider>

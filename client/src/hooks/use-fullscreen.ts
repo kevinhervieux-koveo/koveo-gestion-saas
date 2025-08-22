@@ -3,23 +3,57 @@ import { useState, useEffect, useCallback } from 'react';
 /**
  *
  */
-export function useFullscreen() {
+/**
+ * useFullscreen custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use fullscreen function.
+ */
+export function  /**
+   * Use fullscreen function.
+   */
+ useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = useCallback(async () => {
-    try {
+    try {  /**
+   * If function.
+   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+   */
+  /**
+   * If function.
+   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+   */
+
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
-    } catch (error) {
+    }  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (error) {
       console.error('Error toggling fullscreen:', error);
     }
   }, []);
 
   const exitFullscreen = useCallback(async () => {
-    try {
+    try {  /**
+   * If function.
+   * @param document.fullscreenElement - document.fullscreenElement parameter.
+   */
+
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       }

@@ -12,7 +12,19 @@ import { useToast } from '@/hooks/use-toast';
  * @param initialState - Initial loading state.
  * @returns Loading state and setter.
  */
-export function useLoadingState(initialState = false) {
+/**
+ * useLoadingState custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use loading state function.
+ * @param initialState = false - initialState = false parameter.
+ */
+export function  /**
+   * Use loading state function.
+   * @param initialState = false - initialState = false parameter.
+   */
+ useLoadingState(initialState = false) {
   const [isLoading, setIsLoading] = useState(initialState);
   
   const setLoading = useCallback((loading: boolean) => {
@@ -40,6 +52,15 @@ export function useLoadingState(initialState = false) {
  * @param config.errorMessage
  * @param config.queryKeysToInvalidate
  * @returns Delete mutation.
+ */
+/**
+ * useDeleteMutation component.
+ * @param props - Component props.
+ * @param props.deleteFn - deleteFn parameter.
+ * @param props.successMessage = 'Item deleted successfully' - successMessage = 'Item deleted successfully' parameter.
+ * @param props.errorMessage = 'Failed to delete item' - errorMessage = 'Failed to delete item' parameter.
+ * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
+ * @returns JSX element.
  */
 export function useDeleteMutation({
   deleteFn,
@@ -87,6 +108,16 @@ export function useDeleteMutation({
  * @param config.onSuccessCallback
  * @returns Create/update mutation.
  */
+/**
+ * useCreateUpdateMutation component.
+ * @param props - Component props.
+ * @param props.mutationFn - mutationFn parameter.
+ * @param props.successMessage = 'Item saved successfully' - successMessage = 'Item saved successfully' parameter.
+ * @param props.errorMessage = 'Failed to save item' - errorMessage = 'Failed to save item' parameter.
+ * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
+ * @param props.onSuccessCallback - onSuccessCallback parameter.
+ * @returns JSX element.
+ */
 export function useCreateUpdateMutation({
   mutationFn,
   successMessage = 'Item saved successfully',
@@ -131,7 +162,19 @@ export function useCreateUpdateMutation({
  * @param initialOpen - Initial dialog/modal open state.
  * @returns Form state management.
  */
-export function useFormState(initialOpen = false) {
+/**
+ * useFormState custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use form state function.
+ * @param initialOpen = false - initialOpen = false parameter.
+ */
+export function  /**
+   * Use form state function.
+   * @param initialOpen = false - initialOpen = false parameter.
+   */
+ useFormState(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [selectedItem, setSelectedItem] = useState<unknown>(null);
 

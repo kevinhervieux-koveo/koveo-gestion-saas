@@ -47,7 +47,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
  * - Quebec-compliant security messaging
  * - Role-based redirection after login.
  */
-export default function LoginPage() {
+export default function  /**
+   * Login page function.
+   */
+ LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -101,7 +104,15 @@ export default function LoginPage() {
       });
 
       // Note: Routing to /dashboard is handled by the auth hook
-    } catch (error: unknown) {
+    }  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (error: unknown) {
       const errorMessage = error.message || 'Login failed';
       setLoginError(errorMessage);
       

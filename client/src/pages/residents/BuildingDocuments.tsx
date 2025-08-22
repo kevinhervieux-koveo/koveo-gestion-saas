@@ -60,7 +60,16 @@ interface Building {
  * @param bytes
  * @returns Function result.
  */
-function formatFileSize(bytes?: number): string {
+function  /**
+   * Format file size.
+   * @param bytes? - bytes? parameter.
+   * @returns String result.
+   */
+ formatFileSize(bytes?: number): string {  /**
+   * If function.
+   * @param !bytes - !bytes parameter.
+   */
+
   if (!bytes) {return 'Unknown size';}
   
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -77,7 +86,12 @@ function formatFileSize(bytes?: number): string {
  * @param dateString
  * @returns Function result.
  */
-function formatDate(dateString: string): string {
+function  /**
+   * Format date.
+   * @param dateString - dateString parameter.
+   * @returns String result.
+   */
+ formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -94,7 +108,12 @@ function formatDate(dateString: string): string {
  * @param value
  * @returns Function result.
  */
-function getCategoryLabel(value: string): string {
+function  /**
+   * Get category label.
+   * @param value - Value to process.
+   * @returns String result.
+   */
+ getCategoryLabel(value: string): string {
   // Return the actual document type as a formatted label
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
@@ -102,7 +121,10 @@ function getCategoryLabel(value: string): string {
 /**
  *
  */
-export default function ResidentsBuildingDocuments() {
+export default function  /**
+   * Residents building documents function.
+   */
+ ResidentsBuildingDocuments() {
   const [, navigate] = useLocation();
   const urlParams = new URLSearchParams(window.location.search);
   const buildingId = urlParams.get('buildingId');
@@ -127,9 +149,21 @@ export default function ResidentsBuildingDocuments() {
   // Get documents for this specific building
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
-    queryFn: async () => {
+    queryFn: async () => {  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
+   */
+
       if (!buildingId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
+      const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
@@ -163,28 +197,54 @@ export default function ResidentsBuildingDocuments() {
     // First ensure we only show documents for this building
     filtered = filtered.filter(doc => doc.buildingId === buildingId);
 
-    // Apply user filters
+    // Apply user filters  /**
+   * If function.
+   * @param searchTerm - searchTerm parameter.
+   */
+
     if (searchTerm) {
       filtered = filtered.filter(doc => 
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
+    }  /**
+   * If function.
+   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
+   */
+
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(doc => doc.type === selectedCategory);
-    }
+    }  /**
+   * If function.
+   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
+   */
+
 
     if (selectedYear !== "all") {
       filtered = filtered.filter(doc => 
         new Date(doc.dateReference).getFullYear().toString() === selectedYear
       );
-    }
+    }  /**
+   * If function.
+   * @param selectedVisibility !== "all" - selectedVisibility !== "all" parameter.
+   */
+
 
     if (selectedVisibility !== "all") {
-      filtered = filtered.filter(doc => {
+      filtered = filtered.  /**
+   * Filter .
+   * @param doc => {
+        if (selectedVisibility === "visible" - doc => {
+        if (selectedVisibility === "visible" parameter.
+   */
+filter(doc => {
         if (selectedVisibility === "visible") {
           return doc.isVisibleToTenants === true;
-        } else if (selectedVisibility === "hidden") {
+        } else  /**
+   * If function.
+   * @param selectedVisibility === "hidden" - selectedVisibility === "hidden" parameter.
+   */
+ if (selectedVisibility === "hidden") {
           return doc.isVisibleToTenants === false || doc.isVisibleToTenants === undefined;
         }
         return true;
@@ -217,7 +277,15 @@ export default function ResidentsBuildingDocuments() {
     const grouped: Record<string, BuildingDocument[]> = {};
     
     // Group documents by their actual type values
-    paginatedDocuments.forEach(doc => {
+    paginatedDocuments.  /**
+   * For each function.
+   * @param doc => {
+      const type = doc.type || 'other';
+      if (!grouped[type] - doc => {
+      const type = doc.type || 'other';
+      if (!grouped[type] parameter.
+   */
+forEach(doc => {
       const type = doc.type || 'other';
       if (!grouped[type]) {
         grouped[type] = [];
@@ -242,7 +310,15 @@ export default function ResidentsBuildingDocuments() {
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
       toast({
         title: "Download failed",
         description: "Failed to download document",
@@ -252,14 +328,26 @@ export default function ResidentsBuildingDocuments() {
   };
 
   const handleViewDocument = async (document: BuildingDocument) => {
-    try {
+    try {  /**
+   * If function.
+   * @param document.fileUrl - document.fileUrl parameter.
+   */
+
       if (document.fileUrl) {
         window.open(document.fileUrl, '_blank');
       } else {
-        const response = await fetch(`/api/documents/${document.id}/view`);
+        const response = await fetch(`/api/documents/${document.id}/view`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
         if (!response.ok) {throw new Error('Failed to get document view URL');}
         
-        const data = await response.json();
+        const data = await response.json();  /**
+   * If function.
+   * @param data.viewUrl - data.viewUrl parameter.
+   */
+
         if (data.viewUrl) {
           window.open(data.viewUrl, '_blank');
         }
@@ -271,7 +359,11 @@ export default function ResidentsBuildingDocuments() {
         variant: "destructive",
       });
     }
-  };
+  };  /**
+   * If function.
+   * @param !buildingId - !buildingId parameter.
+   */
+
 
   if (!buildingId) {
     return (
@@ -403,7 +495,11 @@ export default function ResidentsBuildingDocuments() {
                 <div className="grid gap-6">
                   {/* Show documents grouped by category if no specific category is selected */}
                   {selectedCategory === 'all' ? (
-                    Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {
+                    Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {  /**
+   * If function.
+   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
+   */
+
                       if (categoryDocuments.length === 0) {return null;}
                       
                       return (
@@ -569,7 +665,11 @@ export default function ResidentsBuildingDocuments() {
                     </Button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;  /**
+   * If function.
+   * @param pageNum > totalPages - pageNum > totalPages parameter.
+   */
+
                         if (pageNum > totalPages) {return null;}
                         return (
                           <Button

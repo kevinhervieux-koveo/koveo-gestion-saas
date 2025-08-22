@@ -45,7 +45,11 @@ const categoryTranslations: Record<string, { en: string; fr: string }> = {
 
 // Translation function moved outside component
 const translateCategory = (category: string, language: 'en' | 'fr') => {
-  const translation = categoryTranslations[category];
+  const translation = categoryTranslations[category];  /**
+   * If function.
+   * @param translation - translation parameter.
+   */
+
   if (translation) {
     return language === 'fr' ? translation.fr : translation.en;
   }
@@ -199,7 +203,10 @@ interface InflationConfig {
 /**
  *
  */
-export default function Budget() {
+export default function  /**
+   * Budget function.
+   */
+ Budget() {
   const { language } = useLanguage();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
@@ -245,11 +252,19 @@ export default function Budget() {
   const { data: residences = [] } = useQuery({
     queryKey: ['/api/residences', selectedBuilding],
     queryFn: async () => {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams();  /**
+   * If function.
+   * @param selectedBuilding - selectedBuilding parameter.
+   */
+
       if (selectedBuilding) {
         params.append('buildingId', selectedBuilding);
       }
-      const response = await fetch(`/api/residences?${params}`);
+      const response = await fetch(`/api/residences?${params}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {throw new Error('Failed to fetch residences');}
       return response.json();
     },
@@ -264,7 +279,15 @@ export default function Budget() {
         startYear: startYear.toString(),
         endYear: endYear.toString(),
         groupBy: viewType
-      });
+      });  /**
+   * If function.
+   * @param viewType === 'monthly' - viewType === 'monthly' parameter.
+   */
+  /**
+   * If function.
+   * @param viewType === 'monthly' - viewType === 'monthly' parameter.
+   */
+
       
       if (viewType === 'monthly') {
         params.append('startMonth', startMonth.toString());
@@ -303,7 +326,11 @@ export default function Budget() {
   });
 
   // Parse minimum balance settings
-  const minimumBalanceSettings = useMemo(() => {
+  const minimumBalanceSettings = useMemo(() => {  /**
+   * If function.
+   * @param !bankAccountInfo?.bankAccountMinimums - !bankAccountInfo?.bankAccountMinimums parameter.
+   */
+
     if (!bankAccountInfo?.bankAccountMinimums) {return [];}
     try {
       return JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
@@ -313,7 +340,11 @@ export default function Budget() {
   }, [bankAccountInfo?.bankAccountMinimums]);
 
   // Transform raw data into chart-friendly format
-  const chartData: BudgetData[] = useMemo(() => {
+  const chartData: BudgetData[] = useMemo(() => {  /**
+   * If function.
+   * @param !budgetSummary?.summary - !budgetSummary?.summary parameter.
+   */
+
     if (!budgetSummary?.summary) {return [];}
     
     return budgetSummary.summary.map((item: any) => {
@@ -324,13 +355,21 @@ export default function Budget() {
       
       // Build income and expense categories
       const incomeByCategory: { [key: string]: number } = {};
-      const expensesByCategory: { [key: string]: number } = {};
+      const expensesByCategory: { [key: string]: number } = {};  /**
+   * If function.
+   * @param item.incomeTypes && item.incomes - item.incomeTypes && item.incomes parameter.
+   */
+
       
       if (item.incomeTypes && item.incomes) {
         item.incomeTypes.forEach((type: string, index: number) => {
           incomeByCategory[type] = parseFloat(item.incomes[index] || '0');
         });
-      }
+      }  /**
+   * If function.
+   * @param item.spendingTypes && item.spendings - item.spendingTypes && item.spendings parameter.
+   */
+
       
       if (item.spendingTypes && item.spendings) {
         item.spendingTypes.forEach((type: string, index: number) => {
@@ -352,20 +391,40 @@ export default function Budget() {
   }, [budgetSummary]);
 
   // Find total minimum balance for chart visualization - optimized
-  const minimumBalanceForChart = useMemo(() => {
+  const minimumBalanceForChart = useMemo(() => {  /**
+   * If function.
+   * @param !minimumBalanceSettings?.length - !minimumBalanceSettings?.length parameter.
+   */
+
     if (!minimumBalanceSettings?.length) {return null;}
     return minimumBalanceSettings.reduce((sum, m) => sum + m.amount, 0);
   }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
   // Calculate running bank account balance over time
-  const chartDataWithBalance = useMemo(() => {
+  const chartDataWithBalance = useMemo(() => {  /**
+   * If function.
+   * @param !chartData?.length - !chartData?.length parameter.
+   */
+  /**
+   * If function.
+   * @param !chartData?.length - !chartData?.length parameter.
+   */
+
     if (!chartData?.length) {return [];}
     
     // Use starting balance if available, otherwise start with 0 and build from cash flow
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
     
-    return chartData.map((item, index) => {
+    return chartData.map((item, index) => {  /**
+   * If function.
+   * @param index === 0 - index === 0 parameter.
+   */
+  /**
+   * If function.
+   * @param index === 0 - index === 0 parameter.
+   */
+
       if (index === 0) {
         // For the first month, add net cash flow to starting balance
         runningBalance = startingBalance + item.netCashFlow;
@@ -403,7 +462,11 @@ export default function Budget() {
   }, [chartData?.length, language]);
 
   // Filter data by selected categories - optimized with better dependency tracking
-  const filteredChartData = useMemo(() => {
+  const filteredChartData = useMemo(() => {  /**
+   * If function.
+   * @param !chartDataWithBalance?.length || selectedCategories.length === 0 - !chartDataWithBalance?.length || selectedCategories.length === 0 parameter.
+   */
+
     if (!chartDataWithBalance?.length || selectedCategories.length === 0) {return chartDataWithBalance || [];}
     
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
@@ -422,7 +485,15 @@ export default function Budget() {
           // Find original category name from translation
           const originalCatName = Object.keys(item.incomeByCategory).find(key => {
             return translateCategory(key, language) === translatedCatName;
-          });
+          });  /**
+   * If function.
+   * @param originalCatName - originalCatName parameter.
+   */
+  /**
+   * If function.
+   * @param originalCatName - originalCatName parameter.
+   */
+
           if (originalCatName) {
             filteredIncome += item.incomeByCategory[originalCatName] || 0;
           }
@@ -460,14 +531,22 @@ export default function Budget() {
   }, [chartDataWithBalance, selectedCategories.join(','), language, bankAccountInfo?.bankAccountStartAmount]);
 
   // Calculate special contribution and property breakdown - optimized
-  const specialContribution = useMemo(() => {
+  const specialContribution = useMemo(() => {  /**
+   * If function.
+   * @param !filteredChartData?.length - !filteredChartData?.length parameter.
+   */
+
     if (!filteredChartData?.length) {return 0;}
     const netCashFlow = filteredChartData.reduce((sum, item) => sum + item.netCashFlow, 0);
     return Math.abs(Math.min(0, netCashFlow));
   }, [filteredChartData]);
 
   // Get residences for selected building and calculate contributions - optimized
-  const propertyContributions = useMemo(() => {
+  const propertyContributions = useMemo(() => {  /**
+   * If function.
+   * @param !selectedBuilding || !residences?.length || specialContribution === 0 - !selectedBuilding || !residences?.length || specialContribution === 0 parameter.
+   */
+
     if (!selectedBuilding || !residences?.length || specialContribution === 0) {return [];}
     
     // Filter and map in single pass for better performance
@@ -525,7 +604,21 @@ export default function Budget() {
       startAmount: string;
       minimumBalances: MinimumBalanceSetting[];
     }) => {
-      const response = await fetch(`/api/budgets/${data.buildingId}/bank-account`, {
+      const response = await  /**
+   * Fetch .
+   * @param `/api/budgets/${data.buildingId}/bank-account` - `/api/budgets/${data.buildingId}/bank-account` parameter.
+   * @param {
+        method - {
+        method parameter.
+   * @param headers - HTTP headers object.
+   * @param } - } parameter.
+   * @param body - Request body data.
+   * @param bankAccountNotes - bankAccountNotes parameter.
+   * @param bankAccountStartDate - bankAccountStartDate parameter.
+   * @param bankAccountStartAmount - bankAccountStartAmount parameter.
+   * @returns String result.
+   */
+ fetch(`/api/budgets/${data.buildingId}/bank-account`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -615,14 +708,22 @@ export default function Budget() {
   }, []);
 
   // Initialize dialog with existing data
-  const initializeDialog = () => {
+  const initializeDialog = () => {  /**
+   * If function.
+   * @param bankAccountInfo - bankAccountInfo parameter.
+   */
+
     if (bankAccountInfo) {
       setBankAccountNumber(bankAccountInfo.bankAccountNumber || '');
       setReconciliationNote('');
       setBankAccountStartDate(bankAccountInfo.bankAccountStartDate || '');
       setBankAccountStartAmount(bankAccountInfo.bankAccountStartAmount?.toString() || '');
       
-      // Parse existing minimum balances
+      // Parse existing minimum balances  /**
+   * If function.
+   * @param bankAccountInfo.bankAccountMinimums - bankAccountInfo.bankAccountMinimums parameter.
+   */
+
       if (bankAccountInfo.bankAccountMinimums) {
         try {
           const existingMinimums = JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
@@ -643,7 +744,11 @@ export default function Budget() {
   };
 
   // Optimized with useCallback to prevent recreation
-  const handleUpdateBankAccount = useCallback(() => {
+  const handleUpdateBankAccount = useCallback(() => {  /**
+   * If function.
+   * @param !selectedBuilding - !selectedBuilding parameter.
+   */
+
     if (!selectedBuilding) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -663,7 +768,19 @@ export default function Budget() {
       startAmount: bankAccountStartAmount,
       minimumBalances,
     });
-  }, [selectedBuilding, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);
+  }, [selectedBuilding, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);  /**
+   * Return function.
+   * @param <div className='min-h-screen bg-gray-50'>
+      <Header 
+        title={language === 'fr' ? 'Tableau de bord budgétaire' - <div className='min-h-screen bg-gray-50'>
+      <Header 
+        title={language === 'fr' ? 'Tableau de bord budgétaire' parameter.
+   * @returns (
+              <>
+                <Maximize2 className='w-4 h-4' />
+                <span className='hidden sm:inline'> result.
+   */
+
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -961,7 +1078,11 @@ export default function Budget() {
                           <input
                             type='checkbox'
                             checked={selectedCategories.includes(category)}
-                            onChange={(e) => {
+                            onChange={(e) => {  /**
+   * If function.
+   * @param e.target.checked - e.target.checked parameter.
+   */
+
                               if (e.target.checked) {
                                 setSelectedCategories([...selectedCategories, category]);
                               } else {
@@ -1138,7 +1259,11 @@ export default function Budget() {
                       <XAxis 
                         dataKey='date' 
                         tickFormatter={(value) => {
-                          const [year, month] = value.split('-');
+                          const [year, month] = value.split('-');  /**
+   * If function.
+   * @param viewType === 'yearly' - viewType === 'yearly' parameter.
+   */
+
                           if (viewType === 'yearly') {
                             // For yearly view, only show year (and only for January dates)
                             return month === '01' ? year : '';
@@ -1150,7 +1275,11 @@ export default function Budget() {
                       />
                       <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                       <ChartTooltip 
-                        content={({ active, payload, label }) => {
+                        content={({ active, payload, label }) => {  /**
+   * If function.
+   * @param active && payload && payload.length - active && payload && payload.length parameter.
+   */
+
                           if (active && payload && payload.length) {
                             const [year, month] = String(label).split('-');
                             return (
@@ -1158,23 +1287,54 @@ export default function Budget() {
                                 <p className="font-medium mb-2">{`${year}-${month}`}</p>
                                 {payload.map((entry, index) => {
                                   let name = '';
-                                  let color = entry.color;
+                                  let color = entry.color;  /**
+   * If function.
+   * @param entry.dataKey === 'totalIncome' - entry.dataKey === 'totalIncome' parameter.
+   */
+
                                   
                                   if (entry.dataKey === 'totalIncome') {
                                     name = language === 'fr' ? 'Revenus totaux' : 'Total Income';
                                     color = 'hsl(120, 70%, 50%)';
-                                  } else if (entry.dataKey === 'totalExpenses') {
+                                  } else  /**
+   * If function.
+   * @param entry.dataKey === 'totalExpenses' - entry.dataKey === 'totalExpenses' parameter.
+   */
+ if (entry.dataKey === 'totalExpenses') {
                                     name = language === 'fr' ? 'Dépenses totales' : 'Total Expenses';
                                     color = 'hsl(0, 70%, 50%)';
-                                  } else if (entry.dataKey === 'bankBalance') {
+                                  } else  /**
+   * If function.
+   * @param entry.dataKey === 'bankBalance' - entry.dataKey === 'bankBalance' parameter.
+   */
+ if (entry.dataKey === 'bankBalance') {
                                     name = language === 'fr' ? 'Solde bancaire' : 'Bank Balance';
                                     color = 'hsl(200, 80%, 60%)';
-                                  } else if (typeof entry.value === 'number' && entry.value === minimumBalanceForChart) {
+                                  } else  /**
+   * If function.
+   * @param typeof entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
+   */
+ if (typeof entry.value === 'number' && entry.value === minimumBalanceForChart) {
                                     name = language === 'fr' ? 'Solde minimum requis' : 'Required Minimum Balance';
                                     color = 'hsl(0, 80%, 60%)';
-                                  }
+                                  }  /**
+   * If function.
+   * @param name - name parameter.
+   */
+
                                   
-                                  if (name) {
+                                  if (name) {  /**
+   * Return function.
+   * @param <div key={index} className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 flex-shrink-0"
+                                          style={{ backgroundColor - <div key={index} className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 flex-shrink-0"
+                                          style={{ backgroundColor parameter.
+   * @returns '0'} $ result.
+   */
+
                                     return (
                                       <div key={index} className="flex items-center gap-2">
                                         <div 
@@ -1347,7 +1507,11 @@ export default function Budget() {
                   <div className='space-y-2'>
                     <Dialog 
                       open={bankAccountDialog} 
-                      onOpenChange={(open) => {
+                      onOpenChange={(open) => {  /**
+   * If function.
+   * @param open - open parameter.
+   */
+
                         if (open) {
                           initializeDialog();
                         }
@@ -1444,7 +1608,11 @@ export default function Budget() {
                   {/* Minimum Balances Management Button - Always available */}
                   <Dialog 
                     open={minimumBalancesDialog} 
-                    onOpenChange={(open) => {
+                    onOpenChange={(open) => {  /**
+   * If function.
+   * @param open - open parameter.
+   */
+
                       if (open) {
                         setMinimumBalances(minimumBalanceSettings.map(m => ({ ...m })));
                       }
@@ -1528,7 +1696,11 @@ export default function Budget() {
                                   });
                                   
                                   setMinimumBalancesDialog(false);
-                                } catch (_error) {
+                                }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
                                   toast({
                                     title: language === 'fr' ? 'Erreur' : 'Error',
                                     description: language === 'fr' ? 
@@ -1606,7 +1778,15 @@ export default function Budget() {
                                     value={generalIncomeInflation}
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      // Allow empty string or valid decimal numbers (including negative)
+                                      // Allow empty string or valid decimal numbers (including negative)  /**
+   * If function.
+   * @param value === '' - value === '' parameter.
+   */
+  /**
+   * If function.
+   * @param value === '' - value === '' parameter.
+   */
+
                                       if (value === '') {
                                         setGeneralIncomeInflation(0);
                                       } else {

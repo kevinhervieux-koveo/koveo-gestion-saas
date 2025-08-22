@@ -35,7 +35,21 @@ interface LanguageProviderProps {
  * @param root0.children
  * @returns Function result.
  */
-export function LanguageProvider({ children }: LanguageProviderProps) {
+/**
+ * LanguageProvider component.
+ * @param props - Component props.
+ * @param props.children - React children elements.
+ * @returns JSX element.
+ */
+/**
+ * Language provider function.
+ * @param { children } - { children } parameter.
+ */
+export function  /**
+   * Language provider function.
+   * @param { children } - { children } parameter.
+   */
+ LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: keyof typeof translations.en): string => {
@@ -66,8 +80,22 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
  * UseLanguage function.
  * @returns Function result.
  */
-export function useLanguage() {
-  const context = useContext(LanguageContext);
+/**
+ * useLanguage custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use language function.
+ */
+export function  /**
+   * Use language function.
+   */
+ useLanguage() {
+  const context = useContext(LanguageContext);  /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */
+
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }

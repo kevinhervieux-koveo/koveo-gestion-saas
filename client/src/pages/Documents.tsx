@@ -109,7 +109,10 @@ interface Residence {
 /**
  *
  */
-export default function Documents() {
+export default function  /**
+   * Documents function.
+   */
+ Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -244,7 +247,11 @@ export default function Documents() {
   };
 
   // Handle file upload completion
-  const handleUploadComplete = (documentId: string) => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleUploadComplete = (documentId: string) => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */
+
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       const fileUrl = uploadedFile.uploadURL as string;
@@ -326,11 +333,19 @@ export default function Documents() {
     form.reset();
   };
 
-  const onUpdate = (data: DocumentFormData) => {
+  const onUpdate = (data: DocumentFormData) => {  /**
+   * If function.
+   * @param selectedDocument - selectedDocument parameter.
+   */
+
     if (selectedDocument) {
       updateDocumentMutation.mutate({ id: selectedDocument.id, data });
     }
-  };
+  };  /**
+   * If function.
+   * @param documentsLoading - documentsLoading parameter.
+   */
+
 
   if (documentsLoading) {
     return (

@@ -15,7 +15,17 @@ import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from
  * UseBuildings function.
  * @returns Function result.
  */
-export function useBuildings() {
+/**
+ * useBuildings custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use buildings function.
+ */
+export function  /**
+   * Use buildings function.
+   */
+ useBuildings() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -91,7 +101,19 @@ export function useBuildings() {
         },
         credentials: 'include',
         body: JSON.stringify(data),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       
       if (!response.ok) {
         const error = await response.json();
@@ -212,7 +234,11 @@ export function useBuildings() {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBuilding = (data: BuildingFormData) => {
+  const handleUpdateBuilding = (data: BuildingFormData) => {  /**
+   * If function.
+   * @param editingBuilding - editingBuilding parameter.
+   */
+
     if (editingBuilding) {
       updateBuildingMutation.mutate({ id: editingBuilding.id, ...data });
     }
@@ -222,7 +248,11 @@ export function useBuildings() {
     setDeletingBuilding(building);
   };
 
-  const confirmDeleteBuilding = () => {
+  const confirmDeleteBuilding = () => {  /**
+   * If function.
+   * @param deletingBuilding - deletingBuilding parameter.
+   */
+
     if (deletingBuilding) {
       deleteBuildingMutation.mutate(deletingBuilding.id);
       setDeletingBuilding(null);

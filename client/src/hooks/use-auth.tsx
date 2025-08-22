@@ -36,7 +36,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * @param root0.children
  * @returns Function result.
  */
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+/**
+ * AuthProvider component.
+ * @param props - Component props.
+ * @param props.children - React children elements.
+ * @returns JSX element.
+ */
+/**
+ * Auth provider function.
+ * @param { children } - { children } parameter.
+ */
+export function  /**
+   * Auth provider function.
+   * @param { children } - { children } parameter.
+   */
+ AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
@@ -57,11 +71,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetch('/api/auth/user', {
           credentials: 'include',
-        });
+        });  /**
+   * If function.
+   * @param response.status === 401 - response.status === 401 parameter.
+   */
+
         
         if (response.status === 401) {
           return null; // Not authenticated
-        }
+        }  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
         
         if (!response.ok) {
           throw new Error(`${response.status}: ${response.statusText}`);
@@ -84,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData || null);
     
     // If user is null (unauthorized) and we're not on a public page, redirect to home
+
     if (userData === null && !isPublicPage && !isLoading) {
       console.debug('Unauthorized access detected, redirecting to home page');
       setLocation('/');
@@ -100,6 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({ email, password }),
       });
+
 
       if (!response.ok) {
         const error = await response.json();
@@ -149,7 +173,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * @param password - User's password.
    * @returns Promise resolving to user data.
    */
-  const login = async (email: string, password: string): Promise<{ user: User }> => {
+  const login =  /**
+   * Async function.
+   * @param email - email parameter.
+   * @param password - password parameter.
+   * @returns Promise resolving to .
+   */
+ async (email: string, password: string): Promise<{ user: User }> => {
     const result = await loginMutation.mutateAsync({ email, password });
     return result;
   };
@@ -157,7 +187,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Logout function that ends the user session.
    */
-  const logout = async (): Promise<void> => {
+  const logout =  /**
+   * Async function.
+   * @returns Promise resolving to void=.
+   */
+ async (): Promise<void> => {
     await logoutMutation.mutateAsync();
   };
 
@@ -167,7 +201,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * @param role - Single role string or array of roles to check.
    * @returns True if user has the required role(s).
    */
-  const hasRole = (role: string | string[]): boolean => {
+  const hasRole = (role: string | string[]): boolean => {  /**
+   * If function.
+   * @param !user - !user parameter.
+   */
+  /**
+   * If function.
+   * @param !user - !user parameter.
+   */
+
     if (!user) {return false;}
     if (Array.isArray(role)) {
       return role.includes(user.role);
@@ -214,8 +256,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * UseAuth function.
  * @returns Function result.
  */
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
+/**
+ * Use auth function.
+ * @returns AuthContextType result.
+ */
+export function  /**
+   * Use auth function.
+   * @returns AuthContextType result.
+   */
+ useAuth(): AuthContextType {
+  const context = useContext(AuthContext);  /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

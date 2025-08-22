@@ -25,8 +25,14 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * Column configuration for the data table
  */
+/**
+ * ColumnConfig type definition.
+ */
 export interface ColumnConfig<T> extends TableColumn<T> {}
 
+/**
+ * TableColumn type definition.
+ */
 export interface TableColumn<T> {
   key: string;
   label: string;
@@ -41,6 +47,9 @@ export interface TableColumn<T> {
 /**
  * Action configuration for table rows
  */
+/**
+ * TableAction type definition.
+ */
 export interface TableAction<T> {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -52,6 +61,9 @@ export interface TableAction<T> {
 
 /**
  * Bulk action configuration
+ */
+/**
+ * BulkAction type definition.
  */
 export interface BulkAction<T> {
   label: string;
@@ -111,7 +123,15 @@ export function DataTable<T extends Record<string, unknown>>({
   const selection = selectedItems.size > 0 ? selectedItems : internalSelection;
   const setSelection = onSelectionChange || setInternalSelection;
 
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = (checked: boolean) => {  /**
+   * If function.
+   * @param checked - checked parameter.
+   */
+  /**
+   * If function.
+   * @param checked - checked parameter.
+   */
+
     if (checked) {
       const newSelection = new Set(data.map(item => String(item[keyAccessor])));
       setSelection(newSelection);
@@ -130,10 +150,23 @@ export function DataTable<T extends Record<string, unknown>>({
     setSelection(newSelection);
   };
 
-  const renderCellContent = (column: TableColumn<T>, item: T) => {
+  const renderCellContent = (column: TableColumn<T>, item: T) => {  /**
+   * If function.
+   * @param column.render - column.render parameter.
+   */
+
     if (column.render) {
       const value = typeof column.accessor === 'function' 
-        ? column.accessor(item) 
+        ? column.  /**
+   * Accessor function.
+   * @param item - item parameter.
+   * @returns item[column.accessor];
+      return column.render(value, item);
+    }
+
+    if (typeof column.accessor === 'function') result.
+   */
+accessor(item) 
         : item[column.accessor];
       return column.render(value, item);
     }
@@ -144,14 +177,22 @@ export function DataTable<T extends Record<string, unknown>>({
 
     const value = item[column.accessor];
     
-    // Handle common data types
+    // Handle common data types  /**
+   * If function.
+   * @param typeof value === 'boolean' - typeof value === 'boolean' parameter.
+   */
+
     if (typeof value === 'boolean') {
       return (
         <Badge variant={value ? 'default' : 'secondary'}>
           {value ? 'Active' : 'Inactive'}
         </Badge>
       );
-    }
+    }  /**
+   * If function.
+   * @param value && typeof value === 'object' && 'toLocaleDateString' in value - value && typeof value === 'object' && 'toLocaleDateString' in value parameter.
+   */
+
 
     if (value && typeof value === 'object' && 'toLocaleDateString' in value) {
       return (value as Date).toLocaleDateString();
@@ -285,7 +326,13 @@ export function DataTable<T extends Record<string, unknown>>({
                                   {action.separator && <DropdownMenuSeparator />}
                                   <DropdownMenuItem
                                     onClick={() => action.onClick(item)}
-                                    disabled={action.disabled ? action.disabled(item) : false}
+                                    disabled={action.disabled ? action.  /**
+   * Disable .
+   * @param item - item parameter.
+   * @returns false}
+                                    className= result.
+   */
+disabled(item) : false}
                                     className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
                                   >
                                     {action.icon && <action.icon className="h-4 w-4 mr-2" />}

@@ -31,7 +31,10 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 /**
  *
  */
-export default function ResetPasswordPage() {
+export default function  /**
+   * Reset password page function.
+   */
+ ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +54,11 @@ export default function ResetPasswordPage() {
   // Extract token from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
+    const tokenParam = urlParams.get('token');  /**
+   * If function.
+   * @param !tokenParam - !tokenParam parameter.
+   */
+
     
     if (!tokenParam) {
       toast({
@@ -66,7 +73,11 @@ export default function ResetPasswordPage() {
     setToken(tokenParam);
   }, [navigate, toast]);
 
-  const onSubmit = async (data: ResetPasswordForm) => {
+  const onSubmit = async (data: ResetPasswordForm) => {  /**
+   * If function.
+   * @param !token - !token parameter.
+   */
+
     if (!token) {
       toast({
         title: 'Erreur',
@@ -88,17 +99,37 @@ export default function ResetPasswordPage() {
         title: 'Mot de passe réinitialisé',
         description: 'Votre mot de passe a été mis à jour avec succès.',
       });
-    } catch (error: unknown) {
+    }  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (error: unknown) {
       console.error('Reset password error:', error);
-      let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.';
+      let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.';  /**
+   * If function.
+   * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
+   */
+
       
       if (error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED') {
         errorMessage = 'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.';
-      } else if (error.code === 'TOKEN_ALREADY_USED') {
+      } else  /**
+   * If function.
+   * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
+   */
+ if (error.code === 'TOKEN_ALREADY_USED') {
         errorMessage = 'Ce lien de réinitialisation a déjà été utilisé.';
-      } else if (error.code === 'PASSWORD_TOO_SHORT') {
+      } else  /**
+   * If function.
+   * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
+   */
+ if (error.code === 'PASSWORD_TOO_SHORT') {
         errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
-      } else if (error.code === 'PASSWORD_TOO_WEAK') {
+      } else  /**
+   * If function.
+   * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
+   */
+ if (error.code === 'PASSWORD_TOO_WEAK') {
         errorMessage = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
       }
       
@@ -110,7 +141,11 @@ export default function ResetPasswordPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  /**
+   * If function.
+   * @param resetComplete - resetComplete parameter.
+   */
+
 
   if (resetComplete) {
     return (
@@ -135,7 +170,11 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     );
-  }
+  }  /**
+   * If function.
+   * @param !token - !token parameter.
+   */
+
 
   if (!token) {
     return (

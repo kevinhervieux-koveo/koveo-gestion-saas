@@ -39,7 +39,45 @@ interface CollapsibleFiltersProps {
 
  */
 
-export function CollapsibleFilters({
+/**
+ * CollapsibleFilters component.
+ * @param props - Component props.
+ * @param props.title - Title text for the element.
+ * @param props.filters - filters parameter.
+ * @param props.activeFilters = [] - activeFilters = [] parameter.
+ * @param props.onReset - onReset parameter.
+ * @param props.resetLabel - resetLabel parameter.
+ * @param props.className = '' - className = '' parameter.
+ * @param props.defaultExpanded = false - defaultExpanded = false parameter.
+ * @returns JSX element.
+ */
+/**
+ * Collapsible filters function.
+ * @param {
+  title - {
+  title parameter.
+ * @param filters - filters parameter.
+ * @param activeFilters = [] - activeFilters = [] parameter.
+ * @param onReset - onReset parameter.
+ * @param resetLabel - resetLabel parameter.
+ * @param className = '' - className = '' parameter.
+ * @param defaultExpanded = false - defaultExpanded = false parameter.
+ * @param } - } parameter.
+ */
+export function  /**
+   * Collapsible filters function.
+   * @param {
+  title - {
+  title parameter.
+   * @param filters - filters parameter.
+   * @param activeFilters = [] - activeFilters = [] parameter.
+   * @param onReset - onReset parameter.
+   * @param resetLabel - resetLabel parameter.
+   * @param className = '' - className = '' parameter.
+   * @param defaultExpanded = false - defaultExpanded = false parameter.
+   * @param } - } parameter.
+   */
+ CollapsibleFilters({
   title,
   filters,
   activeFilters = [],
@@ -117,7 +155,11 @@ export function CollapsibleFilters({
         {filtersExpanded && (
           <div className='space-y-4 border-t pt-4'>
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-              {filters.map((filter) => {
+              {filters.map((filter) => {  /**
+   * If function.
+   * @param filter.type === 'custom' - filter.type === 'custom' parameter.
+   */
+
                 if (filter.type === 'custom') {
                   return (
                     <div key={filter.id} className='space-y-2'>
@@ -125,7 +167,11 @@ export function CollapsibleFilters({
                       {filter.customComponent}
                     </div>
                   );
-                }
+                }  /**
+   * If function.
+   * @param filter.type === 'select' - filter.type === 'select' parameter.
+   */
+
                 
                 if (filter.type === 'select') {
                   return (
@@ -144,7 +190,11 @@ export function CollapsibleFilters({
                       </select>
                     </div>
                   );
-                }
+                }  /**
+   * If function.
+   * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
+   */
+
                 
                 if (filter.type === 'multiselect') {
                   return (
@@ -177,7 +227,11 @@ export function CollapsibleFilters({
                                 type='checkbox'
                                 checked={Array.isArray(filter.value) && filter.value.includes(option.value)}
                                 onChange={(e) => {
-                                  const currentValue = Array.isArray(filter.value) ? filter.value : [];
+                                  const currentValue = Array.isArray(filter.value) ? filter.value : [];  /**
+   * If function.
+   * @param e.target.checked - e.target.checked parameter.
+   */
+
                                   if (e.target.checked) {
                                     filter.onChange([...currentValue, option.value]);
                                   } else {

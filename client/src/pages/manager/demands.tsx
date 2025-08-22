@@ -106,7 +106,10 @@ const typeLabels = {
 /**
  *
  */
-export default function ManagerDemandsPage() {
+export default function  /**
+   * Manager demands page function.
+   */
+ ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -148,7 +151,11 @@ export default function ManagerDemandsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {
         throw new Error('Failed to create demand');
       }
@@ -256,7 +263,11 @@ export default function ManagerDemandsPage() {
         </CardContent>
       </Card>
     );
-  };
+  };  /**
+   * If function.
+   * @param isLoading - isLoading parameter.
+   */
+
 
   if (isLoading) {
     return (

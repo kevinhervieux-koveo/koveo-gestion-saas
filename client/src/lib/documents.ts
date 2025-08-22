@@ -58,7 +58,21 @@ export const GENERAL_DOCUMENT_CATEGORIES = [
  * @param fileUrl - The file URL to convert.
  * @returns The displayable file URL.
  */
-export function getDisplayableFileUrl(fileUrl: string): string {
+/**
+ * Get displayable file url.
+ * @param fileUrl - fileUrl parameter.
+ * @returns String result.
+ */
+export function  /**
+   * Get displayable file url.
+   * @param fileUrl - fileUrl parameter.
+   * @returns String result.
+   */
+ getDisplayableFileUrl(fileUrl: string): string {  /**
+   * If function.
+   * @param !fileUrl - !fileUrl parameter.
+   */
+
   if (!fileUrl) {
     return '';
   }
@@ -72,7 +86,11 @@ export function getDisplayableFileUrl(fileUrl: string): string {
   if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
     // Extract the path part after the bucket name
     const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com'));
+    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com'));  /**
+   * If function.
+   * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
+   */
+
     if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
       const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
       return `/objects/${pathAfterBucket}`;
@@ -144,14 +162,26 @@ export function createUploadHandler(
   onError?: (error: Error) => void
 ) {
   return (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    try {
+    try {  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */
+
       if (result.successful && result.successful.length > 0) {
         onSuccess?.();
-      } else if (result.failed && result.failed.length > 0) {
+      } else  /**
+   * If function.
+   * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
+   */
+ if (result.failed && result.failed.length > 0) {
         const error = new Error(`Upload failed: ${result.failed[0].error}`);
         onError?.(error);
       }
-    } catch (error) {
+    }  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (error) {
       onError?.(error as Error);
     }
   };
@@ -163,7 +193,19 @@ export function createUploadHandler(
  * @param value - Category value to find.
  * @returns Category label or the original value.
  */
-export function getCategoryLabel(
+/**
+ * Get category label.
+ * @param categories - categories parameter.
+ * @param value - Value to process.
+ * @returns String result.
+ */
+export function  /**
+   * Get category label.
+   * @param categories - categories parameter.
+   * @param value - Value to process.
+   * @returns String result.
+   */
+ getCategoryLabel(
   categories: readonly { value: string; label: string }[],
   value: string
 ): string {

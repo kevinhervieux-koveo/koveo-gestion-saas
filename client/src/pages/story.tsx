@@ -28,7 +28,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Tells the story behind Koveo and our mission for Quebec property management.
  * Now displays real company history from histoire.pdf when available.
  */
-export default function StoryPage() {
+export default function  /**
+   * Story page function.
+   */
+ StoryPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated, logout } = useAuth();
@@ -38,7 +41,11 @@ export default function StoryPage() {
   const { data: companyHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['company-history'],
     queryFn: async () => {
-      const response = await fetch('/api/company/history');
+      const response = await fetch('/api/company/history');  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {throw new Error('Failed to fetch company history');}
       return response.json();
     },

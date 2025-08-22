@@ -12,7 +12,15 @@ import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack
  * @param res
  * @returns Function result.
  */
-async function throwIfResNotOk(res: Response) {
+async function  /**
+   * Throw if res not ok function.
+   * @param res - Express response object.
+   */
+ throwIfResNotOk(res: Response) {  /**
+   * If function.
+   * @param !res.ok - !res.ok parameter.
+   */
+
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
@@ -36,12 +44,48 @@ async function throwIfResNotOk(res: Response) {
  * @param data
  * @returns Function result.
  */
-export async function apiRequest(
+export async function  /**
+   * Api request function.
+   * @param method - method parameter.
+   * @param url - URL string.
+   * @param data? - data? parameter.
+   * @returns Promise resolving to Response.
+   */
+ apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const res = await  /**
+   * Fetch .
+   * @param url - URL string.
+   * @param {
+    method - {
+    method parameter.
+   * @param headers - HTTP headers object.
+   * @param body - Request body data.
+   * @returns undefined,
+    credentials: 'include',
+  });
+
+  await throwIfResNotOk(res);
+  return res;
+}
+
+/**
+ * Defines behavior when encountering 401 Unauthorized responses.
+ * - 'returnNull': Returns null for 401 responses (useful for optional authentication)
+ * - 'throw': Throws error for 401 responses (default behavior).
+ */
+type UnauthorizedBehavior = 'returnNull' | 'throw';
+/**
+ * Creates a query function for React Query with configurable 401 handling.
+ * Used as default query function for all React Query queries in the application.
+ *
+ * @template T - Expected return type of the query.
+ * @param result.
+   */
+ fetch(url, {
     method,
     headers: data ? { 'Content-Type': 'application/json' } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -72,7 +116,11 @@ export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => Query
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join('/') as string, {
       credentials: 'include',
-    });
+    });  /**
+   * If function.
+   * @param unauthorizedBehavior === 'returnNull' && res.status === 401 - unauthorizedBehavior === 'returnNull' && res.status === 401 parameter.
+   */
+
 
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;

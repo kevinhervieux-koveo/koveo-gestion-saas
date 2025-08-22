@@ -22,10 +22,26 @@ import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
  * @param filter
  * @returns Function result.
  */
-export function applyFilter(item: any, filter: FilterValue): boolean {
+/**
+ * Apply filter function.
+ * @param item - item parameter.
+ * @param filter - filter parameter.
+ * @returns Boolean result.
+ */
+export function  /**
+   * Apply filter function.
+   * @param item - item parameter.
+   * @param filter - filter parameter.
+   * @returns Boolean result.
+   */
+ applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
   const filterValue = filter.value;
-  const operator = filter.operator;
+  const operator = filter.operator;  /**
+   * Switch function.
+   * @param operator - operator parameter.
+   */
+
 
   switch (operator) {
     case 'equals':
@@ -59,7 +75,12 @@ export function applyFilter(item: any, filter: FilterValue): boolean {
       return Number(value) <= Number(filterValue);
 
     case 'in':
-      return Array.isArray(filterValue) ? filterValue.includes(value) : false;
+      return Array.isArray(filterValue) ? filterValue.  /**
+   * Includes function.
+   * @param value - Value to process.
+   * @returns String result.
+   */
+includes(value) : false;
 
     case 'not_in':
       return Array.isArray(filterValue) ? !filterValue.includes(value) : true;
@@ -108,7 +129,11 @@ export function applyFilter(item: any, filter: FilterValue): boolean {
  * @param filters
  * @returns Function result.
  */
-export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {
+export function applyFilters<T>(data: T[], filters: FilterValue[]): T[] {  /**
+   * If function.
+   * @param !filters || filters.length === 0 - !filters || filters.length === 0 parameter.
+   */
+
   if (!filters || filters.length === 0) {
     return data;
   }
@@ -146,7 +171,11 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
 
   const searchLower = search.toLowerCase();
 
-  return data.filter((item) => {
+  return data.filter((item) => {  /**
+   * If function.
+   * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
+   */
+
     if (searchFields && searchFields.length > 0) {
       // Search only in specified fields
       return searchFields.some((field) => {
@@ -183,7 +212,11 @@ export function applySearch<T>(data: T[], search: string, searchFields?: string[
  * @param sort
  * @returns Function result.
  */
-export function applySort<T>(data: T[], sort: SortValue | null): T[] {
+export function applySort<T>(data: T[], sort: SortValue | null): T[] {  /**
+   * If function.
+   * @param !sort - !sort parameter.
+   */
+
   if (!sort) {
     return data;
   }
@@ -192,25 +225,49 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {
     const aValue = getNestedValue(a, sort.field);
     const bValue = getNestedValue(b, sort.field);
 
-    // Handle null/undefined values
+    // Handle null/undefined values  /**
+   * If function.
+   * @param aValue == null && bValue == null - aValue == null && bValue == null parameter.
+   */
+
     if (aValue == null && bValue == null) {
       return 0;
-    }
+    }  /**
+   * If function.
+   * @param aValue == null - aValue == null parameter.
+   */
+
     if (aValue == null) {
       return sort.direction === 'asc' ? 1 : -1;
-    }
+    }  /**
+   * If function.
+   * @param bValue == null - bValue == null parameter.
+   */
+
     if (bValue == null) {
       return sort.direction === 'asc' ? -1 : 1;
     }
 
     // Compare values
-    let comparison = 0;
+    let comparison = 0;  /**
+   * If function.
+   * @param typeof aValue === 'string' && typeof bValue === 'string' - typeof aValue === 'string' && typeof bValue === 'string' parameter.
+   */
+
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       comparison = aValue.localeCompare(bValue, undefined, { numeric: true });
-    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+    } else  /**
+   * If function.
+   * @param typeof aValue === 'number' && typeof bValue === 'number' - typeof aValue === 'number' && typeof bValue === 'number' parameter.
+   */
+ if (typeof aValue === 'number' && typeof bValue === 'number') {
       comparison = aValue - bValue;
-    } else if (aValue instanceof Date && bValue instanceof Date) {
+    } else  /**
+   * If function.
+   * @param aValue instanceof Date && bValue instanceof Date - aValue instanceof Date && bValue instanceof Date parameter.
+   */
+ if (aValue instanceof Date && bValue instanceof Date) {
       comparison = aValue.getTime() - bValue.getTime();
     } else {
       comparison = String(aValue).localeCompare(String(bValue));
@@ -297,7 +354,13 @@ export function applyFilterSort<T>(
  * @param path
  * @returns Function result.
  */
-function getNestedValue(obj: any, path: string): any {
+function  /**
+   * Get nested value.
+   * @param obj - obj parameter.
+   * @param path - File or URL path.
+   * @returns any result.
+   */
+ getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
@@ -322,14 +385,32 @@ function getNestedValue(obj: any, path: string): any {
  * @param search
  * @returns Function result.
  */
-function searchInObject(obj: any, search: string): boolean {
+function  /**
+   * Search in object.
+   * @param obj - obj parameter.
+   * @param search - search parameter.
+   * @returns Boolean result.
+   */
+ searchInObject(obj: any, search: string): boolean {  /**
+   * If function.
+   * @param obj === null || obj === undefined - obj === null || obj === undefined parameter.
+   */
+
   if (obj === null || obj === undefined) {
     return false;
-  }
+  }  /**
+   * If function.
+   * @param typeof obj === 'string' - typeof obj === 'string' parameter.
+   */
+
 
   if (typeof obj === 'string') {
     return obj.toLowerCase().includes(search);
-  }
+  }  /**
+   * If function.
+   * @param typeof obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
+   */
+
 
   if (typeof obj === 'number' || typeof obj === 'boolean') {
     return String(obj).toLowerCase().includes(search);
@@ -337,7 +418,11 @@ function searchInObject(obj: any, search: string): boolean {
 
   if (Array.isArray(obj)) {
     return obj.some((item) => searchInObject(item, search));
-  }
+  }  /**
+   * If function.
+   * @param typeof obj === 'object' - typeof obj === 'object' parameter.
+   */
+
 
   if (typeof obj === 'object') {
     return Object.values(obj).some((value) => searchInObject(value, search));
@@ -365,7 +450,21 @@ function searchInObject(obj: any, search: string): boolean {
  * @param type
  * @returns Function result.
  */
-export function getDefaultOperators(type: string): FilterOperator[] {
+/**
+ * Get default operators.
+ * @param type - type parameter.
+ * @returns Array result.
+ */
+export function  /**
+   * Get default operators.
+   * @param type - type parameter.
+   * @returns Array result.
+   */
+ getDefaultOperators(type: string): FilterOperator[] {  /**
+   * Switch function.
+   * @param type - type parameter.
+   */
+
   switch (type) {
     case 'text':
       return [
@@ -426,7 +525,17 @@ export function getDefaultOperators(type: string): FilterOperator[] {
  * @param operator
  * @returns Function result.
  */
-export function getOperatorLabel(operator: FilterOperator): string {
+/**
+ * Get operator label.
+ * @param operator - operator parameter.
+ * @returns String result.
+ */
+export function  /**
+   * Get operator label.
+   * @param operator - operator parameter.
+   * @returns String result.
+   */
+ getOperatorLabel(operator: FilterOperator): string {
   const labels: Record<FilterOperator, string> = {
     equals: 'Is',
     not_equals: 'Is not',

@@ -1,0 +1,29 @@
+{
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.addMissingImports": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.workingDirectories": [
+    "."
+  ],
+  "files.associations": {
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript"
+  },
+  "emmet.includeLanguages": {
+    "typescriptreact": "html"
+  },
+  "jsdoc.enableAutoCompletion": true,
+  "jsdoc.suggestionEngine": "enhanced",
+  "editor.quickSuggestions": {
+    "comments": true
+  }
+}

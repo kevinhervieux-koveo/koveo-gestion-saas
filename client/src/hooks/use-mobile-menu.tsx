@@ -14,8 +14,23 @@ const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undef
 /**
  * Hook to use mobile menu context.
  */
+/**
+ * useMobileMenu component.
+ * @returns JSX element.
+ */
+/**
+ * useMobileMenu custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use mobile menu function.
+ */
 export const useMobileMenu = () => {
-  const context = useContext(MobileMenuContext);
+  const context = useContext(MobileMenuContext);  /**
+   * If function.
+   * @param context === undefined - context === undefined parameter.
+   */
+
   if (context === undefined) {
     throw new Error('useMobileMenu must be used within a MobileMenuProvider');
   }
@@ -40,7 +55,21 @@ interface MobileMenuProviderProps {
  * @param root0.children
  * @returns Function result.
  */
-export function MobileMenuProvider({ children }: MobileMenuProviderProps) {
+/**
+ * MobileMenuProvider component.
+ * @param props - Component props.
+ * @param props.children - React children elements.
+ * @returns JSX element.
+ */
+/**
+ * Mobile menu provider function.
+ * @param { children } - { children } parameter.
+ */
+export function  /**
+   * Mobile menu provider function.
+   * @param { children } - { children } parameter.
+   */
+ MobileMenuProvider({ children }: MobileMenuProviderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {

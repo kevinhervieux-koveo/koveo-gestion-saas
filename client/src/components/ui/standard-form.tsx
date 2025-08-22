@@ -27,10 +27,16 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * Supported form field types
  */
+/**
+ * FieldType type definition.
+ */
 export type FieldType = 'text' | 'email' | 'password' | 'textarea' | 'select' | 'checkbox' | 'number';
 
 /**
  * Configuration for a single form field
+ */
+/**
+ * FormFieldConfig type definition.
  */
 export interface FormFieldConfig {
   name: string;
@@ -77,7 +83,59 @@ interface StandardFormProps {
  * StandardForm function
  * @returns Function result
  */
-export function StandardForm({
+/**
+ * StandardForm component.
+ * @param props - Component props.
+ * @param props.schema - schema parameter.
+ * @param props.fields - fields parameter.
+ * @param props.onSubmit - Callback function called when form is submitted.
+ * @param props.defaultValues - defaultValues parameter.
+ * @param props.submitText - submitText parameter.
+ * @param props.cancelText - cancelText parameter.
+ * @param props.onCancel - Callback function called when operation is cancelled.
+ * @param props.isLoading = false - isLoading = false parameter.
+ * @param props.showCancel = false - showCancel = false parameter.
+ * @param props.className = '' - className = '' parameter.
+ * @param props.children - React children elements.
+ * @returns JSX element.
+ */
+/**
+ * Standard form function.
+ * @param {
+  schema - {
+  schema parameter.
+ * @param fields - fields parameter.
+ * @param onSubmit - onSubmit parameter.
+ * @param defaultValues - defaultValues parameter.
+ * @param submitText - submitText parameter.
+ * @param cancelText - cancelText parameter.
+ * @param onCancel - onCancel parameter.
+ * @param isLoading = false - isLoading = false parameter.
+ * @param showCancel = false - showCancel = false parameter.
+ * @param className = '' - className = '' parameter.
+ * @param children
+} - children
+} parameter.
+ */
+export function  /**
+   * Standard form function.
+   * @param {
+  schema - {
+  schema parameter.
+   * @param fields - fields parameter.
+   * @param onSubmit - onSubmit parameter.
+   * @param defaultValues - defaultValues parameter.
+   * @param submitText - submitText parameter.
+   * @param cancelText - cancelText parameter.
+   * @param onCancel - onCancel parameter.
+   * @param isLoading = false - isLoading = false parameter.
+   * @param showCancel = false - showCancel = false parameter.
+   * @param className = '' - className = '' parameter.
+   * @param children
+} - children
+} parameter.
+   */
+ StandardForm({
   schema,
   fields,
   onSubmit,
@@ -100,7 +158,11 @@ export function StandardForm({
   const handleSubmit = async (data: unknown) => {
     try {
       await onSubmit(data as Record<string, unknown>);
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
       console.error('Form submission error:', _error);
     }
   };

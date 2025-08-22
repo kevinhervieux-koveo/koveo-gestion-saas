@@ -39,7 +39,10 @@ let count = 0;
  * GenId function.
  * @returns Function result.
  */
-function genId() {
+function  /**
+   * Gen id function.
+   */
+ genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
 }
@@ -98,6 +101,12 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout);
 };
 
+/**
+ * Reduce .
+ * @param state - state parameter.
+ * @param action - action parameter.
+ * @returns State result.
+ */
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'ADD_TOAST':
@@ -117,6 +126,7 @@ export const reducer = (state: State, action: Action): State => {
 
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
+
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -171,7 +181,11 @@ let memoryState: State = { toasts: [] };
  * @param action
  * @returns Function result.
  */
-function dispatch(action: Action) {
+function  /**
+   * Dispatch function.
+   * @param action - action parameter.
+   */
+ dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);
@@ -209,7 +223,11 @@ type Toast = Omit<ToasterToast, 'id'>;
  * @param root0
  * @returns Function result.
  */
-function toast({ ...props }: Toast) {
+function  /**
+   * Toast function.
+   * @param { ...props } - { ...props } parameter.
+   */
+ toast({ ...props }: Toast) {
   const id = genId();
 
   const update = (props: ToasterToast) =>
@@ -225,7 +243,11 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
+      onOpenChange: (open) => {  /**
+   * If function.
+   * @param !open - !open parameter.
+   */
+
         if (!open) {
           dismiss();
         }
@@ -270,13 +292,20 @@ function toast({ ...props }: Toast) {
  * UseToast function.
  * @returns Function result.
  */
-function useToast() {
+function  /**
+   * Use toast function.
+   */
+ useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
     listeners.push(setState);
     return () => {
-      const index = listeners.indexOf(setState);
+      const index = listeners.indexOf(setState);  /**
+   * If function.
+   * @param index > -1 - index > -1 parameter.
+   */
+
       if (index > -1) {
         listeners.splice(index, 1);
       }

@@ -7,7 +7,10 @@ import { Settings as SettingsIcon, User, Bell, Shield, Globe, Palette } from 'lu
 /**
  *
  */
-export default function Settings() {
+export default function  /**
+   * Settings function.
+   */
+ Settings() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='Settings' subtitle='Manage your account and application settings' />

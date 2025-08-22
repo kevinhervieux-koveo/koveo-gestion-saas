@@ -73,7 +73,13 @@ interface EditDocumentFormProps {
  * @param root0.onCancel
  * @returns Function result.
  */
-function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
+function  /**
+   * Edit document form function.
+   * @param { document - { document parameter.
+   * @param onSave - onSave parameter.
+   * @param onCancel } - onCancel } parameter.
+   */
+ EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
   const editForm = useForm<DocumentFormData>({
@@ -243,7 +249,10 @@ interface Building {
 /**
  *
  */
-export default function ResidenceDocuments() {
+export default function  /**
+   * Residence documents function.
+   */
+ ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const residenceId = urlParams.get('residenceId');
@@ -288,9 +297,21 @@ export default function ResidenceDocuments() {
   // Get documents for this specific residence
   const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", "residence", residenceId],
-    queryFn: async () => {
+    queryFn: async () => {  /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */
+
       if (!residenceId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
     },
@@ -311,17 +332,29 @@ export default function ResidenceDocuments() {
 
   // Filter documents based on search, category, and year
   const filteredDocuments = useMemo(() => {
-    let filtered = documents;
+    let filtered = documents;  /**
+   * If function.
+   * @param searchTerm - searchTerm parameter.
+   */
+
 
     if (searchTerm) {
       filtered = filtered.filter(doc => 
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
+    }  /**
+   * If function.
+   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
+   */
+
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(doc => doc.type === selectedCategory);
-    }
+    }  /**
+   * If function.
+   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
+   */
+
 
     if (selectedYear !== "all") {
       filtered = filtered.filter(doc => 
@@ -345,7 +378,11 @@ export default function ResidenceDocuments() {
 
   // Create document mutation
   const createDocumentMutation = useMutation({
-    mutationFn: async (data: DocumentFormData) => {
+    mutationFn: async (data: DocumentFormData) => {  /**
+   * If function.
+   * @param !user?.id - !user?.id parameter.
+   */
+
       if (!user?.id) {
         throw new Error("User not authenticated");
       }
@@ -360,7 +397,11 @@ export default function ResidenceDocuments() {
         uploadedBy: user.id, // Use full user ID
       };
       
-      // Add file data if uploaded
+      // Add file data if uploaded  /**
+   * If function.
+   * @param uploadedFile - uploadedFile parameter.
+   */
+
       if (uploadedFile) {
         documentData.fileUrl = uploadedFile.fileUrl;
         documentData.fileName = uploadedFile.fileName;
@@ -392,10 +433,26 @@ export default function ResidenceDocuments() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      const updateData: unknown = {};
-      if (data.name) {updateData.name = data.name;}
-      if (data.type) {updateData.type = data.type;}
-      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string
+      const updateData: unknown = {};  /**
+   * If function.
+   * @param data.name - data.name parameter.
+   */
+
+      if (data.name) {updateData.name = data.name;}  /**
+   * If function.
+   * @param data.type - data.type parameter.
+   */
+
+      if (data.type) {updateData.type = data.type;}  /**
+   * If function.
+   * @param data.dateReference - data.dateReference parameter.
+   */
+
+      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string  /**
+   * If function.
+   * @param data.residenceId - data.residenceId parameter.
+   */
+
       if (data.residenceId) {updateData.residenceId = data.residenceId;}
       updateData.uploadedBy = user?.id; // Use full user ID
       return apiRequest("PUT", `/api/documents/${id}`, updateData);
@@ -482,8 +539,16 @@ export default function ResidenceDocuments() {
   };
 
   // Handle file upload for new document
-  const handleNewDocumentUpload = async (): Promise<{ method: "PUT"; url: string }> => {
-    setIsUploadingNewFile(true); // Start upload tracking
+  const handleNewDocumentUpload =  /**
+   * Async function.
+   * @returns Promise resolving to .
+   */
+ async (): Promise<{ method: "PUT"; url: string }> => {
+    setIsUploadingNewFile(true); // Start upload tracking  /**
+   * If function.
+   * @param !residence - !residence parameter.
+   */
+
     
     if (!residence) {
       setIsUploadingNewFile(false);
@@ -502,7 +567,11 @@ export default function ResidenceDocuments() {
         residenceId: residence.id,
         documentType: 'residence'
       })
-    });
+    });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
     
     if (!response.ok) {
       setIsUploadingNewFile(false);
@@ -514,7 +583,11 @@ export default function ResidenceDocuments() {
   };
 
   const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
-    setIsUploadingNewFile(false); // Upload finished
+    setIsUploadingNewFile(false); // Upload finished  /**
+   * If function.
+   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+   */
+
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       setUploadedFile({
@@ -537,7 +610,11 @@ export default function ResidenceDocuments() {
   };
 
   const handleFileUploadComplete = (documentId: string) => (result: UploadResult<any, any>) => {
-    const uploadedFile = result.successful[0];
+    const uploadedFile = result.successful[0];  /**
+   * If function.
+   * @param uploadedFile && uploadedFile.uploadURL - uploadedFile && uploadedFile.uploadURL parameter.
+   */
+
     if (uploadedFile && uploadedFile.uploadURL) {
       const fileData = {
         fileUrl: uploadedFile.uploadURL,
@@ -563,14 +640,26 @@ export default function ResidenceDocuments() {
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+  /**
+   * Catch function.
+   * @param _error - _error parameter.
+   */
+ catch (_error) {
       toast({
         title: "Download failed",
         description: "Failed to download document",
         variant: "destructive",
       });
     }
-  };
+  };  /**
+   * If function.
+   * @param !residenceId - !residenceId parameter.
+   */
+
 
   if (!residenceId) {
     return (
@@ -877,7 +966,11 @@ export default function ResidenceDocuments() {
                                 }}
                                 onComplete={async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
                                   try {
-                                    const uploadedFile = result.successful[0];
+                                    const uploadedFile = result.successful[0];  /**
+   * If function.
+   * @param uploadedFile?.uploadURL - uploadedFile?.uploadURL parameter.
+   */
+
                                     if (uploadedFile?.uploadURL) {
                                       await apiRequest('POST', `/api/documents/${selectedDocument.id}/upload`, {
                                         fileUrl: uploadedFile.uploadURL,
@@ -979,7 +1072,11 @@ export default function ResidenceDocuments() {
           ) : (
             <div className="w-full space-y-6">
               {DOCUMENT_CATEGORIES.map((category) => {
-                const categoryDocuments = documentsByCategory[category.value] || [];
+                const categoryDocuments = documentsByCategory[category.value] || [];  /**
+   * If function.
+   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
+   */
+
                 if (categoryDocuments.length === 0) {return null;}
                 
                 return (

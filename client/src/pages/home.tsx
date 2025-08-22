@@ -12,7 +12,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Home page component for Koveo Gestion.
  * Public-facing landing page with company information and call-to-action.
  */
-export default function HomePage() {
+export default function  /**
+   * Home page function.
+   */
+ HomePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

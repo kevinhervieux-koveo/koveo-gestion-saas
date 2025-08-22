@@ -10,7 +10,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Privacy Policy page component for Koveo Gestion.
  * Comprehensive privacy policy compliant with Quebec Law 25.
  */
-export default function PrivacyPolicyPage() {
+export default function  /**
+   * Privacy policy page function.
+   */
+ PrivacyPolicyPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

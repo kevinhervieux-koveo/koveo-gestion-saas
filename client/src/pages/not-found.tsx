@@ -4,7 +4,10 @@ import { AlertCircle } from 'lucide-react';
 /**
  *
  */
-export default function NotFound() {
+export default function  /**
+   * Not found function.
+   */
+ NotFound() {
   return (
     <div className='min-h-screen w-full flex items-center justify-center bg-gray-50'>
       <Card className='w-full max-w-md mx-4'>

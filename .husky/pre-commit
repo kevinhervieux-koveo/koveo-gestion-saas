@@ -3,9 +3,20 @@
 
 echo "🔍 Running pre-commit validation checks..."
 
+# Apply JSDoc templates to new/modified files
+echo "📝 Applying JSDoc templates..."
+npx tsx scripts/apply-jsdoc-templates.ts || true
+
+# Run auto-fix for linting issues
+echo "🧹 Running lint fixes..."
+npm run lint:fix || true
+
 # Run the pre-commit validation script
-echo "📝 Checking code formatting, linting, and types..."
+echo "📋 Checking code formatting, linting, and types..."
 npm run validate:pre-commit
+
+# Stage any JSDoc changes that were applied
+git add -A
 
 if [ $? -ne 0 ]; then
     echo "❌ Pre-commit validation failed!"

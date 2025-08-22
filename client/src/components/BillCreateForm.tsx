@@ -85,6 +85,13 @@ const billCreateSchema = z.object({
  * @param root0.onSuccess
  * @returns Function result.
  */
+/**
+ * BillCreateForm component.
+ * @param props - Component props.
+ * @param props.buildingId - Unique identifier for the building.
+ * @param props.onSuccess - Callback function called when operation succeeds.
+ * @returns JSX element.
+ */
 export function BillCreateForm({ 
   buildingId, 
   onSuccess 
@@ -129,7 +136,11 @@ export function BillCreateForm({
           ...billData,
           costs: [parseFloat(billData.totalAmount)]
         })
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       
       if (!response.ok) {
         throw new Error('Failed to create bill');
@@ -165,7 +176,11 @@ export function BillCreateForm({
           status: 'draft',
           notes: 'Draft bill created for AI analysis'
         })
-      });
+      });  /**
+   * If function.
+   * @param !createResponse.ok - !createResponse.ok parameter.
+   */
+
       
       if (!createResponse.ok) {
         throw new Error('Failed to create draft bill');
@@ -181,7 +196,11 @@ export function BillCreateForm({
         method: 'POST',
         credentials: 'include',
         body: formData
-      });
+      });  /**
+   * If function.
+   * @param !uploadResponse.ok - !uploadResponse.ok parameter.
+   */
+
       
       if (!uploadResponse.ok) {
         throw new Error('Failed to upload and analyze document');
@@ -201,20 +220,32 @@ export function BillCreateForm({
   });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0];  /**
+   * If function.
+   * @param file - file parameter.
+   */
+
     if (file) {
       setUploadedFile(file);
       uploadAndAnalyzeMutation.mutate(file);
     }
   };
 
-  const applyAiAnalysis = () => {
+  const applyAiAnalysis = () => {  /**
+   * If function.
+   * @param aiAnalysisData - aiAnalysisData parameter.
+   */
+
     if (aiAnalysisData) {
       form.setValue('title', aiAnalysisData.title);
       form.setValue('vendor', aiAnalysisData.vendor || '');
       form.setValue('category', aiAnalysisData.category);
       form.setValue('totalAmount', aiAnalysisData.totalAmount);
-      form.setValue('description', aiAnalysisData.description || '');
+      form.setValue('description', aiAnalysisData.description || '');  /**
+   * If function.
+   * @param aiAnalysisData.issueDate - aiAnalysisData.issueDate parameter.
+   */
+
       
       if (aiAnalysisData.issueDate) {
         form.setValue('startDate', aiAnalysisData.issueDate);

@@ -18,6 +18,14 @@ import { twMerge } from 'tailwind-merge';
  * @param {...any} inputs
  * @returns Function result.
  */
-export function cn(...inputs: ClassValue[]) {
+/**
+ * Cn function.
+ * @param ...inputs - ...inputs parameter.
+ */
+export function  /**
+   * Cn function.
+   * @param ...inputs - ...inputs parameter.
+   */
+ cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

@@ -26,18 +26,29 @@ import { useFullscreen } from '@/hooks/use-fullscreen';
  * Main Dashboard - Central hub for all user roles
  * Provides role-based navigation and quick access to key features.
  */
-export default function Dashboard() {
+export default function  /**
+   * Dashboard function.
+   */
+ Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   // Determine role-based navigation items
-  const getRoleBasedActions = () => {
+  const getRoleBasedActions = () => {  /**
+   * If function.
+   * @param !user - !user parameter.
+   */
+
     if (!user) {return [];}
 
     const actions = [];
 
-    // Admin actions
+    // Admin actions  /**
+   * If function.
+   * @param user.role === 'admin' - user.role === 'admin' parameter.
+   */
+
     if (user.role === 'admin') {
       actions.push(
         { icon: Building, label: 'Organizations', href: '/admin/organizations', color: 'bg-blue-50 text-blue-600' },
@@ -77,7 +88,11 @@ export default function Dashboard() {
   const roleActions = getRoleBasedActions();
 
   const getWelcomeMessage = () => {
-    const firstName = user?.firstName || 'User';
+    const firstName = user?.firstName || 'User';  /**
+   * Switch function.
+   * @param user?.role - user?.role parameter.
+   */
+
     switch (user?.role) {
       case 'admin':
         return {
@@ -103,7 +118,61 @@ export default function Dashboard() {
     }
   };
 
-  const welcome = getWelcomeMessage();
+  const welcome = getWelcomeMessage();  /**
+   * Return function.
+   * @param <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title={welcome.title}
+        subtitle={welcome.subtitle}
+      />
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm - <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title={welcome.title}
+        subtitle={welcome.subtitle}
+      />
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm parameter.
+   * @returns (
+                <>
+                  <Maximize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'>Fullscreen</span>
+                </>
+              )}
+            </Button>
+          </div> result.
+   */
+
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

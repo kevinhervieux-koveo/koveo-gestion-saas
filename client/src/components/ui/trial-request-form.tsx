@@ -28,7 +28,21 @@ interface TrialRequestFormProps {
   children: React.ReactNode;
 }
 
-export function TrialRequestForm({ children }: TrialRequestFormProps) {
+/**
+ * TrialRequestForm component.
+ * @param props - Component props.
+ * @param props.children - React children elements.
+ * @returns JSX element.
+ */
+/**
+ * Trial request form function.
+ * @param { children } - { children } parameter.
+ */
+export function  /**
+   * Trial request form function.
+   * @param { children } - { children } parameter.
+   */
+ TrialRequestForm({ children }: TrialRequestFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -86,7 +100,11 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
   };
 
   const handleInputChange = (field: keyof TrialRequestFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));  /**
+   * If function.
+   * @param errors[field] - errors[field] parameter.
+   */
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -108,7 +126,11 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
 
       if (!response.ok) {
         throw new Error('Failed to submit request');
@@ -136,7 +158,11 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
         message: ''
       });
       setIsOpen(false);
-    } catch (error) {
+    }  /**
+   * Catch function.
+   * @param error - Error object.
+   */
+ catch (error) {
       console.error('Error submitting trial request:', error);
       toast({
         title: 'Erreur',

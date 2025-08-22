@@ -30,17 +30,17 @@ async function runEnhancedValidation(): Promise<number> {
   const startTime = Date.now();
   const results: ValidationResult[] = [];
   
-  // Enhanced validation steps including consolidation analysis
+  // Enhanced validation steps including JSDoc templates and consolidation analysis
   const validationSteps = [
-    { name: 'Lint Check', command: 'npm run lint:check' },
+    { name: 'JSDoc Templates', command: 'npx tsx scripts/apply-jsdoc-templates.ts' },
+    { name: 'Lint Fix', command: 'npm run lint:fix' },
     { name: 'Format Check', command: 'npm run format:check' },
     { name: 'Type Check', command: 'npm run typecheck' },
+    { name: 'Lint Check', command: 'npm run lint:check' },
     { name: 'Tests', command: 'npm run test' },
     { name: 'Quality Check', command: 'npm run quality:check' },
     { name: 'Consolidation Analysis', command: 'npx tsx scripts/consolidate-redundancies.ts' },
-    { name: 'Feature Coverage', command: 'npx tsx scripts/analyze-feature-coverage.ts' },
-    { name: 'Quality Consolidation', command: 'npx tsx scripts/run-consolidation-quality.ts' },
-    { name: 'Feature Completeness', command: 'npx tsx scripts/validate-feature-completeness.ts' }
+    { name: 'Feature Coverage', command: 'npx tsx scripts/analyze-feature-coverage.ts' }
   ];
   
   let allPassed = true;

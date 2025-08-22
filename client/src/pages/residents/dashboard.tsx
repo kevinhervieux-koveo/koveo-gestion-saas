@@ -9,9 +9,62 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * Residents Dashboard - Main dashboard for residents.
  */
-export default function ResidentsDashboard() {
+export default function  /**
+   * Residents dashboard function.
+   */
+ ResidentsDashboard() {
   const { isFullscreen, toggleFullscreen } = useFullscreen();
-  const { language } = useLanguage();
+  const { language } = useLanguage();  /**
+   * Return function.
+   * @param <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title='Welcome Back' 
+        subtitle='Your personal residence dashboard - manage your home and stay connected with your building community' 
+      />
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm - <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header 
+        title='Welcome Back' 
+        subtitle='Your personal residence dashboard - manage your home and stay connected with your building community' 
+      />
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm parameter.
+   * @returns (
+                <>
+                  <Maximize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'> result.
+   */
+
   
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

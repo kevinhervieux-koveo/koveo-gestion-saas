@@ -17,7 +17,10 @@ import { BuildingForm, BuildingCard } from '@/components/buildings';
  * Shows all buildings in the user's organization with proper access control.
  * Refactored into smaller, focused components.
  */
-export default function Buildings() {
+export default function  /**
+   * Buildings function.
+   */
+ Buildings() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -46,7 +49,11 @@ export default function Buildings() {
   } = useBuildings();
 
   // Filter buildings based on search term
-  const buildings = useMemo(() => {
+  const buildings = useMemo(() => {  /**
+   * If function.
+   * @param !searchTerm - !searchTerm parameter.
+   */
+
     if (!searchTerm) {
       return allBuildings;
     }
@@ -83,7 +90,11 @@ export default function Buildings() {
     );
   }
 
-  // Loading state
+  // Loading state  /**
+   * If function.
+   * @param isLoading - isLoading parameter.
+   */
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -103,7 +114,11 @@ export default function Buildings() {
     );
   }
 
-  // Error state
+  // Error state  /**
+   * If function.
+   * @param error - Error object.
+   */
+
   if (error) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">

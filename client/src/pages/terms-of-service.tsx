@@ -10,7 +10,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Terms of Service page component for Koveo Gestion.
  * Comprehensive terms of service for Quebec property management platform.
  */
-export default function TermsOfServicePage() {
+export default function  /**
+   * Terms of service page function.
+   */
+ TermsOfServicePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

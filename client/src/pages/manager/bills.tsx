@@ -79,7 +79,10 @@ interface BillFilters {
 /**
  *
  */
-export default function Bills() {
+export default function  /**
+   * Bills function.
+   */
+ Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
@@ -99,14 +102,51 @@ export default function Bills() {
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters.buildingId) {params.set('buildingId', filters.buildingId);}
-      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}
-      if (filters.year) {params.set('year', filters.year);}
+      const params = new URLSearchParams();  /**
+   * If function.
+   * @param filters.buildingId - filters.buildingId parameter.
+   */
+
+      if (filters.buildingId) {params.set('buildingId', filters.buildingId);}  /**
+   * If function.
+   * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
+   */
+
+      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);}  /**
+   * If function.
+   * @param filters.year - filters.year parameter.
+   */
+
+      if (filters.year) {params.set('year', filters.year);}  /**
+   * If function.
+   * @param filters.months.length > 0 - filters.months.length > 0 parameter.
+   */
+
       if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
       
-      const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
-      const response = await fetch(url, { credentials: 'include' });
+      const url = `/api/bills${params.toString() ? '?' + params.  /**
+   * To string function.
+   * @returns ''}`;
+      const response = await fetch(url, result.
+   */
+toString() : ''}`;
+      const response = await fetch(url, { credentials: 'include' });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       
       if (!response.ok) {
         throw new Error(`Failed to fetch bills: ${response.statusText}`);
@@ -119,7 +159,11 @@ export default function Bills() {
 
   // Group bills by category
   const billsByCategory = bills.reduce((acc: Record<string, Bill[]>, bill: Bill) => {
-    const category = bill.category || 'other';
+    const category = bill.category || 'other';  /**
+   * If function.
+   * @param !acc[category] - !acc[category] parameter.
+   */
+
     if (!acc[category]) {acc[category] = [];}
     acc[category].push(bill);
     return acc;
@@ -133,7 +177,16 @@ export default function Bills() {
     setFilters(prev => ({
       ...prev,
       months: prev.months.includes(monthValue)
-        ? prev.months.filter(m => m !== monthValue)
+        ? prev.months.  /**
+   * Filter .
+   * @param m => m !== monthValue - m => m !== monthValue parameter.
+   * @returns [...prev.months, monthValue]
+    }));
+  };
+
+  const handleAllMonthsToggle = () => result.
+   */
+filter(m => m !== monthValue)
         : [...prev.months, monthValue]
     }));
   };
@@ -146,9 +199,21 @@ export default function Bills() {
     }));
   };
 
-  const getMonthsDisplayText = () => {
-    if (filters.months.length === 0) {return 'All months';}
-    if (filters.months.length === MONTHS.length) {return 'All months';}
+  const getMonthsDisplayText = () => {  /**
+   * If function.
+   * @param filters.months.length === 0 - filters.months.length === 0 parameter.
+   */
+
+    if (filters.months.length === 0) {return 'All months';}  /**
+   * If function.
+   * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
+   */
+
+    if (filters.months.length === MONTHS.length) {return 'All months';}  /**
+   * If function.
+   * @param filters.months.length === 1 - filters.months.length === 1 parameter.
+   */
+
     if (filters.months.length === 1) {
       const month = MONTHS.find(m => m.value === filters.months[0]);
       return month?.label || 'All months';
@@ -162,7 +227,11 @@ export default function Bills() {
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
-  const getYearOptions = () => {
+  const getYearOptions = () => {  /**
+   * If function.
+   * @param showAllYears - showAllYears parameter.
+   */
+
     if (showAllYears) {
       // Show all years from building construction year to 25 years forward
       const startYear = buildingConstructionYear;
@@ -609,7 +678,11 @@ function BillDetail({
     }
   });
 
-  const handleSetEndDate = () => {
+  const handleSetEndDate = () => {  /**
+   * If function.
+   * @param endDate - endDate parameter.
+   */
+
     if (endDate) {
       updateBillMutation.mutate({ endDate });
     }
@@ -662,7 +735,11 @@ function BillDetail({
   });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0];  /**
+   * If function.
+   * @param file - file parameter.
+   */
+
     if (file) {
       setUploadedFile(file);
       setIsAnalyzing(true);

@@ -20,7 +20,10 @@ import type { User } from '@shared/schema';
  * Consolidates user management functionalities for managers and admins.
  * Provides comprehensive user administration with role-based access controls.
  */
-export default function UserManagement() {
+export default function  /**
+   * User management function.
+   */
+ UserManagement() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -81,7 +84,11 @@ export default function UserManagement() {
         title: t('success'),
         description: t('invitationSent'),
       });
-    } catch (__error) {
+    }  /**
+   * Catch function.
+   * @param __error - __error parameter.
+   */
+ catch (__error) {
       toast({
         title: t('error'),
         description: _error instanceof Error ? _error.message : t('errorOccurred'),
@@ -104,7 +111,11 @@ export default function UserManagement() {
   const totalPages = Math.ceil(totalUsers / usersPerPage);
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
-  const currentUsers = users?.slice(startIndex, endIndex) || [];
+  const currentUsers = users?.slice(startIndex, endIndex) || [];  /**
+   * If function.
+   * @param usersError - usersError parameter.
+   */
+
 
   if (usersError) {
     return (
@@ -241,7 +252,11 @@ export default function UserManagement() {
                     max={totalPages}
                     value={currentPage}
                     onChange={(e) => {
-                      const page = parseInt(e.target.value);
+                      const page = parseInt(e.target.value);  /**
+   * If function.
+   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
+   */
+
                       if (page >= 1 && page <= totalPages) {
                         setCurrentPage(page);
                       }
@@ -250,7 +265,11 @@ export default function UserManagement() {
                       const page = parseInt(e.target.value);
                       if (isNaN(page) || page < 1) {
                         setCurrentPage(1);
-                      } else if (page > totalPages) {
+                      } else  /**
+   * If function.
+   * @param page > totalPages - page > totalPages parameter.
+   */
+ if (page > totalPages) {
                         setCurrentPage(totalPages);
                       }
                     }}

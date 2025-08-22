@@ -24,7 +24,17 @@ const MOBILE_BREAKPOINT = 768;
  * UseIsMobile function.
  * @returns Function result.
  */
-export function useIsMobile() {
+/**
+ * useIsMobile custom hook.
+ * @returns Hook return value.
+ */
+/**
+ * Use is mobile function.
+ */
+export function  /**
+   * Use is mobile function.
+   */
+ useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 
   React.useEffect(() => {

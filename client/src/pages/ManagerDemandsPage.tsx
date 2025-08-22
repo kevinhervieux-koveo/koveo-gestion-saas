@@ -102,7 +102,10 @@ const statusLabels = {
 /**
  *
  */
-export default function ManagerDemandsPage() {
+export default function  /**
+   * Manager demands page function.
+   */
+ ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -137,7 +140,11 @@ export default function ManagerDemandsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
       if (!response.ok) {
         throw new Error('Failed to review demand');
       }
@@ -198,7 +205,11 @@ export default function ManagerDemandsPage() {
     ['completed', 'rejected'].includes(d.status)
   );
 
-  const handleReviewDemand = (data: ReviewFormData) => {
+  const handleReviewDemand = (data: ReviewFormData) => {  /**
+   * If function.
+   * @param selectedDemand - selectedDemand parameter.
+   */
+
     if (selectedDemand) {
       reviewDemandMutation.mutate({ id: selectedDemand.id, data });
     }
@@ -331,7 +342,11 @@ export default function ManagerDemandsPage() {
         </CardContent>
       </Card>
     );
-  };
+  };  /**
+   * If function.
+   * @param isLoading - isLoading parameter.
+   */
+
 
   if (isLoading) {
     return (

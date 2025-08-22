@@ -98,13 +98,29 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
   const { data, config, initialState } = options;
 
   // Load initial state from localStorage if persistence is enabled
-  const getInitialState = (): FilterSortState => {
+  const getInitialState = (): FilterSortState => {  /**
+   * If function.
+   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
+   */
+  /**
+   * If function.
+   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
+   */
+
     if (config.persistState && config.storageKey) {
-      const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);
+      const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);  /**
+   * If function.
+   * @param stored - stored parameter.
+   */
+
       if (stored) {
         try {
           return JSON.parse(stored);
-        } catch (__e) {
+        }  /**
+   * Catch function.
+   * @param __e - __e parameter.
+   */
+ catch (__e) {
           console.warn('Failed to parse stored filter state', __e);
         }
       }
@@ -134,7 +150,11 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
   // Filter management
   const addFilter = useCallback(
     (filter: FilterValue) => {
-      setState((prev) => {
+      setState((prev) => {  /**
+   * If function.
+   * @param !config.allowMultipleFilters - !config.allowMultipleFilters parameter.
+   */
+
         if (!config.allowMultipleFilters) {
           // Replace existing filter for the same field
           const otherFilters = prev.filters.filter((f) => f.field !== filter.field);
@@ -171,9 +191,17 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
 
   const toggleSort = useCallback(
     (field: string) => {
-      setState((prev) => {
+      setState((prev) => {  /**
+   * If function.
+   * @param prev.sort?.field === field - prev.sort?.field === field parameter.
+   */
+
         if (prev.sort?.field === field) {
-          // Toggle direction or clear
+          // Toggle direction or clear  /**
+   * If function.
+   * @param prev.sort.direction === 'asc' - prev.sort.direction === 'asc' parameter.
+   */
+
           if (prev.sort.direction === 'asc') {
             return { ...prev, sort: { field, direction: 'desc' } };
           } else {

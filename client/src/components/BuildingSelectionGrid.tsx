@@ -11,6 +11,13 @@ import type { Building } from '@shared/schema';
  * @param root0.onBuildingSelect - Callback when building is selected.
  * @returns Building selection grid JSX.
  */
+/**
+ * BuildingSelectionGrid component.
+ * @param props - Component props.
+ * @param props.buildings - buildings parameter.
+ * @param props.onBuildingSelect - onBuildingSelect parameter.
+ * @returns JSX element.
+ */
 export function BuildingSelectionGrid({ 
   buildings, 
   onBuildingSelect 

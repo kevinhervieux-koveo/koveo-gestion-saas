@@ -24,7 +24,10 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Security page component for Koveo Gestion.
  * Comprehensive overview of security features and compliance measures.
  */
-export default function SecurityPage() {
+export default function  /**
+   * Security page function.
+   */
+ SecurityPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

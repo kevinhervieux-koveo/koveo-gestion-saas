@@ -41,7 +41,21 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
   return useMutation<TData, TError, TVariables>({
     mutationFn: async (variables: TVariables) => {
       const endpoint = typeof config.endpoint === 'function' 
-        ? config.endpoint(variables) 
+        ? config.  /**
+   * Endpoint function.
+   * @param variables - variables parameter.
+   * @returns config.endpoint;
+      
+      const requestData = config.transformData 
+        ? config.transformData(variables) 
+        : variables;
+
+      const response = await apiRequest(config.method, endpoint, requestData);
+      
+      // Handle different response types
+      if (config.method === 'DELETE' && response.status === 204) result.
+   */
+endpoint(variables) 
         : config.endpoint;
       
       const requestData = config.transformData 
@@ -63,10 +77,22 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
       return response.text() as unknown as TData;
     },
     onSuccess: async (data: TData, variables: TVariables) => {
-      // Show success message
+      // Show success message  /**
+   * If function.
+   * @param config.successMessage - config.successMessage parameter.
+   */
+
       if (config.successMessage) {
         const message = typeof config.successMessage === 'function'
-          ? config.successMessage(data, variables)
+          ? config.  /**
+   * Success message function.
+   * @param data - Data object to process.
+   * @param variables - variables parameter.
+   * @returns config.successMessage;
+        
+        toast( result.
+   */
+successMessage(data, variables)
           : config.successMessage;
         
         toast({
@@ -75,14 +101,26 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
         });
       }
 
-      // Invalidate specified queries
-      if (config.invalidateQueries) {
+      // Invalidate specified queries  /**
+   * If function.
+   * @param config.invalidateQueries - config.invalidateQueries parameter.
+   */
+
+      if (config.invalidateQueries) {  /**
+   * For function.
+   * @param const queryKey of config.invalidateQueries - const queryKey of config.invalidateQueries parameter.
+   */
+
         for (const queryKey of config.invalidateQueries) {
           await queryClient.invalidateQueries({ queryKey: [queryKey] });
         }
       }
 
-      // Execute success callback
+      // Execute success callback  /**
+   * If function.
+   * @param config.onSuccessCallback - config.onSuccessCallback parameter.
+   */
+
       if (config.onSuccessCallback) {
         await config.onSuccessCallback(data, variables);
       }
@@ -91,7 +129,16 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
       // Show error message
       const message = config.errorMessage
         ? typeof config.errorMessage === 'function'
-          ? config.errorMessage(error, variables)
+          ? config.  /**
+   * Error message function.
+   * @param error - Error object.
+   * @param variables - variables parameter.
+   * @returns config.errorMessage
+        : (error as Error).message || 'Unknown error occurred';
+
+      toast( result.
+   */
+errorMessage(error, variables)
           : config.errorMessage
         : (error as Error).message || 'Unknown error occurred';
 
@@ -101,7 +148,11 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
         variant: 'destructive',
       });
 
-      // Execute error callback
+      // Execute error callback  /**
+   * If function.
+   * @param config.onErrorCallback - config.onErrorCallback parameter.
+   */
+
       if (config.onErrorCallback) {
         await config.onErrorCallback(error, variables);
       }
