@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,7 +27,7 @@ import { FileText, Upload, Sparkles } from 'lucide-react';
 
 // Type for AI analysis result
 /**
- *
+ * AI analysis result interface for bill document processing.
  */
 interface AiAnalysisResult {
   title: string;
