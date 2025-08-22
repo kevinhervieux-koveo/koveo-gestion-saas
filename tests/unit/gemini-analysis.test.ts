@@ -10,7 +10,7 @@ import {
 } from '../../server/services/gemini-analysis';
 
 // Mock fetch for Gemini API
-global.fetch = jest.fn();
+global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
 // Mock environment variables
 process.env.GEMINI_API_KEY = 'test-api-key';
@@ -18,6 +18,8 @@ process.env.GEMINI_API_KEY = 'test-api-key';
 describe('Gemini Analysis Service Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the fetch mock to have all methods available
+    (global.fetch as jest.MockedFunction<typeof fetch>).mockClear();
   });
 
   describe('analyzeFeatureWithGemini', () => {
@@ -282,7 +284,7 @@ describe('Gemini Analysis Service Tests', () => {
       const context = await getDocumentationContext();
 
       expect(context).toContain('bcrypt password hashing');
-      expect(context).toContain('session management');
+      expect(context).toContain('Session management');
       expect(context).toContain('Input validation');
     });
   });
