@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../../client/src/hooks/use-language';
-import { MobileMenuProvider } from '../../client/src/hooks/use-mobile-menu';
+// Import statement removed - MobileMenuProvider mocked instead
 
 // Mock Auth Context for testing
 interface MockAuthContextType {
@@ -50,6 +50,11 @@ interface TestProvidersProps {
   queryClient?: QueryClient;
 }
 
+// Mock MobileMenuProvider
+const MockMobileMenuProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div>{children}</div>;
+};
+
 export const TestProviders: React.FC<TestProvidersProps> = ({ 
   children, 
   queryClient = createTestQueryClient() 
@@ -58,9 +63,9 @@ export const TestProviders: React.FC<TestProvidersProps> = ({
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <MockAuthProvider>
-          <MobileMenuProvider>
+          <MockMobileMenuProvider>
             {children}
-          </MobileMenuProvider>
+          </MockMobileMenuProvider>
         </MockAuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
