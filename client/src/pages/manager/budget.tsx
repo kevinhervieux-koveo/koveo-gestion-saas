@@ -398,7 +398,7 @@ export default function  /**
       
       if (item.incomeTypes && item.incomes) {
         item.incomeTypes.forEach((type: string, _index: number) => {
-          incomeByCategory[type] = parseFloat(item.incomes[index] || '0');
+          incomeByCategory[type] = parseFloat(item.incomes[_index] || '0');
         });
       }  /**
    * If function.
@@ -412,7 +412,7 @@ export default function  /**
       
       if (item.spendingTypes && item.spendings) {
         item.spendingTypes.forEach((type: string, _index: number) => {
-          expensesByCategory[type] = parseFloat(item.spendings[index] || '0');
+          expensesByCategory[type] = parseFloat(item.spendings[_index] || '0');
         });
       }
       
@@ -467,24 +467,8 @@ export default function  /**
     const startingBalance = bankAccountInfo?.bankAccountStartAmount ?? 0;
     let runningBalance = startingBalance;
     
-    return chartData.map((item, _index) => {  /**
-   * If function.
-   * @param index === 0 - index === 0 parameter.
-   */
-  /**
-   * If function.
-   * @param index === 0 - index === 0 parameter.
-   */  /**
-   * If function.
-   * @param index === 0 - index === 0 parameter.
-   */
-
-  /**
-   * If function.
-   * @param index === 0 - index === 0 parameter.
-   */
-
-      if (index === 0) {
+    return chartData.map((item, _index) => {
+      if (_index === 0) {
         // For the first month, add net cash flow to starting balance
         runningBalance = startingBalance + item.netCashFlow;
       } else {
@@ -683,45 +667,17 @@ export default function  /**
       startAmount: string;
       minimumBalances: MinimumBalanceSetting[];
     }) => {
-      const response = await  /**
-   * Fetch .
-   * @param `/api/budgets/${data.buildingId}/bank-account` - `/api/budgets/${data.buildingId}/bank-account` parameter.
-   * @param {
-        method - {
-        method parameter.
-   * @param headers - HTTP headers object.
-   * @param } - } parameter.
-   * @param body - Request body data.
-   * @param bankAccountNotes - bankAccountNotes parameter.
-   * @param bankAccountStartDate - bankAccountStartDate parameter.
-   * @param bankAccountStartAmount - bankAccountStartAmount parameter.
-   * @returns String result.
-   */  /**
-   * Fetch .
-   * @param `/api/budgets/${data.buildingId}/bank-account` - `/api/budgets/${data.buildingId}/bank-account` parameter.
-   * @param {
-        method - {
-        method parameter.
-   * @param headers - HTTP headers object.
-   * @param } - } parameter.
-   * @param body - Request body data.
-   * @param bankAccountNotes - bankAccountNotes parameter.
-   * @param bankAccountStartDate - bankAccountStartDate parameter.
-   * @param bankAccountStartAmount - bankAccountStartAmount parameter.
-   * @returns String result.
-   */
-
- fetch(`/api/budgets/${data.buildingId}/bank-account`, {
+      const response = await fetch(`/api/budgets/${_data.buildingId}/bank-account`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bankAccountNumber: data.bankAccountNumber,
-          bankAccountNotes: data.notes,
-          bankAccountStartDate: data.startDate || null,
-          bankAccountStartAmount: data.startAmount ? parseFloat(data.startAmount) : null,
-          bankAccountMinimums: JSON.stringify(data.minimumBalances),
+          bankAccountNumber: _data.bankAccountNumber,
+          bankAccountNotes: _data.notes,
+          bankAccountStartDate: _data.startDate || null,
+          bankAccountStartAmount: _data.startAmount ? parseFloat(_data.startAmount) : null,
+          bankAccountMinimums: JSON.stringify(_data.minimumBalances),
         }),
       });
       if (!response.ok) {throw new Error('Failed to update bank account');}
@@ -765,7 +721,7 @@ export default function  /**
 
   const updateMinimumBalance = useCallback((id: string, field: 'amount' | 'description', _value: string | number) => {
     setMinimumBalances(prev => prev.map(min => 
-      min.id === id ? { ...min, [field]: value } : min
+      min.id === id ? { ...min, [field]: _value } : min
     ));
   }, []);
 
@@ -816,15 +772,7 @@ export default function  /**
       setBankAccountStartDate(bankAccountInfo.bankAccountStartDate || '');
       setBankAccountStartAmount(bankAccountInfo.bankAccountStartAmount?.toString() || '');
       
-      // Parse existing minimum balances  /**
-   * If function.
-   * @param bankAccountInfo.bankAccountMinimums - bankAccountInfo.bankAccountMinimums parameter.
-   */  /**
-   * If function.
-   * @param bankAccountInfo.bankAccountMinimums - bankAccountInfo.bankAccountMinimums parameter.
-   */
-
-
+          // Parse existing minimum balances
       if (bankAccountInfo.bankAccountMinimums) {
         try {
           const existingMinimums = JSON.parse(bankAccountInfo.bankAccountMinimums) as MinimumBalanceSetting[];
@@ -845,13 +793,7 @@ export default function  /**
   };
 
   // Optimized with useCallback to prevent recreation
-  const handleUpdateBankAccount = useCallback(() => {  /**
-   * If function.
-   * @param !selectedBuilding - !selectedBuilding parameter.
-   */  /**
-   * If function.
-   * @param !selectedBuilding - !selectedBuilding parameter.
-   */
+  const handleUpdateBankAccount = useCallback(() => {
 
 
     if (!selectedBuilding) {
@@ -1692,7 +1634,7 @@ export default function  /**
                               id='bankAccountNumber'
                               type='text'
                               value={bankAccountNumber}
-                              onChange={(e) => setBankAccountNumber(e.target._value)}
+                              onChange={(e) => setBankAccountNumber(e.target.value)}
                               placeholder={bankAccountTranslations.accountNumberPlaceholder}
                             />
                           </div>
@@ -1703,7 +1645,7 @@ export default function  /**
                               id='startDate'
                               type='date'
                               value={bankAccountStartDate}
-                              onChange={(e) => setBankAccountStartDate(e.target._value)}
+                              onChange={(e) => setBankAccountStartDate(e.target.value)}
                             />
                           </div>
                         </div>
@@ -1715,7 +1657,7 @@ export default function  /**
                             type='number'
                             step='0.01'
                             value={bankAccountStartAmount}
-                            onChange={(e) => setBankAccountStartAmount(e.target._value)}
+                            onChange={(e) => setBankAccountStartAmount(e.target.value)}
                             placeholder={bankAccountTranslations.startAmountPlaceholder}
                           />
                         </div>
@@ -1725,7 +1667,7 @@ export default function  /**
                           <Textarea
                             id='reconciliationNote'
                             value={reconciliationNote}
-                            onChange={(e) => setReconciliationNote(e.target._value)}
+                            onChange={(e) => setReconciliationNote(e.target.value)}
                             placeholder={bankAccountTranslations.reconciliationNotePlaceholder}
                             rows={3}
                           />
@@ -1938,23 +1880,7 @@ export default function  /**
                                     value={generalIncomeInflation}
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      // Allow empty string or valid decimal numbers (including negative)  /**
-   * If function.
-   * @param value === '' - value === '' parameter.
-   */
-  /**
-   * If function.
-   * @param value === '' - value === '' parameter.
-   */  /**
-   * If function.
-   * @param value === '' - value === '' parameter.
-   */
-
-  /**
-   * If function.
-   * @param value === '' - value === '' parameter.
-   */
-
+                                      // Allow empty string or valid decimal numbers (including negative)
                                       if (value === '') {
                                         setGeneralIncomeInflation(0);
                                       } else {
