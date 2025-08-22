@@ -762,6 +762,15 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       
+      // Check if user is from Open Demo organization (view-only restriction)
+      const { isOpenDemoUser } = await import('../rbac');
+      if (await isOpenDemoUser(userId)) {
+        return res.status(403).json({ 
+          message: 'Document downloads are not available in demo mode', 
+          code: 'DEMO_DOWNLOAD_RESTRICTED' 
+        });
+      }
+      
       // Get user's organization and residences for filtering
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);

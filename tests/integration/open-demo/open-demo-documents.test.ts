@@ -3,7 +3,7 @@ import express from 'express';
 import { sessionConfig, setupAuthRoutes } from '../../../server/auth';
 import { registerDocumentRoutes } from '../../../server/api/documents';
 import { storage } from '../../../server/storage';
-import { canUserPerformWriteOperation } from '../../../server/rbac';
+import { canUserPerformWriteOperation, isOpenDemoUser } from '../../../server/rbac';
 
 // Mock dependencies
 jest.mock('../../../server/storage');
@@ -11,6 +11,7 @@ jest.mock('../../../server/rbac');
 
 const mockStorage = storage as jest.Mocked<typeof storage>;
 const mockCanUserPerformWriteOperation = canUserPerformWriteOperation as jest.MockedFunction<typeof canUserPerformWriteOperation>;
+const mockIsOpenDemoUser = isOpenDemoUser as jest.MockedFunction<typeof isOpenDemoUser>;
 
 describe('Open Demo Document Management Restrictions', () => {
   let app: express.Application;
@@ -52,6 +53,11 @@ describe('Open Demo Document Management Restrictions', () => {
     // Mock RBAC to restrict Open Demo users
     mockCanUserPerformWriteOperation.mockImplementation(async (userId: string) => {
       return !['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(userId);
+    });
+
+    // Mock isOpenDemoUser to return true for Open Demo users
+    mockIsOpenDemoUser.mockImplementation(async (userId: string) => {
+      return ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(userId);
     });
 
     mockStorage.getUser.mockImplementation(async (userId: string) => {
@@ -287,7 +293,7 @@ describe('Open Demo Document Management Restrictions', () => {
       expect(response.status).toBe(200);
     });
 
-    test('should allow Open Demo users to download documents', async () => {
+    test('should prevent Open Demo tenants from downloading documents', async () => {
       mockStorage.getUserByEmail.mockResolvedValue(openDemoTenant);
       mockStorage.updateUser.mockResolvedValue(openDemoTenant);
       
@@ -306,8 +312,35 @@ describe('Open Demo Document Management Restrictions', () => {
 
       const response = await agent.get('/api/documents/doc-123/download');
 
-      // Should allow download (read operation)
-      expect(response.status).not.toBe(403);
+      // Should prevent download (Open Demo users cannot download documents/statements)
+      expect(response.status).toBe(403);
+      expect(response.body.message).toMatch(/download.*not.*available.*demo|demo.*download.*restricted/i);
+      expect(response.body.code).toBe('DEMO_DOWNLOAD_RESTRICTED');
+    });
+
+    test('should prevent Open Demo managers from downloading documents', async () => {
+      mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
+      mockStorage.updateUser.mockResolvedValue(openDemoManager);
+      
+      await agent.post('/api/auth/login').send({
+        email: 'demo.manager.open@example.com',
+        password: 'Demo@123456'
+      });
+
+      // Mock document download
+      mockStorage.getDocument = jest.fn().mockResolvedValue({
+        id: 'doc-456',
+        title: 'Management Document',
+        filePath: '/path/to/statement.pdf',
+        buildingId: 'building-456'
+      });
+
+      const response = await agent.get('/api/documents/doc-456/download');
+
+      // Should prevent download (Open Demo users cannot download documents/statements)
+      expect(response.status).toBe(403);
+      expect(response.body.message).toMatch(/download.*not.*available.*demo|demo.*download.*restricted/i);
+      expect(response.body.code).toBe('DEMO_DOWNLOAD_RESTRICTED');
     });
 
     test('should allow Open Demo users to view document metadata', async () => {
