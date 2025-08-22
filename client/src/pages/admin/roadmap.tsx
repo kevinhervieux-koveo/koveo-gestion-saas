@@ -326,7 +326,6 @@ export default function OwnerRoadmap() {
   }, {});
 
   // Debug logging
-  console.log('Grouped features:', Object.keys(groupedFeatures), groupedFeatures);
 
   const sections: Section[] = [
     {

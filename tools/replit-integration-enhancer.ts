@@ -604,7 +604,7 @@ export class ReplitIntegrationEnhancer {
             ws = new WebSocket('ws://localhost:8080');
             
             ws.onopen = function() {
-                console.log('Connected to AI Agent monitoring');
+                console.warn('Connected to AI Agent monitoring');
                 appendLog('🔗 Connected to real-time monitoring');
                 if (reconnectInterval) {
                     clearInterval(reconnectInterval);
@@ -618,7 +618,7 @@ export class ReplitIntegrationEnhancer {
             };
             
             ws.onclose = function() {
-                console.log('Disconnected from AI Agent monitoring');
+                console.warn('Disconnected from AI Agent monitoring');
                 appendLog('❌ Disconnected from monitoring server');
                 
                 // Auto-reconnect

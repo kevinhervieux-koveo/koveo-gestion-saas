@@ -394,7 +394,6 @@ export default function ResidenceDocuments() {
       }
       
       // Use full user ID as string (backend now accepts any string)
-      console.log("Creating document with user ID:", user.id, "(length:", user.id.length, ")"); // Debug log
       
       const documentData: unknown = {
         name: data.name,
@@ -412,7 +411,6 @@ export default function ResidenceDocuments() {
         documentData.mimeType = uploadedFile.mimeType;
       }
       
-      console.log("Document data being sent:", documentData); // Debug log
       return apiRequest("POST", "/api/documents", documentData);
     },
     onSuccess: () => {

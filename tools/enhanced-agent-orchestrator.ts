@@ -141,7 +141,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       });
     });
 
-    console.log('🔗 Real-time monitoring server started on ws://localhost:8080');
+    console.warn('🔗 Real-time monitoring server started on ws://localhost:8080');
   }
 
   /**
@@ -675,7 +675,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       this.broadcastUpdate('file_changed', { file: relativePath });
     });
     
-    console.log('🔍 Intelligent file watching started');
+    console.warn('🔍 Intelligent file watching started');
   }
 }
 

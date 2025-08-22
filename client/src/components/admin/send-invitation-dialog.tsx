@@ -291,7 +291,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       return isValid;
     });
     
-    // console.log('Valid organizations after filtering:', validOrgs.length, validOrgs.map(o => ({ id: o.id, name: o.name })));
     
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
