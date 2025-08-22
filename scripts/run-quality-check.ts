@@ -618,7 +618,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
       complexFunctions: complexFunctions.sort((a, b) => b.complexity - a.complexity),
     };
   } catch (__error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Complexity analysis failed: ${error}${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Complexity analysis failed: ${__error}${COLORS.RESET}`);
     return {
       averageComplexity: 0,
       maxComplexity: 0,
@@ -679,7 +679,7 @@ async function analyzeCoverage(): Promise<CoverageResult> {
       uncoveredFiles,
     };
   } catch (___error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${_error}${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${___error}${COLORS.RESET}`);
     return {
       totalCoverage: 0,
       branchCoverage: 0,
@@ -751,7 +751,7 @@ async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> 
       missingTranslations,
     };
   } catch (__error) {
-    console.warn(`🌐 Translation analysis failed: ${error}`);
+    console.warn(`🌐 Translation analysis failed: ${__error}`);
     return {
       totalComponents: 0,
       translatedComponents: 0,
@@ -830,7 +830,7 @@ async function analyzeAccessibility(): Promise<AccessibilityResult> {
       missingAccessibility,
     };
   } catch (__error) {
-    console.warn(`♿ Accessibility analysis failed: ${error}`);
+    console.warn(`♿ Accessibility analysis failed: ${__error}`);
     return {
       totalComponents: 0,
       accessibleComponents: 0,
@@ -909,7 +909,7 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
       untestedComponents,
     };
   } catch (___error) {
-    console.warn(`🧩 Component coverage analysis failed: ${_error}`);
+    console.warn(`🧩 Component coverage analysis failed: ${___error}`);
     return {
       totalComponents: 0,
       testedComponents: 0,
@@ -969,7 +969,7 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
       totalVulnerabilities: vulnerabilities.length,
     };
   } catch (___error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${_error}${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${___error}${COLORS.RESET}`);
     return {
       vulnerabilities: [],
       totalVulnerabilities: 0,
@@ -1052,7 +1052,7 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
       refactoringSuggestions,
     };
   } catch (___error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${_error}${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${___error}${COLORS.RESET}`);
     return {
       totalComponents: 0,
       componentsWithRedundancy: 0,
@@ -1186,7 +1186,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
     };
     
   } catch (__error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Law 25 compliance analysis failed: ${error}${COLORS.RESET}`);
+    console.warn(`${COLORS.YELLOW}⚠️  Law 25 compliance analysis failed: ${__error}${COLORS.RESET}`);
     console.warn(`   This might be due to missing Semgrep configuration or network issues.`);
     
     return {
@@ -1415,12 +1415,12 @@ async function verifyQualityMetricsAPI(
       },
     });
     
-    if (!response.ok) {
-      console.warn(`${COLORS.RED}❌ Failed to fetch quality metrics from API (status: ${response.status})${COLORS.RESET}`);
+    if (!_response.ok) {
+      console.warn(`${COLORS.RED}❌ Failed to fetch quality metrics from API (status: ${_response.status})${COLORS.RESET}`);
       return false;
     }
     
-    const apiMetrics = await response.json();
+    const apiMetrics = await _response.json();
     console.warn('📊 API Metrics retrieved:', apiMetrics);
     
     // Parse and compare metrics
@@ -1481,7 +1481,7 @@ async function verifyQualityMetricsAPI(
     }
     
   } catch (__error) {
-    console.warn(`${COLORS.RED}❌ Error verifying quality metrics API: ${error}${COLORS.RESET}`);
+    console.warn(`${COLORS.RED}❌ Error verifying quality metrics API: ${__error}${COLORS.RESET}`);
     console.warn(`   The analysis completed but API verification failed.`);
     console.warn(`   This could be due to server connectivity or authentication issues.`);
     return false;
@@ -1547,7 +1547,7 @@ async function main(): Promise<void> {
     const isQualityValid = validateQuality(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance, redundancy);
     
     // Verify that quality metrics are correctly updated in the API/UI
-    const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance, redundancy);
+    const metricsVerified = await verifyQualityMetricsAPI(complexity, coverage, vulnerabilities, translationCoverage, accessibility, componentCoverage, law25Compliance);
     
     console.warn('\n' + '='.repeat(50));
     
@@ -1582,7 +1582,7 @@ async function main(): Promise<void> {
     }
     
   } catch (__error) {
-    console.error(`${COLORS.RED}💥 Auditor failed with error: ${error}${COLORS.RESET}`);
+    console.error(`${COLORS.RED}💥 Auditor failed with error: ${__error}${COLORS.RESET}`);
     process.exit(1);
   }
 }
