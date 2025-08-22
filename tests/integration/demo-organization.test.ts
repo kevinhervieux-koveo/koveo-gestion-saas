@@ -180,8 +180,8 @@ describe('Demo Organization Integration Tests', () => {
 
   beforeAll(async () => {
     // Import app after mocking
-    const serverModule = await import('../../server/server');
-    app = serverModule.default || serverModule.app;
+    const serverModule = await import('../../server/index');
+    app = serverModule.app;
     
     console.log('🏢 Demo Organization Integration Test Suite initialized');
     console.log(`   Demo Organization ID: ${DEMO_ORGANIZATION.id}`);

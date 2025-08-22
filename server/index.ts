@@ -21,6 +21,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Export app for testing
+export { app };
+
 // Health check endpoints for API monitoring (NOT for frontend serving)
 app.get('/api/health', (req, res) => {
   // API health check with timeout protection
@@ -263,6 +266,9 @@ app.post('/api/features/:id/update-status', async (req, res) => {
 // Cloud Run provides PORT environment variable, fallback to 8080
 let server: any;
 
+// Export server for testing
+export { server };
+
 try {
   server = app.listen(
     port,
@@ -415,7 +421,7 @@ async function initializeApplication() {
         log('⚠️ Falling back to React build serving', 'error');
         
         // Try to serve the built React app if available
-        const clientBuildPath = path.resolve(import.meta.dirname, '..', 'dist');
+        const clientBuildPath = path.resolve(__dirname, '..', 'dist');
         const clientIndexPath = path.resolve(clientBuildPath, 'index.html');
         
         if (fs.existsSync(clientIndexPath)) {
@@ -511,7 +517,7 @@ async function initializeApplication() {
     } else {
       log('🏗️ Running in production mode, serving static files from dist/public');
       // Use custom static file serving to avoid the routing parameter issue
-      const distPath = path.resolve(import.meta.dirname, 'public');
+      const distPath = path.resolve(__dirname, 'public');
       
       if (fs.existsSync(distPath)) {
         // Serve static files
