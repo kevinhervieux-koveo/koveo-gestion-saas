@@ -251,12 +251,12 @@ export default function  /**
   const queryClient = useQueryClient();
 
   // Get buildings for selection
-  const { _data: buildings = [] } = useQuery({
+  const { data: buildings = [] } = useQuery({
     queryKey: ['/api/buildings'],
   });
 
   // Get residences for selected building
-  const { _data: residences = [] } = useQuery({
+  const { data: residences = [] } = useQuery({
     queryKey: ['/api/residences', selectedBuilding],
     queryFn: async () => {
       const params = new URLSearchParams();  /**
@@ -287,7 +287,7 @@ export default function  /**
   });
 
   // Get budget data
-  const { _data: budgetData, isLoading: budgetLoading } = useQuery({
+  const { data: budgetData, isLoading: budgetLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, startYear, endYear, viewType, startMonth, endMonth],
     queryFn: () => {
       const params = new URLSearchParams({
@@ -323,7 +323,7 @@ export default function  /**
   });
 
   // Get budget summary
-  const { _data: budgetSummary, isLoading: summaryLoading } = useQuery({
+  const { data: budgetSummary, isLoading: summaryLoading } = useQuery({
     queryKey: ['/api/budgets', selectedBuilding, 'summary', startYear, endYear, startMonth, endMonth, viewType],
     queryFn: () => {
       const params = new URLSearchParams({
@@ -342,7 +342,7 @@ export default function  /**
   });
 
   // Get bank account info
-  const { _data: bankAccountInfo } = useQuery<BankAccountInfo>({
+  const { data: bankAccountInfo } = useQuery<BankAccountInfo>({
     queryKey: ['/api/budgets', selectedBuilding, 'bank-account'],
     queryFn: () => fetch(`/api/budgets/${selectedBuilding}/bank-account`).then(res => res.json()),
     enabled: !!selectedBuilding,
@@ -790,7 +790,7 @@ export default function  /**
     setInflationSettings(prev => [...prev, newSetting]);
   }, [chartData]);
 
-  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, _value: unknown) => {
+  const updateInflationSetting = useCallback((id: string, field: keyof InflationSetting, value: unknown) => {
     setInflationSettings(prev => prev.map(setting => 
       setting.id === id ? { ...setting, [field]: value } : setting
     ));
@@ -1958,7 +1958,7 @@ export default function  /**
                                       if (value === '') {
                                         setGeneralIncomeInflation(0);
                                       } else {
-                                        const numValue = parseFloat(_value);
+                                        const numValue = parseFloat(value);
                                         if (!isNaN(numValue)) {
                                           setGeneralIncomeInflation(numValue);
                                         }
@@ -1985,7 +1985,7 @@ export default function  /**
                                       if (value === '') {
                                         setGeneralExpenseInflation(0);
                                       } else {
-                                        const numValue = parseFloat(_value);
+                                        const numValue = parseFloat(value);
                                         if (!isNaN(numValue)) {
                                           setGeneralExpenseInflation(numValue);
                                         }

@@ -76,11 +76,11 @@ function rateLimitInvitations(limit: number) {
     const now = Date.now();
     const windowMs = 15 * 60 * 1000; // 15 minutes
 
-    if (!invitationRateLimit.has(_key)) {
+    if (!invitationRateLimit.has(key)) {
       invitationRateLimit.set(key, { count: 0, resetTime: now + windowMs });
     }
 
-    const userLimit = invitationRateLimit.get(_key);
+    const userLimit = invitationRateLimit.get(key);
     if (now > userLimit.resetTime) {
       userLimit.count = 0;
       userLimit.resetTime = now + windowMs;
@@ -586,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.warn(`✅ Invitation email sent successfully to ${email}`);
           } catch (___emailError) {
-            console.error('❌ Failed to send invitation email:', __emailError);
+            console.error('❌ Failed to send invitation email:', ___emailError);
             // Don't fail the entire request if email fails, just log it
           }
           

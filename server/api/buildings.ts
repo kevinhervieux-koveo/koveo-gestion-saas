@@ -120,7 +120,7 @@ export function registerBuildingRoutes(app: Express): void {
       const result = await buildingsQuery;
       
       console.warn(`✅ Found ${result.length} buildings for user ${user.id}`);
-      res.json(_result);
+      res.json(result);
 
     } catch (_error) {
       console.error('❌ Error fetching buildings:', _error);
