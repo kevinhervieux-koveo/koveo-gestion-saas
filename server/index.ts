@@ -176,7 +176,68 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static file serving will be set up AFTER server starts to avoid blocking health checks
+// Setup static file serving for production immediately
+const isProduction = process.env.NODE_ENV === 'production' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'development');
+
+if (isProduction) {
+  log('🏗️ Setting up production static file serving immediately');
+  const distPath = path.resolve(__dirname, 'public');
+  
+  log(`📁 Looking for build files in: ${distPath}`);
+  log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
+  
+  if (fs.existsSync(distPath)) {
+    const indexPath = path.resolve(distPath, 'index.html');
+    log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
+    
+    // Serve static files with proper cache headers
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      }
+    }));
+    
+    // Add specific root route handler AFTER static middleware
+    app.get('/', (_req: Request, res: Response) => {
+      const indexPath = path.resolve(distPath, 'index.html');
+      log(`📄 Root request - serving index.html from: ${indexPath}`);
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send(`Application not found. Index path: ${indexPath}`);
+      }
+    });
+    
+    // SPA fallback for other routes
+    app.get('*', (_req: Request, res: Response, next) => {
+      // Skip API routes and health checks
+      if (_req.path.startsWith('/api') || _req.path === '/health' || _req.path === '/healthz' || _req.path === '/ready') {
+        return next();
+      }
+      
+      const indexPath = path.resolve(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send(`Application not found. Index path: ${indexPath}`);
+      }
+    });
+    
+    log('✅ Static files and SPA routing configured immediately');
+  } else {
+    log(`⚠️ Build directory not found: ${distPath}`, 'error');
+    
+    // List what's actually in the directory
+    const parentDir = path.dirname(distPath);
+    if (fs.existsSync(parentDir)) {
+      const contents = fs.readdirSync(parentDir);
+      log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
+    }
+  }
+}
 
 // Features API route - Placed here to ensure it takes precedence over Vite middleware
 app.get('/api/features', async (req, res) => {
@@ -554,10 +615,20 @@ async function initializeApplication() {
           }
         }));
         
-        // Add SPA fallback routing AFTER static files
+        // Add SPA fallback routing AFTER static files (with priority for root route)
+        app.get('/', (_req: Request, res: Response) => {
+          const indexPath = path.resolve(distPath, 'index.html');
+          log(`📄 Root request - serving index.html from: ${indexPath}`);
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send(`Application not found. Index path: ${indexPath}`);
+          }
+        });
+        
         app.get('*', (_req: Request, res: Response, next) => {
-          // Skip API routes - let them fall through to API handlers
-          if (_req.path.startsWith('/api')) {
+          // Skip API routes and health checks - let them fall through to API handlers
+          if (_req.path.startsWith('/api') || _req.path === '/health' || _req.path === '/healthz' || _req.path === '/ready') {
             return next();
           }
           
