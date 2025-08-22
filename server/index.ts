@@ -18,42 +18,62 @@ if (isNaN(port) || port < 1 || port > 65535) {
 }
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 // Export app for testing
 export { app };
 
-// Fast health check endpoint at root for deployment platform - responds immediately
+// CRITICAL: Health check endpoints MUST come before any middleware to ensure they always work
+// Simple root endpoint that always responds with 200 for deployment platform health checks
 app.get('/', (req, res, next) => {
-  // Check if this is a health check based on common patterns
-  const isHealthCheck = req.path === '/' && (
-    req.get('User-Agent')?.includes('GoogleHC') ||
-    req.get('User-Agent')?.includes('uptime') ||
-    req.get('User-Agent')?.includes('health') ||
-    req.method === 'HEAD'
-  );
+  // For deployment platform health checks, always return OK immediately
+  // Check various patterns used by health check systems
+  const userAgent = req.get('User-Agent') || '';
+  const isHealthCheck = 
+    userAgent.includes('GoogleHC') ||
+    userAgent.includes('uptime') ||
+    userAgent.includes('health') ||
+    userAgent.includes('kube-probe') ||
+    userAgent.includes('ELB') ||
+    userAgent.includes('AWS') ||
+    userAgent.includes('Pingdom') ||
+    userAgent.includes('StatusCake') ||
+    req.headers['x-health-check'] === 'true' ||
+    req.query.health === 'true';
   
-  if (isHealthCheck) {
+  // Always respond to root health checks immediately
+  if (req.path === '/' && (isHealthCheck || !userAgent || userAgent === '')) {
     res.status(200).send('OK');
     return;
   }
   
-  // For regular requests, continue to static file serving
+  // For regular browser requests, continue to static file serving
   next();
 });
 
-// Dedicated health check endpoint for detailed monitoring
+// Fast HEAD request support for root
+app.head('/', (req, res) => {
+  res.status(200).end();
+});
+
+// Simple health check endpoint that responds immediately - no database or expensive operations
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.get('/ready', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// NOW add middleware after health checks
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Detailed API health endpoints (after middleware)
 app.get('/api/health', (req, res) => {
-  // API health check with timeout protection
-  const timeout = setTimeout(() => {
-    if (!res.headersSent) {
-      res.status(408).json({ status: 'timeout', message: 'Health check timeout' });
-    }
-  }, 5000); // 5 second timeout
-  
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     status: 'ok', 
     message: 'Koveo Gestion API is running',
@@ -61,20 +81,9 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0',
     port: port
   });
-  
-  clearTimeout(timeout);
 });
 
 app.get('/api/health/detailed', (req, res) => {
-  // Comprehensive health check with timeout protection
-  const timeout = setTimeout(() => {
-    if (!res.headersSent) {
-      res.status(408).json({ status: 'timeout', message: 'Health check timeout' });
-    }
-  }, 3000); // 3 second timeout for health checks
-  
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     status: 'healthy', 
     uptime: process.uptime(),
@@ -85,52 +94,6 @@ app.get('/api/health/detailed', (req, res) => {
     port: port,
     env: process.env.NODE_ENV || 'development'
   });
-  
-  clearTimeout(timeout);
-});
-
-app.get('/healthz', (req, res) => {
-  // Kubernetes-style health check endpoint with timeout
-  const timeout = setTimeout(() => {
-    if (!res.headersSent) {
-      res.status(408).send('TIMEOUT');
-    }
-  }, 2000); // 2 second timeout
-  
-  res.setHeader('Cache-Control', 'no-cache');
-  res.status(200).send('OK');
-  
-  clearTimeout(timeout);
-});
-
-// Simple health check endpoint that responds immediately - no database or expensive operations
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
-});
-
-// Fast root health check specifically for deployment platform
-app.head('/', (req, res) => {
-  res.status(200).end();
-});
-
-app.get('/ready', (req, res) => {
-  // Readiness probe endpoint with timeout protection
-  const timeout = setTimeout(() => {
-    if (!res.headersSent) {
-      res.status(408).json({ ready: false, status: 'timeout' });
-    }
-  }, 2000); // 2 second timeout
-  
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', 'application/json');
-  res.status(200).json({ 
-    ready: true, 
-    timestamp: new Date().toISOString(),
-    port: port,
-    uptime: process.uptime()
-  });
-  
-  clearTimeout(timeout);
 });
 
 // Add global error handlers to prevent application crashes
