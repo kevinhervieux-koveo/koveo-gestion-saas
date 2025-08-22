@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { HamburgerMenu } from '@/components/ui/hamburger-menu';
 import { 
   Building, 
   Users, 
@@ -29,7 +29,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function FeaturesPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const coreFeatures = [
     {
@@ -141,54 +141,16 @@ export default function FeaturesPage() {
       {/* Navigation Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/">
-              <img 
-                src={koveoLogo} 
-                alt="Koveo Gestion" 
-                className="h-10 w-10 rounded-lg object-cover cursor-pointer"
-                data-testid="logo-link"
-              />
-            </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="/" data-testid="nav-home">
-                <span className="text-gray-600 hover:text-blue-600 cursor-pointer">Accueil</span>
-              </Link>
-              <Link href="/features" data-testid="nav-features">
-                <span className="text-blue-600 font-medium cursor-pointer">Fonctionnalités</span>
-              </Link>
-              <Link href="/security" data-testid="nav-security">
-                <span className="text-gray-600 hover:text-blue-600 cursor-pointer">Sécurité</span>
-              </Link>
-              <Link href="/story" data-testid="nav-story">
-                <span className="text-gray-600 hover:text-blue-600 cursor-pointer">Notre histoire</span>
-              </Link>
-            </nav>
+          <div className="flex items-center">
+            <img 
+              src={koveoLogo} 
+              alt="Koveo Gestion" 
+              className="h-10 w-10 rounded-lg object-cover cursor-pointer"
+              onClick={() => setLocation('/')}
+              data-testid="logo-link"
+            />
           </div>
-          <div className="flex items-center space-x-3">
-            <LanguageSwitcher />
-            <div className="flex space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <Button variant="outline" onClick={logout} data-testid="button-logout">
-                    Déconnexion
-                  </Button>
-                  <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700" data-testid="button-dashboard">
-                    Tableau de bord
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setLocation('/login')} data-testid="button-sign-in">
-                    Se connecter
-                  </Button>
-                  <Button onClick={() => setLocation('/login')} className="bg-blue-600 hover:bg-blue-700" data-testid="button-get-started">
-                    Commencer
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+          <HamburgerMenu />
         </div>
       </header>
 

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { HamburgerMenu } from '@/components/ui/hamburger-menu';
 import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -13,55 +13,23 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function TermsOfServicePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/">
-              <img 
-                src={koveoLogo} 
-                alt="Koveo Gestion" 
-                className="h-10 w-10 rounded-lg object-cover cursor-pointer"
-                data-testid="logo-link"
-              />
-            </Link>
-            <Button 
-              variant="ghost" 
-              onClick={() => window.history.back()}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
-            </Button>
+          <div className="flex items-center">
+            <img 
+              src={koveoLogo} 
+              alt="Koveo Gestion" 
+              className="h-10 w-10 rounded-lg object-cover cursor-pointer"
+              onClick={() => setLocation('/')}
+              data-testid="logo-link"
+            />
           </div>
-          <div className="flex items-center space-x-3">
-            <LanguageSwitcher />
-            <div className="flex space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <Button variant="outline" onClick={logout} data-testid="button-logout">
-                    Déconnexion
-                  </Button>
-                  <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700" data-testid="button-dashboard">
-                    Tableau de bord
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setLocation('/login')} data-testid="button-sign-in">
-                    Se connecter
-                  </Button>
-                  <Button onClick={() => setLocation('/login')} className="bg-blue-600 hover:bg-blue-700" data-testid="button-get-started">
-                    Commencer
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+          <HamburgerMenu />
         </div>
       </header>
 

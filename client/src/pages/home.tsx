@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { HamburgerMenu } from '@/components/ui/hamburger-menu';
 import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -14,7 +14,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
@@ -25,33 +25,12 @@ export default function HomePage() {
             <img 
               src={koveoLogo} 
               alt="Koveo Gestion" 
-              className="h-10 w-10 rounded-lg object-cover"
+              className="h-10 w-10 rounded-lg object-cover cursor-pointer"
+              onClick={() => setLocation('/')}
+              data-testid="logo-link"
             />
           </div>
-          <div className="flex items-center space-x-3">
-            <LanguageSwitcher />
-            <div className="flex space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <Button variant="outline" onClick={logout}>
-                    Logout
-                  </Button>
-                  <Button onClick={() => setLocation('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
-                    Go to Dashboard
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setLocation('/login')}>
-                    Sign In
-                  </Button>
-                  <Button onClick={() => setLocation('/login')} className="bg-blue-600 hover:bg-blue-700">
-                    Get Started
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+          <HamburgerMenu />
         </div>
       </header>
 
