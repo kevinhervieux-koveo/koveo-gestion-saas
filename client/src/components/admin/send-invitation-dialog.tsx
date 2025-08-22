@@ -236,7 +236,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         console.warn('Organizations parsed successfully:', data);
         return data;
       } catch (_e) {
-        console.error('Failed to parse organizations JSON:', e);
+        console.error('Failed to parse organizations JSON:', _e);
         console.error('Raw text was:', text);
         throw new Error('Invalid JSON response');
       }

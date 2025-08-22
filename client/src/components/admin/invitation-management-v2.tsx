@@ -128,8 +128,10 @@ export function InvitationManagement({
   // Table column configuration
   const columns: ColumnConfig<Invitation>[] = [
     {
+      key: 'email',
+      label: 'Email',
       accessor: 'email',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <div className="flex flex-col">
           <span className="font-medium">{invitation.email}</span>
           {invitation.personalMessage && (
@@ -141,40 +143,50 @@ export function InvitationManagement({
       ),
     },
     {
+      key: 'role',
+      label: 'Role', 
       accessor: 'role',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <Badge className={getRoleBadgeColor(invitation.role)}>
           {invitation.role}
         </Badge>
       ),
     },
     {
+      key: 'status',
+      label: 'Status',
       accessor: 'status',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <Badge variant={getStatusBadgeVariant(invitation.status)}>
           {invitation.status}
         </Badge>
       ),
     },
     {
+      key: 'inviterName',
+      label: 'Invited By',
       accessor: 'inviterName',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <span className="text-sm">
           {invitation.inviterName || 'Unknown'}
         </span>
       ),
     },
     {
+      key: 'createdAt',
+      label: 'Sent',
       accessor: 'createdAt',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <span className="text-sm">
           {new Date(invitation.createdAt).toLocaleDateString()}
         </span>
       ),
     },
     {
+      key: 'expiresAt',
+      label: 'Expires',
       accessor: 'expiresAt',
-      cell: (invitation) => {
+      render: (_value, invitation) => {
         const expiresAt = new Date(invitation.expiresAt);
         const isExpired = expiresAt < new Date();
         return (
@@ -185,8 +197,10 @@ export function InvitationManagement({
       },
     },
     {
+      key: 'actions',
+      label: 'Actions',
       accessor: () => 'actions',
-      cell: (invitation) => (
+      render: (_value, invitation) => (
         <InvitationActions
           invitation={invitation}
           onCancel={(id) => cancelInvitationMutation.mutate({ status: 'cancelled' } as any)}
@@ -259,28 +273,9 @@ export function InvitationManagement({
         <DataTable
           data={invitations as any}
           columns={columns as any}
-          enableSearch={true}
-          filterableColumns={[
-            {
-              id: 'status',
-              title: 'Status',
-              options: filterOptions,
-            },
-            {
-              id: 'role',
-              title: 'Role',
-              options: [
-                { value: 'all', label: 'All Roles' },
-                { value: 'admin', label: 'Admin' },
-                { value: 'manager', label: 'Manager' },
-                { value: 'resident', label: 'Resident' },
-                { value: 'tenant', label: 'Tenant' },
-              ],
-            },
-          ]}
+          keyAccessor="id"
           bulkActions={[]}
-          initialPageSize={10}
-          emptyStateMessage="No invitations found"
+          emptyMessage="No invitations found"
         />
       </CardContent>
     </Card>

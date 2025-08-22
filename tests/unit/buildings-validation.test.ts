@@ -421,7 +421,7 @@ describe('Building Validation Tests', () => {
   describe('Business Logic Validation', () => {
     it('should validate logical consistency between floors and units', () => {
       // This would be implemented as a custom validation function
-      const validateBuildingLogic = (data: unknown) => {
+      const validateBuildingLogic = (data: any) => {
         if (data.totalFloors && data.totalUnits) {
           const maxUnitsPerFloor = 50; // Business rule
           return data.totalUnits <= data.totalFloors * maxUnitsPerFloor;
@@ -445,7 +445,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate parking ratio constraints', () => {
-      const validateParkingRatio = (data: unknown) => {
+      const validateParkingRatio = (data: any) => {
         if (data.parkingSpaces && data.totalUnits) {
           const maxParkingRatio = 2; // Max 2 parking spaces per unit
           return data.parkingSpaces <= data.totalUnits * maxParkingRatio;
@@ -467,7 +467,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate Quebec-specific business rules', () => {
-      const validateQuebecRules = (data: unknown) => {
+      const validateQuebecRules = (data: any) => {
         // Example: In Quebec, condo buildings typically have fewer rental restrictions
         if (data.province === 'QC' && data.buildingType === 'condo') {
           return true; // Quebec condos have specific regulations
@@ -484,7 +484,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate year built against building type expectations', () => {
-      const validateYearBuildingType = (data: unknown) => {
+      const validateYearBuildingType = (data: any) => {
         // Modern condos are typically built after 1980
         if (data.buildingType === 'condo' && data.yearBuilt && data.yearBuilt < 1980) {
           return false; // Unusual but not impossible

@@ -158,7 +158,7 @@ export function RegistrationWizard({
 
       await onComplete(completeData);
     } catch (__error) {
-      console.error('Wizard completion error:', _error);
+      console.error('Wizard completion error:', __error);
       setIsSubmitting(false);
     }
   };

@@ -116,7 +116,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
           role: user.role,
           isActive: user.isActive,
         }}
-        onSubmit={(data) => updateUserMutation.mutate(data)}
+        onSubmit={(data) => updateUserMutation.mutate(data as { role: string; isActive: boolean })}
         isLoading={updateUserMutation.isPending}
         submitText={t('updateUser')}
         showCancel
@@ -261,7 +261,7 @@ export function UserListComponent({
           variant="secondary" 
           className={getRoleBadgeColor(role as string)}
         >
-          {t(role as string)}
+          {role as string}
         </Badge>
       ),
     },

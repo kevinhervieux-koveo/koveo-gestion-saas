@@ -110,8 +110,10 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
   // Table column configuration
   const columns: ColumnConfig<Organization>[] = [
     {
+      key: 'name',
+      label: 'Organization',
       accessor: 'name',
-      cell: (org) => (
+      render: (_value, org) => (
         <div className="flex flex-col">
           <span className="font-medium">{org.name}</span>
           <div className="flex items-center gap-2 mt-1">
@@ -126,8 +128,10 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
+      key: 'contact',
+      label: 'Contact Info',
       accessor: () => 'contact',
-      cell: (org) => (
+      render: (_value, org) => (
         <div className="space-y-1">
           {org.email && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -151,8 +155,10 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
+      key: 'address',
+      label: 'Location',
       accessor: 'address',
-      cell: (org) => (
+      render: (_value, org) => (
         <div className="flex items-start gap-1">
           <MapPin className="h-3 w-3 mt-0.5 text-muted-foreground" />
           <div className="text-sm text-muted-foreground">
@@ -167,8 +173,10 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
+      key: 'stats',
+      label: 'Stats',
       accessor: () => 'stats',
-      cell: (org) => (
+      render: (_value, org) => (
         <div className="text-sm space-y-1">
           <div>Buildings: {(org as any).buildingsCount || 0}</div>
           <div>Users: {(org as any).usersCount || 0}</div>
@@ -179,8 +187,10 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       ),
     },
     {
+      key: 'actions',
+      label: 'Actions',
       accessor: () => 'actions',
-      cell: (org) => (
+      render: (_value, org) => (
         <OrganizationActions
           organization={org}
           onEdit={handleEdit}
@@ -223,30 +233,11 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={organizations as any}
+            data={organizations}
             columns={columns as any}
-            enableSearch={true}
-            filterableColumns={[
-              {
-                id: 'type',
-                title: 'Type',
-                options: filterOptions,
-              },
-              {
-                id: 'isActive',
-                title: 'Status',
-                options: statusFilterOptions,
-                filterFn: (row, columnId, value) => {
-                  if (value === 'all') {return true;}
-                  if (value === 'active') {return row.getValue(columnId) === true;}
-                  if (value === 'inactive') {return row.getValue(columnId) === false;}
-                  return true;
-                },
-              },
-            ]}
+            keyAccessor="id"
             isLoading={isLoading}
-            initialPageSize={10}
-            emptyStateMessage="No organizations found"
+            emptyMessage="No organizations found"
           />
         </CardContent>
       </Card>
@@ -394,16 +385,16 @@ function OrganizationDetails({ organization }: OrganizationDetailsProps) {
             <CardTitle className="text-base">Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {organization.contactEmail && (
+            {organization.email && (
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{organization.contactEmail}</span>
+                <span className="text-sm">{organization.email}</span>
               </div>
             )}
-            {organization.contactPhone && (
+            {organization.phone && (
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{organization.contactPhone}</span>
+                <span className="text-sm">{organization.phone}</span>
               </div>
             )}
             {organization.website && (
@@ -443,11 +434,11 @@ function OrganizationDetails({ organization }: OrganizationDetailsProps) {
           <CardContent className="space-y-3">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Buildings</label>
-              <p className="text-2xl font-bold">{organization.buildingsCount || 0}</p>
+              <p className="text-2xl font-bold">{(organization as any).buildingsCount || 0}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Users</label>
-              <p className="text-2xl font-bold">{organization.usersCount || 0}</p>
+              <p className="text-2xl font-bold">{(organization as any).usersCount || 0}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Created</label>

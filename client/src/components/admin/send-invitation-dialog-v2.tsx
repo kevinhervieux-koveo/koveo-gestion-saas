@@ -201,7 +201,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     
     // Managers can only invite to their own organization
     return organizations
-      .filter(org => org.id === user?.organizationId)
+      .filter(org => org.id === (user as any)?.organizationId)
       .map(org => ({ value: org.id, label: org.name }));
   };
 
@@ -241,13 +241,13 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     ...(selectedOrganization ? [{
       name: 'buildingId',
-      label: t('building'),
+      label: 'Building',
       type: 'select' as const,
       options: getBuildingOptions(),
     }] : []),
     ...(selectedBuilding && selectedBuilding !== 'none' ? [{
       name: 'residenceId',
-      label: t('residence'),
+      label: 'Residence',
       type: 'select' as const,
       options: getResidenceOptions(),
     }] : []),
@@ -260,7 +260,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     {
       name: 'expiryDays',
-      label: t('expiryDays'),
+      label: 'Expiry Days',
       type: 'number',
       placeholder: '7',
     },
@@ -282,13 +282,13 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     ...(selectedOrganization ? [{
       name: 'buildingId',
-      label: t('building'),
+      label: 'Building',
       type: 'select' as const,
       options: getBuildingOptions(),
     }] : []),
     ...(selectedBuilding && selectedBuilding !== 'none' ? [{
       name: 'residenceId',
-      label: t('residence'),
+      label: 'Residence',
       type: 'select' as const,
       options: getResidenceOptions(),
     }] : []),
@@ -301,7 +301,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     {
       name: 'expiryDays',
-      label: t('expiryDays'),
+      label: 'Expiry Days',
       type: 'number',
       placeholder: '7',
     },
@@ -411,9 +411,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 >
                   <div className="text-sm text-muted-foreground">
                     {emailsList.length === 0 ? (
-                      <span>{t('addEmailsToSendBulkInvitations')}</span>
+                      <span>Add emails to send bulk invitations</span>
                     ) : (
-                      <span>{t('readyToSendInvitations').replace('{count}', emailsList.length.toString())}</span>
+                      <span>Ready to send {emailsList.length} invitations</span>
                     )}
                   </div>
                 </StandardForm>
