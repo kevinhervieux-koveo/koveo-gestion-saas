@@ -1,0 +1,23 @@
+/* Hamburger Menu Styles - Override any conflicting CSS */
+[data-testid="menu-panel"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+[data-testid="menu-panel"] * {
+  background-color: transparent;
+}
+
+[data-testid="menu-panel"] > div {
+  background-color: #ffffff !important;
+}
+
+[data-testid="menu-panel"] nav {
+  background-color: #ffffff !important;
+}
+
+[data-testid="menu-panel"] .bg-gray-50 {
+  background-color: #f9fafb !important;
+}

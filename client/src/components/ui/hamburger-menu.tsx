@@ -6,6 +6,7 @@ import { Menu, X, Home, Shield, Wrench, BookOpen, FileText, Scale, LogIn, LogOut
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
+import './hamburger-menu.css';
 
 interface HamburgerMenuProps {
   className?: string;
@@ -70,14 +71,19 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       {/* Menu Panel */}
       <div
         className={`
-          fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-200
+          fixed top-0 right-0 h-full w-80 max-w-[85vw] shadow-xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-200
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
         data-testid="menu-panel"
-        style={{ backgroundColor: '#ffffff' }}
+        style={{ 
+          backgroundColor: '#ffffff !important',
+          backdropFilter: 'none !important',
+          opacity: '1 !important',
+          background: 'white !important'
+        }}
       >
         {/* Menu Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b" style={{ backgroundColor: '#ffffff' }}>
           <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
           <Button
             variant="ghost"
@@ -91,9 +97,9 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
         </div>
 
         {/* Menu Content */}
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full" style={{ backgroundColor: '#ffffff' }}>
           {/* Navigation Items */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2" style={{ backgroundColor: '#ffffff' }}>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
                 Navigation
