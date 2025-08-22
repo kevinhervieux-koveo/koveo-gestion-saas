@@ -158,6 +158,33 @@ const HomePage = createOptimizedLoader(
   { preloadDelay: 100, enableMemoryCleanup: true }
 );
 
+// New public pages
+const FeaturesPage = createOptimizedLoader(
+  () => import('@/pages/features'),
+  'features-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+const SecurityPage = createOptimizedLoader(
+  () => import('@/pages/security'),
+  'security-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+const StoryPage = createOptimizedLoader(
+  () => import('@/pages/story'),
+  'story-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+const PrivacyPolicyPage = createOptimizedLoader(
+  () => import('@/pages/privacy-policy'),
+  'privacy-policy-page',
+  { enableMemoryCleanup: true }
+);
+const TermsOfServicePage = createOptimizedLoader(
+  () => import('@/pages/terms-of-service'),
+  'terms-of-service-page',
+  { enableMemoryCleanup: true }
+);
+
 // Main Dashboard page
 const DashboardPage = createOptimizedLoader(
   () => import('@/pages/dashboard'),
@@ -192,7 +219,19 @@ function Router() {
   }
 
   // Check if we're on a public page
-  const isPublicPage = ['/', '/login', '/forgot-password', '/reset-password', '/accept-invitation', '/register'].includes(location);
+  const isPublicPage = [
+    '/', 
+    '/login', 
+    '/forgot-password', 
+    '/reset-password', 
+    '/accept-invitation', 
+    '/register',
+    '/features',
+    '/security', 
+    '/story',
+    '/privacy-policy',
+    '/terms-of-service'
+  ].includes(location);
   
   // If we're on a public page, allow access regardless of auth status
   if (isPublicPage) {
@@ -200,6 +239,11 @@ function Router() {
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
           <Route path="/" component={HomePage} />
+          <Route path="/features" component={FeaturesPage} />
+          <Route path="/security" component={SecurityPage} />
+          <Route path="/story" component={StoryPage} />
+          <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+          <Route path="/terms-of-service" component={TermsOfServicePage} />
           <Route path="/login" component={isAuthenticated ? LoginRedirect : LoginPage} />
           <Route path="/forgot-password" component={ForgotPasswordPage} />
           <Route path="/reset-password" component={ResetPasswordPage} />
