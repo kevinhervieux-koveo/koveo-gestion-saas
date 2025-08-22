@@ -245,6 +245,24 @@ export interface Translations {
   joinPropertyOwners: string;
   getStartedNow: string;
   yourDataIsProtected: string;
+  // Hamburger menu translations
+  menu: string;
+  navigation: string;
+  account: string;
+  home: string;
+  features: string;
+  security: string;
+  ourStory: string;
+  privacyPolicy: string;
+  termsOfService: string;
+  login: string;
+  logout: string;
+  getStarted: string;
+  language: string;
+  openMenu: string;
+  closeMenu: string;
+  copyright: string;
+  law25Compliant: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -484,6 +502,24 @@ const translations: Record<Language, Translations> = {
     joinPropertyOwners: 'Join property owners and managers across Quebec who trust Koveo Gestion for their property management needs.',
     getStartedNow: 'Get Started Now',
     yourDataIsProtected: 'Your data is protected',
+    // Hamburger menu translations
+    menu: 'Menu',
+    navigation: 'Navigation',
+    account: 'Account',
+    home: 'Home',
+    features: 'Features',
+    security: 'Security',
+    ourStory: 'Our Story',
+    privacyPolicy: 'Privacy Policy',
+    termsOfService: 'Terms of Service',
+    login: 'Login',
+    logout: 'Logout',
+    getStarted: 'Get Started',
+    language: 'Language',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    copyright: '© 2025 Koveo Gestion',
+    law25Compliant: 'Quebec Law 25 Compliant',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -722,6 +758,24 @@ const translations: Record<Language, Translations> = {
     joinPropertyOwners: 'Rejoignez les propriétaires et gestionnaires à travers le Québec qui font confiance à Koveo Gestion pour leurs besoins de gestion immobilière.',
     getStartedNow: 'Commencer maintenant',
     yourDataIsProtected: 'Vos données sont protégées',
+    // Hamburger menu translations
+    menu: 'Menu',
+    navigation: 'Navigation',
+    account: 'Compte',
+    home: 'Accueil',
+    features: 'Fonctionnalités',
+    security: 'Sécurité',
+    ourStory: 'Notre histoire',
+    privacyPolicy: 'Politique de confidentialité',
+    termsOfService: 'Conditions d\'utilisation',
+    login: 'Se connecter',
+    logout: 'Déconnexion',
+    getStarted: 'Commencer',
+    language: 'Langue',
+    openMenu: 'Ouvrir le menu',
+    closeMenu: 'Fermer le menu',
+    copyright: '© 2025 Koveo Gestion',
+    law25Compliant: 'Conforme à la Loi 25 du Québec',
   },
 };
 
