@@ -70,10 +70,11 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       {/* Menu Panel */}
       <div
         className={`
-          fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out
+          fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-200
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
         data-testid="menu-panel"
+        style={{ backgroundColor: '#ffffff' }}
       >
         {/* Menu Header */}
         <div className="flex items-center justify-between p-4 border-b">
@@ -163,7 +164,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           </nav>
 
           {/* Menu Footer */}
-          <div className="p-4 border-t bg-gray-50">
+          <div className="p-4 border-t bg-gray-50" style={{ backgroundColor: '#f9fafb' }}>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Langue</span>
               <LanguageSwitcher />
