@@ -3,24 +3,10 @@ import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack
 /**
  * Throws an error if the HTTP response is not successful (status not ok).
  * Extracts error message from response body or uses status text as fallback.
- *
- * @param {Response} res - Fetch API Response object to check.
- * @throws {Error} Error with status code and message if response is not ok.
+ * @param res - Fetch API Response object to check.
+ * @throws Error with status code and message if response is not ok.
  */
-/**
- * ThrowIfResNotOk function.
- * @param res
- * @returns Function result.
- */
-async function  /**
-   * Throw if res not ok function.
-   * @param res - Express response object.
-   */
- throwIfResNotOk(res: Response) {  /**
-   * If function.
-   * @param !res.ok - !res.ok parameter.
-   */
-
+async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
@@ -30,62 +16,18 @@ async function  /**
 /**
  * Makes an HTTP API request with proper error handling and JSON serialization.
  * Automatically includes credentials and sets Content-Type header for JSON data.
- *
- * @param {string} method - HTTP method (GET, POST, PUT, DELETE, etc.).
- * @param {string} url - API endpoint URL.
- * @param {unknown} [data] - Optional data to send in request body (will be JSON stringified).
- * @returns {Promise<Response>} Fetch API Response object.
- * @throws {Error} If response status is not ok.
+ * @param method - HTTP method (GET, POST, PUT, DELETE, etc.).
+ * @param url - API endpoint URL.
+ * @param data - Optional data to send in request body (will be JSON stringified).
+ * @returns Fetch API Response object.
+ * @throws Error if response status is not ok.
  */
-/**
- * ApiRequest function.
- * @param method
- * @param url
- * @param data
- * @returns Function result.
- */
-export async function  /**
-   * Api request function.
-   * @param method - method parameter.
-   * @param url - URL string.
-   * @param data? - data? parameter.
-   * @returns Promise resolving to Response.
-   */
- apiRequest(
+export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined
+  data?: unknown
 ): Promise<Response> {
-  const res = await  /**
-   * Fetch .
-   * @param url - URL string.
-   * @param {
-    method - {
-    method parameter.
-   * @param headers - HTTP headers object.
-   * @param body - Request body data.
-   * @returns undefined,
-    credentials: 'include',
-  });
-
-  await throwIfResNotOk(res);
-  return res;
-}
-
-/**
- * Defines behavior when encountering 401 Unauthorized responses.
- * - 'returnNull': Returns null for 401 responses (useful for optional authentication)
- * - 'throw': Throws error for 401 responses (default behavior).
- */
-type UnauthorizedBehavior = 'returnNull' | 'throw';
-/**
- * Creates a query function for React Query with configurable 401 handling.
- * Used as default query function for all React Query queries in the application.
- *
- * @template T - Expected return type of the query.
- * @param result.
-   */
- fetch(url, {
+  const res = await fetch(url, {
     method,
     headers: data ? { 'Content-Type': 'application/json' } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -102,25 +44,20 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
  * - 'throw': Throws error for 401 responses (default behavior).
  */
 type UnauthorizedBehavior = 'returnNull' | 'throw';
+
 /**
  * Creates a query function for React Query with configurable 401 handling.
  * Used as default query function for all React Query queries in the application.
- *
- * @template T - Expected return type of the query.
- * @param {object} options - Configuration options.
- * @param {UnauthorizedBehavior} options.on401 - How to handle 401 responses.
- * @returns {QueryFunction<T>} Configured query function for React Query.
+ * @param options - Configuration options.
+ * @param options.on401 - How to handle 401 responses.
+ * @returns Configured query function for React Query.
  */
-export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join('/') as string, {
       credentials: 'include',
-    });  /**
-   * If function.
-   * @param unauthorizedBehavior === 'returnNull' && res.status === 401 - unauthorizedBehavior === 'returnNull' && res.status === 401 parameter.
-   */
-
+    });
 
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;

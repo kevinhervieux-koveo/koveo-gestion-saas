@@ -128,16 +128,8 @@ function  /**
       violations: processedViolations
     };
     
-  }  /**
-   * Catch function.
-   * @param __error - __error parameter.
-   */
-  /**
-   * Catch function.
-   * @param __error - __error parameter.
-   */
- catch (__error) {
-    console.warn('Law 25 compliance scan failed:', error);
+  } catch (__error) {
+    console.warn('Law 25 compliance scan failed:', __error);
     
     // Return default/fallback data
     return {
@@ -173,7 +165,7 @@ router.get('/', (req, res) => {
     const complianceData = runLaw25ComplianceScan();
     res.json(complianceData);
   } catch (__error) {
-    console.error('Error generating Law 25 compliance data:', error);
+    console.error('Error generating Law 25 compliance data:', __error);
     res.status(500).json({ 
       error: 'Failed to generate compliance data',
       complianceScore: 0,

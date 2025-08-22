@@ -15,18 +15,10 @@ interface HamburgerMenuProps {
 /**
  * HamburgerMenu component.
  * @param props - Component props.
- * @param props.className = '' - className = '' parameter.
+ * @param props.className - CSS class name for styling.
  * @returns JSX element.
  */
-/**
- * Hamburger menu function.
- * @param { className = '' } - { className = '' } parameter.
- */
-export function  /**
-   * Hamburger menu function.
-   * @param { className = '' } - { className = '' } parameter.
-   */
- HamburgerMenu({ className = '' }: HamburgerMenuProps) {
+export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { isAuthenticated, logout } = useAuth();
@@ -53,29 +45,7 @@ export function  /**
     { icon: BookOpen, label: t('ourStory'), path: '/story', testId: 'nav-story' },
     { icon: FileText, label: t('privacyPolicy'), path: '/privacy-policy', testId: 'nav-privacy' },
     { icon: Scale, label: t('termsOfService'), path: '/terms-of-service', testId: 'nav-terms' },
-  ];  /**
-   * Return function.
-   * @param <div className={`relative ${className}`}>
-      {/* Hamburger Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleMenu}
-        className="relative z-50"
-        data-testid="hamburger-button"
-        aria-label={isOpen ? t('closeMenu' - <div className={`relative ${className}`}>
-      {/* Hamburger Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleMenu}
-        className="relative z-50"
-        data-testid="hamburger-button"
-        aria-label={isOpen ? t('closeMenu' parameter.
-   * @returns t('openMenu')}
-      > result.
-   */
-
+  ];
 
   return (
     <div className={`relative ${className}`}>
