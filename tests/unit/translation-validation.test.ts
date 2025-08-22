@@ -44,7 +44,7 @@ describe('Translation Files Language Validation', () => {
               const jsonData = JSON.parse(content);
               validator.validateJSON(jsonData, `Translation file: ${file}`);
             } catch (__error) {
-              console.warn(`Failed to parse JSON file ${file}:`, error);
+              console.warn(`Failed to parse JSON file ${file}:`, __error);
             }
           }
         }
@@ -56,14 +56,14 @@ describe('Translation Files Language Validation', () => {
     const violations = validator.getViolations();
     
     if (violations.length > 0) {
-      console.log('\n=== VIOLATIONS DANS LES FICHIERS DE TRADUCTION ===');
-      console.log(validator.generateReport());
+      console.warn('\n=== VIOLATIONS DANS LES FICHIERS DE TRADUCTION ===');
+      console.warn(validator.generateReport());
     }
     
     if (filesFound === 0) {
-      console.log('ℹ️  Aucun fichier de traduction trouvé. Les traductions peuvent être intégrées dans le code.');
+      console.warn('ℹ️  Aucun fichier de traduction trouvé. Les traductions peuvent être intégrées dans le code.');
     } else {
-      console.log(`📁 ${filesFound} fichier(s) de traduction analysé(s)`);
+      console.warn(`📁 ${filesFound} fichier(s) de traduction analysé(s)`);
     }
     
     expect(violations.length).toBeGreaterThanOrEqual(0);
@@ -122,7 +122,7 @@ describe('Translation Files Language Validation', () => {
       }
       
       if (hardcodedStrings.length > 0) {
-        console.log('\n=== CHAÎNES CODÉES EN DUR AVEC VIOLATIONS LINGUISTIQUES ===');
+        console.warn('\n=== CHAÎNES CODÉES EN DUR AVEC VIOLATIONS LINGUISTIQUES ===');
         hardcodedStrings.slice(0, 20).forEach((item, index) => {
           console.log(`${index + 1}. ${item.file}:${item.line}`);
           console.log(`   Texte: "${item.text}"`);
@@ -134,7 +134,7 @@ describe('Translation Files Language Validation', () => {
       expect(hardcodedStrings.length).toBeGreaterThanOrEqual(0);
       
     } catch (__error) {
-      console.log('❌ Erreur lors de l\'analyse des composants:', error);
+      console.warn('❌ Erreur lors de l\'analyse des composants:', __error);
     }
   });
 

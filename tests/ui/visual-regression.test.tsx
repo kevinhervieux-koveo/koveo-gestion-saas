@@ -3,8 +3,9 @@
  * @description Tests to prevent text overflow and formatting issues as seen in the provided screenshot.
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '@/hooks/use-language';
 

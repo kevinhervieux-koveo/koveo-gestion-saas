@@ -3,6 +3,7 @@
  * @description Tests for text formatting, overflow handling, and layout issues in demand cards.
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

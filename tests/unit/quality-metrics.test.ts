@@ -47,11 +47,11 @@ async function getQualityMetrics() {
             const coverageData = JSON.parse(readFileSync(coveragePath, 'utf-8') as string);
             coverage = coverageData.total?.statements?.pct || 0;
           }
-        } catch {
+        } catch (_error) {
           coverage = 0;
         }
       }
-    } catch {
+    } catch (_error) {
       coverage = 0;
     }
 
@@ -76,7 +76,7 @@ async function getQualityMetrics() {
       } else {
         codeQuality = 'C';
       }
-    } catch {
+    } catch (_error) {
       codeQuality = 'B';
     }
 
@@ -89,7 +89,7 @@ async function getQualityMetrics() {
       }) as string;
       const auditData = JSON.parse(auditResult);
       securityIssues = auditData.metadata?.vulnerabilities?.total || 0;
-    } catch {
+    } catch (_error) {
       securityIssues = 0;
     }
 
@@ -103,7 +103,7 @@ async function getQualityMetrics() {
       });
       const buildTimeMs = Date.now() - startTime;
       buildTime = buildTimeMs > 1000 ? `${(buildTimeMs / 1000).toFixed(1)}s` : `${buildTimeMs}ms`;
-    } catch {
+    } catch (_error) {
       buildTime = 'Error';
     }
 
@@ -137,7 +137,7 @@ async function getQualityMetrics() {
           }
         }
       }
-    } catch {
+    } catch (_error) {
       translationCoverage = '95%'; // Fallback - assume good coverage
     }
 

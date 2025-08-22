@@ -3,6 +3,7 @@
  * @description Tests for card layout responsiveness and text adaptation across different screen sizes.
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
