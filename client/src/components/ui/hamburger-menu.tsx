@@ -91,7 +91,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
       {/* Menu Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-background shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         data-testid="menu-panel"
