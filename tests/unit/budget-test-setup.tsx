@@ -88,7 +88,89 @@ jest.mock('@/components/ui/chart', () => ({
   ChartTooltipContent: () => <div data-testid="chart-tooltip-content">TooltipContent</div>,
 }));
 
-// Create a query client with proper defaults for Budget component
+// Import real Demo organization data
+import { 
+  DEMO_ORG_ID, 
+  getDemoBuildings, 
+  getDemoBills, 
+  getDemoOrganization,
+  getDemoUsers 
+} from '../utils/demo-data-helpers';
+
+// Create sample budget data for Demo buildings based on real bills
+function createDemoBudgetData(buildingId: string) {
+  const demoBills = getDemoBills();
+  
+  // Convert bills to budget income/expense structure
+  const expenses = demoBills.map(bill => ({
+    id: bill.id,
+    buildingId,
+    category: bill.category,
+    description: `${bill.category} - ${bill.billNumber}`,
+    amount: bill.totalAmount,
+    date: bill.startDate,
+    type: 'expense' as const
+  }));
+
+  // Create some income entries for Demo buildings
+  const income = [
+    {
+      id: 'demo-income-1',
+      buildingId,
+      category: 'monthly_fees',
+      description: 'Monthly condo fees',
+      amount: 15000,
+      date: '2025-01-01',
+      type: 'income' as const
+    },
+    {
+      id: 'demo-income-2', 
+      buildingId,
+      category: 'parking_fees',
+      description: 'Parking fees',
+      amount: 2500,
+      date: '2025-01-01',
+      type: 'income' as const
+    }
+  ];
+
+  return {
+    income,
+    expenses,
+    bankAccount: {
+      accountNumber: 'DEMO-123456789',
+      bankName: 'Banque Démonstration',
+      accountType: 'checking',
+      balance: 75000,
+      lastUpdated: '2025-01-01T00:00:00Z'
+    },
+    minimumBalances: {
+      emergency: 50000,
+      maintenance: 25000,
+      administrative: 10000
+    }
+  };
+}
+
+// Generate residences for Demo buildings
+function createDemoResidences(buildingId: string, startUnit: number = 101, count: number = 5) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `demo-residence-${buildingId}-${i + 1}`,
+    buildingId,
+    unitNumber: String(startUnit + i),
+    floor: Math.floor((startUnit + i - 101) / 10) + 1,
+    squareFootage: 850 + (i * 50),
+    bedrooms: 2,
+    bathrooms: 1,
+    parkingSpots: [`P-${startUnit + i}`],
+    storageSpaces: [`S-${startUnit + i}`],
+    isActive: true,
+    createdAt: new Date('2025-01-01T00:00:00Z'),
+    updatedAt: new Date('2025-01-01T00:00:00Z')
+  }));
+}
+
+// Create a query client that uses real Demo organization data
 export const createBudgetTestQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: { 
@@ -96,41 +178,74 @@ export const createBudgetTestQueryClient = () => new QueryClient({
       queryFn: async ({ queryKey }) => {
         const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
         
-        // Mock API responses based on URL
+        // Return real Demo organization data based on URL
         if (url === '/api/buildings') {
-          return [{
-            id: 'building-1',
-            name: 'Test Building',
-            address: '123 Test St',
-            city: 'Test City',
-            organizationId: 'org-1',
-            isActive: true
-          }];
+          return getDemoBuildings();
         }
         
         if (typeof url === 'string' && url.includes('/api/budgets/')) {
-          return {
-            income: [],
-            expenses: [],
-            bankAccount: {
-              accountNumber: '9876543210',
-              bankName: 'Test Bank',
-              balance: 50000
-            },
-            minimumBalances: {}
-          };
+          // Extract building ID for budget queries
+          const buildingId = url.split('/api/budgets/')[1]?.split('/')[0];
+          
+          if (url.includes('/summary')) {
+            const budgetData = createDemoBudgetData(buildingId || 'demo-building-1');
+            const totalIncome = budgetData.income.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpenses = budgetData.expenses.reduce((sum, item) => sum + item.amount, 0);
+            
+            return {
+              totalIncome,
+              totalExpenses,
+              netCashFlow: totalIncome - totalExpenses,
+              specialContributions: totalIncome - totalExpenses < 0 ? [
+                {
+                  id: 'special-1',
+                  description: 'Emergency assessment',
+                  amount: Math.abs(totalIncome - totalExpenses),
+                  perUnit: Math.abs(totalIncome - totalExpenses) / 5
+                }
+              ] : []
+            };
+          }
+          
+          if (url.includes('/bank-account')) {
+            return createDemoBudgetData(buildingId || 'demo-building-1').bankAccount;
+          }
+          
+          return createDemoBudgetData(buildingId || 'demo-building-1');
         }
         
         if (typeof url === 'string' && url.includes('/api/residences')) {
-          return [];
+          // Parse building ID from query parameters if present
+          const urlObj = new URL(url, 'http://localhost');
+          const buildingId = urlObj.searchParams.get('buildingId');
+          
+          if (buildingId) {
+            return createDemoResidences(buildingId);
+          }
+          
+          // Return all residences for all Demo buildings
+          const buildings = getDemoBuildings();
+          return buildings.flatMap((building, index) => 
+            createDemoResidences(building.id, 101 + (index * 100), 5)
+          );
         }
         
-        return {};
+        // Default empty responses for other endpoints
+        return null;
       },
     },
     mutations: { retry: false },
   },
 });
+
+// Mock LanguageProvider for tests
+const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div data-testid="mock-language-provider">
+      {children}
+    </div>
+  );
+};
 
 // Helper function to render Budget component with all required setup
 export const renderBudgetComponent = (component: React.ReactElement) => {
@@ -138,9 +253,9 @@ export const renderBudgetComponent = (component: React.ReactElement) => {
   
   return render(
     <QueryClientProvider client={queryClient}>
-      <TestProviders>
+      <MockLanguageProvider>
         {component}
-      </TestProviders>
+      </MockLanguageProvider>
     </QueryClientProvider>
   );
 };
