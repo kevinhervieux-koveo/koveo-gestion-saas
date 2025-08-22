@@ -82,7 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUser(userData || null);
-  }, [userData]);
+    
+    // If user is null (unauthorized) and we're not on a public page, redirect to home
+    if (userData === null && !isPublicPage && !isLoading) {
+      console.debug('Unauthorized access detected, redirecting to home page');
+      setLocation('/');
+    }
+  }, [userData, isPublicPage, isLoading, setLocation]);
 
   // Login mutation
   const loginMutation = useMutation({
