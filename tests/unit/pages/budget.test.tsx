@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Budget from '@/pages/manager/budget';
-import { TestProviders } from '@/utils/test-providers';
+import { TestProviders } from '../../utils/test-providers';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useFullscreen } from '@/hooks/use-fullscreen';
@@ -15,6 +15,46 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
     toast: jest.fn(),
   }),
+}));
+
+// Mock all the Lucide React icons
+jest.mock('lucide-react', () => ({
+  DollarSign: () => <div data-testid="dollar-icon">$</div>,
+  Banknote: () => <div data-testid="banknote-icon">Banknote</div>,
+  Settings: () => <div data-testid="settings-icon">Settings</div>,
+  TrendingUp: () => <div data-testid="trending-up-icon">TrendingUp</div>,
+  Calculator: () => <div data-testid="calculator-icon">Calculator</div>,
+  Filter: () => <div data-testid="filter-icon">Filter</div>,
+  ChevronDown: () => <div data-testid="chevron-down-icon">ChevronDown</div>,
+  ChevronUp: () => <div data-testid="chevron-up-icon">ChevronUp</div>,
+  X: () => <div data-testid="close-icon">X</div>,
+  Plus: () => <div data-testid="plus-icon">Plus</div>,
+  Trash2: () => <div data-testid="trash-icon">Trash</div>,
+  Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
+  AlertTriangle: () => <div data-testid="alert-icon">AlertTriangle</div>,
+  ChevronLeft: () => <div data-testid="chevron-left-icon">ChevronLeft</div>,
+  ChevronRight: () => <div data-testid="chevron-right-icon">ChevronRight</div>,
+  Users: () => <div data-testid="users-icon">Users</div>,
+  Percent: () => <div data-testid="percent-icon">Percent</div>,
+  Maximize2: () => <div data-testid="maximize-icon">Maximize</div>,
+  Minimize2: () => <div data-testid="minimize-icon">Minimize</div>,
+}));
+
+// Mock Recharts components
+jest.mock('recharts', () => ({
+  Area: () => <div data-testid="area-chart">Area</div>,
+  AreaChart: ({ children }: { children: React.ReactNode }) => <div data-testid="area-chart">{children}</div>,
+  XAxis: () => <div data-testid="x-axis">XAxis</div>,
+  YAxis: () => <div data-testid="y-axis">YAxis</div>,
+  CartesianGrid: () => <div data-testid="cartesian-grid">CartesianGrid</div>,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
+}));
+
+// Mock the chart components
+jest.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart-container">{children}</div>,
+  ChartTooltip: () => <div data-testid="chart-tooltip">Tooltip</div>,
+  ChartTooltipContent: () => <div data-testid="chart-tooltip-content">TooltipContent</div>,
 }));
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;

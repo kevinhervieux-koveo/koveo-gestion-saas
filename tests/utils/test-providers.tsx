@@ -51,8 +51,23 @@ interface TestProvidersProps {
 }
 
 // Mock MobileMenuProvider
+const MockMobileMenuContext = createContext({
+  isMobileMenuOpen: false,
+  toggleMobileMenu: () => {},
+  closeMobileMenu: () => {},
+});
+
 const MockMobileMenuProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return <div>{children}</div>;
+  const mockValue = {
+    isMobileMenuOpen: false,
+    toggleMobileMenu: () => {},
+    closeMobileMenu: () => {},
+  };
+  return (
+    <MockMobileMenuContext.Provider value={mockValue}>
+      {children}
+    </MockMobileMenuContext.Provider>
+  );
 };
 
 export const TestProviders: React.FC<TestProvidersProps> = ({ 

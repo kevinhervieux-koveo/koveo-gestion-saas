@@ -56,7 +56,52 @@ export const handlers = [
 
   // Buildings endpoints
   http.get('/api/buildings', () => {
+    return HttpResponse.json([
+      {
+        id: 'building-1',
+        name: 'Test Building',
+        address: '123 Test St',
+        city: 'Test City',
+        organizationId: 'org-1',
+        isActive: true
+      }
+    ]);
+  }),
+
+  // Residences endpoints
+  http.get('/api/residences', () => {
     return HttpResponse.json([]);
+  }),
+
+  // Budget endpoints
+  http.get('/api/budgets/:buildingId', () => {
+    return HttpResponse.json({
+      income: [],
+      expenses: [],
+      bankAccount: null,
+      minimumBalances: {}
+    });
+  }),
+
+  http.get('/api/budgets/:buildingId/summary', () => {
+    return HttpResponse.json({
+      totalIncome: 0,
+      totalExpenses: 0,
+      netCashFlow: 0,
+      specialContributions: []
+    });
+  }),
+
+  http.get('/api/budgets/:buildingId/bank-account', () => {
+    return HttpResponse.json({
+      accountNumber: '9876543210',
+      bankName: 'Test Bank',
+      balance: 50000
+    });
+  }),
+
+  http.post('/api/budgets/:buildingId/bank-account', () => {
+    return HttpResponse.json({ success: true });
   }),
 
   // Generic error handler
