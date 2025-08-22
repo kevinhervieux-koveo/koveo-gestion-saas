@@ -4,9 +4,10 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
+import { translate, hasTranslation, mockTranslations } from '../../utils/mock-translations';
 
-// Mock translation keys and values for testing
-const mockTranslations = {
+// Test functions using the imported mock translations
+const testTranslations = {
   en: {
     // Common UI elements
     'common.save': 'Save',
@@ -377,10 +378,14 @@ describe('Language Validation Tests', () => {
       const months = mockTranslations.fr['date.months'];
       
       // Check that French month names are properly capitalized (lowercase in French)
-      Object.values(months).forEach((month: unknown) => {
-        expect(month.charAt(0)).toBe(month.charAt(0).toUpperCase());
-        expect(month.slice(1)).toBe(month.slice(1).toLowerCase());
-      });
+      if (months && typeof months === 'object') {
+        Object.values(months).forEach((month: unknown) => {
+          if (typeof month === 'string') {
+            expect(month.charAt(0)).toBe(month.charAt(0).toUpperCase());
+            expect(month.slice(1)).toBe(month.slice(1).toLowerCase());
+          }
+        });
+      }
     });
   });
 
@@ -418,7 +423,7 @@ describe('Language Validation Tests', () => {
     });
 
     it('should handle missing parameters gracefully', () => {
-      const result = translate('validation.min_length', {}, 'en');
+      const result = translate('validation.min_length', {} as Record<string, any>, 'en');
       expect(result).toBe('Must be at least {min} characters');
     });
   });
@@ -428,8 +433,8 @@ describe('Language Validation Tests', () => {
       const errorKeys = ['error.network', 'error.unauthorized', 'error.not_found', 'error.server'];
       
       errorKeys.forEach(key => {
-        const enError = translate(key, {}, 'en');
-        const frError = translate(key, {}, 'fr');
+        const enError = translate(key, {} as Record<string, any>, 'en');
+        const frError = translate(key, {} as Record<string, any>, 'fr');
         
         // English error messages should be clear and professional
         expect(enError).toMatch(/^[A-Z]/); // Start with capital letter
@@ -448,8 +453,8 @@ describe('Language Validation Tests', () => {
       const validationKeys = ['validation.required', 'validation.email', 'validation.phone'];
       
       validationKeys.forEach(key => {
-        const enValidation = translate(key, {}, 'en');
-        const frValidation = translate(key, {}, 'fr');
+        const enValidation = translate(key, {} as Record<string, any>, 'en');
+        const frValidation = translate(key, {} as Record<string, any>, 'fr');
         
         // Validation messages should be helpful, not accusatory
         expect(enValidation).not.toMatch(/wrong|bad|invalid/i);
