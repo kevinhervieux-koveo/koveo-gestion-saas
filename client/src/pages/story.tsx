@@ -18,16 +18,32 @@ import {
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { FileText, Download } from 'lucide-react';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Story page component for Koveo Gestion.
  * Tells the story behind Koveo and our mission for Quebec property management.
+ * Now displays real company history from histoire.pdf when available.
  */
 export default function StoryPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated, logout } = useAuth();
+  const [showPdfSection, setShowPdfSection] = useState(false);
+
+  // Fetch company history from object storage
+  const { data: companyHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ['company-history'],
+    queryFn: async () => {
+      const response = await fetch('/api/company/history');
+      if (!response.ok) throw new Error('Failed to fetch company history');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const timeline = [
     {
@@ -172,6 +188,168 @@ export default function StoryPage() {
           </p>
         </div>
       </section>
+
+      {/* Company History from Object Storage */}
+      {companyHistory && (
+        <section className="container mx-auto px-4 py-12 mb-8">
+          <div className="max-w-4xl mx-auto">
+            {/* PDF Document Available */}
+            {companyHistory.found && companyHistory.fileInfo && (
+              <Card className="bg-blue-50 border-blue-200 mb-8" data-testid="histoire-pdf-card">
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <CardTitle className="text-xl text-blue-900">
+                        Document officiel d'histoire de Koveo
+                      </CardTitle>
+                      <CardDescription className="text-blue-700">
+                        {companyHistory.fileInfo.name} • {Math.round(companyHistory.fileInfo.size / 1024)} KB
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <p className="text-blue-800">
+                      {companyHistory.message || "Document d'histoire complet disponible en téléchargement"}
+                    </p>
+                    {companyHistory.fileInfo.downloadUrl && (
+                      <Button
+                        onClick={() => window.open(companyHistory.fileInfo.downloadUrl, '_blank')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="download-histoire-pdf"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Télécharger le PDF
+                      </Button>
+                    )}
+                  </div>
+                  {companyHistory.fileInfo.lastModified && (
+                    <p className="text-sm text-blue-600 mt-2">
+                      Dernière mise à jour : {new Date(companyHistory.fileInfo.lastModified).toLocaleDateString('fr-CA')}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Display structured content if available */}
+            {companyHistory.content && (
+              <div className="space-y-8" data-testid="company-history-content">
+                {companyHistory.content.title && (
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                      {companyHistory.content.title}
+                    </h2>
+                    {companyHistory.content.subtitle && (
+                      <p className="text-xl text-gray-600">
+                        {companyHistory.content.subtitle}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Display sections from the PDF content */}
+                {companyHistory.content.sections && companyHistory.content.sections.length > 0 && (
+                  <div className="grid gap-6">
+                    {companyHistory.content.sections.map((section: any, index: number) => (
+                      <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`history-section-${index}`}>
+                        <CardHeader>
+                          <div className="flex items-center space-x-4">
+                            {section.year && (
+                              <div className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full font-medium">
+                                {section.year}
+                              </div>
+                            )}
+                            <CardTitle>{section.title}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <CardDescription className="text-base leading-relaxed">
+                            {section.content}
+                          </CardDescription>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Display mission statement */}
+                {companyHistory.content.mission && (
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200" data-testid="company-mission">
+                    <CardHeader>
+                      <CardTitle className="text-blue-900 flex items-center">
+                        <Target className="mr-2 h-6 w-6" />
+                        Notre mission officielle
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-blue-800 text-lg leading-relaxed">
+                        {companyHistory.content.mission}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Display company values */}
+                {companyHistory.content.values && companyHistory.content.values.length > 0 && (
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                      Nos valeurs fondamentales
+                    </h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {companyHistory.content.values.map((value: string, index: number) => (
+                        <div 
+                          key={index}
+                          className="bg-white p-4 rounded-lg border border-gray-200 flex items-center space-x-3"
+                          data-testid={`company-value-${index}`}
+                        >
+                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                          <span className="text-gray-800">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Show if content is from fallback or real source */}
+                {!companyHistory.found && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">
+                      <em>Contenu de base affiché - histoire.pdf non trouvé dans le stockage</em>
+                    </p>
+                  </div>
+                )}
+
+                {companyHistory.found && !companyHistory.fileInfo && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-blue-600">
+                      <em>Contenu chargé depuis les documents d'entreprise</em>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Loading state */}
+      {historyLoading && (
+        <section className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-6"></div>
+              <div className="space-y-4">
+                <div className="h-32 bg-gray-200 rounded"></div>
+                <div className="h-32 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Mission Section */}
       <section className="container mx-auto px-4 py-16">

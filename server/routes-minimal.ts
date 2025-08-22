@@ -6,6 +6,7 @@ import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
+import { registerCompanyHistoryRoutes } from './api/company-history';
 import { registerContactRoutes } from './api/contacts';
 import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
@@ -207,6 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register document API routes
   try {
     registerDocumentRoutes(app);
+  registerCompanyHistoryRoutes(app);
     log('✅ Document routes registered');
   } catch (__error) {
     log(`❌ Document routes failed: ${__error}`, 'error');
