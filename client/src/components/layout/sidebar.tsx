@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import koveoLogo from '@/assets/koveo-logo.jpg';
-import { getFilteredNavigation, type NavigationSection } from '@/config/navigation';
+import { getFilteredNavigation, type NavigationSection, type NavigationItem } from '@/config/navigation';
 
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
 
@@ -66,6 +66,19 @@ export function Sidebar() {
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section.key);
+    
+    // Translation mapping for section names
+    const getTranslatedSectionName = (name: string) => {
+      const translations: Record<string, { fr: string; en: string }> = {
+        'Residents': { fr: 'Résidents', en: 'Residents' },
+        'Manager': { fr: 'Gestionnaire', en: 'Manager' },
+        'Admin': { fr: 'Administration', en: 'Admin' },
+        'Settings': { fr: 'Paramètres', en: 'Settings' },
+      };
+      
+      const translation = translations[name];
+      return translation ? translation[t.language] : name;
+    };
 
     return (
       <button
@@ -74,16 +87,45 @@ export function Sidebar() {
       >
         <div className='flex items-center space-x-3'>
           <SectionIcon className='w-5 h-5' />
-          <span>{section.name}</span>
+          <span>{getTranslatedSectionName(section.name)}</span>
         </div>
         {isExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
       </button>
     );
   };
 
-  const renderMenuItem = (item: unknown) => {
+  const renderMenuItem = (item: NavigationItem) => {
     const ItemIcon = item.icon;
     const isActive = location === item.href;
+    
+    // Translation mapping for navigation items
+    const getTranslatedName = (name: string) => {
+      const translations: Record<string, { fr: string; en: string }> = {
+        'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
+        'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
+        'My Demands': { fr: 'Mes demandes', en: 'My Demands' },
+        'Buildings': { fr: 'Bâtiments', en: 'Buildings' },
+        'Residences': { fr: 'Résidences', en: 'Residences' },
+        'Budget': { fr: 'Budget', en: 'Budget' },
+        'Bills': { fr: 'Factures', en: 'Bills' },
+        'Demands': { fr: 'Demandes', en: 'Demands' },
+        'User Management': { fr: 'Gestion des utilisateurs', en: 'User Management' },
+        'Organizations': { fr: 'Organisations', en: 'Organizations' },
+        'Documentation': { fr: 'Documentation', en: 'Documentation' },
+        'Pillars': { fr: 'Piliers', en: 'Pillars' },
+        'Roadmap': { fr: 'Feuille de route', en: 'Roadmap' },
+        'Quality Assurance': { fr: 'Assurance qualité', en: 'Quality Assurance' },
+        'Law 25 Compliance': { fr: 'Conformité Loi 25', en: 'Law 25 Compliance' },
+        'Suggestions': { fr: 'Suggestions', en: 'Suggestions' },
+        'RBAC Permissions': { fr: 'Permissions RBAC', en: 'RBAC Permissions' },
+        'Settings': { fr: 'Paramètres', en: 'Settings' },
+        'Bug Reports': { fr: 'Rapports de bogues', en: 'Bug Reports' },
+        'Idea Box': { fr: 'Boîte à idées', en: 'Idea Box' },
+      };
+      
+      const translation = translations[name];
+      return translation ? translation[t.language] : name;
+    };
 
     return (
       <Link key={item.name} href={item.href}>
@@ -96,7 +138,7 @@ export function Sidebar() {
           onClick={handleNavItemClick}
         >
           <ItemIcon className='w-4 h-4' />
-          <span>{item.name}</span>
+          <span>{getTranslatedName(item.name)}</span>
         </div>
       </Link>
     );
@@ -118,8 +160,8 @@ export function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (__error) {
-      console.error('Logout failed:', _error);
+    } catch (error) {
+      console.error('Logout failed:', error);
       // Fallback: still redirect to login page
       window.location.href = '/login';
     }
@@ -183,7 +225,7 @@ export function Sidebar() {
               className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
             >
               <LogOut className='w-5 h-5' />
-              <span>Logout</span>
+              <span>{t.language === 'fr' ? 'Déconnexion' : 'Logout'}</span>
             </button>
           </div>
         </nav>
