@@ -11,6 +11,7 @@ import { createServer } from 'http';
 describe('Deployment Health Checks', () => {
   describe('Health Check Endpoints', () => {
     let app: express.Application;
+    let server: any;
 
     beforeEach(() => {
       app = express();

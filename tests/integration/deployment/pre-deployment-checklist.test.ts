@@ -105,6 +105,9 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       }
 
       try {
+        // Skip database optimization during test
+        process.env.SKIP_DB_OPTIMIZATION = 'true';
+        
         const { db } = await import('../../../server/db');
         const result = await db.execute('SELECT 1 as test');
         

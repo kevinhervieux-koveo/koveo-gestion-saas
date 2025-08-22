@@ -269,44 +269,49 @@ let server: any;
 // Export server for testing
 export { server };
 
-try {
-  server = app.listen(
-    port,
-    '0.0.0.0', // Bind to all interfaces for deployment compatibility
-    () => {
-      log(`🚀 Server ready and health checks available on port ${port}`);
-      log(`🌐 Health check URLs:`);
-      log(`   - http://0.0.0.0:${port}/health`);
-      log(`   - http://0.0.0.0:${port}/healthz`);
-      log(`   - http://0.0.0.0:${port}/ready`);
-      
-      // Initialize everything else in background after server is listening
-      setTimeout(() => initializeApplication(), 100);
-    }
-  );
-
-  // Handle server errors gracefully without crashing in production
-  server.on('error', (error: unknown) => {
-    log(`Server error: ${(error as any)?.message || error}`, 'error');
-    if ((error as any)?.code === 'EADDRINUSE') {
-      log(`Port ${port} is already in use`, 'error');
-      // Don't exit in production to maintain uptime
-      if (process.env.NODE_ENV !== 'production') {
-        process.exit(1);
-      } else {
-        log('⚠️ Continuing in production despite port conflict', 'error');
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+  try {
+    server = app.listen(
+      port,
+      '0.0.0.0', // Bind to all interfaces for deployment compatibility
+      () => {
+        log(`🚀 Server ready and health checks available on port ${port}`);
+        log(`🌐 Health check URLs:`);
+        log(`   - http://0.0.0.0:${port}/health`);
+        log(`   - http://0.0.0.0:${port}/healthz`);
+        log(`   - http://0.0.0.0:${port}/ready`);
+        
+        // Initialize everything else in background after server is listening
+        setTimeout(() => initializeApplication(), 100);
       }
-    }
-  });
+    );
 
-} catch (__error) {
-  log(`Failed to start server: ${__error}`, 'error');
-  // Don't exit in production to maintain uptime
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
-  } else {
-    log('⚠️ Server startup failed in production, attempting recovery', 'error');
+    // Handle server errors gracefully without crashing in production
+    server.on('error', (error: unknown) => {
+      log(`Server error: ${(error as any)?.message || error}`, 'error');
+      if ((error as any)?.code === 'EADDRINUSE') {
+        log(`Port ${port} is already in use`, 'error');
+        // Don't exit in production to maintain uptime
+        if (process.env.NODE_ENV !== 'production') {
+          process.exit(1);
+        } else {
+          log('⚠️ Continuing in production despite port conflict', 'error');
+        }
+      }
+    });
+
+  } catch (__error) {
+    log(`Failed to start server: ${__error}`, 'error');
+    // Don't exit in production to maintain uptime
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    } else {
+      log('⚠️ Server startup failed in production, attempting recovery', 'error');
+    }
   }
+} else {
+  log('⚠️ Server startup skipped in test environment', 'info');
 }
 
 // Initialize application components after server starts

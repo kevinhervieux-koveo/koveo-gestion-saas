@@ -23,23 +23,26 @@ describe('CRITICAL: Deployment Validation Tests', () => {
       try {
         server = createServer(app);
         const startPromise = new Promise((resolve, reject) => {
-          server.listen(0, (error: any) => {
+          // Use port 0 for dynamic allocation to avoid conflicts
+          server.listen(0, '127.0.0.1', (error: any) => {
             if (error) reject(error);
             else resolve(server);
           });
           
-          // Timeout after 10 seconds
-          setTimeout(() => reject(new Error('Server startup timeout')), 10000);
+          // Timeout after 5 seconds (reduced from 10)
+          setTimeout(() => reject(new Error('Server startup timeout')), 5000);
         });
         
         await startPromise;
         expect(server.listening).toBe(true);
       } finally {
-        if (server) {
-          server.close();
+        if (server && server.listening) {
+          await new Promise((resolve) => {
+            server.close(resolve);
+          });
         }
       }
-    }, 15000);
+    }, 10000);
 
     test('should register routes without errors', async () => {
       const app = express();

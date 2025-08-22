@@ -65,7 +65,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   constructor() {
     // Skip optimizations in test environment
-    if (process.env.TEST_ENV !== 'integration' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
+    if (process.env.TEST_ENV !== 'integration' && 
+        !process.env.DISABLE_DB_OPTIMIZATIONS && 
+        process.env.NODE_ENV !== 'test' && 
+        !process.env.JEST_WORKER_ID) {
       this.initializeOptimizations();
     }
   }
@@ -74,11 +77,17 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Initializes database optimizations.
    */
   private async initializeOptimizations(): Promise<void> {
+    // Skip database optimization during tests
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID || process.env.SKIP_DB_OPTIMIZATION) {
+      console.log('⚠️ Database optimizations skipped in test environment');
+      return;
+    }
+    
     try {
       await QueryOptimizer.applyCoreOptimizations();
       console.log('✅ Database optimizations applied');
     } catch (___error) {
-      console.warn('⚠️ Failed to apply database optimizations:', _error);
+      console.warn('⚠️ Failed to apply database optimizations:', ___error);
     }
   }
 

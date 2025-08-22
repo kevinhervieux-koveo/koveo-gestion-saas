@@ -104,7 +104,37 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
-  // Generic error handler
+  // Health check endpoints
+  http.get('/health', () => {
+    return HttpResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
+  }),
+
+  http.get('/healthz', () => {
+    return HttpResponse.text('OK');
+  }),
+
+  http.get('/ready', () => {
+    return HttpResponse.json({ status: 'ready' });
+  }),
+
+  // Root and dashboard routes
+  http.get('/', () => {
+    return HttpResponse.html(`<!DOCTYPE html>
+<html>
+<head><title>Koveo Gestion</title></head>
+<body><div id="root"><h1>Koveo Gestion Test</h1></div></body>
+</html>`);
+  }),
+
+  http.get('/dashboard', () => {
+    return HttpResponse.html(`<!DOCTYPE html>
+<html>
+<head><title>Koveo Gestion - Dashboard</title></head>
+<body><div id="root"><h1>Dashboard</h1></div></body>
+</html>`);
+  }),
+
+  // Generic error handler (keep as last)
   http.get('*', (req) => {
     console.warn(`Unhandled ${req.request.method} ${req.request.url}`);
     return HttpResponse.json({ message: 'Not found' }, { status: 404 });
