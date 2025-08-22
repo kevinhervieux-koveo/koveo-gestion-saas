@@ -52,16 +52,28 @@ export default function /**
             {t('comprehensivePropertyManagement')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <TrialRequestForm>
+            {isAuthenticated ? (
               <Button 
                 size="lg" 
                 className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
-                data-testid="button-start-trial"
+                onClick={() => setLocation('/dashboard')}
+                data-testid="button-go-to-dashboard"
               >
-                {t('startManagingToday')}
+                {t('goToDashboard') || 'Go to Dashboard'}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </TrialRequestForm>
+            ) : (
+              <TrialRequestForm>
+                <Button 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
+                  data-testid="button-start-trial"
+                >
+                  {t('startManagingToday')}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </TrialRequestForm>
+            )}
           </div>
         </div>
       </section>
