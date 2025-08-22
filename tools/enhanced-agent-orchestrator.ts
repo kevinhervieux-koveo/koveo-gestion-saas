@@ -136,7 +136,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           const data = JSON.parse(message.toString());
           this.handleWebSocketMessage(data, ws);
         } catch (__error) {
-          console.error('WebSocket message parse error:', error);
+          console.error('WebSocket message parse error:', __error);
         }
       });
     });
@@ -210,7 +210,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         );
       }, 100);
     } catch (__error) {
-      console.warn('Performance tracking error:', error);
+      console.warn('Performance tracking error:', __error);
     }
   }
 
@@ -259,7 +259,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       } catch (__error) {
         const failureResult: TaskResult = {
           success: false,
-          message: error instanceof Error ? error.message : 'Unknown error',
+          message: __error instanceof Error ? __error.message : 'Unknown error',
           duration: 0
         };
         
@@ -282,9 +282,15 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     const startTime = Date.now();
     
     // Add stage tracking
-    const stage = {
+    const stage: {
+      stage: string;
+      status: 'pending' | 'active' | 'completed' | 'failed';
+      startTime: Date;
+      endTime?: Date;
+      metrics?: any;
+    } = {
       stage: task.task,
-      status: 'active' as const,
+      status: 'active',
       startTime: new Date()
     };
     
@@ -317,7 +323,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       stage.status = 'failed';
       stage.endTime = new Date();
       
-      throw error;
+      throw __error;
     }
   }
 
@@ -345,14 +351,14 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       
       process.on('close', (code) => {
         // Parse ESLint output for metrics
-        const errorMatches = output.match(/(\d+) error/g) || [];
-        const warningMatches = output.match(/(\d+) warning/g) || [];
+        const errorMatches: string[] = output.match(/(\d+) error/g) || [];
+        const warningMatches: string[] = output.match(/(\d+) warning/g) || [];
         
-        const errors = errorMatches.reduce((sum, match) => {
+        const errors = errorMatches.reduce((sum: number, match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
         
-        const warnings = warningMatches.reduce((sum, match) => {
+        const warnings = warningMatches.reduce((sum: number, match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
         
@@ -367,7 +373,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           metrics: {
             linesChanged: 0,
             testsRun: 0,
-            issuesFixed: Math.max(0, this.currentSession.lintResults.fixedIssues - errors),
+            issuesFixed: Math.max(0, (this.currentSession.lintResults.fixedIssues || 0) - (errors || 0)),
             performanceImpact: 0
           }
         });
@@ -489,7 +495,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   private async executeGenericTask(task: unknown): Promise<TaskResult> {
     return new Promise((resolve) => {
       try {
-        const output = execSync(task.task, {
+        const output = execSync((task as any).task, {
           cwd: this.projectRoot,
           encoding: 'utf-8',
           timeout: 30000 // 30 seconds timeout
@@ -504,7 +510,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       } catch (__error) {
         resolve({
           success: false,
-          message: error instanceof Error ? error.message : 'Command failed',
+          message: __error instanceof Error ? __error.message : 'Command failed',
           duration: 0
         });
       }
@@ -574,7 +580,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       }
       return { exists: false };
     } catch (__error) {
-      return { exists: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return { exists: false, error: __error instanceof Error ? __error.message : 'Unknown error' };
     }
   }
 
@@ -591,7 +597,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           : null
       };
     } catch (__error) {
-      return { installed: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return { installed: false, error: __error instanceof Error ? __error.message : 'Unknown error' };
     }
   }
 

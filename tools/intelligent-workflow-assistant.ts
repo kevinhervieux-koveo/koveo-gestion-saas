@@ -316,7 +316,7 @@ export class IntelligentWorkflowAssistant {
               });
             } catch (_error: unknown) {
               success = false;
-              output = error.message;
+              output = _error instanceof Error ? _error.message : 'Command failed';
             }
             break;
 
@@ -329,7 +329,7 @@ export class IntelligentWorkflowAssistant {
               });
             } catch (_error: unknown) {
               success = false;
-              output = error.stdout || error.message;
+              output = (_error as any).stdout || (_error instanceof Error ? _error.message : 'Command failed');
             }
             break;
 
@@ -360,7 +360,7 @@ export class IntelligentWorkflowAssistant {
         results.push({
           action: action.description,
           success: false,
-          output: error.message
+          output: _error instanceof Error ? _error.message : 'Action failed'
         });
         overallSuccess = false;
       }
@@ -383,11 +383,11 @@ export class IntelligentWorkflowAssistant {
    * @param payload
    */
   private async performAnalysis(payload: unknown): Promise<string> {
-    if (payload.target) {
+    if (payload && typeof payload === 'object' && 'target' in payload && typeof (payload as any).target === 'string') {
       // Analyze target directory/file
-      const targetPath = path.join(this.projectRoot, payload.target);
+      const targetPath = path.join(this.projectRoot, (payload as any).target);
       if (!fs.existsSync(targetPath)) {
-        return `Target not found: ${payload.target}`;
+        return `Target not found: ${(payload as any).target}`;
       }
 
       const stats = fs.statSync(targetPath);
@@ -408,10 +408,10 @@ export class IntelligentWorkflowAssistant {
       }
     }
 
-    if (payload.tools) {
+    if (payload && typeof payload === 'object' && 'tools' in payload && Array.isArray((payload as any).tools)) {
       // Run analysis tools
       const results: string[] = [];
-      for (const tool of payload.tools) {
+      for (const tool of (payload as any).tools) {
         try {
           const output = execSync(`npx ${tool}`, {
             cwd: this.projectRoot,
@@ -420,7 +420,7 @@ export class IntelligentWorkflowAssistant {
           });
           results.push(`${tool}: Success`);
         } catch (_error: unknown) {
-          results.push(`${tool}: ${error.message.substring(0, 100)}`);
+          results.push(`${tool}: ${_error instanceof Error ? _error.message.substring(0, 100) : 'Tool failed'}`);
         }
       }
       return results.join('; ');
@@ -434,13 +434,13 @@ export class IntelligentWorkflowAssistant {
    * @param payload
    */
   private async performFileOperation(payload: unknown): Promise<string> {
-    if (payload.pattern) {
-      const files = glob.sync(payload.pattern, {
+    if (payload && typeof payload === 'object' && 'pattern' in payload && typeof (payload as any).pattern === 'string') {
+      const files = glob.sync((payload as any).pattern, {
         cwd: this.projectRoot,
         ignore: ['node_modules/**', 'dist/**']
       });
       
-      return `Found ${files.length} files matching pattern: ${payload.pattern}`;
+      return `Found ${files.length} files matching pattern: ${(payload as any).pattern}`;
     }
 
     return 'File operation completed';
@@ -481,7 +481,7 @@ export class IntelligentWorkflowAssistant {
         stdio: 'pipe'
       });
     } catch (_error: unknown) {
-      const errors = (error.stdout || '').match(/error TS\d+:/g) || [];
+      const errors = ((_error as any).stdout || '').match(/error TS\d+:/g) || [];
       if (errors.length > 0) {
         insights.push({
           category: 'quality',
