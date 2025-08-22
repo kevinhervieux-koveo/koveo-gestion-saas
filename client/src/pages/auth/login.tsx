@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Shield, Building } from 'lucide-react';
+import { AlertCircle, Shield, Building, Users, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import koveoLogo from '@/assets/koveo-logo.jpg';
@@ -53,6 +54,29 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Demo users available for testing
+  const demoUsers = [
+    {
+      email: 'demo.manager.open@example.com',
+      role: 'manager',
+      displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
+      description: language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management'
+    },
+    {
+      email: 'demo.tenant.open@example.com', 
+      role: 'tenant',
+      displayName: language === 'fr' ? 'Locataire' : 'Tenant',
+      description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access'
+    },
+    {
+      email: 'demo.resident.open@example.com',
+      role: 'resident', 
+      displayName: language === 'fr' ? 'Résident' : 'Resident',
+      description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access'
+    }
+  ];
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -97,6 +121,35 @@ export default function LoginPage() {
     handleLogin(data);
   };
 
+  const handleDemoLogin = async (demoUserEmail: string) => {
+    try {
+      setIsLoggingIn(true);
+      setLoginError('');
+      
+      const response = await login(demoUserEmail, 'Demo@123456');
+      
+      toast({
+        title: language === 'fr' ? 'Demo Mode Activé' : 'Demo Mode Activated',
+        description: language === 'fr' 
+          ? 'Vous accédez maintenant à la démonstration en lecture seule'
+          : 'You are now accessing the read-only demo',
+      });
+    } catch (error: unknown) {
+      const errorMessage = error.message || 'Demo login failed';
+      setLoginError(errorMessage);
+      
+      toast({
+        title: language === 'fr' ? 'Erreur Demo' : 'Demo Error',
+        description: language === 'fr' 
+          ? 'Impossible d\'accéder à la démonstration'
+          : 'Unable to access demo',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
@@ -132,8 +185,56 @@ export default function LoginPage() {
               </Alert>
             )}
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Demo Mode Toggle */}
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <div className="flex items-center space-x-2">
+                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  {language === 'fr' ? 'Mode Démonstration' : 'Demo Mode'}
+                </span>
+              </div>
+              <Switch
+                checked={isDemoMode}
+                onCheckedChange={setIsDemoMode}
+                data-testid="toggle-demo-mode"
+              />
+            </div>
+
+            {isDemoMode ? (
+              <div className="space-y-3">
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'fr' 
+                    ? 'Choisissez un rôle pour tester la plateforme :' 
+                    : 'Choose a role to test the platform:'}
+                </div>
+                {demoUsers.map((user) => (
+                  <Card 
+                    key={user.email} 
+                    className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200 hover:border-blue-300"
+                    onClick={() => handleDemoLogin(user.email)}
+                    data-testid={`demo-login-${user.role}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-sm">{user.displayName}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{user.description}</p>
+                        </div>
+                        <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <div className="text-xs text-center text-amber-600 dark:text-amber-400 px-2">
+                  <AlertCircle className="w-3 h-3 inline mr-1" />
+                  {language === 'fr' 
+                    ? 'Mode lecture seule - aucune modification possible' 
+                    : 'Read-only mode - no modifications allowed'}
+                </div>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -197,8 +298,9 @@ export default function LoginPage() {
                     </Link>
                   </Button>
                 </div>
-              </form>
-            </Form>
+                </form>
+              </Form>
+            )}
           </CardContent>
         </Card>
 
