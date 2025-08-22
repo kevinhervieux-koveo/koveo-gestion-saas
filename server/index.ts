@@ -24,11 +24,24 @@ app.use(express.urlencoded({ extended: false }));
 // Export app for testing
 export { app };
 
-// FAST health check endpoint for deployment platform - responds immediately
-app.get('/', (req, res) => {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Content-Type', 'text/plain');
-  res.status(200).send('OK');
+// Health check detection for deployment platform - responds fast for health checks
+app.get('/', (req, res, next) => {
+  // Check if this is a health check request (common health check patterns)
+  const userAgent = req.get('User-Agent') || '';
+  const isHealthCheck = userAgent.includes('GoogleHC') || 
+                       userAgent.includes('HealthCheck') ||
+                       userAgent.includes('uptime') ||
+                       req.get('X-Health-Check') === 'true';
+  
+  if (isHealthCheck) {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200).send('OK');
+    return;
+  }
+  
+  // For regular users, continue to static file serving
+  next();
 });
 
 // Dedicated health check endpoint for detailed monitoring
@@ -556,11 +569,6 @@ async function initializeApplication() {
         app.get('*', (_req: Request, res: Response, next) => {
           // Skip API routes - let them fall through to API handlers
           if (_req.path.startsWith('/api')) {
-            return next();
-          }
-          
-          // Skip the root health check
-          if (_req.path === '/') {
             return next();
           }
           
