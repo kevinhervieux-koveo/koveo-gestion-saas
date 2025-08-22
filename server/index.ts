@@ -167,6 +167,59 @@ app.use((req, res, next) => {
   next();
 });
 
+// Setup static file serving IMMEDIATELY for production
+const isDevelopment = process.env.NODE_ENV === 'development';
+if (!isDevelopment) {
+  log('🏗️ Setting up production static file serving immediately');
+  const distPath = path.resolve(__dirname, 'public');
+  
+  log(`📁 Looking for build files in: ${distPath}`);
+  log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
+  
+  if (fs.existsSync(distPath)) {
+    const indexPath = path.resolve(distPath, 'index.html');
+    log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
+    
+    // Serve static files with proper cache headers
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      }
+    }));
+    
+    log('✅ Static files middleware registered immediately');
+    
+    // Add SPA fallback routing immediately after static files
+    app.get('*', (_req: Request, res: Response, next) => {
+      // Skip API routes - let them fall through to API handlers
+      if (_req.path.startsWith('/api')) {
+        return next();
+      }
+      
+      const indexPath = path.resolve(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send(`Application not found. Index path: ${indexPath}`);
+      }
+    });
+    
+    log('✅ SPA fallback routing registered immediately');
+  } else {
+    log(`⚠️ Build directory not found: ${distPath}`, 'error');
+    
+    // List what's actually in the directory
+    const parentDir = path.dirname(distPath);
+    if (fs.existsSync(parentDir)) {
+      const contents = fs.readdirSync(parentDir);
+      log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
+    }
+  }
+}
+
 // Features API route - Placed here to ensure it takes precedence over Vite middleware
 app.get('/api/features', async (req, res) => {
   try {
@@ -520,50 +573,7 @@ async function initializeApplication() {
         }
       }
     } else {
-      log('🏗️ Running in production mode, serving static files');
-      // Use custom static file serving to avoid the routing parameter issue
-      const distPath = path.resolve(__dirname, 'public');
-      
-      log(`📁 Looking for build files in: ${distPath}`);
-      log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
-      
-      if (fs.existsSync(distPath)) {
-        const indexPath = path.resolve(distPath, 'index.html');
-        log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
-        
-        // Serve static files with proper cache headers
-        app.use(express.static(distPath, {
-          maxAge: '1d',
-          setHeaders: (res, path) => {
-            if (path.endsWith('.html')) {
-              res.setHeader('Cache-Control', 'no-cache');
-            }
-          }
-        }));
-        
-        // Handle SPA routing by serving index.html for non-API routes
-        app.get('*', (_req: Request, res: Response) => {
-          // Skip API routes
-          if (_req.path.startsWith('/api')) {
-            return res.status(404).json({ error: 'API route not found' });
-          }
-          
-          if (fs.existsSync(indexPath)) {
-            res.sendFile(indexPath);
-          } else {
-            res.status(404).send(`Application not found. Index path: ${indexPath}`);
-          }
-        });
-      } else {
-        log(`⚠️ Build directory not found: ${distPath}`, 'error');
-        
-        // List what's actually in the directory
-        const parentDir = path.dirname(distPath);
-        if (fs.existsSync(parentDir)) {
-          const contents = fs.readdirSync(parentDir);
-          log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
-        }
-      }
+      log('🏗️ Production static serving already configured at startup');
     }
 
     // Setup error handling
