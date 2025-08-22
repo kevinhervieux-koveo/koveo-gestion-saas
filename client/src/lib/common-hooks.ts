@@ -9,8 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 
 /**
  * Common loading state hook.
- * @param initialState - Initial loading state
- * @returns Loading state and setter
+ * @param initialState - Initial loading state.
+ * @returns Loading state and setter.
  */
 export function useLoadingState(initialState = false) {
   const [isLoading, setIsLoading] = useState(initialState);
@@ -34,8 +34,12 @@ export function useLoadingState(initialState = false) {
 
 /**
  * Common delete mutation hook.
- * @param config - Configuration for the delete mutation
- * @returns Delete mutation
+ * @param config - Configuration for the delete mutation.
+ * @param config.deleteFn
+ * @param config.successMessage
+ * @param config.errorMessage
+ * @param config.queryKeysToInvalidate
+ * @returns Delete mutation.
  */
 export function useDeleteMutation({
   deleteFn,
@@ -75,8 +79,13 @@ export function useDeleteMutation({
 
 /**
  * Common create/update mutation hook.
- * @param config - Configuration for the mutation
- * @returns Create/update mutation
+ * @param config - Configuration for the mutation.
+ * @param config.mutationFn
+ * @param config.successMessage
+ * @param config.errorMessage
+ * @param config.queryKeysToInvalidate
+ * @param config.onSuccessCallback
+ * @returns Create/update mutation.
  */
 export function useCreateUpdateMutation({
   mutationFn,
@@ -119,8 +128,8 @@ export function useCreateUpdateMutation({
 
 /**
  * Common form state hook.
- * @param initialOpen - Initial dialog/modal open state
- * @returns Form state management
+ * @param initialOpen - Initial dialog/modal open state.
+ * @returns Form state management.
  */
 export function useFormState(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
@@ -148,9 +157,9 @@ export function useFormState(initialOpen = false) {
 
 /**
  * Common search and filter state hook.
- * @param initialSearch - Initial search term
- * @param initialFilters - Initial filters
- * @returns Search and filter state management
+ * @param initialSearch - Initial search term.
+ * @param initialFilters - Initial filters.
+ * @returns Search and filter state management.
  */
 export function useSearchFilter<T = Record<string, unknown>>(
   initialSearch = '',

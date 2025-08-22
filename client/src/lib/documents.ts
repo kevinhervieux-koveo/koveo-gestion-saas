@@ -55,8 +55,8 @@ export const GENERAL_DOCUMENT_CATEGORIES = [
 
 /**
  * Utility function to convert raw object storage URLs to server routes.
- * @param fileUrl - The file URL to convert
- * @returns The displayable file URL
+ * @param fileUrl - The file URL to convert.
+ * @returns The displayable file URL.
  */
 export function getDisplayableFileUrl(fileUrl: string): string {
   if (!fileUrl) {
@@ -94,8 +94,8 @@ export function getDisplayableFileUrl(fileUrl: string): string {
 export const documentApi = {
   /**
    * Create a new document.
-   * @param data - Document data to create
-   * @returns Promise with the created document
+   * @param data - Document data to create.
+   * @returns Promise with the created document.
    */
   create: (data: Record<string, unknown>) => {
     return apiRequest('POST', '/api/documents', data);
@@ -103,9 +103,9 @@ export const documentApi = {
 
   /**
    * Update an existing document.
-   * @param id - Document ID to update
-   * @param data - Updated document data
-   * @returns Promise with the updated document
+   * @param id - Document ID to update.
+   * @param data - Updated document data.
+   * @returns Promise with the updated document.
    */
   update: (id: string, data: Record<string, unknown>) => {
     return apiRequest('PUT', `/api/documents/${id}`, data);
@@ -113,8 +113,8 @@ export const documentApi = {
 
   /**
    * Delete a document.
-   * @param id - Document ID to delete
-   * @returns Promise with deletion confirmation
+   * @param id - Document ID to delete.
+   * @returns Promise with deletion confirmation.
    */
   delete: (id: string) => {
     return apiRequest('DELETE', `/api/documents/${id}`);
@@ -122,9 +122,9 @@ export const documentApi = {
 
   /**
    * Upload a file for a document.
-   * @param id - Document ID
-   * @param fileData - File data to upload
-   * @returns Promise with upload result
+   * @param id - Document ID.
+   * @param fileData - File data to upload.
+   * @returns Promise with upload result.
    */
   upload: (id: string, fileData: FormData) => {
     return apiRequest('POST', `/api/documents/${id}/upload`, fileData);
@@ -133,10 +133,10 @@ export const documentApi = {
 
 /**
  * Common upload handler factory.
- * @param documentId - The document ID
- * @param onSuccess - Success callback
- * @param onError - Error callback
- * @returns Upload handler function
+ * @param documentId - The document ID.
+ * @param onSuccess - Success callback.
+ * @param onError - Error callback.
+ * @returns Upload handler function.
  */
 export function createUploadHandler(
   documentId: string,
@@ -159,9 +159,9 @@ export function createUploadHandler(
 
 /**
  * Get category label by value.
- * @param categories - Array of category objects
- * @param value - Category value to find
- * @returns Category label or the original value
+ * @param categories - Array of category objects.
+ * @param value - Category value to find.
+ * @returns Category label or the original value.
  */
 export function getCategoryLabel(
   categories: readonly { value: string; label: string }[],

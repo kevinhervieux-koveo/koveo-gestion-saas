@@ -9,6 +9,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface FeatureValidation {
   feature: string;
   hasImplementation: boolean;
@@ -61,8 +64,8 @@ async function validateFeatureCompleteness() {
 
 /**
  * Validate a single feature.
- * @param featureName - Name of the feature to validate
- * @returns Feature validation result
+ * @param featureName - Name of the feature to validate.
+ * @returns Feature validation result.
  */
 async function validateSingleFeature(featureName: string): Promise<FeatureValidation> {
   const searchTerms = getFeatureSearchTerms(featureName);
@@ -76,10 +79,10 @@ async function validateSingleFeature(featureName: string): Promise<FeatureValida
   const completeness = (components.filter(Boolean).length / components.length) * 100;
   
   const missingComponents: string[] = [];
-  if (!hasImplementation) missingComponents.push('Implementation');
-  if (!hasTests) missingComponents.push('Tests');
-  if (!hasDocumentation) missingComponents.push('Documentation');
-  if (!hasScripts) missingComponents.push('Scripts');
+  if (!hasImplementation) {missingComponents.push('Implementation');}
+  if (!hasTests) {missingComponents.push('Tests');}
+  if (!hasDocumentation) {missingComponents.push('Documentation');}
+  if (!hasScripts) {missingComponents.push('Scripts');}
   
   return {
     feature: featureName,
@@ -94,8 +97,8 @@ async function validateSingleFeature(featureName: string): Promise<FeatureValida
 
 /**
  * Get search terms for a feature.
- * @param featureName - Feature name
- * @returns Array of search terms
+ * @param featureName - Feature name.
+ * @returns Array of search terms.
  */
 function getFeatureSearchTerms(featureName: string): string[] {
   const termMap: Record<string, string[]> = {
@@ -118,8 +121,8 @@ function getFeatureSearchTerms(featureName: string): string[] {
 
 /**
  * Check if feature has implementation files.
- * @param searchTerms - Terms to search for
- * @returns True if implementation exists
+ * @param searchTerms - Terms to search for.
+ * @returns True if implementation exists.
  */
 async function checkImplementation(searchTerms: string[]): Promise<boolean> {
   for (const term of searchTerms) {
@@ -139,8 +142,8 @@ async function checkImplementation(searchTerms: string[]): Promise<boolean> {
 
 /**
  * Check if feature has test files.
- * @param searchTerms - Terms to search for
- * @returns True if tests exist
+ * @param searchTerms - Terms to search for.
+ * @returns True if tests exist.
  */
 async function checkTests(searchTerms: string[]): Promise<boolean> {
   for (const term of searchTerms) {
@@ -161,8 +164,8 @@ async function checkTests(searchTerms: string[]): Promise<boolean> {
 
 /**
  * Check if feature has documentation.
- * @param searchTerms - Terms to search for
- * @returns True if documentation exists
+ * @param searchTerms - Terms to search for.
+ * @returns True if documentation exists.
  */
 async function checkDocumentation(searchTerms: string[]): Promise<boolean> {
   for (const term of searchTerms) {
@@ -193,8 +196,8 @@ async function checkDocumentation(searchTerms: string[]): Promise<boolean> {
 
 /**
  * Check if feature has supporting scripts.
- * @param searchTerms - Terms to search for
- * @returns True if scripts exist
+ * @param searchTerms - Terms to search for.
+ * @returns True if scripts exist.
  */
 async function checkScripts(searchTerms: string[]): Promise<boolean> {
   try {
@@ -218,8 +221,8 @@ async function checkScripts(searchTerms: string[]): Promise<boolean> {
 
 /**
  * Find files matching patterns.
- * @param patterns - File patterns to search
- * @returns Array of matching files
+ * @param patterns - File patterns to search.
+ * @returns Array of matching files.
  */
 async function findFiles(patterns: string[]): Promise<string[]> {
   const allFiles: string[] = [];
@@ -256,7 +259,7 @@ async function findFiles(patterns: string[]): Promise<string[]> {
 
 /**
  * Generate feature validation report.
- * @param validations - Feature validation results
+ * @param validations - Feature validation results.
  */
 async function generateFeatureValidationReport(validations: FeatureValidation[]) {
   const reportPath = path.join('reports', 'feature-completeness-report.md');
@@ -344,8 +347,8 @@ ${completeFeatures.map(feature => `- ✅ **${feature.feature}**: Complete implem
 
 /**
  * Generate recommendation for incomplete feature.
- * @param feature - Feature validation result
- * @returns Recommendation string
+ * @param feature - Feature validation result.
+ * @returns Recommendation string.
  */
 function generateRecommendation(feature: FeatureValidation): string {
   const missing = feature.missingComponents;

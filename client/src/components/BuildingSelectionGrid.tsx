@@ -6,8 +6,8 @@ import type { Building } from '@shared/schema';
 
 /**
  * Building selection grid component.
- * @param root0 - Component props
- * @param root0.buildings - Array of buildings to display
+ * @param root0 - Component props.
+ * @param root0.buildings - Array of buildings to display.
  * @param root0.onBuildingSelect - Callback when building is selected.
  * @returns Building selection grid JSX.
  */
@@ -46,8 +46,8 @@ export function BuildingSelectionGrid({
 
 /**
  * Individual building card component.
- * @param root0 - Component props
- * @param root0.building - Building data to display
+ * @param root0 - Component props.
+ * @param root0.building - Building data to display.
  * @param root0.onSelect - Callback when card is selected.
  * @returns Building card JSX.
  */

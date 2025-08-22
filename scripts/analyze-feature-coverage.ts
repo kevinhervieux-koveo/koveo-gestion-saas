@@ -9,6 +9,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface FeatureAnalysis {
   feature: string;
   files: string[];
@@ -53,7 +56,7 @@ async function analyzeFeatureCoverage() {
 
 /**
  * Analyze document management feature coverage.
- * @returns Feature analysis for document management
+ * @returns Feature analysis for document management.
  */
 async function analyzeDocumentManagement(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/documents/**', '**/Documents.tsx', '**/document*']);
@@ -76,7 +79,7 @@ async function analyzeDocumentManagement(): Promise<FeatureAnalysis> {
 
 /**
  * Analyze user management feature coverage.
- * @returns Feature analysis for user management
+ * @returns Feature analysis for user management.
  */
 async function analyzeUserManagement(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/user*', '**/invitation*', '**/auth*']);
@@ -99,7 +102,7 @@ async function analyzeUserManagement(): Promise<FeatureAnalysis> {
 
 /**
  * Analyze building management feature coverage.
- * @returns Feature analysis for building management
+ * @returns Feature analysis for building management.
  */
 async function analyzeBuildingManagement(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/building*', '**/residence*', '**/property*']);
@@ -122,7 +125,7 @@ async function analyzeBuildingManagement(): Promise<FeatureAnalysis> {
 
 /**
  * Analyze SSL management feature coverage.
- * @returns Feature analysis for SSL management
+ * @returns Feature analysis for SSL management.
  */
 async function analyzeSSLManagement(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/ssl*', '**/certificate*']);
@@ -145,8 +148,8 @@ async function analyzeSSLManagement(): Promise<FeatureAnalysis> {
 
 /**
  * Find files matching patterns.
- * @param patterns - Glob patterns to search
- * @returns Array of matching files
+ * @param patterns - Glob patterns to search.
+ * @returns Array of matching files.
  */
 async function findFiles(patterns: string[]): Promise<string[]> {
   const allFiles: string[] = [];
@@ -187,8 +190,8 @@ async function findFiles(patterns: string[]): Promise<string[]> {
 
 /**
  * Find scripts containing keywords.
- * @param keywords - Keywords to search for in script names
- * @returns Array of matching scripts
+ * @param keywords - Keywords to search for in script names.
+ * @returns Array of matching scripts.
  */
 async function findScripts(keywords: string[]): Promise<string[]> {
   try {
@@ -204,6 +207,9 @@ async function findScripts(keywords: string[]): Promise<string[]> {
 }
 
 // Add more feature analysis functions...
+/**
+ *
+ */
 async function analyzeRBAC(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/rbac*', '**/permission*', '**/role*']);
   const tests = await findFiles(['**/rbac*.test.*', '**/permission*.test.*']);
@@ -223,6 +229,9 @@ async function analyzeRBAC(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeBillingSystem(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/bill*', '**/payment*', '**/budget*']);
   const tests = await findFiles(['**/bill*.test.*', '**/budget*.test.*']);
@@ -242,6 +251,9 @@ async function analyzeBillingSystem(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeMaintenanceRequests(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/maintenance*', '**/demand*']);
   const tests = await findFiles(['**/maintenance*.test.*', '**/demand*.test.*']);
@@ -261,6 +273,9 @@ async function analyzeMaintenanceRequests(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeNotificationSystem(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/notification*', '**/email*']);
   const tests = await findFiles(['**/notification*.test.*']);
@@ -280,6 +295,9 @@ async function analyzeNotificationSystem(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeAIIntegration(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/ai-*', '**/llm*', '**/agent*']);
   const tests = await findFiles(['**/ai*.test.*']);
@@ -299,6 +317,9 @@ async function analyzeAIIntegration(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeMultiLanguage(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/i18n*', '**/language*', '**/locale*']);
   const tests = await findFiles(['**/i18n*.test.*', '**/language*.test.*']);
@@ -318,6 +339,9 @@ async function analyzeMultiLanguage(): Promise<FeatureAnalysis> {
   };
 }
 
+/**
+ *
+ */
 async function analyzeSecurityFeatures(): Promise<FeatureAnalysis> {
   const files = await findFiles(['**/security*', '**/law25*']);
   const tests = await findFiles(['**/security*.test.*', '**/law25*.test.*']);
@@ -339,7 +363,7 @@ async function analyzeSecurityFeatures(): Promise<FeatureAnalysis> {
 
 /**
  * Generate feature coverage report.
- * @param features - Array of feature analyses
+ * @param features - Array of feature analyses.
  */
 async function generateFeatureCoverageReport(features: FeatureAnalysis[]) {
   const reportPath = path.join('reports', 'feature-coverage-report.md');

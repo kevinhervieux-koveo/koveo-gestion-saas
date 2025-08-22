@@ -72,16 +72,16 @@ export class MetricEffectivenessTracker {
 
   /**
    * Records the effectiveness of a quality metric measurement.
-   * @param data - The metric effectiveness data
-   * @param data.metric - The name of the metric being tracked
-   * @param data.calculatedValue - The calculated value of the metric
-   * @param data.realIssuesFound - Number of real issues found
-   * @param data.falsePositives - Number of false positive issues
-   * @param data.missedIssues - Number of issues that were missed
-   * @param data.projectPhase - Current phase of the project
-   * @param data.issueDetails - Additional details about the issues
-   * @param data.issueDetails.criticalIssues - Number of critical issues
-   * @param data.issueDetails.moderateIssues - Number of moderate issues
+   * @param data - The metric effectiveness data.
+   * @param data.metric - The name of the metric being tracked.
+   * @param data.calculatedValue - The calculated value of the metric.
+   * @param data.realIssuesFound - Number of real issues found.
+   * @param data.falsePositives - Number of false positive issues.
+   * @param data.missedIssues - Number of issues that were missed.
+   * @param data.projectPhase - Current phase of the project.
+   * @param data.issueDetails - Additional details about the issues.
+   * @param data.issueDetails.criticalIssues - Number of critical issues.
+   * @param data.issueDetails.moderateIssues - Number of moderate issues.
    * @param data.issueDetails.minorIssues - Number of minor issues
    * @param data.issueDetails.description - Description of the issues
    */
@@ -112,8 +112,8 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets effectiveness statistics for a specific metric.
-   * @param metric - The metric name to analyze
-   * @returns Effectiveness result or null if no data available
+   * @param metric - The metric name to analyze.
+   * @returns Effectiveness result or null if no data available.
    */
   static getMetricEffectiveness(metric: string): EffectivenessResult | null {
     const metricData = this.measurements.filter(m => m.metric === metric);
@@ -156,9 +156,9 @@ export class MetricEffectivenessTracker {
 
   /**
    * Validates whether a metric is performing effectively.
-   * @param metric - The metric name to validate
-   * @param threshold - The accuracy threshold percentage (default 80)
-   * @returns Validation result with status and recommendations
+   * @param metric - The metric name to validate.
+   * @param threshold - The accuracy threshold percentage (default 80).
+   * @returns Validation result with status and recommendations.
    */
   static validateMetricQuality(metric: string, threshold: number = 80): ValidationResult {
     const effectiveness = this.getMetricEffectiveness(metric);
@@ -203,9 +203,9 @@ export class MetricEffectivenessTracker {
 
   /**
    * Generates improvement suggestions for a metric.
-   * @param metric - The metric name
-   * @param currentAccuracy - The current accuracy percentage
-   * @returns Improvement suggestion with priority and recommendations
+   * @param metric - The metric name.
+   * @param currentAccuracy - The current accuracy percentage.
+   * @returns Improvement suggestion with priority and recommendations.
    */
   static generateImprovementSuggestion(metric: string, currentAccuracy: number): ImprovementSuggestion {
     const targetAccuracy = Math.min(95, currentAccuracy + 15);
@@ -239,7 +239,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Clears all measurement data (for testing purposes).
-   * @returns void
+   * @returns Void.
    */
   static clearMeasurements(): void {
     this.measurements = [];
@@ -247,8 +247,8 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets all measurements for a specific metric.
-   * @param metric - Optional metric name to filter by
-   * @returns Array of metric effectiveness data
+   * @param metric - Optional metric name to filter by.
+   * @returns Array of metric effectiveness data.
    */
   static getMeasurements(metric?: string): MetricEffectivenessData[] {
     if (metric) {
@@ -259,7 +259,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Gets overall system health across all metrics.
-   * @returns System health summary with metrics and recommendations
+   * @returns System health summary with metrics and recommendations.
    */
   static getSystemHealth(): {
     totalMetrics: number;
@@ -302,7 +302,7 @@ export class MetricEffectivenessTracker {
 
   /**
    * Exports effectiveness data for external analysis.
-   * @returns JSON string containing effectiveness data
+   * @returns JSON string containing effectiveness data.
    */
   static exportEffectivenessData(): string {
     const systemHealth = this.getSystemHealth();

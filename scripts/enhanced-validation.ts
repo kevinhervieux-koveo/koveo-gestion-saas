@@ -9,6 +9,9 @@ import { spawn } from 'child_process';
 import chalk from 'chalk';
 import { writeFile, mkdir } from 'fs/promises';
 
+/**
+ *
+ */
 interface ValidationResult {
   category: string;
   passed: boolean;
@@ -18,7 +21,7 @@ interface ValidationResult {
 
 /**
  * Enhanced validation runner with consolidation analysis.
- * @returns Process exit code
+ * @returns Process exit code.
  */
 async function runEnhancedValidation(): Promise<number> {
   console.log(chalk.blue('🚀 Running Enhanced Validation Suite with Consolidation Analysis...'));
@@ -85,9 +88,9 @@ async function runEnhancedValidation(): Promise<number> {
 
 /**
  * Run a single validation step.
- * @param name - Name of validation step
- * @param command - Command to run
- * @returns Validation result
+ * @param name - Name of validation step.
+ * @param command - Command to run.
+ * @returns Validation result.
  */
 async function runValidationStep(name: string, command: string): Promise<ValidationResult> {
   const startTime = Date.now();
@@ -140,9 +143,9 @@ async function runValidationStep(name: string, command: string): Promise<Validat
 
 /**
  * Count issues in command output.
- * @param output - Command output
- * @param category - Validation category
- * @returns Number of issues
+ * @param output - Command output.
+ * @param category - Validation category.
+ * @returns Number of issues.
  */
 function countIssuesInOutput(output: string, category: string): number {
   if (category === 'Lint Check') {
@@ -166,9 +169,9 @@ function countIssuesInOutput(output: string, category: string): number {
 
 /**
  * Generate validation summary report.
- * @param results - Validation results
- * @param totalDuration - Total duration
- * @param allPassed - Whether all passed
+ * @param results - Validation results.
+ * @param totalDuration - Total duration.
+ * @param allPassed - Whether all passed.
  */
 async function generateValidationSummary(
   results: ValidationResult[], 

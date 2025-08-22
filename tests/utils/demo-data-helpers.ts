@@ -115,7 +115,7 @@ export const demoBuildingsData = [
 
 /**
  * Get Demo organization data for testing.
- * @returns Demo organization object
+ * @returns Demo organization object.
  */
 export function getDemoOrganization() {
   return {
@@ -134,7 +134,7 @@ export function getDemoOrganization() {
 
 /**
  * Get Demo buildings for testing.
- * @returns Array of demo building objects
+ * @returns Array of demo building objects.
  */
 export function getDemoBuildings() {
   return demoBuildingsData;
@@ -142,9 +142,9 @@ export function getDemoBuildings() {
 
 /**
  * Get Demo bills for payment testing.
- * @param paymentType - The payment type to filter by
- * @param category - The category to filter by
- * @returns Filtered array of demo bill objects
+ * @param paymentType - The payment type to filter by.
+ * @param category - The category to filter by.
+ * @returns Filtered array of demo bill objects.
  */
 export function getDemoBills(paymentType?: string, category?: string) {
   let filteredBills = demoBillsData;
@@ -162,7 +162,7 @@ export function getDemoBills(paymentType?: string, category?: string) {
 
 /**
  * Get Demo users for testing.
- * @returns Array of demo user objects
+ * @returns Array of demo user objects.
  */
 export function getDemoUsers() {
   return [
@@ -180,7 +180,7 @@ export function getDemoUsers() {
 
 /**
  * Validate Demo data structure for tests.
- * @returns Validation result object with structure information
+ * @returns Validation result object with structure information.
  */
 export function validateDemoDataStructure() {
   const org = getDemoOrganization();

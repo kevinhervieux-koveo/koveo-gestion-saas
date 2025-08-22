@@ -9,6 +9,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface RedundancyPattern {
   type: 'function' | 'constant' | 'interface' | 'component';
   pattern: string;
@@ -86,8 +89,8 @@ async function runConsolidationAnalysis() {
 
 /**
  * Find files with a specific pattern.
- * @param pattern - The pattern to search for
- * @returns Array of file paths containing the pattern
+ * @param pattern - The pattern to search for.
+ * @returns Array of file paths containing the pattern.
  */
 async function findFilesWithPattern(pattern: string): Promise<string[]> {
   try {
@@ -121,7 +124,7 @@ async function findFilesWithPattern(pattern: string): Promise<string[]> {
 
 /**
  * Generate a consolidation report.
- * @param redundancies - Array of redundancy patterns found
+ * @param redundancies - Array of redundancy patterns found.
  */
 async function generateConsolidationReport(redundancies: RedundancyPattern[]) {
   const reportPath = path.join('reports', 'consolidation-report.md');

@@ -10,6 +10,9 @@ import chalk from 'chalk';
 import fs from 'fs/promises';
 import path from 'path';
 
+/**
+ *
+ */
 interface QualityMetric {
   category: string;
   score: number;
@@ -62,7 +65,7 @@ async function runConsolidationQuality() {
 
 /**
  * Check code consolidation metrics.
- * @returns Quality metric for code consolidation
+ * @returns Quality metric for code consolidation.
  */
 async function checkCodeConsolidation(): Promise<QualityMetric> {
   const issues: string[] = [];
@@ -114,7 +117,7 @@ async function checkCodeConsolidation(): Promise<QualityMetric> {
 
 /**
  * Check utility usage patterns.
- * @returns Quality metric for utility usage
+ * @returns Quality metric for utility usage.
  */
 async function checkUtilityUsage(): Promise<QualityMetric> {
   const issues: string[] = [];
@@ -158,7 +161,7 @@ async function checkUtilityUsage(): Promise<QualityMetric> {
 
 /**
  * Check React hook patterns.
- * @returns Quality metric for hook patterns
+ * @returns Quality metric for hook patterns.
  */
 async function checkHookPatterns(): Promise<QualityMetric> {
   const issues: string[] = [];
@@ -203,7 +206,7 @@ async function checkHookPatterns(): Promise<QualityMetric> {
 
 /**
  * Check API patterns.
- * @returns Quality metric for API patterns
+ * @returns Quality metric for API patterns.
  */
 async function checkAPIPatterns(): Promise<QualityMetric> {
   const issues: string[] = [];
@@ -242,8 +245,8 @@ async function checkAPIPatterns(): Promise<QualityMetric> {
 
 /**
  * Find files containing a pattern.
- * @param pattern - Pattern to search for
- * @returns Array of file paths
+ * @param pattern - Pattern to search for.
+ * @returns Array of file paths.
  */
 async function findFilesContaining(pattern: string): Promise<string[]> {
   return new Promise((resolve) => {
@@ -267,7 +270,7 @@ async function findFilesContaining(pattern: string): Promise<string[]> {
 
 /**
  * Generate quality report.
- * @param metrics - Quality metrics to report
+ * @param metrics - Quality metrics to report.
  */
 async function generateQualityReport(metrics: QualityMetric[]) {
   const reportPath = path.join('reports', 'consolidation-quality-report.md');
