@@ -25,12 +25,13 @@ jest.mock('@/hooks/use-auth', () => ({
   }),
 }));
 
+// Enhanced useLanguage mock to prevent context errors
 jest.mock('@/hooks/use-language', () => ({
-  useLanguage: () => ({
-    language: 'en',
+  useLanguage: jest.fn(() => ({
+    language: 'en' as const,
     setLanguage: jest.fn(),
     t: jest.fn((key: string) => key),
-  }),
+  })),
 }));
 
 jest.mock('@/hooks/use-fullscreen', () => ({
@@ -238,12 +239,25 @@ export const createBudgetTestQueryClient = () => new QueryClient({
   },
 });
 
+// Create proper LanguageContext mock
+import { createContext } from 'react';
+
+const MockLanguageContext = createContext({
+  language: 'en' as const,
+  setLanguage: jest.fn(),
+  t: jest.fn((key: string) => key),
+});
+
 // Mock LanguageProvider for tests
 const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div data-testid="mock-language-provider">
+    <MockLanguageContext.Provider value={{
+      language: 'en' as const,
+      setLanguage: jest.fn(),
+      t: jest.fn((key: string) => key),
+    }}>
       {children}
-    </div>
+    </MockLanguageContext.Provider>
   );
 };
 
