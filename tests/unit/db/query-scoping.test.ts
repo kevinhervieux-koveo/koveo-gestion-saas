@@ -6,11 +6,11 @@ import { eq, inArray } from 'drizzle-orm';
 // Mock the database
 jest.mock('../../../server/db', () => ({
   db: {
-    select: jest.fn().mockReturnThis(),
-    from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    innerJoin: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
+    select: jest.fn(),
+    from: jest.fn(),
+    where: jest.fn(),
+    innerJoin: jest.fn(),
+    orderBy: jest.fn(),
   },
 }));
 
@@ -25,16 +25,22 @@ jest.mock('drizzle-orm', () => ({
 }));
 
 describe('Database Query Scoping Tests', () => {
-  const mockDb = db as jest.Mocked<typeof db>;
+  const mockDb = db as jest.Mocked<typeof db> & {
+    select: jest.Mock;
+    from: jest.Mock;
+    where: jest.Mock;
+    innerJoin: jest.Mock;
+    orderBy: jest.Mock;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     // Setup default mock chain
-    (mockDb.select as jest.Mock).mockReturnValue(mockDb);
-    (mockDb.from as jest.Mock).mockReturnValue(mockDb);
-    (mockDb.where as jest.Mock).mockReturnValue(mockDb);
-    (mockDb.innerJoin as jest.Mock).mockReturnValue(mockDb);
-    (mockDb.orderBy as jest.Mock).mockReturnValue(mockDb);
+    mockDb.select.mockReturnValue(mockDb);
+    mockDb.from.mockReturnValue(mockDb);
+    mockDb.where.mockReturnValue(mockDb);
+    mockDb.innerJoin.mockReturnValue(mockDb);
+    mockDb.orderBy.mockReturnValue(mockDb);
   });
 
   describe('UserContext Building', () => {
@@ -48,7 +54,7 @@ describe('Database Query Scoping Tests', () => {
 
     test('should build tenant user context with associations', async () => {
       // Mock the database query for user associations
-      mockDb.select.mockImplementation(() => ({
+      const mockQueryBuilder = {
         from: jest.fn().mockReturnValue({
           innerJoin: jest.fn().mockReturnValue({
             innerJoin: jest.fn().mockReturnValue({
@@ -67,7 +73,8 @@ describe('Database Query Scoping Tests', () => {
             })
           })
         })
-      }) as unknown);
+      };
+      mockDb.select.mockReturnValue(mockQueryBuilder as any);
 
       const userContext = await buildUserContext('tenant-123', 'tenant');
       
@@ -87,13 +94,14 @@ describe('Database Query Scoping Tests', () => {
       };
 
       // Mock admin seeing all residences
-      mockDb.select.mockImplementation(() => ({
+      const mockQueryBuilder = {
         from: jest.fn().mockResolvedValue([
           { id: 'residence-1' },
           { id: 'residence-2' },
           { id: 'residence-3' }
         ])
-      }) as unknown);
+      };
+      mockDb.select.mockReturnValue(mockQueryBuilder as any);
 
       const residenceIds = await getUserAccessibleResidenceIds(adminContext);
       
@@ -108,13 +116,14 @@ describe('Database Query Scoping Tests', () => {
       };
 
       // Mock tenant's user residences query
-      mockDb.select.mockImplementation(() => ({
+      const mockQueryBuilder = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([
             { residenceId: 'residence-1' }
           ])
         })
-      }) as unknown);
+      };
+      mockDb.select.mockReturnValue(mockQueryBuilder as any);
 
       const residenceIds = await getUserAccessibleResidenceIds(tenantContext);
       

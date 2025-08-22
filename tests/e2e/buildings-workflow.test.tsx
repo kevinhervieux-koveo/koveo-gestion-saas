@@ -600,7 +600,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       const addButton = screen.getByText('Add New Building');
       await user.click(addButton);
 
-      await waitFor(() => {
+      await waitFor(async () => {
         const nameInput = screen.getByLabelText(/building name/i);
         await user.type(nameInput, 'Test Building');
 
@@ -678,7 +678,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       const addButton = screen.getByText('Add New Building');
       await user.click(addButton);
 
-      await waitFor(() => {
+      await waitFor(async () => {
         const nameInput = screen.getByLabelText(/building name/i);
         await user.type(nameInput, 'Test Building');
 
