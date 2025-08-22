@@ -99,7 +99,7 @@ export class AIAgentDashboard {
         const data = fs.readFileSync(historyPath, 'utf-8');
         this.metricsHistory = JSON.parse(data);
       } catch (__error) {
-        console.warn('Failed to load metrics history:', error);
+        console.warn('Failed to load metrics history:', __error);
         this.metricsHistory = [];
       }
     }

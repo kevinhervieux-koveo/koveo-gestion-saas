@@ -135,7 +135,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     onError: (error: unknown) => {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update residence',
+        description: (error as Error)?.message || 'Failed to update residence',
         variant: 'destructive',
       });
     },

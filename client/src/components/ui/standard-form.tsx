@@ -99,9 +99,9 @@ export function StandardForm({
 
   const handleSubmit = async (data: unknown) => {
     try {
-      await onSubmit(data);
+      await onSubmit(data as Record<string, unknown>);
     } catch (_error) {
-      console.error('Form submission error:', error);
+      console.error('Form submission error:', _error);
     }
   };
 
@@ -112,7 +112,7 @@ export function StandardForm({
       <FormField
         key={name}
         control={form.control}
-        name={name}
+        name={name as never}
         render={({ field }) => (
           <FormItem className={fieldClassName}>
             <FormLabel>{label}</FormLabel>

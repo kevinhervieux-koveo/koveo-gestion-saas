@@ -114,7 +114,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       console.error('Create organization error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create organization',
+        description: (error as Error)?.message || 'Failed to create organization',
         variant: 'destructive',
       });
     },
