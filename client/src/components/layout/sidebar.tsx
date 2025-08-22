@@ -24,7 +24,7 @@ import { useMobileMenu } from '@/hooks/use-mobile-menu';
 export function Sidebar() {
   const { isMobileMenuOpen, closeMobileMenu } = useMobileMenu();
   const [location] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { logout, user } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
@@ -77,7 +77,7 @@ export function Sidebar() {
       };
       
       const translation = translations[name];
-      return translation ? translation[t.language] : name;
+      return translation ? translation[language] : name;
     };
 
     return (
@@ -124,7 +124,7 @@ export function Sidebar() {
       };
       
       const translation = translations[name];
-      return translation ? translation[t.language] : name;
+      return translation ? translation[language] : name;
     };
 
     return (
@@ -225,7 +225,7 @@ export function Sidebar() {
               className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
             >
               <LogOut className='w-5 h-5' />
-              <span>{t.language === 'fr' ? 'Déconnexion' : 'Logout'}</span>
+              <span>{language === 'fr' ? 'Déconnexion' : 'Logout'}</span>
             </button>
           </div>
         </nav>
