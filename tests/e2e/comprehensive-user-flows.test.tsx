@@ -58,7 +58,7 @@ jest.mock('wouter', () => ({
         e.preventDefault();
         mockLocation = href;
         mockNavigate(href);
-        if (onClick) onClick(e);
+        if (onClick) {onClick(e);}
       }}
       {...props}
     >

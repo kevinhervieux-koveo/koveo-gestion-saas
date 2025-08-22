@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /**
- * PRE-DEPLOYMENT CHECKLIST TESTS
+ * PRE-DEPLOYMENT CHECKLIST TESTS.
  * 
  * This test suite acts as a final validation before deployment.
  * ALL tests in this suite MUST pass before deploying to production.

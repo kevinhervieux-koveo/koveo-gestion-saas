@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 /**
- * Comprehensive Translation API Test Suite
+ * Comprehensive Translation API Test Suite.
  * 
  * This test suite validates that all API endpoints properly handle bilingual content
  * and return appropriate language-specific responses for Quebec Law 25 compliance.
@@ -50,13 +50,24 @@ const mockTranslations = {
 };
 
 // Mock API client for testing
+/**
+ *
+ */
 class MockAPIClient {
   private language: 'en' | 'fr' = 'en';
 
+  /**
+   *
+   * @param lang
+   */
   setLanguage(lang: 'en' | 'fr') {
     this.language = lang;
   }
 
+  /**
+   *
+   * @param key
+   */
   private getTranslation(key: string): string {
     const keys = key.split('.');
     let value: any = mockTranslations[this.language];
@@ -68,6 +79,9 @@ class MockAPIClient {
     return value || key;
   }
 
+  /**
+   *
+   */
   async getBuildings() {
     return {
       data: [
@@ -81,6 +95,10 @@ class MockAPIClient {
     };
   }
 
+  /**
+   *
+   * @param data
+   */
   async createBuilding(data: any) {
     if (!data.name) {
       throw new Error(this.getTranslation('validation.required'));
@@ -92,6 +110,9 @@ class MockAPIClient {
     };
   }
 
+  /**
+   *
+   */
   async getBudget() {
     return {
       data: {
@@ -105,6 +126,10 @@ class MockAPIClient {
     };
   }
 
+  /**
+   *
+   * @param userData
+   */
   async validateUser(userData: any) {
     const errors: string[] = [];
     
@@ -130,10 +155,16 @@ class MockAPIClient {
     };
   }
 
+  /**
+   *
+   */
   async getNotFound() {
     throw new Error(this.getTranslation('errors.notFound'));
   }
 
+  /**
+   *
+   */
   async getUnauthorized() {
     throw new Error(this.getTranslation('errors.unauthorized'));
   }

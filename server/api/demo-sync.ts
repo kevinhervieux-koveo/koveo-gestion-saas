@@ -3,16 +3,17 @@ import { requireAuth, requireRole } from '../auth';
 import DemoSyncService from '../services/demo-sync-service';
 
 /**
- * Demo Synchronization API Routes
+ * Demo Synchronization API Routes.
  * 
  * Provides endpoints for managing Demo → Open Demo synchronization
- * Requires admin role to trigger manual synchronization
+ * Requires admin role to trigger manual synchronization.
+ * @param app
  */
 export function registerDemoSyncRoutes(app: Express): void {
   /**
    * POST /api/demo/sync
    * Manually trigger Demo → Open Demo synchronization
-   * Requires admin role
+   * Requires admin role.
    */
   app.post('/api/demo/sync', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
@@ -40,7 +41,7 @@ export function registerDemoSyncRoutes(app: Express): void {
 
   /**
    * GET /api/demo/sync/status  
-   * Get status of demo synchronization
+   * Get status of demo synchronization.
    */
   app.get('/api/demo/sync/status', requireAuth, async (req, res) => {
     try {

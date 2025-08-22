@@ -38,7 +38,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       
       // Verify categories exist
       expect(Object.keys(expensesByCategory).length).toBeGreaterThan(0);
-      expect(expensesByCategory['maintenance']).toBeGreaterThan(0);
+      expect(expensesByCategory.maintenance).toBeGreaterThan(0);
       
       // Verify all amounts are positive
       Object.values(expensesByCategory).forEach(amount => {

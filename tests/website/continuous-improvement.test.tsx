@@ -4,12 +4,17 @@ import { MemoryRouter } from 'wouter/memory';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 /**
- * Continuous Improvement Tests
+ * Continuous Improvement Tests.
  * 
  * Tests to ensure the website demonstrates ongoing quality improvement,
  * measurement systems, and commitment to excellence.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -406,7 +411,7 @@ describe('Continuous Improvement Tests', () => {
 });
 
 /**
- * Continuous Improvement Validation Utilities
+ * Continuous Improvement Validation Utilities.
  */
 export const IMPROVEMENT_METRICS = {
   quality: [
@@ -450,6 +455,10 @@ export const IMPROVEMENT_METRICS = {
   ],
 };
 
+/**
+ *
+ * @param content
+ */
 export function validateContinuousImprovementEvidence(content: string): {
   hasEvidence: boolean;
   foundIndicators: string[];

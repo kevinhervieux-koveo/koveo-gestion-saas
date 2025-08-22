@@ -6,12 +6,17 @@ import { LanguageProvider } from '@/hooks/use-language';
 import HomePage from '@/pages/home';
 
 /**
- * UI Consistency Tests
+ * UI Consistency Tests.
  * 
  * Tests to ensure visual and design consistency across the platform.
  * Validates consistent styling, typography, colors, and layout patterns.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -477,7 +482,7 @@ describe('UI Consistency Tests', () => {
 });
 
 /**
- * UI Consistency Validation Utilities
+ * UI Consistency Validation Utilities.
  */
 export const UI_CONSISTENCY_RULES = {
   colors: {
@@ -509,6 +514,10 @@ export const UI_CONSISTENCY_RULES = {
   },
 };
 
+/**
+ *
+ * @param element
+ */
 export function validateUIConsistency(element: HTMLElement): {
   isConsistent: boolean;
   violations: string[];
@@ -547,6 +556,10 @@ export function validateUIConsistency(element: HTMLElement): {
   };
 }
 
+/**
+ *
+ * @param document
+ */
 export function checkColorConsistency(document: Document): {
   isConsistent: boolean;
   colorUsage: Record<string, number>;

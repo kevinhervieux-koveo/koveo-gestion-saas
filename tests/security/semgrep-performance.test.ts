@@ -1,5 +1,5 @@
 /**
- * @file Semgrep Performance Analysis Tests
+ * @file Semgrep Performance Analysis Tests.
  * @description Performance-focused semgrep rules and tests for the Koveo Gestion platform
  * to identify bottlenecks, optimization opportunities, and performance anti-patterns.
  */
@@ -315,6 +315,10 @@ describe('Semgrep Performance Analysis', () => {
 });
 
 // Helper function to create performance rules
+/**
+ *
+ * @param filePath
+ */
 async function createPerformanceRules(filePath) {
   const performanceRules = `# Performance-Specific Semgrep Rules
 rules:

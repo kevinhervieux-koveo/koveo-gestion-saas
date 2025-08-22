@@ -99,6 +99,10 @@ import {
 } from '../utils/demo-data-helpers';
 
 // Create sample budget data for Demo buildings based on real bills
+/**
+ *
+ * @param buildingId
+ */
 function createDemoBudgetData(buildingId: string) {
   const demoBills = getDemoBills();
   
@@ -154,6 +158,12 @@ function createDemoBudgetData(buildingId: string) {
 }
 
 // Generate residences for Demo buildings
+/**
+ *
+ * @param buildingId
+ * @param startUnit
+ * @param count
+ */
 function createDemoResidences(buildingId: string, startUnit: number = 101, count: number = 5) {
   return Array.from({ length: count }, (_, i) => ({
     id: `demo-residence-${buildingId}-${i + 1}`,

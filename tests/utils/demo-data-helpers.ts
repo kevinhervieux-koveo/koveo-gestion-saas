@@ -114,7 +114,7 @@ export const demoBuildingsData = [
 ];
 
 /**
- * Get Demo organization data for testing
+ * Get Demo organization data for testing.
  */
 export function getDemoOrganization() {
   return {
@@ -132,14 +132,16 @@ export function getDemoOrganization() {
 }
 
 /**
- * Get Demo buildings for testing
+ * Get Demo buildings for testing.
  */
 export function getDemoBuildings() {
   return demoBuildingsData;
 }
 
 /**
- * Get Demo bills for payment testing
+ * Get Demo bills for payment testing.
+ * @param paymentType
+ * @param category
  */
 export function getDemoBills(paymentType?: string, category?: string) {
   let filteredBills = demoBillsData;
@@ -156,7 +158,7 @@ export function getDemoBills(paymentType?: string, category?: string) {
 }
 
 /**
- * Get Demo users for testing
+ * Get Demo users for testing.
  */
 export function getDemoUsers() {
   return [
@@ -173,7 +175,7 @@ export function getDemoUsers() {
 }
 
 /**
- * Validate Demo data structure for tests
+ * Validate Demo data structure for tests.
  */
 export function validateDemoDataStructure() {
   const org = getDemoOrganization();

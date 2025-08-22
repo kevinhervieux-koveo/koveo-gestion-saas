@@ -1,5 +1,5 @@
 /**
- * Comprehensive Website Test Suite Index
+ * Comprehensive Website Test Suite Index.
  * 
  * This file imports and runs all website tests to ensure comprehensive coverage
  * of the Koveo Gestion Quebec property management platform website.
@@ -13,7 +13,7 @@
  * 6. Routing consistency and navigation
  * 7. Continuous improvement processes
  * 8. UI consistency and design patterns
- * 9. Platform trial forms and conversion paths
+ * 9. Platform trial forms and conversion paths.
  */
 
 // Import all test suites
@@ -76,7 +76,7 @@ describe('Koveo Gestion Website Comprehensive Test Suite', () => {
 });
 
 /**
- * Website Testing Utilities and Constants
+ * Website Testing Utilities and Constants.
  */
 export const WEBSITE_TEST_CONFIG = {
   // Test environment settings
@@ -109,7 +109,7 @@ export const WEBSITE_TEST_CONFIG = {
 };
 
 /**
- * Test Categories and Priorities
+ * Test Categories and Priorities.
  */
 export const TEST_CATEGORIES = {
   critical: [
@@ -135,7 +135,7 @@ export const TEST_CATEGORIES = {
 };
 
 /**
- * Quebec-Specific Test Requirements
+ * Quebec-Specific Test Requirements.
  */
 export const QUEBEC_TEST_REQUIREMENTS = {
   // Legal compliance
@@ -163,7 +163,7 @@ export const QUEBEC_TEST_REQUIREMENTS = {
 };
 
 /**
- * Test Execution Summary Helper
+ * Test Execution Summary Helper.
  */
 export function getTestExecutionSummary(): {
   totalSuites: number;

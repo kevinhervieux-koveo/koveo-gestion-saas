@@ -7,13 +7,19 @@ import HomePage from '@/pages/home';
 import { translations } from '@/lib/i18n';
 
 /**
- * Comprehensive Website Translation Tests
+ * Comprehensive Website Translation Tests.
  * 
  * Tests the bilingual (English/French) support across the entire website
  * ensuring Quebec Law 25 compliance and proper localization.
  */
 
 // Test providers wrapper
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -348,7 +354,7 @@ describe('Website Translation Tests', () => {
 });
 
 /**
- * Quebec French Terminology Validation Helper
+ * Quebec French Terminology Validation Helper.
  */
 export const QUEBEC_TERMINOLOGY_MAP = {
   // Property management terms
@@ -375,7 +381,8 @@ export const QUEBEC_TERMINOLOGY_MAP = {
 };
 
 /**
- * Validate that text uses Quebec French terminology
+ * Validate that text uses Quebec French terminology.
+ * @param text
  */
 export function validateQuebecTerminology(text: string): Array<{term: string, suggestion: string}> {
   const violations: Array<{term: string, suggestion: string}> = [];

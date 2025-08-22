@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /**
- * PRODUCTION ENVIRONMENT TESTS
+ * PRODUCTION ENVIRONMENT TESTS.
  * 
  * These tests specifically validate production deployment scenarios
  * and catch environment-specific issues that could cause "Cannot GET /" errors.
@@ -192,7 +192,7 @@ describe('Production Environment Tests', () => {
           .expect(200)
           .end((err, res) => {
             server.close();
-            if (err) return done(err);
+            if (err) {return done(err);}
             expect(res.body.status).toBe('ok');
             done();
           });
@@ -309,7 +309,7 @@ describe('Production Environment Tests', () => {
         request(app).post('/test-data').send({ test: 'data3' })
       ]).then(() => {
         // Force garbage collection if available
-        if (global.gc) global.gc();
+        if (global.gc) {global.gc();}
         
         const finalMemory = process.memoryUsage();
         const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;

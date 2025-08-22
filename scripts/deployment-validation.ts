@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * DEPLOYMENT VALIDATION SCRIPT
+ * DEPLOYMENT VALIDATION SCRIPT.
  * 
  * This script should be run BEFORE every deployment to prevent
  * production errors like "Cannot GET /" from reaching users.
@@ -8,7 +8,7 @@
  * Usage:
  *   npm run validate:deployment
  *   OR
- *   npx tsx scripts/deployment-validation.ts
+ *   npx tsx scripts/deployment-validation.ts.
  */
 
 import * as fs from 'fs';
@@ -21,6 +21,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const execAsync = promisify(exec);
 
+/**
+ *
+ */
 interface ValidationResult {
   test: string;
   status: 'PASS' | 'FAIL' | 'WARN';
@@ -28,14 +31,27 @@ interface ValidationResult {
   critical: boolean;
 }
 
+/**
+ *
+ */
 class DeploymentValidator {
   private results: ValidationResult[] = [];
   private projectRoot: string;
 
+  /**
+   *
+   */
   constructor() {
     this.projectRoot = path.resolve(__dirname, '..');
   }
 
+  /**
+   *
+   * @param test
+   * @param status
+   * @param message
+   * @param critical
+   */
   private addResult(test: string, status: 'PASS' | 'FAIL' | 'WARN', message: string, critical = false) {
     this.results.push({ test, status, message, critical });
     
@@ -44,6 +60,9 @@ class DeploymentValidator {
     console.log(`${icon} ${prefix} ${test}: ${message}`);
   }
 
+  /**
+   *
+   */
   private async checkDatabaseConnection(): Promise<void> {
     console.log('\n🔍 Checking database connection...');
     
@@ -77,6 +96,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   private checkEnvironmentVariables(): void {
     console.log('\n🔍 Checking environment variables...');
     
@@ -117,6 +139,9 @@ class DeploymentValidator {
     });
   }
 
+  /**
+   *
+   */
   private checkPackageJson(): void {
     console.log('\n🔍 Checking package.json configuration...');
     
@@ -205,6 +230,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   private checkBuildArtifacts(): void {
     console.log('\n🔍 Checking build artifacts...');
     
@@ -253,6 +281,9 @@ class DeploymentValidator {
     });
   }
 
+  /**
+   *
+   */
   private async checkServerStartup(): Promise<void> {
     console.log('\n🔍 Checking server startup capability...');
     
@@ -292,6 +323,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   private checkSystemRequirements(): void {
     console.log('\n🔍 Checking system requirements...');
     
@@ -352,6 +386,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   private async runTests(): Promise<void> {
     console.log('\n🔍 Running critical deployment tests...');
     
@@ -392,6 +429,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   private generateReport(): void {
     console.log('\n' + '='.repeat(60));
     console.log('📋 DEPLOYMENT VALIDATION REPORT');
@@ -443,6 +483,9 @@ class DeploymentValidator {
     }
   }
 
+  /**
+   *
+   */
   async validate(): Promise<void> {
     console.log('🚀 Starting deployment validation...');
     console.log(`📍 Project root: ${this.projectRoot}`);

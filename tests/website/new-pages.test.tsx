@@ -10,12 +10,17 @@ import PrivacyPolicyPage from '@/pages/privacy-policy';
 import TermsOfServicePage from '@/pages/terms-of-service';
 
 /**
- * New Pages Tests
+ * New Pages Tests.
  * 
  * Tests for the new website pages: Features, Security, Story, 
  * Privacy Policy, and Terms of Service.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -462,7 +467,9 @@ describe('New Pages Tests', () => {
 });
 
 /**
- * Helper function to test page-specific elements
+ * Helper function to test page-specific elements.
+ * @param pageName
+ * @param element
  */
 export function validatePageContent(pageName: string, element: HTMLElement): {
   hasRequiredContent: boolean;

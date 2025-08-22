@@ -6,21 +6,33 @@ import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 
 // Performance testing utilities
+/**
+ *
+ */
 interface PerformanceMetrics {
   renderTime: number;
   memoryUsage: number;
   componentCount: number;
 }
 
+/**
+ *
+ */
 class PerformanceMonitor {
   private startTime: number = 0;
   private initialMemory: number = 0;
 
+  /**
+   *
+   */
   start(): void {
     this.startTime = performance.now();
     this.initialMemory = (performance as any).memory?.usedJSHeapSize || 0;
   }
 
+  /**
+   *
+   */
   end(): PerformanceMetrics {
     const endTime = performance.now();
     const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
@@ -331,8 +343,8 @@ describe('Component Performance Tests', () => {
         const cache: { [key: number]: number } = {};
         
         return function fib(n: number): number {
-          if (n in cache) return cache[n];
-          if (n <= 1) return n;
+          if (n in cache) {return cache[n];}
+          if (n <= 1) {return n;}
           
           cache[n] = fib(n - 1) + fib(n - 2);
           return cache[n];
@@ -454,7 +466,7 @@ describe('Component Performance Tests', () => {
           }
         }, []);
 
-        if (isLoading) return <div data-testid="loading">Loading...</div>;
+        if (isLoading) {return <div data-testid="loading">Loading...</div>;}
         return <div data-testid="query-result">{data?.name}</div>;
       };
 

@@ -5,12 +5,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from '@/pages/home';
 
 /**
- * Roadmap Features Presentation Tests
+ * Roadmap Features Presentation Tests.
  * 
  * Ensures that completed features from the roadmap are properly presented
  * on the website and accurately represent the platform capabilities.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -290,7 +296,7 @@ describe('Roadmap Features Presentation Tests', () => {
 });
 
 /**
- * Feature validation helpers
+ * Feature validation helpers.
  */
 export const IMPLEMENTED_FEATURES = {
   // Phase 1: Pillar Automation Engine (Complete)
@@ -317,6 +323,11 @@ export const IMPLEMENTED_FEATURES = {
   dataProtection: 'Data protection guaranteed'
 };
 
+/**
+ *
+ * @param featureName
+ * @param element
+ */
 export function validateFeaturePresentation(featureName: string, element: HTMLElement): boolean {
   const content = element.textContent || '';
   return Object.values(IMPLEMENTED_FEATURES).some(feature => 

@@ -1,5 +1,5 @@
 /**
- * @file RBAC Middleware Integration Tests
+ * @file RBAC Middleware Integration Tests.
  * @description Tests for authentication and authorization middleware functions,
  * including role-based access control, permission validation, and security boundaries.
  */

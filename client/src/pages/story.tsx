@@ -39,7 +39,7 @@ export default function StoryPage() {
     queryKey: ['company-history'],
     queryFn: async () => {
       const response = await fetch('/api/company/history');
-      if (!response.ok) throw new Error('Failed to fetch company history');
+      if (!response.ok) {throw new Error('Failed to fetch company history');}
       return response.json();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

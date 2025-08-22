@@ -6,7 +6,8 @@ import { Storage } from "@google-cloud/storage";
 const objectStorageService = new ObjectStorageService();
 
 /**
- * Register company history routes for fetching company information and documents
+ * Register company history routes for fetching company information and documents.
+ * @param app
  */
 export function registerCompanyHistoryRoutes(app: Express): void {
   

@@ -6,12 +6,17 @@ import HomePage from '@/pages/home';
 import { validateQuebecTerminology, QUEBEC_TERMINOLOGY_MAP } from './website-translation.test';
 
 /**
- * Terminology Validation Tests
+ * Terminology Validation Tests.
  * 
  * Tests to ensure inappropriate terms are not used on the website
- * (equivalent to "terme à éviter" document validation)
+ * (equivalent to "terme à éviter" document validation).
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -351,7 +356,8 @@ describe('Terminology Validation Tests', () => {
 });
 
 /**
- * Helper function to validate terminology in content
+ * Helper function to validate terminology in content.
+ * @param content
  */
 export function validateContentTerminology(content: string): Array<{
   term: string;
@@ -381,7 +387,8 @@ export function validateContentTerminology(content: string): Array<{
 }
 
 /**
- * Helper function to check if content follows Quebec French guidelines
+ * Helper function to check if content follows Quebec French guidelines.
+ * @param content
  */
 export function validateQuebecFrenchGuidelines(content: string): Array<{
   issue: string;

@@ -1,5 +1,5 @@
 /**
- * @file RBAC System Integration Tests
+ * @file RBAC System Integration Tests.
  * @description End-to-end integration tests for the complete RBAC system,
  * including real API endpoints, database interactions, and security workflows.
  */
@@ -376,7 +376,7 @@ describe('RBAC System Integration Tests', () => {
       };
 
       const roles: Role[] = ['admin', 'manager', 'tenant', 'resident'];
-      let validationResults: any[] = [];
+      const validationResults: any[] = [];
 
       roles.forEach(role => {
         const rolePermissions = permissions[role];

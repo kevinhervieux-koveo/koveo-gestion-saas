@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /**
- * CRITICAL DEPLOYMENT TESTS
+ * CRITICAL DEPLOYMENT TESTS.
  * 
  * These tests validate that the application will work correctly in production
  * and prevent deployment errors like "Cannot GET /" that break the entire app.
@@ -25,8 +25,8 @@ describe('CRITICAL: Deployment Validation Tests', () => {
         const startPromise = new Promise((resolve, reject) => {
           // Use port 0 for dynamic allocation to avoid conflicts
           server.listen(0, '127.0.0.1', (error: any) => {
-            if (error) reject(error);
-            else resolve(server);
+            if (error) {reject(error);}
+            else {resolve(server);}
           });
           
           // Timeout after 5 seconds (reduced from 10)

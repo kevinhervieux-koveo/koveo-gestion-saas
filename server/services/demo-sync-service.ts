@@ -7,7 +7,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
 /**
- * Demo Synchronization Service
+ * Demo Synchronization Service.
  * 
  * Synchronizes data from the Demo organization to the Open Demo organization
  * to provide a read-only demo environment. This service copies buildings,
@@ -19,7 +19,7 @@ export class DemoSyncService {
   private static readonly OPEN_DEMO_ORG_NAME = 'Open Demo';
 
   /**
-   * Get the Demo organization
+   * Get the Demo organization.
    */
   private static async getDemoOrg() {
     return await db.query.organizations.findFirst({
@@ -28,7 +28,7 @@ export class DemoSyncService {
   }
 
   /**
-   * Get the Open Demo organization
+   * Get the Open Demo organization.
    */
   private static async getOpenDemoOrg() {
     return await db.query.organizations.findFirst({
@@ -37,7 +37,7 @@ export class DemoSyncService {
   }
 
   /**
-   * Synchronize organization data from Demo to Open Demo
+   * Synchronize organization data from Demo to Open Demo.
    */
   public static async syncOrganizationData(): Promise<void> {
     console.log('🔄 Starting Demo → Open Demo synchronization...');
@@ -81,7 +81,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync buildings from Demo to Open Demo
+   * Sync buildings from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncBuildings(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  📋 Syncing buildings...');
@@ -135,7 +137,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync residences from Demo to Open Demo
+   * Sync residences from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncResidences(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  🏠 Syncing residences...');
@@ -166,7 +170,7 @@ export class DemoSyncService {
     
     for (const demoBuilding of demoBuildings) {
       const openDemoBuildingId = buildingMapping.get(demoBuilding.id);
-      if (!openDemoBuildingId) continue;
+      if (!openDemoBuildingId) {continue;}
 
       // Get existing residences in Open Demo building
       const existingResidences = await db.query.residences.findMany({
@@ -212,7 +216,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync documents from Demo to Open Demo
+   * Sync documents from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncDocuments(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  📄 Syncing documents...');
@@ -223,7 +229,7 @@ export class DemoSyncService {
       columns: { id: true }
     });
 
-    if (demoBuildingIds.length === 0) return;
+    if (demoBuildingIds.length === 0) {return;}
 
     const demoDocuments = await db.query.documents.findMany({
       with: {
@@ -241,7 +247,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync budgets from Demo to Open Demo
+   * Sync budgets from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncBudgets(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  💰 Syncing budgets...');
@@ -252,7 +260,7 @@ export class DemoSyncService {
       columns: { id: true }
     })).map(b => b.id);
 
-    if (demoBuildingIds.length === 0) return;
+    if (demoBuildingIds.length === 0) {return;}
 
     const budgets = await db.query.budgets.findMany({
       where: inArray(schema.budgets.buildingId, demoBuildingIds)
@@ -262,7 +270,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync bills from Demo to Open Demo
+   * Sync bills from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncBills(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  🧾 Syncing bills...');
@@ -277,7 +287,7 @@ export class DemoSyncService {
 
     const demoResidenceIds = demoBuildings.flatMap(b => b.residences.map(r => r.id));
 
-    if (demoResidenceIds.length === 0) return;
+    if (demoResidenceIds.length === 0) {return;}
 
     const bills = await db.query.bills.findMany({
       where: inArray(schema.bills.residenceId, demoResidenceIds)
@@ -287,7 +297,9 @@ export class DemoSyncService {
   }
 
   /**
-   * Sync maintenance requests from Demo to Open Demo
+   * Sync maintenance requests from Demo to Open Demo.
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncMaintenanceRequests(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  🔧 Syncing maintenance requests...');
@@ -302,7 +314,7 @@ export class DemoSyncService {
 
     const demoResidenceIds = demoBuildings.flatMap(b => b.residences.map(r => r.id));
 
-    if (demoResidenceIds.length === 0) return;
+    if (demoResidenceIds.length === 0) {return;}
 
     const maintenanceRequests = await db.query.maintenanceRequests.findMany({
       where: inArray(schema.maintenanceRequests.residenceId, demoResidenceIds)
@@ -312,7 +324,7 @@ export class DemoSyncService {
   }
 
   /**
-   * Run complete synchronization
+   * Run complete synchronization.
    */
   public static async runSync(): Promise<void> {
     try {

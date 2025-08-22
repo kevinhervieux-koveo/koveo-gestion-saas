@@ -4,6 +4,9 @@ import { LanguageProvider } from '../../client/src/hooks/use-language';
 // Import statement removed - MobileMenuProvider mocked instead
 
 // Mock Auth Context for testing
+/**
+ *
+ */
 interface MockAuthContextType {
   user: any | null;
   isLoading: boolean;
@@ -45,6 +48,9 @@ export const createTestQueryClient = () => new QueryClient({
   },
 });
 
+/**
+ *
+ */
 interface TestProvidersProps {
   children: React.ReactNode;
   queryClient?: QueryClient;

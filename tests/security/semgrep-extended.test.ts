@@ -1,5 +1,5 @@
 /**
- * @file Extended Semgrep Tests for Koveo Gestion
+ * @file Extended Semgrep Tests for Koveo Gestion.
  * @description Comprehensive semgrep-based testing for translation coverage,
  * performance patterns, React best practices, and property management domain rules.
  */

@@ -1,5 +1,5 @@
 /**
- * @file Demo Organization Integration Tests
+ * @file Demo Organization Integration Tests.
  * @description Comprehensive integration tests for the Demo organization covering
  * user management, building operations, residence configuration, billing, budgets, and demands.
  * Uses the actual Demo organization data for realistic testing scenarios.

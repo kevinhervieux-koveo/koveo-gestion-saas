@@ -7,12 +7,19 @@ import { AuthProvider } from '@/hooks/use-auth';
 import App from '@/App';
 
 /**
- * Privacy Policy and Terms of Service Availability Tests
+ * Privacy Policy and Terms of Service Availability Tests.
  * 
  * Tests to ensure privacy policy and terms of service links are available
  * on all pages of the website as requested.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ * @param root0.isAuthenticated
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/',
@@ -423,7 +430,8 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
 });
 
 /**
- * Helper function to validate legal links availability
+ * Helper function to validate legal links availability.
+ * @param page
  */
 export function validateLegalLinksAvailability(page: HTMLElement): {
   hasPrivacyLink: boolean;
@@ -472,7 +480,7 @@ export function validateLegalLinksAvailability(page: HTMLElement): {
 }
 
 /**
- * Quebec compliance validation for legal pages
+ * Quebec compliance validation for legal pages.
  */
 export const QUEBEC_LEGAL_REQUIREMENTS = {
   privacyPolicy: [
@@ -494,6 +502,11 @@ export const QUEBEC_LEGAL_REQUIREMENTS = {
   ]
 };
 
+/**
+ *
+ * @param page
+ * @param content
+ */
 export function validateQuebecLegalCompliance(
   page: 'privacy' | 'terms', 
   content: string

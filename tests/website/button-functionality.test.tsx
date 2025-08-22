@@ -8,12 +8,19 @@ import { LanguageProvider } from '@/hooks/use-language';
 import HomePage from '@/pages/home';
 
 /**
- * Button Functionality Tests
+ * Button Functionality Tests.
  * 
  * Comprehensive tests to ensure all buttons work correctly across the application.
  * Tests click handlers, navigation, form submissions, and interactive elements.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ * @param root0.isAuthenticated
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/',
@@ -439,7 +446,7 @@ describe('Button Functionality Tests', () => {
 });
 
 /**
- * Button test utilities
+ * Button test utilities.
  */
 export const BUTTON_TEST_IDS = {
   // Navigation buttons
@@ -463,6 +470,11 @@ export const BUTTON_TEST_IDS = {
   learnMore: 'button-learn-more',
 };
 
+/**
+ *
+ * @param buttonTestId
+ * @param expectedAction
+ */
 export async function testButtonClick(
   buttonTestId: string, 
   expectedAction: () => void
@@ -480,6 +492,10 @@ export async function testButtonClick(
   });
 }
 
+/**
+ *
+ * @param button
+ */
 export function validateButtonAccessibility(button: HTMLElement): {
   isAccessible: boolean;
   issues: string[];

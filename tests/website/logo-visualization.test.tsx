@@ -17,15 +17,21 @@ import TermsOfServicePage from '@/pages/terms-of-service';
 import LoginPage from '@/pages/auth/login';
 
 /**
- * Logo Visualization Tests for Koveo Gestion
+ * Logo Visualization Tests for Koveo Gestion.
  * 
  * Tests logo presentation across the application including:
  * - Logo presence and visibility on all pages
  * - Responsive logo behavior for different screen sizes  
  * - Logo accessibility attributes
- * - Small screen logo optimization
+ * - Small screen logo optimization.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -71,6 +77,10 @@ const mockMatchMedia = (matches: boolean) => {
 };
 
 // Helper function to find Koveo logo
+/**
+ *
+ * @param container
+ */
 function findKoveoLogo(container: HTMLElement): HTMLImageElement | null {
   // Look for images with Koveo in alt text or src containing logo
   const images = container.querySelectorAll('img') as NodeListOf<HTMLImageElement>;
@@ -493,16 +503,17 @@ describe('Logo Visualization Tests', () => {
 });
 
 /**
- * Logo validation utility functions for use in other tests
+ * Logo validation utility functions for use in other tests.
  */
 export const LogoTestUtils = {
   /**
-   * Find the Koveo logo in a container
+   * Find the Koveo logo in a container.
    */
   findLogo: findKoveoLogo,
 
   /**
-   * Validate logo properties
+   * Validate logo properties.
+   * @param logoImg
    */
   validateLogo(logoImg: HTMLImageElement): {
     isValid: boolean;
@@ -547,7 +558,9 @@ export const LogoTestUtils = {
   },
 
   /**
-   * Check if logo size is appropriate for screen size
+   * Check if logo size is appropriate for screen size.
+   * @param logoImg
+   * @param isMobile
    */
   validateResponsiveSize(logoImg: HTMLImageElement, isMobile: boolean): boolean {
     const heightMatch = logoImg.className.match(/h-(\d+)/);
@@ -563,7 +576,7 @@ export const LogoTestUtils = {
   },
 
   /**
-   * Responsive size standards for different screen types
+   * Responsive size standards for different screen types.
    */
   RESPONSIVE_STANDARDS: {
     mobile: { maxHeight: 12, minHeight: 6, recommended: [8, 10] },

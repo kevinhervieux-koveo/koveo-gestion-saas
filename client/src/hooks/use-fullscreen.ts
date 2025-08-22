@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
+/**
+ *
+ */
 export function useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 

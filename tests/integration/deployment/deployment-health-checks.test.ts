@@ -3,7 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 
 /**
- * DEPLOYMENT HEALTH CHECKS
+ * DEPLOYMENT HEALTH CHECKS.
  * 
  * These tests validate that the deployed application responds correctly
  * to health check endpoints used by load balancers and monitoring systems.

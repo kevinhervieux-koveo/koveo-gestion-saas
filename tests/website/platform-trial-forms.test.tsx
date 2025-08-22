@@ -7,12 +7,18 @@ import { LanguageProvider } from '@/hooks/use-language';
 import HomePage from '@/pages/home';
 
 /**
- * Platform Trial Forms Tests
+ * Platform Trial Forms Tests.
  * 
  * Tests to ensure forms and CTAs for trying the platform work correctly.
  * Validates form functionality, user flows, and conversion paths.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -473,7 +479,7 @@ describe('Platform Trial Forms Tests', () => {
 });
 
 /**
- * Form Testing Utilities
+ * Form Testing Utilities.
  */
 export const FORM_TEST_SCENARIOS = {
   contactForm: {
@@ -516,6 +522,10 @@ export const FORM_TEST_SCENARIOS = {
   },
 };
 
+/**
+ *
+ * @param formData
+ */
 export async function fillFormData(
   formData: Record<string, string>
 ): Promise<void> {
@@ -534,6 +544,10 @@ export async function fillFormData(
   }
 }
 
+/**
+ *
+ * @param formTestId
+ */
 export async function submitForm(formTestId?: string): Promise<void> {
   const user = userEvent.setup();
   
@@ -544,6 +558,10 @@ export async function submitForm(formTestId?: string): Promise<void> {
   await user.click(submitButton);
 }
 
+/**
+ *
+ * @param form
+ */
 export function validateFormAccessibility(form: HTMLElement): {
   isAccessible: boolean;
   issues: string[];

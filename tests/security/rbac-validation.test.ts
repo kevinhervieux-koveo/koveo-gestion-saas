@@ -1,5 +1,5 @@
 /**
- * @file Comprehensive RBAC (Role-Based Access Control) Validation Tests
+ * @file Comprehensive RBAC (Role-Based Access Control) Validation Tests.
  * @description Extensive testing suite for role hierarchy, permission enforcement,
  * access control patterns, and security boundaries in the Koveo Gestion platform.
  */
@@ -370,7 +370,7 @@ describe('RBAC Validation Test Suite', () => {
   describe('Permission Schema Validation', () => {
     it('should ensure all permissions follow naming conventions', () => {
       const permissionPattern = /^[a-z_]+:[a-z_]+$/;
-      let invalidPermissions: string[] = [];
+      const invalidPermissions: string[] = [];
 
       Object.values(permissions).forEach(rolePermissions => {
         rolePermissions.forEach(permission => {
@@ -402,10 +402,10 @@ describe('RBAC Validation Test Suite', () => {
 
     it('should ensure minimum required permissions per role', () => {
       const minimumPermissions = {
-        admin: 50,  // Admin should have extensive permissions
+        admin: 50, // Admin should have extensive permissions
         manager: 30, // Manager should have substantial permissions
-        tenant: 5,   // Tenant should have basic permissions
-        resident: 5  // Resident should have basic permissions
+        tenant: 5, // Tenant should have basic permissions
+        resident: 5 // Resident should have basic permissions
       };
 
       Object.entries(minimumPermissions).forEach(([role, minCount]) => {
@@ -523,7 +523,7 @@ describe('RBAC Validation Test Suite', () => {
     });
 
     it('should ensure role consistency across all permissions', () => {
-      let inconsistencies: string[] = [];
+      const inconsistencies: string[] = [];
       
       // Check that admin has more permissions than others for each resource
       const allResources = new Set();

@@ -5,12 +5,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from '@/pages/home';
 
 /**
- * False Representation Prevention Tests
+ * False Representation Prevention Tests.
  * 
  * Tests to ensure the website does not make false claims or misrepresent
  * the platform's capabilities, ensuring accuracy and honesty in all content.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -366,7 +371,7 @@ describe('False Representation Prevention Tests', () => {
 });
 
 /**
- * Helper functions for validation
+ * Helper functions for validation.
  */
 export const ACCURACY_VALIDATORS = {
   technicalClaims: (content: string): string[] => {
@@ -422,6 +427,10 @@ export const ACCURACY_VALIDATORS = {
   }
 };
 
+/**
+ *
+ * @param content
+ */
 export function validateContentAccuracy(content: string): {
   isAccurate: boolean;
   issues: string[];

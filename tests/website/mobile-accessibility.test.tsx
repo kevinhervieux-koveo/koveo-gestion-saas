@@ -13,7 +13,7 @@ import TermsOfServicePage from '@/pages/terms-of-service';
 import HomePage from '@/pages/home';
 
 /**
- * Mobile Accessibility Tests for Koveo Gestion Website
+ * Mobile Accessibility Tests for Koveo Gestion Website.
  * 
  * Tests mobile-specific accessibility features including:
  * - Touch target sizes (minimum 44x44px)
@@ -21,9 +21,15 @@ import HomePage from '@/pages/home';
  * - Screen reader compatibility on mobile
  * - Viewport responsiveness
  * - Mobile form accessibility
- * - Focus management on touch devices
+ * - Focus management on touch devices.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/' 
@@ -613,7 +619,8 @@ describe('Mobile Accessibility Tests', () => {
 });
 
 /**
- * Mobile Accessibility Validation Helper
+ * Mobile Accessibility Validation Helper.
+ * @param element
  */
 export function validateMobileAccessibility(element: HTMLElement): {
   isAccessible: boolean;
@@ -675,7 +682,7 @@ export function validateMobileAccessibility(element: HTMLElement): {
 }
 
 /**
- * Quebec Mobile Standards Validation
+ * Quebec Mobile Standards Validation.
  */
 export const QUEBEC_MOBILE_REQUIREMENTS = {
   language: ['français', 'québec', 'courriel'],
@@ -684,6 +691,10 @@ export const QUEBEC_MOBILE_REQUIREMENTS = {
   navigation: ['data-testid="nav-', 'href='],
 };
 
+/**
+ *
+ * @param content
+ */
 export function validateQuebecMobileStandards(content: string): {
   meetsStandards: boolean;
   missing: string[];

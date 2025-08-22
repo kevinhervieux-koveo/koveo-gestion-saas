@@ -8,12 +8,19 @@ import { LanguageProvider } from '@/hooks/use-language';
 import App from '@/App';
 
 /**
- * Routing Consistency Tests
+ * Routing Consistency Tests.
  * 
  * Tests to ensure navigation and routing work consistently across the platform.
  * Validates route accessibility, navigation patterns, and user experience flow.
  */
 
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ * @param root0.userRole
+ */
 function TestProviders({ 
   children, 
   initialLocation = '/',
@@ -471,7 +478,7 @@ describe('Routing Consistency Tests', () => {
 });
 
 /**
- * Routing test utilities
+ * Routing test utilities.
  */
 export const ROUTE_DEFINITIONS = {
   public: [
@@ -519,6 +526,11 @@ export const ROUTE_DEFINITIONS = {
   ],
 };
 
+/**
+ *
+ * @param route
+ * @param userRole
+ */
 export function validateRouteAccessibility(
   route: string, 
   userRole: string
@@ -531,6 +543,10 @@ export function validateRouteAccessibility(
   return !!routeConfig;
 }
 
+/**
+ *
+ * @param role
+ */
 export function getExpectedRoutesForRole(role: string): string[] {
   const routes: string[] = [];
   

@@ -303,7 +303,7 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       // Safe calculation with corrupted data
       const safeTotal = corruptedData.reduce((sum, item) => {
         const amount = Number(item.totalAmount);
-        if (isNaN(amount) || !isFinite(amount)) return sum;
+        if (isNaN(amount) || !isFinite(amount)) {return sum;}
         return sum + Math.max(0, amount); // Prevent negative amounts
       }, 0);
       

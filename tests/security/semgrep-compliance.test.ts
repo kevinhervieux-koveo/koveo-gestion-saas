@@ -1,5 +1,5 @@
 /**
- * @file Semgrep Compliance and Domain-Specific Tests
+ * @file Semgrep Compliance and Domain-Specific Tests.
  * @description Advanced semgrep testing for Quebec compliance, property management
  * domain rules, and comprehensive code quality analysis using custom rules.
  */
@@ -13,7 +13,7 @@ const execAsync = promisify(exec);
 
 describe('Advanced Semgrep Compliance Analysis', () => {
   let complianceResults;
-  let rulesCoverage = {};
+  const rulesCoverage = {};
 
   beforeAll(async () => {
     // Create advanced compliance rules file
@@ -439,6 +439,10 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 });
 
 // Helper function to create advanced compliance rules
+/**
+ *
+ * @param filePath
+ */
 async function createComplianceRules(filePath) {
   const complianceRules = `# Advanced Compliance Rules for Koveo Gestion
 rules:
@@ -747,6 +751,10 @@ rules:
 }
 
 // Helper function to generate recommendations
+/**
+ *
+ * @param findings
+ */
 function generateRecommendations(findings) {
   const recommendations = [];
   const categories = {};

@@ -15,6 +15,11 @@ const ROLES = {
 } as const;
 
 // Wrapper function to match test expectations
+/**
+ *
+ * @param role
+ * @param permission
+ */
 function hasPermission(role: string, permission: string): boolean {
   try {
     return checkPermission(permissions, role as any, permission as any);

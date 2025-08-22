@@ -6,7 +6,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 /**
- * BUILD PROCESS VALIDATION TESTS
+ * BUILD PROCESS VALIDATION TESTS.
  * 
  * These tests ensure that the build process creates all necessary files
  * and that the built application can be deployed successfully.

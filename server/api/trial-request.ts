@@ -30,11 +30,14 @@ const trialRequestSchema = z.object({
   message: z.string().optional()
 });
 
+/**
+ *
+ */
 type TrialRequestData = z.infer<typeof trialRequestSchema>;
 
 /**
  * POST /api/trial-request
- * Sends a trial request email to Koveo Gestion
+ * Sends a trial request email to Koveo Gestion.
  */
 router.post('/trial-request', async (req, res) => {
   try {
@@ -232,6 +235,10 @@ Cette demande a été soumise via le site web Koveo Gestion.
 export default router;
 
 // Export registration function for consistency with other modules
+/**
+ *
+ * @param app
+ */
 export function registerTrialRequestRoutes(app: express.Application) {
   app.use('/', router);
 }

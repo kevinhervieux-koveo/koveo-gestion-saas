@@ -1,6 +1,6 @@
 /**
  * Semgrep Security Tests for Quebec Property Management System
- * Tests for SQL injection, XSS, authentication, and Quebec Law 25 compliance
+ * Tests for SQL injection, XSS, authentication, and Quebec Law 25 compliance.
  */
 
 import { execSync } from 'child_process';
