@@ -12,8 +12,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle, ChevronLeft, ChevronRight, Users, Percent } from 'lucide-react';
+import { DollarSign, Banknote, Settings, TrendingUp, Calculator, Filter, ChevronDown, ChevronUp, X, Plus, Trash2, Calendar, AlertTriangle, ChevronLeft, ChevronRight, Users, Percent, Maximize2, Minimize2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFullscreen } from '@/hooks/use-fullscreen';
 import { apiRequest } from '@/lib/queryClient';
 import type { MonthlyBudget } from '@shared/schema';
 
@@ -200,6 +201,7 @@ interface InflationConfig {
  */
 export default function Budget() {
   const { language } = useLanguage();
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
   const [viewType, setViewType] = useState<'yearly' | 'monthly'>('yearly');
   const [showCategories, setShowCategories] = useState(false);
@@ -685,6 +687,29 @@ export default function Budget() {
               }
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleFullscreen}
+            className='flex items-center gap-2 flex-shrink-0'
+            data-testid="button-fullscreen-toggle"
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className='w-4 h-4' />
+                <span className='hidden sm:inline'>
+                  {language === 'fr' ? 'Quitter plein écran' : 'Exit Fullscreen'}
+                </span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className='w-4 h-4' />
+                <span className='hidden sm:inline'>
+                  {language === 'fr' ? 'Plein écran' : 'Fullscreen'}
+                </span>
+              </>
+            )}
+          </Button>
         </div>
 
         <div className='space-y-6'>
@@ -1003,7 +1028,7 @@ export default function Budget() {
           ) : (
             <>
               {/* Summary Cards */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'>
                 <Card>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-sm font-medium'>
@@ -1093,7 +1118,7 @@ export default function Budget() {
                   )}
                 </CardHeader>
                 <CardContent>
-                  <ChartContainer config={chartConfig} className='h-[400px]'>
+                  <ChartContainer config={chartConfig} className='h-[300px] sm:h-[400px]'>
                     <AreaChart data={filteredChartData}>
                       <defs>
                         <linearGradient id='colorIncome' x1='0' y1='0' x2='0' y2='1'>
@@ -1740,9 +1765,9 @@ export default function Budget() {
                       <>
                         <div className='border rounded-lg overflow-hidden'>
                           <div className='bg-muted px-4 py-2 border-b'>
-                            <div className='grid grid-cols-4 gap-4 font-medium text-sm'>
+                            <div className='grid grid-cols-3 md:grid-cols-4 gap-4 font-medium text-sm'>
                               <div>{contributionTranslations.unit}</div>
-                              <div>{contributionTranslations.floor}</div>
+                              <div className='hidden md:block'>{contributionTranslations.floor}</div>
                               <div className='text-right'>{contributionTranslations.ownership}</div>
                               <div className='text-right'>{contributionTranslations.contribution}</div>
                             </div>
@@ -1803,9 +1828,9 @@ export default function Budget() {
 // Optimized components for better performance and maintainability
 const PropertyContributionRow = memo(({ property }: { property: any }) => (
   <div className='px-4 py-3 hover:bg-muted/50'>
-    <div className='grid grid-cols-4 gap-4 text-sm'>
+    <div className='grid grid-cols-3 md:grid-cols-4 gap-4 text-sm'>
       <div className='font-medium'>{property.unitNumber}</div>
-      <div className='text-muted-foreground'>{property.floor}</div>
+      <div className='hidden md:block text-muted-foreground'>{property.floor}</div>
       <div className='text-right'>{property.ownershipPercentage.toFixed(2)}%</div>
       <div className='text-right font-medium text-red-600'>
         ${property.contribution.toFixed(2)}
@@ -1825,8 +1850,8 @@ const MinimumBalanceRow = memo(({
   onUpdate: (id: string, field: 'amount' | 'description', value: string | number) => void;
   onRemove: (id: string) => void;
 }) => (
-  <div className='grid grid-cols-12 gap-2 items-center'>
-    <div className='col-span-4'>
+  <div className='flex flex-col sm:grid sm:grid-cols-12 gap-2 items-center'>
+    <div className='w-full sm:col-span-4'>
       <Input
         placeholder={bankAccountTranslations.amount}
         type='number'
@@ -1836,7 +1861,7 @@ const MinimumBalanceRow = memo(({
         className='text-xs'
       />
     </div>
-    <div className='col-span-7'>
+    <div className='w-full sm:col-span-7'>
       <Input
         placeholder={bankAccountTranslations.descriptionPlaceholder}
         value={minimum.description}
@@ -1844,7 +1869,7 @@ const MinimumBalanceRow = memo(({
         className='text-xs'
       />
     </div>
-    <div className='col-span-1'>
+    <div className='w-full sm:col-span-1'>
       <Button
         type='button'
         variant='ghost'

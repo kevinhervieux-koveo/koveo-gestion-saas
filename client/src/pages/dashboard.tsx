@@ -15,9 +15,12 @@ import {
   FileText,
   BarChart3,
   Shield,
-  ArrowRight
+  ArrowRight,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Link } from 'wouter';
+import { useFullscreen } from '@/hooks/use-fullscreen';
 
 /**
  * Main Dashboard - Central hub for all user roles
@@ -26,6 +29,7 @@ import { Link } from 'wouter';
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   // Determine role-based navigation items
   const getRoleBasedActions = () => {
@@ -110,6 +114,29 @@ export default function Dashboard() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'>Exit Fullscreen</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'>Fullscreen</span>
+                </>
+              )}
+            </Button>
+          </div>
           
           {/* Welcome Card with User Info */}
           <Card className="bg-gradient-to-r from-koveo-navy to-blue-600 text-white">

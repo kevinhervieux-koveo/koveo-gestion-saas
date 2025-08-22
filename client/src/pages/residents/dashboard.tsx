@@ -2,12 +2,17 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Home, Bell, FileText, Wrench, DollarSign, Calendar, MessageSquare, Building } from 'lucide-react';
+import { Home, Bell, FileText, Wrench, DollarSign, Calendar, MessageSquare, Building, Maximize2, Minimize2 } from 'lucide-react';
+import { useFullscreen } from '@/hooks/use-fullscreen';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Residents Dashboard - Main dashboard for residents.
  */
 export default function ResidentsDashboard() {
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const { language } = useLanguage();
+  
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
@@ -17,6 +22,34 @@ export default function ResidentsDashboard() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Fullscreen Controls */}
+          <div className='flex justify-end mb-4'>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className='flex items-center gap-2'
+              data-testid="button-fullscreen-toggle"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'>
+                    {language === 'fr' ? 'Quitter plein écran' : 'Exit Fullscreen'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className='w-4 h-4' />
+                  <span className='hidden sm:inline'>
+                    {language === 'fr' ? 'Plein écran' : 'Fullscreen'}
+                  </span>
+                </>
+              )}
+            </Button>
+          </div>
+          
           {/* Quick Actions */}
           <Card>
             <CardHeader>
