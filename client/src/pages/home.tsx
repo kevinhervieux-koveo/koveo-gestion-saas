@@ -24,7 +24,7 @@ export default function /**
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50">
       {/* Navigation Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -44,11 +44,11 @@ export default function /**
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-5xl font-bold text-gray-700 mb-6 leading-tight">
             {t('modernPropertyManagement')}
             <span className="text-blue-600"> {t('forQuebec')}</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+          <p className="text-xl text-gray-500 mb-8 leading-relaxed">
             {t('comprehensivePropertyManagement')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -69,10 +69,10 @@ export default function /**
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-700 mb-4">
             {t('everythingYouNeed')}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             {t('builtForPropertyOwners')}
           </p>
         </div>
@@ -129,10 +129,10 @@ export default function /**
       </section>
 
       {/* Benefits Section */}
-      <section className="bg-gray-50 py-16">
+      <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-700 text-center mb-12">
               {t('whyChooseKoveo')}
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
@@ -141,7 +141,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('quebecLaw25Compliant')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('quebecLaw25CompliantDesc')}
                     </p>
                   </div>
@@ -150,7 +150,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('bilingualSupport')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('bilingualSupportDesc')}
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('roleBasedAccess')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('roleBasedAccessDesc')}
                     </p>
                   </div>
@@ -170,7 +170,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('cloudBasedSecurity')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('cloudBasedSecurityDesc')}
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('mobileResponsive')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('mobileResponsiveDesc')}
                     </p>
                   </div>
@@ -188,7 +188,7 @@ export default function /**
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-gray-900">{t('expertSupport')}</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                       {t('expertSupportDesc')}
                     </p>
                   </div>
@@ -202,10 +202,10 @@ export default function /**
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-700 mb-4">
             {t('readyToTransform')}
           </h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-500 mb-8">
             {t('joinPropertyOwners')}
           </p>
           <Button 
