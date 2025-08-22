@@ -137,7 +137,7 @@ export function FeatureFormRefactored({ feature, open, onOpenChange }: FeatureFo
           }
         });
       } catch (__error) {
-        console.error('Error clearing invalid drafts:', _error);
+        console.error('Error clearing invalid drafts:', __error);
       }
       
       loadDraft();

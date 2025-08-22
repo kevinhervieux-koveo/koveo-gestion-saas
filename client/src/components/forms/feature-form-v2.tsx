@@ -94,7 +94,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   );
 
   const savePromptMutation = useCreateMutation<unknown, { featureId: string, prompt: string, title: string }>(
-    (variables) => `/api/features/${variables.featureId}/actionable-items/from-prompt`,
+    `/api/features/actionable-items/from-prompt`,
     {
       successMessage: 'The development prompt has been saved as an actionable item.',
       invalidateQueries: (data, variables) => [`/api/features/${variables.featureId}/actionable-items`]
@@ -114,7 +114,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       setLastSaved(new Date());
       toast({ title: 'Draft Saved', description: 'Your progress has been automatically saved.', duration: 2000 });
     } catch (_error) {
-      console.error('Failed to save draft:', error);
+      console.error('Failed to save draft:', _error);
     }
   }, [feature?.id, toast, getDraftKey]);
 

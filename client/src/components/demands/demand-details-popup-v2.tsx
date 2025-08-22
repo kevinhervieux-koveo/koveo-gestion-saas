@@ -162,8 +162,8 @@ export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetai
     }
   );
 
-  const updateCommentMutation = useUpdateMutation<DemandComment, { comment: string }>(
-    (variables, commentId) => `/api/demands/${demandId}/comments/${commentId}`,
+  const updateCommentMutation = useUpdateMutation<DemandComment, { comment: string; commentId: string }>(
+    (variables) => `/api/demands/${demandId}/comments/${(variables as any).commentId}`,
     {
       successMessage: 'Comment updated successfully',
       invalidateQueries: [`/api/demands/${demandId}/comments`],
@@ -276,7 +276,7 @@ export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetai
   };
 
   const handleUpdateComment = (commentId: string, data: { comment: string }) => {
-    updateCommentMutation.mutate(data, commentId);
+    updateCommentMutation.mutate({ ...data, commentId });
   };
 
   const handleDeleteComment = (commentId: string) => {
@@ -339,7 +339,7 @@ export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetai
                 <StandardForm
                   schema={updateDemandSchema}
                   fields={getEditDemandFields()}
-                  onSubmit={handleDemandUpdate}
+                  onSubmit={handleDemandUpdate as any}
                   isLoading={updateDemandMutation.isPending}
                   submitText="Save Changes"
                   submitIcon={<Save className="h-4 w-4" />}
@@ -380,7 +380,7 @@ export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetai
               <StandardForm
                 schema={updateStatusSchema}
                 fields={getStatusFields()}
-                onSubmit={handleStatusUpdate}
+                onSubmit={handleStatusUpdate as any}
                 isLoading={updateStatusMutation.isPending}
                 submitText="Update Status"
                 submitIcon={<ArrowUp className="h-4 w-4" />}
@@ -402,7 +402,7 @@ export function DemandDetailsPopup({ demandId, open, onOpenChange }: DemandDetai
               <StandardForm
                 schema={addCommentSchema}
                 fields={getCommentFields()}
-                onSubmit={handleAddComment}
+                onSubmit={handleAddComment as any}
                 isLoading={addCommentMutation.isPending}
                 submitText="Add Comment"
                 submitIcon={<Send className="h-4 w-4" />}

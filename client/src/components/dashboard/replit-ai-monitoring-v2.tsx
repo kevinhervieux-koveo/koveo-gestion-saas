@@ -116,11 +116,12 @@ export function ReplitAiMonitoring() {
   };
 
   // Alert table columns
-  const alertColumns: ColumnConfig<AlertItem>[] = [
+  const alertColumns = [
     {
-      id: 'level',
-      header: 'Level',
-      cell: (alert) => {
+      key: 'level',
+      label: 'Level',
+      accessor: 'level',
+      render: (alert) => {
         const config = getAlertConfig(alert.level);
         return (
           <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
@@ -131,32 +132,36 @@ export function ReplitAiMonitoring() {
       },
     },
     {
-      id: 'component',
-      header: 'Component',
-      cell: (alert) => (
+      key: 'component',
+      label: 'Component',
+      accessor: 'component',
+      render: (alert) => (
         <span className="font-medium">{alert.component}</span>
       ),
     },
     {
-      id: 'message',
-      header: 'Message',
-      cell: (alert) => (
+      key: 'message',
+      label: 'Message',
+      accessor: 'message',
+      render: (alert) => (
         <span className="truncate max-w-md">{alert.message}</span>
       ),
     },
     {
-      id: 'timestamp',
-      header: 'Time',
-      cell: (alert) => (
+      key: 'timestamp',
+      label: 'Time',
+      accessor: 'timestamp',
+      render: (alert) => (
         <span className="text-sm text-muted-foreground">
           {new Date(alert.timestamp).toLocaleString()}
         </span>
       ),
     },
     {
-      id: 'status',
-      header: 'Status',
-      cell: (alert) => (
+      key: 'status',
+      label: 'Status',
+      accessor: 'resolved',
+      render: (alert) => (
         <Badge variant={alert.resolved ? 'success' : 'destructive'}>
           {alert.resolved ? 'Resolved' : 'Active'}
         </Badge>
@@ -246,7 +251,7 @@ export function ReplitAiMonitoring() {
         <TabsContent value="alerts" className="space-y-4">
           <DataTable
             data={monitoringData.alerts}
-            columns={alertColumns}
+            columns={alertColumns as any}
             searchableColumns={['message', 'component']}
             filterableColumns={[
               {
