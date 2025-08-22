@@ -173,6 +173,59 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
 }
 
 /**
+ * Checks if a user belongs to the Open Demo organization (view-only demo users).
+ * Open Demo users have restricted permissions and can only view/read data.
+ * 
+ * @param {string} userId - UUID of the user to check.
+ * @returns {Promise<boolean>} Promise resolving to true if user is an Open Demo user.
+ */
+export async function isOpenDemoUser(userId: string): Promise<boolean> {
+  try {
+    // Get Open Demo organization
+    const openDemoOrg = await db.query.organizations.findFirst({
+      where: eq(schema.organizations.name, 'Open Demo')
+    });
+    
+    if (!openDemoOrg) {
+      return false;
+    }
+    
+    // Check if user belongs to Open Demo organization
+    const userOrg = await db.query.userOrganizations.findFirst({
+      where: and(
+        eq(schema.userOrganizations.userId, userId),
+        eq(schema.userOrganizations.organizationId, openDemoOrg.id),
+        eq(schema.userOrganizations.isActive, true)
+      )
+    });
+    
+    return !!userOrg;
+  } catch (error) {
+    console.error('Error checking if user is Open Demo user:', error);
+    return false;
+  }
+}
+
+/**
+ * Checks if a user can perform a write operation (create, update, delete).
+ * Open Demo users are restricted to read-only access.
+ * 
+ * @param {string} userId - UUID of the user to check.
+ * @param {'create' | 'update' | 'delete' | 'manage' | 'approve' | 'assign' | 'share' | 'export' | 'backup' | 'restore'} action - The action to check.
+ * @returns {Promise<boolean>} Promise resolving to true if user can perform write operations.
+ */
+export async function canUserPerformWriteOperation(userId: string, action: 'create' | 'update' | 'delete' | 'manage' | 'approve' | 'assign' | 'share' | 'export' | 'backup' | 'restore'): Promise<boolean> {
+  // Check if user is from Open Demo organization (view-only)
+  const isOpenDemo = await isOpenDemoUser(userId);
+  if (isOpenDemo) {
+    console.log(`Open Demo user ${userId} attempted restricted action: ${action}`);
+    return false; // Open Demo users cannot perform any write operations
+  }
+  
+  return true; // Regular users can perform write operations based on their permissions
+}
+
+/**
  * Checks if a user has access to a specific organization based on RBAC rules.
  * Validates access through user organization memberships, Demo organization access,
  * and Koveo organization global privileges.
