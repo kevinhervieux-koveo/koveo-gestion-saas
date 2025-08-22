@@ -73,19 +73,16 @@ export default function /**
         : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
       users: [
         {
-          email: 'demo.manager1@koveo.com',
-          name: language === 'fr' ? 'Marie Dubois' : 'Marie Dubois',
-          building: language === 'fr' ? 'Tour Horizon, 125 unités' : 'Horizon Tower, 125 units'
+          email: 'demo.manager@example.com',
+          name: language === 'fr' ? 'Gestionnaire Démo' : 'Demo Manager',
+          building: language === 'fr' ? 'Accès complet gestionnaire' : 'Full manager access',
+          password: 'Demo@123456'
         },
         {
-          email: 'demo.manager2@koveo.com',
-          name: language === 'fr' ? 'Jean Tremblay' : 'Jean Tremblay',
-          building: language === 'fr' ? 'Résidence Élite, 89 unités' : 'Elite Residence, 89 units'
-        },
-        {
-          email: 'demo.manager3@koveo.com',
-          name: language === 'fr' ? 'Sophie Lavoie' : 'Sophie Lavoie',
-          building: language === 'fr' ? 'Complexe Prestige, 156 unités' : 'Prestige Complex, 156 units'
+          email: 'demo.manager.open@example.com',
+          name: language === 'fr' ? 'Gestionnaire Ouvert' : 'Open Demo Manager',
+          building: language === 'fr' ? 'Accès gestionnaire ouvert' : 'Open manager access',
+          password: 'Demo@123456'
         }
       ]
     },
@@ -97,19 +94,16 @@ export default function /**
         : 'Access to essential tenant features: maintenance requests, documents, communication with management.',
       users: [
         {
-          email: 'demo.tenant1@koveo.com',
-          name: language === 'fr' ? 'Alexandre Bergeron' : 'Alexandre Bergeron',
-          building: language === 'fr' ? 'Appartement 4B - Tour Horizon' : 'Apartment 4B - Horizon Tower'
+          email: 'demo.tenant@example.com',
+          name: language === 'fr' ? 'Locataire Démo' : 'Demo Tenant',
+          building: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
+          password: 'Tenant@123456'
         },
         {
-          email: 'demo.tenant2@koveo.com',
-          name: language === 'fr' ? 'Isabelle Roy' : 'Isabelle Roy',
-          building: language === 'fr' ? 'Appartement 12A - Résidence Élite' : 'Apartment 12A - Elite Residence'
-        },
-        {
-          email: 'demo.tenant3@koveo.com',
-          name: language === 'fr' ? 'Michel Bouchard' : 'Michel Bouchard',
-          building: language === 'fr' ? 'Appartement 7C - Complexe Prestige' : 'Apartment 7C - Prestige Complex'
+          email: 'demo.tenant.open@example.com',
+          name: language === 'fr' ? 'Locataire Ouvert' : 'Open Demo Tenant',
+          building: language === 'fr' ? 'Accès locataire ouvert' : 'Open tenant access',
+          password: 'Demo@123456'
         }
       ]
     },
@@ -121,19 +115,16 @@ export default function /**
         : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
       users: [
         {
-          email: 'demo.resident1@koveo.com',
-          name: language === 'fr' ? 'Catherine Morin' : 'Catherine Morin',
-          building: language === 'fr' ? 'Propriétaire - Unité 15D, Tour Horizon' : 'Owner - Unit 15D, Horizon Tower'
+          email: 'demo.resident@example.com',
+          name: language === 'fr' ? 'Résident Démo' : 'Demo Resident',
+          building: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
+          password: 'Demo@123456'
         },
         {
-          email: 'demo.resident2@koveo.com',
-          name: language === 'fr' ? 'Robert Gagnon' : 'Robert Gagnon',
-          building: language === 'fr' ? 'Propriétaire - Unité 8B, Résidence Élite' : 'Owner - Unit 8B, Elite Residence'
-        },
-        {
-          email: 'demo.resident3@koveo.com',
-          name: language === 'fr' ? 'Nathalie Côté' : 'Nathalie Côté',
-          building: language === 'fr' ? 'Propriétaire - Unité 22A, Complexe Prestige' : 'Owner - Unit 22A, Prestige Complex'
+          email: 'demo.resident.open@example.com',
+          name: language === 'fr' ? 'Résident Ouvert' : 'Open Demo Resident',
+          building: language === 'fr' ? 'Accès résident ouvert' : 'Open resident access',
+          password: 'Demo@123456'
         }
       ]
     }
@@ -203,7 +194,17 @@ export default function /**
       setIsLoggingIn(true);
       setLoginError('');
       
-      const response = await login(demoUserEmail, 'Demo@123456');
+      // Find the password for the selected user
+      let password = 'Demo@123456'; // default
+      for (const role of Object.values(demoRoles)) {
+        const user = role.users.find(u => u.email === demoUserEmail);
+        if (user) {
+          password = user.password;
+          break;
+        }
+      }
+      
+      const response = await login(demoUserEmail, password);
       
       toast({
         title: language === 'fr' ? 'Demo Mode Activé' : 'Demo Mode Activated',
@@ -355,6 +356,9 @@ export default function /**
                               <h4 className="font-medium text-sm">{user.name}</h4>
                               <p className="text-xs text-gray-500 dark:text-gray-400">{user.building}</p>
                               <p className="text-xs text-green-600 dark:text-green-400 mt-1">{user.email}</p>
+                              <p className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-1">
+                                Password: {user.password}
+                              </p>
                             </div>
                             <Building className="w-4 h-4 text-green-600 dark:text-green-400" />
                           </div>
