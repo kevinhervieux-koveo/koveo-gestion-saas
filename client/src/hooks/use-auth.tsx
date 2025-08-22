@@ -157,7 +157,7 @@ export function /**
 
       return response.json();
     },
-    onSuccess: (_data) => {
+    onSuccess: (data) => {
       setUser(data.user);
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
