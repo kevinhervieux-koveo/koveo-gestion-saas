@@ -7,6 +7,7 @@ import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import { registerCompanyHistoryRoutes } from './api/company-history';
+import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerContactRoutes } from './api/contacts';
 import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
@@ -209,6 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     registerDocumentRoutes(app);
   registerCompanyHistoryRoutes(app);
+    registerTrialRequestRoutes(app);
     log('✅ Document routes registered');
   } catch (__error) {
     log(`❌ Document routes failed: ${__error}`, 'error');

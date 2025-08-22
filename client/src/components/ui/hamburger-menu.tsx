@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { TrialRequestForm } from '@/components/ui/trial-request-form';
 import { Menu, X, Home, Shield, Wrench, BookOpen, FileText, Scale, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
@@ -147,14 +148,15 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                     <LogIn className="mr-3 h-5 w-5" />
                     <span>Se connecter</span>
                   </Button>
-                  <Button
-                    className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white mt-2"
-                    onClick={() => navigate('/login')}
-                    data-testid="nav-get-started"
-                  >
-                    <LogIn className="mr-3 h-5 w-5" />
-                    <span>Commencer</span>
-                  </Button>
+                  <TrialRequestForm>
+                    <Button
+                      className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white mt-2"
+                      data-testid="nav-get-started"
+                    >
+                      <LogIn className="mr-3 h-5 w-5" />
+                      <span>Commencer</span>
+                    </Button>
+                  </TrialRequestForm>
                 </>
               )}
             </div>

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TrialRequestForm } from '@/components/ui/trial-request-form';
 import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -47,14 +48,16 @@ export default function HomePage() {
             all in one secure platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
-              onClick={() => setLocation('/login')}
-            >
-              Start Managing Today
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <TrialRequestForm>
+              <Button 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
+                data-testid="button-start-trial"
+              >
+                Start Managing Today
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </TrialRequestForm>
           </div>
         </div>
       </section>
