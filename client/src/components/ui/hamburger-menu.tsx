@@ -14,6 +14,7 @@ interface HamburgerMenuProps {
  */
 export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { t } = useLanguage();
@@ -39,9 +40,16 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
     closeMenu();
   };
 
-  const handleLogout = () => {
-    logout();
-    closeMenu();
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      closeMenu();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   // Navigation items for public pages
@@ -151,10 +159,20 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                   variant="ghost"
                   className="w-full justify-start h-10 text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={handleLogout}
+                  disabled={isLoggingOut}
                   data-testid="nav-logout"
                 >
-                  <LogOut className="mr-3 h-4 w-4" />
-                  Logout
+                  {isLoggingOut ? (
+                    <>
+                      <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Logging out...
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="mr-3 h-4 w-4" />
+                      Logout
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
