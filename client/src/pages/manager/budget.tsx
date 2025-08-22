@@ -314,7 +314,7 @@ export default function Budget() {
   const chartData: BudgetData[] = useMemo(() => {
     if (!budgetSummary?.summary) {return [];}
     
-    return budgetSummary.summary.map((item: unknown) => {
+    return budgetSummary.summary.map((item: any) => {
       const totalIncome = item.incomes ? 
         item.incomes.reduce((sum: number, income: string) => sum + parseFloat(income || '0'), 0) : 0;
       const totalExpenses = item.spendings ? 
@@ -470,15 +470,15 @@ export default function Budget() {
     
     // Filter and map in single pass for better performance
     return residences
-      .filter((residence: unknown) => residence.building_id === selectedBuilding)
-      .map((residence: unknown) => ({
+      .filter((residence: any) => residence.building_id === selectedBuilding)
+      .map((residence: any) => ({
         id: residence.id,
         unitNumber: residence.unit_number,
         ownershipPercentage: residence.ownership_percentage || 0,
         contribution: (specialContribution * (residence.ownership_percentage || 0)) / 100,
         floor: residence.floor,
       }))
-      .sort((a: unknown, b: unknown) => a.unitNumber.localeCompare(b.unitNumber));
+      .sort((a: any, b: any) => a.unitNumber.localeCompare(b.unitNumber));
   }, [selectedBuilding, residences?.length, specialContribution]);
 
   // Pagination for property contributions
@@ -774,7 +774,7 @@ export default function Budget() {
                           <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.isArray(buildings) && buildings.map((building: unknown) => (
+                          {Array.isArray(buildings) && buildings.map((building: any) => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name}
                             </SelectItem>
@@ -1749,7 +1749,7 @@ export default function Budget() {
                           </div>
                           
                           <div className='divide-y'>
-                            {paginatedContributions.map((property: unknown) => (
+                            {paginatedContributions.map((property: any) => (
                               <PropertyContributionRow key={`${property.id}-${property.unitNumber}`} property={property} />
                             ))}
                           </div>

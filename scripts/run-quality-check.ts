@@ -593,7 +593,7 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
     const complexFunctions: ComplexityResult['complexFunctions'] = [];
 
     if (complexityData.functions) {
-      complexityData.functions.forEach((func: unknown) => {
+      complexityData.functions.forEach((func: any) => {
         const complexity = func.complexity?.cyclomatic || 0;
         totalComplexity += complexity;
         functionCount++;
@@ -949,7 +949,7 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
     const vulnerabilities: VulnerabilityResult['vulnerabilities'] = [];
     
     if (auditData.vulnerabilities) {
-      Object.values(auditData.vulnerabilities).forEach((vuln: unknown) => {
+      Object.values(auditData.vulnerabilities).forEach((vuln: any) => {
         if (vuln.severity && ['critical', 'high', 'moderate', 'low'].includes(vuln.severity)) {
           vulnerabilities.push({
             severity: vuln.severity,
@@ -1114,7 +1114,7 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
       dataSubjectRights: 0
     };
     
-    const processedViolations = violations.map((violation: unknown) => {
+    const processedViolations = violations.map((violation: any) => {
       const metadata = violation.extra?.metadata || {};
       const law25Aspect = metadata.law25 || 'general';
       const severity = violation.extra?.severity || 'info';
