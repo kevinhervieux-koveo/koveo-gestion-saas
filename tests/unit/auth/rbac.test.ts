@@ -136,18 +136,18 @@ function canAccessResource(
   isInSameBuilding: boolean = false
 ): boolean {
   // Admin can access everything
-  if (userRole === ROLES.ADMIN) {return true;}
+  if (userRole === 'ADMIN') {return true;}
   
   // Manager can access resources in their organization
-  if (userRole === ROLES.MANAGER && isInSameOrganization) {return true;}
+  if (userRole === 'MANAGER' && isInSameOrganization) {return true;}
   
   // Resident can access their own resources and building-level resources
-  if (userRole === ROLES.RESIDENT) {
+  if (userRole === 'RESIDENT') {
     return isOwner || isInSameBuilding;
   }
   
   // Tenant has limited access
-  if (userRole === ROLES.TENANT) {
+  if (userRole === 'TENANT') {
     return resourceType === 'document' ? isOwner : isInSameBuilding;
   }
   
@@ -156,7 +156,7 @@ function canAccessResource(
 
 describe('RBAC Unit Tests', () => {
   describe('Admin Role Permissions', () => {
-    const adminRole = ROLES.ADMIN;
+    const adminRole = 'ADMIN';
     
     it('should have full building management permissions', () => {
       expect(hasPermission(adminRole, PERMISSIONS.VIEW_ALL_BUILDINGS)).toBe(true);
@@ -187,7 +187,7 @@ describe('RBAC Unit Tests', () => {
   });
 
   describe('Manager Role Permissions', () => {
-    const managerRole = ROLES.MANAGER;
+    const managerRole = 'MANAGER';
     
     it('should have limited building management permissions', () => {
       expect(hasPermission(managerRole, PERMISSIONS.VIEW_ALL_BUILDINGS)).toBe(true);
@@ -212,7 +212,7 @@ describe('RBAC Unit Tests', () => {
   });
 
   describe('Resident Role Permissions', () => {
-    const residentRole = ROLES.RESIDENT;
+    const residentRole = 'RESIDENT';
     
     it('should not have building creation or deletion permissions', () => {
       expect(hasPermission(residentRole, PERMISSIONS.VIEW_ALL_BUILDINGS)).toBe(false);
@@ -243,7 +243,7 @@ describe('RBAC Unit Tests', () => {
   });
 
   describe('Tenant Role Permissions', () => {
-    const tenantRole = ROLES.TENANT;
+    const tenantRole = 'TENANT';
     
     it('should have minimal permissions', () => {
       expect(hasPermission(tenantRole, PERMISSIONS.CREATE_DEMANDS)).toBe(false);
@@ -262,39 +262,39 @@ describe('RBAC Unit Tests', () => {
 
   describe('Resource Access Control', () => {
     it('should allow admin to access any resource', () => {
-      expect(canAccessResource(ROLES.ADMIN, 'building')).toBe(true);
-      expect(canAccessResource(ROLES.ADMIN, 'demand', false)).toBe(true);
-      expect(canAccessResource(ROLES.ADMIN, 'document', false, false)).toBe(true);
+      expect(canAccessResource('ADMIN', 'building')).toBe(true);
+      expect(canAccessResource('ADMIN', 'demand', false)).toBe(true);
+      expect(canAccessResource('ADMIN', 'document', false, false)).toBe(true);
     });
 
     it('should allow manager to access organization resources', () => {
-      expect(canAccessResource(ROLES.MANAGER, 'building', false, true)).toBe(true);
-      expect(canAccessResource(ROLES.MANAGER, 'demand', false, true)).toBe(true);
-      expect(canAccessResource(ROLES.MANAGER, 'building', false, false)).toBe(false);
+      expect(canAccessResource('MANAGER', 'building', false, true)).toBe(true);
+      expect(canAccessResource('MANAGER', 'demand', false, true)).toBe(true);
+      expect(canAccessResource('MANAGER', 'building', false, false)).toBe(false);
     });
 
     it('should allow resident to access owned and building resources', () => {
-      expect(canAccessResource(ROLES.RESIDENT, 'demand', true)).toBe(true);
-      expect(canAccessResource(ROLES.RESIDENT, 'demand', false, false, true)).toBe(true);
-      expect(canAccessResource(ROLES.RESIDENT, 'document', false, false, false)).toBe(false);
+      expect(canAccessResource('RESIDENT', 'demand', true)).toBe(true);
+      expect(canAccessResource('RESIDENT', 'demand', false, false, true)).toBe(true);
+      expect(canAccessResource('RESIDENT', 'document', false, false, false)).toBe(false);
     });
 
     it('should limit tenant access to building-level resources', () => {
-      expect(canAccessResource(ROLES.TENANT, 'demand', false, false, true)).toBe(true);
-      expect(canAccessResource(ROLES.TENANT, 'document', true)).toBe(true);
-      expect(canAccessResource(ROLES.TENANT, 'document', false, false, false)).toBe(false);
+      expect(canAccessResource('TENANT', 'demand', false, false, true)).toBe(true);
+      expect(canAccessResource('TENANT', 'document', true)).toBe(true);
+      expect(canAccessResource('TENANT', 'document', false, false, false)).toBe(false);
     });
   });
 
   describe('Permission Inheritance and Hierarchy', () => {
     it('should respect role hierarchy', () => {
-      const roles = [ROLES.ADMIN, ROLES.MANAGER, ROLES.RESIDENT, ROLES.TENANT];
+      const roles = ['ADMIN', 'MANAGER', 'RESIDENT', 'TENANT'];
       
       // Admin should have the most permissions
-      const adminPermissions = ROLE_PERMISSIONS[ROLES.ADMIN].length;
-      const managerPermissions = ROLE_PERMISSIONS[ROLES.MANAGER].length;
-      const residentPermissions = ROLE_PERMISSIONS[ROLES.RESIDENT].length;
-      const tenantPermissions = ROLE_PERMISSIONS[ROLES.TENANT].length;
+      const adminPermissions = ROLE_PERMISSIONS['ADMIN'].length;
+      const managerPermissions = ROLE_PERMISSIONS['MANAGER'].length;
+      const residentPermissions = ROLE_PERMISSIONS['RESIDENT'].length;
+      const tenantPermissions = ROLE_PERMISSIONS['TENANT'].length;
       
       expect(adminPermissions).toBeGreaterThan(managerPermissions);
       expect(managerPermissions).toBeGreaterThan(residentPermissions);
@@ -319,35 +319,33 @@ describe('RBAC Unit Tests', () => {
     });
 
     it('should handle invalid permissions gracefully', () => {
-      expect(hasPermission(ROLES.ADMIN, 'invalid_permission')).toBe(false);
+      expect(hasPermission('ADMIN', 'invalid_permission')).toBe(false);
     });
 
     it('should handle null/undefined inputs', () => {
-      // @ts-expect-error Testing null input
-      expect(hasPermission(null, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
-      // @ts-expect-error Testing undefined input
-      expect(hasPermission(ROLES.ADMIN, undefined)).toBe(false);
+      expect(hasPermission(null as any, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
+      expect(hasPermission('ADMIN', undefined as any)).toBe(false);
     });
   });
 
   describe('Cross-Role Permission Tests', () => {
     it('should prevent privilege escalation', () => {
       // Residents should not be able to approve demands
-      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.UPDATE_DEMAND_STATUS)).toBe(false);
+      expect(hasPermission('RESIDENT', PERMISSIONS.UPDATE_DEMAND_STATUS)).toBe(false);
       
       // Tenants should not be able to create demands
-      expect(hasPermission(ROLES.TENANT, PERMISSIONS.CREATE_DEMANDS)).toBe(false);
+      expect(hasPermission('TENANT', PERMISSIONS.CREATE_DEMANDS)).toBe(false);
       
       // Managers should not be able to delete buildings
-      expect(hasPermission(ROLES.MANAGER, PERMISSIONS.DELETE_BUILDINGS)).toBe(false);
+      expect(hasPermission('MANAGER', PERMISSIONS.DELETE_BUILDINGS)).toBe(false);
     });
 
     it('should allow appropriate cross-role interactions', () => {
       // All roles can comment on demands
-      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission(ROLES.MANAGER, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
-      expect(hasPermission(ROLES.TENANT, PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission('ADMIN', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission('MANAGER', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission('RESIDENT', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
+      expect(hasPermission('TENANT', PERMISSIONS.COMMENT_ON_DEMANDS)).toBe(true);
     });
   });
 
@@ -358,7 +356,7 @@ describe('RBAC Unit Tests', () => {
       const isFromKoveoOrg = true;
       
       expect(canAccessResource(
-        ROLES.MANAGER, 
+        'MANAGER', 
         'building', 
         false, 
         isFromKoveoOrg
@@ -378,15 +376,15 @@ describe('RBAC Unit Tests', () => {
   describe('Quebec Law 25 Compliance', () => {
     it('should respect data access restrictions', () => {
       // Personal data access should be restricted
-      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.VIEW_USERS)).toBe(false);
-      expect(hasPermission(ROLES.TENANT, PERMISSIONS.VIEW_USERS)).toBe(false);
+      expect(hasPermission('RESIDENT', PERMISSIONS.VIEW_USERS)).toBe(false);
+      expect(hasPermission('TENANT', PERMISSIONS.VIEW_USERS)).toBe(false);
     });
 
     it('should allow appropriate data management roles', () => {
       // Only admin and manager should manage user data
-      expect(hasPermission(ROLES.ADMIN, PERMISSIONS.EDIT_USERS)).toBe(true);
-      expect(hasPermission(ROLES.MANAGER, PERMISSIONS.EDIT_USERS)).toBe(true);
-      expect(hasPermission(ROLES.RESIDENT, PERMISSIONS.EDIT_USERS)).toBe(false);
+      expect(hasPermission('ADMIN', PERMISSIONS.EDIT_USERS)).toBe(true);
+      expect(hasPermission('MANAGER', PERMISSIONS.EDIT_USERS)).toBe(true);
+      expect(hasPermission('RESIDENT', PERMISSIONS.EDIT_USERS)).toBe(false);
     });
   });
 });

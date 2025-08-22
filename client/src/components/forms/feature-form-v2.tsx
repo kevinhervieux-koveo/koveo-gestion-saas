@@ -127,7 +127,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         return draftData.formData;
       }
     } catch (_error) {
-      console.error('Failed to load draft:', error);
+      console.error('Failed to load draft:', _error);
     }
     return {};
   }, [getDraftKey]);
@@ -138,7 +138,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       setLastSaved(null);
       toast({ title: 'Draft Cleared', description: 'Saved draft has been removed.' });
     } catch (_error) {
-      console.error('Failed to clear draft:', error);
+      console.error('Failed to clear draft:', _error);
     }
   }, [getDraftKey, toast]);
 
