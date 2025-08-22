@@ -213,6 +213,38 @@ export interface Translations {
   cancelling: string;
   daysRemaining: string;
   hoursRemaining: string;
+  // Home page translations
+  modernPropertyManagement: string;
+  forQuebec: string;
+  comprehensivePropertyManagement: string;
+  startManagingToday: string;
+  everythingYouNeed: string;
+  builtForPropertyOwners: string;
+  buildingManagement: string;
+  buildingManagementDesc: string;
+  residentPortal: string;
+  residentPortalDesc: string;
+  financialReporting: string;
+  financialReportingDesc: string;
+  quebecCompliance: string;
+  quebecComplianceDesc: string;
+  whyChooseKoveo: string;
+  quebecLaw25Compliant: string;
+  quebecLaw25CompliantDesc: string;
+  bilingualSupport: string;
+  bilingualSupportDesc: string;
+  roleBasedAccess: string;
+  roleBasedAccessDesc: string;
+  cloudBasedSecurity: string;
+  cloudBasedSecurityDesc: string;
+  mobileResponsive: string;
+  mobileResponsiveDesc: string;
+  expertSupport: string;
+  expertSupportDesc: string;
+  readyToTransform: string;
+  joinPropertyOwners: string;
+  getStartedNow: string;
+  yourDataIsProtected: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -420,6 +452,38 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Cancelling',
     daysRemaining: 'days remaining',
     hoursRemaining: 'hours remaining',
+    // Home page translations
+    modernPropertyManagement: 'Modern Property Management',
+    forQuebec: 'for Quebec',
+    comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec\'s regulatory environment. Manage buildings, residents, finances, and compliance all in one secure platform.',
+    startManagingToday: 'Start Managing Today',
+    everythingYouNeed: 'Everything You Need to Manage Properties',
+    builtForPropertyOwners: 'Built for property owners, managers, and residents with Quebec-specific compliance and bilingual support.',
+    buildingManagement: 'Building Management',
+    buildingManagementDesc: 'Comprehensive building oversight with maintenance tracking, resident management, and compliance monitoring.',
+    residentPortal: 'Resident Portal',
+    residentPortalDesc: 'Self-service portal for residents to view bills, submit requests, and communicate with property management.',
+    financialReporting: 'Financial Reporting',
+    financialReportingDesc: 'Detailed financial analytics, budget tracking, and Quebec-compliant reporting for transparency.',
+    quebecCompliance: 'Quebec Compliance',
+    quebecComplianceDesc: 'Built-in compliance with Quebec Law 25 and property management regulations. Data protection guaranteed.',
+    whyChooseKoveo: 'Why Choose Koveo Gestion?',
+    quebecLaw25Compliant: 'Quebec Law 25 Compliant',
+    quebecLaw25CompliantDesc: 'Full compliance with Quebec\'s privacy and data protection regulations.',
+    bilingualSupport: 'Bilingual Support',
+    bilingualSupportDesc: 'Full French and English language support for all users.',
+    roleBasedAccess: 'Role-Based Access',
+    roleBasedAccessDesc: 'Secure access controls for owners, managers, and residents.',
+    cloudBasedSecurity: 'Cloud-Based Security',
+    cloudBasedSecurityDesc: 'Enterprise-grade security with automatic backups and updates.',
+    mobileResponsive: 'Mobile Responsive',
+    mobileResponsiveDesc: 'Access your property management tools from any device, anywhere.',
+    expertSupport: 'Expert Support',
+    expertSupportDesc: 'Dedicated support team with Quebec property management expertise.',
+    readyToTransform: 'Ready to Transform Your Property Management?',
+    joinPropertyOwners: 'Join property owners and managers across Quebec who trust Koveo Gestion for their property management needs.',
+    getStartedNow: 'Get Started Now',
+    yourDataIsProtected: 'Your data is protected',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -626,6 +690,38 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Annulation',
     daysRemaining: 'jours restants',
     hoursRemaining: 'heures restantes',
+    // Home page translations
+    modernPropertyManagement: 'Gestion Immobilière Moderne',
+    forQuebec: 'pour le Québec',
+    comprehensivePropertyManagement: 'Solution de gestion immobilière complète conçue spécifiquement pour l\'environnement réglementaire du Québec. Gérez les bâtiments, les résidents, les finances et la conformité dans une plateforme sécurisée.',
+    startManagingToday: 'Commencer aujourd\'hui',
+    everythingYouNeed: 'Tout ce dont vous avez besoin pour gérer vos propriétés',
+    builtForPropertyOwners: 'Conçu pour les propriétaires, gestionnaires et résidents avec conformité québécoise et support bilingue.',
+    buildingManagement: 'Gestion d\'immeubles',
+    buildingManagementDesc: 'Supervision complète des bâtiments avec suivi de la maintenance, gestion des résidents et surveillance de la conformité.',
+    residentPortal: 'Portail résident',
+    residentPortalDesc: 'Portail libre-service pour que les résidents puissent consulter leurs factures, soumettre des demandes et communiquer avec la gestion immobilière.',
+    financialReporting: 'Rapports financiers',
+    financialReportingDesc: 'Analyses financières détaillées, suivi budgétaire et rapports conformes au Québec pour la transparence.',
+    quebecCompliance: 'Conformité québécoise',
+    quebecComplianceDesc: 'Conformité intégrée avec la Loi 25 du Québec et les règlements de gestion immobilière. Protection des données garantie.',
+    whyChooseKoveo: 'Pourquoi choisir Koveo Gestion?',
+    quebecLaw25Compliant: 'Conforme à la Loi 25 du Québec',
+    quebecLaw25CompliantDesc: 'Conformité complète avec les règlements de confidentialité et de protection des données du Québec.',
+    bilingualSupport: 'Support bilingue',
+    bilingualSupportDesc: 'Support complet en français et en anglais pour tous les utilisateurs.',
+    roleBasedAccess: 'Accès basé sur les rôles',
+    roleBasedAccessDesc: 'Contrôles d\'accès sécurisés pour propriétaires, gestionnaires et résidents.',
+    cloudBasedSecurity: 'Sécurité infonuagique',
+    cloudBasedSecurityDesc: 'Sécurité de niveau entreprise avec sauvegardes et mises à jour automatiques.',
+    mobileResponsive: 'Compatible mobile',
+    mobileResponsiveDesc: 'Accédez à vos outils de gestion immobilière depuis n\'importe quel appareil, n\'importe où.',
+    expertSupport: 'Support expert',
+    expertSupportDesc: 'Équipe de support dédiée avec expertise en gestion immobilière québécoise.',
+    readyToTransform: 'Prêt à transformer votre gestion immobilière?',
+    joinPropertyOwners: 'Rejoignez les propriétaires et gestionnaires à travers le Québec qui font confiance à Koveo Gestion pour leurs besoins de gestion immobilière.',
+    getStartedNow: 'Commencer maintenant',
+    yourDataIsProtected: 'Vos données sont protégées',
   },
 };
 

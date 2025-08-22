@@ -39,13 +39,11 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Modern Property Management
-            <span className="text-blue-600"> for Quebec</span>
+            {t('modernPropertyManagement')}
+            <span className="text-blue-600"> {t('forQuebec')}</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Comprehensive property management solution designed specifically for Quebec's 
-            regulatory environment. Manage buildings, residents, finances, and compliance 
-            all in one secure platform.
+            {t('comprehensivePropertyManagement')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <TrialRequestForm>
@@ -54,7 +52,7 @@ export default function HomePage() {
                 className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
                 data-testid="button-start-trial"
               >
-                Start Managing Today
+                {t('startManagingToday')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </TrialRequestForm>
@@ -66,11 +64,10 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Everything You Need to Manage Properties
+            {t('everythingYouNeed')}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Built for property owners, managers, and residents with Quebec-specific 
-            compliance and bilingual support.
+            {t('builtForPropertyOwners')}
           </p>
         </div>
 
@@ -78,12 +75,11 @@ export default function HomePage() {
           <Card className="text-center hover:shadow-lg transition-shadow">
             <CardHeader>
               <Building className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle>Building Management</CardTitle>
+              <CardTitle>{t('buildingManagement')}</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Comprehensive building oversight with maintenance tracking, 
-                resident management, and compliance monitoring.
+                {t('buildingManagementDesc')}
               </CardDescription>
             </CardContent>
           </Card>
@@ -91,12 +87,11 @@ export default function HomePage() {
           <Card className="text-center hover:shadow-lg transition-shadow">
             <CardHeader>
               <Users className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <CardTitle>Resident Portal</CardTitle>
+              <CardTitle>{t('residentPortal')}</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Self-service portal for residents to view bills, submit requests, 
-                and communicate with property management.
+                {t('residentPortalDesc')}
               </CardDescription>
             </CardContent>
           </Card>
@@ -104,12 +99,11 @@ export default function HomePage() {
           <Card className="text-center hover:shadow-lg transition-shadow">
             <CardHeader>
               <BarChart3 className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <CardTitle>Financial Reporting</CardTitle>
+              <CardTitle>{t('financialReporting')}</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Detailed financial analytics, budget tracking, and 
-                Quebec-compliant reporting for transparency.
+                {t('financialReportingDesc')}
               </CardDescription>
             </CardContent>
           </Card>
@@ -117,12 +111,11 @@ export default function HomePage() {
           <Card className="text-center hover:shadow-lg transition-shadow">
             <CardHeader>
               <Shield className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <CardTitle>Quebec Compliance</CardTitle>
+              <CardTitle>{t('quebecCompliance')}</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Built-in compliance with Quebec Law 25 and property 
-                management regulations. Data protection guaranteed.
+                {t('quebecComplianceDesc')}
               </CardDescription>
             </CardContent>
           </Card>
@@ -134,34 +127,34 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-              Why Choose Koveo Gestion?
+              {t('whyChooseKoveo')}
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Quebec Law 25 Compliant</h3>
+                    <h3 className="font-semibold text-gray-900">{t('quebecLaw25Compliant')}</h3>
                     <p className="text-gray-600">
-                      Full compliance with Quebec's privacy and data protection regulations.
+                      {t('quebecLaw25CompliantDesc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Bilingual Support</h3>
+                    <h3 className="font-semibold text-gray-900">{t('bilingualSupport')}</h3>
                     <p className="text-gray-600">
-                      Full French and English language support for all users.
+                      {t('bilingualSupportDesc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Role-Based Access</h3>
+                    <h3 className="font-semibold text-gray-900">{t('roleBasedAccess')}</h3>
                     <p className="text-gray-600">
-                      Secure access controls for owners, managers, and residents.
+                      {t('roleBasedAccessDesc')}
                     </p>
                   </div>
                 </div>
@@ -170,27 +163,27 @@ export default function HomePage() {
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Cloud-Based Security</h3>
+                    <h3 className="font-semibold text-gray-900">{t('cloudBasedSecurity')}</h3>
                     <p className="text-gray-600">
-                      Enterprise-grade security with automatic backups and updates.
+                      {t('cloudBasedSecurityDesc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Mobile Responsive</h3>
+                    <h3 className="font-semibold text-gray-900">{t('mobileResponsive')}</h3>
                     <p className="text-gray-600">
-                      Access your property management tools from any device, anywhere.
+                      {t('mobileResponsiveDesc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900">Expert Support</h3>
+                    <h3 className="font-semibold text-gray-900">{t('expertSupport')}</h3>
                     <p className="text-gray-600">
-                      Dedicated support team with Quebec property management expertise.
+                      {t('expertSupportDesc')}
                     </p>
                   </div>
                 </div>
@@ -204,18 +197,17 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Transform Your Property Management?
+            {t('readyToTransform')}
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Join property owners and managers across Quebec who trust Koveo Gestion 
-            for their property management needs.
+            {t('joinPropertyOwners')}
           </p>
           <Button 
             size="lg" 
             className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
             onClick={() => setLocation('/login')}
           >
-            Get Started Now
+            {t('getStartedNow')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -234,9 +226,9 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <Shield className="h-4 w-4" />
-              <span>Quebec Law 25 Compliant</span>
+              <span>{t('quebecLaw25Compliant')}</span>
               <span>•</span>
-              <span>Your data is protected</span>
+              <span>{t('yourDataIsProtected')}</span>
             </div>
           </div>
         </div>
