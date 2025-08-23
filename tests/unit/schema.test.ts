@@ -141,7 +141,7 @@ describe('Schema Validation Tests', () => {
 
       statuses.forEach((status) => {
         const data = { ...validFeatureData, status };
-        const result = insertFeatureSchema.safeParse(_data);
+        const result = insertFeatureSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
     });
@@ -151,7 +151,7 @@ describe('Schema Validation Tests', () => {
 
       priorities.forEach((priority) => {
         const data = { ...validFeatureData, priority };
-        const result = insertFeatureSchema.safeParse(_data);
+        const result = insertFeatureSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
     });
