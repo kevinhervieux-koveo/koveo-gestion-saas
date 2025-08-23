@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
-import { UserListComponent } from '@/components/admin/user-list';
-import { BulkActionsBar } from '@/components/admin/bulk-actions-bar';
+// import { UserListComponent } from '@/components/admin/user-list';
+// import { BulkActionsBar } from '@/components/admin/bulk-actions-bar';
 // import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 // import { InvitationManagement } from '@/components/admin/invitation-management';
 import { useLanguage } from '@/hooks/use-language';
@@ -24,7 +24,7 @@ export default function UserManagement() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
+  // const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,11 +36,11 @@ export default function UserManagement() {
     enabled: true,
   });
 
-  // Fetch invitations
-  const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
-    queryKey: ['/api/invitations'],
-    enabled: true,
-  });
+  // Invitations temporarily disabled
+  // const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
+  //   queryKey: ['/api/invitations'],
+  //   enabled: true,
+  // });
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -74,26 +74,7 @@ export default function UserManagement() {
     await bulkActionMutation.mutateAsync({ action, data });
   };
 
-  const handleSendReminder = async (invitationId: string) => {
-    try {
-      await apiRequest('POST', `/api/invitations/${invitationId}/resend`);
-      toast({
-        title: 'Success',
-        description: 'Invitation sent',
-      });
-    } catch (_error) {
-      toast({
-        title: 'Error',
-        description: _error instanceof Error ? _error.message : 'An error occurred',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleInvitationSent = () => {
-    refetchInvitations();
-    setInvitationDialogOpen(false);
-  };
+  // All invitation-related handlers temporarily disabled
 
   // Calculate stats and pagination
   const totalUsers = users?.length || 0;
@@ -194,85 +175,33 @@ export default function UserManagement() {
               </TabsTrigger>
             </TabsList>
 
-            <Button onClick={() => setInvitationDialogOpen(true)}>
+            <Button disabled>
               <UserPlus className="h-4 w-4 mr-2" />
-              Invite User
+              Invite User (Coming Soon)
             </Button>
           </div>
 
           <TabsContent value="users" className="space-y-6">
-            {selectedUsers.size > 0 && (
-              <BulkActionsBar
-                selectedCount={selectedUsers.size}
-                onBulkAction={handleBulkAction}
-                isLoading={bulkActionMutation.isPending}
-              />
-            )}
-
             <Card>
-              <CardContent className="p-0">
-                <UserListComponent
-                  users={currentUsers}
-                  selectedUsers={selectedUsers}
-                  onSelectionChange={setSelectedUsers}
-                  onBulkAction={handleBulkAction}
-                  isLoading={usersLoading}
-                />
+              <CardContent className="p-6">
+                {usersLoading ? (
+                  <p>Loading users...</p>
+                ) : (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">User List</h3>
+                    <p>Found {totalUsers} users total.</p>
+                    <div className="text-sm text-gray-600">
+                      <p>• Active users: {activeUsers}</p>
+                      <p>• Admin users: {adminUsers}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-4">
+                      Full user management functionality is being updated and will be available soon.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className='flex justify-center items-center gap-4 mt-6'>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                
-                <div className='flex items-center gap-2'>
-                  <span className='text-sm text-gray-600'>Page</span>
-                  <Input
-                    type='number'
-                    min='1'
-                    max={totalPages}
-                    value={currentPage}
-                    onChange={(e) => {
-                      const page = parseInt(e.target.value);
-                      if (page >= 1 && page <= totalPages) {
-                        setCurrentPage(page);
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const page = parseInt(e.target.value);
-                      if (isNaN(page) || page < 1) {
-                        setCurrentPage(1);
-                      } else if (page > totalPages) {
-                        setCurrentPage(totalPages);
-                      }
-                    }}
-                    className='w-16 text-center'
-                  />
-                  <span className='text-sm text-gray-600'>of {totalPages}</span>
-                </div>
-                
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-                
-                <div className='text-sm text-gray-600'>
-                  Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
-                </div>
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="invitations" className="space-y-6">
