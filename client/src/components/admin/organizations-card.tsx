@@ -66,7 +66,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const [viewingOrganization, setViewingOrganization] = useState<Organization | null>(null);
 
   // Fetch organizations
-  const { _data: organizations, isLoading } = useQuery<Organization[]>({
+  const { data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/organizations');
