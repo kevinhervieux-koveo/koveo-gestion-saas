@@ -121,23 +121,24 @@ export default function /**
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Fetch demands
-  const { _data: demands = [], isLoading } = useQuery({
+  const { data: demands = [], isLoading } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch buildings
-  const { _data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/buildings'],
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: ['/api/manager/buildings'],
+    select: (data: any) => data?.buildings || []
   });
 
   // Fetch residences
-  const { _data: residences = [] } = useQuery<Residence[]>({
+  const { data: residences = [] } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
   });
 
   // Fetch current user
-  const { _data: currentUser } = useQuery({
+  const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
   });
 
@@ -149,21 +150,14 @@ export default function /**
 
   // Create demand mutation
   const createDemandMutation = useMutation({
-    mutationFn: async (_data: DemandFormData) => {
+    mutationFn: async (data: DemandFormData) => {
       const response = await fetch('/api/demands', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
+      });
 
       if (!response.ok) {
         throw new Error('Failed to create demand');
@@ -179,7 +173,7 @@ export default function /**
         description: 'Demand created successfully',
       });
     },
-    onError: (_error) => {
+    onError: () => {
       toast({
         title: 'Error',
         description: 'Failed to create demand',
@@ -220,8 +214,8 @@ export default function /**
     ['completed', 'rejected', 'cancelled'].includes(d.status)
   );
 
-  const handleCreateDemand = (_data: DemandFormData) => {
-    createDemandMutation.mutate(_data);
+  const handleCreateDemand = (data: DemandFormData) => {
+    createDemandMutation.mutate(data);
   };
 
   const handleDemandClick = (demand: Demand) => {
@@ -396,7 +390,7 @@ export default function /**
           <Input
             placeholder="Search demands..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target._value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>

@@ -103,12 +103,11 @@ const ResidentsResidence = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const ResidentsBuilding = optimizedPageLoaders.ResidentsBuilding;
-// ResidentsDemands temporarily disabled until file exists
-// const ResidentsDemands = createOptimizedLoader(
-//   () => import('@/pages/residents/demands'),
-//   'residents-demands',
-//   { enableMemoryCleanup: true }
-// );
+const ResidentsDemands = createOptimizedLoader(
+  () => import('@/pages/ResidentDemandsPage'),
+  'residents-demands',
+  { enableMemoryCleanup: true }
+);
 
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
@@ -315,7 +314,7 @@ function Router() {
               <Route path='/residents/residence/documents' component={ResidentsResidenceDocuments} />
               <Route path='/residents/building' component={ResidentsBuilding} />
               <Route path='/residents/building/documents' component={ResidentsBuildingDocuments} />
-              {/* <Route path='/residents/demands' component={ResidentsDemands} /> */}
+              <Route path='/residents/demands' component={ResidentsDemands} />
 
               {/* Settings routes */}
               <Route path='/settings/settings' component={SettingsSettings} />
