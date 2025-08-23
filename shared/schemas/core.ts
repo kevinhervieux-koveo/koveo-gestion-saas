@@ -296,7 +296,6 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   residenceId: true,
   email: true,
   role: true,
-  token: true,
   invitedByUserId: true,
   expiresAt: true,
 }).extend({
