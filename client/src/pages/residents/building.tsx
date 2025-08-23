@@ -25,7 +25,7 @@ export default function MyBuilding() {
   // Fetch buildings accessible to the user
   const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
     queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest("GET", "/api/manager/buildings") as Promise<{buildings: BuildingWithStats[]}>,
+    queryFn: () => apiRequest("GET", "/api/manager/buildings"),
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];

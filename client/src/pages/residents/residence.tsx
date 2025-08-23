@@ -176,24 +176,6 @@ export default function Residence() {
     return safeAccessibleResidences;
   }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
 
-  // Debug logging
-  console.log('Debug residence data:', {
-    userRole: user?.role,
-    accessibleResidencesLength: safeAccessibleResidences.length,
-    filteredResidencesLength: filteredResidences.length,
-    selectedBuildingId,
-    buildingsLength: buildings.length,
-    isLoading,
-    rawAccessibleResidences: accessibleResidences,
-    rawBuildingsData: buildingsData,
-    buildingsError,
-    residencesError
-  });
-
-  // Handle authentication errors
-  if (buildingsError || residencesError) {
-    console.error('API Errors:', { buildingsError, residencesError });
-  }
 
   // Select first residence by default
   const selectedResidence = useMemo(() => {
