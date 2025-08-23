@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Sidebar } from '@/components/layout/sidebar';
-import { TestProviders } from '@/utils/test-providers';
+import { TestProviders } from '../../test-utils/providers';
 import { useAuth } from '@/hooks/use-auth';
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
 import { useLanguage } from '@/hooks/use-language';
@@ -33,19 +33,25 @@ describe('Sidebar Component', () => {
     mockUseMobileMenu.mockReturnValue({
       isMobileMenuOpen: false,
       closeMobileMenu: mockCloseMobileMenu,
-      openMobileMenu: jest.fn(),
       toggleMobileMenu: jest.fn(),
     });
 
     mockUseAuth.mockReturnValue({
       user: {
         id: '1',
+        username: 'john.doe',
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@example.com',
+        password: 'hashedpassword',
+        phone: '',
+        profileImage: '',
+        language: 'en',
         role: 'admin',
         isActive: true,
-        organizationId: 'org-1',
+        lastLoginAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       logout: mockLogout,
       isAuthenticated: true,
@@ -55,9 +61,9 @@ describe('Sidebar Component', () => {
 
     mockUseLanguage.mockReturnValue({
       language: 'en',
+      currentLanguage: 'en',
       setLanguage: jest.fn(),
-      t: { language: 'en' },
-      translations: {},
+      t: jest.fn((key: string) => key),
     });
   });
 

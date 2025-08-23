@@ -238,7 +238,7 @@ export const createBudgetTestQueryClient = () => new QueryClient({
           // Return all residences for all Demo buildings
           const buildings = getDemoBuildings();
           return buildings.flatMap((building, _index) => 
-            createDemoResidences(building.id, 101 + (index * 100), 5)
+            createDemoResidences(building.id, 101 + (_index * 100), 5)
           );
         }
         

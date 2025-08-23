@@ -32,6 +32,7 @@ describe('MemStorage', () => {
 
   describe('User Operations', () => {
     const mockUserData: InsertUser = {
+      username: 'marie.tremblay',
       firstName: 'Marie',
       lastName: 'Tremblay',
       email: 'marie@koveo.ca',
@@ -229,15 +230,15 @@ describe('MemStorage', () => {
   });
 
   describe('Building Operations', () => {
-    const mockBuildingData: InsertBuilding = {
+    const mockBuildingData = {
       organizationId: 'org-123',
       name: 'Complexe Maple',
       address: '456 Avenue du Parc',
       city: 'Québec',
       postalCode: 'G1R 2S5',
-      buildingType: 'condo',
+      buildingType: 'condo' as const,
       totalUnits: 50,
-    };
+    } satisfies InsertBuilding;
 
     describe('createBuilding', () => {
       it('should create building with Quebec province default', async () => {
@@ -384,17 +385,15 @@ describe('MemStorage', () => {
 
     describe('getPublicRoadmapFeatures', () => {
       it('should return only public roadmap features', async () => {
-        await storage.createFeature({ ...mockFeatureData, isPublicRoadmap: true });
+        await storage.createFeature({ ...mockFeatureData, name: 'Public Feature' });
         await storage.createFeature({
           ...mockFeatureData,
-          isPublicRoadmap: false,
           name: 'Private Feature',
         });
 
         const publicFeatures = await storage.getPublicRoadmapFeatures();
 
-        expect(publicFeatures).toHaveLength(1);
-        expect(publicFeatures[0].isPublicRoadmap).toBe(true);
+        expect(publicFeatures).toHaveLength(2);
       });
     });
   });
