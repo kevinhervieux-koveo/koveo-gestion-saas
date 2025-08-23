@@ -56,7 +56,7 @@ const invitationSchema = z.object({
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
-}).refine((_data) => {
+}).refine((data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
@@ -75,7 +75,7 @@ const bulkInvitationSchema = z.object({
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30)
-}).refine((_data) => {
+}).refine((data) => {
   // If role is tenant or resident and a specific building is selected, residence must be assigned
   if (['tenant', 'resident'].includes(data.role) && data.buildingId && data.buildingId !== 'none') {
     return !!data.residenceId;
