@@ -474,8 +474,9 @@ export default function Buildings() {
   });
 
   const deleteBuildingMutation = useMutation({
-    mutationFn: (buildingId: string) => apiRequest("DELETE", `/api/buildings/${buildingId}`),
+    mutationFn: (buildingId: string) => apiRequest("DELETE", `/api/admin/buildings/${buildingId}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/buildings"] });
       setDeletingBuilding(null);
       toast({
