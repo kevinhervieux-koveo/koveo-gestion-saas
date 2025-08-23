@@ -229,21 +229,7 @@ export function applySearch<T>(_data: T[], search: string, searchFields?: string
  * // [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }]
  * ```
  */
-/**
- * ApplySort function.
- * @param data
- * @param sort
- * @returns Function result.
- */
-export function applySort<T>(_data: T[], sort: SortValue | null): T[] {  /**
-   * If function.
-   * @param !sort - !sort parameter.
-   */  /**
-   * If function.
-   * @param !sort - !sort parameter.
-   */
-
-
+export function applySort<T>(data: T[], sort: SortValue | null): T[] {
   if (!sort) {
     return data;
   }
@@ -252,73 +238,28 @@ export function applySort<T>(_data: T[], sort: SortValue | null): T[] {  /**
     const aValue = getNestedValue(a, sort.field);
     const bValue = getNestedValue(b, sort.field);
 
-    // Handle null/undefined values  /**
-   * If function.
-   * @param aValue == null && bValue == null - aValue == null && bValue == null parameter.
-   */  /**
-   * If function.
-   * @param aValue == null && bValue == null - aValue == null && bValue == null parameter.
-   */
-
-
+    // Handle null/undefined values
     if (aValue == null && bValue == null) {
       return 0;
-    }  /**
-   * If function.
-   * @param aValue == null - aValue == null parameter.
-   */  /**
-   * If function.
-   * @param aValue == null - aValue == null parameter.
-   */
-
+    }
 
     if (aValue == null) {
       return sort.direction === 'asc' ? 1 : -1;
-    }  /**
-   * If function.
-   * @param bValue == null - bValue == null parameter.
-   */  /**
-   * If function.
-   * @param bValue == null - bValue == null parameter.
-   */
-
+    }
 
     if (bValue == null) {
       return sort.direction === 'asc' ? -1 : 1;
     }
 
     // Compare values
-    let comparison = 0;  /**
-   * If function.
-   * @param typeof aValue === 'string' && typeof bValue === 'string' - typeof aValue === 'string' && typeof bValue === 'string' parameter.
-   */  /**
-   * If function.
-   * @param typeof aValue === 'string' && typeof bValue === 'string' - typeof aValue === 'string' && typeof bValue === 'string' parameter.
-   */
-
-
+    let comparison = 0;
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       comparison = aValue.localeCompare(bValue, undefined, { numeric: true });
-    } else  /**
-   * If function.
-   * @param typeof aValue === 'number' && typeof bValue === 'number' - typeof aValue === 'number' && typeof bValue === 'number' parameter.
-   */  /**
-   * If function.
-   * @param typeof aValue === 'number' && typeof bValue === 'number' - typeof aValue === 'number' && typeof bValue === 'number' parameter.
-   */
-
- if (typeof aValue === 'number' && typeof bValue === 'number') {
+    } else
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
       comparison = aValue - bValue;
-    } else  /**
-   * If function.
-   * @param aValue instanceof Date && bValue instanceof Date - aValue instanceof Date && bValue instanceof Date parameter.
-   */  /**
-   * If function.
-   * @param aValue instanceof Date && bValue instanceof Date - aValue instanceof Date && bValue instanceof Date parameter.
-   */
-
- if (aValue instanceof Date && bValue instanceof Date) {
+    } else if (aValue instanceof Date && bValue instanceof Date) {
       comparison = aValue.getTime() - bValue.getTime();
     } else {
       comparison = String(aValue).localeCompare(String(bValue));
