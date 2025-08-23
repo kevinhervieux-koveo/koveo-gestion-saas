@@ -1,17 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, ChevronDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, Home, Car, Package } from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
 
-/**
- *
- */
 interface BuildingWithStats extends BuildingType {
   organizationName: string;
   organizationType: string;
@@ -21,96 +19,25 @@ interface BuildingWithStats extends BuildingType {
   vacantUnits: number;
 }
 
-/**
- *
- */
-export default function /**
-   * My building function.
-   */ /**
-   * My building function.
-   */
-
- MyBuilding() {
+export default function MyBuilding() {
   const [, navigate] = useLocation();
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
 
   // Fetch buildings accessible to the user
-  const { _data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
+  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
     queryKey: ['/api/manager/buildings'],
+    queryFn: () => apiRequest("GET", "/api/manager/buildings") as Promise<{buildings: BuildingWithStats[]}>,
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
-  const selectedBuilding = buildings.find(b => b.id === selectedBuildingId) || buildings[0];
 
-  // Set initial building selection
-  useEffect(() => { /**
-   * If function.
-   * @param buildings.length > 0 && !selectedBuildingId - buildings.length > 0 && !selectedBuildingId parameter.
-   */ /**
-   * If function.
-   * @param buildings.length > 0 && !selectedBuildingId - buildings.length > 0 && !selectedBuildingId parameter.
-   */
-
-
-    if (buildings.length > 0 && !selectedBuildingId) {
-      setSelectedBuildingId(buildings[0].id);
-    }
-  }, [buildings, selectedBuildingId]);
-
-  // Fetch building contacts
-  const { _data: contacts, isLoading: isLoadingContacts } = useQuery({
-    queryKey: ['/api/contacts/building', selectedBuildingId],
-    queryFn: async () => { /**
-   * If function.
-   * @param !selectedBuildingId - !selectedBuildingId parameter.
-   */ /**
-   * If function.
-   * @param !selectedBuildingId - !selectedBuildingId parameter.
-   */
-
-
-      if (!selectedBuildingId) {return [];}
-      const response = await fetch(`/api/contacts/building/${selectedBuildingId}`); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
-
-      if (!response.ok) {return [];}
-      return response.json();
-    },
-    enabled: !!selectedBuildingId,
-  });
-
-  const handleViewDocuments = () => { /**
-   * If function.
-   * @param selectedBuildingId - SelectedBuildingId parameter.
-   */ /**
-   * If function.
-   * @param selectedBuildingId - SelectedBuildingId parameter.
-   */
-
-
-    if (selectedBuildingId) {
-      navigate(`/residents/building/documents?buildingId=${selectedBuildingId}`);
-    }
-  }; /**
-   * If function.
-   * @param isLoadingBuildings - IsLoadingBuildings parameter.
-   */ /**
-   * If function.
-   * @param isLoadingBuildings - IsLoadingBuildings parameter.
-   */
-
-
+  const handleViewDocuments = (buildingId: string) => {
+    navigate(`/residents/building/documents?buildingId=${buildingId}`);
+  };
 
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Building' subtitle='View building information and contacts' />
+        <Header title='My Buildings' description='View buildings you have access to' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <div className='text-center py-8'>
@@ -121,20 +48,12 @@ export default function /**
         </div>
       </div>
     );
-  } /**
-   * If function.
-   * @param buildings.length === 0 - buildings.length === 0 parameter.
-   */ /**
-   * If function.
-   * @param buildings.length === 0 - buildings.length === 0 parameter.
-   */
-
-
+  }
 
   if (buildings.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Building' subtitle='View building information and contacts' />
+        <Header title='My Buildings' description='View buildings you have access to' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <Card>
@@ -152,209 +71,167 @@ export default function /**
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Building' subtitle='View building information and contacts' />
+      <Header title='My Buildings' description='View buildings you have access to' />
 
       <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-4xl mx-auto space-y-6'>
-          {/* Building Selector - only show if user has multiple buildings */}
-          {buildings.length > 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className='text-sm font-medium'>Select Building</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select
-                  value={selectedBuildingId || ''}
-                  onValueChange={setSelectedBuildingId}
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='Select a building' />
-                    <ChevronDown className='w-4 h-4' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {buildings.map((building) => (
-                      <SelectItem key={building.id} value={building.id}>
-                        {building.name} - {building.address}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Building Information Card */}
-          {selectedBuilding && (
-            <Card>
-              <CardHeader>
-                <div className='flex items-center justify-between'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          {/* Building Cards */}
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {buildings.map((building) => (
+              <Card key={building.id} className='hover:shadow-lg transition-shadow'>
+                <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Building className='w-5 h-5' />
-                    Building Information
+                    {building.name}
                   </CardTitle>
-                  <Button onClick={handleViewDocuments} variant='outline' size='sm'>
-                    <FileText className='w-4 h-4 mr-2' />
-                    View Documents
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div>
-                  <h3 className='text-xl font-semibold mb-2'>{selectedBuilding.name}</h3>
-                  <div className='flex items-center gap-2 text-muted-foreground mb-4'>
-                    <MapPin className='w-4 h-4' />
-                    <span>{selectedBuilding.address}, {selectedBuilding.city}, {selectedBuilding.province} {selectedBuilding.postalCode}</span>
+                  <div className='text-sm text-muted-foreground'>
+                    {building.organizationName}
                   </div>
-                </div>
-
-                <Separator />
-
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Building Type</p>
-                    <p className='font-medium capitalize'>{selectedBuilding.buildingType}</p>
-                  </div>
-                  {selectedBuilding.yearBuilt && (
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='grid grid-cols-1 gap-3'>
                     <div>
-                      <p className='text-sm text-muted-foreground'>Year Built</p>
-                      <p className='font-medium'>{selectedBuilding.yearBuilt}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Total Units</p>
-                    <p className='font-medium'>{selectedBuilding.totalUnits}</p>
-                  </div>
-                  {selectedBuilding.totalFloors && (
-                    <div>
-                      <p className='text-sm text-muted-foreground'>Total Floors</p>
-                      <p className='font-medium'>{selectedBuilding.totalFloors}</p>
-                    </div>
-                  )}
-                  {selectedBuilding.parkingSpaces && (
-                    <div>
-                      <p className='text-sm text-muted-foreground'>Parking Spaces</p>
-                      <p className='font-medium'>{selectedBuilding.parkingSpaces}</p>
-                    </div>
-                  )}
-                  {selectedBuilding.storageSpaces && (
-                    <div>
-                      <p className='text-sm text-muted-foreground'>Storage Spaces</p>
-                      <p className='font-medium'>{selectedBuilding.storageSpaces}</p>
-                    </div>
-                  )}
-                  {selectedBuilding.managementCompany && (
-                    <div>
-                      <p className='text-sm text-muted-foreground'>Management Company</p>
-                      <p className='font-medium'>{selectedBuilding.managementCompany}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Organization</p>
-                    <p className='font-medium'>{selectedBuilding.organizationName}</p>
-                  </div>
-                </div>
-
-                {selectedBuilding.amenities && (
-                  <>
-                    <Separator />
-                    <div>
-                      <p className='text-sm text-muted-foreground mb-2'>Amenities</p>
-                      <div className='flex flex-wrap gap-2'>
-                        {(() => {
-                          try {
-                            const amenities = typeof selectedBuilding.amenities === 'string' 
-                              ? JSON. /**
-   * Parse .
-   * @param selectedBuilding.amenities - SelectedBuilding.amenities parameter.
-   * @returns String result.
-   */ /**
-   * Parse .
-   * @param selectedBuilding.amenities - SelectedBuilding.amenities parameter.
-   * @returns String result.
-   */
-
-parse(selectedBuilding.amenities)
-                              : selectedBuilding.amenities;
-                            return Array.isArray(amenities) 
-                              ? amenities.map((amenity: string, _index: number) => (
-                                  <span key={index} className='px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm'>
-                                    {amenity}
-                                  </span>
-                                ))
-                              : null;
-                          } /**
-   * Catch function.
-   * @param _e - _e parameter.
-   */ /**
-   * Catch function.
-   * @param _e - _e parameter.
-   */
-
- catch (__e) {
-                            return <span className='text-sm text-muted-foreground'>Unable to display amenities</span>;
-                          }
-                        })()}
+                      <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                      <div className='flex items-start gap-2'>
+                        <MapPin className='w-3 h-3 mt-0.5' />
+                        <div>
+                          <p className='text-sm text-gray-700'>{building.address}</p>
+                          <p className='text-sm text-gray-700'>
+                            {building.city}, {building.province} {building.postalCode}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Building Contacts Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Users className='w-5 h-5' />
-                Building Contacts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingContacts ? (
-                <div className='text-center py-4'>
-                  <div className='animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full mx-auto'></div>
-                  <p className='text-muted-foreground mt-2 text-sm'>Loading contacts...</p>
-                </div>
-              ) : !contacts || contacts.length === 0 ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  <Users className='w-12 h-12 mx-auto mb-2 opacity-50' />
-                  <p>No contacts available for this building</p>
-                </div>
-              ) : (
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {contacts.map((contact: Contact) => (
-                    <div key={contact.id} className='border rounded-lg p-4'>
-                      <div className='flex items-center justify-between mb-2'>
-                        <h4 className='font-medium'>{contact.name}</h4>
-                        <span className='px-2 py-1 bg-primary/10 text-primary text-xs rounded-full capitalize'>
-                          {contact.contactCategory}
-                        </span>
+                    
+                    <div className='grid grid-cols-2 gap-3'>
+                      <div>
+                        <Label className='text-xs font-medium text-gray-500'>Building Type</Label>
+                        <p className='text-sm text-gray-700 capitalize'>{building.buildingType}</p>
                       </div>
-                      <div className='space-y-1'>
-                        {contact.email && (
-                          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                            <Mail className='w-3 h-3' />
-                            <a href={`mailto:${contact.email}`} className='hover:text-primary'>
-                              {contact.email}
-                            </a>
+                      {building.yearBuilt && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>Year Built</Label>
+                          <div className='flex items-center gap-1'>
+                            <Calendar className='w-3 h-3' />
+                            <span className='text-sm text-gray-700'>{building.yearBuilt}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div>
+                        <Label className='text-xs font-medium text-gray-500'>Total Units</Label>
+                        <div className='flex items-center gap-1'>
+                          <Home className='w-3 h-3' />
+                          <span className='text-sm text-gray-700'>{building.totalUnits}</span>
+                        </div>
+                      </div>
+                      {building.totalFloors && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>Floors</Label>
+                          <p className='text-sm text-gray-700'>{building.totalFloors}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {(building.parkingSpaces || building.storageSpaces) && (
+                      <div className='grid grid-cols-2 gap-3'>
+                        {building.parkingSpaces && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <div className='flex items-center gap-1'>
+                              <Car className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>{building.parkingSpaces}</span>
+                            </div>
                           </div>
                         )}
-                        {contact.phone && (
-                          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                            <Phone className='w-3 h-3' />
-                            <a href={`tel:${contact.phone}`} className='hover:text-primary'>
-                              {contact.phone}
-                            </a>
+                        {building.storageSpaces && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <div className='flex items-center gap-1'>
+                              <Package className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>{building.storageSpaces}</span>
+                            </div>
                           </div>
                         )}
                       </div>
+                    )}
+                    
+                    {building.managementCompany && (
+                      <div>
+                        <Label className='text-xs font-medium text-gray-500'>Management Company</Label>
+                        <p className='text-sm text-gray-700'>{building.managementCompany}</p>
+                      </div>
+                    )}
+
+                    {/* Occupancy Stats */}
+                    <div>
+                      <Label className='text-xs font-medium text-gray-500'>Occupancy</Label>
+                      <div className='flex items-center gap-2 text-sm'>
+                        <Badge variant="outline" className='text-xs'>
+                          {building.occupiedUnits}/{building.totalUnits} units
+                        </Badge>
+                        <Badge variant={building.occupancyRate >= 90 ? "default" : building.occupancyRate >= 70 ? "secondary" : "destructive"} className='text-xs'>
+                          {Math.round(building.occupancyRate)}% occupied
+                        </Badge>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    
+                    {building.amenities && (
+                      <div>
+                        <Label className='text-xs font-medium text-gray-500'>Amenities</Label>
+                        <div className='flex flex-wrap gap-1 mt-1'>
+                          {(() => {
+                            try {
+                              const amenities = typeof building.amenities === 'string' 
+                                ? JSON.parse(building.amenities)
+                                : building.amenities;
+                              return Array.isArray(amenities) 
+                                ? amenities.slice(0, 3).map((amenity: string, index: number) => (
+                                    <Badge key={index} variant="outline" className='text-xs'>
+                                      {amenity}
+                                    </Badge>
+                                  ))
+                                : null;
+                            } catch (_e) {
+                              return <span className='text-xs text-muted-foreground'>Unable to display amenities</span>;
+                            }
+                          })()}
+                          {(() => {
+                            try {
+                              const amenities = typeof building.amenities === 'string' 
+                                ? JSON.parse(building.amenities)
+                                : building.amenities;
+                              if (Array.isArray(amenities) && amenities.length > 3) {
+                                return (
+                                  <Badge variant="outline" className='text-xs'>
+                                    +{amenities.length - 3} more
+                                  </Badge>
+                                );
+                              }
+                            } catch (_e) {
+                              // Ignore error
+                            }
+                            return null;
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className='pt-4 border-t'>
+                    <Button 
+                      onClick={() => handleViewDocuments(building.id)} 
+                      variant='outline' 
+                      size='sm'
+                      className='w-full justify-start'
+                    >
+                      <FileText className='w-4 h-4 mr-2' />
+                      View Documents
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>
