@@ -52,6 +52,14 @@ export function TokenValidationStep({
 
   const validateToken = async (token: string) => {
     console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
+    
+    // Skip if already validating this token OR if already validated
+    if (validatedToken === token || isValidating) {
+      console.warn('⚠️ Token already processed, skipping duplicate validation:', { validatedToken: validatedToken?.substring(0, 8), isValidating });
+      return;
+    }
+    
+    setValidatedToken(token); // Mark this token as being validated FIRST
     setIsValidating(true);
     
     try {
@@ -78,6 +86,7 @@ export function TokenValidationStep({
           isValid: true
         };
 
+        console.warn('✅ Token validation successful, updating wizard state');
         setValidationResult(validationData);
         onDataChange(validationData as unknown as Record<string, unknown>);
         onValidationChange(true);
@@ -93,6 +102,7 @@ export function TokenValidationStep({
           error: result.message || 'Token invalide'
         };
 
+        console.warn('❌ Token validation failed:', result.message);
         setValidationResult(errorData);
         onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
@@ -130,7 +140,6 @@ export function TokenValidationStep({
     
     if (token && validatedToken !== token && !isValidating) {
       console.warn('✅ Found new token, starting validation...');
-      setValidatedToken(token); // Mark this token as being validated
       validateToken(token);
     } else if (!token) {
       console.warn('❌ No token found in URL parameters');
