@@ -325,7 +325,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Single invitation mutation
   const singleInvitationMutation = useMutation({
-    mutationFn: async (_data: InvitationFormData) => {
+    mutationFn: async (data: InvitationFormData) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
       
@@ -344,7 +344,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (_error: Error) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
@@ -355,7 +355,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Bulk invitation mutation
   const bulkInvitationMutation = useMutation({
-    mutationFn: async (_data: BulkInvitationFormData) => {
+    mutationFn: async (data: BulkInvitationFormData) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
       
@@ -373,9 +373,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       });
       return response.json();
     },
-    onSuccess: (_data) => {
+    onSuccess: (data) => {
       const successCount = data.results?.length || 0;
-      const _errorCount = data.errors?.length || 0;
+      const errorCount = data.errors?.length || 0;
       
       toast({
         title: t('bulkInvitationsSent'),
@@ -387,7 +387,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onSuccess();
       onOpenChange(false);
     },
-    onError: (_error: Error) => {
+    onError: (error: Error) => {
       toast({
         title: t('error'),
         description: error.message,
