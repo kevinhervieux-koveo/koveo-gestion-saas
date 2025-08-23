@@ -387,12 +387,25 @@ export default function Buildings() {
   });
 
   // Fetch buildings
-  const { data: buildingsResponse, isLoading, error: _error } = useQuery({
+  const { data: buildingsData, isLoading, error: _error } = useQuery({
     queryKey: ["/api/buildings"],
-    queryFn: () => apiRequest("GET", "/api/buildings") as Promise<{buildings: BuildingData[], meta: any}>,
+    queryFn: () => apiRequest("GET", "/api/buildings"),
   });
   
-  const buildings = buildingsResponse?.buildings || [];
+  // Handle both possible response formats: direct array or wrapped in buildings property
+  const buildings = Array.isArray(buildingsData) 
+    ? buildingsData 
+    : (buildingsData as any)?.buildings || [];
+    
+  // Debug logging
+  console.log('🏢 Buildings debug:', {
+    buildingsData,
+    isArray: Array.isArray(buildingsData),
+    buildings,
+    buildingsLength: buildings.length,
+    isLoading,
+    error: _error
+  });
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
