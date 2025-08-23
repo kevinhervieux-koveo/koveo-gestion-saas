@@ -329,9 +329,18 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
       
+      // Generate a secure token for the invitation
+      const token = crypto.randomUUID() + '-' + Date.now().toString(36);
+      
       const response = await apiRequest('POST', '/api/invitations', {
-        ...data,
-        expiresAt: expiresAt.toISOString()
+        organizationId: data.organizationId,
+        residenceId: data.residenceId || null,
+        email: data.email,
+        role: data.role,
+        token: token,
+        invitedByUserId: currentUser?.id,
+        expiresAt: expiresAt,
+        personalMessage: data.personalMessage || null
       });
       return response.json();
     },
@@ -363,9 +372,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         email,
         role: data.role,
         organizationId: data.organizationId,
-        buildingId: data.buildingId,
-        personalMessage: data.personalMessage,
-        expiresAt: expiresAt.toISOString()
+        residenceId: data.residenceId || null,
+        token: crypto.randomUUID() + '-' + Date.now().toString(36) + '-' + Math.random().toString(36),
+        invitedByUserId: currentUser?.id,
+        expiresAt: expiresAt,
+        personalMessage: data.personalMessage || null
       }));
       
       const response = await apiRequest('POST', '/api/invitations/bulk', {
