@@ -3,6 +3,7 @@
  * Tests all data modification functionality for buildings and residences
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,7 +12,7 @@ import { mockApiRequest } from '../../test-utils/api-mocks';
 
 // Mock the building form component
 const MockBuildingForm = ({ building, onSuccess }: any) => {
-  const [formData, setFormData] = vi.fn().mockReturnValue([{}, vi.fn()]);
+  const [formData, setFormData] = React.useState({});
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

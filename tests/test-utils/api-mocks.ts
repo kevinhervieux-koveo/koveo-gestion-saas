@@ -1,0 +1,51 @@
+/**
+ * API mocking utilities for tests
+ */
+
+import { vi } from 'vitest';
+
+/**
+ * Mock API request function that can be configured for different responses
+ */
+export const mockApiRequest = vi.fn();
+
+/**
+ * Reset all API mocks
+ */
+export const resetApiMocks = () => {
+  mockApiRequest.mockReset();
+  mockApiRequest.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ success: true }),
+    status: 200
+  });
+};
+
+/**
+ * Mock successful API response
+ */
+export const mockApiSuccess = (data: any = { success: true }) => {
+  mockApiRequest.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve(data),
+    status: 200
+  });
+};
+
+/**
+ * Mock API error response
+ */
+export const mockApiError = (message: string = 'API Error', status: number = 500) => {
+  mockApiRequest.mockRejectedValueOnce(new Error(message));
+};
+
+/**
+ * Mock API validation error
+ */
+export const mockValidationError = (errors: Record<string, string>) => {
+  mockApiRequest.mockResolvedValueOnce({
+    ok: false,
+    json: () => Promise.resolve({ errors }),
+    status: 400
+  });
+};

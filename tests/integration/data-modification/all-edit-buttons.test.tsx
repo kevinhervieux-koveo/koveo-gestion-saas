@@ -31,7 +31,10 @@ const mockOrganization = {
   phone: '514-555-0123',
   email: 'test@test.com',
   website: 'https://test.com',
-  registrationNumber: 'REG123'
+  registrationNumber: 'REG123',
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
 };
 
 const mockBill = {
@@ -40,8 +43,27 @@ const mockBill = {
   amount: 1500.00,
   dueDate: new Date('2025-12-31'),
   type: 'monthly_fee',
-  status: 'sent',
-  residenceId: 'test-residence-id'
+  status: 'sent' as const,
+  residenceId: 'test-residence-id',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  buildingId: 'test-building-id',
+  title: 'Test Bill',
+  description: 'Test bill description',
+  category: 'utilities',
+  isRecurring: false,
+  frequency: null,
+  nextBillDate: null,
+  lateFeesEnabled: false,
+  lateFeeAmount: null,
+  discountEnabled: false,
+  discountAmount: null,
+  discountDeadline: null,
+  emailNotificationsEnabled: true,
+  reminderDays: 7,
+  notes: null,
+  isActive: true,
+  createdBy: 'test-user-id'
 };
 
 const mockUser = {
@@ -187,6 +209,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
           <SendInvitationDialog
             open={true}
             onOpenChange={onOpenChange}
+            onSuccess={vi.fn()}
           />
         </TestProviders>
       );
@@ -299,7 +322,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       render(
         <TestProviders>
           <BillCreateForm
-            residenceId="test-residence-id"
+            buildingId="test-building-id"
             onSuccess={onSuccess}
           />
         </TestProviders>
@@ -332,6 +355,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
           <BillEditForm
             bill={mockBill}
             onSuccess={onSuccess}
+            onCancel={vi.fn()}
           />
         </TestProviders>
       );
@@ -393,7 +417,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       render(
         <TestProviders>
           <BillCreateForm
-            residenceId="test-residence-id"
+            buildingId="test-building-id"
             onSuccess={vi.fn()}
           />
         </TestProviders>
