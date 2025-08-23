@@ -248,7 +248,7 @@ export function RegistrationWizard({
 
             {/* Render current step component */}
             <currentStep.component
-              data={wizardData[currentStep.id] as Record<string, unknown> || {}}
+              _data={wizardData[currentStep.id] as Record<string, unknown> || {}}
               onDataChange={handleDataChange}
               onValidationChange={handleValidationChange}
               onNext={handleNext}
