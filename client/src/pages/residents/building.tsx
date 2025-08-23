@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, Home, Car, Package } from 'lucide-react';
+import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, Home, Car, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -21,6 +21,8 @@ interface BuildingWithStats extends BuildingType {
 
 export default function MyBuilding() {
   const [, navigate] = useLocation();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch buildings accessible to the user
   const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
@@ -29,6 +31,24 @@ export default function MyBuilding() {
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
+
+  // Pagination calculations
+  const totalPages = Math.ceil(buildings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentBuildings = buildings.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleViewDocuments = (buildingId: string) => {
     navigate(`/residents/building/documents?buildingId=${buildingId}`);
@@ -77,7 +97,7 @@ export default function MyBuilding() {
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Building Cards */}
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {buildings.map((building) => (
+            {currentBuildings.map((building) => (
               <Card key={building.id} className='hover:shadow-lg transition-shadow'>
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
@@ -231,6 +251,62 @@ export default function MyBuilding() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className='flex items-center justify-center gap-2 mt-8'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className='h-4 w-4' />
+                Previous
+              </Button>
+              
+              <div className='flex gap-1'>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size='sm'
+                      onClick={() => handlePageClick(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className='h-4 w-4' />
+              </Button>
+            </div>
+          )}
+          
+          {/* Page info */}
+          <div className='text-center text-sm text-muted-foreground mt-4'>
+            Showing {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length} buildings
           </div>
         </div>
       </div>

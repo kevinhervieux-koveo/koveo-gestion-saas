@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -119,6 +119,8 @@ export default function /**
   const [selectedDemand, setSelectedDemand] = useState<Demand | null>(null);
   const [isNewDemandOpen, setIsNewDemandOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch demands
   const { data: demands = [], isLoading } = useQuery({
@@ -213,6 +215,24 @@ export default function /**
   const completedDemands = filteredDemands.filter((d: Demand) => 
     ['completed', 'rejected', 'cancelled'].includes(d.status)
   );
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredDemands.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentDemands = filteredDemands.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleCreateDemand = (data: DemandFormData) => {
     createDemandMutation.mutate(data);
@@ -425,67 +445,80 @@ export default function /**
       </div>
 
       {/* Demands List */}
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList>
-          <TabsTrigger value="drafts">
-            Drafts ({draftDemands.length})
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Active ({activeDemands.length})
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed ({completedDemands.length})
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="drafts" className="space-y-4">
-          {draftDemands.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No draft demands</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {draftDemands.map((demand: Demand) => (
-                <DemandCard key={demand.id} demand={demand} />
-              ))}
+      <div className="space-y-6">
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className='flex items-center justify-center gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className='h-4 w-4' />
+              Previous
+            </Button>
+            
+            <div className='flex gap-1'>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => handlePageClick(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
             </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="active" className="space-y-4">
-          {activeDemands.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No active demands</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeDemands.map((demand: Demand) => (
-                <DemandCard key={demand.id} demand={demand} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="completed" className="space-y-4">
-          {completedDemands.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No completed demands</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {completedDemands.map((demand: Demand) => (
-                <DemandCard key={demand.id} demand={demand} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className='h-4 w-4' />
+            </Button>
+          </div>
+        )}
+
+        {/* Page info */}
+        {filteredDemands.length > 0 && (
+          <div className='text-center text-sm text-muted-foreground'>
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+          </div>
+        )}
+
+        {/* Current page demands */}
+        {currentDemands.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">No demands found</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {currentDemands.map((demand: Demand) => (
+              <DemandCard key={demand.id} demand={demand} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Demand Details Popup */}
       <DemandDetailsPopup

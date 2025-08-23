@@ -25,7 +25,9 @@ import {
   Trash2,
   FileText,
   Download,
-  Calendar
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -87,6 +89,8 @@ export default function Residence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>("");
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Form for contact management
   const contactForm = useForm<ContactFormData>({
@@ -175,6 +179,24 @@ export default function Residence() {
     // For residents, return all their accessible residences
     return safeAccessibleResidences;
   }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredResidences.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentResidences = filteredResidences.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
 
   // Select first residence by default
@@ -407,9 +429,9 @@ export default function Residence() {
           ) : null}
 
           {/* Residence Cards */}
-          {filteredResidences.length > 0 && (
+          {currentResidences.length > 0 && (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-              {filteredResidences.map((residence) => (
+              {currentResidences.map((residence) => (
                 <Card key={residence.id} className='hover:shadow-lg transition-shadow'>
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
