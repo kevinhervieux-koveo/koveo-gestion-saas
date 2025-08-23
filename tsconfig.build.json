@@ -18,7 +18,9 @@
     "noPropertyAccessFromIndexSignature": false,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo.build"
+    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo.build",
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": [
     "client/src/**/*",
