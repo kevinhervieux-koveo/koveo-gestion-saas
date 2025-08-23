@@ -69,9 +69,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(eq(organizations.isActive, true))
           .orderBy(organizations.name);
       } else {
-        // Other users see organizations they have access to
-        // For now, return empty array for non-admin users
-        // This can be extended later with proper RBAC
+        // Other users see organizations they have access to through user_organizations
         organizationsQuery = db
           .select({
             id: organizations.id,
@@ -89,9 +87,15 @@ export function registerOrganizationRoutes(app: Express): void {
             createdAt: organizations.createdAt,
           })
           .from(organizations)
-          .where(eq(organizations.isActive, true))
-          .orderBy(organizations.name)
-          .limit(0); // For now, limit to 0 for non-admin users
+          .innerJoin(userOrganizations, eq(organizations.id, userOrganizations.organizationId))
+          .where(
+            and(
+              eq(organizations.isActive, true),
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.isActive, true)
+            )
+          )
+          .orderBy(organizations.name);
       }
 
       const userOrganizations = await organizationsQuery;
