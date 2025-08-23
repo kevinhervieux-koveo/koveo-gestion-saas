@@ -26,7 +26,7 @@ const buildingFormSchema = z.object({
   province: z.string().min(1, "Province is required").max(100, "Province too long"),
   postalCode: z.string().min(1, "Postal code is required").max(20, "Postal code too long"),
   buildingType: z.enum(['condo', 'apartment', 'townhouse', 'commercial', 'mixed_use', 'other']),
-  totalUnits: z.coerce.number().int().min(1, "Must have at least 1 unit").max(300, "Maximum 300 units allowed"),
+  totalUnits: z.number().int().min(1, "Must have at least 1 unit").max(300, "Maximum 300 units allowed"),
   organizationId: z.string().min(1, "Organization is required"),
 });
 
@@ -348,13 +348,13 @@ export default function Buildings() {
   // Fetch organizations for form
   const { data: organizations = [] } = useQuery({
     queryKey: ["/api/organizations"],
-    queryFn: () => apiRequest("GET", "/api/organizations") as Promise<any[]>,
+    queryFn: () => apiRequest("GET", "/api/organizations") as Promise<unknown> as Promise<any[]>,
   });
 
   // Fetch buildings
   const { data: buildings = [], isLoading, error: _error } = useQuery({
     queryKey: ["/api/buildings"],
-    queryFn: () => apiRequest("GET", "/api/buildings") as Promise<BuildingData[]>,
+    queryFn: () => apiRequest("GET", "/api/buildings") as Promise<unknown> as Promise<BuildingData[]>,
   });
 
   // Filter buildings based on search

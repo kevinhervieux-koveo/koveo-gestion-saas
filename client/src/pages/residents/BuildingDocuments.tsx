@@ -1,387 +1,134 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Download, FileText, Search, Calendar, Building, ArrowLeft, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { Search, FileText, Building, Download, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { useLocation } from "wouter";
 
-// Document categories
-const DOCUMENT_CATEGORIES = [
-  { _value: 'bylaw', label: 'Bylaws' },
-  { _value: 'financial', label: 'Financial' },
-  { _value: 'maintenance', label: 'Maintenance' },
-  { _value: 'legal', label: 'Legal' },
-  { _value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { _value: 'insurance', label: 'Insurance' },
-  { _value: 'contracts', label: 'Contracts' },
-  { _value: 'permits', label: 'Permits' },
-  { _value: 'inspection', label: 'Inspection' },
-  { _value: 'other', label: 'Other' },
-] as const;
-
-/*
- *
+import { 
+  getDisplayableFileUrl, 
+  BUILDING_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES,
+  getCategoryLabel,
+} from '@/lib/documents';
 
 interface BuildingDocument {
   id: string;
   name: string;
   type: string;
   dateReference: string;
-  uploadDate: string;
   buildingId: string;
+  fileUrl?: string;
   fileName?: string;
   fileSize?: number;
   mimeType?: string;
-  fileUrl?: string;
-  isVisibleToTenants?: boolean;
+  uploadedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-/*
- *
-
-interface Building {
-  id: string;
-  name: string;
-  address: string;
-  [_key: string]: any;
+interface BuildingDocumentsProps {
+  buildingId?: string;
 }
 
-/*
- *
- * @param bytes
-
-/*
- * FormatFileSize function.
- * @param bytes
- * @returns Function result.
-
-function
-   * Format file size.
-   * @returns String result.
-
-   * Format file size.
-   * @returns String result.
-
-
- formatFileSize(bytes?: number): string {
-
-
-
-
-  if (!bytes) {return 'Unknown size';}
-  
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-}
-
-/*
- *
- * @param dateString
-
-/*
- * FormatDate function.
- * @param dateString
- * @returns Function result.
-
-function
-   * Format date.
-   * @returns String result.
-
-   * Format date.
-   * @returns String result.
-
-
- formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-}
-
-/*
- *
- * @param value
-
-/*
- * GetCategoryLabel function.
- * @param value
- * @returns Function result.
-
-function
-   * Get category label.
-   * @param value - Value to process.
-   * @returns String result.
-
-   * Get category label.
-   * @param value - Value to process.
-   * @returns String result.
-
-
- getCategoryLabel(_value: string): string {
-  // Return the actual document type as a formatted label
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-/*
- *
-
-export default function
-   * Residents building documents function.
-
-   * Residents building documents function.
-
-
- ResidentsBuildingDocuments() {
+export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps) {
   const [, navigate] = useLocation();
-  const urlParams = new URLSearchParams(window.location.search);
-  const buildingId = urlParams.get('buildingId');
-  
-  
+
+  // State variables
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedYear, setSelectedYear] = useState<string>("all");
-  const [selectedVisibility, setSelectedVisibility] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedVisibility, setSelectedVisibility] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
-  
-  const { toast } = useToast();
+  const itemsPerPage = 12;
 
-  // Get building info
-  const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
-    queryKey: ["/api/manager/buildings"],
-  });
-
-  const building = buildingsResponse?.buildings?.find(b => b.id === buildingId);
-
-  // Get documents for this specific building
-  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
-    queryKey: ["/api/documents", "building", buildingId],
-    queryFn: async () => {
-
-
-
-
-      if (!buildingId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
-
-
-
-
-
-
-
-
-      if (!response.ok) {throw new Error('Failed to fetch documents');}
-      return response.json();
-    },
+  // Fetch building data
+  const { data: building } = useQuery({
+    queryKey: ["/api/buildings", buildingId],
+    queryFn: () => buildingId ? apiRequest("GET", `/api/buildings/${buildingId}`) as Promise<any> : Promise.resolve(null),
     enabled: !!buildingId,
   });
-  
-  const documents = documentsResponse?.documents || [];
-  
 
-  // Get available categories from documents for this building
-  const availableCategories = useMemo(() => {
-    const buildingDocs = documents.filter(doc => doc.buildingId === buildingId);
-    const categories = Array.from(new Set(buildingDocs.map(doc => doc.type || 'other')));
-    return categories.sort();
-  }, [documents, buildingId]);
+  // Fetch documents
+  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+    queryKey: ["/api/documents", "building", buildingId],
+    queryFn: () => buildingId ? apiRequest("GET", `/api/documents?buildingId=${buildingId}`) as Promise<unknown> as Promise<BuildingDocument[]> : Promise.resolve([]),
+    enabled: !!buildingId,
+  });
 
-  // Get available years from documents
+  // Calculate available years and categories
   const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    documents.forEach(doc => {
-      const year = new Date(doc.dateReference).getFullYear().toString();
-      years.add(year);
-    });
-    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+    if (!Array.isArray(documents)) return [];
+    const years = documents
+      .map((doc: BuildingDocument) => new Date(doc.dateReference).getFullYear().toString())
+      .filter(Boolean);
+    return [...new Set(years)].sort((a, b) => b.localeCompare(a));
   }, [documents]);
 
-  // Filter documents - first by building, then by user filters
+  const availableCategories = useMemo(() => {
+    if (!Array.isArray(documents)) return [];
+    const categories = documents.map((doc: BuildingDocument) => doc.type);
+    return [...new Set(categories)];
+  }, [documents]);
+
+  // Filter documents
   const filteredDocuments = useMemo(() => {
-    let filtered = documents;
+    if (!Array.isArray(documents)) return [];
+    return documents.filter((doc: BuildingDocument) => {
+      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || doc.type === selectedCategory;
+      const matchesYear = selectedYear === "all" || new Date(doc.dateReference).getFullYear().toString() === selectedYear;
+      return matchesSearch && matchesCategory && matchesYear;
+    });
+  }, [documents, searchTerm, selectedCategory, selectedYear]);
 
-    // First ensure we only show documents for this building
-    filtered = filtered.filter(doc => doc.buildingId === buildingId);
-
-    // Apply user filters
-
-
-
-
-    if (searchTerm) {
-      filtered = filtered.filter(doc => 
-        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-
-
-
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(doc => doc.type === selectedCategory);
-    }
-
-
-
-
-
-    if (selectedYear !== "all") {
-      filtered = filtered.filter(doc => 
-        new Date(doc.dateReference).getFullYear().toString() === selectedYear
-      );
-    }
-
-
-
-
-
-    if (selectedVisibility !== "all") {
-      filtered = filtered.
-   * Filter .
-   * @param doc => {
-        if (selectedVisibility === "visible" - doc => {
-        if (selectedVisibility === "visible" parameter.
-
-filter(doc => {
-        if (selectedVisibility === "visible") {
-          return doc.isVisibleToTenants === true;
-        } else
-
-
-
- if (selectedVisibility === "hidden") {
-          return doc.isVisibleToTenants === false || doc.isVisibleToTenants === undefined;
-        }
-        return true;
-      });
-    }
-
-    return filtered;
-  }, [documents, searchTerm, selectedCategory, selectedYear, selectedVisibility, buildingId]);
-
-  // Reset page to 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedYear, selectedVisibility]);
-
-
-  // Paginate filtered documents
-  const paginatedDocuments = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredDocuments.slice(startIndex, endIndex);
-  }, [filteredDocuments, currentPage, ITEMS_PER_PAGE]);
-
-  // Calculate pagination info
-  const totalPages = Math.ceil(filteredDocuments.length / ITEMS_PER_PAGE);
-  const startItem = filteredDocuments.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredDocuments.length);
-
-  // Group paginated documents by their actual types for display
+  // Group documents by category
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, BuildingDocument[]> = {};
-    
-    // Group documents by their actual type values
-    paginatedDocuments.
-   * For each function.
-   * @param doc => {
-      const type = doc.type || 'other';
-      if (!grouped[type] - doc => {
-      const type = doc.type || 'other';
-      if (!grouped[type] parameter.
-
-forEach(doc => {
-      const type = doc.type || 'other';
-      if (!grouped[type]) {
-        grouped[type] = [];
-      }
-      grouped[type].push(doc);
+    DOCUMENT_CATEGORIES.forEach(category => {
+      grouped[category._value] = filteredDocuments.filter(doc => doc.type === category._value);
     });
-
     return grouped;
-  }, [paginatedDocuments]);
+  }, [filteredDocuments]);
 
-  const handleDownloadDocument = async (document: BuildingDocument) => {
-    try {
-      const response = await fetch(`/api/documents/${document.id}/download`);
-      if (!response.ok) {throw new Error('Download failed');}
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
-      a.href = url;
-      a.download = document.fileName || document.name;
-      window.document.body.appendChild(a);
-      a.click();
-      window.document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }
-   * Catch function.
+  // Pagination
+  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage;
+  const endItem = Math.min(startItem + itemsPerPage, filteredDocuments.length);
+  const paginatedDocuments = filteredDocuments.slice(startItem, endItem);
 
-
-   * Catch function.
-
-   * Catch function.
-
-
-
-   * Catch function.
-
- catch (_error) {
-      toast({
-        title: "Download failed",
-        description: "Failed to download document",
-        variant: "destructive",
-      });
+  // Event handlers
+  const handleViewDocument = (document: BuildingDocument) => {
+    if (document.fileUrl) {
+      window.open(getDisplayableFileUrl(document.fileUrl), '_blank');
     }
   };
 
-  const handleViewDocument = async (document: BuildingDocument) => {
-    try {
-
-
-
-
-      if (document.fileUrl) {
-        window.open(document.fileUrl, '_blank');
-      } else {
-        const response = await fetch(`/api/documents/${document.id}/view`);
-
-
-
-
-        if (!response.ok) {throw new Error('Failed to get document view URL');}
-        
-        const data = await response.json();
-
-
-
-
-        if (data.viewUrl) {
-          window.open(data.viewUrl, '_blank');
-        }
-      }
-    } catch (_error) {
-      toast({
-        title: "View failed",
-        description: "Failed to open document for viewing",
-        variant: "destructive",
-      });
+  const handleDownloadDocument = (document: BuildingDocument) => {
+    if (document.fileUrl) {
+      const link = window.document.createElement('a');
+      link.href = getDisplayableFileUrl(document.fileUrl);
+      link.download = document.fileName || document.name;
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
-
-
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return 'Unknown size';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
 
   if (!buildingId) {
     return (
@@ -413,7 +160,7 @@ forEach(doc => {
           <div className="mb-6">
             <Button 
               variant="ghost" 
-              onClick={() => navigate('/residents/building')}
+              onClick={() => navigate('/residents/buildings')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -429,7 +176,7 @@ forEach(doc => {
                 <Input
                   placeholder="Search documents..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target._value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
               </div>
@@ -461,130 +208,88 @@ forEach(doc => {
                   ))}
                 </SelectContent>
               </Select>
-
-              <Select value={selectedVisibility} onValueChange={setSelectedVisibility}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Tenant visibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Documents</SelectItem>
-                  <SelectItem value="visible">Visible to Tenants</SelectItem>
-                  <SelectItem value="hidden">Hidden from Tenants</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
-            {/* Results summary */}
-            <div className="text-sm text-muted-foreground mb-4">
-              Showing {startItem}-{endItem} of {filteredDocuments.length} documents
+            {/* Summary */}
+            <div className="text-sm text-gray-600">
+              Showing {startItem + 1}-{endItem} of {filteredDocuments.length} documents
               {selectedCategory !== 'all' && ` in ${getCategoryLabel(selectedCategory)}`}
               {selectedYear !== 'all' && ` from ${selectedYear}`}
-              {selectedVisibility === 'visible' && ` (visible to tenants)`}
-              {selectedVisibility === 'hidden' && ` (hidden from tenants)`}
             </div>
           </div>
 
-          {/* Loading state */}
+          {/* Documents Display */}
           {documentsLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
-            </div>
+            <div className="text-center py-8">Loading documents...</div>
           ) : (
             <>
               {filteredDocuments.length === 0 ? (
                 <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' 
-                        ? 'No documents match your filters' 
-                        : 'No documents available'
-                      }
-                    </h3>
+                  <CardContent className="p-8 text-center">
+                    <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
                     <p className="text-gray-500">
-                      {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' 
-                        ? 'Try adjusting your search criteria or filters.'
-                        : 'Documents will appear here when they are uploaded.'
-                      }
+                      {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all'
+                        ? 'No documents match your current filters.'
+                        : 'No documents are available for this building.'}
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-6">
-                  {/* Show documents grouped by category if no specific category is selected */}
+                <div className="space-y-6">
+                  {/* Category View */}
                   {selectedCategory === 'all' ? (
-                    Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {
+                    DOCUMENT_CATEGORIES.map((category) => {
+                      const categoryDocuments = documentsByCategory[category._value] || [];
+                      if (categoryDocuments.length === 0) return null;
 
-
-
-
-                      if (categoryDocuments.length === 0) {return null;}
-                      
                       return (
-                        <Card key={categoryValue}>
+                        <Card key={category._value}>
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                              <FileText className="w-5 h-5" />
-                              {getCategoryLabel(categoryValue)}
-                              <Badge variant="secondary" className="ml-auto">
-                                {categoryDocuments.length}
-                              </Badge>
+                              <FileText className="h-5 w-5" />
+                              {category.label}
+                              <Badge variant="secondary">{categoryDocuments.length}</Badge>
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {categoryDocuments.map((document) => (
-                                <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3">
-                                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                      <div className="min-w-0 flex-1">
-                                        <h4 className="font-medium truncate">{document.name}</h4>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                          <span className="flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" />
-                                            {formatDate(document.dateReference)}
-                                          </span>
-                                          {document.fileName && (
-                                            <span>{document.fileName}</span>
-                                          )}
-                                          {document.fileSize && (
-                                            <span>{formatFileSize(document.fileSize)}</span>
-                                          )}
-                                        </div>
+                                <Card key={document.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                                  <CardContent className="p-4">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <h4 className="font-medium text-sm truncate flex-1 mr-2">
+                                        {document.name}
+                                      </h4>
+                                      <div className="flex gap-1">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleViewDocument(document)}
+                                          disabled={!document.fileUrl}
+                                        >
+                                          <FileText className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleDownloadDocument(document)}
+                                          disabled={!document.fileUrl}
+                                        >
+                                          <Download className="h-3 w-3" />
+                                        </Button>
                                       </div>
                                     </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <div className="flex items-center gap-2">
-                                      {document.isVisibleToTenants !== undefined && (
-                                        <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
-                                          {document.isVisibleToTenants ? "Visible to Tenants" : "Hidden from Tenants"}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleViewDocument(document)}
-                                      >
-                                        <Eye className="w-4 h-4 mr-1" />
-                                        View
-                                      </Button>
-                                      {document.fileUrl && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => handleDownloadDocument(document)}
-                                        >
-                                          <Download className="w-4 h-4 mr-1" />
-                                          Download
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
+                                    <p className="text-xs text-gray-500 mb-2">
+                                      {formatDate(document.dateReference)}
+                                    </p>
+                                    {document.fileUrl && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {formatFileSize(document.fileSize)}
+                                      </Badge>
+                                    )}
+                                  </CardContent>
+                                </Card>
                               ))}
                             </div>
                           </CardContent>
@@ -592,126 +297,99 @@ forEach(doc => {
                       );
                     })
                   ) : (
-                    // Show all documents in a single list when a specific category is selected
+                    /* Filtered View */
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                          <FileText className="w-5 h-5" />
+                          <FileText className="h-5 w-5" />
                           {getCategoryLabel(selectedCategory)} Documents
-                          <Badge variant="secondary" className="ml-auto">
-                            {filteredDocuments.length}
-                          </Badge>
+                          <Badge variant="secondary">{filteredDocuments.length}</Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {paginatedDocuments.map((document) => (
-                            <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3">
-                                  <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <h4 className="font-medium truncate">{document.name}</h4>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                      <span className="flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {formatDate(document.dateReference)}
-                                      </span>
-                                      {document.fileName && (
-                                        <span>{document.fileName}</span>
-                                      )}
-                                      {document.fileSize && (
-                                        <span>{formatFileSize(document.fileSize)}</span>
-                                      )}
-                                    </div>
+                            <Card key={document.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-medium text-sm truncate flex-1 mr-2">
+                                    {document.name}
+                                  </h4>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleViewDocument(document)}
+                                      disabled={!document.fileUrl}
+                                    >
+                                      <FileText className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDownloadDocument(document)}
+                                      disabled={!document.fileUrl}
+                                    >
+                                      <Download className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <div className="flex items-center gap-2">
-                                  {document.isVisibleToTenants !== undefined && (
-                                    <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
-                                      {document.isVisibleToTenants ? "Visible to Tenants" : "Hidden from Tenants"}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleViewDocument(document)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    View
-                                  </Button>
-                                  {document.fileUrl && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleDownloadDocument(document)}
-                                    >
-                                      <Download className="w-4 h-4 mr-1" />
-                                      Download
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                                <p className="text-xs text-gray-500 mb-2">
+                                  {formatDate(document.dateReference)}
+                                </p>
+                                {document.fileUrl && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatFileSize(document.fileSize)}
+                                  </Badge>
+                                )}
+                              </CardContent>
+                            </Card>
                           ))}
                         </div>
                       </CardContent>
                     </Card>
                   )}
-                </div>
-              )}
-              
-              {/* Pagination Controls */}
-              {filteredDocuments.length > 0 && totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Page {currentPage} of {totalPages}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
 
-
-
-
-                        if (pageNum > totalPages) {return null;}
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={pageNum === currentPage ? "default" : "outline"}
-                            size="sm"
-                            className="w-8 h-8 p-0"
-                            onClick={() => setCurrentPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                          if (pageNum > totalPages) return null;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={pageNum === currentPage ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => setCurrentPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
+                  )}
                 </div>
               )}
             </>
