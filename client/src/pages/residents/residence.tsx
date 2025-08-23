@@ -92,6 +92,7 @@ export default function Residence() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>("");
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -114,6 +115,15 @@ export default function Residence() {
     queryFn: () => apiRequest("GET", "/api/auth/user") as Promise<any>,
   });
 
+  // Fetch buildings for admin/manager users
+  const { data: buildingsData } = useQuery({
+    queryKey: ["/api/manager/buildings"],
+    queryFn: () => apiRequest("GET", "/api/manager/buildings") as Promise<any>,
+    enabled: !!user?.id && user?.role && ['admin', 'manager'].includes(user.role),
+  });
+
+  const buildings = buildingsData?.buildings || [];
+
   // Use different endpoints based on user role
   const { data: accessibleResidences = [], isLoading } = useQuery({
     queryKey: user?.role && ['admin', 'manager'].includes(user.role) ? ["/api/residences"] : ["/api/users/residences", user?.id],
@@ -122,11 +132,11 @@ export default function Residence() {
       
       // Admin and manager users can see all residences in their organizations
       if (user.role && ['admin', 'manager'].includes(user.role)) {
-        return apiRequest("GET", "/api/residences") as Promise<Residence[]>;
+        return apiRequest("GET", "/api/residences");
       }
       
       // Residents see only their own residences
-      return apiRequest("GET", `/api/users/${user.id}/residences`) as Promise<Residence[]>;
+      return apiRequest("GET", `/api/users/${user.id}/residences`);
     },
     enabled: !!user?.id,
   });
@@ -134,26 +144,47 @@ export default function Residence() {
   // Ensure accessibleResidences is always an array
   const safeAccessibleResidences = Array.isArray(accessibleResidences) ? accessibleResidences : [];
 
+  // Filter residences based on selected building for admin/manager users
+  const filteredResidences = useMemo(() => {
+    if (user?.role && ['admin', 'manager'].includes(user.role)) {
+      // If no building is selected, show all residences
+      if (!selectedBuildingId) return safeAccessibleResidences;
+      
+      // Filter by selected building
+      return safeAccessibleResidences.filter(r => r.buildingId === selectedBuildingId);
+    }
+    
+    // For residents, return all their accessible residences
+    return safeAccessibleResidences;
+  }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
+
+  // Auto-select first building for admin/manager users
+  useMemo(() => {
+    if (user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0 && !selectedBuildingId) {
+      setSelectedBuildingId(buildings[0].id);
+    }
+  }, [buildings, selectedBuildingId, user?.role]);
+
   // Select first residence by default
   const selectedResidence = useMemo(() => {
-    if (!selectedResidenceId && safeAccessibleResidences.length > 0) {
-      setSelectedResidenceId(safeAccessibleResidences[0].id);
-      return safeAccessibleResidences[0];
+    if (!selectedResidenceId && filteredResidences.length > 0) {
+      setSelectedResidenceId(filteredResidences[0].id);
+      return filteredResidences[0];
     }
-    return safeAccessibleResidences.find(r => r.id === selectedResidenceId) || null;
-  }, [selectedResidenceId, safeAccessibleResidences]);
+    return filteredResidences.find(r => r.id === selectedResidenceId) || null;
+  }, [selectedResidenceId, filteredResidences]);
 
   // Fetch contacts for selected residence
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ["/api/contacts", selectedResidenceId],
-    queryFn: () => selectedResidenceId ? apiRequest("GET", `/api/contacts?residenceId=${selectedResidenceId}`) as Promise<Contact[]> : Promise.resolve([]),
+    queryFn: () => selectedResidenceId ? apiRequest("GET", `/api/contacts?residenceId=${selectedResidenceId}`) : Promise.resolve([]),
     enabled: !!selectedResidenceId,
   });
 
   // Fetch building contacts (read-only for residents)
   const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
     queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
-    queryFn: () => selectedResidence?.buildingId ? apiRequest("GET", `/api/contacts?buildingId=${selectedResidence.buildingId}`) as Promise<Contact[]> : Promise.resolve([]),
+    queryFn: () => selectedResidence?.buildingId ? apiRequest("GET", `/api/contacts?buildingId=${selectedResidence.buildingId}`) : Promise.resolve([]),
     enabled: !!selectedResidence?.buildingId,
   });
 
@@ -261,7 +292,7 @@ export default function Residence() {
     );
   }
 
-  if (safeAccessibleResidences.length === 0) {
+  if (filteredResidences.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
@@ -297,31 +328,67 @@ export default function Residence() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Residence Filter */}
-          {safeAccessibleResidences.length > 1 && (
+          {/* Building and Residence Filters */}
+          {(user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0) || filteredResidences.length > 1 ? (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Home className='w-5 h-5' />
-                  Select Residence
+                  {user?.role && ['admin', 'manager'].includes(user.role) ? 'Select Building & Residence' : 'Select Residence'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
-                  <SelectTrigger className='w-full max-w-md'>
-                    <SelectValue placeholder='Select a residence' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {safeAccessibleResidences.map((residence) => (
-                      <SelectItem key={residence.id} value={residence.id}>
-                        Unit {residence.unitNumber} - {residence.building.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className='flex flex-col md:flex-row gap-4'>
+                  {/* Building Filter (Admin/Manager only) */}
+                  {user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0 && (
+                    <div className='flex-1'>
+                      <Label className='text-sm font-medium mb-2 block'>Building</Label>
+                      <Select 
+                        value={selectedBuildingId} 
+                        onValueChange={(value) => {
+                          setSelectedBuildingId(value);
+                          setSelectedResidenceId(""); // Reset residence selection when building changes
+                        }}
+                      >
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select a building' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {buildings.map((building: any) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {building.name} - {building.address}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Residence Filter */}
+                  {filteredResidences.length > 0 && (
+                    <div className='flex-1'>
+                      <Label className='text-sm font-medium mb-2 block'>
+                        {user?.role && ['admin', 'manager'].includes(user.role) ? 'Residence' : 'Select Residence'}
+                      </Label>
+                      <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select a residence' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredResidences.map((residence) => (
+                            <SelectItem key={residence.id} value={residence.id}>
+                              Unit {residence.unitNumber}
+                              {user?.role && !['admin', 'manager'].includes(user.role) && ` - ${residence.building.name}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
           {selectedResidence && (
             <>
