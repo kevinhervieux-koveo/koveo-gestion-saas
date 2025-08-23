@@ -58,9 +58,16 @@ export function Sidebar() {
   }, [isMobileMenuOpen, closeMobileMenu]);
 
   const toggleMenu = (menuName: string) => {
-    setExpandedMenus((prev) =>
-      prev.includes(menuName) ? prev.filter((name) => name !== menuName) : [...prev, menuName]
-    );
+    setExpandedMenus((prev) => {
+      const isCurrentlyExpanded = prev.includes(menuName);
+      if (isCurrentlyExpanded) {
+        // Collapse this menu - remove it from expanded menus
+        return prev.filter((name) => name !== menuName);
+      } else {
+        // Expand this menu - add it to expanded menus
+        return [...prev, menuName];
+      }
+    });
   };
 
   const renderMenuButton = (section: NavigationSection) => {
@@ -83,7 +90,11 @@ export function Sidebar() {
     return (
       <button
         onClick={() => toggleMenu(section._key)}
-        className='w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors'
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+          isExpanded 
+            ? 'bg-koveo-light text-koveo-navy shadow-sm' 
+            : 'text-gray-600 hover:bg-gray-100'
+        }`}
       >
         <div className='flex items-center space-x-3'>
           <SectionIcon className='w-5 h-5' />
@@ -208,7 +219,9 @@ export function Sidebar() {
             <div key={section._key}>
               {renderMenuButton(section)}
               {expandedMenus.includes(section._key) && (
-                <div className='ml-6 mt-1 space-y-1'>{section.items.map((item) => renderMenuItem(item))}</div>
+                <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
+                  {section.items.map((item) => renderMenuItem(item))}
+                </div>
               )}
             </div>
           ))}</div>
