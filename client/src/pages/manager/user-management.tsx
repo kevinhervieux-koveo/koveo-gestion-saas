@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserPlus, Shield, Mail } from 'lucide-react';
+import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 import type { User, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 
@@ -23,7 +24,6 @@ export default function UserManagement() {
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email: '', role: 'tenant' });
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -584,62 +584,15 @@ export default function UserManagement() {
           </TabsContent>
         </Tabs>
 
-        {/* Simple Invite Dialog */}
-        {showInviteDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold mb-4">Invite New User</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
-                  <Input
-                    type="email"
-                    value={inviteForm.email}
-                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                    placeholder="user@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Role</label>
-                  <select
-                    value={inviteForm.role}
-                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  >
-                    <option value="tenant">Tenant</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    onClick={() => {
-                      // TODO: Implement actual invite functionality
-                      toast({
-                        title: 'Success',
-                        description: `Invitation sent to ${inviteForm.email}`,
-                      });
-                      setShowInviteDialog(false);
-                      setInviteForm({ email: '', role: 'tenant' });
-                    }}
-                    disabled={!inviteForm.email}
-                  >
-                    Send Invite
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowInviteDialog(false);
-                      setInviteForm({ email: '', role: 'tenant' });
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Comprehensive Invite Dialog */}
+        <SendInvitationDialog
+          open={showInviteDialog}
+          onOpenChange={setShowInviteDialog}
+          onSuccess={() => {
+            // Refresh users list after successful invitation
+            queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+          }}
+        />
       </div>
     </div>
   );

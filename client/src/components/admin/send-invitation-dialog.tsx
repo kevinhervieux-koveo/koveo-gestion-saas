@@ -442,13 +442,14 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const canInviteRole = (role: string) => {
     if (hasRole(['admin'])) {
-      // Admins can invite any role (resident, manager, admin, tenant) in any organization
+      // Only admin can invite an admin, admin can invite to any organization
       return true;
     }
-    if (hasRole(['manager']) && ['resident', 'manager', 'tenant'].includes(role)) {
-      // Managers can invite resident, manager, tenant in their organization only
+    if (hasRole(['manager']) && ['resident', 'tenant', 'manager'].includes(role)) {
+      // Manager can only invite manager or less role (resident/tenant/manager), only in their organization
       return true;
     }
+    // Residents and tenants cannot invite anyone
     return false;
   };
 
