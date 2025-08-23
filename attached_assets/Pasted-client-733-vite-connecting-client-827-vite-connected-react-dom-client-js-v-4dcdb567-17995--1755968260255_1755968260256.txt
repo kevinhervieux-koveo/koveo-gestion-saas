@@ -1,0 +1,64 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+react-dom_client.js?v=4dcdb567:17995 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+[Violation] Forced reflow while executing JavaScript took 42ms
+react-dom_client.js?v=4dcdb567:11645 [Violation] 'setTimeout' handler took 53ms
+memory-monitor.ts:141 Memory usage high: 107MB (97%)
+checkAndCleanup @ memory-monitor.ts:141
+(anonymous) @ memory-monitor.ts:81
+client:810 [vite] hot updated: /src/index.css?v=Z6z0xZqYAyP6A-YvMxxuR
+client:810 [vite] hot updated: /src/components/admin/send-invitation-dialog.tsx
+memory-monitor.ts:141 Memory usage high: 108MB (97%)
+checkAndCleanup @ memory-monitor.ts:141
+(anonymous) @ memory-monitor.ts:81
+queryClient.ts:30  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/invitations 400 (Bad Request)
+apiRequest @ queryClient.ts:30
+mutationFn @ send-invitation-dialog.tsx:332
+fn @ @tanstack_react-query.js?v=4dcdb567:1197
+run @ @tanstack_react-query.js?v=4dcdb567:491
+start @ @tanstack_react-query.js?v=4dcdb567:533
+execute @ @tanstack_react-query.js?v=4dcdb567:1232
+await in execute
+mutate @ @tanstack_react-query.js?v=4dcdb567:2637
+(anonymous) @ @tanstack_react-query.js?v=4dcdb567:3351
+onSingleSubmit @ send-invitation-dialog.tsx:406
+(anonymous) @ chunk-JYNBG5WP.js?v=4dcdb567:1506
+await in (anonymous)
+executeDispatch @ react-dom_client.js?v=4dcdb567:11736
+runWithFiberInDEV @ react-dom_client.js?v=4dcdb567:1485
+processDispatchQueue @ react-dom_client.js?v=4dcdb567:11772
+(anonymous) @ react-dom_client.js?v=4dcdb567:12182
+batchedUpdates$1 @ react-dom_client.js?v=4dcdb567:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=4dcdb567:11877
+dispatchEvent @ react-dom_client.js?v=4dcdb567:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=4dcdb567:14773
+queryClient.ts:102 Mutation _error: Error: 400: {"message":"Invalid invitation data","errors":[{"expected":"string","code":"invalid_type","path":["token"],"message":"Invalid input: expected string, received undefined"}]}
+    at throwIfResNotOk (queryClient.ts:12:11)
+    at async apiRequest (queryClient.ts:37:3)
+    at async Object.mutationFn (send-invitation-dialog.tsx:332:24)
+onError @ queryClient.ts:102
+execute @ @tanstack_react-query.js?v=4dcdb567:1252
+await in execute
+mutate @ @tanstack_react-query.js?v=4dcdb567:2637
+(anonymous) @ @tanstack_react-query.js?v=4dcdb567:3351
+onSingleSubmit @ send-invitation-dialog.tsx:406
+(anonymous) @ chunk-JYNBG5WP.js?v=4dcdb567:1506
+await in (anonymous)
+executeDispatch @ react-dom_client.js?v=4dcdb567:11736
+runWithFiberInDEV @ react-dom_client.js?v=4dcdb567:1485
+processDispatchQueue @ react-dom_client.js?v=4dcdb567:11772
+(anonymous) @ react-dom_client.js?v=4dcdb567:12182
+batchedUpdates$1 @ react-dom_client.js?v=4dcdb567:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=4dcdb567:11877
+dispatchEvent @ react-dom_client.js?v=4dcdb567:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=4dcdb567:14773
+memory-monitor.ts:141 Memory usage high: 110MB (91%)
+checkAndCleanup @ memory-monitor.ts:141
+(anonymous) @ memory-monitor.ts:81
