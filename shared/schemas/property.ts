@@ -50,7 +50,7 @@ export const buildings = pgTable('buildings', {
     .default(sql`gen_random_uuid()`),
   organizationId: uuid('organization_id')
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   address: text('address').notNull(),
   city: text('city').notNull(),
@@ -86,7 +86,7 @@ export const residences = pgTable('residences', {
     .default(sql`gen_random_uuid()`),
   buildingId: uuid('building_id')
     .notNull()
-    .references(() => buildings.id),
+    .references(() => buildings.id, { onDelete: 'cascade' }),
   unitNumber: text('unit_number').notNull(),
   floor: integer('floor'),
   squareFootage: decimal('square_footage', { precision: 8, scale: 2 }),
@@ -112,10 +112,10 @@ export const userResidences = pgTable('user_residences', {
     .default(sql`gen_random_uuid()`),
   userId: uuid('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   residenceId: uuid('residence_id')
     .notNull()
-    .references(() => residences.id),
+    .references(() => residences.id, { onDelete: 'cascade' }),
   relationshipType: text('relationship_type').notNull(), // 'owner', 'tenant', 'occupant'
   startDate: date('start_date').notNull(),
   endDate: date('end_date'),

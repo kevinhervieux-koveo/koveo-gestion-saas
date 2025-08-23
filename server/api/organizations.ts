@@ -495,58 +495,27 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
+      // With cascade delete relationships, we can now do a true cascade delete
+      // First cleanup orphaned records to ensure data integrity
+      const { cleanupOrphans } = await import('../utils/cleanup-orphans');
+      const report = await cleanupOrphans();
+      console.log(`🧹 Orphan cleanup report:`, report);
+      
       // Start transaction for cascading delete
       await db.transaction(async (tx) => {
-        // 1. Get all buildings in this organization
-        const orgBuildings = await tx
-          .select({ id: buildings.id })
-          .from(buildings)
-          .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
+        console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
+        
+        // With proper cascade delete relationships in schema, we can now perform
+        // a true cascade delete instead of manual transaction management
+        // This will automatically delete all related buildings, residences, and relationships
+        
+        // Delete organization - cascade relationships will handle the rest
+        await tx.delete(organizations)
+          .where(eq(organizations.id, organizationId));
+          
+        console.log(`✅ Organization ${organizationId} deleted with automatic cascade`);
 
-        const buildingIds = orgBuildings.map(b => b.id);
-
-        if (buildingIds.length > 0) {
-          // 2. Get all residences in these buildings
-          const buildingResidences = await tx
-            .select({ id: residences.id })
-            .from(residences)
-            .where(and(inArray(residences.buildingId, buildingIds), eq(residences.isActive, true)));
-
-          const residenceIds = buildingResidences.map(r => r.id);
-
-          // 3. Delete invitations associated with this organization
-          await tx.delete(invitations)
-            .where(eq(invitations.organizationId, organizationId));
-
-          // Note: Documents table doesn't have foreign keys to organizations/buildings/residences
-          // Documents are managed separately and don't need cascading deletion
-
-          // 4. Soft delete user-residence relationships
-          if (residenceIds.length > 0) {
-            await tx.update(userResidences)
-              .set({ isActive: false, updatedAt: new Date() })
-              .where(inArray(userResidences.residenceId, residenceIds));
-          }
-
-          // 5. Soft delete residences
-          if (residenceIds.length > 0) {
-            await tx.update(residences)
-              .set({ isActive: false, updatedAt: new Date() })
-              .where(inArray(residences.id, residenceIds));
-          }
-
-          // 6. Soft delete buildings
-          await tx.update(buildings)
-            .set({ isActive: false, updatedAt: new Date() })
-            .where(inArray(buildings.id, buildingIds));
-        }
-
-        // 7. Soft delete user-organization relationships
-        await tx.update(userOrganizations)
-          .set({ isActive: false, updatedAt: new Date() })
-          .where(eq(userOrganizations.organizationId, organizationId));
-
-        // 8. Find and soft delete orphaned users (users who now have no active organization relationships)
+        // Cascade delete will handle user-organization relationships automatically
         const orphanedUsers = await tx
           .select({ id: users.id })
           .from(users)

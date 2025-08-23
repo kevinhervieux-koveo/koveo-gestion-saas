@@ -96,10 +96,10 @@ export const userOrganizations = pgTable('user_organizations', {
     .default(sql`gen_random_uuid()`),
   userId: uuid('user_id')
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: 'cascade' }),
   organizationId: uuid('organization_id')
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: 'cascade' }),
   organizationRole: userRoleEnum('organization_role').notNull().default('tenant'),
   isActive: boolean('is_active').notNull().default(true),
   canAccessAllOrganizations: boolean('can_access_all_organizations').notNull().default(false),
