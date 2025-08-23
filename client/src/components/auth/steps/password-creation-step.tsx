@@ -76,7 +76,7 @@ export function PasswordCreationStep({
   const handlePasswordChange = (_value: string) => {
     setFormData(prev => ({
       ...prev,
-      password: value,
+      password: _value,
       _error: undefined
     }));
   };
@@ -84,7 +84,7 @@ export function PasswordCreationStep({
   const handleConfirmPasswordChange = (_value: string) => {
     setFormData(prev => ({
       ...prev,
-      confirmPassword: value,
+      confirmPassword: _value,
       _error: undefined
     }));
   };
