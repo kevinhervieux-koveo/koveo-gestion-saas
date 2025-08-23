@@ -129,10 +129,10 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     }
 
     const result = Array.from(accessibleOrgIds);
-    console.warn('Final accessible org IDs:', _result);
+    console.warn('Final accessible org IDs:', result);
     return result;
-  } catch (____error) {
-    console.error('Error getting user accessible organizations:', _error);
+  } catch (error) {
+    console.error('Error getting user accessible organizations:', error);
     return [];
   }
 }
@@ -166,8 +166,8 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
     });
 
     return userResidences.map(ur => ur.residenceId);
-  } catch (____error) {
-    console.error('Error getting user accessible residences:', _error);
+  } catch (error) {
+    console.error('Error getting user accessible residences:', error);
     return [];
   }
 }
