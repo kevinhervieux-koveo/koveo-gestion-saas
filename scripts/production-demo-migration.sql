@@ -128,11 +128,21 @@ BEGIN
     END IF;
 END $$;
 
--- 4. Ensure read-only permissions for Open Demo users
+-- 4. Ensure NO ADMIN users in BOTH Demo organizations (security requirement)
+-- Remove all admin users from both Demo and Open Demo organizations
+UPDATE user_organizations 
+SET organization_role = CASE 
+    WHEN organization_role = 'admin' THEN 'manager'::user_role
+    WHEN organization_role = 'manager' THEN 'resident'::user_role
+    ELSE organization_role
+END
+WHERE organization_id IN ('e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', 'open-demo-org-id')
+AND organization_role IN ('admin', 'manager');
+
+-- Ensure read-only permissions for Open Demo users specifically
 UPDATE user_organizations 
 SET 
     organization_role = CASE 
-        WHEN organization_role = 'admin' THEN 'resident'::user_role
         WHEN organization_role = 'manager' THEN 'resident'::user_role
         ELSE organization_role
     END,
@@ -163,11 +173,13 @@ SELECT
     (SELECT COUNT(*) FROM buildings WHERE organization_id = 'open-demo-org-id' AND is_active = true) as open_demo_buildings,
     (SELECT COUNT(*) FROM user_organizations WHERE organization_id = 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6' AND is_active = true) as demo_users,
     (SELECT COUNT(*) FROM user_organizations WHERE organization_id = 'open-demo-org-id' AND is_active = true) as open_demo_users,
+    (SELECT COUNT(*) FROM user_organizations WHERE organization_id = 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6' AND organization_role IN ('admin', 'manager')) as demo_admin_users,
     (SELECT COUNT(*) FROM user_organizations WHERE organization_id = 'open-demo-org-id' AND organization_role IN ('admin', 'manager')) as open_demo_admin_users,
     CASE 
         WHEN (SELECT COUNT(*) FROM organizations WHERE id IN ('e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', 'open-demo-org-id') AND is_active = true) = 2 
-        THEN '✅ READY' 
-        ELSE '❌ NOT READY' 
+        AND (SELECT COUNT(*) FROM user_organizations WHERE organization_id IN ('e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', 'open-demo-org-id') AND organization_role = 'admin') = 0
+        THEN '✅ READY (NO ADMINS)' 
+        ELSE '❌ NOT READY (CHECK ADMIN USERS)' 
     END as production_status;
 
 -- Final validation query
