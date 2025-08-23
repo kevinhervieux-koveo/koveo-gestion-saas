@@ -224,22 +224,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const { data: organizations } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
-      console.warn('Fetching organizations...');
       const response = await apiRequest('GET', '/api/users/me/organizations');
-      console.warn('Response status:', response.status);
-      console.warn('Response headers:', response.headers);
-      const text = await response.text();
-      console.warn('Raw response text:', text);
-      
-      try {
-        const data = JSON.parse(text);
-        console.warn('Organizations parsed successfully:', data);
-        return data;
-      } catch (e) {
-        console.error('Failed to parse organizations JSON:', e);
-        console.error('Raw text was:', text);
-        throw new Error('Invalid JSON response');
-      }
+      return response.json();
     },
     enabled: open
   });
@@ -267,11 +253,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
     if (!organizations || !Array.isArray(organizations)) {
-      console.warn('No organizations available');
       return [];
     }
     
-    console.warn('Filtering organizations:', organizations, 'for user role:', currentUser?.role);
     
     // Filter out any invalid organizations with detailed logging
     const validOrgs = organizations.filter(org => {
@@ -284,9 +268,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         typeof org.name === 'string' &&
         org.name.trim() !== '';
       
-      if (!isValid) {
-        console.warn('Invalid organization filtered out:', org);
-      }
       
       return isValid;
     });

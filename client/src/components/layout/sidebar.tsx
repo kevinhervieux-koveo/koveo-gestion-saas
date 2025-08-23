@@ -65,7 +65,7 @@ export function Sidebar() {
 
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
-    const isExpanded = expandedMenus.includes(section.key);
+    const isExpanded = expandedMenus.includes(section._key);
     
     // Translation mapping for section names
     const getTranslatedSectionName = (name: string) => {
@@ -82,7 +82,7 @@ export function Sidebar() {
 
     return (
       <button
-        onClick={() => toggleMenu(section.key)}
+        onClick={() => toggleMenu(section._key)}
         className='w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors'
       >
         <div className='flex items-center space-x-3'>
@@ -205,9 +205,9 @@ export function Sidebar() {
         <nav className='flex-1 px-6 py-4'>
           {/* Navigation sections */}
           <div className='space-y-1'>{menuSections.map((section) => (
-            <div key={section.key}>
+            <div key={section._key}>
               {renderMenuButton(section)}
-              {expandedMenus.includes(section.key) && (
+              {expandedMenus.includes(section._key) && (
                 <div className='ml-6 mt-1 space-y-1'>{section.items.map((item) => renderMenuItem(item))}</div>
               )}
             </div>
