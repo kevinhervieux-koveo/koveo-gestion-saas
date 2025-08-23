@@ -360,7 +360,7 @@ export function registerOrganizationRoutes(app: Express): void {
           return;
         }
       } catch (___fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
+        console.error('Fallback also failed:', ___fallbackError);
       }
       
       res.status(500).json({
