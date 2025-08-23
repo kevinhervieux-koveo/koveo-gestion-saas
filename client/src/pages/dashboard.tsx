@@ -137,7 +137,7 @@ export default function Dashboard() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header 
-        title={`Welcome back, ${user?.first_name || 'User'}`}
+        title={`Welcome back, ${user?.firstName || 'User'}`}
         subtitle="Your personalized dashboard - quick access to everything you need"
       />
 
