@@ -151,8 +151,8 @@ export function registerDemandRoutes(app: Express) {
       }
 
       res.json(filteredResults);
-    } catch (_error) {
-      console.error('Error fetching demands:', _error);
+    } catch (error: any) {
+      console.error('Error fetching demands:', error);
       res.status(500).json({ message: 'Failed to fetch demands' });
     }
   });
@@ -247,8 +247,8 @@ export function registerDemandRoutes(app: Express) {
       }
 
       res.json(demandData);
-    } catch (_error) {
-      console.error('Error fetching demand:', _error);
+    } catch (error: any) {
+      console.error('Error fetching demand:', error);
       res.status(500).json({ message: 'Failed to fetch demand' });
     }
   });
@@ -262,14 +262,9 @@ export function registerDemandRoutes(app: Express) {
       // Validate input
       const validatedData = insertDemandSchema.parse(demandData);
 
-      // Create demand data with submitter set to current user
-      const demandInsertData: unknown = {
-        ...validatedData,
-        submitterId: user.id,
-      };
 
       // Auto-populate residence and building from user's primary residence if not provided
-      if (!demandInsertData.residenceId || !demandInsertData.buildingId) {
+      if (!validatedData.residenceId || !validatedData.buildingId) {
         const userResidenceData = await db
           .select({ 
             residenceId: userResidences.residenceId,
@@ -284,9 +279,14 @@ export function registerDemandRoutes(app: Express) {
           return res.status(400).json({ message: 'User must be assigned to a residence to create demands' });
         }
 
-        demandInsertData.residenceId = demandInsertData.residenceId || userResidenceData[0].residenceId;
-        demandInsertData.buildingId = demandInsertData.buildingId || userResidenceData[0].buildingId;
+        validatedData.residenceId = validatedData.residenceId || userResidenceData[0].residenceId;
+        validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
       }
+
+      const demandInsertData = {
+        ...validatedData,
+        submitterId: user.id,
+      };
 
       const newDemand = await db
         .insert(demands)
@@ -294,8 +294,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newDemand[0]);
-    } catch (_error) {
-      console.error('Error creating demand:', _error);
+    } catch (error: any) {
+      console.error('Error creating demand:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid demand data', errors: error.errors });
       }
@@ -348,9 +348,9 @@ export function registerDemandRoutes(app: Express) {
         canUpdate = true;
         // Restrict what residents can update
         const allowedFields = ['description', 'type', 'assignationResidenceId', 'assignationBuildingId'];
-        const restrictedUpdates: unknown = {};
-        for (const [_key, value] of Object.entries(updates)) {
-          if (allowedFields.includes(_key)) {
+        const restrictedUpdates: any = {};
+        for (const [key, value] of Object.entries(updates)) {
+          if (allowedFields.includes(key)) {
             restrictedUpdates[key] = value;
           }
         }
@@ -368,8 +368,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.json(updatedDemand[0]);
-    } catch (_error) {
-      console.error('Error updating demand:', _error);
+    } catch (error: any) {
+      console.error('Error updating demand:', error);
       res.status(500).json({ message: 'Failed to update demand' });
     }
   });
@@ -425,8 +425,8 @@ export function registerDemandRoutes(app: Express) {
       await db.delete(demands).where(eq(demands.id, id));
 
       res.json({ message: 'Demand deleted successfully' });
-    } catch (_error) {
-      console.error('Error deleting demand:', _error);
+    } catch (error: any) {
+      console.error('Error deleting demand:', error);
       res.status(500).json({ message: 'Failed to delete demand' });
     }
   });
@@ -472,8 +472,8 @@ export function registerDemandRoutes(app: Express) {
         .orderBy(asc(demandComments.orderIndex), asc(demandComments.createdAt));
 
       res.json(comments);
-    } catch (_error) {
-      console.error('Error fetching demand comments:', _error);
+    } catch (error: any) {
+      console.error('Error fetching demand comments:', error);
       res.status(500).json({ message: 'Failed to fetch demand comments' });
     }
   });
@@ -523,8 +523,8 @@ export function registerDemandRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newComment[0]);
-    } catch (_error) {
-      console.error('Error creating demand comment:', _error);
+    } catch (error: any) {
+      console.error('Error creating demand comment:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
       }

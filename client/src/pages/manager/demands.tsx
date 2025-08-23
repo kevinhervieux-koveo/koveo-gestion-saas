@@ -127,6 +127,9 @@ export default function /**
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Debug: Log demands data
+  console.log('Demands data:', demands, 'Length:', demands.length);
+
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
@@ -201,8 +204,8 @@ export default function /**
 
   // Filter demands
   const filteredDemands = (demands as Demand[]).filter((demand: Demand) => {
-    const matchesSearch = demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         typeLabels[demand.type]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          demand.submitter?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          demand.building?.name?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -211,6 +214,9 @@ export default function /**
     
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Debug: Log filtering results
+  console.log('Filtered demands:', filteredDemands.length, 'Search:', searchTerm, 'Status:', statusFilter, 'Type:', typeFilter);
 
   // Group demands by status for manager view
   const pendingDemands = filteredDemands.filter((d: Demand) => 
@@ -512,6 +518,11 @@ export default function /**
                 <Card>
                   <CardContent className="p-6 text-center">
                     <p className="text-muted-foreground">No demands found</p>
+                    {demands.length > 0 && (
+                      <p className="text-sm text-gray-400 mt-2">
+                        ({demands.length} total demands loaded, but filtered out)
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
