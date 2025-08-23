@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
@@ -9,10 +9,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from '@/components/ui/form';
 import { Users, UserPlus, Shield, Mail } from 'lucide-react';
 import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import type { User, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
+
+// Form validation schema for editing users
+const editUserSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  isActive: z.boolean()
+});
 
 /**
  * User Management Page for Management Menu
@@ -24,6 +59,7 @@ export default function UserManagement() {
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,6 +136,63 @@ export default function UserManagement() {
 
   const handleBulkAction = async (action: string, data?: Record<string, unknown>) => {
     await bulkActionMutation.mutateAsync({ action, data });
+  };
+
+  // Edit user mutation
+  const editUserMutation = useMutation({
+    mutationFn: async (userData: z.infer<typeof editUserSchema> & { id: string }) => {
+      const response = await apiRequest('PUT', `/api/users/${userData.id}`, userData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'User updated successfully',
+      });
+      setEditingUser(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Edit user form
+  const editForm = useForm<z.infer<typeof editUserSchema>>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      role: 'tenant',
+      isActive: true
+    }
+  });
+
+  // Reset form when editing user changes
+  React.useEffect(() => {
+    if (editingUser) {
+      editForm.reset({
+        firstName: editingUser.firstName || '',
+        lastName: editingUser.lastName || '',
+        email: editingUser.email,
+        role: editingUser.role,
+        isActive: editingUser.isActive
+      });
+    }
+  }, [editingUser, editForm]);
+
+  const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
+    if (!editingUser) return;
+    await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+  };
+
+  const openEditDialog = (user: User) => {
+    setEditingUser(user);
   };
 
   // Filter configuration
@@ -529,7 +622,12 @@ export default function UserManagement() {
                                 </div>
                               </td>
                               <td className="border border-gray-300 px-4 py-2">
-                                <Button size="sm" variant="outline">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => openEditDialog(user)}
+                                  data-testid={`button-edit-user-${user.id}`}
+                                >
                                   Edit
                                 </Button>
                               </td>
@@ -593,6 +691,133 @@ export default function UserManagement() {
             queryClient.invalidateQueries({ queryKey: ['/api/users'] });
           }}
         />
+
+        {/* Edit User Dialog */}
+        <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+              <DialogDescription>
+                Update user information and permissions.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(handleEditUser)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-edit-firstName" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-edit-lastName" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={editForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" data-testid="input-edit-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-role">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="tenant">Tenant</SelectItem>
+                          <SelectItem value="resident">Resident</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === 'true')} 
+                        defaultValue={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-status">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="true">Active</SelectItem>
+                          <SelectItem value="false">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setEditingUser(null)}
+                    data-testid="button-cancel-edit"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={editUserMutation.isPending}
+                    data-testid="button-save-edit"
+                  >
+                    {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
