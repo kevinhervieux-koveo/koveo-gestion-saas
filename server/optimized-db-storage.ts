@@ -141,6 +141,59 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * Retrieves users from organizations that a specific user has access to.
+   */
+  async getUsersByOrganizations(userId: string): Promise<User[]> {
+    return this.withOptimizations(
+      'getUsersByOrganizations',
+      `users_by_org:${userId}`,
+      'users',
+      async () => {
+        // First, get organization IDs that the user has access to
+        const userOrgs = await db
+          .select({ organizationId: schema.userOrganizations.organizationId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, userId),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+
+        if (userOrgs.length === 0) {
+          return [];
+        }
+
+        const organizationIds = userOrgs.map(org => org.organizationId);
+
+        // Then get all users from those organizations
+        return db
+          .select({
+            id: schema.users.id,
+            username: schema.users.username,
+            email: schema.users.email,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            role: schema.users.role,
+            isActive: schema.users.isActive,
+            createdAt: schema.users.createdAt,
+            updatedAt: schema.users.updatedAt,
+          })
+          .from(schema.users)
+          .innerJoin(schema.userOrganizations, eq(schema.users.id, schema.userOrganizations.userId))
+          .where(
+            and(
+              eq(schema.users.isActive, true),
+              eq(schema.userOrganizations.isActive, true),
+              inArray(schema.userOrganizations.organizationId, organizationIds)
+            )
+          )
+          .orderBy(schema.users.firstName, schema.users.lastName);
+      }
+    );
+  }
+
+  /**
    * Gets paginated users with optimized query structure.
    * @param options
    * @param _options

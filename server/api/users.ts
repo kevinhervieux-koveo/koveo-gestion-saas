@@ -17,14 +17,34 @@ import { permissions, getRolePermissions } from '../../config';
  */
 export function registerUserRoutes(app: Express): void {
   /**
-   * GET /api/users - Retrieves all users.
+   * GET /api/users - Retrieves users based on current user's role and organizations.
    */
-  app.get('/api/users', async (req, res) => {
+  app.get('/api/users', requireAuth, async (req: any, res) => {
     try {
-      const users = await storage.getUsers();
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      console.warn(`📊 Fetching users for user ${currentUser.id} with role ${currentUser.role}`);
+      
+      let users;
+      
+      if (currentUser.role === 'admin') {
+        // Admin can see all users
+        users = await storage.getUsers();
+      } else {
+        // Managers and other users can only see users from their organizations
+        users = await storage.getUsersByOrganizations(currentUser.id);
+      }
+      
+      console.warn(`✅ Found ${users.length} users for user ${currentUser.id}`);
       res.json(users);
     } catch (____error) {
-      console.error('Failed to fetch users:', _error);
+      console.error('Failed to fetch users:', ____error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch users',

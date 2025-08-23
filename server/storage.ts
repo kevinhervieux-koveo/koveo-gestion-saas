@@ -66,6 +66,14 @@ export interface IStorage {
    * @returns {Promise<User[]>} Array of all user records.
    */
   getUsers(): Promise<User[]>;
+
+  /**
+   * Retrieves users from organizations that a specific user has access to.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @returns {Promise<User[]>} Array of users from accessible organizations.
+   */
+  getUsersByOrganizations(_userId: string): Promise<User[]>;
   
   /**
    * Retrieves a specific user by their unique identifier.
@@ -1292,6 +1300,11 @@ export class MemStorage implements IStorage {
    */
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async getUsersByOrganizations(_userId: string): Promise<User[]> {
+    // In memory storage: return empty array for non-admin users
+    return [];
   }
 
   /**

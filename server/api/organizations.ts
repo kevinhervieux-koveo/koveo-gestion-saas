@@ -98,11 +98,11 @@ export function registerOrganizationRoutes(app: Express): void {
           .orderBy(organizations.name);
       }
 
-      const userOrganizations = await organizationsQuery;
-      console.warn(`✅ Found ${userOrganizations.length} organizations for user ${currentUser.id}`);
+      const accessibleOrganizations = await organizationsQuery;
+      console.warn(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
 
       // Return array directly (not wrapped in object)
-      res.json(userOrganizations);
+      res.json(accessibleOrganizations);
 
     } catch (_error) {
       console.error('❌ Error fetching organizations:', _error);
