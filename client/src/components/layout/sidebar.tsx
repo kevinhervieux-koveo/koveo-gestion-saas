@@ -77,6 +77,7 @@ export function Sidebar() {
     // Translation mapping for section names
     const getTranslatedSectionName = (name: string) => {
       const translations: Record<string, { fr: string; en: string }> = {
+        'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
         'Residents': { fr: 'Résidents', en: 'Residents' },
         'Manager': { fr: 'Gestionnaire', en: 'Manager' },
         'Admin': { fr: 'Administration', en: 'Admin' },
@@ -112,6 +113,7 @@ export function Sidebar() {
     // Translation mapping for navigation items
     const getTranslatedName = (name: string) => {
       const translations: Record<string, { fr: string; en: string }> = {
+        'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
         'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
         'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
         'My Demands': { fr: 'Mes demandes', en: 'My Demands' },

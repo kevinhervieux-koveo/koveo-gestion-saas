@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Lightbulb,
   Shield,
+  LayoutDashboard,
 } from 'lucide-react';
 
 /**
@@ -41,6 +42,15 @@ export interface NavigationSection {
  * Role hierarchy: tenant (1) = resident (1) < manager (2) < admin (3).
  */
 export const NAVIGATION_CONFIG: NavigationSection[] = [
+  {
+    name: 'Dashboard',
+    _key: 'dashboard',
+    icon: LayoutDashboard,
+    requiredRole: 'tenant',
+    items: [
+      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
   {
     name: 'Residents',
     _key: 'residents',
