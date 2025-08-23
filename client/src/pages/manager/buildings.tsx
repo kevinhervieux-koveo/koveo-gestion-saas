@@ -386,26 +386,14 @@ export default function Buildings() {
     queryFn: () => apiRequest("GET", "/api/organizations") as Promise<unknown> as Promise<any[]>,
   });
 
-  // Fetch buildings
+  // Fetch buildings using the working manager endpoint
   const { data: buildingsData, isLoading, error: _error } = useQuery({
-    queryKey: ["/api/buildings"],
-    queryFn: () => apiRequest("GET", "/api/buildings"),
+    queryKey: ["/api/manager/buildings"],
+    queryFn: () => apiRequest("GET", "/api/manager/buildings"),
   });
   
-  // Handle both possible response formats: direct array or wrapped in buildings property
-  const buildings = Array.isArray(buildingsData) 
-    ? buildingsData 
-    : (buildingsData as any)?.buildings || [];
-    
-  // Debug logging
-  console.log('🏢 Buildings debug:', {
-    buildingsData,
-    isArray: Array.isArray(buildingsData),
-    buildings,
-    buildingsLength: buildings.length,
-    isLoading,
-    error: _error
-  });
+  // Extract buildings array from the wrapped response
+  const buildings = (buildingsData as any)?.buildings || [];
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
