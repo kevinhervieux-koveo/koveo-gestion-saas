@@ -41,13 +41,13 @@ interface TokenValidationData {
  * @returns Function result.
  */
 export function TokenValidationStep({ 
-  data, 
+  _data, 
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
   const { t: _t } = useLanguage();
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<TokenValidationData | null>(data as unknown as TokenValidationData || null);
+  const [validationResult, setValidationResult] = useState<TokenValidationData | null>(_data as unknown as TokenValidationData || null);
 
   const validateToken = async (token: string) => {
     console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
@@ -132,7 +132,7 @@ export function TokenValidationStep({
     } else {
       console.warn('❌ No token found in URL parameters');
     }
-  }, [validateToken, validationResult]); // Include all dependencies
+  }, []); // Only run once on component mount
 
   const getTimeRemaining = (expiresAt: string) => {
     const now = new Date();
