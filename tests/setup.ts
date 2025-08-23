@@ -46,7 +46,7 @@ afterAll(() => {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  _value: jest.fn().mockImplementation((query) => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -77,7 +77,7 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 
 // Global test configuration for DOM APIs
 Object.defineProperty(global, 'performance', {
-  _value: {
+  value: {
     now: () => Date.now(),
     mark: () => {},
     measure: () => {},
@@ -89,7 +89,7 @@ Object.defineProperty(global, 'performance', {
 
 // Mock DOM APIs that may be missing in test environment
 Object.defineProperty(global, 'File', {
-  _value: class MockFile {
+  value: class MockFile {
     name: string;
     size: number;
     type: string;
@@ -103,7 +103,7 @@ Object.defineProperty(global, 'File', {
 });
 
 Object.defineProperty(global, 'FormData', {
-  _value: class MockFormData {
+  value: class MockFormData {
     private data = new Map<string, unknown>();
     append(name: string, _value: unknown) {
       this.data.set(name, _value);
@@ -117,7 +117,7 @@ Object.defineProperty(global, 'FormData', {
 
 // Mock Node and Element for DOM testing
 Object.defineProperty(global, 'Node', {
-  _value: {
+  value: {
     ELEMENT_NODE: 1,
     TEXT_NODE: 3,
     COMMENT_NODE: 8
@@ -126,7 +126,7 @@ Object.defineProperty(global, 'Node', {
 });
 
 Object.defineProperty(global, 'Element', {
-  _value: class MockElement {
+  value: class MockElement {
     tagName: string = '';
     nodeType: number = 1;
   },
