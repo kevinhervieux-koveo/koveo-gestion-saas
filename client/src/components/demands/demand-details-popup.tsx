@@ -185,7 +185,7 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
   );
 
   // Fetch comments
-  const { _data: comments = [], refetch: refetchComments } = useQuery<DemandComment[]>({
+  const { data: comments = [], refetch: refetchComments } = useQuery<DemandComment[]>({
     queryKey: ['/api/demands', demand?.id, 'comments'],
     enabled: !!demand?.id && isOpen,
   });
@@ -203,13 +203,13 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
 
   // Update demand mutation
   const updateDemandMutation = useMutation({
-    mutationFn: async (_data: EditDemandFormData) => {
+    mutationFn: async (demandData: EditDemandFormData) => {
       const response = await fetch(`/api/demands/${demand?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(demandData),
       });
       if (!response.ok) {
         throw new Error('Failed to update demand');
@@ -549,7 +549,7 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
               <Textarea
                 placeholder="Add a comment..."
                 value={newComment}
-                onChange={(e) => setNewComment(e.target._value)}
+                onChange={(e) => setNewComment(e.target.value)}
                 rows={3}
               />
               <Button

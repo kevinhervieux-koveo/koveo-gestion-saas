@@ -33,7 +33,7 @@ interface QualityMetricsData {
 export function QualityMetrics() {
   const { t } = useLanguage();
 
-  const { _data: metricsData, isLoading } = useQuery<QualityMetricsData>({
+  const { data: metricsData, isLoading } = useQuery<QualityMetricsData>({
     queryKey: ['/api/quality-metrics'],
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
@@ -88,7 +88,7 @@ export function QualityMetrics() {
 
     // Performance metrics color coding with null safety
     if (label === t('responseTime')) {
-      const timeMs = parseInt((value || '0ms').replace('ms', ''));
+      const timeMs = parseInt((_value || '0ms').replace('ms', ''));
       if (timeMs <= 100) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
       }
@@ -99,7 +99,7 @@ export function QualityMetrics() {
     }
 
     if (label === t('memoryUsage')) {
-      const memoryMB = parseInt((value || '0MB').replace('MB', ''));
+      const memoryMB = parseInt((_value || '0MB').replace('MB', ''));
       if (memoryMB <= 50) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
       }
@@ -110,7 +110,7 @@ export function QualityMetrics() {
     }
 
     if (label === t('bundleSize')) {
-      const sizeMB = parseFloat((value || '0MB').replace('MB', ''));
+      const sizeMB = parseFloat((_value || '0MB').replace('MB', ''));
       if (sizeMB <= 2) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
       }
@@ -121,7 +121,7 @@ export function QualityMetrics() {
     }
 
     if (label === t('dbQueryTime')) {
-      const queryMs = parseInt((value || '0ms').replace('ms', ''));
+      const queryMs = parseInt((_value || '0ms').replace('ms', ''));
       if (queryMs <= 50) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
       }
@@ -132,7 +132,7 @@ export function QualityMetrics() {
     }
 
     if (label === t('pageLoadTime')) {
-      const loadMs = parseInt((value || '0ms').replace('ms', ''));
+      const loadMs = parseInt((_value || '0ms').replace('ms', ''));
       if (loadMs <= 1000) {
         return { bg: 'bg-green-50', text: 'text-green-600' };
       }
@@ -213,14 +213,14 @@ export function QualityMetrics() {
           {isLoading
             ? // Loading skeleton
               Array.from({ length: 10 }).map((_, _index) => (
-                <div key={`skeleton-${index}`} className='text-center p-4 bg-gray-50 rounded-lg'>
+                <div key={`skeleton-${_index}`} className='text-center p-4 bg-gray-50 rounded-lg'>
                   <Skeleton className='h-8 w-16 mx-auto mb-2' />
                   <Skeleton className='h-4 w-20 mx-auto' />
                 </div>
               ))
             : metrics.map((metric) => (
                 <div key={metric.label} className={`text-center p-4 ${metric.bg} rounded-lg`}>
-                  <div className={`text-2xl font-bold ${metric.text}`}>{metric.value}</div>
+                  <div className={`text-2xl font-bold ${metric.text}`}>{metric._value}</div>
                   <div className='text-sm text-gray-600'>{metric.label}</div>
                 </div>
               ))}
