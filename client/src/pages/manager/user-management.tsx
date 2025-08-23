@@ -104,39 +104,46 @@ export default function UserManagement() {
 
   // Filter configuration
   const filterConfig = {
-    searchable: ['firstName', 'lastName', 'email', 'username'],
-    filters: {
-      role: {
+    searchable: true,
+    searchFields: ['firstName', 'lastName', 'email', 'username'],
+    filters: [
+      {
+        id: 'role',
+        field: 'role', 
         label: 'Role',
         type: 'select' as const,
         options: [
-          { label: 'Admin', value: 'admin' },
-          { label: 'Manager', value: 'manager' },
-          { label: 'Tenant', value: 'tenant' },
-          { label: 'Resident', value: 'resident' },
+          { label: 'Admin', _value: 'admin' },
+          { label: 'Manager', _value: 'manager' },
+          { label: 'Tenant', _value: 'tenant' },
+          { label: 'Resident', _value: 'resident' },
         ]
       },
-      isActive: {
+      {
+        id: 'isActive',
+        field: 'isActive',
         label: 'Status',
         type: 'select' as const,
         options: [
-          { label: 'Active', value: 'true' },
-          { label: 'Inactive', value: 'false' },
+          { label: 'Active', _value: 'true' },
+          { label: 'Inactive', _value: 'false' },
         ]
       },
-      organization: {
+      {
+        id: 'organization',
+        field: 'organization',
         label: 'Organization',
         type: 'select' as const,
-        options: organizations.map(org => ({ label: org.name, value: org.id }))
+        options: organizations?.map(org => ({ label: org.name, _value: org.id })) || []
       }
-    },
-    sortable: {
-      firstName: 'First Name',
-      lastName: 'Last Name',
-      email: 'Email',
-      role: 'Role',
-      createdAt: 'Created Date',
-    }
+    ],
+    sortOptions: [
+      { field: 'firstName', label: 'First Name' },
+      { field: 'lastName', label: 'Last Name' },
+      { field: 'email', label: 'Email' },
+      { field: 'role', label: 'Role' },
+      { field: 'createdAt', label: 'Created Date' },
+    ]
   };
 
   // Enhanced user data with relationships
@@ -184,14 +191,14 @@ export default function UserManagement() {
     filters.forEach(filter => {
       switch (filter.field) {
         case 'role':
-          result = result.filter(user => user.role === filter.value);
+          result = result.filter(user => user.role === filter._value);
           break;
         case 'isActive':
-          result = result.filter(user => user.isActive.toString() === filter.value);
+          result = result.filter(user => user.isActive.toString() === filter._value);
           break;
         case 'organization':
           result = result.filter(user => 
-            user.organizations.some(org => org.id === filter.value)
+            user.organizations.some(org => org.id === filter._value)
           );
           break;
       }
@@ -355,23 +362,84 @@ export default function UserManagement() {
                   <p>Loading users...</p>
                 ) : (
                   <div className="space-y-4">
-                    {/* Filter and Search */}
-                    <FilterSort
-                      config={filterConfig}
-                      filters={filters}
-                      sort={sort}
-                      search={search}
-                      onAddFilter={handleAddFilter}
-                      onRemoveFilter={handleRemoveFilter}
-                      onFilterUpdate={handleFilterUpdate}
-                      onClearFilters={handleClearFilters}
-                      onSetSort={setSort}
-                      onToggleSort={handleToggleSort}
-                      onSetSearch={setSearch}
-                      activeFilterCount={filters.length}
-                      resultCount={filteredTotal}
-                      totalCount={totalUsers}
-                    />
+                    {/* Simple Search and Filters */}
+                    <div className="flex flex-col sm:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                      {/* Search */}
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Search users by name, email, or username..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      {/* Role Filter */}
+                      <select
+                        value={filters.find(f => f.field === 'role')?._value || ''}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            handleAddFilter({ field: 'role', operator: 'equals', _value: e.target.value });
+                          } else {
+                            handleRemoveFilter('role');
+                          }
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="tenant">Tenant</option>
+                        <option value="resident">Resident</option>
+                      </select>
+                      
+                      {/* Status Filter */}
+                      <select
+                        value={filters.find(f => f.field === 'isActive')?._value || ''}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            handleAddFilter({ field: 'isActive', operator: 'equals', _value: e.target.value });
+                          } else {
+                            handleRemoveFilter('isActive');
+                          }
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="">All Status</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                      </select>
+                      
+                      {/* Organization Filter */}
+                      {organizations.length > 0 && (
+                        <select
+                          value={filters.find(f => f.field === 'organization')?._value || ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              handleAddFilter({ field: 'organization', operator: 'equals', _value: e.target.value });
+                            } else {
+                              handleRemoveFilter('organization');
+                            }
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded-md"
+                        >
+                          <option value="">All Organizations</option>
+                          {organizations.map(org => (
+                            <option key={org.id} value={org.id}>{org.name}</option>
+                          ))}
+                        </select>
+                      )}
+                      
+                      {/* Clear Filters */}
+                      {(filters.length > 0 || search) && (
+                        <Button
+                          variant="outline"
+                          onClick={handleClearFilters}
+                        >
+                          Clear All
+                        </Button>
+                      )}
+                    </div>
                     
                     <h3 className="text-lg font-semibold">User List ({filteredTotal} of {totalUsers} users)</h3>
                     
