@@ -198,6 +198,11 @@ export default function Residence() {
     setCurrentPage(page);
   };
 
+  // Reset pagination when filters change
+  const resetToFirstPage = () => {
+    setCurrentPage(1);
+  };
+
 
   // Select first residence by default
   const selectedResidence = useMemo(() => {
@@ -525,6 +530,64 @@ export default function Residence() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className='flex items-center justify-center gap-2 mt-8'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className='h-4 w-4' />
+                Previous
+              </Button>
+              
+              <div className='flex gap-1'>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size='sm'
+                      onClick={() => handlePageClick(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className='h-4 w-4' />
+              </Button>
+            </div>
+          )}
+
+          {/* Page info */}
+          {filteredResidences.length > 0 && (
+            <div className='text-center text-sm text-muted-foreground mt-4'>
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of {filteredResidences.length} residences
             </div>
           )}
         </div>
