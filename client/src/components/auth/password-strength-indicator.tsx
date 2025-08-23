@@ -77,7 +77,7 @@ export function PasswordStrengthIndicator({
       </div>
 
       {/* Strength progress bar */}
-      {password.length > 0 && (
+      {password && password.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className={`text-sm font-medium ${getPasswordStrengthColor(strength.score)}`}>
