@@ -78,7 +78,7 @@ export class ReplitIntegrationEnhancer {
       };
       
       console.warn('🔧 Replit environment detected:', this.environment.replId);
-    } catch (____error) {
+    } catch (_error) {
       console.warn('⚠️ Could not fully detect Replit environment:', _error);
     }
   }
@@ -95,7 +95,7 @@ export class ReplitIntegrationEnhancer {
       const config: Record<string, string> = {};
       content.split('\n').forEach(line => {
         const match = line.match(/^(\w+)\s*=\s*(.+)$/);
-        if (_match) {
+        if (match) {
           config[match[1]] = match[2].replace(/['"]/g, '');
         }
       });

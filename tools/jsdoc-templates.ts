@@ -333,10 +333,10 @@ export class JSDocTemplateGenerator {
   /**
    * Generate contextual description for return types.
    * @param returnType - The return type string.
-   * @param functionName - The function name for context.
+   * @param _functionName - The function name for context.
    * @returns Generated description string.
    */
-  private generateReturnDescription(returnType: string, functionName: string): string {
+  private generateReturnDescription(returnType: string, _functionName: string): string {
     const cleanType = returnType.replace(/Promise<|>|\s/g, '');
     
     if (returnType.includes('Promise')) {
@@ -453,13 +453,10 @@ export class JSDocTemplateGenerator {
    * Bulk apply templates to multiple files.
    * @param pattern - Glob pattern for files to process.
    * @param options - Processing options.
-   * @param options.exclude
-   * @param options.maxFiles
-   * @param options.dryRun
-   * @param _options
-   * @param _options.exclude
-   * @param _options.maxFiles
-   * @param _options.dryRun
+   * @param _options - Processing options.
+   * @param _options.exclude - File patterns to exclude.
+   * @param _options.maxFiles - Maximum number of files to process.
+   * @param _options.dryRun - Whether to perform a dry run.
    * @returns Promise resolving to processing summary.
    */
   public async bulkApplyTemplates(

@@ -98,7 +98,7 @@ export class SmartContextManager {
     };
 
     this.fileCache.set(filePath, _context);
-    return context;
+    return _context;
   }
 
   /**
@@ -259,7 +259,7 @@ export class SmartContextManager {
     
     targetFiles.forEach(filePath => {
       const context = this.getFileContext(filePath);
-      if (!_context) {return;}
+      if (!context) {return;}
       
       // Find files that import from or export to this file
       const allFiles = this.getAllFileContexts();
