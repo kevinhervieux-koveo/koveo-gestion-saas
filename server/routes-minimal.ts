@@ -610,10 +610,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Return invitation data (no sensitive fields in return object)
           const safeInvitation = newInvitation;
           
+          // Use same environment detection for response URL
+          const isDevelopmentResponse = process.env.NODE_ENV !== 'production';
+          const responseBaseUrl = isDevelopmentResponse ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000');
+          
           res.status(201).json({
             invitation: safeInvitation,
             message: 'Invitation created successfully',
-            invitationUrl: `${isDevelopment ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000')}/register?invitation=${token}`
+            invitationUrl: `${responseBaseUrl}/register?invitation=${token}`
           });
           
         } catch (_error) {
