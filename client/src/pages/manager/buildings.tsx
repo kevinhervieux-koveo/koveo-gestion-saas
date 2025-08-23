@@ -383,13 +383,19 @@ export default function Buildings() {
   // Fetch organizations for form
   const { data: organizations = [] } = useQuery({
     queryKey: ["/api/organizations"],
-    queryFn: () => apiRequest("GET", "/api/organizations") as Promise<unknown> as Promise<any[]>,
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/organizations");
+      return await response.json();
+    },
   });
 
   // Fetch buildings using the working manager endpoint
   const { data: buildingsData, isLoading, error: _error } = useQuery({
     queryKey: ["/api/manager/buildings"],
-    queryFn: () => apiRequest("GET", "/api/manager/buildings"),
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/manager/buildings");
+      return await response.json();
+    },
   });
   
   // Extract buildings array from the wrapped response
@@ -428,7 +434,7 @@ export default function Buildings() {
   const createBuildingMutation = useMutation({
     mutationFn: (data: BuildingFormData) => apiRequest("POST", "/api/buildings", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/buildings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
       setIsAddDialogOpen(false);
       form.reset();
       toast({
@@ -449,7 +455,7 @@ export default function Buildings() {
     mutationFn: ({ id, data }: { id: string; data: BuildingFormData }) =>
       apiRequest("PUT", `/api/buildings/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/buildings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
       setIsEditDialogOpen(false);
       setEditingBuilding(null);
       editForm.reset();
