@@ -299,6 +299,12 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   token: true,
   invitedByUserId: true,
   expiresAt: true,
+}).extend({
+  // Allow ISO date strings for HTTP requests and convert to Date
+  expiresAt: z.union([
+    z.date(),
+    z.string().datetime().transform((str) => new Date(str))
+  ])
 });
 
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).pick({

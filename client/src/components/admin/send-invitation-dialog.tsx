@@ -339,7 +339,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         role: data.role,
         token: token,
         invitedByUserId: currentUser?.id,
-        expiresAt: expiresAt,
+        expiresAt: expiresAt.toISOString(),
         personalMessage: data.personalMessage || null
       });
       return response.json();
@@ -375,7 +375,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         residenceId: data.residenceId || null,
         token: crypto.randomUUID() + '-' + Date.now().toString(36) + '-' + Math.random().toString(36),
         invitedByUserId: currentUser?.id,
-        expiresAt: expiresAt,
+        expiresAt: expiresAt.toISOString(),
         personalMessage: data.personalMessage || null
       }));
       
