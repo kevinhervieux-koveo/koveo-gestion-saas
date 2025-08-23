@@ -31,13 +31,13 @@ export default function UserManagement() {
   const usersPerPage = 10;
 
   // Fetch users
-  const { _data: users = [], isLoading: usersLoading, _error: usersError } = useQuery<User[]>({
+  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ['/api/users'],
     enabled: true,
   });
 
   // Fetch invitations
-  const { _data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
+  const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
     queryKey: ['/api/invitations'],
     enabled: true,
   });
@@ -55,15 +55,15 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: t('success'),
-        description: t('userUpdatedSuccessfully'),
+        title: 'Success',
+        description: 'User updated successfully',
       });
       setSelectedUsers(new Set());
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (_error: Error) => {
       toast({
-        title: t('error'),
+        title: 'Error',
         description: _error.message,
         variant: 'destructive',
       });
@@ -78,13 +78,13 @@ export default function UserManagement() {
     try {
       await apiRequest('POST', `/api/invitations/${invitationId}/resend`);
       toast({
-        title: t('success'),
-        description: t('invitationSent'),
+        title: 'Success',
+        description: 'Invitation sent',
       });
     } catch (_error) {
       toast({
-        title: t('error'),
-        description: _error instanceof Error ? _error.message : t('errorOccurred'),
+        title: 'Error',
+        description: _error instanceof Error ? _error.message : 'An error occurred',
         variant: 'destructive',
       });
     }
@@ -110,13 +110,13 @@ export default function UserManagement() {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Header 
-          title={t('userManagement')}
-          subtitle={t('manageAllUsers')}
+          title="User Management"
+          subtitle="Manage All Users"
         />
         <div className="flex-1 p-6">
           <Card>
             <CardContent className="p-6">
-              <p className="text-red-600">{t('errorOccurred')}</p>
+              <p className="text-red-600">An error occurred</p>
             </CardContent>
           </Card>
         </div>
@@ -127,8 +127,8 @@ export default function UserManagement() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header 
-        title={t('userManagement')}
-        subtitle={t('manageAllUsers')}
+        title="User Management"
+        subtitle="Manage All Users"
       />
       
       <div className="flex-1 p-6 space-y-6">
@@ -137,14 +137,14 @@ export default function UserManagement() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                {t('totalUsers')}
+                Total Users
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('total')}
+                Total
               </p>
             </CardContent>
           </Card>
@@ -152,14 +152,14 @@ export default function UserManagement() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                {t('activeUsers')}
+                Active Users
               </CardTitle>
               <UserPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('active')}
+                Active
               </p>
             </CardContent>
           </Card>
@@ -167,14 +167,14 @@ export default function UserManagement() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                {t('admin')}
+                Admin
               </CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{adminUsers}</div>
               <p className="text-xs text-muted-foreground">
-                {t('role')}
+                Role
               </p>
             </CardContent>
           </Card>
@@ -186,17 +186,17 @@ export default function UserManagement() {
             <TabsList>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                {t('users')}
+                Users
               </TabsTrigger>
               <TabsTrigger value="invitations" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                {t('invitations')}
+                Invitations
               </TabsTrigger>
             </TabsList>
 
             <Button onClick={() => setInvitationDialogOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
-              {t('inviteUser')}
+              Invite User
             </Button>
           </div>
 
