@@ -12,16 +12,16 @@ import { DeleteConfirmationDialog } from '@/components/dialogs/delete-confirmati
 import { useBuildings } from '@/hooks/use-buildings';
 import { BuildingForm, BuildingCard } from '@/components/buildings';
 
-/**
+/*
  * Buildings management page for Admin and Manager roles.
  * Shows all buildings in the user's organization with proper access control.
  * Refactored into smaller, focused components.
- */
-export default function  /**
+
+export default function
    * Buildings function.
-   */  /**
+
    * Buildings function.
-   */
+
 
  Buildings() {
   const { user, isAuthenticated } = useAuth();
@@ -52,13 +52,9 @@ export default function  /**
   } = useBuildings();
 
   // Filter buildings based on search term
-  const buildings = useMemo(() => {  /**
-   * If function.
-   * @param !searchTerm - !searchTerm parameter.
-   */  /**
-   * If function.
-   * @param !searchTerm - !searchTerm parameter.
-   */
+  const buildings = useMemo(() => {
+
+
 
 
     if (!searchTerm) {
@@ -97,13 +93,9 @@ export default function  /**
     );
   }
 
-  // Loading state  /**
-   * If function.
-   * @param isLoading - isLoading parameter.
-   */  /**
-   * If function.
-   * @param isLoading - isLoading parameter.
-   */
+  // Loading state
+
+
 
 
   if (isLoading) {
@@ -125,13 +117,11 @@ export default function  /**
     );
   }
 
-  // Error state  /**
-   * If function.
+  // Error state
    * @param error - Error object.
-   */  /**
-   * If function.
+
    * @param error - Error object.
-   */
+
 
 
   if (_error) {

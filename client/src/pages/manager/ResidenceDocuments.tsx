@@ -43,47 +43,41 @@ const documentFormSchema = z.object({
   residenceId: z.string().min(1, "Residence ID is required"),
 });
 
-/**
+/*
  *
- */
+
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
 // Edit Document Form Component
-/**
+/*
  *
- */
+
 interface EditDocumentFormProps {
   document: ResidenceDocument;
   onSave: (updatedDocument: ResidenceDocument) => void;
   onCancel: () => void;
 }
 
-/**
+/*
  *
  * @param root0
  * @param root0.document
  * @param root0.onSave
  * @param root0.onCancel
- */
-/**
+
+/*
  * EditDocumentForm function.
  * @param root0
  * @param root0.document
  * @param root0.onSave
  * @param root0.onCancel
  * @returns Function result.
- */
-function  /**
+
+function
    * Edit document form function.
-   * @param { document - { document parameter.
-   * @param onSave - onSave parameter.
-   * @param onCancel } - onCancel } parameter.
-   */  /**
+
    * Edit document form function.
-   * @param { document - { document parameter.
-   * @param onSave - onSave parameter.
-   * @param onCancel } - onCancel } parameter.
-   */
+
 
  EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
@@ -206,9 +200,9 @@ function  /**
   );
 }
 
-/**
+/*
  *
- */
+
 interface ResidenceDocument {
   id: string;
   name: string;
@@ -222,18 +216,18 @@ interface ResidenceDocument {
   fileUrl?: string;
 }
 
-/**
+/*
  *
- */
+
 interface User {
   id: string;
   role: string;
   [_key: string]: any;
 }
 
-/**
+/*
  *
- */
+
 interface Residence {
   id: string;
   unitNumber: string;
@@ -242,9 +236,9 @@ interface Residence {
   [_key: string]: any;
 }
 
-/**
+/*
  *
- */
+
 interface Building {
   id: string;
   name: string;
@@ -252,14 +246,14 @@ interface Building {
   [_key: string]: any;
 }
 
-/**
+/*
  *
- */
-export default function  /**
+
+export default function
    * Residence documents function.
-   */  /**
+
    * Residence documents function.
-   */
+
 
  ResidenceDocuments() {
   // Get residenceId from URL params
@@ -306,32 +300,20 @@ export default function  /**
   // Get documents for this specific residence
   const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
     queryKey: ["/api/documents", "residence", residenceId],
-    queryFn: async () => {  /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */  /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */
+    queryFn: async () => {
+
+
 
 
       if (!residenceId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`);
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+
+
+
+
+
+
 
       if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
@@ -353,13 +335,9 @@ export default function  /**
 
   // Filter documents based on search, category, and year
   const filteredDocuments = useMemo(() => {
-    let filtered = documents;  /**
-   * If function.
-   * @param searchTerm - searchTerm parameter.
-   */  /**
-   * If function.
-   * @param searchTerm - searchTerm parameter.
-   */
+    let filtered = documents;
+
+
 
 
 
@@ -367,25 +345,17 @@ export default function  /**
       filtered = filtered.filter(doc => 
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }  /**
-   * If function.
-   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
-   */  /**
-   * If function.
-   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
-   */
+    }
+
+
 
 
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(doc => doc.type === selectedCategory);
-    }  /**
-   * If function.
-   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
-   */  /**
-   * If function.
-   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
-   */
+    }
+
+
 
 
 
@@ -411,13 +381,9 @@ export default function  /**
 
   // Create document mutation
   const createDocumentMutation = useMutation({
-    mutationFn: async (_data: DocumentFormData) => {  /**
-   * If function.
-   * @param !user?.id - !user?.id parameter.
-   */  /**
-   * If function.
-   * @param !user?.id - !user?.id parameter.
-   */
+    mutationFn: async (_data: DocumentFormData) => {
+
+
 
 
       if (!user?.id) {
@@ -434,13 +400,9 @@ export default function  /**
         uploadedBy: user.id, // Use full user ID
       };
       
-      // Add file data if uploaded  /**
-   * If function.
-   * @param uploadedFile - uploadedFile parameter.
-   */  /**
-   * If function.
-   * @param uploadedFile - uploadedFile parameter.
-   */
+      // Add file data if uploaded
+
+
 
 
       if (uploadedFile) {
@@ -474,40 +436,24 @@ export default function  /**
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; _data: Partial<DocumentFormData> }) => {
-      const updateData: unknown = {};  /**
-   * If function.
-   * @param data.name - data.name parameter.
-   */  /**
-   * If function.
-   * @param data.name - data.name parameter.
-   */
+      const updateData: unknown = {};
 
 
-      if (data.name) {updateData.name = data.name;}  /**
-   * If function.
-   * @param data.type - data.type parameter.
-   */  /**
-   * If function.
-   * @param data.type - data.type parameter.
-   */
 
 
-      if (data.type) {updateData.type = data.type;}  /**
-   * If function.
-   * @param data.dateReference - data.dateReference parameter.
-   */  /**
-   * If function.
-   * @param data.dateReference - data.dateReference parameter.
-   */
+      if (data.name) {updateData.name = data.name;}
 
 
-      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string  /**
-   * If function.
-   * @param data.residenceId - data.residenceId parameter.
-   */  /**
-   * If function.
-   * @param data.residenceId - data.residenceId parameter.
-   */
+
+
+      if (data.type) {updateData.type = data.type;}
+
+
+
+
+      if (data.dateReference) {updateData.dateReference = data.dateReference;} // Send as YYYY-MM-DD string
+
+
 
 
       if (data.residenceId) {updateData.residenceId = data.residenceId;}
@@ -596,22 +542,18 @@ export default function  /**
   };
 
   // Handle file upload for new document
-  const handleNewDocumentUpload =  /**
+  const handleNewDocumentUpload =
    * Async function.
    * @returns Promise resolving to .
-   */  /**
+
    * Async function.
    * @returns Promise resolving to .
-   */
+
 
  async (): Promise<{ method: "PUT"; url: string }> => {
-    setIsUploadingNewFile(true); // Start upload tracking  /**
-   * If function.
-   * @param !residence - !residence parameter.
-   */  /**
-   * If function.
-   * @param !residence - !residence parameter.
-   */
+    setIsUploadingNewFile(true); // Start upload tracking
+
+
 
 
     
@@ -632,13 +574,9 @@ export default function  /**
         residenceId: residence.id,
         documentType: 'residence'
       })
-    });  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+    });
+
+
 
 
     
@@ -652,13 +590,9 @@ export default function  /**
   };
 
   const handleNewDocumentUploadComplete = (_result: UploadResult<any, any>) => {
-    setIsUploadingNewFile(false); // Upload finished  /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */  /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */
+    setIsUploadingNewFile(false); // Upload finished
+
+
 
 
     if (result.successful && result.successful.length > 0) {
@@ -683,13 +617,9 @@ export default function  /**
   };
 
   const handleFileUploadComplete = (documentId: string) => (_result: UploadResult<any, any>) => {
-    const uploadedFile = result.successful[0];  /**
-   * If function.
-   * @param uploadedFile && uploadedFile.uploadURL - uploadedFile && uploadedFile.uploadURL parameter.
-   */  /**
-   * If function.
-   * @param uploadedFile && uploadedFile.uploadURL - uploadedFile && uploadedFile.uploadURL parameter.
-   */
+    const uploadedFile = result.successful[0];
+
+
 
 
     if (uploadedFile && uploadedFile.uploadURL) {
@@ -717,22 +647,18 @@ export default function  /**
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    }  /**
+    }
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
 
-  /**
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
+
+   * Catch function.
+
+
+
+   * Catch function.
+
  catch (_error) {
       toast({
         title: "Download failed",
@@ -740,13 +666,9 @@ export default function  /**
         variant: "destructive",
       });
     }
-  };  /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */  /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */
+  };
+
+
 
 
 
@@ -1055,13 +977,9 @@ export default function  /**
                                 }}
                                 onComplete={async (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
                                   try {
-                                    const uploadedFile = result.successful[0];  /**
-   * If function.
-   * @param uploadedFile?.uploadURL - uploadedFile?.uploadURL parameter.
-   */  /**
-   * If function.
-   * @param uploadedFile?.uploadURL - uploadedFile?.uploadURL parameter.
-   */
+                                    const uploadedFile = result.successful[0];
+
+
 
 
                                     if (uploadedFile?.uploadURL) {
@@ -1165,13 +1083,9 @@ export default function  /**
           ) : (
             <div className="w-full space-y-6">
               {DOCUMENT_CATEGORIES.map((category) => {
-                const categoryDocuments = documentsByCategory[category.value] || [];  /**
-   * If function.
-   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
-   */  /**
-   * If function.
-   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
-   */
+                const categoryDocuments = documentsByCategory[category.value] || [];
+
+
 
 
                 if (categoryDocuments.length === 0) {return null;}

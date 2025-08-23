@@ -22,23 +22,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
-/**
+/*
  * Column configuration for the data table
- */
-/**
+
+/*
  * ColumnConfig type definition.
- */
-/**
+
+/*
  * ColumnConfig type definition.
- */
+
 export interface ColumnConfig<T> extends TableColumn<T> {}
 
-/**
+/*
  * TableColumn type definition.
- */
-/**
+
+/*
  * TableColumn type definition.
- */
+
 export interface TableColumn<T> {
   _key: string;
   label: string;
@@ -50,15 +50,15 @@ export interface TableColumn<T> {
   hideOnMobile?: boolean;
 }
 
-/**
+/*
  * Action configuration for table rows
- */
-/**
+
+/*
  * TableAction type definition.
- */
-/**
+
+/*
  * TableAction type definition.
- */
+
 export interface TableAction<T> {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -68,15 +68,15 @@ export interface TableAction<T> {
   separator?: boolean;
 }
 
-/**
+/*
  * Bulk action configuration
- */
-/**
+
+/*
  * BulkAction type definition.
- */
-/**
+
+/*
  * BulkAction type definition.
- */
+
 export interface BulkAction<T> {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
@@ -84,9 +84,9 @@ export interface BulkAction<T> {
   variant?: 'default' | 'destructive';
 }
 
-/**
+/*
  * Props for the DataTable component
- */
+
 interface DataTableProps<T> {
   _data: T[];
   columns: TableColumn<T>[];
@@ -102,7 +102,7 @@ interface DataTableProps<T> {
   selectedItems?: Set<string>;
 }
 
-/**
+/*
  * Reusable Data Table Component
  * 
  * Provides standardized table functionality with selection, actions,
@@ -110,11 +110,11 @@ interface DataTableProps<T> {
  * 
  * @param props - Table configuration and data
  * @returns Standardized data table component
- */
-/**
+
+/*
  * DataTable function
  * @returns Function result
- */
+
 export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
@@ -135,22 +135,14 @@ export function DataTable<T extends Record<string, unknown>>({
   const selection = selectedItems.size > 0 ? selectedItems : internalSelection;
   const setSelection = onSelectionChange || setInternalSelection;
 
-  const handleSelectAll = (checked: boolean) => {  /**
-   * If function.
-   * @param checked - checked parameter.
-   */
-  /**
-   * If function.
-   * @param checked - checked parameter.
-   */  /**
-   * If function.
-   * @param checked - checked parameter.
-   */
+  const handleSelectAll = (checked: boolean) => {
 
-  /**
-   * If function.
-   * @param checked - checked parameter.
-   */
+
+
+
+
+
+
 
     if (checked) {
       const newSelection = new Set(data.map(item => String(item[keyAccessor])));
@@ -170,34 +162,28 @@ export function DataTable<T extends Record<string, unknown>>({
     setSelection(newSelection);
   };
 
-  const renderCellContent = (column: TableColumn<T>, item: T) => {  /**
-   * If function.
-   * @param column.render - column.render parameter.
-   */  /**
-   * If function.
-   * @param column.render - column.render parameter.
-   */
+  const renderCellContent = (column: TableColumn<T>, item: T) => {
+
+
 
 
     if (column.render) {
       const value = typeof column.accessor === 'function' 
-        ? column.  /**
+        ? column.
    * Accessor function.
-   * @param item - item parameter.
    * @returns item[column.accessor];
       return column.render(value, item);
     }
 
     if (typeof column.accessor === 'function') result.
-   */  /**
+
    * Accessor function.
-   * @param item - item parameter.
    * @returns item[column.accessor];
       return column.render(value, item);
     }
 
     if (typeof column.accessor === 'function') result.
-   */
+
 
 accessor(item) 
         : item[column.accessor];
@@ -210,13 +196,9 @@ accessor(item)
 
     const value = item[column.accessor];
     
-    // Handle common data types  /**
-   * If function.
-   * @param typeof value === 'boolean' - typeof value === 'boolean' parameter.
-   */  /**
-   * If function.
-   * @param typeof value === 'boolean' - typeof value === 'boolean' parameter.
-   */
+    // Handle common data types
+
+
 
 
     if (typeof value === 'boolean') {
@@ -225,13 +207,9 @@ accessor(item)
           {value ? 'Active' : 'Inactive'}
         </Badge>
       );
-    }  /**
-   * If function.
-   * @param value && typeof value === 'object' && 'toLocaleDateString' in value - value && typeof value === 'object' && 'toLocaleDateString' in value parameter.
-   */  /**
-   * If function.
-   * @param value && typeof value === 'object' && 'toLocaleDateString' in value - value && typeof value === 'object' && 'toLocaleDateString' in value parameter.
-   */
+    }
+
+
 
 
 
@@ -367,17 +345,15 @@ accessor(item)
                                   {action.separator && <DropdownMenuSeparator />}
                                   <DropdownMenuItem
                                     onClick={() => action.onClick(item)}
-                                    disabled={action.disabled ? action.  /**
+                                    disabled={action.disabled ? action.
    * Disable .
-   * @param item - item parameter.
    * @returns false}
                                     className= result.
-   */  /**
+
    * Disable .
-   * @param item - item parameter.
    * @returns false}
                                     className= result.
-   */
+
 
 disabled(item) : false}
                                     className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
@@ -401,4 +377,4 @@ disabled(item) : false}
       </CardContent>
     </Card>
   );
-}
+} */

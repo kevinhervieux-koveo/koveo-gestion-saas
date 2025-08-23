@@ -3,9 +3,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 
-/**
+/*
  * Configuration for API mutation hooks.
- */
+
 interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   endpoint: string | ((_variables: TVariables) => string);
@@ -17,7 +17,7 @@ interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> 
   transformData?: (_variables: TVariables) => unknown;
 }
 
-/**
+/*
  * Custom hook for standardized API mutations.
  * 
  * Provides consistent error handling, success messages, cache invalidation,
@@ -25,12 +25,12 @@ interface ApiMutationConfig<TData = unknown, TError = Error, TVariables = void> 
  * 
  * @param config - API mutation configuration.
  * @returns Mutation hook with standardized behavior.
- */
-/**
+
+/*
  * UseApiMutation function.
  * @param config
  * @returns Function result.
- */
+
 export function useApiMutation<TData = unknown, TError = Error, TVariables = void>(
   config: ApiMutationConfig<TData, TError, TVariables>
 ) {
@@ -41,9 +41,8 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
   return useMutation<TData, TError, TVariables>({
     mutationFn: async (variables: TVariables) => {
       const endpoint = typeof config.endpoint === 'function' 
-        ? config.  /**
+        ? config.
    * Endpoint function.
-   * @param variables - variables parameter.
    * @returns config.endpoint;
       
       const requestData = config.transformData 
@@ -54,7 +53,7 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = voi
       
       // Handle different response types
       if (config.method === 'DELETE' && response.status === 204) result.
-   */
+
 endpoint(variables) 
         : config.endpoint;
       
@@ -77,25 +76,20 @@ endpoint(variables)
       return response.text() as unknown as TData;
     },
     onSuccess: async (_data: TData, variables: TVariables) => {
-      // Show success message  /**
-   * If function.
-   * @param config.successMessage - config.successMessage parameter.
-   */  /**
-   * If function.
-   * @param config.successMessage - config.successMessage parameter.
-   */
+      // Show success message
+
+
 
 
       if (config.successMessage) {
         const message = typeof config.successMessage === 'function'
-          ? config.  /**
+          ? config.
    * Success message function.
    * @param data - Data object to process.
-   * @param variables - variables parameter.
    * @returns config.successMessage;
         
         toast( result.
-   */
+
 successMessage(data, variables)
           : config.successMessage;
         
@@ -105,22 +99,16 @@ successMessage(data, variables)
         });
       }
 
-      // Invalidate specified queries  /**
-   * If function.
-   * @param config.invalidateQueries - config.invalidateQueries parameter.
-   */  /**
-   * If function.
-   * @param config.invalidateQueries - config.invalidateQueries parameter.
-   */
+      // Invalidate specified queries
 
 
-      if (config.invalidateQueries) {  /**
+
+
+      if (config.invalidateQueries) {
    * For function.
-   * @param const queryKey of config.invalidateQueries - const queryKey of config.invalidateQueries parameter.
-   */  /**
+
    * For function.
-   * @param const queryKey of config.invalidateQueries - const queryKey of config.invalidateQueries parameter.
-   */
+
 
 
         for (const queryKey of config.invalidateQueries) {
@@ -128,13 +116,9 @@ successMessage(data, variables)
         }
       }
 
-      // Execute success callback  /**
-   * If function.
-   * @param config.onSuccessCallback - config.onSuccessCallback parameter.
-   */  /**
-   * If function.
-   * @param config.onSuccessCallback - config.onSuccessCallback parameter.
-   */
+      // Execute success callback
+
+
 
 
       if (config.onSuccessCallback) {
@@ -145,15 +129,14 @@ successMessage(data, variables)
       // Show error message
       const message = config.errorMessage
         ? typeof config.errorMessage === 'function'
-          ? config.  /**
+          ? config.
    * Error message function.
    * @param error - Error object.
-   * @param variables - variables parameter.
    * @returns config.errorMessage
         : (error as Error).message || 'Unknown error occurred';
 
       toast( result.
-   */
+
 errorMessage(error, variables)
           : config.errorMessage
         : (error as Error).message || 'Unknown error occurred';
@@ -164,13 +147,9 @@ errorMessage(error, variables)
         variant: 'destructive',
       });
 
-      // Execute error callback  /**
-   * If function.
-   * @param config.onErrorCallback - config.onErrorCallback parameter.
-   */  /**
-   * If function.
-   * @param config.onErrorCallback - config.onErrorCallback parameter.
-   */
+      // Execute error callback
+
+
 
 
       if (config.onErrorCallback) {
@@ -180,22 +159,22 @@ errorMessage(error, variables)
   });
 }
 
-/**
+/*
  * Pre-configured mutation hooks for common operations.
- */
 
-/**
+
+/*
  * Hook for create operations.
  * @param endpoint - API endpoint for creation.
  * @param options - Additional configuration options.
  * @returns Mutation hook for create operations.
- */
-/**
+
+/*
  * UseCreateMutation function.
  * @param endpoint
  * @param options
  * @returns Function result.
- */
+
 export function useCreateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,
   options?: Partial<ApiMutationConfig<TData, Error, TVariables>>
@@ -208,18 +187,18 @@ export function useCreateMutation<TData = unknown, TVariables = unknown>(
   });
 }
 
-/**
+/*
  * Hook for update operations.
  * @param endpoint - API endpoint for updates.
  * @param options - Additional configuration options.
  * @returns Mutation hook for update operations.
- */
-/**
+
+/*
  * UseUpdateMutation function.
  * @param endpoint
  * @param options
  * @returns Function result.
- */
+
 export function useUpdateMutation<TData = unknown, TVariables = unknown>(
   endpoint: string | ((_variables: TVariables) => string),
   options?: Partial<ApiMutationConfig<TData, Error, TVariables>>
@@ -232,18 +211,18 @@ export function useUpdateMutation<TData = unknown, TVariables = unknown>(
   });
 }
 
-/**
+/*
  * Hook for delete operations.
  * @param endpoint - API endpoint for deletions.
  * @param options - Additional configuration options.
  * @returns Mutation hook for delete operations.
- */
-/**
+
+/*
  * UseDeleteMutation function.
  * @param endpoint
  * @param options
  * @returns Function result.
- */
+
 export function useDeleteMutation<TVariables = string>(
   endpoint: string | ((_id: TVariables) => string),
   options?: Partial<ApiMutationConfig<void, Error, TVariables>>
@@ -256,18 +235,18 @@ export function useDeleteMutation<TVariables = string>(
   });
 }
 
-/**
+/*
  * Hook for bulk operations.
  * @param endpoint - API endpoint for bulk operations.
  * @param options - Additional configuration options.
  * @returns Mutation hook for bulk operations.
- */
-/**
+
+/*
  * UseBulkMutation function.
  * @param endpoint
  * @param options
  * @returns Function result.
- */
+
 export function useBulkMutation<TData = unknown, TVariables = unknown>(
   endpoint: string,
   options?: Partial<ApiMutationConfig<TData, Error, TVariables>>
@@ -278,4 +257,4 @@ export function useBulkMutation<TData = unknown, TVariables = unknown>(
     successMessage: 'Bulk operation completed successfully',
     ...options,
   });
-}
+} */

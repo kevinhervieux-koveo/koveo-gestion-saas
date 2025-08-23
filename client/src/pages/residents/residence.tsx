@@ -40,9 +40,9 @@ import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
-/**
+/*
  *
- */
+
 interface Residence {
   id: string;
   unitNumber: string;
@@ -64,9 +64,9 @@ interface Residence {
   };
 }
 
-/**
+/*
  *
- */
+
 interface Contact {
   id: string;
   name: string;
@@ -80,9 +80,9 @@ interface Contact {
   updatedAt: string;
 }
 
-/**
+/*
  *
- */
+
 interface AssignedUser {
   id: string;
   username: string;
@@ -96,16 +96,16 @@ interface AssignedUser {
   isActive: boolean;
 }
 
-/**
+/*
  *
- */
+
 interface UserResidence {
   residenceId: string;
 }
 
-/**
+/*
  *
- */
+
 interface Document {
   id: string;
   name: string;
@@ -154,23 +154,23 @@ const documentSchema = z.object({
   isVisibleToTenants: z.boolean().default(false),
 });
 
-/**
+/*
  *
- */
+
 type ContactFormData = z.infer<typeof contactSchema>;
-/**
+/*
  *
- */
+
 type DocumentFormData = z.infer<typeof documentSchema>;
 
-/**
+/*
  *
- */
-export default function  /**
+
+export default function
    * My residence function.
-   */  /**
+
    * My residence function.
-   */
+
 
  MyResidence() {
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
@@ -205,13 +205,9 @@ export default function  /**
   // Get the selected residence
   const selectedResidence = accessibleResidences.find(r => r.id === selectedResidenceId) || accessibleResidences[0];
 
-  // Update selected residence when residences are loaded  /**
-   * If function.
-   * @param selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 - selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 parameter.
-   */  /**
-   * If function.
-   * @param selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 - selectedResidence && !selectedResidenceId && accessibleResidences.length > 0 parameter.
-   */
+  // Update selected residence when residences are loaded
+
+
 
 
   if (selectedResidence && !selectedResidenceId && accessibleResidences.length > 0) {
@@ -228,61 +224,33 @@ export default function  /**
   const { _data: assignedUsers, refetch: refetchAssignedUsers } = useQuery<AssignedUser[]>({
     queryKey: ['/api/residences', selectedResidence?.id, 'assigned-users'],
     queryFn: async () => {
-      const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      const response = await fetch(`/api/residences/${selectedResidence?.id}/assigned-users`);
 
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
       if (!response.ok) {throw new Error('Failed to fetch assigned users');}
@@ -306,13 +274,13 @@ export default function  /**
   // Filter documents by category and year
   const filteredDocuments = documents?.filter(doc => {
     const categoryMatch = categoryFilter === 'all' || doc.type === categoryFilter;
-    const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().  /**
+    const docYear = doc.dateReference ? new Date(doc.dateReference).getFullYear().
    * To string function.
    * @returns Array result.
-   */  /**
+
    * To string function.
    * @returns Array result.
-   */
+
 
 toString() : '';
     const yearMatch = yearFilter === 'all' || docYear === yearFilter;
@@ -369,32 +337,20 @@ toString() : '';
     setIsContactDialogOpen(true);
   };
 
-  const handleAddContact = async (_data: ContactFormData) => {  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */
-  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */
+  const handleAddContact = async (_data: ContactFormData) => {
 
-  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */
+
+
+
+
+
+
 
     if (!selectedResidence) {return;}
 
-    try {  /**
-   * If function.
-   * @param editingContact - editingContact parameter.
-   */  /**
-   * If function.
-   * @param editingContact - editingContact parameter.
-   */
+    try {
+
+
 
 
       if (editingContact) {
@@ -408,22 +364,14 @@ toString() : '';
             phone: data.phone || undefined,
             contactCategory: data.contactCategory,
           }),
-        });  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+        });
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+
+
+
+
+
+
 
         
         if (!response.ok) {throw new Error('Failed to update contact');}
@@ -454,46 +402,36 @@ toString() : '';
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
-    }  /**
+    }
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
 
-  /**
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
+
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
+
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
+
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
+
+   * Catch function.
+
+
+
+   * Catch function.
+
+
+   * Catch function.
+
+
+   * Catch function.
+
+
+   * Catch function.
+
  catch (_error) {
       toast({ 
         title: editingContact ? 'Error updating contact' : 'Error adding contact', 
@@ -526,22 +464,18 @@ toString() : '';
   };
 
   // File upload handlers
-  const handleNewDocumentUpload =  /**
+  const handleNewDocumentUpload =
    * Async function.
    * @returns Promise resolving to .
-   */  /**
+
    * Async function.
    * @returns Promise resolving to .
-   */
+
 
  async (): Promise<{ method: "PUT"; url: string }> => {
-    setIsUploadingNewFile(true);  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */  /**
-   * If function.
-   * @param !selectedResidence - !selectedResidence parameter.
-   */
+    setIsUploadingNewFile(true);
+
+
 
 
     
@@ -562,13 +496,9 @@ toString() : '';
         residenceId: selectedResidence.id,
         documentType: 'residence'
       })
-    });  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+    });
+
+
 
 
     
@@ -582,13 +512,9 @@ toString() : '';
   };
 
   const handleNewDocumentUploadComplete = (_result: unknown) => {
-    setIsUploadingNewFile(false);  /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */  /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */
+    setIsUploadingNewFile(false);
+
+
 
 
     if (result.successful && result.successful.length > 0) {
@@ -651,13 +577,9 @@ toString() : '';
     }
   };
 
-  const handleEditDocument = async (_data: DocumentFormData) => {  /**
-   * If function.
-   * @param !selectedDocument - !selectedDocument parameter.
-   */  /**
-   * If function.
-   * @param !selectedDocument - !selectedDocument parameter.
-   */
+  const handleEditDocument = async (_data: DocumentFormData) => {
+
+
 
 
     if (!selectedDocument) {return;}
@@ -713,56 +635,36 @@ toString() : '';
     }
   };
 
-  const formatFileSize = (size?: string) => {  /**
-   * If function.
-   * @param !size - !size parameter.
-   */  /**
-   * If function.
-   * @param !size - !size parameter.
-   */
+  const formatFileSize = (size?: string) => {
+
+
 
 
     if (!size) {return 'Unknown size';}
-    const bytes = parseInt(size);  /**
-   * If function.
-   * @param bytes < 1024 - bytes < 1024 parameter.
-   */  /**
-   * If function.
-   * @param bytes < 1024 - bytes < 1024 parameter.
-   */
+    const bytes = parseInt(size);
 
 
-    if (bytes < 1024) {return `${bytes} B`;}  /**
-   * If function.
-   * @param bytes < 1048576 - bytes < 1048576 parameter.
-   */  /**
-   * If function.
-   * @param bytes < 1048576 - bytes < 1048576 parameter.
-   */
+
+
+    if (bytes < 1024) {return `${bytes} B`;}
+
+
 
 
     if (bytes < 1048576) {return `${(bytes / 1024).toFixed(1)} KB`;}
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
-  const formatDate = (dateString?: string) => {  /**
-   * If function.
-   * @param !dateString - !dateString parameter.
-   */  /**
-   * If function.
-   * @param !dateString - !dateString parameter.
-   */
+  const formatDate = (dateString?: string) => {
+
+
 
 
     if (!dateString) {return 'No date';}
     return new Date(dateString).toLocaleDateString();
-  };  /**
-   * If function.
-   * @param residencesLoading - residencesLoading parameter.
-   */  /**
-   * If function.
-   * @param residencesLoading - residencesLoading parameter.
-   */
+  };
+
+
 
 
 
@@ -777,13 +679,9 @@ toString() : '';
         </div>
       </div>
     );
-  }  /**
-   * If function.
-   * @param accessibleResidences.length === 0 - accessibleResidences.length === 0 parameter.
-   */  /**
-   * If function.
-   * @param accessibleResidences.length === 0 - accessibleResidences.length === 0 parameter.
-   */
+  }
+
+
 
 
 

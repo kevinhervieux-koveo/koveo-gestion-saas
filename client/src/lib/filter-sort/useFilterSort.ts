@@ -8,24 +8,24 @@ import {
 } from './types';
 import { applyFilterSort } from './utils';
 
-/**
+/*
  * Configuration options for the useFilterSort hook.
  * Defines the data, configuration, and initial state for filter/sort functionality.
  * 
  * @template T - The type of data items being filtered and sorted.
- */
+
 interface UseFilterSortOptions<T> {
   _data: T[];
   config: FilterSortConfig;
   initialState?: Partial<FilterSortState>;
 }
 
-/**
+/*
  * Return type for the useFilterSort hook.
  * Provides filtered data, state management, and control functions for filter/sort operations.
  * 
  * @template T - The type of data items being filtered and sorted.
- */
+
 interface UseFilterSortReturn<T> {
   // Filtered and sorted data
   filteredData: T[];
@@ -58,7 +58,7 @@ interface UseFilterSortReturn<T> {
 
 const STORAGE_PREFIX = 'filter-sort-state-';
 
-/**
+/*
  * React hook for managing advanced filter, sort, and search functionality.
  * Provides comprehensive data filtering with persistence, preset management, and real-time updates.
  * 
@@ -88,53 +88,39 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  *   initialState: { sort: { field: 'createdAt', direction: 'desc' } }
  * });
  * ```
- */
-/**
+
+/*
  * UseFilterSort function.
  * @param options
  * @returns Function result.
- */
+
 export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
 
   // Load initial state from localStorage if persistence is enabled
-  const getInitialState = (): FilterSortState => {  /**
-   * If function.
-   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
-   */
-  /**
-   * If function.
-   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
-   */  /**
-   * If function.
-   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
-   */
+  const getInitialState = (): FilterSortState => {
 
-  /**
-   * If function.
-   * @param config.persistState && config.storageKey - config.persistState && config.storageKey parameter.
-   */
+
+
+
+
+
+
 
     if (config.persistState && config.storageKey) {
-      const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);  /**
-   * If function.
-   * @param stored - stored parameter.
-   */  /**
-   * If function.
-   * @param stored - stored parameter.
-   */
+      const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);
+
+
 
 
       if (stored) {
         try {
           return JSON.parse(stored);
-        }  /**
+        }
    * Catch function.
-   * @param __e - __e parameter.
-   */  /**
+
    * Catch function.
-   * @param __e - __e parameter.
-   */
+
 
  catch (___e) {
           console.warn('Failed to parse stored filter state', __e);
@@ -166,13 +152,9 @@ export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSo
   // Filter management
   const addFilter = useCallback(
     (filter: FilterValue) => {
-      setState((prev) => {  /**
-   * If function.
-   * @param !config.allowMultipleFilters - !config.allowMultipleFilters parameter.
-   */  /**
-   * If function.
-   * @param !config.allowMultipleFilters - !config.allowMultipleFilters parameter.
-   */
+      setState((prev) => {
+
+
 
 
         if (!config.allowMultipleFilters) {
@@ -211,23 +193,15 @@ export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSo
 
   const toggleSort = useCallback(
     (field: string) => {
-      setState((prev) => {  /**
-   * If function.
-   * @param prev.sort?.field === field - prev.sort?.field === field parameter.
-   */  /**
-   * If function.
-   * @param prev.sort?.field === field - prev.sort?.field === field parameter.
-   */
+      setState((prev) => {
+
+
 
 
         if (prev.sort?.field === field) {
-          // Toggle direction or clear  /**
-   * If function.
-   * @param prev.sort.direction === 'asc' - prev.sort.direction === 'asc' parameter.
-   */  /**
-   * If function.
-   * @param prev.sort.direction === 'asc' - prev.sort.direction === 'asc' parameter.
-   */
+          // Toggle direction or clear
+
+
 
 
           if (prev.sort.direction === 'asc') {
@@ -310,3 +284,4 @@ export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSo
     resultCount,
   };
 }
+ */

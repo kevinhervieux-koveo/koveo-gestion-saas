@@ -24,9 +24,9 @@ const DOCUMENT_CATEGORIES = [
   { _value: 'other', label: 'Other' },
 ] as const;
 
-/**
+/*
  *
- */
+
 interface BuildingDocument {
   id: string;
   name: string;
@@ -41,9 +41,9 @@ interface BuildingDocument {
   isVisibleToTenants?: boolean;
 }
 
-/**
+/*
  *
- */
+
 interface Building {
   id: string;
   name: string;
@@ -51,32 +51,26 @@ interface Building {
   [_key: string]: any;
 }
 
-/**
+/*
  *
  * @param bytes
- */
-/**
+
+/*
  * FormatFileSize function.
  * @param bytes
  * @returns Function result.
- */
-function  /**
-   * Format file size.
-   * @param bytes? - bytes? parameter.
-   * @returns String result.
-   */  /**
-   * Format file size.
-   * @param bytes? - bytes? parameter.
-   * @returns String result.
-   */
 
- formatFileSize(bytes?: number): string {  /**
-   * If function.
-   * @param !bytes - !bytes parameter.
-   */  /**
-   * If function.
-   * @param !bytes - !bytes parameter.
-   */
+function
+   * Format file size.
+   * @returns String result.
+
+   * Format file size.
+   * @returns String result.
+
+
+ formatFileSize(bytes?: number): string {
+
+
 
 
   if (!bytes) {return 'Unknown size';}
@@ -86,24 +80,22 @@ function  /**
   return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
 }
 
-/**
+/*
  *
  * @param dateString
- */
-/**
+
+/*
  * FormatDate function.
  * @param dateString
  * @returns Function result.
- */
-function  /**
+
+function
    * Format date.
-   * @param dateString - dateString parameter.
    * @returns String result.
-   */  /**
+
    * Format date.
-   * @param dateString - dateString parameter.
    * @returns String result.
-   */
+
 
  formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -113,38 +105,38 @@ function  /**
   });
 }
 
-/**
+/*
  *
  * @param value
- */
-/**
+
+/*
  * GetCategoryLabel function.
  * @param value
  * @returns Function result.
- */
-function  /**
+
+function
    * Get category label.
    * @param value - Value to process.
    * @returns String result.
-   */  /**
+
    * Get category label.
    * @param value - Value to process.
    * @returns String result.
-   */
+
 
  getCategoryLabel(_value: string): string {
   // Return the actual document type as a formatted label
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-/**
+/*
  *
- */
-export default function  /**
+
+export default function
    * Residents building documents function.
-   */  /**
+
    * Residents building documents function.
-   */
+
 
  ResidentsBuildingDocuments() {
   const [, navigate] = useLocation();
@@ -171,32 +163,20 @@ export default function  /**
   // Get documents for this specific building
   const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: BuildingDocument[]}>({
     queryKey: ["/api/documents", "building", buildingId],
-    queryFn: async () => {  /**
-   * If function.
-   * @param !buildingId - !buildingId parameter.
-   */  /**
-   * If function.
-   * @param !buildingId - !buildingId parameter.
-   */
+    queryFn: async () => {
+
+
 
 
       if (!buildingId) {return {documents: []};}
-      const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      const response = await fetch(`/api/documents?type=building&buildingId=${buildingId}`);
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+
+
+
+
+
+
 
       if (!response.ok) {throw new Error('Failed to fetch documents');}
       return response.json();
@@ -231,38 +211,26 @@ export default function  /**
     // First ensure we only show documents for this building
     filtered = filtered.filter(doc => doc.buildingId === buildingId);
 
-    // Apply user filters  /**
-   * If function.
-   * @param searchTerm - searchTerm parameter.
-   */  /**
-   * If function.
-   * @param searchTerm - searchTerm parameter.
-   */
+    // Apply user filters
+
+
 
 
     if (searchTerm) {
       filtered = filtered.filter(doc => 
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }  /**
-   * If function.
-   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
-   */  /**
-   * If function.
-   * @param selectedCategory !== "all" - selectedCategory !== "all" parameter.
-   */
+    }
+
+
 
 
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(doc => doc.type === selectedCategory);
-    }  /**
-   * If function.
-   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
-   */  /**
-   * If function.
-   * @param selectedYear !== "all" - selectedYear !== "all" parameter.
-   */
+    }
+
+
 
 
 
@@ -270,33 +238,25 @@ export default function  /**
       filtered = filtered.filter(doc => 
         new Date(doc.dateReference).getFullYear().toString() === selectedYear
       );
-    }  /**
-   * If function.
-   * @param selectedVisibility !== "all" - selectedVisibility !== "all" parameter.
-   */  /**
-   * If function.
-   * @param selectedVisibility !== "all" - selectedVisibility !== "all" parameter.
-   */
+    }
+
+
 
 
 
     if (selectedVisibility !== "all") {
-      filtered = filtered.  /**
+      filtered = filtered.
    * Filter .
    * @param doc => {
         if (selectedVisibility === "visible" - doc => {
         if (selectedVisibility === "visible" parameter.
-   */
+
 filter(doc => {
         if (selectedVisibility === "visible") {
           return doc.isVisibleToTenants === true;
-        } else  /**
-   * If function.
-   * @param selectedVisibility === "hidden" - selectedVisibility === "hidden" parameter.
-   */  /**
-   * If function.
-   * @param selectedVisibility === "hidden" - selectedVisibility === "hidden" parameter.
-   */
+        } else
+
+
 
  if (selectedVisibility === "hidden") {
           return doc.isVisibleToTenants === false || doc.isVisibleToTenants === undefined;
@@ -331,14 +291,14 @@ filter(doc => {
     const grouped: Record<string, BuildingDocument[]> = {};
     
     // Group documents by their actual type values
-    paginatedDocuments.  /**
+    paginatedDocuments.
    * For each function.
    * @param doc => {
       const type = doc.type || 'other';
       if (!grouped[type] - doc => {
       const type = doc.type || 'other';
       if (!grouped[type] parameter.
-   */
+
 forEach(doc => {
       const type = doc.type || 'other';
       if (!grouped[type]) {
@@ -364,22 +324,18 @@ forEach(doc => {
       a.click();
       window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    }  /**
+    }
    * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
 
-  /**
+
    * Catch function.
-   * @param _error - _error parameter.
-   */
+
+   * Catch function.
+
+
+
+   * Catch function.
+
  catch (_error) {
       toast({
         title: "Download failed",
@@ -390,36 +346,24 @@ forEach(doc => {
   };
 
   const handleViewDocument = async (document: BuildingDocument) => {
-    try {  /**
-   * If function.
-   * @param document.fileUrl - document.fileUrl parameter.
-   */  /**
-   * If function.
-   * @param document.fileUrl - document.fileUrl parameter.
-   */
+    try {
+
+
 
 
       if (document.fileUrl) {
         window.open(document.fileUrl, '_blank');
       } else {
-        const response = await fetch(`/api/documents/${document.id}/view`);  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+        const response = await fetch(`/api/documents/${document.id}/view`);
+
+
 
 
         if (!response.ok) {throw new Error('Failed to get document view URL');}
         
-        const data = await response.json();  /**
-   * If function.
-   * @param data.viewUrl - data.viewUrl parameter.
-   */  /**
-   * If function.
-   * @param data.viewUrl - data.viewUrl parameter.
-   */
+        const data = await response.json();
+
+
 
 
         if (data.viewUrl) {
@@ -433,13 +377,9 @@ forEach(doc => {
         variant: "destructive",
       });
     }
-  };  /**
-   * If function.
-   * @param !buildingId - !buildingId parameter.
-   */  /**
-   * If function.
-   * @param !buildingId - !buildingId parameter.
-   */
+  };
+
+
 
 
 
@@ -573,13 +513,9 @@ forEach(doc => {
                 <div className="grid gap-6">
                   {/* Show documents grouped by category if no specific category is selected */}
                   {selectedCategory === 'all' ? (
-                    Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {  /**
-   * If function.
-   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
-   */  /**
-   * If function.
-   * @param categoryDocuments.length === 0 - categoryDocuments.length === 0 parameter.
-   */
+                    Object.entries(documentsByCategory).map(([categoryValue, categoryDocuments]) => {
+
+
 
 
                       if (categoryDocuments.length === 0) {return null;}
@@ -747,13 +683,9 @@ forEach(doc => {
                     </Button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;  /**
-   * If function.
-   * @param pageNum > totalPages - pageNum > totalPages parameter.
-   */  /**
-   * If function.
-   * @param pageNum > totalPages - pageNum > totalPages parameter.
-   */
+                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+
+
 
 
                         if (pageNum > totalPages) {return null;}
