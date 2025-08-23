@@ -597,12 +597,12 @@ export class IntelligentWorkflowAssistant {
     optional: WorkflowSuggestion[];
   }> {
     const allSuggestions = this.detectWorkflowPatterns(
-      context.recentFiles || [],
-      context.recentFiles || []
+      _context.recentFiles || [],
+      _context.recentFiles || []
     );
 
     // Add context-aware suggestions
-    if (context.userIntent?.toLowerCase().includes('deploy')) {
+    if (_context.userIntent?.toLowerCase().includes('deploy')) {
       allSuggestions.push({
         pattern: 'pre-deployment-checklist',
         confidence: 95,
@@ -613,7 +613,7 @@ export class IntelligentWorkflowAssistant {
       });
     }
 
-    if (context.projectPhase === 'development') {
+    if (_context.projectPhase === 'development') {
       allSuggestions.push({
         pattern: 'development-quality-check',
         confidence: 80,

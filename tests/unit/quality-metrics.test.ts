@@ -234,10 +234,10 @@ class QualityMetricValidator {
     const metricData = this.metricsHistory.filter(m => m.metric === metric);
     if (metricData.length === 0) {return null;}
 
-    const avgAccuracy = metricData.reduce((sum, _data) => sum + data.accuracy, 0) / metricData.length;
-    const totalRealIssues = metricData.reduce((sum, _data) => sum + data.realIssuesFound, 0);
-    const totalFalsePositives = metricData.reduce((sum, _data) => sum + data.falsePositives, 0);
-    const totalMissedIssues = metricData.reduce((sum, _data) => sum + data.missedIssues, 0);
+    const avgAccuracy = metricData.reduce((sum, _data) => sum + _data.accuracy, 0) / metricData.length;
+    const totalRealIssues = metricData.reduce((sum, _data) => sum + _data.realIssuesFound, 0);
+    const totalFalsePositives = metricData.reduce((sum, _data) => sum + _data.falsePositives, 0);
+    const totalMissedIssues = metricData.reduce((sum, _data) => sum + _data.missedIssues, 0);
 
     // Calculate accuracy trend (positive means improving)
     let accuracyTrend = 0;

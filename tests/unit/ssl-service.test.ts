@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction as _MockedFunction } from 'vitest';
 import { SSLService, createSSLService, getCertificateStatus } from '../../server/services/ssl_service';
 
 // Mock dependencies
@@ -7,7 +7,7 @@ vi.mock('fs/promises');
 vi.mock('path');
 
 describe('SSL Service', () => {
-  let sslService: SSLService;
+  let _sslService: SSLService;
   let mockOptions: any;
 
   beforeEach(() => {
@@ -53,8 +53,8 @@ describe('SSL Service', () => {
         privateKey: 'mock-private-key',
         issuer: 'Let\'s Encrypt Authority',
         subject: 'CN=example.com',
-        validFrom: validFrom.toISOString(),
-        validTo: validTo.toISOString(),
+        validFrom,
+        validTo,
         serialNumber: '12345678901234567890',
         fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
       };
@@ -79,8 +79,8 @@ describe('SSL Service', () => {
         privateKey: 'mock-private-key',
         issuer: 'Let\'s Encrypt Authority',
         subject: 'CN=example.com',
-        validFrom: validFrom.toISOString(),
-        validTo: validTo.toISOString(),
+        validFrom,
+        validTo,
         serialNumber: '12345678901234567890',
         fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
       };
@@ -105,8 +105,8 @@ describe('SSL Service', () => {
         privateKey: 'mock-private-key',
         issuer: 'Let\'s Encrypt Authority',
         subject: 'CN=example.com',
-        validFrom: validFrom.toISOString(),
-        validTo: validTo.toISOString(),
+        validFrom,
+        validTo,
         serialNumber: '12345678901234567890',
         fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
       };
@@ -131,8 +131,8 @@ describe('SSL Service', () => {
         privateKey: 'mock-private-key',
         issuer: 'Let\'s Encrypt Authority',
         subject: 'CN=example.com',
-        validFrom: validFrom.toISOString(),
-        validTo: validTo.toISOString(),
+        validFrom,
+        validTo,
         serialNumber: '12345678901234567890',
         fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
       };

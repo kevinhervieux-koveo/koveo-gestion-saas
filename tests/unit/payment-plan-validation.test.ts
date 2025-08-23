@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { getDemoBills, validateDemoDataStructure, DEMO_ORG_ID } from '../utils/demo-data-helpers';
+import { getDemoBills, validateDemoDataStructure, DEMO_ORG_ID as _DEMO_ORG_ID } from '../utils/demo-data-helpers';
 
 describe('Payment Plan Validation Tests', () => {
   beforeEach(() => {

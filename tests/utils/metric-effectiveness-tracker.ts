@@ -111,12 +111,12 @@ export class MetricEffectivenessTracker {
       description?: string;
     };
   }): void {
-    const totalReported = data.realIssuesFound + data.falsePositives;
-    const totalActual = data.realIssuesFound + data.missedIssues;
-    const accuracy = totalActual > 0 ? (data.realIssuesFound / totalActual) * 100 : 100;
+    const _totalReported = _data.realIssuesFound + _data.falsePositives;
+    const totalActual = _data.realIssuesFound + _data.missedIssues;
+    const accuracy = totalActual > 0 ? (_data.realIssuesFound / totalActual) * 100 : 100;
 
     this.measurements.push({
-      ...data,
+      ..._data,
       accuracy,
       timestamp: new Date().toISOString(),
     });

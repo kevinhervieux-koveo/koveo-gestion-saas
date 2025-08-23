@@ -1,6 +1,6 @@
 import { testLanguageValidator, validateText, PREFERRED_TERMS, QUEBEC_LEGAL_TERMS } from './language-validation.test';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join as _join } from 'path';
 import { glob } from 'glob';
 
 /**
@@ -104,12 +104,12 @@ describe('Translation Files Language Validation', () => {
                     !/^[A-Z][a-zA-Z]*$/.test(text) && // Skip component names
                     text.includes(' ') || text.length > 10) {
                   
-                  const violations = validateText(text, `${file}:${index + 1}`);
+                  const violations = validateText(text, `${file}:${_index + 1}`);
                   
                   if (violations.length > 0) {
                     hardcodedStrings.push({
                       file,
-                      line: index + 1,
+                      line: _index + 1,
                       text,
                       violations
                     });
@@ -124,7 +124,7 @@ describe('Translation Files Language Validation', () => {
       if (hardcodedStrings.length > 0) {
         console.warn('\n=== CHAÎNES CODÉES EN DUR AVEC VIOLATIONS LINGUISTIQUES ===');
         hardcodedStrings.slice(0, 20).forEach((item, _index) => {
-          console.warn(`${index + 1}. ${item.file}:${item.line}`);
+          console.warn(`${_index + 1}. ${item.file}:${item.line}`);
           console.warn(`   Texte: "${item.text}"`);
           console.warn(`   Violations: ${item.violations.map((v: any) => v.term).join(', ')}`);
           console.warn('');
