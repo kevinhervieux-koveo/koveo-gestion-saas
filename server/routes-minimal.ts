@@ -563,7 +563,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Send invitation email
           try {
-            const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`;
+            // Use localhost for development, production URL for production
+            const isDevelopment = process.env.NODE_ENV !== 'production';
+            const baseUrl = isDevelopment ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000');
+            const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
             
             // Get organization name
             const organization = await db.select({ name: organizations.name })
@@ -610,7 +613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(201).json({
             invitation: safeInvitation,
             message: 'Invitation created successfully',
-            invitationUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/register?invitation=${token}`
+            invitationUrl: `${isDevelopment ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000')}/register?invitation=${token}`
           });
           
         } catch (_error) {

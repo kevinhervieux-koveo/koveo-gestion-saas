@@ -261,7 +261,10 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
     personalMessage?: string
   ): Promise<boolean> {
     try {
-      const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/register?invitation=${token}`;
+      // Use localhost for development, production URL for production
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      const baseUrl = isDevelopment ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000');
+      const invitationUrl = `${baseUrl}/register?invitation=${token}`;
       const expiryDate = expiresAt.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
 
       const isFrench = language === 'fr';
