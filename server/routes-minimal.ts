@@ -573,6 +573,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
             const organizationName = organization[0]?.name || 'Your Organization';
             
+            console.log('📧 Attempting to send invitation email with params:', {
+              to: email,
+              recipientName: email.split('@')[0],
+              organizationName,
+              inviterName: `${currentUser.firstName} ${currentUser.lastName}`,
+              expiresAt: expiresAt.toISOString(),
+              language: 'fr',
+              personalMessage
+            });
+
             const emailSent = await emailService.sendInvitationEmail(
               email,
               email.split('@')[0], // Use email prefix as name fallback

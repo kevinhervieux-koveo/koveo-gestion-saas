@@ -374,7 +374,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
 
       return true;
     } catch (error) {
-      console.error('Invitation email error:', error);
+      console.error('❌ Invitation email failed:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
       return false;
     }
   }
