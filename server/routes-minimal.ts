@@ -573,18 +573,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
             const organizationName = organization[0]?.name || 'Your Organization';
             
-            // TODO: Add sendInvitationEmail method to EmailService
-            // await emailService.sendInvitationEmail(
-            //   email,
-            //   email.split('@')[0], // Use email prefix as name fallback
-            //   token,
-            //   organizationName,
-            //   `${currentUser.firstName} ${currentUser.lastName}`,
-            //   expiresAt,
-            //   'en' // Default to English, could be made configurable
-            // );
+            const emailSent = await emailService.sendInvitationEmail(
+              email,
+              email.split('@')[0], // Use email prefix as name fallback
+              token,
+              organizationName,
+              `${currentUser.firstName} ${currentUser.lastName}`,
+              expiresAt,
+              'fr', // Default to French for Quebec
+              personalMessage
+            );
             
-            console.warn(`✅ Invitation email sent successfully to ${email}`);
+            if (emailSent) {
+              console.warn(`✅ Invitation email sent successfully to ${email}`);
+            } else {
+              console.error(`❌ Failed to send invitation email to ${email}`);
+            }
           } catch (___emailError) {
             console.error('❌ Failed to send invitation email:', ___emailError);
             // Don't fail the entire request if email fails, just log it

@@ -238,6 +238,148 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
   }
 
   /**
+   * Sends an invitation email to a new user with their invitation link.
+   * 
+   * @param {string} to - Recipient's email address
+   * @param {string} recipientName - Name of the person being invited
+   * @param {string} token - Invitation token for the registration URL
+   * @param {string} organizationName - Name of the organization they're being invited to
+   * @param {string} inviterName - Name of the person sending the invitation
+   * @param {Date} expiresAt - When the invitation expires
+   * @param {string} language - Language preference (en/fr)
+   * @param {string} personalMessage - Optional personal message from inviter
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully
+   */
+  async sendInvitationEmail(
+    to: string, 
+    recipientName: string,
+    token: string, 
+    organizationName: string,
+    inviterName: string,
+    expiresAt: Date,
+    language: string = 'fr',
+    personalMessage?: string
+  ): Promise<boolean> {
+    try {
+      const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/register?invitation=${token}`;
+      const expiryDate = expiresAt.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
+
+      const isFrench = language === 'fr';
+      
+      const subject = isFrench 
+        ? `Invitation à rejoindre ${organizationName} - Koveo Gestion`
+        : `Invitation to join ${organizationName} - Koveo Gestion`;
+
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">${isFrench ? 'Invitation à Koveo Gestion' : 'Koveo Gestion Invitation'}</h2>
+          
+          <p>${isFrench ? 'Bonjour' : 'Hello'} ${recipientName},</p>
+          
+          <p>${isFrench 
+            ? `${inviterName} vous invite à rejoindre <strong>${organizationName}</strong> sur Koveo Gestion.`
+            : `${inviterName} has invited you to join <strong>${organizationName}</strong> on Koveo Gestion.`
+          }</p>
+
+          ${personalMessage ? `<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>${isFrench ? 'Message personnel' : 'Personal message'}:</strong></p>
+            <p style="margin: 10px 0 0 0; font-style: italic;">"${personalMessage}"</p>
+          </div>` : ''}
+          
+          <p>${isFrench 
+            ? 'Pour créer votre compte et accepter cette invitation, cliquez sur le bouton ci-dessous :'
+            : 'To create your account and accept this invitation, click the button below:'
+          }</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${invitationUrl}" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              ${isFrench ? 'Créer mon compte' : 'Create My Account'}
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px;">
+            ${isFrench 
+              ? `Cette invitation expire le ${expiryDate}. Si vous ne pouvez pas cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :`
+              : `This invitation expires on ${expiryDate}. If you can't click the button, copy and paste this link into your browser:`
+            }
+          </p>
+          
+          <p style="word-break: break-all; background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 12px;">
+            ${invitationUrl}
+          </p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+          
+          <p style="color: #9ca3af; font-size: 12px;">
+            ${isFrench 
+              ? 'Cet email a été envoyé par Koveo Gestion. Si vous n\'avez pas demandé cette invitation, vous pouvez ignorer cet email.'
+              : 'This email was sent by Koveo Gestion. If you did not request this invitation, you can safely ignore this email.'
+            }
+          </p>
+        </div>
+      `;
+
+      const textContent = `
+        ${isFrench ? 'Bonjour' : 'Hello'} ${recipientName},
+
+        ${isFrench 
+          ? `${inviterName} vous invite à rejoindre ${organizationName} sur Koveo Gestion.`
+          : `${inviterName} has invited you to join ${organizationName} on Koveo Gestion.`
+        }
+
+        ${personalMessage ? `${isFrench ? 'Message personnel' : 'Personal message'}: "${personalMessage}"` : ''}
+
+        ${isFrench 
+          ? 'Pour créer votre compte et accepter cette invitation, visitez :'
+          : 'To create your account and accept this invitation, visit:'
+        }
+        ${invitationUrl}
+
+        ${isFrench 
+          ? `Cette invitation expire le ${expiryDate}.`
+          : `This invitation expires on ${expiryDate}.`
+        }
+
+        ${isFrench 
+          ? 'Si vous n\'avez pas demandé cette invitation, vous pouvez ignorer cet email.'
+          : 'If you did not request this invitation, you can safely ignore this email.'
+        }
+      `;
+
+      await this.mailService.send({
+        to,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName
+        },
+        subject,
+        text: textContent.trim(),
+        html: htmlContent,
+        trackingSettings: {
+          clickTracking: {
+            enable: false
+          },
+          openTracking: {
+            enable: false
+          },
+          subscriptionTracking: {
+            enable: false
+          },
+          ganalytics: {
+            enable: false
+          }
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Invitation email error:', error);
+      return false;
+    }
+  }
+
+  /**
    * Sends a test email to verify SendGrid configuration and connectivity.
    * Used for troubleshooting email delivery issues and validating API setup.
    * 
