@@ -100,6 +100,9 @@ import '@testing-library/jest-dom';
  */
 declare global {
   namespace jest {
+    /**
+     * Jest DOM matchers interface extending the default Jest matchers.
+     */
     interface Matchers<R> {
       toBeInTheDocument(): R;
       toBeVisible(): R;
@@ -111,17 +114,17 @@ declare global {
       toBePartiallyChecked(): R;
       toBeDisabled(): R;
       toBeEnabled(): R;
-      toHaveAttribute(attr: string, value?: string | RegExp): R;
-      toHaveClass(className: string): R;
+      toHaveAttribute(_attr: string, _value?: string | RegExp): R;
+      toHaveClass(_className: string): R;
       toHaveFocus(): R;
-      toHaveFormValues(expectedValues: Record<string, any>): R;
-      toHaveStyle(css: string | Record<string, any>): R;
-      toHaveTextContent(text: string | RegExp): R;
-      toHaveValue(value: string | string[] | number): R;
-      toHaveDisplayValue(value: string | RegExp | (string | RegExp)[]): R;
+      toHaveFormValues(_expectedValues: Record<string, unknown>): R;
+      toHaveStyle(_css: string | Record<string, unknown>): R;
+      toHaveTextContent(_text: string | RegExp): R;
+      toHaveValue(_value: string | string[] | number): R;
+      toHaveDisplayValue(_value: string | RegExp | (string | RegExp)[]): R;
       toBeChecked(): R;
-      toHaveDescription(text?: string | RegExp): R;
-      toHaveErrorMessage(text?: string | RegExp): R;
+      toHaveDescription(_text?: string | RegExp): R;
+      toHaveErrorMessage(_text?: string | RegExp): R;
     }
   }
 }

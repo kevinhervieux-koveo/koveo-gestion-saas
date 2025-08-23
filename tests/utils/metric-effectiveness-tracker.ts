@@ -72,30 +72,18 @@ export class MetricEffectivenessTracker {
 
   /**
    * Records the effectiveness of a quality metric measurement.
-   * @param data - The metric effectiveness data.
-   * @param data.metric - The name of the metric being tracked.
-   * @param data.calculatedValue - The calculated value of the metric.
-   * @param data.realIssuesFound - Number of real issues found.
-   * @param data.falsePositives - Number of false positive issues.
-   * @param data.missedIssues - Number of issues that were missed.
-   * @param data.projectPhase - Current phase of the project.
-   * @param data.issueDetails - Additional details about the issues.
-   * @param data.issueDetails.criticalIssues - Number of critical issues.
-   * @param data.issueDetails.moderateIssues - Number of moderate issues.
-   * @param data.issueDetails.minorIssues - Number of minor issues.
-   * @param data.issueDetails.description - Description of the issues.
-   * @param _data
-   * @param _data.metric
-   * @param _data.calculatedValue
-   * @param _data.realIssuesFound
-   * @param _data.falsePositives
-   * @param _data.missedIssues
-   * @param _data.projectPhase
-   * @param _data.issueDetails
-   * @param _data.issueDetails.criticalIssues
-   * @param _data.issueDetails.moderateIssues
-   * @param _data.issueDetails.minorIssues
-   * @param _data.issueDetails.description
+   * @param _data - The metric effectiveness data.
+   * @param _data.metric - The name of the metric being tracked.
+   * @param _data.calculatedValue - The calculated value of the metric.
+   * @param _data.realIssuesFound - Number of real issues found.
+   * @param _data.falsePositives - Number of false positive issues.
+   * @param _data.missedIssues - Number of issues that were missed.
+   * @param _data.projectPhase - Current phase of the project.
+   * @param _data.issueDetails - Additional details about the issues.
+   * @param _data.issueDetails.criticalIssues - Number of critical issues.
+   * @param _data.issueDetails.moderateIssues - Number of moderate issues.
+   * @param _data.issueDetails.minorIssues - Number of minor issues.
+   * @param _data.issueDetails.description - Description of the issues.
    */
   static recordMetricEffectiveness(_data: {
     metric: string;

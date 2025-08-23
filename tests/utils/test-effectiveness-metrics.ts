@@ -10,7 +10,7 @@ import { join } from 'path';
 import { execSync } from 'child_process';
 
 /**
- *
+ * Represents a test effectiveness metric measurement for quality analysis.
  */
 interface TestEffectivenessMetric {
   id: string;
@@ -21,11 +21,11 @@ interface TestEffectivenessMetric {
   actual: boolean;
   confidence: number;
   quebecSpecific: boolean;
-  details: any;
+  details: unknown;
 }
 
 /**
- *
+ * Analysis results for test effectiveness metrics.
  */
 interface EffectivenessAnalysis {
   accuracy: number;
@@ -41,7 +41,7 @@ interface EffectivenessAnalysis {
 }
 
 /**
- *
+ * Effectiveness metrics for a specific test suite.
  */
 interface TestSuiteEffectiveness {
   suiteName: string;
@@ -63,7 +63,7 @@ export class TestEffectivenessTracker {
   private metrics: TestEffectivenessMetric[] = [];
 
   /**
-   *
+   * Creates a new TestEffectivenessTracker instance.
    */
   constructor() {
     this.projectRoot = process.cwd();
