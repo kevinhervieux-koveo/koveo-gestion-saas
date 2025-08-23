@@ -65,7 +65,7 @@ export function Sidebar() {
 
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
-    const isExpanded = expandedMenus.includes(section._key);
+    const isExpanded = expandedMenus.includes(section.key);
     
     // Translation mapping for section names
     const getTranslatedSectionName = (name: string) => {
@@ -82,7 +82,7 @@ export function Sidebar() {
 
     return (
       <button
-        onClick={() => toggleMenu(section._key)}
+        onClick={() => toggleMenu(section.key)}
         className='w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors'
       >
         <div className='flex items-center space-x-3'>
@@ -145,7 +145,7 @@ export function Sidebar() {
   };
 
   const renderMenuSection = (section: NavigationSection) => {
-    const isExpanded = expandedMenus.includes(section._key);
+    const isExpanded = expandedMenus.includes(section.key);
 
     return (
       <div key={section.key}>
@@ -216,7 +216,7 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className='flex-1 px-6 py-4'>
           {/* Navigation sections */}
-          <div className='space-y-1'>{menuSections.map(renderMenuSection)}</div>
+          <div className='space-y-1'>{menuSections.map((section) => renderMenuSection(section))}</div>
 
           {/* Logout Button */}
           <div className='mt-6 pt-4 border-t border-gray-200'>
