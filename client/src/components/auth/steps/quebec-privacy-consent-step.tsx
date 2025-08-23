@@ -41,7 +41,7 @@ interface QuebecPrivacyConsentData {
  * @returns Function result.
  */
 export function QuebecPrivacyConsentStep({ 
-  data, 
+  _data, 
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
@@ -54,7 +54,7 @@ export function QuebecPrivacyConsentStep({
     acknowledgedRights: false,
     isValid: false,
     consentDate: new Date().toISOString(),
-    ...data
+    ..._data
   });
   
   const [isDataCollectionExpanded, setIsDataCollectionExpanded] = useState(false);
@@ -66,7 +66,7 @@ export function QuebecPrivacyConsentStep({
     
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData, onDataChange, onValidationChange]);
+  }, [formData]); // Remove callbacks from dependency array to prevent infinite loop
 
   const _validateForm = () => {
     // Required consents: data collection and rights acknowledgment
@@ -76,7 +76,7 @@ export function QuebecPrivacyConsentStep({
   const handleConsentChange = (field: keyof QuebecPrivacyConsentData, _value: boolean) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: _value,
       consentDate: new Date().toISOString() // Update consent timestamp
     }));
   };
@@ -84,10 +84,10 @@ export function QuebecPrivacyConsentStep({
   const handleMasterDataCollectionChange = (_value: boolean) => {
     setFormData(prev => ({
       ...prev,
-      dataCollectionConsent: value, // Essential consent (required)
-      marketingConsent: value, // Optional consent
-      analyticsConsent: value, // Optional consent  
-      thirdPartyConsent: value, // Optional consent
+      dataCollectionConsent: _value, // Essential consent (required)
+      marketingConsent: _value, // Optional consent
+      analyticsConsent: _value, // Optional consent  
+      thirdPartyConsent: _value, // Optional consent
       consentDate: new Date().toISOString()
     }));
   };
