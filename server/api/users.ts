@@ -386,6 +386,40 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/users/:id/residences - Get user's accessible residences.
+   */
+  app.get('/api/users/:id/residences', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: userId } = req.params;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Users can only access their own residences unless they're admin/manager
+      if (currentUser.id !== userId && !['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      const residences = await storage.getUserResidences(userId);
+      res.json(residences);
+    } catch (error) {
+      console.error('Failed to get user residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user residences',
+      });
+    }
+  });
+
+  /**
    * PUT /api/users/:id/residences - Updates user's residence assignments.
    * Admin: can assign/remove any residence
    * Manager: can assign/remove residences within their organizations only

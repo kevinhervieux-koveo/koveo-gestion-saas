@@ -120,14 +120,17 @@ export default function Residence() {
     enabled: !!user?.id,
   });
 
+  // Ensure accessibleResidences is always an array
+  const safeAccessibleResidences = Array.isArray(accessibleResidences) ? accessibleResidences : [];
+
   // Select first residence by default
   const selectedResidence = useMemo(() => {
-    if (!selectedResidenceId && accessibleResidences.length > 0) {
-      setSelectedResidenceId(accessibleResidences[0].id);
-      return accessibleResidences[0];
+    if (!selectedResidenceId && safeAccessibleResidences.length > 0) {
+      setSelectedResidenceId(safeAccessibleResidences[0].id);
+      return safeAccessibleResidences[0];
     }
-    return accessibleResidences.find(r => r.id === selectedResidenceId) || null;
-  }, [selectedResidenceId, accessibleResidences]);
+    return safeAccessibleResidences.find(r => r.id === selectedResidenceId) || null;
+  }, [selectedResidenceId, safeAccessibleResidences]);
 
   // Fetch contacts for selected residence
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
@@ -244,7 +247,7 @@ export default function Residence() {
     );
   }
 
-  if (accessibleResidences.length === 0) {
+  if (safeAccessibleResidences.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header title='My Residence' subtitle='View and manage your residence information' />
@@ -270,7 +273,7 @@ export default function Residence() {
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Residence Filter */}
-          {accessibleResidences.length > 1 && (
+          {safeAccessibleResidences.length > 1 && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -284,7 +287,7 @@ export default function Residence() {
                     <SelectValue placeholder='Select a residence' />
                   </SelectTrigger>
                   <SelectContent>
-                    {accessibleResidences.map((residence) => (
+                    {safeAccessibleResidences.map((residence) => (
                       <SelectItem key={residence.id} value={residence.id}>
                         Unit {residence.unitNumber} - {residence.building.name}
                       </SelectItem>
