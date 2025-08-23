@@ -1,15 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { MoneyFlowAutomationService } from '../../server/services/money-flow-automation';
 
-// Mock the database
-const mockDb = {
-  select: jest.fn(),
-  insert: jest.fn(),
-  delete: jest.fn(),
-  update: jest.fn()
-};
-
-const mockQueryBuilder = {
+// Mock the database BEFORE importing services
+const mockQueryBuilder: any = {
   from: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
   innerJoin: jest.fn().mockReturnThis(),
@@ -18,13 +10,25 @@ const mockQueryBuilder = {
   values: jest.fn().mockReturnThis()
 };
 
+const mockDb: any = {
+  select: jest.fn().mockReturnValue(mockQueryBuilder),
+  insert: jest.fn().mockReturnValue(mockQueryBuilder),
+  delete: jest.fn().mockReturnValue(mockQueryBuilder),
+  update: jest.fn().mockReturnValue(mockQueryBuilder)
+};
+
 Object.keys(mockQueryBuilder).forEach(method => {
-  mockDb[method] = jest.fn().mockReturnValue(mockQueryBuilder);
+  if (!mockDb[method]) {
+    (mockDb as any)[method] = jest.fn().mockReturnValue(mockQueryBuilder);
+  }
 });
 
 jest.mock('../../server/db', () => ({
   db: mockDb
 }));
+
+// Import the service AFTER mocking the database
+import { MoneyFlowAutomationService } from '../../server/services/money-flow-automation';
 
 describe('Money Flow Residence Integration Tests', () => {
   let service: MoneyFlowAutomationService;
