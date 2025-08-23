@@ -387,10 +387,12 @@ export default function Buildings() {
   });
 
   // Fetch buildings
-  const { data: buildings = [], isLoading, error: _error } = useQuery({
+  const { data: buildingsResponse, isLoading, error: _error } = useQuery({
     queryKey: ["/api/buildings"],
-    queryFn: () => apiRequest("GET", "/api/buildings") as Promise<unknown> as Promise<BuildingData[]>,
+    queryFn: () => apiRequest("GET", "/api/buildings") as Promise<{buildings: BuildingData[], meta: any}>,
   });
+  
+  const buildings = buildingsResponse?.buildings || [];
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
