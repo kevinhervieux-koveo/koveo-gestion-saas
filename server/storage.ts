@@ -2400,6 +2400,9 @@ export class MemStorage implements IStorage {
     const newItem: ActionableItem = {
       id,
       ...item,
+      actualHours: null,
+      assignedTo: item.assignedTo || null,
+      startedAt: null,
       completedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),

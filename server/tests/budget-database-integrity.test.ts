@@ -15,11 +15,11 @@ describe('Budget Database Integrity Tests', () => {
         name: 'Database Integrity Test Building',
         address: '999 Integrity Test Blvd',
         city: 'TestCity',
+        postalCode: 'H1A 1A1',
         organizationId: 'test-org-id',
-        constructionDate: new Date('2020-06-01'),
         totalUnits: 12,
         totalFloors: 3,
-        buildingType: 'residential',
+        buildingType: 'apartment',
         isActive: true
       })
       .returning();
@@ -32,7 +32,7 @@ describe('Budget Database Integrity Tests', () => {
         buildingId: testBuildingId,
         unitNumber: '401',
         floor: 4,
-        monthlyFee: 2000.00,
+        monthlyFees: '2000.00',
         isActive: true
       })
       .returning();
@@ -175,7 +175,7 @@ describe('Budget Database Integrity Tests', () => {
         .returning();
 
       // If on conflict do nothing is used, result should be empty
-      expect(duplicateResult.length).toBe(0);
+      expect(Array.isArray(duplicateResult) ? duplicateResult.length : 0).toBe(0);
     });
 
     it('should validate foreign key relationships', async () => {

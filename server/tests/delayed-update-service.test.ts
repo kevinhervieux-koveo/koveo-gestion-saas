@@ -17,11 +17,11 @@ describe('Delayed Update Service', () => {
         name: 'Test Delayed Update Building',
         address: '789 Delay Test Ave',
         city: 'TestCity',
+        postalCode: 'H1B 1B1',
         organizationId: 'test-org-id',
-        constructionDate: new Date('2021-01-01'),
         totalUnits: 5,
         totalFloors: 1,
-        buildingType: 'residential',
+        buildingType: 'apartment',
         isActive: true
       })
       .returning();
@@ -34,7 +34,7 @@ describe('Delayed Update Service', () => {
         buildingId: testBuildingId,
         unitNumber: '201',
         floor: 2,
-        monthlyFee: 1500.00,
+        monthlyFees: '1500.00',
         isActive: true
       })
       .returning();
