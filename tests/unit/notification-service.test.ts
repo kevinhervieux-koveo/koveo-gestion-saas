@@ -34,7 +34,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle SSL expiry alerts', async () => {
-      const result = await notificationService.sendSSLExpiryAlert(
+      const _result = await notificationService.sendSSLExpiryAlert(
         'test.com',
         'admin@test.com',
         new Date()
@@ -43,7 +43,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle SSL renewal failure alerts', async () => {
-      const result = await notificationService.sendSSLRenewalFailureAlert(
+      const _result = await notificationService.sendSSLRenewalFailureAlert(
         'test.com',
         'Test error'
       );
@@ -51,7 +51,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle SSL renewal success alerts', async () => {
-      const result = await notificationService.sendSSLRenewalSuccessAlert(
+      const _result = await notificationService.sendSSLRenewalSuccessAlert(
         'test.com',
         new Date()
       );

@@ -3,10 +3,10 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button'; // Removed unused import
 import { 
   UserX, 
-  UserCheck, 
+  // UserCheck, // Removed unused import 
   Edit, 
   Trash2,
   Mail
@@ -86,9 +86,9 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       label: t('role'),
       type: 'select',
       _options: [
-        { _value: 'admin', label: t('admin') },
-        { _value: 'manager', label: t('manager') },
-        { _value: 'tenant', label: t('tenant') },
+        { value: 'admin', label: t('admin') },
+        { value: 'manager', label: t('manager') },
+        { value: 'tenant', label: t('tenant') },
       ],
     },
     {
@@ -116,7 +116,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
           role: user.role,
           isActive: user.isActive,
         }}
-        onSubmit={(_data) => updateUserMutation.mutate(data as { role: string; isActive: boolean })}
+        onSubmit={(_data) => updateUserMutation.mutate(_data as { role: string; isActive: boolean })}
         isLoading={updateUserMutation.isPending}
         submitText={t('updateUser')}
         showCancel

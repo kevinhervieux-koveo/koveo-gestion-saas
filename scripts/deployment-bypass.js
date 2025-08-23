@@ -2,7 +2,7 @@
 
 /**
  * Deployment bypass script to handle type checking issues
- * This script creates a clean deployment environment that skips problematic type checks
+ * This script creates a clean deployment environment that skips problematic type checks.
  */
 
 import { execSync } from 'child_process';

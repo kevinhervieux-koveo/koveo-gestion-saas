@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Fix Jest DOM type declarations for deployment
+ * Fix Jest DOM type declarations for deployment.
  */
 
 import { writeFileSync, existsSync, mkdirSync } from 'fs';

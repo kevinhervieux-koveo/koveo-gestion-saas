@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Budget from '@/pages/manager/budget';
 import { TestProviders } from '../../utils/test-providers';
@@ -864,8 +864,8 @@ describe('Budget Page Tests', () => {
       // Mock large dataset
       const largeBudgetSummary = {
         summary: Array.from({ length: 100 }, (_, _index) => ({
-          year: 2020 + Math.floor(index / 12),
-          month: (index % 12) + 1,
+          year: 2020 + Math.floor(_index / 12),
+          month: (_index % 12) + 1,
           incomes: [45000, 5000],
           spendings: [15000, 8000, 5000],
           incomeTypes: ['monthly_fees', 'parking_fees'],
@@ -892,7 +892,7 @@ describe('Budget Page Tests', () => {
         });
       });
 
-      const startTime = performance.now();
+      const startTime = Date.now();
 
       render(
         <QueryClientProvider client={queryClient}>
@@ -909,7 +909,7 @@ describe('Budget Page Tests', () => {
         expect(screen.getByText('Total Income')).toBeInTheDocument();
       });
 
-      const endTime = performance.now();
+      const endTime = Date.now();
       const renderTime = endTime - startTime;
 
       // Should handle large dataset within reasonable time (less than 2 seconds)

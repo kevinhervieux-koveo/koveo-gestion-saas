@@ -177,10 +177,10 @@ export class TestEffectivenessTracker {
       const quebecComplianceRate = totalTests > 0 ? (quebecTests / totalTests) * 100 : 0;
 
       const effectiveness = this.calculateSuiteEffectiveness(metrics);
-      const trends = this.calculateSuiteTrends(suiteName);
+      const trends = this.calculateSuiteTrends(_suiteName);
 
       results.push({
-        suiteName,
+        suiteName: _suiteName,
         totalTests,
         passRate,
         bugDetectionRate,
@@ -197,7 +197,12 @@ export class TestEffectivenessTracker {
   /**
    * Tracks Quebec compliance test effectiveness specifically.
    */
-  analyzeQuebecComplianceEffectiveness(): any {
+  analyzeQuebecComplianceEffectiveness(): {
+    totalQuebecTests: number;
+    accuracy: number;
+    categories: Record<string, unknown>;
+    recommendations: string[];
+  } {
     const quebecMetrics = this.metrics.filter(m => m.quebecSpecific);
     
     if (quebecMetrics.length === 0) {
@@ -212,31 +217,29 @@ export class TestEffectivenessTracker {
     // Group by Quebec compliance categories
     const categories = {
       'Loi 25': quebecMetrics.filter(m => 
-        m.details.category === 'privacy' || 
+        (m.details as any)?.category === 'privacy' || 
         JSON.stringify(m.details).toLowerCase().includes('loi 25')
       ),
       'Taxes QC': quebecMetrics.filter(m => 
-        m.details.category === 'taxation' || 
+        (m.details as any)?.category === 'taxation' || 
         JSON.stringify(m.details).toLowerCase().includes('tps') ||
         JSON.stringify(m.details).toLowerCase().includes('tvq')
       ),
       'Français': quebecMetrics.filter(m => 
-        m.details.category === 'language' || 
+        (m.details as any)?.category === 'language' || 
         JSON.stringify(m.details).toLowerCase().includes('français')
       ),
       'Règlements': quebecMetrics.filter(m => 
-        m.details.category === 'regulations' ||
+        (m.details as any)?.category === 'regulations' ||
         JSON.stringify(m.details).toLowerCase().includes('règlement')
       )
     };
 
-    const categoryAnalysis: unknown = {
-    // No action needed
-  };
+    const categoryAnalysis: Record<string, any> = {};
     for (const [_category, metrics] of Object.entries(categories)) {
       if (metrics.length > 0) {
         const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
-        categoryAnalysis[category] = {
+        (categoryAnalysis as any)[_category] = {
           count: metrics.length,
           accuracy: accuracy * 100,
           effectiveTests: metrics.filter(m => m.predicted === m.actual).length
@@ -257,7 +260,7 @@ export class TestEffectivenessTracker {
   /**
    * Generates comprehensive effectiveness report.
    */
-  generateEffectivenessReport(): any {
+  generateEffectivenessReport(): Record<string, unknown> {
     const overallAnalysis = this.analyzeEffectiveness();
     const suiteAnalysis = this.analyzeTestSuiteEffectiveness();
     const quebecAnalysis = this.analyzeQuebecComplianceEffectiveness();
@@ -312,7 +315,7 @@ export class TestEffectivenessTracker {
       true, // actual bug exists
       severity === 'critical' ? 100 : severity === 'high' ? 80 : severity === 'medium' ? 60 : 40,
       quebecRelated,
-      { bugType, severity, ...details }
+      { bugType, severity, ...(details as Record<string, unknown>) }
     );
   }
 
@@ -338,7 +341,7 @@ export class TestEffectivenessTracker {
       true, // regression would have occurred
       preventedRegression ? 90 : 20,
       quebecFeature,
-      { featureArea, ...details }
+      { featureArea, ...(details as Record<string, unknown>) }
     );
   }
 
@@ -364,20 +367,20 @@ export class TestEffectivenessTracker {
       actualCompliance,
       85,
       true,
-      { complianceType, ...details }
+      { complianceType, ...(details as Record<string, unknown>) }
     );
   }
 
   // Private helper methods
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private loadExistingMetrics(): void {
     if (existsSync(this.metricsPath)) {
       try {
         const data = readFileSync(this.metricsPath, 'utf8');
-        this.metrics = JSON.parse(_data);
+        this.metrics = JSON.parse(data);
       } catch (_error) {
         console.warn('Failed to load existing metrics, starting fresh');
         this.metrics = [];
@@ -386,21 +389,21 @@ export class TestEffectivenessTracker {
   }
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private saveMetrics(): void {
     writeFileSync(this.metricsPath, JSON.stringify(this.metrics, null, 2));
   }
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private generateId(): string {
     return `metric_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private getDefaultAnalysis(): EffectivenessAnalysis {
     return {
@@ -418,7 +421,7 @@ export class TestEffectivenessTracker {
   }
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private groupMetricsByTestSuite(): Record<string, TestEffectivenessMetric[]> {
     const groups: Record<string, TestEffectivenessMetric[]> = {};
@@ -492,7 +495,7 @@ export class TestEffectivenessTracker {
     for (const [_week, metrics] of Object.entries(weeklyGroups)) {
       const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
       trends.push({
-        week,
+        week: _week,
         accuracy: accuracy * 100,
         totalTests: metrics.length,
         quebecTests: metrics.filter(m => m.quebecSpecific).length
@@ -503,7 +506,7 @@ export class TestEffectivenessTracker {
   }
 
   /**
-   *
+   * Loads existing metrics from file system.
    */
   private calculateEffectivenessTrends(): unknown[] {
     const trends = [];
@@ -523,7 +526,7 @@ export class TestEffectivenessTracker {
                             metrics.filter(m => m.quebecSpecific).length || 0;
       
       trends.push({
-        month,
+        month: _month,
         overallAccuracy: accuracy * 100,
         quebecAccuracy: quebecAccuracy * 100,
         totalMetrics: metrics.length,
@@ -582,7 +585,7 @@ export class TestEffectivenessTracker {
     
     for (const [_category, analysis] of Object.entries(categoryAnalysis)) {
       if ((analysis as any).accuracy < 85) {
-        recommendations.push(`Améliorer les tests pour: ${category}`);
+        recommendations.push(`Améliorer les tests pour: ${_category}`);
       }
     }
     
@@ -602,10 +605,10 @@ export class TestEffectivenessTracker {
    * @param overall
    * @param quebec
    */
-  private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: unknown): string[] {
+  private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: any): string[] {
     const recommendations = [...overall.recommendations];
     
-    if (quebec.recommendations) {
+    if (quebec?.recommendations) {
       recommendations.push(...quebec.recommendations);
     }
     

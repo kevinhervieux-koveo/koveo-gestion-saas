@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Deployment build script that handles missing dependencies and TypeScript issues
- * This script implements the suggested fixes for deployment failures
+ * This script implements the suggested fixes for deployment failures.
  */
 
 import { execSync } from 'child_process';

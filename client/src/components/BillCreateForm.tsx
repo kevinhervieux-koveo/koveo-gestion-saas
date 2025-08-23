@@ -230,7 +230,7 @@ export function BillCreateForm({
     },
     onSuccess: (_data) => {
       setIsAnalyzing(false);
-      setAiAnalysisData(data.analysisResult);
+      setAiAnalysisData(_data.analysisResult);
       setActiveTab('manual'); // Switch to manual tab to show populated form
     },
     onError: () => {
@@ -239,7 +239,7 @@ export function BillCreateForm({
   });
 
   const handleFileUpload = (_event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; /**
+    const file = _event.target.files?.[0]; /**
    * If function.
    * @param file - File parameter.
    */ /**

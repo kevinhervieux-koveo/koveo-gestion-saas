@@ -452,7 +452,6 @@ export class JSDocTemplateGenerator {
   /**
    * Bulk apply templates to multiple files.
    * @param pattern - Glob pattern for files to process.
-   * @param options - Processing options.
    * @param _options - Processing options.
    * @param _options.exclude - File patterns to exclude.
    * @param _options.maxFiles - Maximum number of files to process.

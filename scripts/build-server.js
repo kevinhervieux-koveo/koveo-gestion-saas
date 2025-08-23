@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Server build script to compile TypeScript server code
- * This script replaces the missing build:server npm script
+ * This script replaces the missing build:server npm script.
  */
 
 import { execSync } from 'child_process';

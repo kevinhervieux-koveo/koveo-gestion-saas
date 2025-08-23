@@ -187,7 +187,7 @@ export default function UserManagement() {
   }, [editingUser, editForm]);
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
-    if (!editingUser) return;
+    if (!editingUser) {return;}
     await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
   };
 
