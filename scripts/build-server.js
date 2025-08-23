@@ -25,10 +25,10 @@ try {
   const serverTsConfig = path.join(process.cwd(), 'tsconfig.server.json');
   if (fs.existsSync(serverTsConfig)) {
     console.log('📝 Compiling TypeScript with tsconfig.server.json...');
-    execSync('npx tsc --project tsconfig.server.json', { stdio: 'inherit' });
+    execSync('npx tsc --project tsconfig.server.json --skipLibCheck', { stdio: 'inherit' });
   } else {
     console.log('📝 Compiling TypeScript server files...');
-    execSync('npx tsc server/index.ts --outDir dist --target ES2022 --module CommonJS --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports --skipLibCheck', { stdio: 'inherit' });
+    execSync('npx tsc server/index.ts --outDir dist --target ES2022 --module CommonJS --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports --skipLibCheck --noEmitOnError false', { stdio: 'inherit' });
   }
 
   console.log('✅ Server build completed successfully');

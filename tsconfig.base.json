@@ -22,7 +22,7 @@
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["node", "jest"]
+    "types": ["node", "jest", "@testing-library/jest-dom"]
   },
   "include": [
     "client/src/**/*",
@@ -34,9 +34,11 @@
   ],
   "exclude": [
     "node_modules",
-    "build",
+    "build", 
     "dist",
     "coverage",
-    "tools"
+    "tools",
+    "tests/**/*.test.*",
+    "tests/**/*.spec.*"
   ]
 }

@@ -33,7 +33,8 @@ const config = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/tools/',
-    '/build/'
+    '/build/',
+    '/dist/'
   ],
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',
@@ -66,7 +67,8 @@ const config = {
         target: 'es2022',
         lib: ['es2022', 'dom', 'dom.iterable'],
         isolatedModules: true,
-        skipLibCheck: true
+        skipLibCheck: true,
+        types: ['node', 'jest', '@testing-library/jest-dom']
       }
     }]
   },
