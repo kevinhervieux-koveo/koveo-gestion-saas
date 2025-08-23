@@ -5,7 +5,7 @@
  * across different user roles and authentication states.
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -44,29 +44,28 @@ const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
 };
 
 // Mock hooks
-const mockUseAuth = vi.fn();
-const mockUseLanguage = vi.fn(() => ({
-  language: 'en',
-  t: (key: string) => key,
-  setLanguage: vi.fn(),
+jest.mock('../../client/src/hooks/use-auth', () => ({
+  useAuth: jest.fn(),
 }));
 
-vi.mock('../../client/src/hooks/use-auth', () => ({
-  useAuth: mockUseAuth,
+jest.mock('../../client/src/hooks/use-language', () => ({
+  useLanguage: jest.fn(() => ({
+    language: 'en',
+    t: (key: string) => key,
+    setLanguage: jest.fn(),
+  })),
 }));
 
-vi.mock('../../client/src/hooks/use-language', () => ({
-  useLanguage: mockUseLanguage,
-}));
-
-vi.mock('../../client/src/lib/queryClient', () => ({
-  apiRequest: vi.fn(),
+jest.mock('../../client/src/lib/queryClient', () => ({
+  apiRequest: jest.fn(),
   queryClient: new QueryClient(),
 }));
 
 describe('Navigation Accessibility Tests', () => {
+  const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
+  
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('Hamburger Menu Accessibility', () => {
@@ -248,7 +247,7 @@ describe('Navigation Accessibility Tests', () => {
 
   describe('Language Switcher Accessibility', () => {
     test('language switcher is keyboard accessible', async () => {
-      const mockSetLanguage = vi.fn();
+      const mockSetLanguage = jest.fn();
       mockUseLanguage.mockReturnValue({
         language: 'en',
         t: (key: string) => key,
@@ -277,7 +276,7 @@ describe('Navigation Accessibility Tests', () => {
     });
 
     test('language switcher changes language correctly', async () => {
-      const mockSetLanguage = vi.fn();
+      const mockSetLanguage = jest.fn();
       mockUseLanguage.mockReturnValue({
         language: 'en',
         t: (key: string) => key,
@@ -461,15 +460,15 @@ describe('Navigation Accessibility Tests', () => {
       // Mock prefers-reduced-motion
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: vi.fn().mockImplementation(query => ({
+        value: jest.fn().mockImplementation(query => ({
           matches: query === '(prefers-reduced-motion: reduce)',
           media: query,
           onchange: null,
-          addListener: vi.fn(),
-          removeListener: vi.fn(),
-          addEventListener: vi.fn(),
-          removeEventListener: vi.fn(),
-          dispatchEvent: vi.fn(),
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
+          dispatchEvent: jest.fn(),
         })),
       });
 

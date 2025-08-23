@@ -5,7 +5,7 @@
  * and provide proper loading states for users across different scenarios.
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router, Route, Switch } from 'wouter';
@@ -53,37 +53,37 @@ const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
 };
 
 // Mock API responses
-const mockApiRequest = vi.fn();
-vi.mock('../../client/src/lib/queryClient', () => ({
-  apiRequest: mockApiRequest,
-  queryClient: new QueryClient(),
+jest.mock('../../client/src/lib/queryClient', () => ({
+  apiRequest: jest.fn(),
+  queryClient: new (require('@tanstack/react-query').QueryClient)(),
 }));
 
 // Mock authentication hook
-const mockUseAuth = vi.fn(() => ({
-  isAuthenticated: false,
-  user: null as any,
-  login: vi.fn(),
-  logout: vi.fn(),
-}));
-
-vi.mock('../../client/src/hooks/use-auth', () => ({
-  useAuth: mockUseAuth,
+jest.mock('../../client/src/hooks/use-auth', () => ({
+  useAuth: jest.fn(() => ({
+    isAuthenticated: false,
+    user: null as any,
+    login: jest.fn(),
+    logout: jest.fn(),
+  })),
 }));
 
 // Mock language hook
-vi.mock('../../client/src/hooks/use-language', () => ({
+jest.mock('../../client/src/hooks/use-language', () => ({
   useLanguage: () => ({
     language: 'en',
     t: (key: string) => key,
-    setLanguage: vi.fn(),
+    setLanguage: jest.fn(),
   }),
 }));
 
 describe('Page Accessibility Tests', () => {
+  const { apiRequest: mockApiRequest } = require('../../client/src/lib/queryClient');
+  const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
+  
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockApiRequest.mockReset();
+    jest.clearAllMocks();
+    mockApiRequest.mockReset?.();
   });
 
   describe('Public Pages Accessibility', () => {
@@ -148,8 +148,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'admin' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
     });
 
@@ -201,8 +201,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'resident' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
     });
 
@@ -281,8 +281,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: false,
         user: null as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
 
       render(
@@ -301,8 +301,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'manager' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
 
       mockApiRequest.mockResolvedValue([]);
@@ -322,8 +322,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'resident' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
 
       render(
@@ -339,8 +339,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'resident' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
 
       mockApiRequest.mockResolvedValue([]);
@@ -360,7 +360,7 @@ describe('Page Accessibility Tests', () => {
   describe('Error Boundary Testing', () => {
     test('Pages handle component errors gracefully', () => {
       // Mock console.error to avoid test noise
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       // Mock a component that throws an error
       const ThrowingComponent = () => {
@@ -384,8 +384,8 @@ describe('Page Accessibility Tests', () => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         user: { id: 'test-user', role: 'manager' } as any,
-        login: vi.fn(),
-        logout: vi.fn(),
+        login: jest.fn(),
+        logout: jest.fn(),
       });
 
       mockApiRequest.mockImplementation(

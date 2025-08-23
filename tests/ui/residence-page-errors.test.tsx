@@ -5,7 +5,7 @@
  * and data loading states gracefully, preventing runtime crashes.
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -38,37 +38,38 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 // Mock API request
-const mockApiRequest = vi.fn();
-vi.mock('../../client/src/lib/queryClient', () => ({
-  apiRequest: mockApiRequest,
-  queryClient: new QueryClient(),
+jest.mock('../../client/src/lib/queryClient', () => ({
+  apiRequest: jest.fn(),
+  queryClient: new (require('@tanstack/react-query').QueryClient)(),
 }));
 
 // Mock authentication
-const mockUseAuth = vi.fn();
-vi.mock('../../client/src/hooks/use-auth', () => ({
-  useAuth: mockUseAuth,
+jest.mock('../../client/src/hooks/use-auth', () => ({
+  useAuth: jest.fn(),
 }));
 
 // Mock language hook
-vi.mock('../../client/src/hooks/use-language', () => ({
+jest.mock('../../client/src/hooks/use-language', () => ({
   useLanguage: () => ({
     language: 'en',
     t: (key: string) => key,
-    setLanguage: vi.fn(),
+    setLanguage: jest.fn(),
   }),
 }));
 
 // Mock toast
-vi.mock('../../client/src/hooks/use-toast', () => ({
+jest.mock('../../client/src/hooks/use-toast', () => ({
   useToast: () => ({
-    toast: vi.fn(),
+    toast: jest.fn(),
   }),
 }));
 
 describe('Residence Page Error Handling', () => {
+  const { apiRequest: mockApiRequest } = require('../../client/src/lib/queryClient');
+  const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
+  
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       user: { id: 'test-user', role: 'resident' } as any,
