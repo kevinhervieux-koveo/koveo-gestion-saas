@@ -153,7 +153,7 @@ describe('MemStorage', () => {
       it('should return undefined when user not found', async () => {
         const result = await storage.updateUser('non-existent-id', { firstName: 'Test' });
 
-        expect(_result).toBeUndefined();
+        expect(result).toBeUndefined();
       });
 
       it('should preserve existing fields when partially updating', async () => {
@@ -264,7 +264,7 @@ describe('MemStorage', () => {
         const building = await storage.createBuilding(mockBuildingData);
         const result = await storage.deleteBuilding(building.id);
 
-        expect(_result).toBe(true);
+        expect(result).toBe(true);
 
         const deletedBuilding = await storage.getBuilding(building.id);
         expect(deletedBuilding?.isActive).toBe(false);
@@ -273,7 +273,7 @@ describe('MemStorage', () => {
       it('should return false when building not found', async () => {
         const result = await storage.deleteBuilding('non-existent-id');
 
-        expect(_result).toBe(false);
+        expect(result).toBe(false);
       });
     });
   });
@@ -497,7 +497,7 @@ describe('MemStorage', () => {
       it('should return undefined when suggestion not found', async () => {
         const result = await storage.updateSuggestionStatus('non-existent-id', 'Done');
 
-        expect(_result).toBeUndefined();
+        expect(result).toBeUndefined();
       });
     });
   });

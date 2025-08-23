@@ -24,7 +24,7 @@ run_test_group() {
     echo -e "\n${BLUE}🏃 Running $group_name...${NC}"
     echo "----------------------------------------"
     
-    if npm run jest -- $test_pattern --testTimeout=$timeout --maxWorkers=1 --passWithNoTests; then
+    if npx jest $test_pattern --testTimeout=$timeout --maxWorkers=1 --passWithNoTests; then
         echo -e "${GREEN}✅ $group_name completed successfully${NC}"
     else
         echo -e "${RED}❌ $group_name failed${NC}"
