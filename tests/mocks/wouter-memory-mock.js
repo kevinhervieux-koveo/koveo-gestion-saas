@@ -15,15 +15,14 @@ const memoryLocation = (options) => {
   return hookReturn;
 };
 
+// ES module exports for wouter/memory
+const __esModule = true;
+const defaultExport = { MemoryRouter, useMemoryLocation, memoryLocation };
+
 module.exports = {
+  __esModule,
+  default: defaultExport,
   MemoryRouter,
   useMemoryLocation,
   memoryLocation,
 };
-
-// Also export as ES modules for better compatibility
-if (typeof exports !== 'undefined') {
-  exports.MemoryRouter = MemoryRouter;
-  exports.useMemoryLocation = useMemoryLocation;
-  exports.memoryLocation = memoryLocation;
-}

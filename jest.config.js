@@ -20,6 +20,7 @@ const config = {
     '^@/lib/db$': '<rootDir>/server/db.ts',
     // Router mocks
     'wouter/memory': '<rootDir>/tests/mocks/wouter-memory-mock.js',
+    'wouter/memory-location': '<rootDir>/tests/mocks/wouter-memory-mock.js',
     '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js',
     // Build tool mocks
     '^../vite$': '<rootDir>/tests/mocks/viteMock.js',
@@ -28,6 +29,11 @@ const config = {
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
     '<rootDir>/tests/**/*.spec.{ts,tsx}'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tools/',
+    '/build/'
   ],
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',

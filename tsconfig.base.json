@@ -36,6 +36,7 @@
     "node_modules",
     "build",
     "dist",
-    "coverage"
+    "coverage",
+    "tools"
   ]
 }
