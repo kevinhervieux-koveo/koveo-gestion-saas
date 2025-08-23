@@ -48,18 +48,33 @@ export function TokenValidationStep({
   const { t: _t } = useLanguage();
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<TokenValidationData | null>(_data as unknown as TokenValidationData || null);
-  const [validatedToken, setValidatedToken] = useState<string | null>(null); // Track which token was validated
+  const [validatedToken, setValidatedToken] = useState<string | null>(() => {
+    // Initialize from sessionStorage to persist across component re-renders
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('koveo-validated-token');
+    }
+    return null;
+  }); // Track which token was validated
 
   const validateToken = async (token: string) => {
     console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
     
+    // Check both state and sessionStorage for validation guard
+    const sessionValidatedToken = sessionStorage.getItem('koveo-validated-token');
+    
     // Skip if already validating this token OR if already validated
-    if (validatedToken === token || isValidating) {
-      console.warn('⚠️ Token already processed, skipping duplicate validation:', { validatedToken: validatedToken?.substring(0, 8), isValidating });
+    if (validatedToken === token || sessionValidatedToken === token || isValidating) {
+      console.warn('⚠️ Token already processed, skipping duplicate validation:', { 
+        validatedToken: validatedToken?.substring(0, 8), 
+        sessionToken: sessionValidatedToken?.substring(0, 8),
+        isValidating 
+      });
       return;
     }
     
-    setValidatedToken(token); // Mark this token as being validated FIRST
+    // Mark this token as being validated in both state and sessionStorage
+    setValidatedToken(token);
+    sessionStorage.setItem('koveo-validated-token', token);
     setIsValidating(true);
     
     try {
@@ -87,6 +102,10 @@ export function TokenValidationStep({
         };
 
         console.warn('✅ Token validation successful, updating wizard state');
+        
+        // Store successful validation in sessionStorage
+        sessionStorage.setItem('koveo-validation-result', JSON.stringify(validationData));
+        
         setValidationResult(validationData);
         onDataChange(validationData as unknown as Record<string, unknown>);
         onValidationChange(true);
