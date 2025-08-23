@@ -248,6 +248,8 @@ export function registerOrganizationRoutes(app: Express): void {
    * Allows authorized users to update organization details.
    */
   app.put('/api/organizations/:id', requireAuth, async (req: any, res) => {
+    console.warn('🔥 PUT HANDLER HIT - Organization ID:', req.params.id);
+    console.warn('🔥 Request body:', req.body);
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
