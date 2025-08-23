@@ -6,7 +6,7 @@ import { MailService } from '@sendgrid/mail';
  */
 class EmailService {
   private mailService: MailService;
-  private fromEmail: string = 'noreply@gmail.com';  // Use a more reliable domain temporarily
+  private fromEmail: string = 'info@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
 
   /**
