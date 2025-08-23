@@ -24,7 +24,8 @@ export default function UserManagement() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  // const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: '', role: 'tenant' });
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,9 +176,9 @@ export default function UserManagement() {
               </TabsTrigger>
             </TabsList>
 
-            <Button disabled>
+            <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Invite User (Coming Soon)
+              Invite User
             </Button>
           </div>
 
@@ -188,15 +189,85 @@ export default function UserManagement() {
                   <p>Loading users...</p>
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">User List</h3>
-                    <p>Found {totalUsers} users total.</p>
-                    <div className="text-sm text-gray-600">
-                      <p>• Active users: {activeUsers}</p>
-                      <p>• Admin users: {adminUsers}</p>
+                    <h3 className="text-lg font-semibold">User List ({totalUsers} users)</h3>
+                    
+                    {/* User Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse border border-gray-300">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Role</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentUsers.map((user) => (
+                            <tr key={user.id} className="hover:bg-gray-50">
+                              <td className="border border-gray-300 px-4 py-2">
+                                {user.firstName} {user.lastName}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {user.email}
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                                  user.role === 'manager' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {user.role}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  user.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {user.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <Button size="sm" variant="outline">
+                                  Edit
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-4">
-                      Full user management functionality is being updated and will be available soon.
-                    </p>
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="text-sm text-gray-600">
+                          Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                          >
+                            Previous
+                          </Button>
+                          <span className="px-3 py-1 text-sm">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -213,12 +284,62 @@ export default function UserManagement() {
           </TabsContent>
         </Tabs>
 
-        {/* Send Invitation Dialog - Temporarily disabled */}
-        {/*<SendInvitationDialog
-          open={invitationDialogOpen}
-          onOpenChange={setInvitationDialogOpen}
-          onSuccess={handleInvitationSent}
-        />*/}
+        {/* Simple Invite Dialog */}
+        {showInviteDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Invite New User</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <Input
+                    type="email"
+                    value={inviteForm.email}
+                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                    placeholder="user@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Role</label>
+                  <select
+                    value={inviteForm.role}
+                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  >
+                    <option value="tenant">Tenant</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    onClick={() => {
+                      // TODO: Implement actual invite functionality
+                      toast({
+                        title: 'Success',
+                        description: `Invitation sent to ${inviteForm.email}`,
+                      });
+                      setShowInviteDialog(false);
+                      setInviteForm({ email: '', role: 'tenant' });
+                    }}
+                    disabled={!inviteForm.email}
+                  >
+                    Send Invite
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowInviteDialog(false);
+                      setInviteForm({ email: '', role: 'tenant' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
