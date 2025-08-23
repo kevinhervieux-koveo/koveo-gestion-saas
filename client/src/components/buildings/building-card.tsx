@@ -152,7 +152,7 @@ export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingC
             <p className="text-sm font-medium mb-2">Amenities:</p>
             <div className="flex flex-wrap gap-1">
               {building.amenities.map((amenity, _index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge key={_index} variant="outline" className="text-xs">
                   {amenity}
                 </Badge>
               ))}
