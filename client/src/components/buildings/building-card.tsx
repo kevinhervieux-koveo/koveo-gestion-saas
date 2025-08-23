@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building, MapPin, Calendar, Users, Car, Package, Edit3, Trash2, FileText } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { BuildingData } from './types';
@@ -40,10 +41,20 @@ export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingC
     <Card className="h-full">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-              {building.name}
-            </CardTitle>
+          <div className="flex-1 min-w-0 mr-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CardTitle 
+                  className="text-lg font-semibold text-gray-900 mb-1 truncate cursor-help"
+                  title={building.name}
+                >
+                  {building.name}
+                </CardTitle>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">{building.name}</p>
+              </TooltipContent>
+            </Tooltip>
             <p className="text-sm text-gray-600 mt-1">{building.organizationName}</p>
           </div>
           <div className="flex items-center gap-2">
