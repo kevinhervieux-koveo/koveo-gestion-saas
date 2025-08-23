@@ -65,7 +65,7 @@ export class AIAgentToolkit {
    */
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
-    this.context = this.loadContext();
+    this._context = this.loadContext();
   }
 
   /**
@@ -466,15 +466,15 @@ export class AIAgentToolkit {
     const suggestions: string[] = [];
 
     // Context-aware suggestions
-    if (this.context.workingFiles.length > 5) {
+    if (this._context.workingFiles.length > 5) {
       suggestions.push('Consider breaking down large changes into smaller commits');
     }
 
-    if (this.context.pendingTasks.length > 10) {
+    if (this._context.pendingTasks.length > 10) {
       suggestions.push('High number of TODOs detected - prioritize task completion');
     }
 
-    if (this.context.activeFeatures.length > 3) {
+    if (this._context.activeFeatures.length > 3) {
       suggestions.push('Multiple active features - consider focusing on fewer items');
     }
 
@@ -497,7 +497,7 @@ export class AIAgentToolkit {
 
     const report = {
       timestamp: new Date().toISOString(),
-      _context: this.context,
+      context: this._context,
       health,
       codeAnalysis,
       suggestions
