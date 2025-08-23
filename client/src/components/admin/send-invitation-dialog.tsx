@@ -221,7 +221,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch organizations (filtered by user access)
-  const { _data: organizations } = useQuery<Organization[]>({
+  const { data: organizations } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
       console.warn('Fetching organizations...');
@@ -233,10 +233,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       
       try {
         const data = JSON.parse(text);
-        console.warn('Organizations parsed successfully:', _data);
+        console.warn('Organizations parsed successfully:', data);
         return data;
-      } catch (__e) {
-        console.error('Failed to parse organizations JSON:', _e);
+      } catch (e) {
+        console.error('Failed to parse organizations JSON:', e);
         console.error('Raw text was:', text);
         throw new Error('Invalid JSON response');
       }
@@ -245,7 +245,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch buildings
-  const { _data: buildings } = useQuery<BuildingType[]>({
+  const { data: buildings } = useQuery<BuildingType[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/buildings');
@@ -255,7 +255,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch residences
-  const { _data: residences } = useQuery<Residence[]>({
+  const { data: residences } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/residences');
@@ -430,11 +430,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     }
   };
 
-  const removeEmailField = (_index: number) => {
-    setBulkEmails(bulkEmails.filter((_, i) => i !== _index));
+  const removeEmailField = (index: number) => {
+    setBulkEmails(bulkEmails.filter((_, i) => i !== index));
   };
 
-  const updateEmail = (_index: number, email: string) => {
+  const updateEmail = (index: number, email: string) => {
     const newEmails = [...bulkEmails];
     newEmails[index] = email;
     setBulkEmails(newEmails);
@@ -540,7 +540,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         <select
                           {...field}
                           onChange={(e) => {
-                            field.onChange(e.target._value);
+                            field.onChange(e.target.value);
                             // Reset building and residence when organization changes
                             singleForm.setValue('buildingId', '');
                             singleForm.setValue('residenceId', '');
@@ -588,7 +588,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <select
                             {...field}
                             onChange={(e) => {
-                              field.onChange(e.target._value);
+                              field.onChange(e.target.value);
                               // Reset residence when building changes
                               singleForm.setValue('residenceId', '');
                             }}
@@ -649,7 +649,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       <FormControl>
                         <select
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target._value))}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
                           value={field.value.toString()}
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -716,12 +716,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   </div>
                   
                   {bulkEmails.map((email, _index) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={_index} className="flex gap-2">
                       <Input
                         placeholder={t('enterEmailAddress')}
                         type="email"
                         value={email}
-                        onChange={(e) => updateEmail(index, e.target._value)}
+                        onChange={(e) => updateEmail(_index, e.target.value)}
                         className="flex-1"
                       />
                       {bulkEmails.length > 1 && (
@@ -818,7 +818,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         <select
                           {...field}
                           onChange={(e) => {
-                            field.onChange(e.target._value);
+                            field.onChange(e.target.value);
                             // Reset building and residence when organization changes
                             bulkForm.setValue('buildingId', '');
                             bulkForm.setValue('residenceId', '');
@@ -854,7 +854,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <select
                             {...field}
                             onChange={(e) => {
-                              field.onChange(e.target._value);
+                              field.onChange(e.target.value);
                               // Reset residence when building changes
                               bulkForm.setValue('residenceId', '');
                             }}
