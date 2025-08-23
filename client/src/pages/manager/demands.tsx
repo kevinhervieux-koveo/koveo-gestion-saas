@@ -122,13 +122,21 @@ export default function /**
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Fetch demands
-  const { data: demands = [], isLoading } = useQuery({
+  const { data: demands = [], isLoading, error } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Debug: Log demands data
-  console.log('Demands data:', demands, 'Length:', demands.length);
+  React.useEffect(() => {
+    console.log('🔍 DEMANDS DEBUG:', {
+      data: demands,
+      length: Array.isArray(demands) ? demands.length : 'not array',
+      isLoading,
+      error,
+      type: typeof demands
+    });
+  }, [demands, isLoading, error]);
 
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
@@ -202,8 +210,9 @@ export default function /**
     },
   });
 
-  // Filter demands
-  const filteredDemands = (demands as Demand[]).filter((demand: Demand) => {
+  // Filter demands - ensure demands is an array
+  const demandsArray = Array.isArray(demands) ? demands : [];
+  const filteredDemands = demandsArray.filter((demand: Demand) => {
     const matchesSearch = demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          typeLabels[demand.type]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -216,7 +225,16 @@ export default function /**
   });
 
   // Debug: Log filtering results
-  console.log('Filtered demands:', filteredDemands.length, 'Search:', searchTerm, 'Status:', statusFilter, 'Type:', typeFilter);
+  React.useEffect(() => {
+    console.log('🎯 FILTERING DEBUG:', {
+      originalLength: demandsArray.length,
+      filteredLength: filteredDemands.length,
+      searchTerm,
+      statusFilter,
+      typeFilter,
+      sampleDemand: demandsArray[0]
+    });
+  }, [demandsArray.length, filteredDemands.length, searchTerm, statusFilter, typeFilter]);
 
   // Group demands by status for manager view
   const pendingDemands = filteredDemands.filter((d: Demand) => 
@@ -514,15 +532,24 @@ export default function /**
             </TabsContent>
 
             <TabsContent value="all" className="space-y-4">
-              {allDemands.length === 0 ? (
+              {isLoading ? (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <p className="text-muted-foreground">Loading demands...</p>
+                  </CardContent>
+                </Card>
+              ) : allDemands.length === 0 ? (
                 <Card>
                   <CardContent className="p-6 text-center">
                     <p className="text-muted-foreground">No demands found</p>
-                    {demands.length > 0 && (
+                    {demandsArray.length > 0 && (
                       <p className="text-sm text-gray-400 mt-2">
-                        ({demands.length} total demands loaded, but filtered out)
+                        ({demandsArray.length} total demands loaded, but filtered out)
                       </p>
                     )}
+                    <div className="text-xs text-gray-300 mt-2">
+                      Debug: Raw data length: {demandsArray.length}, Filtered: {allDemands.length}
+                    </div>
                   </CardContent>
                 </Card>
               ) : (
