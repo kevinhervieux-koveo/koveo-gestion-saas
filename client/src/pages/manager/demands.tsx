@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -154,7 +154,16 @@ export default function /**
   });
 
   // Provide default user to prevent type errors
-  const defaultUser = currentUser || { id: '', role: 'tenant' as const, email: '' };
+  const defaultUser = currentUser || { 
+    id: '', 
+    role: 'tenant' as const, 
+    email: '', 
+    firstName: '', 
+    lastName: '', 
+    isActive: true, 
+    createdAt: '', 
+    updatedAt: '' 
+  };
 
   // Create demand mutation
   const createDemandMutation = useMutation({
