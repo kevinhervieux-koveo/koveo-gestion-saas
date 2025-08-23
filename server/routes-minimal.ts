@@ -1012,6 +1012,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Law 25 compliance routes failed: ${_error}`, 'error');
   }
+
+  // Additional user relationship endpoints for user management
+  try {
+    // GET /api/user-organizations - Get all user-organization relationships
+    app.get('/api/user-organizations', requireAuth, async (req: any, res: any) => {
+      try {
+        const userOrgs = await db
+          .select()
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+
+        res.json(userOrgs);
+      } catch (error) {
+        console.error('Error fetching user organizations:', error);
+        res.status(500).json({ message: 'Failed to fetch user organizations' });
+      }
+    });
+
+    // GET /api/user-residences - Get all user-residence relationships  
+    app.get('/api/user-residences', requireAuth, async (req: any, res: any) => {
+      try {
+        const userRes = await db
+          .select()
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+
+        res.json(userRes);
+      } catch (error) {
+        console.error('Error fetching user residences:', error);
+        res.status(500).json({ message: 'Failed to fetch user residences' });
+      }
+    });
+
+    log('✅ User relationship endpoints registered');
+  } catch (error) {
+    log(`❌ User relationship endpoints failed: ${error}`, 'error');
+  }
   
   // Test route
   app.get('/test', (req, res) => {
