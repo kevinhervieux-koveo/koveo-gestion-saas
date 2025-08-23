@@ -37,7 +37,7 @@ export default function MyBuilding() {
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' description='View buildings you have access to' />
+        <Header title='My Buildings' subtitle='View buildings you have access to' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <div className='text-center py-8'>
@@ -53,7 +53,7 @@ export default function MyBuilding() {
   if (buildings.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' description='View buildings you have access to' />
+        <Header title='My Buildings' subtitle='View buildings you have access to' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <Card>
@@ -71,7 +71,7 @@ export default function MyBuilding() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Buildings' description='View buildings you have access to' />
+      <Header title='My Buildings' subtitle='View buildings you have access to' />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>

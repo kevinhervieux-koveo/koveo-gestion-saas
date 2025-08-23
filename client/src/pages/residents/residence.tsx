@@ -107,29 +107,56 @@ export default function Residence() {
   });
 
   // Fetch buildings for admin/manager users
-  const { data: buildingsData } = useQuery({
+  const { data: buildingsData, error: buildingsError, refetch: refetchBuildings } = useQuery({
     queryKey: ["/api/manager/buildings"],
-    queryFn: () => apiRequest("GET", "/api/manager/buildings") as Promise<any>,
+    queryFn: async () => {
+      const response = await fetch('/api/manager/buildings', {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch buildings');
+      }
+      return response.json();
+    },
     enabled: !!user?.id && user?.role && ['admin', 'manager'].includes(user.role),
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
   const buildings = buildingsData?.buildings || [];
 
   // Use different endpoints based on user role
-  const { data: accessibleResidences = [], isLoading } = useQuery({
+  const { data: accessibleResidences = [], isLoading, error: residencesError, refetch: refetchResidences } = useQuery({
     queryKey: user?.role && ['admin', 'manager'].includes(user.role) ? ["/api/residences"] : ["/api/users/residences", user?.id],
-    queryFn: () => {
-      if (!user?.id) return Promise.resolve([]);
+    queryFn: async () => {
+      if (!user?.id) return [];
       
+      let url = "";
       // Admin and manager users can see all residences in their organizations
       if (user.role && ['admin', 'manager'].includes(user.role)) {
-        return apiRequest("GET", "/api/residences");
+        url = '/api/residences';
+      } else {
+        // Residents see only their own residences
+        url = `/api/users/${user.id}/residences`;
       }
       
-      // Residents see only their own residences
-      return apiRequest("GET", `/api/users/${user.id}/residences`);
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch residences');
+      }
+      return response.json();
     },
     enabled: !!user?.id,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
   // Ensure accessibleResidences is always an array
@@ -138,7 +165,7 @@ export default function Residence() {
   // Filter residences based on selected building for admin/manager users
   const filteredResidences = useMemo(() => {
     if (user?.role && ['admin', 'manager'].includes(user.role)) {
-      // If no building is selected, show all residences
+      // For admin/manager, show all residences if no building filter is selected
       if (!selectedBuildingId) return safeAccessibleResidences;
       
       // Filter by selected building
@@ -149,12 +176,24 @@ export default function Residence() {
     return safeAccessibleResidences;
   }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
 
-  // Auto-select first building for admin/manager users
-  useMemo(() => {
-    if (user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0 && !selectedBuildingId) {
-      setSelectedBuildingId(buildings[0].id);
-    }
-  }, [buildings, selectedBuildingId, user?.role]);
+  // Debug logging
+  console.log('Debug residence data:', {
+    userRole: user?.role,
+    accessibleResidencesLength: safeAccessibleResidences.length,
+    filteredResidencesLength: filteredResidences.length,
+    selectedBuildingId,
+    buildingsLength: buildings.length,
+    isLoading,
+    rawAccessibleResidences: accessibleResidences,
+    rawBuildingsData: buildingsData,
+    buildingsError,
+    residencesError
+  });
+
+  // Handle authentication errors
+  if (buildingsError || residencesError) {
+    console.error('API Errors:', { buildingsError, residencesError });
+  }
 
   // Select first residence by default
   const selectedResidence = useMemo(() => {
