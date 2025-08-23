@@ -48,6 +48,7 @@ export function TokenValidationStep({
   const { t: _t } = useLanguage();
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<TokenValidationData | null>(_data as unknown as TokenValidationData || null);
+  const [validatedToken, setValidatedToken] = useState<string | null>(null); // Track which token was validated
 
   const validateToken = async (token: string) => {
     console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
@@ -123,14 +124,18 @@ export function TokenValidationStep({
     console.warn('🔍 Checking URL for token:', { 
       token: token ? `${token.substring(0, 8)}...` : 'not found',
       url: window.location.search,
-      hasValidationResult: !!validationResult 
+      hasValidationResult: !!validationResult,
+      alreadyValidated: validatedToken === token
     });
     
-    if (token) {
-      console.warn('✅ Found token, starting validation...');
+    if (token && validatedToken !== token && !isValidating) {
+      console.warn('✅ Found new token, starting validation...');
+      setValidatedToken(token); // Mark this token as being validated
       validateToken(token);
-    } else {
+    } else if (!token) {
       console.warn('❌ No token found in URL parameters');
+    } else if (validatedToken === token) {
+      console.warn('⏭️ Token already validated, skipping...');
     }
   }, []); // Only run once on component mount
 
