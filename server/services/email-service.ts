@@ -266,9 +266,9 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       let baseUrl;
       
       if (isDevelopment) {
-        // For development: use replit.dev URL if available, fallback to localhost
-        const replitUrl = process.env.REPL_SLUG && process.env.REPL_OWNER 
-          ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER.replace(/[^a-z0-9]/gi, '')}.replit.dev`
+        // For development: use the exact replit domain from REPLIT_DOMAINS
+        const replitUrl = process.env.REPLIT_DOMAINS 
+          ? `https://${process.env.REPLIT_DOMAINS}`
           : null;
         baseUrl = replitUrl || 'http://localhost:5000';
       } else {

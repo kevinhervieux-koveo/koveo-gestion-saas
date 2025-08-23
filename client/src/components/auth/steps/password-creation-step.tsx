@@ -40,7 +40,7 @@ interface PasswordCreationData {
  * @returns Function result.
  */
 export function PasswordCreationStep({ 
-  data, 
+  _data, 
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
@@ -49,7 +49,7 @@ export function PasswordCreationStep({
     password: '',
     confirmPassword: '',
     isValid: false,
-    ...data
+    ..._data
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -130,7 +130,7 @@ export function PasswordCreationStep({
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
-                onChange={(e) => handlePasswordChange(e.target._value)}
+                onChange={(e) => handlePasswordChange(e.target.value)}
                 onBlur={() => handleBlur('password')}
                 placeholder="Entrez votre mot de passe"
                 className={`pl-10 ${hasPasswordError ? 'border-red-500 focus:border-red-500' : ''}`}
@@ -167,7 +167,7 @@ export function PasswordCreationStep({
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={formData.confirmPassword}
-                onChange={(e) => handleConfirmPasswordChange(e.target._value)}
+                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                 onBlur={() => handleBlur('confirmPassword')}
                 placeholder="Confirmez votre mot de passe"
                 className={`pl-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}
