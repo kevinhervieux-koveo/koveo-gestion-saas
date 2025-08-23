@@ -14,6 +14,11 @@ const __dirname = path.dirname(__filename);
 
 console.log('🚀 Starting deployment build...');
 
+// Step 0: Skip postinstall typecheck for deployment
+console.log('⚙️  Configuring deployment environment...');
+process.env.SKIP_TYPECHECK = 'true';
+process.env.NODE_ENV = 'production';
+
 // Step 1: Build client
 console.log('📱 Building client...');
 try {

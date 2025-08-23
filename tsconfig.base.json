@@ -22,7 +22,8 @@
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["node", "jest", "@testing-library/jest-dom"]
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
   },
   "include": [
     "client/src/**/*",

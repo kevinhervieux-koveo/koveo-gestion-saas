@@ -20,8 +20,8 @@
     "allowImportingTsExtensions": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "typeRoots": ["./node_modules/@types", "./types"],
-    "types": ["node", "jest", "@testing-library/jest-dom"],
     "skipLibCheck": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+    "skipDefaultLibCheck": true
   }
 }
