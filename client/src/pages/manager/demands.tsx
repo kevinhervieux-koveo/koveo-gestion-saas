@@ -107,9 +107,6 @@ const typeLabels = {
  *
  */
 export default function ManagerDemandsPage() {
-  // Add immediate debug to see if component loads at all
-  console.log('🚀 ManagerDemandsPage component is loading...');
-  alert('ManagerDemandsPage component loaded!');
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -124,21 +121,6 @@ export default function ManagerDemandsPage() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Debug: Log demands data - force console logs to appear
-  React.useEffect(() => {
-    console.log('🔍 DEMANDS DEBUG:', {
-      data: demands,
-      length: Array.isArray(demands) ? demands.length : 'not array',
-      isLoading,
-      error,
-      type: typeof demands
-    });
-    
-    // Force alert to ensure we see the data
-    if (demands && Array.isArray(demands)) {
-      console.log('🚨 DEMANDS ALERT: Found', demands.length, 'demands');
-    }
-  }, [demands, isLoading, error]);
 
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
@@ -235,17 +217,6 @@ export default function ManagerDemandsPage() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Debug: Log filtering results
-  React.useEffect(() => {
-    console.log('🎯 FILTERING DEBUG:', {
-      originalLength: demandsArray.length,
-      filteredLength: filteredDemands.length,
-      searchTerm,
-      statusFilter,
-      typeFilter,
-      sampleDemand: demandsArray[0]
-    });
-  }, [demandsArray.length, filteredDemands.length, searchTerm, statusFilter, typeFilter]);
 
   // Group demands by status for manager view
   const pendingDemands = filteredDemands.filter((d: Demand) => 
@@ -558,9 +529,6 @@ export default function ManagerDemandsPage() {
                         ({demandsArray.length} total demands loaded, but filtered out)
                       </p>
                     )}
-                    <div className="text-xs text-gray-300 mt-2">
-                      Debug: Raw data length: {demandsArray.length}, Filtered: {allDemands.length}
-                    </div>
                   </CardContent>
                 </Card>
               ) : (
