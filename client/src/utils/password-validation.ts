@@ -42,7 +42,15 @@ const COMMON_PATTERNS = [
  * @param password
  * @returns Function result.
  */
-export function validatePasswordStrength(password: string): PasswordStrengthResult {
+export function validatePasswordStrength(password: string | undefined | null): PasswordStrengthResult {
+  // Safety guard: handle undefined/null inputs
+  if (!password || typeof password !== 'string') {
+    return {
+      score: 0,
+      feedback: ['Veuillez entrer un mot de passe'],
+      isValid: false
+    };
+  }
   const criteria = getPasswordCriteria(password);
   const feedback: string[] = [];
   let score = 0;
@@ -117,7 +125,18 @@ export function validatePasswordStrength(password: string): PasswordStrengthResu
  * @param password
  * @returns Function result.
  */
-export function getPasswordCriteria(password: string): PasswordCriteria {
+export function getPasswordCriteria(password: string | undefined | null): PasswordCriteria {
+  // Safety guard: handle undefined/null inputs
+  if (!password || typeof password !== 'string') {
+    return {
+      minLength: false,
+      hasUpperCase: false,
+      hasLowerCase: false,
+      hasNumbers: false,
+      hasSymbols: false,
+      noCommonPatterns: false
+    };
+  }
   return {
     minLength: password.length >= 8,
     hasUpperCase: /[A-Z]/.test(password),
