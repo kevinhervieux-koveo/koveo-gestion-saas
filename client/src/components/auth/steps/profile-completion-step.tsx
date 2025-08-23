@@ -43,7 +43,7 @@ interface ProfileCompletionData {
  * @returns Function result.
  */
 export function ProfileCompletionStep({ 
-  data, 
+  _data, 
   onDataChange, 
   onValidationChange 
 }: WizardStepProps) {
@@ -55,12 +55,18 @@ export function ProfileCompletionStep({
     language: 'fr',
     dateOfBirth: '',
     isValid: false,
-    ...data
+    ..._data
   });
   
   const [touched, setTouched] = useState<{[_key: string]: boolean}>({});
 
-
+  // Phone validation function - moved before useEffect to avoid hoisting issues
+  const validatePhone = (phone: string) => {
+    if (!phone) return false;
+    // Quebec phone number format validation
+    const phoneRegex = /^(\+1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/;
+    return phoneRegex.test(phone);
+  };
 
   // Validate form whenever relevant fields change
   useEffect(() => {
@@ -77,21 +83,13 @@ export function ProfileCompletionStep({
     const updatedData = { ...formData, isValid };
     onDataChange(updatedData);
     onValidationChange(isValid);
-  }, [formData, onDataChange, onValidationChange]);
-
-  const validatePhone = (phone: string) => {
-    if (!phone) {return false;}
-    // Quebec phone number format validation
-    const phoneRegex = /^(\+1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/;
-    return phoneRegex.test(phone);
-  };
-
+  }, [formData]); // Remove callbacks from dependency array to prevent infinite loop
 
 
   const handleInputChange = (field: keyof ProfileCompletionData, _value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: _value,
       _error: undefined
     }));
   };
@@ -106,12 +104,12 @@ export function ProfileCompletionStep({
     const value = formData[field];
     
     if (['firstName', 'lastName', 'language'].includes(field)) {
-      if (!value || String(_value).trim().length === 0) {
+      if (!value || String(value).trim().length === 0) {
         return `${label} est requis`;
       }
     }
     
-    if (field === 'phone' && value && !validatePhone(String(_value))) {
+    if (field === 'phone' && value && !validatePhone(String(value))) {
       return 'Format de téléphone invalide (ex: 514-123-4567)';
     }
     
@@ -149,7 +147,7 @@ export function ProfileCompletionStep({
                   id="firstName"
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target._value)}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
                   onBlur={() => handleBlur('firstName')}
                   placeholder="Votre prénom"
                   className={getFieldError('firstName', 'Prénom') ? 'border-red-500' : ''}
@@ -168,7 +166,7 @@ export function ProfileCompletionStep({
                   id="lastName"
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target._value)}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
                   onBlur={() => handleBlur('lastName')}
                   placeholder="Votre nom de famille"
                   className={getFieldError('lastName', 'Nom de famille') ? 'border-red-500' : ''}
@@ -191,7 +189,7 @@ export function ProfileCompletionStep({
                     id="phone"
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target._value)}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
                     onBlur={() => handleBlur('phone')}
                     placeholder="514-123-4567"
                     className={`pl-10 ${getFieldError('phone', 'Téléphone') ? 'border-red-500' : ''}`}
