@@ -244,6 +244,93 @@ export function registerOrganizationRoutes(app: Express): void {
   });
 
   /**
+   * PUT /api/organizations/:id - Update an existing organization
+   * Allows authorized users to update organization details.
+   */
+  app.put('/api/organizations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Only admin users can update organizations
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Admin access required to update organizations',
+          code: 'ADMIN_REQUIRED'
+        });
+      }
+
+      const organizationId = req.params.id;
+      const updateData = req.body;
+      
+      console.warn('📝 Updating organization:', organizationId, 'with data:', updateData);
+
+      // Check if organization exists
+      const existingOrg = await db
+        .select()
+        .from(organizations)
+        .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
+        .limit(1);
+
+      if (existingOrg.length === 0) {
+        return res.status(404).json({
+          message: 'Organization not found',
+          code: 'NOT_FOUND'
+        });
+      }
+
+      // Update organization
+      const [updatedOrganization] = await db
+        .update(organizations)
+        .set({
+          name: updateData.name,
+          type: updateData.type,
+          address: updateData.address,
+          city: updateData.city,
+          province: updateData.province || 'QC',
+          postalCode: updateData.postalCode,
+          phone: updateData.phone || null,
+          email: updateData.email || null,
+          website: updateData.website || null,
+          registrationNumber: updateData.registrationNumber || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(organizations.id, organizationId))
+        .returning({
+          id: organizations.id,
+          name: organizations.name,
+          type: organizations.type,
+          address: organizations.address,
+          city: organizations.city,
+          province: organizations.province,
+          postalCode: organizations.postalCode,
+          phone: organizations.phone,
+          email: organizations.email,
+          website: organizations.website,
+          registrationNumber: organizations.registrationNumber,
+          isActive: organizations.isActive,
+          createdAt: organizations.createdAt,
+          updatedAt: organizations.updatedAt,
+        });
+
+      console.warn('✅ Organization updated successfully:', updatedOrganization.name);
+      res.json(updatedOrganization);
+
+    } catch (error) {
+      console.error('❌ Error updating organization:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update organization'
+      });
+    }
+  });
+
+  /**
    * GET /api/organizations/:id/deletion-impact - Get deletion impact analysis
    * Shows what will be deleted when removing an organization.
    */
