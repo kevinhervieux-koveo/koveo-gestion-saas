@@ -3,8 +3,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { UserListComponent } from '@/components/admin/user-list';
 import { BulkActionsBar } from '@/components/admin/bulk-actions-bar';
-import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
-import { InvitationManagement } from '@/components/admin/invitation-management';
+// import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
+// import { InvitationManagement } from '@/components/admin/invitation-management';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -278,23 +278,18 @@ export default function UserManagement() {
           <TabsContent value="invitations" className="space-y-6">
             <Card>
               <CardContent className="p-6">
-                <InvitationManagement
-                  invitations={invitations || []}
-                  onSendReminder={handleSendReminder}
-                  onRefresh={refetchInvitations}
-                  isLoading={invitationsLoading}
-                />
+                <p>Invitations management coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        {/* Send Invitation Dialog */}
-        <SendInvitationDialog
+        {/* Send Invitation Dialog - Temporarily disabled */}
+        {/*<SendInvitationDialog
           open={invitationDialogOpen}
           onOpenChange={setInvitationDialogOpen}
           onSuccess={handleInvitationSent}
-        />
+        />*/}
       </div>
     </div>
   );
