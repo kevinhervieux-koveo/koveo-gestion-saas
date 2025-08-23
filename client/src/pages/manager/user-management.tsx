@@ -1,10 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
-// import { UserListComponent } from '@/components/admin/user-list';
-// import { BulkActionsBar } from '@/components/admin/bulk-actions-bar';
-// import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
-// import { InvitationManagement } from '@/components/admin/invitation-management';
+import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -13,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserPlus, Shield, Mail } from 'lucide-react';
-import type { User } from '@shared/schema';
+import type { User, Organization, Building, Residence } from '@shared/schema';
+import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 
 /**
  * User Management Page for Management Menu
@@ -31,17 +29,46 @@ export default function UserManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
+  // Filter and search state
+  const [filters, setFilters] = useState<FilterValue[]>([]);
+  const [sort, setSort] = useState<SortValue | null>(null);
+  const [search, setSearch] = useState('');
+
   // Fetch users
   const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ['/api/users'],
     enabled: true,
   });
 
-  // Invitations temporarily disabled
-  // const { data: invitations = [], isLoading: invitationsLoading, refetch: refetchInvitations } = useQuery<any[]>({
-  //   queryKey: ['/api/invitations'],
-  //   enabled: true,
-  // });
+  // Fetch organizations
+  const { data: organizations = [] } = useQuery<Organization[]>({
+    queryKey: ['/api/organizations'],
+    enabled: true,
+  });
+
+  // Fetch buildings
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: ['/api/buildings'],
+    enabled: true,
+  });
+
+  // Fetch residences
+  const { data: residences = [] } = useQuery<Residence[]>({
+    queryKey: ['/api/residences'],
+    enabled: true,
+  });
+
+  // Fetch user organizations
+  const { data: userOrganizations = [] } = useQuery<any[]>({
+    queryKey: ['/api/user-organizations'],
+    enabled: true,
+  });
+
+  // Fetch user residences
+  const { data: userResidences = [] } = useQuery<any[]>({
+    queryKey: ['/api/user-residences'],
+    enabled: true,
+  });
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -75,18 +102,157 @@ export default function UserManagement() {
     await bulkActionMutation.mutateAsync({ action, data });
   };
 
-  // All invitation-related handlers temporarily disabled
+  // Filter configuration
+  const filterConfig = {
+    searchable: ['firstName', 'lastName', 'email', 'username'],
+    filters: {
+      role: {
+        label: 'Role',
+        type: 'select' as const,
+        options: [
+          { label: 'Admin', value: 'admin' },
+          { label: 'Manager', value: 'manager' },
+          { label: 'Tenant', value: 'tenant' },
+          { label: 'Resident', value: 'resident' },
+        ]
+      },
+      isActive: {
+        label: 'Status',
+        type: 'select' as const,
+        options: [
+          { label: 'Active', value: 'true' },
+          { label: 'Inactive', value: 'false' },
+        ]
+      },
+      organization: {
+        label: 'Organization',
+        type: 'select' as const,
+        options: organizations.map(org => ({ label: org.name, value: org.id }))
+      }
+    },
+    sortable: {
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      email: 'Email',
+      role: 'Role',
+      createdAt: 'Created Date',
+    }
+  };
+
+  // Enhanced user data with relationships
+  const enhancedUsers = useMemo(() => {
+    return users.map(user => {
+      const userOrgRelations = userOrganizations.filter(uo => uo.userId === user.id);
+      const userOrgs = userOrgRelations.map(uo => 
+        organizations.find(org => org.id === uo.organizationId)
+      ).filter(Boolean);
+      
+      const userResRelations = userResidences.filter(ur => ur.userId === user.id);
+      const userRes = userResRelations.map(ur => 
+        residences.find(res => res.id === ur.residenceId)
+      ).filter(Boolean);
+      
+      const userBuildings = userRes.map(res => 
+        buildings.find(building => building.id === res.buildingId)
+      ).filter(Boolean);
+      
+      return {
+        ...user,
+        organizations: userOrgs,
+        residences: userRes,
+        buildings: userBuildings,
+      };
+    });
+  }, [users, organizations, buildings, residences, userOrganizations, userResidences]);
+
+  // Apply filters, search, and sort
+  const filteredUsers = useMemo(() => {
+    let result = [...enhancedUsers];
+    
+    // Apply search
+    if (search) {
+      const searchLower = search.toLowerCase();
+      result = result.filter(user => 
+        user.firstName?.toLowerCase().includes(searchLower) ||
+        user.lastName?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.username?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply filters
+    filters.forEach(filter => {
+      switch (filter.field) {
+        case 'role':
+          result = result.filter(user => user.role === filter.value);
+          break;
+        case 'isActive':
+          result = result.filter(user => user.isActive.toString() === filter.value);
+          break;
+        case 'organization':
+          result = result.filter(user => 
+            user.organizations.some(org => org.id === filter.value)
+          );
+          break;
+      }
+    });
+    
+    // Apply sort
+    if (sort) {
+      result.sort((a, b) => {
+        let aVal = a[sort.field as keyof typeof a];
+        let bVal = b[sort.field as keyof typeof b];
+        
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+        
+        if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return result;
+  }, [enhancedUsers, search, filters, sort]);
+
+  // Filter handlers
+  const handleAddFilter = (filter: FilterValue) => {
+    setFilters(prev => [...prev.filter(f => f.field !== filter.field), filter]);
+  };
+
+  const handleRemoveFilter = (field: string) => {
+    setFilters(prev => prev.filter(f => f.field !== field));
+  };
+
+  const handleFilterUpdate = (field: string, filter: FilterValue) => {
+    setFilters(prev => prev.map(f => f.field === field ? filter : f));
+  };
+
+  const handleClearFilters = () => {
+    setFilters([]);
+    setSearch('');
+    setSort(null);
+  };
+
+  const handleToggleSort = (field: string) => {
+    if (sort?.field === field) {
+      setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
+    } else {
+      setSort({ field, direction: 'asc' });
+    }
+  };
 
   // Calculate stats and pagination
   const totalUsers = users?.length || 0;
+  const filteredTotal = filteredUsers.length;
   const activeUsers = users?.filter((user: User) => user.isActive).length || 0;
   const adminUsers = users?.filter((user: User) => user.role === 'admin').length || 0;
   
   // Pagination calculations
-  const totalPages = Math.ceil(totalUsers / usersPerPage);
+  const totalPages = Math.ceil(filteredTotal / usersPerPage);
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
-  const currentUsers = users?.slice(startIndex, endIndex) || [];
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   if (usersError) {
     return (
@@ -189,7 +355,25 @@ export default function UserManagement() {
                   <p>Loading users...</p>
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">User List ({totalUsers} users)</h3>
+                    {/* Filter and Search */}
+                    <FilterSort
+                      config={filterConfig}
+                      filters={filters}
+                      sort={sort}
+                      search={search}
+                      onAddFilter={handleAddFilter}
+                      onRemoveFilter={handleRemoveFilter}
+                      onFilterUpdate={handleFilterUpdate}
+                      onClearFilters={handleClearFilters}
+                      onSetSort={setSort}
+                      onToggleSort={handleToggleSort}
+                      onSetSearch={setSearch}
+                      activeFilterCount={filters.length}
+                      resultCount={filteredTotal}
+                      totalCount={totalUsers}
+                    />
+                    
+                    <h3 className="text-lg font-semibold">User List ({filteredTotal} of {totalUsers} users)</h3>
                     
                     {/* User Table */}
                     <div className="overflow-x-auto">
@@ -200,6 +384,9 @@ export default function UserManagement() {
                             <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Role</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Organization(s)</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Buildings</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Residences</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
                           </tr>
                         </thead>
@@ -229,6 +416,51 @@ export default function UserManagement() {
                                 </span>
                               </td>
                               <td className="border border-gray-300 px-4 py-2">
+                                <div className="space-y-1">
+                                  {user.organizations.length > 0 ? (
+                                    user.organizations.map((org, idx) => (
+                                      <div key={idx} className="text-xs bg-blue-50 px-2 py-1 rounded">
+                                        {org.name}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">No organizations</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <div className="space-y-1">
+                                  {user.buildings.length > 0 ? (
+                                    user.buildings.slice(0, 3).map((building, idx) => (
+                                      <div key={idx} className="text-xs bg-purple-50 px-2 py-1 rounded">
+                                        {building.name}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">No buildings</span>
+                                  )}
+                                  {user.buildings.length > 3 && (
+                                    <div className="text-xs text-gray-500">+{user.buildings.length - 3} more</div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                <div className="space-y-1">
+                                  {user.residences.length > 0 ? (
+                                    user.residences.slice(0, 3).map((residence, idx) => (
+                                      <div key={idx} className="text-xs bg-green-50 px-2 py-1 rounded">
+                                        Unit {residence.unitNumber}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">No residences</span>
+                                  )}
+                                  {user.residences.length > 3 && (
+                                    <div className="text-xs text-gray-500">+{user.residences.length - 3} more</div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
                                 <Button size="sm" variant="outline">
                                   Edit
                                 </Button>
@@ -243,7 +475,7 @@ export default function UserManagement() {
                     {totalPages > 1 && (
                       <div className="flex justify-between items-center mt-4">
                         <div className="text-sm text-gray-600">
-                          Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+                          Showing {startIndex + 1}-{Math.min(endIndex, filteredTotal)} of {filteredTotal} filtered users ({totalUsers} total)
                         </div>
                         <div className="flex gap-2">
                           <Button
