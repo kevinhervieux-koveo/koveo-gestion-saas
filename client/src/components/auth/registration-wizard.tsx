@@ -197,29 +197,29 @@ export function RegistrationWizard({
                 <div key={step.id} className="flex items-center">
                   <button
                     onClick={() => jumpToStep(_index)}
-                    disabled={index > currentStepIndex && !steps.slice(0, _index).every(s => s.isComplete)}
+                    disabled={_index > currentStepIndex && !steps.slice(0, _index).every(s => s.isComplete)}
                     className={`
                       flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all
-                      ${index === currentStepIndex 
+                      ${_index === currentStepIndex 
                         ? 'border-primary bg-primary text-white' 
                         : step.isComplete 
                           ? 'border-green-500 bg-green-500 text-white cursor-pointer hover:bg-green-600'
                           : 'border-gray-300 bg-white text-gray-400'
                       }
-                      ${index <= currentStepIndex || step.isComplete ? 'cursor-pointer' : 'cursor-not-allowed'}
+                      ${_index <= currentStepIndex || step.isComplete ? 'cursor-pointer' : 'cursor-not-allowed'}
                     `}
-                    aria-label={`${step.title} - ${step.isComplete ? 'Terminé' : index === currentStepIndex ? 'En cours' : 'En attente'}`}
+                    aria-label={`${step.title} - ${step.isComplete ? 'Terminé' : _index === currentStepIndex ? 'En cours' : 'En attente'}`}
                   >
                     {step.isComplete ? (
                       <CheckCircle className="w-5 h-5" />
                     ) : (
-                      <span className="text-sm font-medium">{index + 1}</span>
+                      <span className="text-sm font-medium">{_index + 1}</span>
                     )}
                   </button>
                   
-                  {index < steps.length - 1 && (
+                  {_index < steps.length - 1 && (
                     <div className={`w-8 md:w-16 h-0.5 ${
-                      steps[index + 1].isComplete || index < currentStepIndex 
+                      steps[_index + 1].isComplete || _index < currentStepIndex 
                         ? 'bg-green-500' 
                         : 'bg-gray-300'
                     }`} />
