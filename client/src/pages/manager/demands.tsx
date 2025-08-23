@@ -106,13 +106,10 @@ const typeLabels = {
 /**
  *
  */
-export default function /**
-   * Manager demands page function.
-   */ /**
-   * Manager demands page function.
-   */
-
- ManagerDemandsPage() {
+export default function ManagerDemandsPage() {
+  // Add immediate debug to see if component loads at all
+  console.log('🚀 ManagerDemandsPage component is loading...');
+  alert('ManagerDemandsPage component loaded!');
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -581,16 +578,7 @@ export default function /**
             demand={selectedDemand}
             isOpen={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
-            user={currentUser || { 
-              id: '', 
-              role: 'tenant' as const, 
-              email: '', 
-              firstName: '', 
-              lastName: '', 
-              isActive: true, 
-              createdAt: '', 
-              updatedAt: '' 
-            }}
+            user={currentUser as any}
             onDemandUpdated={handleDemandUpdated}
           />
         </div>
