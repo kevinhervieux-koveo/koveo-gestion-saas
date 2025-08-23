@@ -126,7 +126,7 @@ export function InvitationManagement({
     },
     onError: (_error: Error) => {
       toast({
-        title: t('error'),
+        title: 'Error',
         description: _error.message,
         variant: 'destructive',
       });
@@ -147,7 +147,7 @@ export function InvitationManagement({
     },
     onError: (_error: Error) => {
       toast({
-        title: t('error'),
+        title: 'Error',
         description: _error.message,
         variant: 'destructive',
       });

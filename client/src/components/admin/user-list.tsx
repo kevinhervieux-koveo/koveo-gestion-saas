@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@shared/schema';
-import { DataTable, type TableColumn, type TableAction, type BulkAction } from '@/components/ui/data-table';
+// import { DataTable, type TableColumn, type TableAction, type BulkAction } from '@/components/ui/data-table';
 import { BaseDialog } from '@/components/ui/base-dialog';
 import { StandardForm, type FormFieldConfig } from '@/components/ui/standard-form';
-import { useApiMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/use-api-handler';
+// import { useApiMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/use-api-handler';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -85,7 +85,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       name: 'role',
       label: t('role'),
       type: 'select',
-      _options: [
+      options: [
         { value: 'admin', label: t('admin') },
         { value: 'manager', label: t('manager') },
         { value: 'tenant', label: t('tenant') },

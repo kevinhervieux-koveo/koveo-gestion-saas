@@ -6,18 +6,18 @@ jest.mock('../../server/db', () => ({
   db: {
     select: jest.fn(() => ({
       from: jest.fn(() => ({
-        where: jest.fn().mockResolvedValue([])
+        where: jest.fn().mockResolvedValue([]) as any
       }))
     })),
     insert: jest.fn(() => ({
-      values: jest.fn().mockResolvedValue([])
+      values: jest.fn().mockResolvedValue([]) as any
     }))
   }
 }));
 
 jest.mock('@sendgrid/mail', () => ({
   setApiKey: jest.fn(),
-  send: jest.fn().mockResolvedValue([{ statusCode: 202 }])
+  send: jest.fn().mockResolvedValue([{ statusCode: 202 }]) as any
 }));
 
 describe('NotificationService', () => {
@@ -37,7 +37,8 @@ describe('NotificationService', () => {
       const _result = await notificationService.sendSSLExpiryAlert(
         'test.com',
         'admin@test.com',
-        new Date()
+        new Date(),
+        'Test SSL expiry message'
       );
       expect(_result).toBeDefined();
     });
@@ -45,7 +46,9 @@ describe('NotificationService', () => {
     it('should handle SSL renewal failure alerts', async () => {
       const _result = await notificationService.sendSSLRenewalFailureAlert(
         'test.com',
-        'Test error'
+        'admin@test.com',
+        'Test error',
+        new Date()
       );
       expect(_result).toBeDefined();
     });
