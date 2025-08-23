@@ -114,9 +114,20 @@ export default function Residence() {
     queryFn: () => apiRequest("GET", "/api/auth/user") as Promise<any>,
   });
 
+  // Use different endpoints based on user role
   const { data: accessibleResidences = [], isLoading } = useQuery({
-    queryKey: ["/api/users/residences", user?.id],
-    queryFn: () => user?.id ? apiRequest("GET", `/api/users/${user.id}/residences`) as Promise<Residence[]> : Promise.resolve([]),
+    queryKey: user?.role && ['admin', 'manager'].includes(user.role) ? ["/api/residences"] : ["/api/users/residences", user?.id],
+    queryFn: () => {
+      if (!user?.id) return Promise.resolve([]);
+      
+      // Admin and manager users can see all residences in their organizations
+      if (user.role && ['admin', 'manager'].includes(user.role)) {
+        return apiRequest("GET", "/api/residences") as Promise<Residence[]>;
+      }
+      
+      // Residents see only their own residences
+      return apiRequest("GET", `/api/users/${user.id}/residences`) as Promise<Residence[]>;
+    },
     enabled: !!user?.id,
   });
 
@@ -239,7 +250,10 @@ export default function Residence() {
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Residence' subtitle='Loading residence information...' />
+        <Header 
+          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'Loading residence information...' : 'Loading residence information...'} 
+        />
         <div className='flex-1 overflow-auto p-6'>
           <div className='text-center py-8'>Loading...</div>
         </div>
@@ -250,14 +264,22 @@ export default function Residence() {
   if (safeAccessibleResidences.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Residence' subtitle='View and manage your residence information' />
+        <Header 
+          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View and manage your residence information'} 
+        />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-7xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
                 <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Residences Found</h3>
-                <p className='text-gray-500'>You are not associated with any residences.</p>
+                <p className='text-gray-500'>
+                  {user?.role && ['admin', 'manager'].includes(user.role) 
+                    ? 'No residences found in your organization.' 
+                    : 'You are not associated with any residences.'
+                  }
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -268,7 +290,10 @@ export default function Residence() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Residence' subtitle='View and manage your residence information' />
+      <Header 
+        title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+        subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View and manage your residence information'} 
+      />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
