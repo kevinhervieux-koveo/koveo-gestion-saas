@@ -52,18 +52,18 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const MONTHS = [
-  { _value: '1', label: 'January' },
-  { _value: '2', label: 'February' },
-  { _value: '3', label: 'March' },
-  { _value: '4', label: 'April' },
-  { _value: '5', label: 'May' },
-  { _value: '6', label: 'June' },
-  { _value: '7', label: 'July' },
-  { _value: '8', label: 'August' },
-  { _value: '9', label: 'September' },
-  { _value: '10', label: 'October' },
-  { _value: '11', label: 'November' },
-  { _value: '12', label: 'December' }
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' }
 ];
 
 /**
@@ -97,12 +97,12 @@ export default function /**
   const queryClient = useQueryClient();
 
   // Fetch buildings for filter dropdown
-  const { _data: buildings = [] } = useQuery<Building[]>({
+  const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
 
   // Fetch bills based on filters
-  const { _data: bills = [], isLoading } = useQuery<Bill[]>({
+  const { data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', filters],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
@@ -143,12 +143,7 @@ export default function /**
 
       if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
       
-      const url = `/api/bills${params.toString() ? '?' + params. /**
-   * To string function.
-   * @returns ''}`;
-      const response = await fetch(url, result.
-   */
-toString() : ''}`;
+      const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url, { credentials: 'include' }); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
@@ -188,8 +183,7 @@ toString() : ''}`;
       }
       
       return response.json();
-    },
-    enabled: !!filters.buildingId
+    }
   });
 
   // Group bills by category
@@ -208,7 +202,7 @@ toString() : ''}`;
     return acc;
   }, {});
 
-  const handleFilterChange = (_key: keyof BillFilters, _value: string | string[]) => {
+  const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -216,31 +210,13 @@ toString() : ''}`;
     setFilters(prev => ({
       ...prev,
       months: prev.months.includes(monthValue)
-        ? prev.months. /**
-   * Filter .
-   * @param m => m !== monthValue - m => m !== monthValue parameter.
-   * @returns [...prev.months, monthValue]
-    }));
-  };
-
-  const handleAllMonthsToggle = () => result.
-   */ /**
-   * Filter .
-   * @param m => m !== monthValue - m => m !== monthValue parameter.
-   * @returns [...prev.months, monthValue]
-    }));
-  };
-
-  const handleAllMonthsToggle = () => result.
-   */
-
-filter(m => m !== monthValue)
+        ? prev.months.filter(m => m !== monthValue)
         : [...prev.months, monthValue]
     }));
   };
 
   const handleAllMonthsToggle = () => {
-    const allMonthValues = MONTHS.map(m => m._value);
+    const allMonthValues = MONTHS.map(m => m.value);
     setFilters(prev => ({
       ...prev,
       months: prev.months.length === allMonthValues.length ? [] : allMonthValues
@@ -332,7 +308,7 @@ filter(m => m !== monthValue)
                     <BuildingIcon className='w-4 h-4' />
                     Building
                   </Label>
-                  <Select value={filters.buildingId} onValueChange={(_value) => handleFilterChange('buildingId', _value)}>
+                  <Select value={filters.buildingId} onValueChange={(value) => handleFilterChange('buildingId', value)}>
                     <SelectTrigger id='building-filter'>
                       <SelectValue placeholder='Select building' />
                     </SelectTrigger>
@@ -351,7 +327,7 @@ filter(m => m !== monthValue)
                     <Tag className='w-4 h-4' />
                     Category
                   </Label>
-                  <Select value={filters.category} onValueChange={(_value) => handleFilterChange('category', _value)}>
+                  <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
                     <SelectTrigger id='category-filter'>
                       <SelectValue placeholder='All categories' />
                     </SelectTrigger>
@@ -372,7 +348,7 @@ filter(m => m !== monthValue)
                     Year
                   </Label>
                   <div className='space-y-2'>
-                    <Select value={filters.year} onValueChange={(_value) => handleFilterChange('year', _value)}>
+                    <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
                       <SelectTrigger id='year-filter'>
                         <SelectValue />
                       </SelectTrigger>
@@ -453,8 +429,8 @@ filter(m => m !== monthValue)
                           <div key={month.value} className='flex items-center space-x-2'>
                             <Checkbox
                               id={`month-${month.value}`}
-                              checked={filters.months.includes(month._value)}
-                              onCheckedChange={() => handleMonthToggle(month._value)}
+                              checked={filters.months.includes(month.value)}
+                              onCheckedChange={() => handleMonthToggle(month.value)}
                             />
                             <Label
                               htmlFor={`month-${month.value}`}
