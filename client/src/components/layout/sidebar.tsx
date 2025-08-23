@@ -144,18 +144,6 @@ export function Sidebar() {
     );
   };
 
-  const renderMenuSection = (section: NavigationSection) => {
-    const isExpanded = expandedMenus.includes(section.key);
-
-    return (
-      <div key={section.key}>
-        {renderMenuButton(section)}
-        {isExpanded && (
-          <div className='ml-6 mt-1 space-y-1'>{section.items.map((item) => renderMenuItem(item))}</div>
-        )}
-      </div>
-    );
-  };
 
   const handleLogout = async () => {
     try {
@@ -216,7 +204,14 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className='flex-1 px-6 py-4'>
           {/* Navigation sections */}
-          <div className='space-y-1'>{menuSections.map((section) => renderMenuSection(section))}</div>
+          <div className='space-y-1'>{menuSections.map((section) => (
+            <div key={section.key}>
+              {renderMenuButton(section)}
+              {expandedMenus.includes(section.key) && (
+                <div className='ml-6 mt-1 space-y-1'>{section.items.map((item) => renderMenuItem(item))}</div>
+              )}
+            </div>
+          ))}</div>
 
           {/* Logout Button */}
           <div className='mt-6 pt-4 border-t border-gray-200'>
