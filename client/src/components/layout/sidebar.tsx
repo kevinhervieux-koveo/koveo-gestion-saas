@@ -151,7 +151,7 @@ export function Sidebar() {
       <div key={section.key}>
         {renderMenuButton(section)}
         {isExpanded && (
-          <div className='ml-6 mt-1 space-y-1'>{section.items.map(renderMenuItem)}</div>
+          <div className='ml-6 mt-1 space-y-1'>{section.items.map((item) => renderMenuItem(item))}</div>
         )}
       </div>
     );
