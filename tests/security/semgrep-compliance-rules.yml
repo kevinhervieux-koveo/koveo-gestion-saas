@@ -157,7 +157,7 @@ rules:
     pattern-either:
       - pattern: |
           catch ($ERROR) {
-            console.log($ERROR)
+            console.warn($ERROR)
           }
       - pattern: |
           catch ($ERROR) {
@@ -194,7 +194,7 @@ rules:
   - id: koveo.quality.logging-standards
     pattern-either:
       - pattern: |
-          console.log($MSG)
+          console.warn($MSG)
       - pattern: |
           console.error($MSG)
     pattern-not: |
