@@ -127,7 +127,7 @@ export default function /**
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Debug: Log demands data
+  // Debug: Log demands data - force console logs to appear
   React.useEffect(() => {
     console.log('🔍 DEMANDS DEBUG:', {
       data: demands,
@@ -136,6 +136,11 @@ export default function /**
       error,
       type: typeof demands
     });
+    
+    // Force alert to ensure we see the data
+    if (demands && Array.isArray(demands)) {
+      console.log('🚨 DEMANDS ALERT: Found', demands.length, 'demands');
+    }
   }, [demands, isLoading, error]);
 
   // Fetch buildings
@@ -576,7 +581,16 @@ export default function /**
             demand={selectedDemand}
             isOpen={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
-            user={defaultUser}
+            user={currentUser || { 
+              id: '', 
+              role: 'tenant' as const, 
+              email: '', 
+              firstName: '', 
+              lastName: '', 
+              isActive: true, 
+              createdAt: '', 
+              updatedAt: '' 
+            }}
             onDemandUpdated={handleDemandUpdated}
           />
         </div>
