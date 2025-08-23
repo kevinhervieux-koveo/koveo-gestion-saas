@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { requireAuth } from '../auth/middleware';
+import { requireAuth } from '../auth';
 
 /**
  * Orphan cleanup endpoints for managing orphaned database records

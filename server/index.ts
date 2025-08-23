@@ -103,8 +103,8 @@ app.get('/api/health/detailed', (req, res) => {
 
 // Add global error handlers to prevent application crashes
 process.on('uncaughtException', (_error) => {
-  log(`Uncaught Exception: ${error.message}`, 'error');
-  log(error.stack || '', 'error');
+  log(`Uncaught Exception: ${_error.message}`, 'error');
+  log(_error.stack || '', 'error');
   // Don't exit in production to maintain uptime for Cloud Run
   if (process.env.NODE_ENV !== 'production') {
     process.exit(1);
@@ -355,8 +355,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 
     // Handle server errors gracefully without crashing in production
     server.on('error', (_error: unknown) => {
-      log(`Server _error: ${(error as any)?.message || error}`, 'error');
-      if ((error as any)?.code === 'EADDRINUSE') {
+      log(`Server _error: ${(_error as any)?.message || _error}`, 'error');
+      if ((_error as any)?.code === 'EADDRINUSE') {
         log(`Port ${port} is already in use`, 'error');
         // Don't exit in production to maintain uptime
         if (process.env.NODE_ENV !== 'production') {
