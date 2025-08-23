@@ -569,7 +569,7 @@ export default function /**
       const newNetCashFlow = newTotalIncome - newTotalExpenses;
       
       // Recalculate bank balance with the filtered net cash flow
-      if (index === 0) {
+      if (_index === 0) {
         runningBalance = startingBalance + newNetCashFlow;
       } else {
         runningBalance += newNetCashFlow;
@@ -1310,7 +1310,7 @@ export default function /**
                       <XAxis 
                         dataKey='date' 
                         tickFormatter={(_value) => {
-                          const [year, month] = value.split('-'); /**
+                          const [year, month] = _value.split('-'); /**
    * If function.
    * @param viewType === 'yearly' - viewType === 'yearly' parameter.
    */ /**
@@ -1328,7 +1328,7 @@ export default function /**
                           }
                         }}
                       />
-                      <YAxis tickFormatter={(_value) => `$${(value / 1000).toFixed(0)}k`} />
+                      <YAxis tickFormatter={(_value) => `$${(_value / 1000).toFixed(0)}k`} />
                       <ChartTooltip 
                         content={({ active, payload, label }) => { /**
    * If function.
@@ -1426,7 +1426,7 @@ export default function /**
 
 
                                     return (
-                                      <div key={index} className="flex items-center gap-2">
+                                      <div key={_index} className="flex items-center gap-2">
                                         <div 
                                           className="w-3 h-3 flex-shrink-0"
                                           style={{ backgroundColor: color }}
@@ -2131,7 +2131,7 @@ const MinimumBalanceRow = memo(({
         type='number'
         step='0.01'
         value={minimum.amount || ''}
-        onChange={(e) => onUpdate(minimum.id, 'amount', parseFloat(e.target._value) || 0)}
+        onChange={(e) => onUpdate(minimum.id, 'amount', parseFloat(e.target.value) || 0)}
         className='text-xs'
       />
     </div>
@@ -2139,7 +2139,7 @@ const MinimumBalanceRow = memo(({
       <Input
         placeholder={bankAccountTranslations.descriptionPlaceholder}
         value={minimum.description}
-        onChange={(e) => onUpdate(minimum.id, 'description', e.target._value)}
+        onChange={(e) => onUpdate(minimum.id, 'description', e.target.value)}
         className='text-xs'
       />
     </div>
