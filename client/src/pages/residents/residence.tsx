@@ -59,9 +59,6 @@ interface Residence {
   };
 }
 
-/**
- *
- */
 interface Contact {
   id: string;
   firstName: string;
@@ -69,25 +66,19 @@ interface Contact {
   email: string;
   phone?: string;
   type: string;
-  residenceId: string;
 }
 
+// Contact form schema
 const contactFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Valid email is required"),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   type: z.enum(['primary', 'emergency', 'other']),
 });
 
-/**
- *
- */
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
-/**
- *
- */
 export default function Residence() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -101,15 +92,15 @@ export default function Residence() {
   const contactForm = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      type: "primary",
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      type: 'primary',
     },
   });
 
-  // Fetch user's accessible residences
+  // Fetch current user
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: () => apiRequest("GET", "/api/auth/user") as Promise<any>,
@@ -191,70 +182,73 @@ export default function Residence() {
   // Mutations for contact management
   const addContactMutation = useMutation({
     mutationFn: (data: ContactFormData) => 
-      apiRequest("POST", "/api/contacts", { ...data, residenceId: selectedResidenceId }),
+      apiRequest("POST", "/api/contacts", {
+        ...data,
+        residenceId: selectedResidenceId,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/contacts", selectedResidenceId] });
+      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
       toast({
-        title: "Success",
-        description: "Contact added successfully",
+        title: "Contact added successfully",
+        description: "The new contact has been added to this residence.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add contact",
+        title: "Failed to add contact",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     },
   });
 
   const updateContactMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ContactFormData }) =>
-      apiRequest("PUT", `/api/contacts/${id}`, data),
+    mutationFn: (data: ContactFormData) =>
+      apiRequest("PATCH", `/api/contacts/${editingContact?.id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/contacts", selectedResidenceId] });
+      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
       toast({
-        title: "Success",
-        description: "Contact updated successfully",
+        title: "Contact updated successfully",
+        description: "The contact information has been updated.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update contact",
+        title: "Failed to update contact",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     },
   });
 
   const deleteContactMutation = useMutation({
-    mutationFn: (contactId: string) => apiRequest("DELETE", `/api/contacts/${contactId}`),
+    mutationFn: (contactId: string) =>
+      apiRequest("DELETE", `/api/contacts/${contactId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/contacts", selectedResidenceId] });
+      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
       toast({
-        title: "Success",
-        description: "Contact deleted successfully",
+        title: "Contact deleted successfully",
+        description: "The contact has been removed.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete contact",
+        title: "Failed to delete contact",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     },
   });
 
-  // Event handlers
   const handleAddContact = (data: ContactFormData) => {
     if (editingContact) {
-      updateContactMutation.mutate({ id: editingContact.id, data });
+      updateContactMutation.mutate(data);
     } else {
       addContactMutation.mutate(data);
     }
@@ -266,14 +260,14 @@ export default function Residence() {
       firstName: contact.firstName,
       lastName: contact.lastName,
       email: contact.email,
-      phone: contact.phone || "",
+      phone: contact.phone || '',
       type: contact.type as any,
     });
     setIsContactDialogOpen(true);
   };
 
   const handleDeleteContact = (contact: Contact) => {
-    if (window.confirm(`Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`)) {
+    if (confirm('Are you sure you want to delete this contact?')) {
       deleteContactMutation.mutate(contact.id);
     }
   };
@@ -283,10 +277,14 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
           title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'Loading residence information...' : 'Loading residence information...'} 
+          description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
-        <div className='flex-1 overflow-auto p-6'>
-          <div className='text-center py-8'>Loading...</div>
+
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4'></div>
+            <p className='text-gray-600'>Loading...</p>
+          </div>
         </div>
       </div>
     );
@@ -297,22 +295,19 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
           title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View and manage your residence information'} 
+          description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
-        <div className='flex-1 overflow-auto p-6'>
-          <div className='max-w-7xl mx-auto'>
-            <Card>
-              <CardContent className='p-8 text-center'>
-                <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Residences Found</h3>
-                <p className='text-gray-500'>
-                  {user?.role && ['admin', 'manager'].includes(user.role) 
-                    ? 'No residences found in your organization.' 
-                    : 'You are not associated with any residences.'
-                  }
-                </p>
-              </CardContent>
-            </Card>
+
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='text-center'>
+            <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+            <h3 className='text-lg font-medium mb-2'>No Residences Found</h3>
+            <p className='text-gray-600'>
+              {user?.role && ['admin', 'manager'].includes(user.role) 
+                ? 'No residences found in your organization.'
+                : 'You are not assigned to any residences.'
+              }
+            </p>
           </div>
         </div>
       </div>
@@ -323,7 +318,7 @@ export default function Residence() {
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
         title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-        subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View and manage your residence information'} 
+        description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -390,313 +385,104 @@ export default function Residence() {
             </Card>
           ) : null}
 
-          {selectedResidence && (
-            <>
-              {/* Residence General Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Home className='w-5 h-5' />
-                    Unit {selectedResidence.unitNumber}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                    <div>
-                      <Label className='text-sm font-medium'>Building</Label>
-                      <p className='text-sm text-gray-700'>{selectedResidence.building.name}</p>
-                    </div>
-                    <div>
-                      <Label className='text-sm font-medium'>Address</Label>
-                      <p className='text-sm text-gray-700'>
-                        {selectedResidence.building.address}, {selectedResidence.building.city}, {selectedResidence.building.province} {selectedResidence.building.postalCode}
-                      </p>
-                    </div>
-                    {selectedResidence.floor && (
-                      <div>
-                        <Label className='text-sm font-medium'>Floor</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.floor}</p>
-                      </div>
-                    )}
-                    {selectedResidence.squareFootage && (
-                      <div>
-                        <Label className='text-sm font-medium'>Square Footage</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.squareFootage} sq ft</p>
-                      </div>
-                    )}
-                    {selectedResidence.bedrooms && (
-                      <div>
-                        <Label className='text-sm font-medium'>Bedrooms</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.bedrooms}</p>
-                      </div>
-                    )}
-                    {selectedResidence.bathrooms && (
-                      <div>
-                        <Label className='text-sm font-medium'>Bathrooms</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.bathrooms}</p>
-                      </div>
-                    )}
-                    {selectedResidence.parkingSpaceNumbers && selectedResidence.parkingSpaceNumbers.length > 0 && (
-                      <div>
-                        <Label className='text-sm font-medium'>Parking Spaces</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.parkingSpaceNumbers.join(', ')}</p>
-                      </div>
-                    )}
-                    {selectedResidence.storageSpaceNumbers && selectedResidence.storageSpaceNumbers.length > 0 && (
-                      <div>
-                        <Label className='text-sm font-medium'>Storage Spaces</Label>
-                        <p className='text-sm text-gray-700'>{selectedResidence.storageSpaceNumbers.join(', ')}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className='mt-6 flex gap-3'>
-                    <Link href={`/residents/residences/${selectedResidence.id}/documents`}>
-                      <Button variant="outline">
-                        <FileText className='w-4 h-4 mr-2' />
-                        View Documents
-                      </Button>
-                    </Link>
-                    <Link href={`/residents/buildings/${selectedResidence.buildingId}/documents`}>
-                      <Button variant="outline">
-                        <Building className='w-4 h-4 mr-2' />
-                        Building Documents
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Residence Contacts */}
-              <Card>
-                <CardHeader>
-                  <div className='flex items-center justify-between'>
+          {/* Residence Cards */}
+          {filteredResidences.length > 0 && (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {filteredResidences.map((residence) => (
+                <Card key={residence.id} className='hover:shadow-lg transition-shadow'>
+                  <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
-                      <User className='w-5 h-5' />
-                      Residence Contacts
+                      <Home className='w-5 h-5' />
+                      Unit {residence.unitNumber}
                     </CardTitle>
-                    <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="sm">
-                          <Plus className='w-4 h-4 mr-2' />
-                          Add Contact
+                    <div className='text-sm text-gray-600'>
+                      {residence.building.name}
+                    </div>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-3'>
+                      <div>
+                        <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                        <p className='text-sm text-gray-700'>
+                          {residence.building.address}
+                        </p>
+                        <p className='text-sm text-gray-700'>
+                          {residence.building.city}, {residence.building.province} {residence.building.postalCode}
+                        </p>
+                      </div>
+                      
+                      <div className='grid grid-cols-2 gap-3'>
+                        {residence.floor && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Floor</Label>
+                            <p className='text-sm text-gray-700'>{residence.floor}</p>
+                          </div>
+                        )}
+                        {residence.squareFootage && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Sq Ft</Label>
+                            <p className='text-sm text-gray-700'>{residence.squareFootage}</p>
+                          </div>
+                        )}
+                        {residence.bedrooms && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Bedrooms</Label>
+                            <div className='flex items-center gap-1'>
+                              <Bed className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>{residence.bedrooms}</span>
+                            </div>
+                          </div>
+                        )}
+                        {residence.bathrooms && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Bathrooms</Label>
+                            <div className='flex items-center gap-1'>
+                              <Bath className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>{residence.bathrooms}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {residence.parkingSpaceNumbers && residence.parkingSpaceNumbers.length > 0 && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                          <div className='flex items-center gap-1'>
+                            <Car className='w-3 h-3' />
+                            <span className='text-sm text-gray-700'>{residence.parkingSpaceNumbers.join(', ')}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {residence.storageSpaceNumbers && residence.storageSpaceNumbers.length > 0 && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                          <div className='flex items-center gap-1'>
+                            <Package className='w-3 h-3' />
+                            <span className='text-sm text-gray-700'>{residence.storageSpaceNumbers.join(', ')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className='flex flex-col gap-2 pt-4 border-t'>
+                      <Link href={`/residents/residences/${residence.id}/documents`}>
+                        <Button variant="outline" size="sm" className='w-full justify-start'>
+                          <FileText className='w-4 h-4 mr-2' />
+                          View Documents
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>
-                            {editingContact ? 'Edit Contact' : 'Add New Contact'}
-                          </DialogTitle>
-                          <DialogDescription>
-                            {editingContact ? 'Update the contact information.' : 'Add a new contact for this residence.'}
-                          </DialogDescription>
-                        </DialogHeader>
-
-                        <Form {...contactForm}>
-                          <form onSubmit={contactForm.handleSubmit(handleAddContact)} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <FormField
-                                control={contactForm.control}
-                                name="firstName"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>First Name</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Enter first name" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={contactForm.control}
-                                name="lastName"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Last Name</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Enter last name" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-
-                            <FormField
-                              control={contactForm.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Email</FormLabel>
-                                  <FormControl>
-                                    <Input type="email" placeholder="Enter email address" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={contactForm.control}
-                              name="phone"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Phone (Optional)</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Enter phone number" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={contactForm.control}
-                              name="type"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Contact Type</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select contact type" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="primary">Primary</SelectItem>
-                                      <SelectItem value="emergency">Emergency</SelectItem>
-                                      <SelectItem value="other">Other</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <DialogFooter>
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                onClick={() => {
-                                  setIsContactDialogOpen(false);
-                                  setEditingContact(null);
-                                  contactForm.reset();
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button type="submit">
-                                {editingContact ? 'Update Contact' : 'Add Contact'}
-                              </Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {contactsLoading ? (
-                    <div className="text-center py-4">Loading contacts...</div>
-                  ) : contacts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <User className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">No contacts added yet</p>
+                      </Link>
+                      <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
+                        <Button variant="outline" size="sm" className='w-full justify-start'>
+                          <Building className='w-4 h-4 mr-2' />
+                          Building Documents
+                        </Button>
+                      </Link>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {contacts.map((contact) => (
-                        <Card key={contact.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h4 className="font-medium">{contact.firstName} {contact.lastName}</h4>
-                                <Badge variant="outline" className="mt-1">{contact.type}</Badge>
-                              </div>
-                              <div className="flex gap-1">
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => handleEditContact(contact)}
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => handleDeleteContact(contact)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Mail className="w-3 h-3 text-gray-400" />
-                                <span className="text-gray-600">{contact.email}</span>
-                              </div>
-                              {contact.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone className="w-3 h-3 text-gray-400" />
-                                  <span className="text-gray-600">{contact.phone}</span>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Building Contacts (Read-only) */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Building className='w-5 h-5' />
-                    Building Contacts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {buildingContactsLoading ? (
-                    <div className="text-center py-4">Loading building contacts...</div>
-                  ) : buildingContacts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Building className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">No building contacts available</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {buildingContacts.map((contact) => (
-                        <Card key={contact.id}>
-                          <CardContent className="p-4">
-                            <div className="mb-2">
-                              <h4 className="font-medium">{contact.firstName} {contact.lastName}</h4>
-                              <Badge variant="secondary" className="mt-1">{contact.type}</Badge>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Mail className="w-3 h-3 text-gray-400" />
-                                <span className="text-gray-600">{contact.email}</span>
-                              </div>
-                              {contact.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone className="w-3 h-3 text-gray-400" />
-                                  <span className="text-gray-600">{contact.phone}</span>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>
