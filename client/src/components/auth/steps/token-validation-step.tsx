@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -55,26 +55,33 @@ export function TokenValidationStep({
     }
     return null;
   }); // Track which token was validated
+  
+  const hasValidatedRef = useRef<Set<string>>(new Set()); // Prevent duplicate validations completely
 
   const validateToken = async (token: string) => {
     console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
     
-    // Check both state and sessionStorage for validation guard
+    // Triple-check: state, sessionStorage, and ref guard
     const sessionValidatedToken = sessionStorage.getItem('koveo-validated-token');
     
     // Skip if already validating this token OR if already validated
-    if (validatedToken === token || sessionValidatedToken === token || isValidating) {
+    if (validatedToken === token || 
+        sessionValidatedToken === token || 
+        hasValidatedRef.current.has(token) || 
+        isValidating) {
       console.warn('⚠️ Token already processed, skipping duplicate validation:', { 
         validatedToken: validatedToken?.substring(0, 8), 
         sessionToken: sessionValidatedToken?.substring(0, 8),
+        refGuard: hasValidatedRef.current.has(token),
         isValidating 
       });
       return;
     }
     
-    // Mark this token as being validated in both state and sessionStorage
+    // Mark this token as being validated in state, sessionStorage, AND ref
     setValidatedToken(token);
     sessionStorage.setItem('koveo-validated-token', token);
+    hasValidatedRef.current.add(token);
     setIsValidating(true);
     
     try {
@@ -157,13 +164,16 @@ export function TokenValidationStep({
       alreadyValidated: validatedToken === token
     });
     
-    if (token && validatedToken !== token && !isValidating) {
+    if (token && 
+        validatedToken !== token && 
+        !hasValidatedRef.current.has(token) && 
+        !isValidating) {
       console.warn('✅ Found new token, starting validation...');
       validateToken(token);
     } else if (!token) {
       console.warn('❌ No token found in URL parameters');
-    } else if (validatedToken === token) {
-      console.warn('⏭️ Token already validated, skipping...');
+    } else {
+      console.warn('⏭️ Token already processed, skipping validation');
     }
   }, []); // Only run once on component mount
 
