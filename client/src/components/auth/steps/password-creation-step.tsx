@@ -37,6 +37,7 @@ interface PasswordCreationData {
  * @param root0.data
  * @param root0.onDataChange
  * @param root0.onValidationChange
+ * @param root0._data
  * @returns Function result.
  */
 export function PasswordCreationStep({ 

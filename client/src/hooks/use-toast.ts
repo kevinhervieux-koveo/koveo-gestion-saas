@@ -39,9 +39,9 @@ let count = 0;
  * GenId function.
  * @returns Function result.
  */
-function  /**
+function /**
    * Gen id function.
-   */  /**
+   */ /**
    * Gen id function.
    */
 
@@ -106,19 +106,19 @@ const addToRemoveQueue = (toastId: string) => {
 
 /**
  * Reduce .
- * @param state - state parameter.
- * @param action - action parameter.
+ * @param state - State parameter.
+ * @param action - Action parameter.
  * @returns State result.
  */
 /**
  * Reduce .
- * @param state - state parameter.
- * @param action - action parameter.
+ * @param state - State parameter.
+ * @param action - Action parameter.
  * @returns State result.
  */
-export const reducer = (state: State, action: Action): State => {  /**
+export const reducer = (state: State, action: Action): State => { /**
    * Switch function.
-   * @param action.type - action.type parameter.
+   * @param action.type - Action.type parameter.
    */
 
   switch (action.type) {
@@ -161,7 +161,7 @@ export const reducer = (state: State, action: Action): State => {  /**
         ),
       };
     }
-    case 'REMOVE_TOAST':  /**
+    case 'REMOVE_TOAST': /**
    * If function.
    * @param action.toastId === undefined - action.toastId === undefined parameter.
    */
@@ -199,12 +199,12 @@ let memoryState: State = { toasts: [] };
  * @param action
  * @returns Function result.
  */
-function  /**
+function /**
    * Dispatch function.
-   * @param action - action parameter.
-   */  /**
+   * @param action - Action parameter.
+   */ /**
    * Dispatch function.
-   * @param action - action parameter.
+   * @param action - Action parameter.
    */
 
  dispatch(action: Action) {
@@ -245,10 +245,10 @@ type Toast = Omit<ToasterToast, 'id'>;
  * @param root0
  * @returns Function result.
  */
-function  /**
+function /**
    * Toast function.
    * @param { ...props } - { ...props } parameter.
-   */  /**
+   */ /**
    * Toast function.
    * @param { ...props } - { ...props } parameter.
    */
@@ -269,10 +269,10 @@ function  /**
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {  /**
+      onOpenChange: (open) => { /**
    * If function.
    * @param !open - !open parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !open - !open parameter.
    */
@@ -322,9 +322,9 @@ function  /**
  * UseToast function.
  * @returns Function result.
  */
-function  /**
+function /**
    * Use toast function.
-   */  /**
+   */ /**
    * Use toast function.
    */
 
@@ -334,10 +334,10 @@ function  /**
   React.useEffect(() => {
     listeners.push(setState);
     return () => {
-      const index = listeners.indexOf(setState);  /**
+      const index = listeners.indexOf(setState); /**
    * If function.
    * @param index > -1 - index > -1 parameter.
-   */  /**
+   */ /**
    * If function.
    * @param index > -1 - index > -1 parameter.
    */

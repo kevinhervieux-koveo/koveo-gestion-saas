@@ -12,6 +12,9 @@ const corruptedFiles = [
   'client/src/hooks/use-toast.ts'
 ];
 
+/**
+ *
+ */
 async function fixHamburgerMenu(): Promise<void> {
   const content = `import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -183,6 +186,9 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   await fs.writeFile('client/src/components/ui/hamburger-menu.tsx', content, 'utf-8');
 }
 
+/**
+ *
+ */
 async function main(): Promise<void> {
   console.warn('🔧 Fixing corrupted React components...');
   

@@ -16,6 +16,9 @@ import {
   getCategoryLabel,
 } from '@/lib/documents';
 
+/**
+ *
+ */
 interface BuildingDocument {
   id: string;
   name: string;
@@ -31,10 +34,18 @@ interface BuildingDocument {
   updatedAt: Date;
 }
 
+/**
+ *
+ */
 interface BuildingDocumentsProps {
   buildingId?: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.buildingId
+ */
 export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps) {
   const [, navigate] = useLocation();
 
@@ -62,7 +73,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
 
   // Calculate available years and categories
   const availableYears = useMemo(() => {
-    if (!Array.isArray(documents)) return [];
+    if (!Array.isArray(documents)) {return [];}
     const years = documents
       .map((doc: BuildingDocument) => new Date(doc.dateReference).getFullYear().toString())
       .filter(Boolean);
@@ -70,14 +81,14 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
   }, [documents]);
 
   const availableCategories = useMemo(() => {
-    if (!Array.isArray(documents)) return [];
+    if (!Array.isArray(documents)) {return [];}
     const categories = documents.map((doc: BuildingDocument) => doc.type);
     return [...new Set(categories)];
   }, [documents]);
 
   // Filter documents
   const filteredDocuments = useMemo(() => {
-    if (!Array.isArray(documents)) return [];
+    if (!Array.isArray(documents)) {return [];}
     return documents.filter((doc: BuildingDocument) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === "all" || doc.type === selectedCategory;
@@ -124,7 +135,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return 'Unknown size';
+    if (!bytes) {return 'Unknown size';}
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
@@ -241,7 +252,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
                   {selectedCategory === 'all' ? (
                     DOCUMENT_CATEGORIES.map((category) => {
                       const categoryDocuments = documentsByCategory[category._value] || [];
-                      if (categoryDocuments.length === 0) return null;
+                      if (categoryDocuments.length === 0) {return null;}
 
                       return (
                         <Card key={category._value}>
@@ -365,7 +376,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
                       <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                          if (pageNum > totalPages) return null;
+                          if (pageNum > totalPages) {return null;}
                           return (
                             <Button
                               key={pageNum}

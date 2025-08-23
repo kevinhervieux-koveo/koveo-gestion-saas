@@ -1,6 +1,6 @@
 /**
  * Backend API Endpoints Test Suite
- * Tests all PUT, POST, DELETE, PATCH endpoints that modify data
+ * Tests all PUT, POST, DELETE, PATCH endpoints that modify data.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

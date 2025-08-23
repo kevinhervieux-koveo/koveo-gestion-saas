@@ -1,16 +1,16 @@
 /**
- * API mocking utilities for tests
+ * API mocking utilities for tests.
  */
 
 import { vi } from 'vitest';
 
 /**
- * Mock API request function that can be configured for different responses
+ * Mock API request function that can be configured for different responses.
  */
 export const mockApiRequest = vi.fn();
 
 /**
- * Reset all API mocks
+ * Reset all API mocks.
  */
 export const resetApiMocks = () => {
   mockApiRequest.mockReset();
@@ -22,7 +22,8 @@ export const resetApiMocks = () => {
 };
 
 /**
- * Mock successful API response
+ * Mock successful API response.
+ * @param data
  */
 export const mockApiSuccess = (data: any = { success: true }) => {
   mockApiRequest.mockResolvedValueOnce({
@@ -33,14 +34,17 @@ export const mockApiSuccess = (data: any = { success: true }) => {
 };
 
 /**
- * Mock API error response
+ * Mock API error response.
+ * @param message
+ * @param status
  */
 export const mockApiError = (message: string = 'API Error', status: number = 500) => {
   mockApiRequest.mockRejectedValueOnce(new Error(message));
 };
 
 /**
- * Mock API validation error
+ * Mock API validation error.
+ * @param errors
  */
 export const mockValidationError = (errors: Record<string, string>) => {
   mockApiRequest.mockResolvedValueOnce({

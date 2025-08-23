@@ -30,8 +30,14 @@ const buildingFormSchema = z.object({
   organizationId: z.string().min(1, "Organization is required"),
 });
 
+/**
+ *
+ */
 type BuildingFormData = z.infer<typeof buildingFormSchema>;
 
+/**
+ *
+ */
 interface BuildingData {
   id: string;
   name: string;
@@ -47,6 +53,9 @@ interface BuildingData {
   updatedAt: Date;
 }
 
+/**
+ *
+ */
 interface BuildingCardProps {
   building: BuildingData;
   userRole?: string;
@@ -54,6 +63,14 @@ interface BuildingCardProps {
   onDelete: (building: BuildingData) => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.building
+ * @param root0.userRole
+ * @param root0.onEdit
+ * @param root0.onDelete
+ */
 function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
   const isAdmin = userRole === 'admin';
   const canEdit = ['admin', 'manager'].includes(userRole || '');
@@ -124,6 +141,9 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
   );
 }
 
+/**
+ *
+ */
 interface BuildingFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -135,6 +155,18 @@ interface BuildingFormProps {
   submitLabel: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.isOpen
+ * @param root0.onOpenChange
+ * @param root0.form
+ * @param root0.onSubmit
+ * @param root0.organizations
+ * @param root0.isSubmitting
+ * @param root0.title
+ * @param root0.submitLabel
+ */
 function BuildingForm({
   isOpen,
   onOpenChange,
@@ -328,6 +360,9 @@ function BuildingForm({
   );
 }
 
+/**
+ *
+ */
 export default function Buildings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -359,7 +394,7 @@ export default function Buildings() {
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
-    if (!Array.isArray(buildings)) return [];
+    if (!Array.isArray(buildings)) {return [];}
     return buildings.filter((building) =>
       building.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       building.address.toLowerCase().includes(searchTerm.toLowerCase())

@@ -37,10 +37,10 @@ interface Law25ComplianceData {
  * RunLaw25ComplianceScan function.
  * @returns Function result.
  */
-function  /**
+function /**
    * Run law25 compliance scan function.
    * @returns Law25ComplianceData result.
-   */  /**
+   */ /**
    * Run law25 compliance scan function.
    * @returns Law25ComplianceData result.
    */
@@ -133,7 +133,7 @@ function  /**
       violations: processedViolations
     };
     
-  }  /**
+  } /**
    * Catch function.
    * @param _error - _error parameter.
    */

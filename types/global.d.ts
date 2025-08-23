@@ -24,7 +24,7 @@ declare global {
  */
 declare module '@assets/*' {
   const _value: string;
-  export default value;
+  export default _value;
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Comprehensive test suite for all buttons and forms that can apply changes or edit existing data
- * This ensures all data modification functionality works correctly across the application
+ * This ensures all data modification functionality works correctly across the application.
  */
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';

@@ -43,8 +43,14 @@ const documentFormSchema = z.object({
   residenceId: z.string().min(1, "Residence ID is required"),
 });
 
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
+/**
+ *
+ */
 interface ResidenceDocument {
   id: string;
   name: string;
@@ -60,12 +66,22 @@ interface ResidenceDocument {
   updatedAt: Date;
 }
 
+/**
+ *
+ */
 interface EditDocumentFormProps {
   document: ResidenceDocument;
   onSave: (updatedDocument: ResidenceDocument) => void;
   onCancel: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.document
+ * @param root0.onSave
+ * @param root0.onCancel
+ */
 function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -163,10 +179,18 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
   );
 }
 
+/**
+ *
+ */
 interface ResidenceDocumentsProps {
   residenceId?: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.residenceId
+ */
 export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -301,7 +325,7 @@ export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsPr
   };
 
   const handleNewDocumentUpload = async () => {
-    if (!building || !residence) return null;
+    if (!building || !residence) {return null;}
     
     const response = await fetch('/api/upload-url', {
       method: 'POST',

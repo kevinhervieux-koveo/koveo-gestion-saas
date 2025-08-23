@@ -45,9 +45,12 @@ const BUILDING_ID = '005b0e63-6a0a-44c9-bf01-2b779b316bba'; // 563 montée des p
 const ORGANIZATION_ID = '72263718-6559-4216-bd93-524f7acdcbbc'; // 563 montée des pionniers org
 const RESIDENCES = {
   unit102: '4a0987f4-dd0a-4d4f-8d3b-839edd3b4c05', // For tenant
-  unit103: '2d325292-eca7-4c47-a161-90ee34130e09'  // For resident
+  unit103: '2d325292-eca7-4c47-a161-90ee34130e09' // For resident
 };
 
+/**
+ *
+ */
 async function createTestUsers() {
   console.log('🏗️  Creating test users for 563 montée des pionniers...');
   

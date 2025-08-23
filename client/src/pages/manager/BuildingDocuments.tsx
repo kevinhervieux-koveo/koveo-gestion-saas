@@ -43,8 +43,14 @@ const documentFormSchema = z.object({
   buildingId: z.string().min(1, "Building ID is required"),
 });
 
+/**
+ *
+ */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
+/**
+ *
+ */
 interface BuildingDocument {
   id: string;
   name: string;
@@ -60,12 +66,22 @@ interface BuildingDocument {
   updatedAt: Date;
 }
 
+/**
+ *
+ */
 interface EditDocumentFormProps {
   document: BuildingDocument;
   onSave: (updatedDocument: BuildingDocument) => void;
   onCancel: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.document
+ * @param root0.onSave
+ * @param root0.onCancel
+ */
 function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   
@@ -163,10 +179,18 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
   );
 }
 
+/**
+ *
+ */
 interface BuildingDocumentsProps {
   buildingId?: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.buildingId
+ */
 export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -209,7 +233,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
 
   // Calculate available years
   const availableYears = useMemo(() => {
-    if (!Array.isArray(documents)) return [];
+    if (!Array.isArray(documents)) {return [];}
     const years = documents
       .map((doc: BuildingDocument) => new Date(doc.dateReference).getFullYear().toString())
       .filter(Boolean);
@@ -295,7 +319,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
   };
 
   const handleNewDocumentUpload = async () => {
-    if (!building) return null;
+    if (!building) {return null;}
     
     const response = await fetch('/api/upload-url', {
       method: 'POST',

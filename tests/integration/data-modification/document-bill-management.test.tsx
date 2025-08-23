@@ -1,6 +1,6 @@
 /**
  * Document and Bill Management Test Suite
- * Tests all data modification functionality for documents and bills
+ * Tests all data modification functionality for documents and bills.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

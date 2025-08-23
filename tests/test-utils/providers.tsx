@@ -1,5 +1,5 @@
 /**
- * Test providers for wrapping components during testing
+ * Test providers for wrapping components during testing.
  */
 
 import React from 'react';
@@ -29,7 +29,9 @@ const MockToastProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 /**
- * Test providers wrapper component
+ * Test providers wrapper component.
+ * @param root0
+ * @param root0.children
  */
 export const TestProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = createTestQueryClient();

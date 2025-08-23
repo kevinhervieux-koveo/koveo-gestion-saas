@@ -34,6 +34,9 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
+/**
+ *
+ */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -56,6 +59,9 @@ interface Residence {
   };
 }
 
+/**
+ *
+ */
 interface Contact {
   id: string;
   firstName: string;
@@ -74,8 +80,14 @@ const contactFormSchema = z.object({
   type: z.enum(['primary', 'emergency', 'other']),
 });
 
+/**
+ *
+ */
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
+/**
+ *
+ */
 export default function Residence() {
   const { toast } = useToast();
   const queryClient = useQueryClient();

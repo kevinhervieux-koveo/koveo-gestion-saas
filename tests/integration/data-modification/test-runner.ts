@@ -1,11 +1,14 @@
 /**
  * Data Modification Test Runner
- * Runs all tests for buttons and forms that can apply changes or edit existing data
+ * Runs all tests for buttons and forms that can apply changes or edit existing data.
  */
 
 import { execSync } from 'child_process';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface TestResult {
   testFile: string;
   passed: number;
@@ -15,6 +18,9 @@ interface TestResult {
   errors: string[];
 }
 
+/**
+ *
+ */
 interface TestSummary {
   totalTests: number;
   totalPassed: number;
@@ -32,7 +38,8 @@ const testFiles = [
 ];
 
 /**
- * Runs a single test file and returns the results
+ * Runs a single test file and returns the results.
+ * @param testFile
  */
 async function runTestFile(testFile: string): Promise<TestResult> {
   const startTime = Date.now();
@@ -91,7 +98,7 @@ async function runTestFile(testFile: string): Promise<TestResult> {
 }
 
 /**
- * Main test runner function
+ * Main test runner function.
  */
 async function runAllDataModificationTests(): Promise<TestSummary> {
   console.log(chalk.yellow('\n🚀 Starting Data Modification Tests\n'));
@@ -127,7 +134,8 @@ async function runAllDataModificationTests(): Promise<TestSummary> {
 }
 
 /**
- * Prints a detailed summary report
+ * Prints a detailed summary report.
+ * @param summary
  */
 function printSummaryReport(summary: TestSummary): void {
   console.log(chalk.yellow('\n📊 TEST SUMMARY REPORT\n'));
@@ -206,7 +214,7 @@ function printSummaryReport(summary: TestSummary): void {
 }
 
 /**
- * Validates specific edit button functionality
+ * Validates specific edit button functionality.
  */
 function validateEditButtonFunctionality(): void {
   console.log(chalk.cyan('\n🔍 Edit Button Functionality Checklist:'));

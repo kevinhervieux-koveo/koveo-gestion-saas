@@ -500,8 +500,8 @@ describe('Complete User Creation E2E Flow', () => {
 
       // Mock organization access query
       const organizationAccess = [
-        demoOrgId,    // Demo org (all users get access)
-        userOrgId     // User's specific organization
+        demoOrgId, // Demo org (all users get access)
+        userOrgId // User's specific organization
       ];
 
       expect(organizationAccess).toContain(demoOrgId);

@@ -240,15 +240,15 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
   /**
    * Sends an invitation email to a new user with their invitation link.
    * 
-   * @param {string} to - Recipient's email address
-   * @param {string} recipientName - Name of the person being invited
-   * @param {string} token - Invitation token for the registration URL
-   * @param {string} organizationName - Name of the organization they're being invited to
-   * @param {string} inviterName - Name of the person sending the invitation
-   * @param {Date} expiresAt - When the invitation expires
-   * @param {string} language - Language preference (en/fr)
-   * @param {string} personalMessage - Optional personal message from inviter
-   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully
+   * @param {string} to - Recipient's email address.
+   * @param {string} recipientName - Name of the person being invited.
+   * @param {string} token - Invitation token for the registration URL.
+   * @param {string} organizationName - Name of the organization they're being invited to.
+   * @param {string} inviterName - Name of the person sending the invitation.
+   * @param {Date} expiresAt - When the invitation expires.
+   * @param {string} language - Language preference (en/fr).
+   * @param {string} personalMessage - Optional personal message from inviter.
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
    */
   async sendInvitationEmail(
     to: string, 

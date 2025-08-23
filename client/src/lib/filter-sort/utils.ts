@@ -24,31 +24,31 @@ import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
  */
 /**
  * Apply filter function.
- * @param item - item parameter.
- * @param filter - filter parameter.
+ * @param item - Item parameter.
+ * @param filter - Filter parameter.
  * @returns Boolean result.
  */
-export function  /**
+export function /**
    * Apply filter function.
-   * @param item - item parameter.
-   * @param filter - filter parameter.
+   * @param item - Item parameter.
+   * @param filter - Filter parameter.
    * @returns Boolean result.
-   */  /**
+   */ /**
    * Apply filter function.
-   * @param item - item parameter.
-   * @param filter - filter parameter.
+   * @param item - Item parameter.
+   * @param filter - Filter parameter.
    * @returns Boolean result.
    */
 
  applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
   const filterValue = filter.value;
-  const operator = filter.operator;  /**
+  const operator = filter.operator; /**
    * Switch function.
-   * @param operator - operator parameter.
-   */  /**
+   * @param operator - Operator parameter.
+   */ /**
    * Switch function.
-   * @param operator - operator parameter.
+   * @param operator - Operator parameter.
    */
 
 
@@ -85,11 +85,11 @@ export function  /**
       return Number(_value) <= Number(filterValue);
 
     case 'in':
-      return Array.isArray(filterValue) ? filterValue.  /**
+      return Array.isArray(filterValue) ? filterValue. /**
    * Includes function.
    * @param value - Value to process.
    * @returns String result.
-   */  /**
+   */ /**
    * Includes function.
    * @param value - Value to process.
    * @returns String result.
@@ -141,13 +141,14 @@ includes(_value) : false;
 /**
  * ApplyFilters function.
  * @param data
+ * @param _data
  * @param filters
  * @returns Function result.
  */
-export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] {  /**
+export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] { /**
    * If function.
    * @param !filters || filters.length === 0 - !filters || filters.length === 0 parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !filters || filters.length === 0 - !filters || filters.length === 0 parameter.
    */
@@ -179,6 +180,7 @@ export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] {  /**
 /**
  * ApplySearch function.
  * @param data
+ * @param _data
  * @param search
  * @param searchFields
  * @returns Function result.
@@ -190,10 +192,10 @@ export function applySearch<T>(_data: T[], search: string, searchFields?: string
 
   const searchLower = search.toLowerCase();
 
-  return data.filter((item) => {  /**
+  return data.filter((item) => { /**
    * If function.
    * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
-   */  /**
+   */ /**
    * If function.
    * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
    */
@@ -297,6 +299,7 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {
 /**
  * ApplyFilterSort function.
  * @param data
+ * @param _data
  * @param filters
  * @param search
  * @param sort
@@ -346,16 +349,16 @@ export function applyFilterSort<T>(
  * @param path
  * @returns Function result.
  */
-function  /**
+function /**
    * Get nested value.
-   * @param obj - obj parameter.
+   * @param obj - Obj parameter.
    * @param path - File or URL path.
-   * @returns any result.
-   */  /**
+   * @returns Any result.
+   */ /**
    * Get nested value.
-   * @param obj - obj parameter.
+   * @param obj - Obj parameter.
    * @param path - File or URL path.
-   * @returns any result.
+   * @returns Any result.
    */
 
  getNestedValue(obj: any, path: string): any {
@@ -383,22 +386,22 @@ function  /**
  * @param search
  * @returns Function result.
  */
-function  /**
+function /**
    * Search in object.
-   * @param obj - obj parameter.
-   * @param search - search parameter.
+   * @param obj - Obj parameter.
+   * @param search - Search parameter.
    * @returns Boolean result.
-   */  /**
+   */ /**
    * Search in object.
-   * @param obj - obj parameter.
-   * @param search - search parameter.
+   * @param obj - Obj parameter.
+   * @param search - Search parameter.
    * @returns Boolean result.
    */
 
- searchInObject(obj: any, search: string): boolean {  /**
+ searchInObject(obj: any, search: string): boolean { /**
    * If function.
    * @param obj === null || obj === undefined - obj === null || obj === undefined parameter.
-   */  /**
+   */ /**
    * If function.
    * @param obj === null || obj === undefined - obj === null || obj === undefined parameter.
    */
@@ -406,24 +409,24 @@ function  /**
 
   if (obj === null || obj === undefined) {
     return false;
-  }  /**
+  } /**
    * If function.
-   * @param typeof obj === 'string' - typeof obj === 'string' parameter.
-   */  /**
+   * @param typeof Obj === 'string' - typeof obj === 'string' parameter.
+   */ /**
    * If function.
-   * @param typeof obj === 'string' - typeof obj === 'string' parameter.
+   * @param typeof Obj === 'string' - typeof obj === 'string' parameter.
    */
 
 
 
   if (typeof obj === 'string') {
     return obj.toLowerCase().includes(search);
-  }  /**
+  } /**
    * If function.
-   * @param typeof obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
-   */  /**
+   * @param typeof Obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
+   */ /**
    * If function.
-   * @param typeof obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
+   * @param typeof Obj === 'number' || typeof obj === 'boolean' - typeof obj === 'number' || typeof obj === 'boolean' parameter.
    */
 
 
@@ -434,12 +437,12 @@ function  /**
 
   if (Array.isArray(obj)) {
     return obj.some((item) => searchInObject(item, search));
-  }  /**
+  } /**
    * If function.
-   * @param typeof obj === 'object' - typeof obj === 'object' parameter.
-   */  /**
+   * @param typeof Obj === 'object' - typeof obj === 'object' parameter.
+   */ /**
    * If function.
-   * @param typeof obj === 'object' - typeof obj === 'object' parameter.
+   * @param typeof Obj === 'object' - typeof obj === 'object' parameter.
    */
 
 
@@ -472,25 +475,25 @@ function  /**
  */
 /**
  * Get default operators.
- * @param type - type parameter.
+ * @param type - Type parameter.
  * @returns Array result.
  */
-export function  /**
+export function /**
    * Get default operators.
-   * @param type - type parameter.
+   * @param type - Type parameter.
    * @returns Array result.
-   */  /**
+   */ /**
    * Get default operators.
-   * @param type - type parameter.
+   * @param type - Type parameter.
    * @returns Array result.
    */
 
- getDefaultOperators(type: string): FilterOperator[] {  /**
+ getDefaultOperators(type: string): FilterOperator[] { /**
    * Switch function.
-   * @param type - type parameter.
-   */  /**
+   * @param type - Type parameter.
+   */ /**
    * Switch function.
-   * @param type - type parameter.
+   * @param type - Type parameter.
    */
 
 
@@ -556,16 +559,16 @@ export function  /**
  */
 /**
  * Get operator label.
- * @param operator - operator parameter.
+ * @param operator - Operator parameter.
  * @returns String result.
  */
-export function  /**
+export function /**
    * Get operator label.
-   * @param operator - operator parameter.
+   * @param operator - Operator parameter.
    * @returns String result.
-   */  /**
+   */ /**
    * Get operator label.
-   * @param operator - operator parameter.
+   * @param operator - Operator parameter.
    * @returns String result.
    */
 

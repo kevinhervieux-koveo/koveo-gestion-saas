@@ -135,7 +135,7 @@ describe('User Creation Process Validation', () => {
         demoOrganization: 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6',
         accessibleOrganizations: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo
-          '72263718-6559-4216-bd93-524f7acdcbbc'  // User's org
+          '72263718-6559-4216-bd93-524f7acdcbbc' // User's org
         ]
       };
 
@@ -211,11 +211,11 @@ describe('User Creation Process Validation', () => {
   describe('Quebec Law 25 Compliance Validation', () => {
     test('should validate required privacy consents for Law 25', () => {
       const quebecConsents = {
-        dataCollectionConsent: true,    // Required
-        marketingConsent: false,        // Optional
-        analyticsConsent: true,         // Optional
-        thirdPartyConsent: false,       // Optional
-        acknowledgedRights: true,       // Required for Law 25
+        dataCollectionConsent: true, // Required
+        marketingConsent: false, // Optional
+        analyticsConsent: true, // Optional
+        thirdPartyConsent: false, // Optional
+        acknowledgedRights: true, // Required for Law 25
         consentDate: '2025-08-23T17:54:24.591Z',
         law25Compliance: true,
         consentVersion: '2024.1'
@@ -296,7 +296,7 @@ describe('User Creation Process Validation', () => {
         sessionEstablished: true,
         organizationsAccessed: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo
-          '72263718-6559-4216-bd93-524f7acdcbbc'  // User's org
+          '72263718-6559-4216-bd93-524f7acdcbbc' // User's org
         ],
         buildingsAccessed: [
           '005b0e63-6a0a-44c9-bf01-2b779b316bba'

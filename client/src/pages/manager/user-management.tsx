@@ -210,11 +210,11 @@ export default function UserManagement() {
         let aVal = a[sort.field as keyof typeof a];
         let bVal = b[sort.field as keyof typeof b];
         
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+        if (typeof aVal === 'string') {aVal = aVal.toLowerCase();}
+        if (typeof bVal === 'string') {bVal = bVal.toLowerCase();}
         
-        if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
+        if (aVal < bVal) {return sort.direction === 'asc' ? -1 : 1;}
+        if (aVal > bVal) {return sort.direction === 'asc' ? 1 : -1;}
         return 0;
       });
     }

@@ -40,6 +40,7 @@ interface ProfileCompletionData {
  * @param root0.data
  * @param root0.onDataChange
  * @param root0.onValidationChange
+ * @param root0._data
  * @returns Function result.
  */
 export function ProfileCompletionStep({ 
@@ -62,7 +63,7 @@ export function ProfileCompletionStep({
 
   // Phone validation function - moved before useEffect to avoid hoisting issues
   const validatePhone = (phone: string) => {
-    if (!phone) return false;
+    if (!phone) {return false;}
     // Quebec phone number format validation
     const phoneRegex = /^(\+1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$/;
     return phoneRegex.test(phone);

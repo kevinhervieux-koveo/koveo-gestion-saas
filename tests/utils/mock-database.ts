@@ -47,9 +47,9 @@ export const mockMoneyFlowData = [
 ];
 
 export const createMockDb = () => ({
-  select: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnValue({
-      where: jest.fn().mockImplementation((condition: any) => {
+  select: globalThis.jest.fn().mockReturnValue({
+    from: globalThis.jest.fn().mockReturnValue({
+      where: globalThis.jest.fn().mockImplementation((condition: any) => {
         const conditionStr = condition?.toString?.() || '';
         
         if (conditionStr.includes('unique')) {
@@ -65,10 +65,10 @@ export const createMockDb = () => ({
       })
     })
   }),
-  delete: jest.fn().mockReturnValue({
-    where: jest.fn().mockResolvedValue({ success: true })
+  delete: globalThis.jest.fn().mockReturnValue({
+    where: globalThis.jest.fn().mockResolvedValue({ success: true })
   }),
-  insert: jest.fn().mockReturnValue({
-    values: jest.fn().mockResolvedValue({ success: true })
+  insert: globalThis.jest.fn().mockReturnValue({
+    values: globalThis.jest.fn().mockResolvedValue({ success: true })
   })
 });

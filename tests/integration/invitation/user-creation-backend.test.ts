@@ -305,7 +305,7 @@ describe('Backend User Creation Integration', () => {
         // Remove organizationId and buildingId as they don't exist on user type
         accessibleOrganizations: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo organization
-          '72263718-6559-4216-bd93-524f7acdcbbc'  // User's organization
+          '72263718-6559-4216-bd93-524f7acdcbbc' // User's organization
         ]
       };
 

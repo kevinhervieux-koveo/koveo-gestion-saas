@@ -316,8 +316,8 @@ describe('Fixed User Creation Component Tests', () => {
         // Before fix: [formData, onDataChange, onValidationChange] - caused infinite loops
         // After fix: [formData] - only depends on actual data
         useEffectDeps: ['formData'], // ✅ Fixed
-        callbacksInDeps: false,       // ✅ Fixed
-        infiniteLoopFixed: true       // ✅ Fixed
+        callbacksInDeps: false, // ✅ Fixed
+        infiniteLoopFixed: true // ✅ Fixed
       };
 
       expect(problematicPattern.useEffectDeps).toEqual(['formData']);
@@ -330,10 +330,10 @@ describe('Fixed User Creation Component Tests', () => {
       // The issue was inconsistent use of 'data' vs '_data', 'value' vs '_value'
       
       const namingPattern = {
-        propNaming: '_data',     // ✅ Consistent with WizardStepProps
+        propNaming: '_data', // ✅ Consistent with WizardStepProps
         parameterNaming: '_value', // ✅ Consistent naming
-        interfaceMatch: true,     // ✅ Matches component interfaces
-        namingFixed: true         // ✅ Fixed
+        interfaceMatch: true, // ✅ Matches component interfaces
+        namingFixed: true // ✅ Fixed
       };
 
       expect(namingPattern.propNaming).toBe('_data');
@@ -360,10 +360,10 @@ describe('Fixed User Creation Component Tests', () => {
 
     test('should validate required Law 25 consents', () => {
       const law25Requirements = {
-        dataCollectionConsent: true,    // Required
-        acknowledgedRights: true,       // Required
-        marketingConsent: false,        // Optional
-        analyticsConsent: true,         // Optional
+        dataCollectionConsent: true, // Required
+        acknowledgedRights: true, // Required
+        marketingConsent: false, // Optional
+        analyticsConsent: true, // Optional
         consentDate: new Date().toISOString(),
         compliant: true
       };

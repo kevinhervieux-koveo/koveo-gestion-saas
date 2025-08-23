@@ -2,7 +2,7 @@
 
 /**
  * Koveo Gestion - Sequential Test Runner (Node.js version)
- * Runs all tests in logical sequence to avoid timeouts
+ * Runs all tests in logical sequence to avoid timeouts.
  */
 
 import { spawn } from 'child_process';
@@ -77,6 +77,12 @@ const testPhases = [
   }
 ];
 
+/**
+ *
+ * @param groupName
+ * @param pattern
+ * @param timeout
+ */
 function runTest(groupName, pattern, timeout) {
   return new Promise((resolve, reject) => {
     console.log(`\n${colors.blue}🏃 Running ${groupName}...${colors.reset}`);
@@ -112,6 +118,9 @@ function runTest(groupName, pattern, timeout) {
   });
 }
 
+/**
+ *
+ */
 async function runSequentialTests() {
   console.log(`${colors.yellow}🚀 Starting Sequential Test Suite...${colors.reset}`);
   console.log('========================================');

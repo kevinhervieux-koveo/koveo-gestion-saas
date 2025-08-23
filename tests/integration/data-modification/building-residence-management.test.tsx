@@ -1,6 +1,6 @@
 /**
  * Building and Residence Management Test Suite
- * Tests all data modification functionality for buildings and residences
+ * Tests all data modification functionality for buildings and residences.
  */
 
 import React from 'react';

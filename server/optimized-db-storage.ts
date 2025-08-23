@@ -142,6 +142,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves users from organizations that a specific user has access to.
+   * @param userId
    */
   async getUsersByOrganizations(userId: string): Promise<User[]> {
     return this.withOptimizations(

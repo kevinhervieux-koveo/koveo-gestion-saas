@@ -147,7 +147,7 @@ export class JSDocTemplateGenerator {
         const returnType = match[3]?.trim();
         
         if (methodName === 'constructor') {
-          let jsdoc = `  /**\n   * Initialize ${context.fileName} instance.\n`;
+          let jsdoc = `  /**\n   * Initialize ${_context.fileName} instance.\n`;
           if (params.length > 0) {
             params.forEach(param => {
               jsdoc += `   * @param ${param} - ${this.generateParamDescription(param)}.\n`;
@@ -474,7 +474,7 @@ export class JSDocTemplateGenerator {
     templatesApplied: number;
     skippedFiles: string[];
   }> {
-    const { exclude = ['node_modules/**', 'dist/**', '**/*.test.*', '**/*.d.ts'], maxFiles = 100, dryRun = false } = options;
+    const { exclude = ['node_modules/**', 'dist/**', '**/*.test.*', '**/*.d.ts'], maxFiles = 100, dryRun = false } = _options;
     
     const files = glob.sync(pattern, {
       cwd: this.projectRoot,

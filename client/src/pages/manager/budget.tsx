@@ -45,12 +45,12 @@ const categoryTranslations: Record<string, { en: string; fr: string }> = {
 
 // Translation function moved outside component
 const translateCategory = (category: string, language: 'en' | 'fr') => {
-  const translation = categoryTranslations[category];  /**
+  const translation = categoryTranslations[category]; /**
    * If function.
-   * @param translation - translation parameter.
-   */  /**
+   * @param translation - Translation parameter.
+   */ /**
    * If function.
-   * @param translation - translation parameter.
+   * @param translation - Translation parameter.
    */
 
 
@@ -207,9 +207,9 @@ interface InflationConfig {
 /**
  *
  */
-export default function  /**
+export default function /**
    * Budget function.
-   */  /**
+   */ /**
    * Budget function.
    */
 
@@ -259,22 +259,22 @@ export default function  /**
   const { data: residences = [] } = useQuery({
     queryKey: ['/api/residences', selectedBuilding],
     queryFn: async () => {
-      const params = new URLSearchParams();  /**
+      const params = new URLSearchParams(); /**
    * If function.
-   * @param selectedBuilding - selectedBuilding parameter.
-   */  /**
+   * @param selectedBuilding - SelectedBuilding parameter.
+   */ /**
    * If function.
-   * @param selectedBuilding - selectedBuilding parameter.
+   * @param selectedBuilding - SelectedBuilding parameter.
    */
 
 
       if (selectedBuilding) {
         params.append('buildingId', selectedBuilding);
       }
-      const response = await fetch(`/api/residences?${params}`);  /**
+      const response = await fetch(`/api/residences?${params}`); /**
    * If function.
    * @param !response.ok - !response.ok parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !response.ok - !response.ok parameter.
    */
@@ -294,14 +294,14 @@ export default function  /**
         startYear: startYear.toString(),
         endYear: endYear.toString(),
         groupBy: viewType
-      });  /**
+      }); /**
    * If function.
    * @param viewType === 'monthly' - viewType === 'monthly' parameter.
    */
   /**
    * If function.
    * @param viewType === 'monthly' - viewType === 'monthly' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param viewType === 'monthly' - viewType === 'monthly' parameter.
    */
@@ -349,10 +349,10 @@ export default function  /**
   });
 
   // Parse minimum balance settings
-  const minimumBalanceSettings = useMemo(() => {  /**
+  const minimumBalanceSettings = useMemo(() => { /**
    * If function.
    * @param !bankAccountInfo?.bankAccountMinimums - !bankAccountInfo?.bankAccountMinimums parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !bankAccountInfo?.bankAccountMinimums - !bankAccountInfo?.bankAccountMinimums parameter.
    */
@@ -367,10 +367,10 @@ export default function  /**
   }, [bankAccountInfo?.bankAccountMinimums]);
 
   // Transform raw data into chart-friendly format
-  const chartData: BudgetData[] = useMemo(() => {  /**
+  const chartData: BudgetData[] = useMemo(() => { /**
    * If function.
    * @param !budgetSummary?.summary - !budgetSummary?.summary parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !budgetSummary?.summary - !budgetSummary?.summary parameter.
    */
@@ -386,10 +386,10 @@ export default function  /**
       
       // Build income and expense categories
       const incomeByCategory: { [_key: string]: number } = {};
-      const expensesByCategory: { [_key: string]: number } = {};  /**
+      const expensesByCategory: { [_key: string]: number } = {}; /**
    * If function.
    * @param item.incomeTypes && item.incomes - item.incomeTypes && item.incomes parameter.
-   */  /**
+   */ /**
    * If function.
    * @param item.incomeTypes && item.incomes - item.incomeTypes && item.incomes parameter.
    */
@@ -400,10 +400,10 @@ export default function  /**
         item.incomeTypes.forEach((type: string, _index: number) => {
           incomeByCategory[type] = parseFloat(item.incomes[_index] || '0');
         });
-      }  /**
+      } /**
    * If function.
    * @param item.spendingTypes && item.spendings - item.spendingTypes && item.spendings parameter.
-   */  /**
+   */ /**
    * If function.
    * @param item.spendingTypes && item.spendings - item.spendingTypes && item.spendings parameter.
    */
@@ -430,10 +430,10 @@ export default function  /**
   }, [budgetSummary]);
 
   // Find total minimum balance for chart visualization - optimized
-  const minimumBalanceForChart = useMemo(() => {  /**
+  const minimumBalanceForChart = useMemo(() => { /**
    * If function.
    * @param !minimumBalanceSettings?.length - !minimumBalanceSettings?.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !minimumBalanceSettings?.length - !minimumBalanceSettings?.length parameter.
    */
@@ -444,14 +444,14 @@ export default function  /**
   }, [minimumBalanceSettings?.length, minimumBalanceSettings]);
 
   // Calculate running bank account balance over time
-  const chartDataWithBalance = useMemo(() => {  /**
+  const chartDataWithBalance = useMemo(() => { /**
    * If function.
    * @param !chartData?.length - !chartData?.length parameter.
    */
   /**
    * If function.
    * @param !chartData?.length - !chartData?.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !chartData?.length - !chartData?.length parameter.
    */
@@ -505,10 +505,10 @@ export default function  /**
   }, [chartData?.length, language]);
 
   // Filter data by selected categories - optimized with better dependency tracking
-  const filteredChartData = useMemo(() => {  /**
+  const filteredChartData = useMemo(() => { /**
    * If function.
    * @param !chartDataWithBalance?.length || selectedCategories.length === 0 - !chartDataWithBalance?.length || selectedCategories.length === 0 parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !chartDataWithBalance?.length || selectedCategories.length === 0 - !chartDataWithBalance?.length || selectedCategories.length === 0 parameter.
    */
@@ -532,21 +532,21 @@ export default function  /**
           // Find original category name from translation
           const originalCatName = Object.keys(item.incomeByCategory).find(key => {
             return translateCategory(key, language) === translatedCatName;
-          });  /**
+          }); /**
    * If function.
-   * @param originalCatName - originalCatName parameter.
+   * @param originalCatName - OriginalCatName parameter.
    */
   /**
    * If function.
-   * @param originalCatName - originalCatName parameter.
-   */  /**
+   * @param originalCatName - OriginalCatName parameter.
+   */ /**
    * If function.
-   * @param originalCatName - originalCatName parameter.
+   * @param originalCatName - OriginalCatName parameter.
    */
 
   /**
    * If function.
-   * @param originalCatName - originalCatName parameter.
+   * @param originalCatName - OriginalCatName parameter.
    */
 
           if (originalCatName) {
@@ -586,10 +586,10 @@ export default function  /**
   }, [chartDataWithBalance, selectedCategories.join(','), language, bankAccountInfo?.bankAccountStartAmount]);
 
   // Calculate special contribution and property breakdown - optimized
-  const specialContribution = useMemo(() => {  /**
+  const specialContribution = useMemo(() => { /**
    * If function.
    * @param !filteredChartData?.length - !filteredChartData?.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !filteredChartData?.length - !filteredChartData?.length parameter.
    */
@@ -601,10 +601,10 @@ export default function  /**
   }, [filteredChartData]);
 
   // Get residences for selected building and calculate contributions - optimized
-  const propertyContributions = useMemo(() => {  /**
+  const propertyContributions = useMemo(() => { /**
    * If function.
    * @param !selectedBuilding || !residences?.length || specialContribution === 0 - !selectedBuilding || !residences?.length || specialContribution === 0 parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !selectedBuilding || !residences?.length || specialContribution === 0 - !selectedBuilding || !residences?.length || specialContribution === 0 parameter.
    */
@@ -757,12 +757,12 @@ export default function  /**
   }, []);
 
   // Initialize dialog with existing data
-  const initializeDialog = () => {  /**
+  const initializeDialog = () => { /**
    * If function.
-   * @param bankAccountInfo - bankAccountInfo parameter.
-   */  /**
+   * @param bankAccountInfo - BankAccountInfo parameter.
+   */ /**
    * If function.
-   * @param bankAccountInfo - bankAccountInfo parameter.
+   * @param bankAccountInfo - BankAccountInfo parameter.
    */
 
 
@@ -815,9 +815,9 @@ export default function  /**
       startAmount: bankAccountStartAmount,
       minimumBalances,
     });
-  }, [selectedBuilding, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]);  /**
+  }, [selectedBuilding, reconciliationNote, bankAccountStartDate, bankAccountStartAmount, minimumBalances, updateBankAccount, toast, language]); /**
    * Return function.
-   * @param <div className='min-h-screen bg-gray-50'>
+   * @param <div ClassName='min-h-screen bg-gray-50'>
       <Header 
         title={language === 'fr' ? 'Tableau de bord budgétaire' - <div className='min-h-screen bg-gray-50'>
       <Header 
@@ -1125,12 +1125,12 @@ export default function  /**
                           <input
                             type='checkbox'
                             checked={selectedCategories.includes(category)}
-                            onChange={(e) => {  /**
+                            onChange={(e) => { /**
    * If function.
-   * @param e.target.checked - e.target.checked parameter.
-   */  /**
+   * @param e.target.checked - E.target.checked parameter.
+   */ /**
    * If function.
-   * @param e.target.checked - e.target.checked parameter.
+   * @param e.target.checked - E.target.checked parameter.
    */
 
 
@@ -1310,10 +1310,10 @@ export default function  /**
                       <XAxis 
                         dataKey='date' 
                         tickFormatter={(_value) => {
-                          const [year, month] = value.split('-');  /**
+                          const [year, month] = value.split('-'); /**
    * If function.
    * @param viewType === 'yearly' - viewType === 'yearly' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param viewType === 'yearly' - viewType === 'yearly' parameter.
    */
@@ -1330,10 +1330,10 @@ export default function  /**
                       />
                       <YAxis tickFormatter={(_value) => `$${(value / 1000).toFixed(0)}k`} />
                       <ChartTooltip 
-                        content={({ active, payload, label }) => {  /**
+                        content={({ active, payload, label }) => { /**
    * If function.
    * @param active && payload && payload.length - active && payload && payload.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param active && payload && payload.length - active && payload && payload.length parameter.
    */
@@ -1346,10 +1346,10 @@ export default function  /**
                                 <p className="font-medium mb-2">{`${year}-${month}`}</p>
                                 {payload.map((entry, _index) => {
                                   let name = '';
-                                  let color = entry.color;  /**
+                                  let color = entry.color; /**
    * If function.
    * @param entry.dataKey === 'totalIncome' - entry.dataKey === 'totalIncome' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param entry.dataKey === 'totalIncome' - entry.dataKey === 'totalIncome' parameter.
    */
@@ -1359,10 +1359,10 @@ export default function  /**
                                   if (entry.dataKey === 'totalIncome') {
                                     name = language === 'fr' ? 'Revenus totaux' : 'Total Income';
                                     color = 'hsl(120, 70%, 50%)';
-                                  } else  /**
+                                  } else /**
    * If function.
    * @param entry.dataKey === 'totalExpenses' - entry.dataKey === 'totalExpenses' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param entry.dataKey === 'totalExpenses' - entry.dataKey === 'totalExpenses' parameter.
    */
@@ -1370,10 +1370,10 @@ export default function  /**
  if (entry.dataKey === 'totalExpenses') {
                                     name = language === 'fr' ? 'Dépenses totales' : 'Total Expenses';
                                     color = 'hsl(0, 70%, 50%)';
-                                  } else  /**
+                                  } else /**
    * If function.
    * @param entry.dataKey === 'bankBalance' - entry.dataKey === 'bankBalance' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param entry.dataKey === 'bankBalance' - entry.dataKey === 'bankBalance' parameter.
    */
@@ -1381,28 +1381,28 @@ export default function  /**
  if (entry.dataKey === 'bankBalance') {
                                     name = language === 'fr' ? 'Solde bancaire' : 'Bank Balance';
                                     color = 'hsl(200, 80%, 60%)';
-                                  } else  /**
+                                  } else /**
    * If function.
-   * @param typeof entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
-   */  /**
+   * @param typeof Entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
+   */ /**
    * If function.
-   * @param typeof entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
+   * @param typeof Entry.value === 'number' && entry.value === minimumBalanceForChart - typeof entry.value === 'number' && entry.value === minimumBalanceForChart parameter.
    */
 
  if (typeof entry.value === 'number' && entry.value === minimumBalanceForChart) {
                                     name = language === 'fr' ? 'Solde minimum requis' : 'Required Minimum Balance';
                                     color = 'hsl(0, 80%, 60%)';
-                                  }  /**
+                                  } /**
    * If function.
-   * @param name - name parameter.
-   */  /**
+   * @param name - Name parameter.
+   */ /**
    * If function.
-   * @param name - name parameter.
+   * @param name - Name parameter.
    */
 
 
                                   
-                                  if (name) {  /**
+                                  if (name) { /**
    * Return function.
    * @param <div key={index} className="flex items-center gap-2">
                                         <div 
@@ -1412,7 +1412,7 @@ export default function  /**
                                           className="w-3 h-3 flex-shrink-0"
                                           style={{ backgroundColor parameter.
    * @returns '0'} $ result.
-   */  /**
+   */ /**
    * Return function.
    * @param <div key={index} className="flex items-center gap-2">
                                         <div 
@@ -1597,12 +1597,12 @@ export default function  /**
                   <div className='space-y-2'>
                     <Dialog 
                       open={bankAccountDialog} 
-                      onOpenChange={(open) => {  /**
+                      onOpenChange={(open) => { /**
    * If function.
-   * @param open - open parameter.
-   */  /**
+   * @param open - Open parameter.
+   */ /**
    * If function.
-   * @param open - open parameter.
+   * @param open - Open parameter.
    */
 
 
@@ -1702,12 +1702,12 @@ export default function  /**
                   {/* Minimum Balances Management Button - Always available */}
                   <Dialog 
                     open={minimumBalancesDialog} 
-                    onOpenChange={(open) => {  /**
+                    onOpenChange={(open) => { /**
    * If function.
-   * @param open - open parameter.
-   */  /**
+   * @param open - Open parameter.
+   */ /**
    * If function.
-   * @param open - open parameter.
+   * @param open - Open parameter.
    */
 
 
@@ -1794,10 +1794,10 @@ export default function  /**
                                   });
                                   
                                   setMinimumBalancesDialog(false);
-                                }  /**
+                                } /**
    * Catch function.
    * @param _error - _error parameter.
-   */  /**
+   */ /**
    * Catch function.
    * @param _error - _error parameter.
    */
