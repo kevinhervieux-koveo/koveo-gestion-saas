@@ -32,7 +32,7 @@ import {
   FormLabel, 
   FormMessage 
 } from '@/components/ui/form';
-import { Users, UserPlus, Shield, Mail } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, Edit, Home } from 'lucide-react';
 import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,6 +60,8 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUserOrganizations, setEditingUserOrganizations] = useState<User | null>(null);
+  const [editingUserResidences, setEditingUserResidences] = useState<User | null>(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,6 +106,11 @@ export default function UserManagement() {
   const { data: userResidences = [] } = useQuery<any[]>({
     queryKey: ['/api/user-residences'],
     enabled: true,
+  });
+
+  // Get current user to check permissions
+  const { data: currentUser } = useQuery<User>({
+    queryKey: ['/api/auth/user'],
   });
 
   // Bulk action handler
@@ -194,6 +201,58 @@ export default function UserManagement() {
   const openEditDialog = (user: User) => {
     setEditingUser(user);
   };
+
+  // Organization editing mutation
+  const editOrganizationsMutation = useMutation({
+    mutationFn: async ({ userId, organizationIds }: { userId: string; organizationIds: string[] }) => {
+      const response = await apiRequest('PUT', `/api/users/${userId}/organizations`, { organizationIds });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Organization assignments updated successfully',
+      });
+      setEditingUserOrganizations(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Residence editing mutation
+  const editResidencesMutation = useMutation({
+    mutationFn: async ({ userId, residenceAssignments }: { userId: string; residenceAssignments: any[] }) => {
+      const response = await apiRequest('PUT', `/api/users/${userId}/residences`, { residenceAssignments });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Residence assignments updated successfully',
+      });
+      setEditingUserResidences(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Permission checks
+  const canEditOrganizations = currentUser?.role === 'admin';
+  const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   // Filter configuration
   const filterConfig = {
@@ -622,14 +681,41 @@ export default function UserManagement() {
                                 </div>
                               </td>
                               <td className="border border-gray-300 px-4 py-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => openEditDialog(user)}
-                                  data-testid={`button-edit-user-${user.id}`}
-                                >
-                                  Edit
-                                </Button>
+                                <div className="flex gap-2 flex-wrap">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => openEditDialog(user)}
+                                    data-testid={`button-edit-user-${user.id}`}
+                                  >
+                                    <Edit className="h-3 w-3 mr-1" />
+                                    Edit User
+                                  </Button>
+                                  
+                                  {canEditOrganizations && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => setEditingUserOrganizations(user)}
+                                      data-testid={`button-edit-organizations-${user.id}`}
+                                    >
+                                      <Shield className="h-3 w-3 mr-1" />
+                                      Organizations
+                                    </Button>
+                                  )}
+                                  
+                                  {canEditResidences && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => setEditingUserResidences(user)}
+                                      data-testid={`button-edit-residences-${user.id}`}
+                                    >
+                                      <Home className="h-3 w-3 mr-1" />
+                                      Residences
+                                    </Button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -818,7 +904,319 @@ export default function UserManagement() {
             </Form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Organization Assignments Dialog */}
+        <Dialog open={!!editingUserOrganizations} onOpenChange={(open) => !open && setEditingUserOrganizations(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Organization Assignments</DialogTitle>
+              <DialogDescription>
+                Manage organization assignments for {editingUserOrganizations?.firstName} {editingUserOrganizations?.lastName}.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {editingUserOrganizations && (
+              <OrganizationEditForm 
+                user={editingUserOrganizations}
+                organizations={organizations}
+                userOrganizations={userOrganizations.filter(uo => uo.userId === editingUserOrganizations.id)}
+                onSave={(organizationIds) => {
+                  editOrganizationsMutation.mutate({
+                    userId: editingUserOrganizations.id,
+                    organizationIds
+                  });
+                }}
+                onCancel={() => setEditingUserOrganizations(null)}
+                isLoading={editOrganizationsMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Residence Assignments Dialog */}
+        <Dialog open={!!editingUserResidences} onOpenChange={(open) => !open && setEditingUserResidences(null)}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Residence Assignments</DialogTitle>
+              <DialogDescription>
+                Manage residence assignments for {editingUserResidences?.firstName} {editingUserResidences?.lastName}.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {editingUserResidences && (
+              <ResidenceEditForm 
+                user={editingUserResidences}
+                residences={residences}
+                buildings={buildings}
+                userResidences={userResidences.filter(ur => ur.userId === editingUserResidences.id)}
+                onSave={(residenceAssignments) => {
+                  editResidencesMutation.mutate({
+                    userId: editingUserResidences.id,
+                    residenceAssignments
+                  });
+                }}
+                onCancel={() => setEditingUserResidences(null)}
+                isLoading={editResidencesMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
+    </div>
+  );
+}
+
+// Organization Edit Form Component
+function OrganizationEditForm({ 
+  user, 
+  organizations, 
+  userOrganizations, 
+  onSave, 
+  onCancel, 
+  isLoading 
+}: {
+  user: User;
+  organizations: Organization[];
+  userOrganizations: any[];
+  onSave: (organizationIds: string[]) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>(
+    userOrganizations.map(uo => uo.organizationId)
+  );
+
+  const handleToggleOrganization = (orgId: string) => {
+    setSelectedOrgIds(prev => 
+      prev.includes(orgId)
+        ? prev.filter(id => id !== orgId)
+        : [...prev, orgId]
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <h4 className="font-medium">Available Organizations:</h4>
+        <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
+          {organizations.map(org => (
+            <div key={org.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50">
+              <input
+                type="checkbox"
+                id={`org-${org.id}`}
+                checked={selectedOrgIds.includes(org.id)}
+                onChange={() => handleToggleOrganization(org.id)}
+                className="rounded"
+                data-testid={`checkbox-org-${org.id}`}
+              />
+              <label htmlFor={`org-${org.id}`} className="flex-1 text-sm">
+                {org.name}
+                <div className="text-xs text-gray-500">{org.type}</div>
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          disabled={isLoading}
+          data-testid="button-cancel-org-edit"
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={() => onSave(selectedOrgIds)}
+          disabled={isLoading}
+          data-testid="button-save-org-edit"
+        >
+          {isLoading ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </DialogFooter>
+    </div>
+  );
+}
+
+// Residence Edit Form Component
+function ResidenceEditForm({ 
+  user, 
+  residences, 
+  buildings,
+  userResidences, 
+  onSave, 
+  onCancel, 
+  isLoading 
+}: {
+  user: User;
+  residences: Residence[];
+  buildings: Building[];
+  userResidences: any[];
+  onSave: (residenceAssignments: any[]) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [assignments, setAssignments] = useState<any[]>(
+    userResidences.map(ur => ({
+      residenceId: ur.residenceId,
+      relationshipType: ur.relationshipType || 'tenant',
+      startDate: ur.startDate || new Date().toISOString().split('T')[0],
+      endDate: ur.endDate || ''
+    }))
+  );
+
+  const availableResidences = residences.filter(residence => {
+    // Only show residences not already assigned or currently assigned ones
+    return !assignments.some(a => a.residenceId === residence.id) ||
+           userResidences.some(ur => ur.residenceId === residence.id);
+  });
+
+  const addResidence = () => {
+    if (availableResidences.length > 0) {
+      setAssignments(prev => [...prev, {
+        residenceId: availableResidences[0].id,
+        relationshipType: 'tenant',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: ''
+      }]);
+    }
+  };
+
+  const removeResidence = (index: number) => {
+    setAssignments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateAssignment = (index: number, field: string, value: string) => {
+    setAssignments(prev => prev.map((assignment, i) => 
+      i === index ? { ...assignment, [field]: value } : assignment
+    ));
+  };
+
+  const getResidenceDisplay = (residenceId: string) => {
+    const residence = residences.find(r => r.id === residenceId);
+    const building = buildings.find(b => b.id === residence?.buildingId);
+    return residence && building ? `${building.name} - Unit ${residence.unitNumber}` : 'Unknown';
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium">Residence Assignments:</h4>
+          <Button 
+            size="sm" 
+            onClick={addResidence}
+            disabled={availableResidences.length === 0}
+            data-testid="button-add-residence"
+          >
+            Add Residence
+          </Button>
+        </div>
+
+        {assignments.length === 0 ? (
+          <div className="text-sm text-gray-500 text-center py-4">
+            No residence assignments. Click "Add Residence" to assign a residence.
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-60 overflow-y-auto">
+            {assignments.map((assignment, index) => (
+              <div key={index} className="border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-medium text-sm">Assignment {index + 1}</h5>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => removeResidence(index)}
+                    data-testid={`button-remove-residence-${index}`}
+                  >
+                    Remove
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-xs font-medium">Residence</label>
+                    <select
+                      value={assignment.residenceId}
+                      onChange={(e) => updateAssignment(index, 'residenceId', e.target.value)}
+                      className="w-full px-2 py-1 text-sm border rounded"
+                      data-testid={`select-residence-${index}`}
+                    >
+                      {residences.map(residence => {
+                        const building = buildings.find(b => b.id === residence.buildingId);
+                        return (
+                          <option key={residence.id} value={residence.id}>
+                            {building?.name} - Unit {residence.unitNumber}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-medium">Relationship Type</label>
+                    <select
+                      value={assignment.relationshipType}
+                      onChange={(e) => updateAssignment(index, 'relationshipType', e.target.value)}
+                      className="w-full px-2 py-1 text-sm border rounded"
+                      data-testid={`select-relationship-${index}`}
+                    >
+                      <option value="owner">Owner</option>
+                      <option value="tenant">Tenant</option>
+                      <option value="occupant">Occupant</option>
+                    </select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs font-medium">Start Date</label>
+                      <input
+                        type="date"
+                        value={assignment.startDate}
+                        onChange={(e) => updateAssignment(index, 'startDate', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        data-testid={`input-start-date-${index}`}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs font-medium">End Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={assignment.endDate}
+                        onChange={(e) => updateAssignment(index, 'endDate', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        data-testid={`input-end-date-${index}`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <DialogFooter>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          disabled={isLoading}
+          data-testid="button-cancel-residence-edit"
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={() => onSave(assignments)}
+          disabled={isLoading}
+          data-testid="button-save-residence-edit"
+        >
+          {isLoading ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </DialogFooter>
     </div>
   );
 }
