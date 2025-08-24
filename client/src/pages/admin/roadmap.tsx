@@ -132,13 +132,13 @@ export default function OwnerRoadmap() {
       }
       return response.json();
     },
-    onSuccess: (_data) => {
+    onSuccess: (data) => {
       toast({
         title: 'Sync Completed',
         description: data.message || 'All features have been synchronized to production.',
       });
     },
-    onError: (_error: unknown) => {
+    onError: (error: any) => {
       toast({
         title: 'Sync Failed',
         description: error.message || 'Failed to synchronize features to production.',
@@ -154,7 +154,7 @@ export default function OwnerRoadmap() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch features from the database
-  const { _data: features = [], isLoading, error } = useQuery({
+  const { data: features = [], isLoading, error } = useQuery({
     queryKey: ['/api/features', 'roadmap'],
     queryFn: async () => {
       const res = await fetch('/api/features?roadmap=true', { 
@@ -168,8 +168,8 @@ export default function OwnerRoadmap() {
   });
 
   // Minimal debug logging only for actual errors
-  if (_error) {
-    console.error('Features query _error:', _error);
+  if (error) {
+    console.error('Features query error:', error);
   }
 
   /**
@@ -457,7 +457,7 @@ export default function OwnerRoadmap() {
             type='text'
             placeholder='Search features by name, description, or category...'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target._value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className='pl-10 pr-4'
           />
         </div>
