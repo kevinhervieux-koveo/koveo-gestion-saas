@@ -91,7 +91,8 @@ export function registerContactRoutes(app: Express) {
       const user = req.user;
 
       if (!entity || !entityId) {
-        return res.status(400).json({ message: 'Entity and entityId are required' });
+        // Return empty array instead of error for missing parameters
+        return res.json([]);
       }
 
       // Check permissions for building contacts

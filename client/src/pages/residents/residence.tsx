@@ -225,14 +225,14 @@ export default function Residence() {
   // Fetch contacts for selected residence
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ["/api/contacts", selectedResidenceId],
-    queryFn: () => selectedResidenceId ? apiRequest("GET", `/api/contacts?residenceId=${selectedResidenceId}`) : Promise.resolve([]),
+    queryFn: () => selectedResidenceId ? apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`) : Promise.resolve([]),
     enabled: !!selectedResidenceId,
   });
 
   // Fetch building contacts (read-only for residents)
   const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
     queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
-    queryFn: () => selectedResidence?.buildingId ? apiRequest("GET", `/api/contacts?buildingId=${selectedResidence.buildingId}`) : Promise.resolve([]),
+    queryFn: () => selectedResidence?.buildingId ? apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`) : Promise.resolve([]),
     enabled: !!selectedResidence?.buildingId,
   });
 
