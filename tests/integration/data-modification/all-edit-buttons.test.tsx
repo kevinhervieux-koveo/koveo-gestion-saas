@@ -269,11 +269,14 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       );
 
       // Fill out forgot password form
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByRole('textbox', { name: /email/i }) || 
+                        screen.getByPlaceholderText(/email/i) ||
+                        screen.getByTestId('input-email');
       await user.type(emailInput, 'test@example.com');
 
       // Submit form
-      const submitButton = screen.getByRole('button', { name: /send reset link/i });
+      const submitButton = screen.getByRole('button', { name: /send|envoyer/i }) ||
+                          screen.getByTestId('button-submit');
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -284,11 +287,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     });
 
     it('should handle password reset form', async () => {
-      // Mock URL parameters
-      Object.defineProperty(window, 'location', {
-        value: { search: '?token=reset-token' },
-        writable: true
-      });
+      // Mock URL parameters - use delete first to avoid redefinition error
+      delete (window as any).location;
+      (window as any).location = { search: '?token=reset-token' };
 
       render(
         <TestProviders>
@@ -297,8 +298,10 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       );
 
       // Fill out password reset form
-      const passwordInput = screen.getByLabelText(/new password/i);
-      const confirmInput = screen.getByLabelText(/confirm password/i);
+      const passwordInput = screen.getByTestId('input-password') || 
+                           screen.getByPlaceholderText(/password/i);
+      const confirmInput = screen.getByTestId('input-confirm-password') || 
+                         screen.getByPlaceholderText(/confirm/i);
 
       await user.type(passwordInput, 'newPassword123');
       await user.type(confirmInput, 'newPassword123');

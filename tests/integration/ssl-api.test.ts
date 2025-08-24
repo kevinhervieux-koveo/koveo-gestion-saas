@@ -41,6 +41,7 @@ describe('SSL API Integration', () => {
       fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
       validFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       validTo: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+      nextRenewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       status: 'active',
       autoRenew: true,
       renewalAttempts: 0,

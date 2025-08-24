@@ -43,13 +43,18 @@ jest.mock('drizzle-orm', () => ({
 
 // Mock auth middleware
 const mockRequireAuth = (req: any, res: any, next: any) => {
-  req.user = req.mockUser || {
-    id: 'admin-123',
-    role: 'admin',
-    organizationId: 'org-123',
-    organizationName: 'Test Org',
-  };
-  next();
+  // Check if authorization header is present for authenticated requests
+  if (req.headers.authorization || req.mockUser) {
+    req.user = req.mockUser || {
+      id: 'admin-123',
+      role: 'admin',
+      organizationId: 'org-123',
+      organizationName: 'Test Org',
+    };
+    next();
+  } else {
+    res.status(401).json({ message: 'Authentication required' });
+  }
 };
 
 jest.mock('../../server/auth', () => ({
@@ -581,8 +586,10 @@ describe('Buildings API Integration Tests', () => {
         throw new Error('Database connection failed');
       });
 
+      // Set mock user for authenticated request
       const response = await request(app)
         .get('/api/manager/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .expect(500);
 
       expect(response.body).toHaveProperty('error', 'Internal server error');
@@ -599,6 +606,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(invalidPostalCodeData)
         .expect(400);
 
