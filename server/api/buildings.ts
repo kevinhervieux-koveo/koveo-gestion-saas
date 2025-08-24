@@ -187,10 +187,10 @@ export function registerBuildingRoutes(app: Express): void {
           )
         );
 
-      const hasGlobalAccess = userOrgs.some(org => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+      const hasGlobalAccess = currentUser.role === 'admin' || userOrgs.some(org => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
       
       if (hasGlobalAccess) {
-        console.warn(`🌟 User with global access detected - granting access to ALL buildings`);
+        console.warn(`🌟 Admin user or user with global access detected - granting access to ALL buildings`);
         
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await db
