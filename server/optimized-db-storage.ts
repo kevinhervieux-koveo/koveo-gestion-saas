@@ -1649,16 +1649,12 @@ export class OptimizedDatabaseStorage implements IStorage {
           reason: schema.userPermissions.reason,
           grantedAt: schema.userPermissions.grantedAt,
           createdAt: schema.userPermissions.createdAt,
-          permission: {
-            id: schema.permissions.id,
-            name: schema.permissions.name,
-            displayName: schema.permissions.displayName,
-            description: schema.permissions.description,
-            resourceType: schema.permissions.resourceType,
-            action: schema.permissions.action,
-            isActive: schema.permissions.isActive,
-            createdAt: schema.permissions.createdAt
-          }
+          permissionName: schema.permissions.name,
+          permissionDisplayName: schema.permissions.displayName,
+          permissionDescription: schema.permissions.description,
+          permissionResourceType: schema.permissions.resourceType,
+          permissionAction: schema.permissions.action,
+          permissionIsActive: schema.permissions.isActive
         })
         .from(schema.userPermissions)
         .innerJoin(schema.permissions, eq(schema.userPermissions.permissionId, schema.permissions.id))

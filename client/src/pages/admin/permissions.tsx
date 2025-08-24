@@ -245,7 +245,7 @@ export default function Permissions() {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Role Hierarchy</p>
                     <p className="text-2xl font-bold text-koveo-navy">{roles.length}</p>
-                    <p className="text-xs text-gray-500 mt-1">Admin → Manager → Tenant → Resident</p>
+                    <p className="text-xs text-gray-500 mt-1">Admin → Manager → Resident → Tenant</p>
                   </div>
                   <Users className="h-8 w-8 text-koveo-navy" />
                 </div>
