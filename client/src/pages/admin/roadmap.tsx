@@ -718,7 +718,7 @@ export default function OwnerRoadmap() {
                                           <Label htmlFor={`status-${feature.id}`} className='text-xs text-gray-600'>Status:</Label>
                                           <Select
                                             value={feature.status}
-                                            onValueChange={(_value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
+                                            onValueChange={(value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
                                             disabled={statusMutation.isPending}
                                           >
                                             <SelectTrigger id={`status-${feature.id}`} className='w-32 h-7 text-xs'>
@@ -769,7 +769,7 @@ export default function OwnerRoadmap() {
                                     ) : (
                                       <div className='divide-y divide-gray-200'>
                                         {items.map((item, _index) => (
-                                          <div key={item.id || index} className='p-3 pl-12 hover:bg-white transition-colors'>
+                                          <div key={item.id || _index} className='p-3 pl-12 hover:bg-white transition-colors'>
                                             <div className='flex items-start space-x-3'>
                                               <button
                                                 onClick={() => handleToggleActionableItem(item)}
