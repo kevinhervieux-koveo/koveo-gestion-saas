@@ -162,7 +162,7 @@ export function /**
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       // Redirect to dashboard after successful login
-      setLocation('/dashboard');
+      setLocation('/dashboard/quick-actions');
     },
   });
 

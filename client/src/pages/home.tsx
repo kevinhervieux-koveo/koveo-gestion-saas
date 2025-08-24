@@ -56,7 +56,7 @@ export default function /**
               <Button 
                 size="lg" 
                 className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
-                onClick={() => setLocation('/dashboard')}
+                onClick={() => setLocation('/dashboard/quick-actions')}
                 data-testid="button-go-to-dashboard"
               >
                 {t('goToDashboard') || 'Go to Dashboard'}

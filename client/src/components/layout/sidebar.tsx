@@ -191,7 +191,7 @@ export function Sidebar() {
         <div className='p-6 border-b border-gray-200'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center space-x-3'>
-              <Link href="/dashboard" onClick={handleNavItemClick}>
+              <Link href="/dashboard/quick-actions" onClick={handleNavItemClick}>
                 <div className="h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity">
                   <img 
                     src={koveoLogo} 

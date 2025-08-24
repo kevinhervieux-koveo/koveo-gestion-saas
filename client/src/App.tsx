@@ -282,7 +282,7 @@ function Router() {
               <Route path='/login' component={LoginRedirect} />
 
               {/* Main Dashboard */}
-              <Route path='/dashboard' component={DashboardPage} />
+              <Route path='/dashboard/quick-actions' component={DashboardPage} />
 
               {/* Admin routes */}
               <Route path='/admin/organizations' component={AdminOrganizations} />
@@ -346,7 +346,7 @@ function LoginRedirect() {
   const [, setLocation] = useLocation();
   
   useEffect(() => {
-    setLocation('/dashboard');
+    setLocation('/dashboard/quick-actions');
   }, [setLocation]);
   
   return <LoadingSpinner />;
