@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
-import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
@@ -122,19 +122,6 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return await bcrypt.compare(password, hashedPassword);
 }
 
-/**
- * Legacy PBKDF2 password verification for backward compatibility during migration.
- * Used to verify old PBKDF2 passwords and migrate them to bcrypt.
- * 
- * @param {string} password - Plain text password to verify.
- * @param {string} salt - Stored hexadecimal salt value.
- * @param {string} hash - Stored hexadecimal hash value.
- * @returns {boolean} True if password matches, false otherwise.
- */
-export function verifyLegacyPassword(password: string, salt: string, hash: string): boolean {
-  const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-  return hash === verifyHash;
-}
 
 /**
  * Authentication middleware to protect routes requiring user login.
@@ -370,34 +357,8 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Handle bcrypt hashes, legacy PBKDF2 (salt:hash), and plain text passwords
-      let isValidPassword = false;
-      
-      if (user.password.startsWith('$2')) {
-        // Modern format: bcrypt hash
-        isValidPassword = await verifyPassword(password, user.password);
-      } else if (user.password.includes(':')) {
-        // Legacy PBKDF2 format: salt:hash (migrate to bcrypt)
-        const [salt, hash] = user.password.split(':');
-        isValidPassword = verifyLegacyPassword(password, salt, hash);
-        
-        if (isValidPassword) {
-          // Automatically upgrade to bcrypt
-          const hashedPassword = await hashPassword(password);
-          await storage.updateUser(user.id, { password: hashedPassword });
-          console.warn(`Password upgraded from PBKDF2 to bcrypt for user: ${user.id}`);
-        }
-      } else {
-        // Legacy format: plain text (migrate to bcrypt)
-        if (user.password === password) {
-          isValidPassword = true;
-          
-          // Automatically upgrade to bcrypt
-          const hashedPassword = await hashPassword(password);
-          await storage.updateUser(user.id, { password: hashedPassword });
-          console.warn(`Password upgraded from plain text to bcrypt for user: ${user.id}`);
-        }
-      }
+      // Use bcrypt for password verification
+      const isValidPassword = await verifyPassword(password, user.password);
       
       if (!isValidPassword) {
         return res.status(401).json({ 
