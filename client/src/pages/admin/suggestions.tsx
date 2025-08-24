@@ -47,7 +47,7 @@ const categoryConfig = [
  */
 export default function OwnerSuggestions() {
   const { toast } = useToast();
-  const { _data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
+  const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
     refetchInterval: 30000, // Refetch every 30 seconds to ensure fresh data
     staleTime: 0, // Data is always considered stale

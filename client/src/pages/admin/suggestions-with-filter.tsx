@@ -41,7 +41,7 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Priority',
       type: 'select',
       icon: AlertCircle,
-      _options: [
+      options: [
         { label: 'Critical', _value: 'Critical', color: 'purple' },
         { label: 'High', _value: 'High', color: 'red' },
         { label: 'Medium', _value: 'Medium', color: 'yellow' },
@@ -55,7 +55,7 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Status',
       type: 'select',
       icon: Clock,
-      _options: [
+      options: [
         { label: 'New', _value: 'New' },
         { label: 'Acknowledged', _value: 'Acknowledged' },
         { label: 'Done', _value: 'Done' },
@@ -68,7 +68,7 @@ const filterSortConfig: FilterSortConfig = {
       label: 'Category',
       type: 'select',
       icon: MessageSquare,
-      _options: [
+      options: [
         { label: 'Code Quality', _value: 'Code Quality', icon: Code },
         { label: 'Testing', _value: 'Testing' },
         { label: 'Documentation', _value: 'Documentation', icon: FileText },
@@ -152,7 +152,7 @@ const filterSortConfig: FilterSortConfig = {
  * @returns {JSX.Element} Rendered suggestions page with filter/sort controls.
  */
 export default function OwnerSuggestionsWithFilter() {
-  const { _data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
+  const { data: suggestions = [], isLoading } = useQuery<ImprovementSuggestion[]>({
     queryKey: ['/api/pillars/suggestions'],
   });
 
@@ -281,7 +281,6 @@ export default function OwnerSuggestionsWithFilter() {
             search={search}
             onAddFilter={addFilter}
             onRemoveFilter={removeFilter}
-            onUpdateFilter={() => {}}
             onClearFilters={clearFilters}
             onSetSort={() => {}}
             onToggleSort={toggleSort}
