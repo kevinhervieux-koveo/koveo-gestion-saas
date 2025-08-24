@@ -74,7 +74,7 @@ export default function /**
   const itemsPerPage = 10;
 
   // Fetch residences with search and filters
-  const { _data: residences, isLoading: residencesLoading, refetch } = useQuery({
+  const { data: residences, isLoading: residencesLoading, refetch } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
@@ -137,7 +137,7 @@ export default function /**
   });
 
   // Fetch buildings for filter dropdown - use manager endpoint for proper permissions
-  const { _data: buildingsData } = useQuery({
+  const { data: buildingsData } = useQuery({
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await fetch('/api/manager/buildings');
@@ -149,8 +149,8 @@ export default function /**
   // Extract buildings array from the response
   const buildings = buildingsData?.buildings || [];
 
-  // Fetch all residences to get complete floor list for filter (without search/filter _params)
-  const { _data: allResidences } = useQuery({
+  // Fetch all residences to get complete floor list for filter (without search/filter params)
+  const { data: allResidences } = useQuery({
     queryKey: ['/api/residences/all'],
     queryFn: async () => {
       const response = await fetch('/api/residences');
@@ -166,18 +166,18 @@ export default function /**
     : [];
 
   // Reset page when filters change
-  const handleBuildingChange = (_value: string) => {
-    setSelectedBuilding(_value);
+  const handleBuildingChange = (value: string) => {
+    setSelectedBuilding(value);
     setCurrentPage(1);
   };
 
-  const handleFloorChange = (_value: string) => {
-    setSelectedFloor(_value);
+  const handleFloorChange = (value: string) => {
+    setSelectedFloor(value);
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (_value: string) => {
-    setSearchTerm(_value);
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
     setCurrentPage(1);
   };
 
@@ -210,7 +210,7 @@ export default function /**
                   <Input
                     placeholder='Search by unit number or tenant name...'
                     value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target._value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className='w-full'
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function /**
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='all'>All Buildings</SelectItem>
-                      {buildings?.map((building) => (
+                      {buildings?.map((building: any) => (
                         <SelectItem key={building.id} value={building.id}>
                           {building.name}
                         </SelectItem>
@@ -431,32 +431,16 @@ export default function /**
                   max={totalPages}
                   value={currentPage}
                   onChange={(e) => {
-                    const page = parseInt(e.target._value); /**
-   * If function.
-   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
-   */ /**
-   * If function.
-   * @param page >= 1 && page <= totalPages - page >= 1 && page <= totalPages parameter.
-   */
-
-
+                    const page = parseInt(e.target.value);
                     if (page >= 1 && page <= totalPages) {
                       setCurrentPage(page);
                     }
                   }}
                   onBlur={(e) => {
-                    const page = parseInt(e.target._value);
+                    const page = parseInt(e.target.value);
                     if (isNaN(page) || page < 1) {
                       setCurrentPage(1);
-                    } else /**
-   * If function.
-   * @param page > totalPages - page > totalPages parameter.
-   */ /**
-   * If function.
-   * @param page > totalPages - page > totalPages parameter.
-   */
-
- if (page > totalPages) {
+                    } else if (page > totalPages) {
                       setCurrentPage(totalPages);
                     }
                   }}
