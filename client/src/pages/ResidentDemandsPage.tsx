@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';\nimport { toastUtils } from '@/lib/toastUtils';\nimport { PageLayout } from '@/components/common/PageLayout';\nimport { PageHeader } from '@/components/common/PageHeader';\nimport { LoadingState } from '@/components/common/LoadingState';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
@@ -168,17 +168,10 @@ export default function /**
       queryClient.invalidateQueries({ queryKey: ['/api/demands'] });
       setIsNewDemandOpen(false);
       newDemandForm.reset();
-      toast({
-        title: 'Success',
-        description: 'Demand created successfully',
-      });
+      toastUtils.createSuccess('Demand');
     },
     onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to create demand',
-        variant: 'destructive',
-      });
+      toastUtils.createError('demand');
     },
   });
 
@@ -289,25 +282,30 @@ export default function /**
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">Loading demands...</div>
-        </div>
-      </div>
+      <PageLayout>
+        <LoadingState message="Loading demands..." />
+      </PageLayout>
     );
   }
 
+  const headerActions = (
+    <DialogTrigger asChild>
+      <Button>
+        <Plus className="h-4 w-4 mr-2" />
+        New Demand
+      </Button>
+    </DialogTrigger>
+  );
+
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Demands</h1>
-          <p className="text-muted-foreground">
-            Submit and track your requests
-          </p>
-        </div>
-        <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
+    <PageLayout>
+      <PageHeader
+        title="My Demands"
+        description="Submit and track your requests"
+        actions={headerActions}
+      />
+      
+      <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -501,6 +499,6 @@ export default function /**
         user={defaultUser}
         onDemandUpdated={handleDemandUpdated}
       />
-    </div>
+    </PageLayout>
   );
 }
