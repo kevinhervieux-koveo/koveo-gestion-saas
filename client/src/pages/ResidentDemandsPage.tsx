@@ -16,6 +16,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
+import { SearchInput } from '@/components/common/SearchInput';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
+import { DemandCard } from '@/components/common/DemandCard';
+import { DemandFilters } from '@/components/common/DemandFilters';
+import { schemas, enumFields } from '@/lib/validations';
 
 // Types
 /**
@@ -70,14 +75,7 @@ interface Residence {
 }
 
 // Form schemas
-const demandSchema = z.object({
-  type: z.enum(['maintenance', 'complaint', 'information', 'other']),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  buildingId: z.string().min(1, 'Building is required'),
-  residenceId: z.string().optional(),
-  assignationBuildingId: z.string().optional(),
-  assignationResidenceId: z.string().optional(),
-});
+const demandSchema = schemas.demand;
 
 /**
  *
@@ -404,45 +402,17 @@ export default function /**
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search demands..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="submitted">Submitted</SelectItem>
-            <SelectItem value="under_review">Under Review</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="maintenance">Maintenance</SelectItem>
-            <SelectItem value="complaint">Complaint</SelectItem>
-            <SelectItem value="information">Information</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <DemandFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        typeFilter={typeFilter}
+        onTypeChange={setTypeFilter}
+        showBuildingFilter={false}
+        buildingFilter=""
+        onBuildingChange={() => {}}
+      />
 
       {/* Demands List */}
       <div className="space-y-6">

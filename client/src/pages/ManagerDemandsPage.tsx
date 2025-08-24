@@ -16,6 +16,9 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { DemandFilters } from '@/components/common/DemandFilters';
+import { DemandCard } from '@/components/common/DemandCard';
+import { schemas } from '@/lib/validations';
 
 // Types
 /**
@@ -60,12 +63,7 @@ interface Residence {
 }
 
 // Form schemas
-const reviewSchema = z.object({
-  status: z.enum(['approved', 'rejected', 'under_review', 'in_progress', 'completed']),
-  reviewNotes: z.string().optional(),
-  assignationBuildingId: z.string().optional(),
-  assignationResidenceId: z.string().optional(),
-});
+const reviewSchema = schemas.demandReview;
 
 /**
  *

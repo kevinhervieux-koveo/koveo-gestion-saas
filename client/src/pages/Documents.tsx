@@ -18,6 +18,9 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { Upload, Download, Edit, Trash2, FileText, Search, Plus, Building, Home } from "lucide-react";
 import type { UploadResult } from "@uppy/core";
+import { SearchInput } from "@/components/common/SearchInput";
+import { FilterDropdown } from "@/components/common/FilterDropdown";
+import { schemas, enumFields } from "@/lib/validations";
 
 // Document categories
 const DOCUMENT_CATEGORIES = [
@@ -37,7 +40,7 @@ const DOCUMENT_CATEGORIES = [
 const documentFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().optional(),
-  category: z.enum(['bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes', 'insurance', 'contracts', 'permits', 'inspection', 'other']),
+  category: enumFields.buildingDocumentType,
   organizationId: z.string().optional(),
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
@@ -565,29 +568,25 @@ export default function /**
       {/* Search and filter controls */}
       <div className="flex gap-4 mb-6">
         <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target._value)}
-              className="pl-10"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search documents..."
+            iconColor="gray"
+            data-testid="documents-search"
+          />
         </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {DOCUMENT_CATEGORIES.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
-                {category.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FilterDropdown
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+          options={[
+            { value: 'all', label: 'All Categories' },
+            ...DOCUMENT_CATEGORIES.map(cat => ({ value: cat.value, label: cat.label }))
+          ]}
+          placeholder="Filter by category"
+          width="w-48"
+          data-testid="category-filter"
+        />
       </div>
 
       {/* Documents grid */}
