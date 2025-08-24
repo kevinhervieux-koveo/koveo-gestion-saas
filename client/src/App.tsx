@@ -306,9 +306,9 @@ function Router() {
 
               {/* Manager routes */}
               <Route path='/manager/buildings' component={ManagerBuildings} />
-              <Route path='/manager/buildings/documents' component={BuildingDocuments} />
+              <Route path='/manager/buildings/documents' component={() => <BuildingDocuments />} />
               <Route path='/manager/residences' component={ManagerResidences} />
-              <Route path='/manager/residences/documents' component={ResidenceDocuments} />
+              <Route path='/manager/residences/documents' component={() => <ResidenceDocuments />} />
               <Route path='/manager/budget' component={ManagerBudget} />
               <Route path='/manager/bills' component={ManagerBills} />
               <Route path='/manager/demands' component={ManagerDemands} />
@@ -319,9 +319,9 @@ function Router() {
 
               {/* Residents routes */}
               <Route path='/residents/residence' component={ResidentsResidence} />
-              <Route path='/residents/residence/documents' component={ResidentsResidenceDocuments} />
+              <Route path='/residents/residence/documents' component={() => <ResidentsResidenceDocuments />} />
               <Route path='/residents/building' component={ResidentsBuilding} />
-              <Route path='/residents/building/documents' component={ResidentsBuildingDocuments} />
+              <Route path='/residents/building/documents' component={() => <ResidentsBuildingDocuments />} />
               <Route path='/residents/demands' component={ResidentsDemands} />
 
               {/* Settings routes */}
