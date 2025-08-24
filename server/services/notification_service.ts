@@ -55,7 +55,7 @@ export class NotificationService {
       // Create notifications for all administrators
       const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
         userId: admin.id,
-        type: 'ssl_certificate',
+        type: 'system',
         title,
         message,
         relatedEntityId: null, // Could be SSL certificate ID if needed
@@ -66,7 +66,7 @@ export class NotificationService {
 
       console.warn(`SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (____error) {
+    } catch (_error) {
       console.error('Failed to send SSL expiry notification:', _error);
       throw new Error(`Failed to send SSL expiry notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
@@ -110,7 +110,7 @@ export class NotificationService {
 
       const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
         userId: admin.id,
-        type: 'ssl_certificate',
+        type: 'system',
         title,
         message,
         relatedEntityId: null,
@@ -121,9 +121,9 @@ export class NotificationService {
 
       console.warn(`SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (____error) {
-      console.error('Failed to send SSL renewal failure notification:', _error);
-      throw new Error(`Failed to send SSL renewal failure notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+    } catch (error) {
+      console.error('Failed to send SSL renewal failure notification:', error);
+      throw new Error(`Failed to send SSL renewal failure notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -172,7 +172,7 @@ export class NotificationService {
 
       const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
         userId: admin.id,
-        type: 'ssl_certificate',
+        type: 'system',
         title,
         message,
         relatedEntityId: null,
@@ -183,8 +183,8 @@ export class NotificationService {
 
       console.warn(`SSL renewal success notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
       
-    } catch (____error) {
-      console.error('Failed to send SSL renewal success notification:', _error);
+    } catch (error) {
+      console.error('Failed to send SSL renewal success notification:', error);
       // Don't throw error for success notifications
     }
   }
@@ -202,14 +202,14 @@ export class NotificationService {
         .where(
           and(
             eq(notifications.userId, userId),
-            eq(notifications.type, 'ssl_certificate'),
+            eq(notifications.type, 'system'),
             eq(notifications.isRead, false)
           )
         );
 
       return result.length;
-    } catch (____error) {
-      console.error('Failed to get unread SSL notification count:', _error);
+    } catch (error) {
+      console.error('Failed to get unread SSL notification count:', error);
       return 0;
     }
   }

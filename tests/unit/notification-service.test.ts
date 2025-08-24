@@ -36,9 +36,8 @@ describe('NotificationService', () => {
     it('should handle SSL expiry alerts', async () => {
       const _result = await notificationService.sendSSLExpiryAlert(
         'test.com',
-        'admin@test.com',
         new Date(),
-        'Test SSL expiry message'
+        7
       );
       expect(_result).toBeDefined();
     });
@@ -48,7 +47,7 @@ describe('NotificationService', () => {
         'test.com',
         'admin@test.com',
         'Test error',
-        new Date()
+        7
       );
       expect(_result).toBeDefined();
     });
