@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import { db } from '../db.js';
-import { residences, buildings, organizations, userResidences, users } from '../../shared/schema.js';
+import { residences, buildings, organizations, userResidences, users, userOrganizations } from '../../shared/schema.js';
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index.js';
 import { delayedUpdateService } from '../services/delayed-update-service.js';
@@ -103,6 +103,8 @@ export function registerResidenceRoutes(app: Express) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
 
+      console.warn(`📊 Fetching residences for user ${user.id} with role ${user.role}`);
+
       // Start with base conditions
       const conditions = [eq(residences.isActive, true)];
 
@@ -113,6 +115,105 @@ export function registerResidenceRoutes(app: Express) {
 
       if (floor) {
         conditions.push(eq(residences.floor, parseInt(floor)));
+      }
+
+      // Use the same access control logic as /api/manager/buildings
+      const accessibleBuildingIds = new Set<string>();
+
+      // Check if user belongs to Koveo organization (special global access)
+      const userOrgs = await db
+        .select({
+          organizationId: organizations.id,
+          organizationName: organizations.name,
+        })
+        .from(organizations)
+        .innerJoin(userOrganizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(
+          and(
+            eq(userOrganizations.userId, user.id),
+            eq(userOrganizations.isActive, true)
+          )
+        );
+
+      const isKoveoUser = userOrgs.some(org => org.organizationName === 'Koveo');
+      
+      if (isKoveoUser) {
+        console.warn(`🌟 Koveo organization user detected - granting access to ALL residences`);
+        
+        // Koveo users can see ALL residences from ALL buildings
+        const allBuildings = await db
+          .select({ id: buildings.id })
+          .from(buildings)
+          .where(eq(buildings.isActive, true));
+
+        allBuildings.forEach(building => {
+          accessibleBuildingIds.add(building.id);
+        });
+        
+      } else {
+        // Regular users: Get buildings from their organizations
+        if (user.role === 'admin' || user.role === 'manager') {
+          if (userOrgs.length > 0) {
+            const orgIds = userOrgs.map(uo => uo.organizationId);
+            
+            // Get all buildings from these organizations
+            const orgBuildings = await db
+              .select({ id: buildings.id })
+              .from(buildings)
+              .where(
+                and(
+                  inArray(buildings.organizationId, orgIds),
+                  eq(buildings.isActive, true)
+                )
+              );
+
+            orgBuildings.forEach(building => {
+              accessibleBuildingIds.add(building.id);
+            });
+          }
+        }
+
+        // For ALL roles (Admin, Manager, Resident, Tenant): Get buildings from their residences
+        const userResidenceRecords = await db
+          .select({
+            residenceId: userResidences.residenceId,
+          })
+          .from(userResidences)
+          .where(
+            and(
+              eq(userResidences.userId, user.id),
+              eq(userResidences.isActive, true)
+            )
+          );
+
+        if (userResidenceRecords.length > 0) {
+          const residenceIds = userResidenceRecords.map(ur => ur.residenceId);
+          
+          // Get buildings through residences
+          const residenceBuildings = await db
+            .select({ id: buildings.id })
+            .from(residences)
+            .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+            .where(
+              and(
+                inArray(residences.id, residenceIds),
+                eq(buildings.isActive, true)
+              )
+            );
+
+          residenceBuildings.forEach(building => {
+            accessibleBuildingIds.add(building.id);
+          });
+        }
+      }
+
+      // Add building access filter to conditions
+      if (accessibleBuildingIds.size > 0) {
+        conditions.push(inArray(residences.buildingId, Array.from(accessibleBuildingIds)));
+      } else {
+        // User has no access to any buildings, return empty result
+        console.warn(`❌ User ${user.id} has no access to any buildings`);
+        return res.json([]);
       }
 
       // Get residences with building and organization info
@@ -128,23 +229,6 @@ export function registerResidenceRoutes(app: Express) {
         .where(and(...conditions));
 
       let results = await baseQuery;
-
-      // Apply RBAC - filter results based on user access
-      if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        // Get user's accessible organization IDs
-        const userOrgs = await db
-          .select({ organizationId: organizations.id })
-          .from(organizations)
-          .innerJoin(buildings, eq(buildings.organizationId, organizations.id))
-          .innerJoin(residences, eq(residences.buildingId, buildings.id))
-          .innerJoin(userResidences, eq(userResidences.residenceId, residences.id))
-          .where(eq(userResidences.userId, user.id));
-
-        const accessibleOrgIds = userOrgs.map(org => org.organizationId);
-        results = results.filter(result => 
-          accessibleOrgIds.includes(result.organization?.id)
-        );
-      }
 
       // Apply search filter
       if (search) {
