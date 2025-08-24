@@ -45,7 +45,7 @@ describe('Advanced SQL Injection Security Tests', () => {
         
         // Should return valid results without executing injection
         expect(Array.isArray(result)).toBe(true);
-      } catch (_error) {
+      } catch (error: any) {
         // Should fail safely
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
       }
@@ -66,7 +66,7 @@ describe('Advanced SQL Injection Security Tests', () => {
         expect(userContext.userId).not.toContain(';');
         expect(userContext.userId).not.toContain('DROP');
         expect(['admin', 'manager', 'tenant', 'resident']).toContain(userContext.role);
-      } catch (_error) {
+      } catch (error: any) {
         // Should fail safely without revealing database details
         expect(error.message).not.toMatch(/syntax error|database|constraint/i);
       }

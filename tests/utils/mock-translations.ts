@@ -21,6 +21,8 @@ export const mockTranslations = {
     'demands.status.approved': 'Approved',
     'demands.status.in_progress': 'In Progress',
     'demands.status.completed': 'Completed',
+    'demands.status.rejected': 'Rejected',
+    'demands.status.cancelled': 'Cancelled',
     
     // Date/Time
     'date.days_ago': '{count} day ago|{count} days ago',
@@ -70,6 +72,8 @@ export const mockTranslations = {
     'demands.status.approved': 'Approuvé',
     'demands.status.in_progress': 'En cours',
     'demands.status.completed': 'Complété',
+    'demands.status.rejected': 'Rejeté',
+    'demands.status.cancelled': 'Annulé',
     
     // Date/Time
     'date.days_ago': 'Il y a {count} jour|Il y a {count} jours',
@@ -109,17 +113,18 @@ export const translate = (key: string, params: Record<string, any> = {}, lang: s
     return `[Missing translation: ${key}]`;
   }
   
-  // Handle nested objects (like date.months)
+  // Handle nested objects (like date.months) by returning the key
   if (typeof translation === 'object') {
-    return key; // Return key as fallback for object translations
+    return key;
   }
   
   // Replace parameters in translation
+  let result = translation as string;
   Object.keys(params).forEach(param => {
-    translation = (translation as string).replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+    result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
   });
   
-  return translation as string;
+  return result;
 };
 
 export const hasTranslation = (key: string, lang: string = 'en'): boolean => {
