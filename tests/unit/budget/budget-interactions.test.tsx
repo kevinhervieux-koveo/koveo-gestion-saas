@@ -1,19 +1,54 @@
-// Mock hooks before any imports
-jest.mock('@/hooks/use-language', () => ({
-  useLanguage: jest.fn(() => ({
+import React from 'react';
+import { screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
+// Reset modules to ensure clean mocking
+jest.resetModules();
+
+// Mock the modules before any imports
+// Create manual mocks that get hoisted
+const mockUseLanguage = {
+  useLanguage: () => ({
     language: 'en' as const,
     setLanguage: jest.fn(),
     t: jest.fn((_key: string) => _key),
-  })),
-}));
+  }),
+};
 
-import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+const mockUseFullscreen = {
+  useFullscreen: () => ({
+    isFullscreen: false,
+    toggleFullscreen: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-language', () => mockUseLanguage);
+jest.mock('../../../client/src/hooks/use-fullscreen', () => mockUseFullscreen);
+
+// Manual mock for useMobileMenu  
+const mockUseMobileMenu = {
+  useMobileMenu: () => ({
+    isOpen: false,
+    toggle: jest.fn(),
+    close: jest.fn(),
+    open: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-mobile-menu', () => mockUseMobileMenu);
+
+// Manual mock for useToast
+const mockUseToast = {
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-toast', () => mockUseToast);
+
 import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
 import { getDemoBuildings } from '../../utils/demo-data-helpers';
-import '@testing-library/jest-dom';
-import '../budget-test-setup';
 
 describe('Budget User Interactions and State Management', () => {
   afterEach(() => {

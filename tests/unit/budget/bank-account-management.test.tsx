@@ -1,14 +1,22 @@
-// Mock all required hooks at the top level (copied from working budget-calculations.test.tsx)
-jest.mock('../../../client/src/hooks/use-language', () => ({
-  useLanguage: jest.fn(() => ({
+import React from 'react';
+import { screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
+// Create a manual mock that gets hoisted
+const mockUseLanguage = {
+  useLanguage: () => ({
     language: 'en' as const,
     setLanguage: jest.fn(),
     t: jest.fn((_key: string) => _key),
-  })),
-}));
+  }),
+};
+
+// Use manual mock
+jest.mock('../../../client/src/hooks/use-language', () => mockUseLanguage);
 
 jest.mock('../../../client/src/hooks/use-auth', () => ({
-  useAuth: () => ({
+  __esModule: true,
+  useAuth: jest.fn(() => ({
     user: {
       id: '1',
       email: 'test@example.com',
@@ -25,22 +33,42 @@ jest.mock('../../../client/src/hooks/use-auth', () => ({
     logout: jest.fn(),
     hasRole: jest.fn().mockReturnValue(true),
     hasAnyRole: jest.fn().mockReturnValue(true),
-  }),
+  })),
 }));
 
-jest.mock('../../../client/src/hooks/use-fullscreen', () => ({
+// Manual mock for useFullscreen 
+const mockUseFullscreen = {
   useFullscreen: () => ({
     isFullscreen: false,
     toggleFullscreen: jest.fn(),
   }),
-}));
+};
 
-import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+jest.mock('../../../client/src/hooks/use-fullscreen', () => mockUseFullscreen);
+
+// Manual mock for useMobileMenu
+const mockUseMobileMenu = {
+  useMobileMenu: () => ({
+    isOpen: false,
+    toggle: jest.fn(),
+    close: jest.fn(),
+    open: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-mobile-menu', () => mockUseMobileMenu);
+
+// Manual mock for useToast
+const mockUseToast = {
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-toast', () => mockUseToast);
+
 import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
-import '@testing-library/jest-dom';
-import '../budget-test-setup';
 
 describe('Budget Bank Account Management Tests', () => {
   afterEach(() => {

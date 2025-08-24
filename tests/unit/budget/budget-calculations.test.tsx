@@ -1,19 +1,46 @@
 import React from 'react';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { getDemoBills, getDemoBuildings } from '../../utils/demo-data-helpers';
 import '@testing-library/jest-dom';
 
-// Mock useLanguage hook before any imports  
-jest.mock('@/hooks/use-language', () => ({
-  useLanguage: jest.fn(() => ({
+// Create manual mocks that get hoisted
+const mockUseLanguage = {
+  useLanguage: () => ({
     language: 'en' as const,
     setLanguage: jest.fn(),
     t: jest.fn((_key: string) => _key),
-  })),
-}));
+  }),
+};
 
-jest.mock('@/hooks/use-auth', () => ({
-  useAuth: () => ({
+const mockUseFullscreen = {
+  useFullscreen: () => ({
+    isFullscreen: false,
+    toggleFullscreen: jest.fn(),
+  }),
+};
+
+const mockUseMobileMenu = {
+  useMobileMenu: () => ({
+    isOpen: false,
+    toggle: jest.fn(),
+    close: jest.fn(),
+    open: jest.fn(),
+  }),
+};
+
+const mockUseToast = {
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+};
+
+jest.mock('../../../client/src/hooks/use-language', () => mockUseLanguage);
+jest.mock('../../../client/src/hooks/use-fullscreen', () => mockUseFullscreen);
+jest.mock('../../../client/src/hooks/use-mobile-menu', () => mockUseMobileMenu);
+jest.mock('../../../client/src/hooks/use-toast', () => mockUseToast);
+
+jest.mock('../../../client/src/hooks/use-auth', () => ({
+  __esModule: true,
+  useAuth: jest.fn(() => ({
     user: {
       id: '1',
       email: 'test@example.com',
@@ -30,23 +57,9 @@ jest.mock('@/hooks/use-auth', () => ({
     logout: jest.fn(),
     hasRole: jest.fn().mockReturnValue(true),
     hasAnyRole: jest.fn().mockReturnValue(true),
-  }),
+  })),
 }));
 
-jest.mock('@/hooks/use-fullscreen', () => ({
-  useFullscreen: () => ({
-    isFullscreen: false,
-    toggleFullscreen: jest.fn(),
-    enterFullscreen: jest.fn(),
-    exitFullscreen: jest.fn(),
-  }),
-}));
-
-jest.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
-    toast: jest.fn(),
-  }),
-}));
 
 // Mock Lucide React icons
 jest.mock('lucide-react', () => ({
@@ -90,6 +103,7 @@ jest.mock('@/components/ui/chart', () => ({
 
 import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
+import { getDemoBills, getDemoBuildings } from '../../utils/demo-data-helpers';
 
 describe('Budget Calculations and Functionalities', () => {
   afterEach(() => {
