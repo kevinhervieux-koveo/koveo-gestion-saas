@@ -642,13 +642,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/invitations/validate', async (req: any, res: any) => {
       try {
         const { token } = req.body;
-        console.warn('🔍 Validating invitation token:', { 
-          token: token ? `${token.substring(0, 8)}...` : 'missing',
-          bodyKeys: Object.keys(req.body)
-        });
+        // Validating invitation token
         
         if (!token) {
-          console.warn('❌ Missing token in request body');
+          // Missing token in request body
           return res.status(400).json({
             message: 'Token is required',
             code: 'TOKEN_REQUIRED'

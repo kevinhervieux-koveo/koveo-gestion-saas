@@ -79,15 +79,15 @@ export class OptimizedDatabaseStorage implements IStorage {
   private async initializeOptimizations(): Promise<void> {
     // Skip database optimization during tests
     if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID || process.env.SKIP_DB_OPTIMIZATION) {
-      console.warn('⚠️ Database optimizations skipped in test environment');
+      // Database optimizations skipped in test environment
       return;
     }
     
     try {
       await QueryOptimizer.applyCoreOptimizations();
-      console.warn('✅ Database optimizations applied');
+      // Database optimizations applied
     } catch (error) {
-      console.warn('⚠️ Failed to apply database optimizations:', error);
+      console.error('Failed to apply database optimizations:', error);
     }
   }
 
@@ -1635,32 +1635,19 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Gets all user permissions.
    */
   async getUserPermissions(): Promise<UserPermission[]> {
-    return this.withOptimizations(
-      'getUserPermissions',
-      'user_permissions:all',
-      'user_permissions',
-      () => db
-        .select({
-          id: schema.userPermissions.id,
-          userId: schema.userPermissions.userId,
-          permissionId: schema.userPermissions.permissionId,
-          granted: schema.userPermissions.granted,
-          grantedBy: schema.userPermissions.grantedBy,
-          reason: schema.userPermissions.reason,
-          grantedAt: schema.userPermissions.grantedAt,
-          createdAt: schema.userPermissions.createdAt,
-          permissionName: schema.permissions.name,
-          permissionDisplayName: schema.permissions.displayName,
-          permissionDescription: schema.permissions.description,
-          permissionResourceType: schema.permissions.resourceType,
-          permissionAction: schema.permissions.action,
-          permissionIsActive: schema.permissions.isActive
-        })
+    try {
+      const results = await db
+        .select()
         .from(schema.userPermissions)
         .innerJoin(schema.permissions, eq(schema.userPermissions.permissionId, schema.permissions.id))
         .where(eq(schema.permissions.isActive, true))
-        .orderBy(schema.userPermissions.userId)
-    );
+        .orderBy(schema.userPermissions.userId);
+      
+      return results || [];
+    } catch (error) {
+      console.error('Error fetching user permissions:', error);
+      return [];
+    }
   }
 
   // Building Document operations

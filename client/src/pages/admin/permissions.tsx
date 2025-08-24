@@ -526,13 +526,13 @@ export default function Permissions() {
                             max={totalPages}
                             value={currentPage}
                             onChange={(e) => {
-                              const page = parseInt(e.target._value);
+                              const page = parseInt(e.target.value);
                               if (page >= 1 && page <= totalPages) {
                                 setCurrentPage(page);
                               }
                             }}
                             onBlur={(e) => {
-                              const page = parseInt(e.target._value);
+                              const page = parseInt(e.target.value);
                               if (isNaN(page) || page < 1) {
                                 setCurrentPage(1);
                               } else if (page > totalPages) {
@@ -585,7 +585,7 @@ export default function Permissions() {
                         <Input
                           placeholder="Search permissions..."
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target._value)}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                           className="pl-10"
                         />
                       </div>
