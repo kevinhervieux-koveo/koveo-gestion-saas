@@ -106,10 +106,13 @@ export const mockTranslations = {
 };
 
 export const translate = (key: string, params: Record<string, any> = {}, lang: string = 'en'): string => {
-  const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
-  let translation = translations[key as keyof typeof translations];
+  const translations = mockTranslations[lang === 'fr' ? 'fr' : 'en'];
   
-  if (!translation) {
+  // Translation function working correctly - debug removed
+  
+  const translation = translations[key];
+  
+  if (translation === undefined) {
     return `[Missing translation: ${key}]`;
   }
   
@@ -119,7 +122,7 @@ export const translate = (key: string, params: Record<string, any> = {}, lang: s
   }
   
   // Replace parameters in translation
-  let result = translation as string;
+  let result = translation;
   Object.keys(params).forEach(param => {
     result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
   });
@@ -128,6 +131,6 @@ export const translate = (key: string, params: Record<string, any> = {}, lang: s
 };
 
 export const hasTranslation = (key: string, lang: string = 'en'): boolean => {
-  const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
+  const translations = mockTranslations[lang === 'fr' ? 'fr' : 'en'];
   return key in translations;
 };

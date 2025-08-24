@@ -184,24 +184,8 @@ const _testTranslations = {
   }
 };
 
-// Mock translation function
-const translate = (_key: string, _params: Record<string, unknown> = {}, language: 'en' | 'fr' = 'en'): string => {
-  const keys = _key.split('.');
-  let _value: unknown = mockTranslations[language];
-  
-  for (const k of keys) {
-    _value = _value?.[k];
-  }
-  
-  if (typeof _value !== 'string') {
-    return `[Missing translation: ${_key}]`;
-  }
-  
-  // Handle parameter interpolation
-  return _value.replace(/\{(\w+)\}/g, (match, param) => {
-    return _params[param]?.toString() || match;
-  });
-};
+// Use imported translate function from mock-translations.ts
+// (removed local translate function to avoid naming conflicts)
 
 // Validation helper functions
 const validateTranslationCompleteness = (enTranslations: Record<string, unknown>, frTranslations: Record<string, unknown>, path = ''): string[] => {
@@ -541,7 +525,7 @@ describe('Language Validation Tests', () => {
           const fullKey = prefix ? `${prefix}.${key}` : key;
           
           if (typeof obj[key] === 'object' && obj[key] !== null) {
-            keys = keys.concat(flattenKeys(obj[key], fullKey));
+            keys = keys.concat(flattenKeys(obj[key] as Record<string, unknown>, fullKey));
           } else {
             keys.push(fullKey);
           }
@@ -558,9 +542,9 @@ describe('Language Validation Tests', () => {
       
       // Keys should follow consistent naming patterns
       enKeys.forEach(key => {
-        expect(_key).toMatch(/^[a-z][a-z0-9_.]*$/); // lowercase, dots, underscores
-        expect(_key).not.toContain('..'); // No double dots
-        expect(_key).not.toMatch(/^_|_$/); // No leading/trailing underscores
+        expect(key).toMatch(/^[a-z][a-z0-9_.]*$/); // lowercase, dots, underscores
+        expect(key).not.toContain('..'); // No double dots
+        expect(key).not.toMatch(/^_|_$/); // No leading/trailing underscores
       });
     });
 
