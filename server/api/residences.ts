@@ -125,6 +125,7 @@ export function registerResidenceRoutes(app: Express) {
         .select({
           organizationId: organizations.id,
           organizationName: organizations.name,
+          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations
         })
         .from(organizations)
         .innerJoin(userOrganizations, eq(userOrganizations.organizationId, organizations.id))
@@ -135,10 +136,10 @@ export function registerResidenceRoutes(app: Express) {
           )
         );
 
-      const isKoveoUser = userOrgs.some(org => org.organizationName === 'Koveo');
+      const hasGlobalAccess = userOrgs.some(org => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
       
-      if (isKoveoUser) {
-        console.warn(`🌟 Koveo organization user detected - granting access to ALL residences`);
+      if (hasGlobalAccess) {
+        console.warn(`🌟 User with global access detected - granting access to ALL residences`);
         
         // Koveo users can see ALL residences from ALL buildings
         const allBuildings = await db
