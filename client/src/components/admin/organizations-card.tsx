@@ -90,7 +90,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
     onError: (_error: Error) => {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete organization',
+        description: _error.message || 'Failed to delete organization',
         variant: 'destructive',
       });
     },

@@ -169,23 +169,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
     if (column.render) {
       const value = typeof column.accessor === 'function' 
-        ? column.
-   * Accessor function.
-   * @returns item[column.accessor];
-      return column.render(value, item);
-    }
-
-    if (typeof column.accessor === 'function') result.
-
-   * Accessor function.
-   * @returns item[column.accessor];
-      return column.render(value, item);
-    }
-
-    if (typeof column.accessor === 'function') result.
-
-
-accessor(item) 
+        ? column.accessor(item)
         : item[column.accessor];
       return column.render(value, item);
     }
@@ -213,7 +197,7 @@ accessor(item)
 
 
 
-    if (value && typeof value === 'object' && 'toLocaleDateString' in _value) {
+    if (value && typeof value === 'object' && 'toLocaleDateString' in value) {
       return (value as Date).toLocaleDateString();
     }
 

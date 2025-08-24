@@ -107,9 +107,9 @@ describe('MoneyFlowAutomationService', () => {
 
       const result = await service.generateFutureMoneyFlowEntries();
 
-      expect(_result).toHaveProperty('billEntriesCreated');
-      expect(_result).toHaveProperty('residenceEntriesCreated');
-      expect(_result).toHaveProperty('totalEntriesCreated');
+      expect(result).toHaveProperty('billEntriesCreated');
+      expect(result).toHaveProperty('residenceEntriesCreated');
+      expect(result).toHaveProperty('totalEntriesCreated');
       expect(result.totalEntriesCreated).toBeGreaterThanOrEqual(0);
     });
 
@@ -239,7 +239,7 @@ describe('MoneyFlowAutomationService', () => {
 
       mappings.forEach(({ billCategory, expected }) => {
         // Access the private method through any to test it
-        const result = (service as any).mapBillCategoryToMoneyFlowCategory(billCategory);
+        const _result = (service as any).mapBillCategoryToMoneyFlowCategory(billCategory);
         expect(_result).toBe(expected);
       });
     });

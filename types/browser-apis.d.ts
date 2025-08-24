@@ -31,12 +31,12 @@ declare global {
    *
    */
   interface FormData {
-    append(name: string, value: string | Blob, fileName?: string): void;
-    delete(name: string): void;
-    get(name: string): FormDataEntryValue | null;
-    getAll(name: string): FormDataEntryValue[];
-    has(name: string): boolean;
-    set(name: string, value: string | Blob, fileName?: string): void;
+    append(_name: string, _value: string | Blob, _fileName?: string): void;
+    delete(_name: string): void;
+    get(_name: string): FormDataEntryValue | null;
+    getAll(_name: string): FormDataEntryValue[];
+    has(_name: string): boolean;
+    set(_name: string, _value: string | Blob, _fileName?: string): void;
   }
 
   /**
@@ -45,7 +45,7 @@ declare global {
   interface Blob {
     readonly size: number;
     readonly type: string;
-    slice(start?: number, end?: number, contentType?: string): Blob;
+    slice(_start?: number, _end?: number, _contentType?: string): Blob;
   }
 
   var File: {
@@ -71,6 +71,32 @@ declare global {
    *
    */
   type FormDataEntryValue = File | string;
+
+  interface Performance {
+    memory?: {
+      usedJSHeapSize: number;
+      totalJSHeapSize: number;
+      jsHeapSizeLimit: number;
+    };
+    now(): number;
+  }
+
+  interface NodeJS {
+    Timeout: any;
+  }
+
+  interface Storage {
+    readonly length: number;
+    clear(): void;
+    getItem(_key: string): string | null;
+    key(_index: number): string | null;
+    removeItem(_key: string): void;
+    setItem(_key: string, _value: string): void;
+  }
+
+  var performance: Performance;
+  var sessionStorage: Storage;
+  var localStorage: Storage;
 }
 
 export {};
