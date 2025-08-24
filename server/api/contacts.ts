@@ -171,6 +171,7 @@ export function registerContactRoutes(app: Express) {
         .insert(contacts)
         .values([{
           ...validatedData,
+          entity: validatedData.entity as 'organization' | 'building' | 'residence',
           contactCategory: validatedData.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'other'
         }])
         .returning();

@@ -223,16 +223,16 @@ export default function Residence() {
   }, [selectedResidenceId, filteredResidences]);
 
   // Fetch contacts for selected residence
-  const { data: contacts = [], isLoading: contactsLoading } = useQuery({
+  const { data: contacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ["/api/contacts", selectedResidenceId],
-    queryFn: () => selectedResidenceId ? apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`) : Promise.resolve([]),
+    queryFn: async () => selectedResidenceId ? await apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`) : [],
     enabled: !!selectedResidenceId,
   });
 
   // Fetch building contacts (read-only for residents)
-  const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
+  const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery<Contact[]>({
     queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
-    queryFn: () => selectedResidence?.buildingId ? apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`) : Promise.resolve([]),
+    queryFn: async () => selectedResidence?.buildingId ? await apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`) : [],
     enabled: !!selectedResidence?.buildingId,
   });
 
@@ -334,7 +334,6 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
           title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-          description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -352,7 +351,6 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
           title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-          description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -375,7 +373,6 @@ export default function Residence() {
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
         title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
-        description={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
       />
 
       <div className='flex-1 overflow-auto p-6'>

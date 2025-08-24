@@ -22,14 +22,13 @@ import type {
   InsertDocumentBuilding,
   DocumentResident,
   InsertDocumentResident,
-  DevelopmentPillar,
   InsertPillar,
   WorkspaceStatus,
   InsertWorkspaceStatus,
   QualityMetric,
   InsertQualityMetric,
   FrameworkConfiguration,
-  InsertFrameworkConfig,
+  InsertFrameworkConfiguration,
   ImprovementSuggestion,
   InsertImprovementSuggestion,
   Feature,
@@ -202,7 +201,7 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getPaginatedUsers(_options: PaginationOptions): Promise<{ users: User[], total: number }> {
     PaginationHelper.validatePagination(_options);
     
-    const cacheKey = `paginated_users:${options.page}:${options.pageSize}:${options.sortBy}:${options.sortDirection}`;
+    const cacheKey = `paginated_users:${_options.page}:${_options.pageSize}:${_options.sortBy}:${_options.sortDirection}`;
     
     // Try cache first
     const cached = queryCache.get<{ users: User[], total: number }>('users', cacheKey);
@@ -222,15 +221,15 @@ export class OptimizedDatabaseStorage implements IStorage {
       .from(schema.users)
       .where(eq(schema.users.isActive, true))
       .orderBy(
-        options.sortDirection === 'DESC' 
+        _options.sortDirection === 'DESC' 
           ? desc(schema.users.createdAt)
           : schema.users.createdAt
       )
-      .limit(options.pageSize)
-      .offset((options.page - 1) * options.pageSize);
+      .limit(_options.pageSize)
+      .offset((_options.page - 1) * _options.pageSize);
     
     const result = { users, total };
-    queryCache.set('users', cacheKey, _result);
+    queryCache.set('users', cacheKey, result);
     
     return result;
   }
@@ -1003,13 +1002,13 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined> {
     return this.withOptimizations(
       'getFrameworkConfig',
-      `framework_config:${key}`,
+      `framework_config:${_key}`,
       'framework_configs',
       async () => {
         const result = await db
           .select()
           .from(schema.frameworkConfiguration)
-          .where(eq(schema.frameworkConfiguration.key, _key));
+          .where(eq(schema.frameworkConfiguration._key, _key));
         return result[0];
       }
     );
@@ -1019,14 +1018,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Sets framework configuration.
    * @param config
    */
-  async setFrameworkConfig(config: InsertFrameworkConfig): Promise<FrameworkConfiguration> {
+  async setFrameworkConfig(config: InsertFrameworkConfiguration): Promise<FrameworkConfiguration> {
     const result = await dbPerformanceMonitor.trackQuery('setFrameworkConfig', async () => {
       return db
         .insert(schema.frameworkConfiguration)
         .values(config)
         .onConflictDoUpdate({
-          target: schema.frameworkConfiguration.key,
-          set: { _value: config.value, updatedAt: new Date() }
+          target: schema.frameworkConfiguration._key,
+          set: { _value: config._value, updatedAt: new Date() }
         })
         .returning();
     });
@@ -2165,5 +2164,73 @@ export class OptimizedDatabaseStorage implements IStorage {
     // Expired tokens cleaned up
     
     return result.length;
+  }
+
+  // Contact operations
+  /**
+   * Gets all contacts.
+   */
+  async getContacts(): Promise<Contact[]> {
+    return this.withOptimizations(
+      'getContacts',
+      'all_contacts',
+      'contacts',
+      () => db.select().from(schema.contacts).where(eq(schema.contacts.isActive, true))
+    );
+  }
+
+  /**
+   * Gets contacts by entity.
+   * @param entityId
+   * @param entity
+   */
+  async getContactsByEntity(entityId: string, entity: 'organization' | 'building' | 'residence'): Promise<Contact[]> {
+    return this.withOptimizations(
+      'getContactsByEntity',
+      `contacts_entity:${entity}_${entityId}`,
+      'contacts',
+      () => db
+        .select()
+        .from(schema.contacts)
+        .where(and(
+          eq(schema.contacts.entityId, entityId),
+          eq(schema.contacts.entity, entity),
+          eq(schema.contacts.isActive, true)
+        ))
+    );
+  }
+
+  /**
+   * Gets contacts for residence with user data.
+   * @param residenceId
+   */
+  async getContactsForResidence(residenceId: string): Promise<Array<Contact & { user: User }>> {
+    return this.withOptimizations(
+      'getContactsForResidence',
+      `contacts_residence:${residenceId}`,
+      'contacts',
+      () => db
+        .select()
+        .from(schema.contacts)
+        .innerJoin(schema.users, eq(schema.contacts.name, schema.users.email))
+        .where(and(
+          eq(schema.contacts.entityId, residenceId),
+          eq(schema.contacts.entity, 'residence'),
+          eq(schema.contacts.isActive, true)
+        ))
+    );
+  }
+
+  /**
+   * Creates a new contact.
+   * @param contact
+   */
+  async createContact(contact: InsertContact): Promise<Contact> {
+    const result = await dbPerformanceMonitor.trackQuery('createContact', async () => {
+      return db.insert(schema.contacts).values(contact).returning();
+    });
+    
+    queryCache.invalidate('contacts');
+    return result[0];
   }
 }
