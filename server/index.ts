@@ -5,6 +5,8 @@ import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './i
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
+import { configureSecurityMiddleware, securityHealthCheck, addLaw25Headers, rateLimitConfig } from './middleware/security-middleware';
+import rateLimit from 'express-rate-limit';
 import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -24,6 +26,9 @@ if (isNaN(port) || port < 1 || port > 65535) {
 }
 
 const app = express();
+
+// Trust proxy for rate limiting (when behind reverse proxy/load balancer)
+app.set('trust proxy', true);
 
 // Export app for testing
 export { app };
@@ -75,8 +80,30 @@ app.get('/ready', (req, res) => {
 });
 
 // NOW add middleware after health checks
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// SECURITY: Configure comprehensive security middleware before any other middleware
+configureSecurityMiddleware(app);
+
+// SECURITY: Add security health check middleware
+app.use(securityHealthCheck);
+
+// SECURITY: Add Law 25 compliance headers for Quebec privacy regulations
+app.use(addLaw25Headers);
+
+// SECURITY: Configure rate limiting for different endpoint types
+const generalRateLimit = rateLimit(rateLimitConfig.api);
+const authRateLimit = rateLimit(rateLimitConfig.auth);
+const uploadRateLimit = rateLimit(rateLimitConfig.upload);
+
+// Apply rate limiting to API routes
+app.use('/api/auth', authRateLimit);
+app.use('/api/upload', uploadRateLimit);
+app.use('/api/files', uploadRateLimit);
+app.use('/api', generalRateLimit);
+
+// Body parsing middleware (after security)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Detailed API health endpoints (after middleware)
 app.get('/api/health', (req, res) => {
