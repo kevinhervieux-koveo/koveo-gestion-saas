@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Lock, AlertTriangle } from 'lucide-react';
+import { Shield, Lock, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { PasswordStrengthIndicator } from '../password-strength-indicator';
 import { validatePasswordStrength } from '@/utils/password-validation';
@@ -134,9 +135,27 @@ export function PasswordCreationStep({
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 onBlur={() => handleBlur('password')}
                 placeholder="Entrez votre mot de passe"
-                className={`pl-10 ${hasPasswordError ? 'border-red-500 focus:border-red-500' : ''}`}
+                className={`pl-10 pr-10 ${hasPasswordError ? 'border-red-500 focus:border-red-500' : ''}`}
                 aria-describedby="password-requirements"
+                data-testid="input-password"
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                data-testid="button-toggle-password"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+                <span className="sr-only">
+                  {showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                </span>
+              </Button>
             </div>
             
             {/* Password Strength Indicator */}
@@ -171,28 +190,34 @@ export function PasswordCreationStep({
                 onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                 onBlur={() => handleBlur('confirmPassword')}
                 placeholder="Confirmez votre mot de passe"
-                className={`pl-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}
+                className={`pl-10 pr-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}
+                data-testid="input-confirm-password"
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                data-testid="button-toggle-confirm-password"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+                <span className="sr-only">
+                  {showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                </span>
+              </Button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center text-sm text-gray-600">
-                {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                  <span className="text-green-600 flex items-center">
-                    <Shield className="h-4 w-4 mr-1" />
-                    Les mots de passe correspondent
-                  </span>
-                )}
+            {formData.confirmPassword && formData.password === formData.confirmPassword && (
+              <div className="flex items-center text-sm text-green-600">
+                <Shield className="h-4 w-4 mr-1" />
+                Les mots de passe correspondent
               </div>
-              
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                {showConfirmPassword ? 'Masquer' : 'Afficher'}
-              </button>
-            </div>
+            )}
 
             {passwordMatchError && (
               <Alert variant="destructive">

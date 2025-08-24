@@ -121,7 +121,7 @@ export default function InvitationAcceptancePage() {
       
     } catch (_error: unknown) {
       console.error('Error completing registration:', _error);
-      setError(error.message || 'Une erreur est survenue lors de la création de votre compte');
+      setError((_error as Error).message || 'Une erreur est survenue lors de la création de votre compte');
     }
   }, []);
 

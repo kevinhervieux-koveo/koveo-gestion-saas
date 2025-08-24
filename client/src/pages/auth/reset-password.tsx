@@ -18,7 +18,7 @@ const resetPasswordSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
       'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
   confirmPassword: z.string(),
-}).refine((_data) => data.password === data.confirmPassword, {
+}).refine((_data) => _data.password === _data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',
   path: ['confirmPassword'],
 });
@@ -102,7 +102,7 @@ export default function /**
     try {
       await apiRequest('POST', '/api/auth/reset-password', {
         token,
-        password: data.password,
+        password: _data.password,
       });
 
       setResetComplete(true);
@@ -130,7 +130,7 @@ export default function /**
 
 
       
-      if (error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED') {
+      if ((_error as any).code === 'INVALID_TOKEN' || (_error as any).code === 'TOKEN_EXPIRED') {
         errorMessage = 'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.';
       } else /**
    * If function.
@@ -140,7 +140,7 @@ export default function /**
    * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
    */
 
- if (error.code === 'TOKEN_ALREADY_USED') {
+ if ((_error as any).code === 'TOKEN_ALREADY_USED') {
         errorMessage = 'Ce lien de réinitialisation a déjà été utilisé.';
       } else /**
    * If function.
@@ -150,7 +150,7 @@ export default function /**
    * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
    */
 
- if (error.code === 'PASSWORD_TOO_SHORT') {
+ if ((_error as any).code === 'PASSWORD_TOO_SHORT') {
         errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
       } else /**
    * If function.
@@ -160,7 +160,7 @@ export default function /**
    * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
    */
 
- if (error.code === 'PASSWORD_TOO_WEAK') {
+ if ((_error as any).code === 'PASSWORD_TOO_WEAK') {
         errorMessage = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
       }
       
@@ -268,15 +268,27 @@ export default function /**
                         <Input 
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Entrez votre nouveau mot de passe"
+                          className="pr-10"
+                          data-testid="input-password"
                           {...field} 
                         />
-                        <button
+                        <Button
                           type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
+                          data-testid="button-toggle-password"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          </span>
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -295,15 +307,27 @@ export default function /**
                         <Input 
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Confirmez votre nouveau mot de passe"
+                          className="pr-10"
+                          data-testid="input-confirm-password"
                           {...field} 
                         />
-                        <button
+                        <Button
                           type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          data-testid="button-toggle-confirm-password"
                         >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span className="sr-only">
+                            {showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          </span>
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />
