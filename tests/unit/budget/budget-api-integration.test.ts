@@ -36,8 +36,16 @@ describe('Budget API Integration and Data Flow Testing', () => {
     it('generates income entries for Demo buildings', () => {
       const demoBuildings = getDemoBuildings();
       
-      // Generate income entries (Budget component logic)
-      const budgetIncomes = [];
+      // Generate income entries (Budget component logic)  
+      const budgetIncomes: Array<{
+        id: string;
+        buildingId: string;
+        category: string;
+        description: string;
+        amount: number;
+        date: string;
+        type: 'income';
+      }> = [];
       
       demoBuildings.forEach((building, _index) => {
         budgetIncomes.push({
@@ -211,7 +219,19 @@ describe('Budget API Integration and Data Flow Testing', () => {
   describe('Residence and Property Integration', () => {
     it('generates residences for Demo buildings with ownership data', () => {
       const demoBuildings = getDemoBuildings();
-      const residences = [];
+      const residences: Array<{
+        id: string;
+        buildingId: string;
+        unitNumber: string;
+        floor: number;
+        squareFootage: number;
+        bedrooms: number;
+        bathrooms: number;
+        ownershipPercentage: number;
+        parkingSpots: string[];
+        storageSpaces: string[];
+        isActive: boolean;
+      }> = [];
       
       // Generate residences for each Demo building
       demoBuildings.forEach((building, buildingIndex) => {
@@ -285,7 +305,23 @@ describe('Budget API Integration and Data Flow Testing', () => {
 
   describe('Chart Data and Visualization Preparation', () => {
     it('prepares chart data from Demo budget information', () => {
-      const monthlyData = [];
+      const monthlyData: Array<{
+        year: number;
+        month: number;
+        date: string;
+        totalIncome: number;
+        totalExpenses: number;
+        netCashFlow: number;
+        incomeByCategory: {
+          monthly_fees: number;
+          parking_fees: number;
+        };
+        expensesByCategory: {
+          maintenance: number;
+          utilities: number;
+          insurance: number;
+        };
+      }> = [];
       
       // Generate 12 months of Demo budget data
       for (let month = 1; month <= 12; month++) {

@@ -250,27 +250,7 @@ export const createBudgetTestQueryClient = () => new QueryClient({
   },
 });
 
-// Create proper LanguageContext mock
-import { createContext } from 'react';
-
-const MockLanguageContext = createContext({
-  language: 'en' as const,
-  setLanguage: jest.fn(),
-  t: jest.fn((_key: string) => _key),
-});
-
-// Mock LanguageProvider for tests
-export const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <MockLanguageContext.Provider value={{
-      language: 'en' as const,
-      setLanguage: jest.fn(),
-      t: jest.fn((_key: string) => _key),
-    }}>
-      {children}
-    </MockLanguageContext.Provider>
-  );
-};
+// Note: useLanguage mock should be in individual test files to ensure proper module resolution
 
 // Helper function to render Budget component with all required setup
 export const renderBudgetComponent = (component: React.ReactElement) => {
@@ -278,9 +258,7 @@ export const renderBudgetComponent = (component: React.ReactElement) => {
   
   return render(
     <QueryClientProvider client={queryClient}>
-      <MockLanguageProvider>
-        {component}
-      </MockLanguageProvider>
+      {component}
     </QueryClientProvider>
   );
 };

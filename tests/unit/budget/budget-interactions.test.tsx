@@ -1,3 +1,12 @@
+// Mock hooks before any imports
+jest.mock('@/hooks/use-language', () => ({
+  useLanguage: jest.fn(() => ({
+    language: 'en' as const,
+    setLanguage: jest.fn(),
+    t: jest.fn((_key: string) => _key),
+  })),
+}));
+
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import Budget from '../../../client/src/pages/manager/budget';

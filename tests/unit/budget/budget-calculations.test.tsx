@@ -1,8 +1,9 @@
 import React from 'react';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { getDemoBills, getDemoBuildings } from '../../utils/demo-data-helpers';
+import '@testing-library/jest-dom';
 
-// Mock all required hooks at the top level
+// Mock useLanguage hook before any imports  
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: jest.fn(() => ({
     language: 'en' as const,
@@ -87,7 +88,7 @@ jest.mock('@/components/ui/chart', () => ({
   ChartTooltipContent: () => <div data-testid="chart-tooltip-content">TooltipContent</div>,
 }));
 
-import Budget from '@/pages/manager/budget';
+import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
 
 describe('Budget Calculations and Functionalities', () => {

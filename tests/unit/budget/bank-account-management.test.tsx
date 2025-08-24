@@ -1,3 +1,40 @@
+// Mock all required hooks at the top level (copied from working budget-calculations.test.tsx)
+jest.mock('../../../client/src/hooks/use-language', () => ({
+  useLanguage: jest.fn(() => ({
+    language: 'en' as const,
+    setLanguage: jest.fn(),
+    t: jest.fn((_key: string) => _key),
+  })),
+}));
+
+jest.mock('../../../client/src/hooks/use-auth', () => ({
+  useAuth: () => ({
+    user: {
+      id: '1',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      role: 'admin',
+      organizationId: 'org-1',
+      isActive: true,
+      language: 'en'
+    },
+    isLoading: false,
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+    hasRole: jest.fn().mockReturnValue(true),
+    hasAnyRole: jest.fn().mockReturnValue(true),
+  }),
+}));
+
+jest.mock('../../../client/src/hooks/use-fullscreen', () => ({
+  useFullscreen: () => ({
+    isFullscreen: false,
+    toggleFullscreen: jest.fn(),
+  }),
+}));
+
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import Budget from '../../../client/src/pages/manager/budget';
