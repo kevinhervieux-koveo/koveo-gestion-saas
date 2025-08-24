@@ -12,7 +12,7 @@ interface FilePropertyBag {
 }
 
 /**
- *
+ * Properties for creating a new Blob.
  */
 interface BlobPropertyBag {
   type?: string;
@@ -20,7 +20,7 @@ interface BlobPropertyBag {
 
 declare global {
   /**
-   *
+   * File interface representing file data.
    */
   interface File extends Blob {
     readonly lastModified: number;
@@ -28,7 +28,7 @@ declare global {
   }
 
   /**
-   *
+   * FormData interface for handling form data.
    */
   interface FormData {
     append(_name: string, _value: string | Blob, _fileName?: string): void;
@@ -40,7 +40,7 @@ declare global {
   }
 
   /**
-   *
+   * Blob interface representing immutable raw data.
    */
   interface Blob {
     readonly size: number;
@@ -64,14 +64,17 @@ declare global {
   };
 
   /**
-   *
+   * Blob part type for creating blobs.
    */
   type BlobPart = string | Blob | ArrayBuffer | ArrayBufferView;
   /**
-   *
+   * Form data entry value type.
    */
   type FormDataEntryValue = File | string;
 
+  /**
+   * Performance interface for performance monitoring.
+   */
   interface Performance {
     memory?: {
       usedJSHeapSize: number;
@@ -81,10 +84,16 @@ declare global {
     now(): number;
   }
 
+  /**
+   * NodeJS interface for Node.js specific types.
+   */
   interface NodeJS {
-    Timeout: any;
+    Timeout: ReturnType<typeof setTimeout>;
   }
 
+  /**
+   * Storage interface for browser storage.
+   */
   interface Storage {
     readonly length: number;
     clear(): void;

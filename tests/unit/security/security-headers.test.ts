@@ -1,7 +1,7 @@
 /**
- * @file Security Headers Test Suite
+ * @file Security Headers Test Suite.
  * @description Comprehensive tests for security middleware and Law 25 compliance
- * for Koveo Gestion Quebec property management platform
+ * for Koveo Gestion Quebec property management platform.
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
@@ -181,10 +181,10 @@ describe('Security Headers and Law 25 Compliance Tests', () => {
       expect(response.headers['cache-control']).toContain('private');
       
       expect(response.headers).toHaveProperty('pragma');
-      expect(response.headers['pragma']).toBe('no-cache');
+      expect(response.headers.pragma).toBe('no-cache');
       
       expect(response.headers).toHaveProperty('expires');
-      expect(response.headers['expires']).toBe('0');
+      expect(response.headers.expires).toBe('0');
     });
 
     it('should not include cache control headers for non-API endpoints', async () => {

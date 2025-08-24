@@ -1,8 +1,11 @@
 /**
  * Comprehensive error handling system for Koveo Gestion Quebec Property Management SaaS
- * Provides type-safe, user-friendly error messages with proper HTTP status codes
+ * Provides type-safe, user-friendly error messages with proper HTTP status codes.
  */
 
+/**
+ *
+ */
 export interface ApiErrorResponse {
   error: string;
   message: string;
@@ -12,18 +15,24 @@ export interface ApiErrorResponse {
   path?: string;
 }
 
+/**
+ *
+ */
 export interface ValidationErrorDetail {
   field: string;
   message: string;
   value?: any;
 }
 
+/**
+ *
+ */
 export interface ValidationErrorResponse extends ApiErrorResponse {
   validationErrors: ValidationErrorDetail[];
 }
 
 /**
- * Enumeration of specific error codes for Quebec property management operations
+ * Enumeration of specific error codes for Quebec property management operations.
  */
 export enum ErrorCodes {
   // Authentication & Authorization
@@ -92,7 +101,7 @@ export enum ErrorCodes {
 }
 
 /**
- * User-friendly error messages in French and English for Quebec context
+ * User-friendly error messages in French and English for Quebec context.
  */
 export const ErrorMessages = {
   [ErrorCodes.AUTHENTICATION_REQUIRED]: {
@@ -158,7 +167,7 @@ export const ErrorMessages = {
 } as const;
 
 /**
- * Custom error class for API errors with proper typing
+ * Custom error class for API errors with proper typing.
  */
 export class ApiError extends Error {
   public readonly statusCode: number;
@@ -167,6 +176,14 @@ export class ApiError extends Error {
   public readonly timestamp: string;
   public readonly isOperational: boolean;
 
+  /**
+   *
+   * @param message
+   * @param statusCode
+   * @param code
+   * @param details
+   * @param isOperational
+   */
   constructor(
     message: string,
     statusCode: number = 500,
@@ -187,7 +204,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for authentication failures
+   * Creates an ApiError for authentication failures.
+   * @param code
+   * @param details
    */
   static unauthorized(code: ErrorCodes = ErrorCodes.AUTHENTICATION_REQUIRED, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -199,7 +218,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for authorization failures
+   * Creates an ApiError for authorization failures.
+   * @param code
+   * @param details
    */
   static forbidden(code: ErrorCodes = ErrorCodes.ACCESS_FORBIDDEN, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -211,7 +232,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for resource not found
+   * Creates an ApiError for resource not found.
+   * @param code
+   * @param details
    */
   static notFound(code: ErrorCodes, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -223,7 +246,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for validation failures
+   * Creates an ApiError for validation failures.
+   * @param code
+   * @param details
    */
   static badRequest(code: ErrorCodes, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -235,7 +260,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for internal server errors
+   * Creates an ApiError for internal server errors.
+   * @param code
+   * @param details
    */
   static internal(code: ErrorCodes = ErrorCodes.INTERNAL_SERVER_ERROR, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -247,7 +274,9 @@ export class ApiError extends Error {
   }
 
   /**
-   * Creates an ApiError for rate limiting
+   * Creates an ApiError for rate limiting.
+   * @param code
+   * @param details
    */
   static tooManyRequests(code: ErrorCodes = ErrorCodes.RATE_LIMIT_EXCEEDED, details?: Record<string, any>): ApiError {
     return new ApiError(
@@ -259,7 +288,7 @@ export class ApiError extends Error {
   }
 
   /**
-   * Converts the error to a JSON response format
+   * Converts the error to a JSON response format.
    */
   toJSON(): ApiErrorResponse {
     return {
@@ -273,11 +302,17 @@ export class ApiError extends Error {
 }
 
 /**
- * Custom error class for validation errors
+ * Custom error class for validation errors.
  */
 export class ValidationError extends ApiError {
   public readonly validationErrors: ValidationErrorDetail[];
 
+  /**
+   *
+   * @param message
+   * @param validationErrors
+   * @param details
+   */
   constructor(
     message: string,
     validationErrors: ValidationErrorDetail[],
@@ -291,7 +326,8 @@ export class ValidationError extends ApiError {
   }
 
   /**
-   * Creates a ValidationError from Zod validation results
+   * Creates a ValidationError from Zod validation results.
+   * @param zodError
    */
   static fromZodError(zodError: any): ValidationError {
     const validationErrors: ValidationErrorDetail[] = zodError.errors.map((err: any) => ({
@@ -308,7 +344,7 @@ export class ValidationError extends ApiError {
   }
 
   /**
-   * Converts the validation error to a JSON response format
+   * Converts the validation error to a JSON response format.
    */
   toJSON(): ValidationErrorResponse {
     return {

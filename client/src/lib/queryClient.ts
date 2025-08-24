@@ -97,7 +97,7 @@ export const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
         // Don't retry on client errors (4xx)
-        if (error?.message?.includes('4')) return false;
+        if (error?.message?.includes('4')) {return false;}
         return failureCount < 2;
       },
     },

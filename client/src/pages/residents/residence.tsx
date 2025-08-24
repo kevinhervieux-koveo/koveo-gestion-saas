@@ -226,7 +226,7 @@ export default function Residence() {
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ["/api/contacts", selectedResidenceId],
     queryFn: async () => {
-      if (!selectedResidenceId) return [];
+      if (!selectedResidenceId) {return [];}
       const response = await apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`);
       return Array.isArray(response) ? response : [];
     },
@@ -237,7 +237,7 @@ export default function Residence() {
   const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
     queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
     queryFn: async () => {
-      if (!selectedResidence?.buildingId) return [];
+      if (!selectedResidence?.buildingId) {return [];}
       const response = await apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`);
       return Array.isArray(response) ? response : [];
     },

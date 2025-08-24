@@ -1,5 +1,5 @@
 /**
- * Building Access Prevention Test
+ * Building Access Prevention Test.
  * 
  * Prevents the critical issue where admin users cannot access buildings
  * due to missing organization relationships.

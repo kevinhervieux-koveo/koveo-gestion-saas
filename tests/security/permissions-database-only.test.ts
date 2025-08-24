@@ -1,5 +1,5 @@
 /**
- * Simple Database-Only Permissions Validation Tests
+ * Simple Database-Only Permissions Validation Tests.
  * 
  * These tests ensure the permissions system uses only database data
  * without requiring actual database connections in CI.

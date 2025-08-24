@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { translate, hasTranslation, mockTranslations } from '../../utils/mock-translations';
+import { translate, _hasTranslation, mockTranslations } from '../../utils/mock-translations';
 
 // Test functions using the imported mock translations
-const testTranslations = {
+const _testTranslations = {
   en: {
     // Common UI elements
     'common.save': 'Save',

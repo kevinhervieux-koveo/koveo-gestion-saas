@@ -1,5 +1,5 @@
 /**
- * @file Property Management Business Logic Tests
+ * @file Property Management Business Logic Tests.
  * @description Comprehensive tests for Quebec property management workflows,
  * including organization hierarchy, building management, and residence assignments.
  */
@@ -415,7 +415,7 @@ describe('Property Management Business Logic Tests', () => {
         // Quebec rental prices should be within reasonable ranges
         const pricePerSqFt = residence.rentAmount / residence.squareFootage;
         expect(pricePerSqFt).toBeGreaterThan(0.5); // Minimum $/sqft
-        expect(pricePerSqFt).toBeLessThan(5.0);    // Maximum $/sqft
+        expect(pricePerSqFt).toBeLessThan(5.0); // Maximum $/sqft
         
         // Rent should correlate with bedroom count
         if (residence.bedroomCount === 1) {
@@ -692,7 +692,7 @@ describe('Property Management Business Logic Tests', () => {
           unitNumber: 'STUDIO1',
           floor: 1,
           squareFootage: 300, // Minimum legal size in Quebec
-          bedroomCount: 0,    // Studio apartment
+          bedroomCount: 0, // Studio apartment
           bathroomCount: 1,
           rentAmount: 800.00,
           isActive: true,

@@ -1,5 +1,5 @@
 /**
- * @file Error Handling Component Tests
+ * @file Error Handling Component Tests.
  * @description Comprehensive tests for error handling components and error boundary functionality
  * in the Quebec property management system.
  */
@@ -64,24 +64,43 @@ const ErrorTriggerComponent: React.FC<{ errorType: string }> = ({ errorType }) =
 };
 
 // Simple Error Boundary for testing
+/**
+ *
+ */
 class TestErrorBoundary extends React.Component<
   { children: React.ReactNode; onError?: (error: Error) => void },
   { hasError: boolean; error?: Error }
 > {
+  /**
+   *
+   * @param props
+   */
   constructor(props: any) {
     super(props);
     this.state = { hasError: false };
   }
 
+  /**
+   *
+   * @param error
+   */
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
+  /**
+   *
+   * @param error
+   * @param errorInfo
+   */
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
     this.props.onError?.(error);
   }
 
+  /**
+   *
+   */
   render() {
     if (this.state.hasError) {
       return (

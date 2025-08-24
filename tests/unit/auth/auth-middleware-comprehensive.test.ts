@@ -1,5 +1,5 @@
 /**
- * @file Comprehensive Authentication Middleware Tests
+ * @file Comprehensive Authentication Middleware Tests.
  * @description Complete test coverage for authentication middleware functions
  * focusing on edge cases and security scenarios for Quebec property management.
  */
@@ -565,8 +565,8 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           };
         });
 
-        expect(results[0].nextCalled).toBe(true);  // admin allowed
-        expect(results[1].nextCalled).toBe(true);  // manager allowed
+        expect(results[0].nextCalled).toBe(true); // admin allowed
+        expect(results[1].nextCalled).toBe(true); // manager allowed
         expect(results[2].nextCalled).toBe(false); // tenant denied
         expect(results[2].statusCode).toBe(403);
         expect(results[3].nextCalled).toBe(false); // resident denied

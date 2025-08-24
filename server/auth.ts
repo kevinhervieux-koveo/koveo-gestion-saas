@@ -14,9 +14,9 @@ import { EmailService } from './services/email-service';
 
 /**
  * Check if a user role has a specific permission via database lookup.
- * @param userRole - The user's role (admin, manager, tenant, resident)
- * @param permissionName - The permission name (e.g., 'read:user', 'create:building')
- * @returns Promise<boolean> - True if user has permission
+ * @param userRole - The user's role (admin, manager, tenant, resident).
+ * @param permissionName - The permission name (e.g., 'read:user', 'create:building').
+ * @returns Promise<boolean> - True if user has permission.
  */
 async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
   try {

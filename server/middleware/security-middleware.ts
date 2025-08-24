@@ -1,7 +1,7 @@
 /**
- * @file Security Middleware for Koveo Gestion
+ * @file Security Middleware for Koveo Gestion.
  * @description Comprehensive security headers and protections for Quebec property management SaaS
- * Ensures Law 25 compliance and protects against common web vulnerabilities
+ * Ensures Law 25 compliance and protects against common web vulnerabilities.
  */
 
 import helmet from 'helmet';
@@ -10,7 +10,8 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 
 /**
  * Content Security Policy configuration for Law 25 compliance
- * Restricts resource loading to protect user data and maintain privacy
+ * Restricts resource loading to protect user data and maintain privacy.
+ * @param isDevelopment
  */
 const getCSPConfig = (isDevelopment: boolean) => {
   const devSources = isDevelopment ? [
@@ -93,7 +94,8 @@ const getCSPConfig = (isDevelopment: boolean) => {
 
 /**
  * CORS configuration for Quebec property management
- * Allows cross-origin requests from authorized domains only
+ * Allows cross-origin requests from authorized domains only.
+ * @param isDevelopment
  */
 const getCorsConfig = (isDevelopment: boolean) => {
   const allowedOrigins = [
@@ -120,7 +122,7 @@ const getCorsConfig = (isDevelopment: boolean) => {
   return {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // Allow requests with no origin (mobile apps, etc.)
-      if (!origin) return callback(null, true);
+      if (!origin) {return callback(null, true);}
       
       // Check against allowed origins
       const isAllowed = allowedOrigins.some(allowed => {
@@ -160,7 +162,7 @@ const getCorsConfig = (isDevelopment: boolean) => {
 };
 
 /**
- * Rate limiting configuration for different endpoints
+ * Rate limiting configuration for different endpoints.
  */
 export const rateLimitConfig = {
   // Authentication endpoints - stricter limits
@@ -214,7 +216,8 @@ export const rateLimitConfig = {
 
 /**
  * Configure comprehensive security middleware for Koveo Gestion
- * Implements Law 25 compliant security headers and protections
+ * Implements Law 25 compliant security headers and protections.
+ * @param app
  */
 export function configureSecurityMiddleware(app: Express): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -375,7 +378,10 @@ export function configureSecurityMiddleware(app: Express): void {
 
 /**
  * Security health check middleware
- * Validates that all security headers are properly configured
+ * Validates that all security headers are properly configured.
+ * @param req
+ * @param res
+ * @param next
  */
 export function securityHealthCheck(req: Request, res: Response, next: NextFunction): void {
   // Check if running in secure context (HTTPS in production)
@@ -393,7 +399,10 @@ export function securityHealthCheck(req: Request, res: Response, next: NextFunct
 }
 
 /**
- * Law 25 compliance headers for Quebec privacy regulations
+ * Law 25 compliance headers for Quebec privacy regulations.
+ * @param req
+ * @param res
+ * @param next
  */
 export function addLaw25Headers(req: Request, res: Response, next: NextFunction): void {
   // Add headers specific to Quebec Law 25 compliance

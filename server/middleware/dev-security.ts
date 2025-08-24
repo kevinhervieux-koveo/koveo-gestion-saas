@@ -1,14 +1,17 @@
 /**
- * @file Development Security Middleware
+ * @file Development Security Middleware.
  * @description Additional security measures for development environment
- * Mitigates GHSA-67mh-4wv8-2f99 esbuild vulnerability in development
+ * Mitigates GHSA-67mh-4wv8-2f99 esbuild vulnerability in development.
  */
 
 import { Request, Response, NextFunction } from 'express';
 
 /**
  * Development-only security middleware to mitigate esbuild vulnerability
- * GHSA-67mh-4wv8-2f99: esbuild enables any website to send requests to dev server
+ * GHSA-67mh-4wv8-2f99: esbuild enables any website to send requests to dev server.
+ * @param req
+ * @param res
+ * @param next
  */
 export function devSecurityMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Only apply in development
@@ -65,7 +68,10 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
 }
 
 /**
- * Enhanced CORS for development to prevent esbuild exploitation
+ * Enhanced CORS for development to prevent esbuild exploitation.
+ * @param req
+ * @param res
+ * @param next
  */
 export function devCorsMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (process.env.NODE_ENV !== 'development') {

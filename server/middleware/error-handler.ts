@@ -1,6 +1,6 @@
 /**
  * Centralized error handling middleware for Koveo Gestion
- * Provides consistent error responses and logging for all API endpoints
+ * Provides consistent error responses and logging for all API endpoints.
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -8,14 +8,15 @@ import { ApiError, ValidationError, ErrorCodes, ErrorMessages } from '../types/e
 import { ZodError } from 'zod';
 
 /**
- * Interface for enhanced request with user information
+ * Interface for enhanced request with user information.
  */
 interface AuthenticatedRequest extends Request {
   user?: any; // Use any for now to avoid conflicts with existing auth types
 }
 
 /**
- * Determines user's preferred language from request
+ * Determines user's preferred language from request.
+ * @param req
  */
 function getUserLanguage(req: AuthenticatedRequest): 'en' | 'fr' {
   // Check user preference first
@@ -34,7 +35,9 @@ function getUserLanguage(req: AuthenticatedRequest): 'en' | 'fr' {
 }
 
 /**
- * Gets localized error message
+ * Gets localized error message.
+ * @param code
+ * @param language
  */
 function getLocalizedMessage(code: ErrorCodes, language: 'en' | 'fr'): string {
   const messages = ErrorMessages[code];
@@ -42,7 +45,9 @@ function getLocalizedMessage(code: ErrorCodes, language: 'en' | 'fr'): string {
 }
 
 /**
- * Logs error with appropriate level based on severity
+ * Logs error with appropriate level based on severity.
+ * @param error
+ * @param req
  */
 function logError(error: Error, req: AuthenticatedRequest): void {
   const logData = {
@@ -73,14 +78,17 @@ function logError(error: Error, req: AuthenticatedRequest): void {
 }
 
 /**
- * Handles Zod validation errors
+ * Handles Zod validation errors.
+ * @param error
+ * @param req
  */
 function handleZodError(error: ZodError, req: AuthenticatedRequest): ValidationError {
   return ValidationError.fromZodError(error);
 }
 
 /**
- * Handles database-related errors
+ * Handles database-related errors.
+ * @param error
  */
 function handleDatabaseError(error: Error): ApiError {
   const message = error.message.toLowerCase();
@@ -111,7 +119,8 @@ function handleDatabaseError(error: Error): ApiError {
 }
 
 /**
- * Handles common Node.js/system errors
+ * Handles common Node.js/system errors.
+ * @param error
  */
 function handleSystemError(error: Error): ApiError {
   const message = error.message.toLowerCase();
@@ -134,7 +143,11 @@ function handleSystemError(error: Error): ApiError {
 }
 
 /**
- * Main error handling middleware
+ * Main error handling middleware.
+ * @param error
+ * @param req
+ * @param res
+ * @param next
  */
 export function errorHandler(
   error: Error,
@@ -187,7 +200,8 @@ export function errorHandler(
 }
 
 /**
- * Middleware to handle async route errors
+ * Middleware to handle async route errors.
+ * @param fn
  */
 export function asyncHandler<T extends Request = Request>(
   fn: (req: T, res: Response, next: NextFunction) => Promise<any>
@@ -198,7 +212,10 @@ export function asyncHandler<T extends Request = Request>(
 }
 
 /**
- * Middleware to handle 404 errors for unknown API routes only
+ * Middleware to handle 404 errors for unknown API routes only.
+ * @param req
+ * @param res
+ * @param next
  */
 export function notFoundHandler(req: Request, res: Response, next: NextFunction): void {
   // Only handle API routes, let other routes pass through for frontend serving
@@ -217,7 +234,8 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
 }
 
 /**
- * Express middleware function that wraps routes with error handling
+ * Express middleware function that wraps routes with error handling.
+ * @param handler
  */
 export function withErrorHandling<T extends Request = Request>(
   handler: (req: T, res: Response, next: NextFunction) => Promise<void> | void

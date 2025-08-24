@@ -1,5 +1,5 @@
 /**
- * No Config Dependencies Tests
+ * No Config Dependencies Tests.
  * 
  * These tests ensure that no parts of the system depend on config files
  * for permissions and that the database is the only source of truth.
@@ -38,7 +38,7 @@ describe('No Config File Dependencies', () => {
     const getFilesRecursively = (dir: string, extensions: string[]): string[] => {
       const files: string[] = [];
       
-      if (!fs.existsSync(dir)) return files;
+      if (!fs.existsSync(dir)) {return files;}
       
       const items = fs.readdirSync(dir, { withFileTypes: true });
       

@@ -1,5 +1,5 @@
 /**
- * @file Comprehensive RBAC Unit Tests for Koveo Gestion
+ * @file Comprehensive RBAC Unit Tests for Koveo Gestion.
  * @description Complete test coverage for Role-Based Access Control system
  * focusing on Quebec property management business logic and edge cases.
  */
@@ -591,7 +591,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       
       const results = await Promise.all(promises);
       
-      expect(results[0]).toBe(true);  // Should have access to Montreal
+      expect(results[0]).toBe(true); // Should have access to Montreal
       expect(results[1]).toBe(false); // Should not have access to Quebec
       expect(results[2]).toBe(false); // Should not have access to Koveo
     });
@@ -841,7 +841,7 @@ describe('RBAC Integration Scenarios', () => {
         testOrganizations.quebec
       ]);
       
-      let accessibleOrgs = await getUserAccessibleOrganizations(koveoEmployee.id);
+      const accessibleOrgs = await getUserAccessibleOrganizations(koveoEmployee.id);
       expect(accessibleOrgs.length).toBeGreaterThanOrEqual(4); // Koveo gets global access
       
       // After promotion - should still have global access as admin

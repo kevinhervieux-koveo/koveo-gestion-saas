@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 /**
  * Enhanced residences API with comprehensive error handling
- * Provides clear, user-friendly error messages for Quebec property management
+ * Provides clear, user-friendly error messages for Quebec property management.
  */
 
 // Validation schemas
@@ -32,7 +32,8 @@ const residenceQuerySchema = z.object({
 });
 
 /**
- * Enhanced residence routes with proper error handling
+ * Enhanced residence routes with proper error handling.
+ * @param app
  */
 export function registerEnhancedResidenceRoutes(app: Express) {
   

@@ -660,7 +660,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       persistent: true
     });
     
-    let debounceTimer: NodeJS.Timeout | null = null;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     
     watcher.on('change', (filePath: string) => {
       // Track file changes

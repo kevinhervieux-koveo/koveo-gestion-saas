@@ -1,5 +1,5 @@
 /**
- * Database-Only Permissions System Tests
+ * Database-Only Permissions System Tests.
  * 
  * These tests ensure that the permissions system relies ONLY on the database
  * and that no config files or hardcoded permissions are used.
@@ -234,7 +234,7 @@ describe('Database-Only Permissions System', () => {
       
       const crudActions = ['create', 'read', 'update', 'delete'];
       const permissionsByResource = permissions.reduce((acc: any, p) => {
-        if (!acc[p.resourceType]) acc[p.resourceType] = [];
+        if (!acc[p.resourceType]) {acc[p.resourceType] = [];}
         acc[p.resourceType].push(p.action);
         return acc;
       }, {});

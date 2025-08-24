@@ -1,5 +1,5 @@
 /**
- * Building Access Validation Tests
+ * Building Access Validation Tests.
  * 
  * Ensures admin users have proper building access to prevent the issue where
  * admin users cannot access any buildings due to missing organization relationships.

@@ -1,12 +1,15 @@
 /**
- * @file Memory Optimization Middleware for Koveo Gestion
- * @description Optimizes memory usage and prevents memory leaks
+ * @file Memory Optimization Middleware for Koveo Gestion.
+ * @description Optimizes memory usage and prevents memory leaks.
  */
 
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Memory monitoring and cleanup middleware
+ * Memory monitoring and cleanup middleware.
+ * @param req
+ * @param res
+ * @param next
  */
 export function memoryOptimization(req: Request, res: Response, next: NextFunction): void {
   // Clean up request-specific data after response
@@ -32,7 +35,7 @@ export function memoryOptimization(req: Request, res: Response, next: NextFuncti
 }
 
 /**
- * Global memory monitoring
+ * Global memory monitoring.
  */
 export function startMemoryMonitoring(): void {
   const MEMORY_CHECK_INTERVAL = 30000; // 30 seconds

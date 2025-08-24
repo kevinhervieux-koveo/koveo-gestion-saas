@@ -201,7 +201,7 @@ describe('LLM Form Mapping Validation', () => {
     ];
     
     mockActionableItems.forEach((item, _index) => {
-      const expectedNumber = index + 1;
+      const expectedNumber = _index + 1;
       expect(item.title).toMatch(new RegExp(`^${expectedNumber}\\.\\s+`));
     });
   });
@@ -234,7 +234,7 @@ describe('LLM Form Mapping Validation', () => {
    * Test that the AI analysis includes Quebec-specific considerations.
    */
   it('should include Quebec-specific requirements when relevant', async () => {
-    const quebecSpecificTerms = [
+    const _quebecSpecificTerms = [
       'Quebec',
       'Québec', 
       'Law 25',
