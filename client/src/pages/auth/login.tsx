@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Shield, Building, Users, Eye } from 'lucide-react';
+import { AlertCircle, Shield, Building, Users, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
@@ -62,6 +62,7 @@ export default function /**
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Demo roles and users available for testing
   const demoRoles = {
@@ -170,7 +171,7 @@ export default function /**
    * @param error - Error object.
    */
  catch (_error: unknown) {
-      const errorMessage = _error.message || 'Login failed';
+      const errorMessage = (_error as Error).message || 'Login failed';
       setLoginError(errorMessage);
       
       toast({
@@ -409,13 +410,37 @@ export default function /**
                         {language === 'fr' ? 'Mot de passe' : 'Password'}
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder={language === 'fr' ? 'Votre mot de passe' : 'Your password'}
-                          disabled={isLoggingIn}
-                          className="h-11"
-                        />
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder={language === 'fr' ? 'Votre mot de passe' : 'Your password'}
+                            disabled={isLoggingIn}
+                            className="h-11 pr-10"
+                            data-testid="input-password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={isLoggingIn}
+                            data-testid="button-toggle-password"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-400" />
+                            )}
+                            <span className="sr-only">
+                              {showPassword 
+                                ? (language === 'fr' ? 'Masquer le mot de passe' : 'Hide password')
+                                : (language === 'fr' ? 'Afficher le mot de passe' : 'Show password')
+                              }
+                            </span>
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
