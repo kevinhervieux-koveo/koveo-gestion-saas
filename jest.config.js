@@ -6,7 +6,7 @@ const config = {
   testEnvironmentOptions: {
     customExportConditions: [''],
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js'],
   moduleNameMapper: {
     // Asset mocks must come BEFORE general path mappings

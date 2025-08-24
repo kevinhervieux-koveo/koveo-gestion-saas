@@ -260,7 +260,7 @@ const MockLanguageContext = createContext({
 });
 
 // Mock LanguageProvider for tests
-const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <MockLanguageContext.Provider value={{
       language: 'en' as const,

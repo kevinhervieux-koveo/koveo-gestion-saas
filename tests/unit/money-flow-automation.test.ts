@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { MoneyFlowAutomationService } from '../../server/services/money-flow-automation';
-import type { Bill, Residence, Building } from '@shared/schema';
+import type { Bill, Residence, Building } from '../../shared/schema';
 
 // Mock the database
 const mockDb = {
@@ -21,7 +21,7 @@ const mockQueryBuilder = {
 
 // Mock all query builder methods
 Object.keys(mockQueryBuilder).forEach(method => {
-  mockDb[method] = jest.fn().mockReturnValue(mockQueryBuilder);
+  (mockDb as any)[method] = jest.fn().mockReturnValue(mockQueryBuilder);
 });
 
 jest.mock('../../server/db', () => ({
@@ -83,25 +83,25 @@ describe('MoneyFlowAutomationService', () => {
       ];
 
       // Setup mocks
-      mockDb.select.mockImplementation(() => {
+      (mockDb.select as jest.Mock).mockImplementation(() => {
         const query = mockQueryBuilder;
-        query.from.mockImplementation((table) => {
+        (query.from as jest.Mock).mockImplementation((table: any) => {
           if (table.toString().includes('bills')) {
-            query.where.mockResolvedValue(mockBills);
+            (query.where as jest.Mock).mockResolvedValue(mockBills);
           } else if (table.toString().includes('residences')) {
-            query.innerJoin.mockReturnValue(query);
-            query.where.mockResolvedValue(mockResidences);
+            (query.innerJoin as jest.Mock).mockReturnValue(query);
+            (query.where as jest.Mock).mockResolvedValue(mockResidences);
           }
           return query;
         });
         return query;
       });
 
-      mockDb.insert.mockReturnValue({
+      (mockDb.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockResolvedValue(undefined)
       });
 
-      mockDb.delete.mockReturnValue({
+      (mockDb.delete as jest.Mock).mockReturnValue({
         where: jest.fn().mockResolvedValue(undefined)
       });
 
