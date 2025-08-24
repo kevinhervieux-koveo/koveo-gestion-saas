@@ -214,73 +214,73 @@ export const frameworkConfiguration = pgTable('framework_configuration', {
 });
 
 // Insert schemas
-export const insertImprovementSuggestionSchema = createInsertSchema(improvementSuggestions).pick({
-  title: true,
-  description: true,
-  category: true,
-  priority: true,
-  status: true,
-  filePath: true,
-  technicalDetails: true,
-  businessImpact: true,
-  implementationEffort: true,
-  quebecComplianceRelevance: true,
-  suggestedBy: true,
-  assignedTo: true,
+export const insertImprovementSuggestionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  category: z.string(),
+  priority: z.string().default('medium'),
+  status: z.string().default('new'),
+  filePath: z.string().optional(),
+  technicalDetails: z.string().optional(),
+  businessImpact: z.string().optional(),
+  implementationEffort: z.string().optional(),
+  quebecComplianceRelevance: z.string().optional(),
+  suggestedBy: z.string().uuid().optional(),
+  assignedTo: z.string().uuid().optional(),
 });
 
-export const insertFeatureSchema = createInsertSchema(features).pick({
-  name: true,
-  description: true,
-  category: true,
-  status: true,
-  priority: true,
-  requestedBy: true,
-  assignedTo: true,
-  estimatedHours: true,
-  businessObjective: true,
-  targetUsers: true,
-  successMetrics: true,
-  technicalComplexity: true,
-  dependencies: true,
-  userFlow: true,
+export const insertFeatureSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  category: z.string(),
+  status: z.string().default('planned'),
+  priority: z.string().default('medium'),
+  requestedBy: z.string().uuid().optional(),
+  assignedTo: z.string().uuid().optional(),
+  estimatedHours: z.number().optional(),
+  businessObjective: z.string().optional(),
+  targetUsers: z.string().optional(),
+  successMetrics: z.string().optional(),
+  technicalComplexity: z.string().optional(),
+  dependencies: z.array(z.string()).optional(),
+  userFlow: z.string().optional(),
 });
 
-export const insertActionableItemSchema = createInsertSchema(actionableItems).pick({
-  featureId: true,
-  title: true,
-  description: true,
-  type: true,
-  status: true,
-  estimatedHours: true,
-  assignedTo: true,
-  dependencies: true,
-  acceptanceCriteria: true,
-  implementation_notes: true,
+export const insertActionableItemSchema = z.object({
+  featureId: z.string().uuid().optional(),
+  title: z.string(),
+  description: z.string(),
+  type: z.string(),
+  status: z.string().default('pending'),
+  estimatedHours: z.number().optional(),
+  assignedTo: z.string().uuid().optional(),
+  dependencies: z.array(z.string()).optional(),
+  acceptanceCriteria: z.string().optional(),
+  implementation_notes: z.string().optional(),
 });
 
-export const insertPillarSchema = createInsertSchema(developmentPillars).pick({
-  name: true,
-  description: true,
-  status: true,
-  order: true,
-  configuration: true,
+export const insertPillarSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  status: z.string().default('pending'),
+  order: z.number().int(),
+  configuration: z.record(z.string(), z.any()).optional(),
 });
 
-export const insertWorkspaceStatusSchema = createInsertSchema(workspaceStatus).pick({
-  component: true,
-  status: true,
+export const insertWorkspaceStatusSchema = z.object({
+  component: z.string(),
+  status: z.string().default('pending'),
 });
 
-export const insertQualityMetricSchema = createInsertSchema(qualityMetrics).pick({
-  metricType: true,
-  _value: true,
+export const insertQualityMetricSchema = z.object({
+  metricType: z.string(),
+  _value: z.string(),
 });
 
-export const insertFrameworkConfigSchema = createInsertSchema(frameworkConfiguration).pick({
-  _key: true,
-  _value: true,
-  description: true,
+export const insertFrameworkConfigSchema = z.object({
+  _key: z.string(),
+  _value: z.string(),
+  description: z.string().optional(),
 });
 
 // Types

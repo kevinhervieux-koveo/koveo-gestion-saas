@@ -55,24 +55,24 @@ export const sslCertificates = pgTable('ssl_certificates', {
 });
 
 // Insert schemas
-export const insertSslCertificateSchema = createInsertSchema(sslCertificates).pick({
-  domain: true,
-  certificateData: true,
-  privateKey: true,
-  issuer: true,
-  subject: true,
-  serialNumber: true,
-  fingerprint: true,
-  validFrom: true,
-  validTo: true,
-  status: true,
-  autoRenew: true,
-  renewalAttempts: true,
-  maxRenewalAttempts: true,
-  dnsProvider: true,
-  lastRenewalAttempt: true,
-  nextRenewalDate: true,
-  createdBy: true,
+export const insertSslCertificateSchema = z.object({
+  domain: z.string(),
+  certificateData: z.string(),
+  privateKey: z.string(),
+  issuer: z.string(),
+  subject: z.string(),
+  serialNumber: z.string(),
+  fingerprint: z.string(),
+  validFrom: z.date(),
+  validTo: z.date(),
+  status: z.string().default('pending'),
+  autoRenew: z.boolean().default(true),
+  renewalAttempts: z.number().int().default(0),
+  maxRenewalAttempts: z.number().int().default(3),
+  dnsProvider: z.string().optional(),
+  lastRenewalAttempt: z.date().optional(),
+  nextRenewalDate: z.date().optional(),
+  createdBy: z.string().uuid(),
 });
 
 // Types

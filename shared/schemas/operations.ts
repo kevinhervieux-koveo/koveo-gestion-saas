@@ -196,11 +196,11 @@ export const insertDemandSchema = z.object({
   reviewNotes: z.string().optional(),
 });
 
-export const insertDemandCommentSchema = createInsertSchema(demandComments).pick({
-  demandId: true,
-  orderIndex: true,
-  comment: true,
-  createdBy: true,
+export const insertDemandCommentSchema = z.object({
+  demandId: z.string().uuid(),
+  orderIndex: z.number().int().optional(),
+  comment: z.string().min(1, "Comment content is required").max(1000, "Comment must not exceed 1000 characters"),
+  createdBy: z.string().uuid(),
 });
 
 // Types

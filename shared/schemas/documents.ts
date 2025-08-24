@@ -56,36 +56,30 @@ export const documentsResidents = pgTable('documents_residents', {
 });
 
 // Insert schemas
-export const insertDocumentBuildingSchema = createInsertSchema(documentsBuildings).pick({
-  name: true,
-  dateReference: true,
-  type: true,
-  buildingId: true,
-  fileUrl: true,
-  fileName: true,
-  fileSize: true,
-  mimeType: true,
-  uploadedBy: true,
-  isVisibleToTenants: true,
-}).extend({
+export const insertDocumentBuildingSchema = z.object({
+  name: z.string(),
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
-  uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID
+  type: z.string(),
+  buildingId: z.string().uuid(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  uploadedBy: z.string().min(1, "Uploaded by user ID is required"),
+  isVisibleToTenants: z.boolean().default(false),
 });
 
-export const insertDocumentResidentSchema = createInsertSchema(documentsResidents).pick({
-  name: true,
-  dateReference: true,
-  type: true,
-  residenceId: true,
-  fileUrl: true,
-  fileName: true,
-  fileSize: true,
-  mimeType: true,
-  uploadedBy: true,
-  isVisibleToTenants: true,
-}).extend({
+export const insertDocumentResidentSchema = z.object({
+  name: z.string(),
   dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
-  uploadedBy: z.string().min(1, "Uploaded by user ID is required"), // Accept any string, not just UUID
+  type: z.string(),
+  residenceId: z.string().uuid(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  uploadedBy: z.string().min(1, "Uploaded by user ID is required"),
+  isVisibleToTenants: z.boolean().default(false),
 });
 
 // Types
@@ -121,13 +115,13 @@ export const documents = pgTable('documents', {
 });
 
 // Legacy types for migration
-export const insertDocumentSchema = createInsertSchema(documents).pick({
-  name: true,
-  dateReference: true,
-  type: true,
-  buildings: true,
-  residence: true,
-  tenant: true,
+export const insertDocumentSchema = z.object({
+  name: z.string(),
+  dateReference: z.date().optional(),
+  type: z.string(),
+  buildings: z.string().default('false'),
+  residence: z.string().default('false'),
+  tenant: z.string().default('false'),
 });
 
 /**

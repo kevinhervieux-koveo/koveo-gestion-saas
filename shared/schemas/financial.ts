@@ -292,28 +292,28 @@ export const insertOldBillSchema = z.object({
   createdBy: z.string().uuid(),
 });
 
-export const insertBudgetSchema = createInsertSchema(budgets).pick({
-  buildingId: true,
-  year: true,
-  name: true,
-  description: true,
-  category: true,
-  budgetedAmount: true,
-  actualAmount: true,
-  createdBy: true,
+export const insertBudgetSchema = z.object({
+  buildingId: z.string().uuid(),
+  year: z.number().int(),
+  name: z.string(),
+  description: z.string().optional(),
+  category: z.string(),
+  budgetedAmount: z.number(),
+  actualAmount: z.number().optional(),
+  createdBy: z.string().uuid(),
 });
 
-export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).pick({
-  buildingId: true,
-  year: true,
-  month: true,
-  incomeTypes: true,
-  incomes: true,
-  spendingTypes: true,
-  spendings: true,
-  approved: true,
-  approvedBy: true,
-  originalBudgetId: true,
+export const insertMonthlyBudgetSchema = z.object({
+  buildingId: z.string().uuid(),
+  year: z.number().int(),
+  month: z.number().int().min(1).max(12),
+  incomeTypes: z.array(z.string()),
+  incomes: z.array(z.number()),
+  spendingTypes: z.array(z.string()),
+  spendings: z.array(z.number()),
+  approved: z.boolean().default(false),
+  approvedBy: z.string().uuid().optional(),
+  originalBudgetId: z.string().uuid().optional(),
 });
 
 // Types
