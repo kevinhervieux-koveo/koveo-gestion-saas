@@ -150,16 +150,16 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       req.session.permissions = userPermissions;
     }
 
-    // Add organization information to the user object
-    const userOrganizations = await db.query.userOrganizations.findMany({
-      where: and(
-        eq(schema.userOrganizations.userId, user.id),
-        eq(schema.userOrganizations.isActive, true)
-      ),
-      with: {
-        organization: true
-      }
-    });
+    // Add organization information to the user object - temporarily simplified due to relations issue
+    const userOrganizations = await db.select({
+      organizationId: schema.userOrganizations.organizationId,
+      canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations
+    })
+    .from(schema.userOrganizations)
+    .where(and(
+      eq(schema.userOrganizations.userId, user.id),
+      eq(schema.userOrganizations.isActive, true)
+    ));
 
     // Enhanced user object with organization access information
     req.user = {

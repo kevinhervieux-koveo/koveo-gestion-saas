@@ -186,7 +186,7 @@ export const insertNotificationSchema = z.object({
 
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid(),
-  type: z.string(),
+  type: z.enum(['maintenance', 'complaint', 'information', 'other']),
   assignationResidenceId: z.string().uuid().optional(),
   assignationBuildingId: z.string().uuid().optional(),
   description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
@@ -198,7 +198,7 @@ export const insertDemandSchema = z.object({
 
 export const insertDemandCommentSchema = z.object({
   demandId: z.string().uuid(),
-  orderIndex: z.number().int().optional(),
+  orderIndex: z.number().int(),
   comment: z.string().min(1, "Comment content is required").max(1000, "Comment must not exceed 1000 characters"),
   createdBy: z.string().uuid(),
 });
@@ -241,71 +241,72 @@ export type InsertDemandComment = z.infer<typeof insertDemandCommentSchema>;
 export type DemandComment = typeof demandComments.$inferSelect;
 
 // Relations
-export const maintenanceRequestsRelations = relations(maintenanceRequests, ({ one }) => ({
-  residence: one(residences, {
-    fields: [maintenanceRequests.residenceId],
-    references: [residences.id],
-  }),
-  submittedBy: one(users, {
-    fields: [maintenanceRequests.submittedBy],
-    references: [users.id],
-    relationName: 'submittedBy',
-  }),
-  assignedTo: one(users, {
-    fields: [maintenanceRequests.assignedTo],
-    references: [users.id],
-    relationName: 'assignedTo',
-  }),
-}));
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const maintenanceRequestsRelations = relations(maintenanceRequests, ({ one }) => ({
+//   residence: one(residences, {
+//     fields: [maintenanceRequests.residenceId],
+//     references: [residences.id],
+//   }),
+//   submittedBy: one(users, {
+//     fields: [maintenanceRequests.submittedBy],
+//     references: [users.id],
+//     relationName: 'submittedBy',
+//   }),
+//   assignedTo: one(users, {
+//     fields: [maintenanceRequests.assignedTo],
+//     references: [users.id],
+//     relationName: 'assignedTo',
+//   }),
+// }));
 
-export const notificationsRelations = relations(notifications, ({ one }) => ({
-  user: one(users, {
-    fields: [notifications.userId],
-    references: [users.id],
-  }),
-}));
+// export const notificationsRelations = relations(notifications, ({ one }) => ({
+//   user: one(users, {
+//     fields: [notifications.userId],
+//     references: [users.id],
+//   }),
+// }));
 
-export const demandsRelations = relations(demands, ({ one, many }) => ({
-  submitter: one(users, {
-    fields: [demands.submitterId],
-    references: [users.id],
-    relationName: 'submitter',
-  }),
-  assignationResidence: one(residences, {
-    fields: [demands.assignationResidenceId],
-    references: [residences.id],
-    relationName: 'assignationResidence',
-  }),
-  assignationBuilding: one(buildings, {
-    fields: [demands.assignationBuildingId],
-    references: [buildings.id],
-    relationName: 'assignationBuilding',
-  }),
-  residence: one(residences, {
-    fields: [demands.residenceId],
-    references: [residences.id],
-    relationName: 'residence',
-  }),
-  building: one(buildings, {
-    fields: [demands.buildingId],
-    references: [buildings.id],
-    relationName: 'building',
-  }),
-  reviewedBy: one(users, {
-    fields: [demands.reviewedBy],
-    references: [users.id],
-    relationName: 'reviewedBy',
-  }),
-  comments: many(demandComments),
-}));
+// export const demandsRelations = relations(demands, ({ one, many }) => ({
+//   submitter: one(users, {
+//     fields: [demands.submitterId],
+//     references: [users.id],
+//     relationName: 'submitter',
+//   }),
+//   assignationResidence: one(residences, {
+//     fields: [demands.assignationResidenceId],
+//     references: [residences.id],
+//     relationName: 'assignationResidence',
+//   }),
+//   assignationBuilding: one(buildings, {
+//     fields: [demands.assignationBuildingId],
+//     references: [buildings.id],
+//     relationName: 'assignationBuilding',
+//   }),
+//   residence: one(residences, {
+//     fields: [demands.residenceId],
+//     references: [residences.id],
+//     relationName: 'residence',
+//   }),
+//   building: one(buildings, {
+//     fields: [demands.buildingId],
+//     references: [buildings.id],
+//     relationName: 'building',
+//   }),
+//   reviewedBy: one(users, {
+//     fields: [demands.reviewedBy],
+//     references: [users.id],
+//     relationName: 'reviewedBy',
+//   }),
+//   comments: many(demandComments),
+// }));
 
-export const demandCommentsRelations = relations(demandComments, ({ one }) => ({
-  demand: one(demands, {
-    fields: [demandComments.demandId],
-    references: [demands.id],
-  }),
-  createdBy: one(users, {
-    fields: [demandComments.createdBy],
-    references: [users.id],
-  }),
-}));
+// export const demandCommentsRelations = relations(demandComments, ({ one }) => ({
+//   demand: one(demands, {
+//     fields: [demandComments.demandId],
+//     references: [demands.id],
+//   }),
+//   createdBy: one(users, {
+//     fields: [demandComments.createdBy],
+//     references: [users.id],
+//   }),
+// }));

@@ -85,10 +85,10 @@ export type InsertSslCertificate = z.infer<typeof insertSslCertificateSchema>;
  */
 export type SslCertificate = typeof sslCertificates.$inferSelect;
 
-// Relations
-export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
-  createdBy: one(users, {
-    fields: [sslCertificates.createdBy],
-    references: [users.id],
-  }),
-}));
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
+//   createdBy: one(users, {
+//     fields: [sslCertificates.createdBy],
+//     references: [users.id],
+//   }),
+// }));

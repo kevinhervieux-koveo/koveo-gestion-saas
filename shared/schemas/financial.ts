@@ -362,84 +362,84 @@ export type InsertMonthlyBudget = z.infer<typeof insertMonthlyBudgetSchema>;
  */
 export type MonthlyBudget = typeof monthlyBudgets.$inferSelect;
 
-// Relations
-export const moneyFlowRelations = relations(moneyFlow, ({ one }) => ({
-  building: one(buildings, {
-    fields: [moneyFlow.buildingId],
-    references: [buildings.id],
-  }),
-  residence: one(residences, {
-    fields: [moneyFlow.residenceId],
-    references: [residences.id],
-  }),
-  bill: one(bills, {
-    fields: [moneyFlow.billId],
-    references: [bills.id],
-  }),
-  createdBy: one(users, {
-    fields: [moneyFlow.createdBy],
-    references: [users.id],
-  }),
-}));
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const moneyFlowRelations = relations(moneyFlow, ({ one }) => ({
+//   building: one(buildings, {
+//     fields: [moneyFlow.buildingId],
+//     references: [buildings.id],
+//   }),
+//   residence: one(residences, {
+//     fields: [moneyFlow.residenceId],
+//     references: [residences.id],
+//   }),
+//   bill: one(bills, {
+//     fields: [moneyFlow.billId],
+//     references: [bills.id],
+//   }),
+//   createdBy: one(users, {
+//     fields: [moneyFlow.createdBy],
+//     references: [users.id],
+//   }),
+// }));
 
-export const billsRelations = relations(bills, ({ one, many }) => ({
-  building: one(buildings, {
-    fields: [bills.buildingId],
-    references: [buildings.id],
-  }),
-  createdBy: one(users, {
-    fields: [bills.createdBy],
-    references: [users.id],
-  }),
-  originalBill: one(bills, {
-    fields: [bills.reference],
-    references: [bills.id],
-    relationName: 'billReference'
-  }),
-  generatedBills: many(bills, {
-    relationName: 'billReference'
-  }),
-  moneyFlows: many(moneyFlow),
-}));
+// export const billsRelations = relations(bills, ({ one, many }) => ({
+//   building: one(buildings, {
+//     fields: [bills.buildingId],
+//     references: [buildings.id],
+//   }),
+//   createdBy: one(users, {
+//     fields: [bills.createdBy],
+//     references: [users.id],
+//   }),
+//   originalBill: one(bills, {
+//     fields: [bills.reference],
+//     references: [bills.id],
+//     relationName: 'billReference'
+//   }),
+//   generatedBills: many(bills, {
+//     relationName: 'billReference'
+//   }),
+//   moneyFlows: many(moneyFlow),
+// }));
 
-export const oldBillsRelations = relations(oldBills, ({ one }) => ({
-  residence: one(residences, {
-    fields: [oldBills.residenceId],
-    references: [residences.id],
-  }),
-  createdBy: one(users, {
-    fields: [oldBills.createdBy],
-    references: [users.id],
-  }),
-}));
+// export const oldBillsRelations = relations(oldBills, ({ one }) => ({
+//   residence: one(residences, {
+//     fields: [oldBills.residenceId],
+//     references: [residences.id],
+//   }),
+//   createdBy: one(users, {
+//     fields: [oldBills.createdBy],
+//     references: [users.id],
+//   }),
+// }));
 
-export const budgetsRelations = relations(budgets, ({ one }) => ({
-  building: one(buildings, {
-    fields: [budgets.buildingId],
-    references: [buildings.id],
-  }),
-  createdBy: one(users, {
-    fields: [budgets.createdBy],
-    references: [users.id],
-  }),
-  approvedBy: one(users, {
-    fields: [budgets.approvedBy],
-    references: [users.id],
-  }),
-}));
+// export const budgetsRelations = relations(budgets, ({ one }) => ({
+//   building: one(buildings, {
+//     fields: [budgets.buildingId],
+//     references: [buildings.id],
+//   }),
+//   createdBy: one(users, {
+//     fields: [budgets.createdBy],
+//     references: [users.id],
+//   }),
+//   approvedBy: one(users, {
+//     fields: [budgets.approvedBy],
+//     references: [users.id],
+//   }),
+// }));
 
-export const monthlyBudgetsRelations = relations(monthlyBudgets, ({ one }) => ({
-  building: one(buildings, {
-    fields: [monthlyBudgets.buildingId],
-    references: [buildings.id],
-  }),
-  approvedBy: one(users, {
-    fields: [monthlyBudgets.approvedBy],
-    references: [users.id],
-  }),
-  originalBudget: one(monthlyBudgets, {
-    fields: [monthlyBudgets.originalBudgetId],
-    references: [monthlyBudgets.id],
-    relationName: 'budgetCopy'
-  }),
-}));
+// export const monthlyBudgetsRelations = relations(monthlyBudgets, ({ one }) => ({
+//   building: one(buildings, {
+//     fields: [monthlyBudgets.buildingId],
+//     references: [buildings.id],
+//   }),
+//   approvedBy: one(users, {
+//     fields: [monthlyBudgets.approvedBy],
+//     references: [users.id],
+//   }),
+//   originalBudget: one(monthlyBudgets, {
+//     fields: [monthlyBudgets.originalBudgetId],
+//     references: [monthlyBudgets.id],
+//     relationName: 'budgetCopy'
+//   }),
+// }));

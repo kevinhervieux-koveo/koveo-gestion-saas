@@ -348,26 +348,27 @@ export type InsertFrameworkConfiguration = z.infer<typeof insertFrameworkConfigS
 export type FrameworkConfiguration = typeof frameworkConfiguration.$inferSelect;
 
 // Relations
-export const improvementSuggestionsRelations = relations(improvementSuggestions, ({ one }) => ({
-  suggestedBy: one(users, {
-    fields: [improvementSuggestions.suggestedBy],
-    references: [users.id],
-    relationName: 'suggestedBy',
-  }),
-  assignedTo: one(users, {
-    fields: [improvementSuggestions.assignedTo],
-    references: [users.id],
-    relationName: 'assignedTo',
-  }),
-}));
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const improvementSuggestionsRelations = relations(improvementSuggestions, ({ one }) => ({
+//   suggestedBy: one(users, {
+//     fields: [improvementSuggestions.suggestedBy],
+//     references: [users.id],
+//     relationName: 'suggestedBy',
+//   }),
+//   assignedTo: one(users, {
+//     fields: [improvementSuggestions.assignedTo],
+//     references: [users.id],
+//     relationName: 'assignedTo',
+//   }),
+// }));
 
-export const featuresRelations = relations(features, ({ many }) => ({
-  actionableItems: many(actionableItems),
-}));
+// export const featuresRelations = relations(features, ({ many }) => ({
+//   actionableItems: many(actionableItems),
+// }));
 
-export const actionableItemsRelations = relations(actionableItems, ({ one }) => ({
-  feature: one(features, {
-    fields: [actionableItems.featureId],
-    references: [features.id],
-  }),
-}));
+// export const actionableItemsRelations = relations(actionableItems, ({ one }) => ({
+//   feature: one(features, {
+//     fields: [actionableItems.featureId],
+//     references: [features.id],
+//   }),
+// }));

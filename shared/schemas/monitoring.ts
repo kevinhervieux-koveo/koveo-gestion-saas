@@ -313,29 +313,30 @@ export type InsertQualityIssue = z.infer<typeof insertQualityIssueSchema>;
 export type QualityIssue = typeof qualityIssues.$inferSelect;
 
 // Relations
-export const metricPredictionsRelations = relations(metricPredictions, ({ many }) => ({
-  validations: many(predictionValidations),
-  qualityIssues: many(qualityIssues),
-}));
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const metricPredictionsRelations = relations(metricPredictions, ({ many }) => ({
+//   validations: many(predictionValidations),
+//   qualityIssues: many(qualityIssues),
+// }));
 
-export const predictionValidationsRelations = relations(predictionValidations, ({ one }) => ({
-  prediction: one(metricPredictions, {
-    fields: [predictionValidations.predictionId],
-    references: [metricPredictions.id],
-  }),
-  validator: one(users, {
-    fields: [predictionValidations.validatorId],
-    references: [users.id],
-  }),
-}));
+// export const predictionValidationsRelations = relations(predictionValidations, ({ one }) => ({
+//   prediction: one(metricPredictions, {
+//     fields: [predictionValidations.predictionId],
+//     references: [metricPredictions.id],
+//   }),
+//   validator: one(users, {
+//     fields: [predictionValidations.validatorId],
+//     references: [users.id],
+//   }),
+// }));
 
-export const qualityIssuesRelations = relations(qualityIssues, ({ one }) => ({
-  detectedBy: one(users, {
-    fields: [qualityIssues.detectedBy],
-    references: [users.id],
-  }),
-  prediction: one(metricPredictions, {
-    fields: [qualityIssues.predictionId],
-    references: [metricPredictions.id],
-  }),
-}));
+// export const qualityIssuesRelations = relations(qualityIssues, ({ one }) => ({
+//   detectedBy: one(users, {
+//     fields: [qualityIssues.detectedBy],
+//     references: [users.id],
+//   }),
+//   prediction: one(metricPredictions, {
+//     fields: [qualityIssues.predictionId],
+//     references: [metricPredictions.id],
+//   }),
+// }));
