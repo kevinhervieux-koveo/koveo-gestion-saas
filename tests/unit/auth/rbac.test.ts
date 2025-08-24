@@ -1,12 +1,49 @@
 /**
  * @file Role-Based Access Control (RBAC) Unit Tests.
- * @description Tests for the RBAC system ensuring proper permission enforcement.
+ * @description Comprehensive tests for the RBAC system ensuring proper permission enforcement.
+ * Focuses on critical business logic for Quebec property management.
  */
 
-import { describe, it, expect } from '@jest/globals';
-import { checkPermission, permissions } from '../../../config';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { 
+  getUserAccessibleOrganizations,
+  canUserAccessOrganization, 
+  canUserAccessBuilding,
+  canUserAccessResidence,
+  canUserPerformWriteOperation,
+  isOpenDemoUser
+} from '../../../server/rbac';
+import { db } from '../../../server/db';
+import type { AuthenticatedUser } from '../../../server/rbac';
 
-// Actual user roles used in the system
+// Mock database functions for testing
+jest.mock('../../../server/db', () => ({
+  db: {
+    query: {
+      userOrganizations: {
+        findMany: jest.fn(),
+      },
+      organizations: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      buildings: {
+        findFirst: jest.fn(),
+      },
+      residences: {
+        findFirst: jest.fn(),
+      },
+      userResidences: {
+        findMany: jest.fn(),
+      },
+      users: {
+        findFirst: jest.fn(),
+      },
+    },
+  },
+}));
+
+// Test user roles and data
 const ROLES = {
   ADMIN: 'admin',
   MANAGER: 'manager', 
@@ -14,19 +51,83 @@ const ROLES = {
   TENANT: 'tenant'
 } as const;
 
-// Wrapper function to match test expectations
-/**
- *
- * @param role
- * @param permission
- */
-function hasPermission(role: string, permission: string): boolean {
-  try {
-    return checkPermission(permissions, role as any, permission as any);
-  } catch {
-    return false; // Return false for invalid inputs
+// Test data
+const testUsers = {
+  admin: {
+    id: 'admin-user-id',
+    username: 'admin@test.com',
+    email: 'admin@test.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin' as const,
+    isActive: true,
+    canAccessAllOrganizations: true,
+  },
+  manager: {
+    id: 'manager-user-id', 
+    username: 'manager@test.com',
+    email: 'manager@test.com',
+    firstName: 'Manager',
+    lastName: 'User',
+    role: 'manager' as const,
+    isActive: true,
+  },
+  tenant: {
+    id: 'tenant-user-id',
+    username: 'tenant@test.com', 
+    email: 'tenant@test.com',
+    firstName: 'Tenant',
+    lastName: 'User',
+    role: 'tenant' as const,
+    isActive: true,
+  },
+  demoUser: {
+    id: 'demo-user-id',
+    username: 'demo@openplatform.com',
+    email: 'demo@openplatform.com', 
+    firstName: 'Demo',
+    lastName: 'User',
+    role: 'resident' as const,
+    isActive: true,
   }
-}
+};
+
+const testOrganizations = {
+  demo: { id: 'demo-org-id', name: 'Demo', isActive: true },
+  koveo: { id: 'koveo-org-id', name: 'Koveo', isActive: true },
+  regular: { id: 'regular-org-id', name: 'Regular Org', isActive: true },
+  openDemo: { id: 'open-demo-org-id', name: 'Open Demo', isActive: true },
+};
+
+const testBuildings = {
+  demo: { 
+    id: 'demo-building-id', 
+    organizationId: testOrganizations.demo.id,
+    name: 'Demo Building',
+    isActive: true 
+  },
+  regular: { 
+    id: 'regular-building-id', 
+    organizationId: testOrganizations.regular.id,
+    name: 'Regular Building',
+    isActive: true 
+  },
+};
+
+const testResidences = {
+  demo: {
+    id: 'demo-residence-id',
+    buildingId: testBuildings.demo.id,
+    unitNumber: '101',
+    isActive: true,
+  },
+  regular: {
+    id: 'regular-residence-id', 
+    buildingId: testBuildings.regular.id,
+    unitNumber: '201',
+    isActive: true,
+  },
+};
 
 // Actual permissions used in the system (action:resource format)
 const PERMISSIONS = {
