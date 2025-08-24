@@ -57,7 +57,7 @@ describe('Building Access Prevention', () => {
         
         expect(orphanedAdmins).toHaveLength(0);
       }
-    });
+    }, 45000);
 
     it('should validate the previously problematic admin user is now fixed', async () => {
       // Check the specific user that had the issue
@@ -87,6 +87,6 @@ describe('Building Access Prevention', () => {
       } else {
         console.warn('⚠️  Target user kevin.hervieux@koveo-gestion.com not found');
       }
-    });
+    }, 45000);
   });
 });

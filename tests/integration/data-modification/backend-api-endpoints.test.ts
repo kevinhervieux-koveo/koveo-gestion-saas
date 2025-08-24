@@ -3,7 +3,7 @@
  * Tests all PUT, POST, DELETE, PATCH endpoints that modify data.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import { Express } from 'express';
 

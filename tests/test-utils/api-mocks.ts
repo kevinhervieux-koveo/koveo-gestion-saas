@@ -2,12 +2,12 @@
  * API mocking utilities for tests.
  */
 
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 
 /**
  * Mock API request function that can be configured for different responses.
  */
-export const mockApiRequest = vi.fn();
+export const mockApiRequest = jest.fn();
 
 /**
  * Reset all API mocks.

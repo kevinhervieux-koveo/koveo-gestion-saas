@@ -3,7 +3,7 @@
  * This ensures all data modification functionality works correctly across the application.
  */
 
-import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, jest, beforeAll } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TestProviders } from '../../test-utils/providers';

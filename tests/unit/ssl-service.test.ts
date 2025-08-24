@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction as _MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { SSLService, createSSLService, getCertificateStatus } from '../../server/services/ssl_service';
 
 // Mock dependencies
-vi.mock('acme-client');
-vi.mock('fs/promises');
-vi.mock('path');
+jest.mock('acme-client');
+jest.mock('fs/promises');
+jest.mock('path');
 
 describe('SSL Service', () => {
   let _sslService: SSLService;
@@ -20,7 +20,7 @@ describe('SSL Service', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('SSL Service Creation', () => {

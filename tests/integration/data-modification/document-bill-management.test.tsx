@@ -3,7 +3,7 @@
  * Tests all data modification functionality for documents and bills.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TestProviders } from '../../test-utils/providers';

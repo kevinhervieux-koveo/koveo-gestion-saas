@@ -28,7 +28,7 @@ const mockDb = {
   limit: jest.fn().mockReturnThis(),
 };
 
-jest.mock('@/lib/db', () => ({
+jest.mock('../../server/db', () => ({
   db: mockDb,
 }));
 
@@ -51,12 +51,12 @@ const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
   next();
 };
 
-jest.mock('@/middleware/auth-middleware', () => ({
+jest.mock('../../server/auth', () => ({
   requireAuth: mockRequireAuth,
 }));
 
 // Import the building routes
-import { setupBuildingRoutes } from '@/api/buildings';
+import { registerBuildingRoutes } from '../../server/api/buildings';
 
 describe('Buildings API Integration Tests', () => {
   let app: express.Express;
