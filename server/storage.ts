@@ -38,9 +38,14 @@ import {
   type UserPermission,
   type PasswordResetToken,
   type InsertPasswordResetToken,
+  permissions,
+  rolePermissions,
+  userPermissions,
 } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { hashPassword } from './auth';
+import { db } from './db';
 
 /**
  * Storage interface for the Koveo Gestion property management system.
@@ -1266,24 +1271,76 @@ export class MemStorage implements IStorage {
    * Retrieves all permissions from storage.
    */
   async getPermissions(): Promise<Permission[]> {
-    // Return empty array for now - permissions not implemented in this storage
-    return [];
+    try {
+      const result = await this.db.select().from(permissions);
+      return result;
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      return [];
+    }
   }
 
   /**
    * Retrieves all role-specific permission mappings from storage.
    */
   async getRolePermissions(): Promise<RolePermission[]> {
-    // Return empty array for now - role permissions not implemented in this storage
-    return [];
+    try {
+      const result = await this.db.select({
+        id: rolePermissions.id,
+        role: rolePermissions.role,
+        permissionId: rolePermissions.permissionId,
+        createdAt: rolePermissions.createdAt,
+        permission: {
+          id: permissions.id,
+          name: permissions.name,
+          displayName: permissions.displayName,
+          description: permissions.description,
+          resourceType: permissions.resourceType,
+          action: permissions.action,
+          isActive: permissions.isActive,
+          createdAt: permissions.createdAt
+        }
+      })
+      .from(rolePermissions)
+      .leftJoin(permissions, eq(rolePermissions.permissionId, permissions.id));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching role permissions:', error);
+      return [];
+    }
   }
 
   /**
    * Retrieves all user-specific permission overrides from storage.
    */
   async getUserPermissions(): Promise<UserPermission[]> {
-    // Return empty array for now - user permissions not implemented in this storage
-    return [];
+    try {
+      const result = await this.db.select({
+        id: userPermissions.id,
+        userId: userPermissions.userId,
+        permissionId: userPermissions.permissionId,
+        granted: userPermissions.granted,
+        createdAt: userPermissions.createdAt,
+        permission: {
+          id: permissions.id,
+          name: permissions.name,
+          displayName: permissions.displayName,
+          description: permissions.description,
+          resourceType: permissions.resourceType,
+          action: permissions.action,
+          isActive: permissions.isActive,
+          createdAt: permissions.createdAt
+        }
+      })
+      .from(userPermissions)
+      .leftJoin(permissions, eq(userPermissions.permissionId, permissions.id));
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching user permissions:', error);
+      return [];
+    }
   }
 
   // User operations
