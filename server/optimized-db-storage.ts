@@ -1640,7 +1640,26 @@ export class OptimizedDatabaseStorage implements IStorage {
       'user_permissions:all',
       'user_permissions',
       () => db
-        .select()
+        .select({
+          id: schema.userPermissions.id,
+          userId: schema.userPermissions.userId,
+          permissionId: schema.userPermissions.permissionId,
+          granted: schema.userPermissions.granted,
+          grantedBy: schema.userPermissions.grantedBy,
+          reason: schema.userPermissions.reason,
+          grantedAt: schema.userPermissions.grantedAt,
+          createdAt: schema.userPermissions.createdAt,
+          permission: {
+            id: schema.permissions.id,
+            name: schema.permissions.name,
+            displayName: schema.permissions.displayName,
+            description: schema.permissions.description,
+            resourceType: schema.permissions.resourceType,
+            action: schema.permissions.action,
+            isActive: schema.permissions.isActive,
+            createdAt: schema.permissions.createdAt
+          }
+        })
         .from(schema.userPermissions)
         .innerJoin(schema.permissions, eq(schema.userPermissions.permissionId, schema.permissions.id))
         .where(eq(schema.permissions.isActive, true))

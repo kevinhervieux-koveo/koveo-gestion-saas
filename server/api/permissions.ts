@@ -58,8 +58,8 @@ function transformPermission(permission: string) {
  */
 export function registerPermissionsRoutes(app: Express) {
   
-  // Get all system permissions from database
-  app.get('/api/permissions', requireAuth, authorize('read:user'), async (req, res) => {
+  // Get all system permissions from database  
+  app.get('/api/permissions', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       const permissions = await storage.getPermissions();
       res.json(permissions);
@@ -70,7 +70,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get role-based permissions from database
-  app.get('/api/role-permissions', requireAuth, authorize('read:user'), async (req, res) => {
+  app.get('/api/role-permissions', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
@@ -81,7 +81,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get permissions matrix for admin dashboard
-  app.get('/api/permissions-matrix', requireAuth, authorize('read:user'), async (req, res) => {
+  app.get('/api/permissions-matrix', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       const permissions = await storage.getPermissions();
       const rolePermissions = await storage.getRolePermissions();
@@ -95,8 +95,8 @@ export function registerPermissionsRoutes(app: Express) {
         return acc;
       }, {});
 
-      // Create role matrix
-      const roleMatrix = ['admin', 'manager', 'tenant', 'resident'].reduce((acc: any, role) => {
+      // Create role matrix (correct hierarchy: admin-manager-resident-tenant)
+      const roleMatrix = ['admin', 'manager', 'resident', 'tenant'].reduce((acc: any, role) => {
         acc[role] = rolePermissions
           .filter((rp: any) => rp.role === role)
           .map((rp: any) => rp.permissionId);
@@ -116,7 +116,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get user-specific permissions (overrides)
-  app.get('/api/user-permissions', requireAuth, authorize('read:user'), async (req, res) => {
+  app.get('/api/user-permissions', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       const userPermissions = await storage.getUserPermissions();
       res.json(userPermissions);
@@ -127,7 +127,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Grant permission to user
-  app.post('/api/user-permissions', requireAuth, authorize('manage:user_roles'), async (req, res) => {
+  app.post('/api/user-permissions', requireAuth, authorize('manage_permissions:users'), async (req, res) => {
     try {
       const { userId, permissionId, reason } = req.body;
       
@@ -206,7 +206,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get permission categories for organization
-  app.get('/api/permission-categories', requireAuth, authorize('read:user'), async (req, res) => {
+  app.get('/api/permission-categories', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       // Generate categories based on database permissions
       const permissions = await storage.getPermissions();

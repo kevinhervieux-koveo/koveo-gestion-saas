@@ -628,7 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // GET /api/invitations - List invitations
-    app.get('/api/invitations', requireAuth, authorize('read:user'), async (req: any, res: any) => {
+    app.get('/api/invitations', requireAuth, authorize('read:users'), async (req: any, res: any) => {
       try {
         const invitationList = await db.select().from(invitations);
         res.json(invitationList);

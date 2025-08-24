@@ -7,6 +7,7 @@
 
 /**
  * Quick access to role hierarchies for common permission checks.
+ * Hierarchy: admin > manager > resident > tenant
  */
 export const ROLE_HIERARCHY = {
   admin: 4,
