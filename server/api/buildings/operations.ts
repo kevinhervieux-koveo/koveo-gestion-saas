@@ -99,7 +99,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
         .returning();
 
     } catch (___residenceError) {
-      console.error('⚠️ Error auto-generating residences:', __residenceError);
+      console.error('⚠️ Error auto-generating residences:', ___residenceError);
       // Don't fail the building creation if residence generation fails
     }
   }

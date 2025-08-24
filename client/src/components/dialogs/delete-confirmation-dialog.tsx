@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -134,6 +135,9 @@ export function DeleteConfirmationDialog({
             <AlertTriangle className="h-5 w-5" />
             Confirm Deletion
           </DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. Please review the impact before proceeding.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

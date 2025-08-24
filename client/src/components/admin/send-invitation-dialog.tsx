@@ -351,7 +351,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     onError: (error: Error) => {
       toast({
-        title: t('error'),
+        title: 'Error',
         description: error.message,
         variant: 'destructive',
       });
@@ -395,7 +395,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     onError: (error: Error) => {
       toast({
-        title: t('error'),
+        title: 'Error',
         description: error.message,
         variant: 'destructive',
       });
@@ -455,7 +455,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={invitationMode} onValueChange={(_value) => setInvitationMode(value as 'single' | 'bulk')}>
+        <Tabs value={invitationMode} onValueChange={(_value) => setInvitationMode(_value as 'single' | 'bulk')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="single" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />

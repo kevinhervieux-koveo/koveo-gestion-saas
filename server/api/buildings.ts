@@ -168,7 +168,7 @@ export function registerBuildingRoutes(app: Express): void {
       
       console.warn(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
 
-      const accessibleBuildings: unknown[] = [];
+      const accessibleBuildings: any[] = [];
       const buildingIds = new Set<string>();
 
       // Check if user belongs to Koveo organization (special global access)
@@ -752,7 +752,7 @@ export function registerBuildingRoutes(app: Express): void {
             await objectStorageService.createResidenceHierarchy(buildingData.organizationId, buildingId, residence.id);
           }
         } catch (___residenceError) {
-          console.error('⚠️ Error auto-generating residences:', residenceError);
+          console.error('⚠️ Error auto-generating residences:', ___residenceError);
           // Don't fail the building creation if residence generation fails
         }
       }

@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -174,6 +175,12 @@ export function OrganizationFormDialog({
           <DialogTitle>
             {isEditing ? 'Edit Organization' : 'Create Organization'}
           </DialogTitle>
+          <DialogDescription>
+            {isEditing 
+              ? 'Update the organization information below.' 
+              : 'Fill in the details to create a new organization.'
+            }
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
