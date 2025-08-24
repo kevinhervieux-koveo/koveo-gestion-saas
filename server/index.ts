@@ -27,8 +27,16 @@ if (isNaN(port) || port < 1 || port > 65535) {
 
 const app = express();
 
-// Trust proxy for rate limiting (when behind reverse proxy/load balancer)
-app.set('trust proxy', true);
+// Trust proxy for rate limiting - secure configuration for production
+// Only trust specific proxy headers from known sources
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+  // In production, trust proxy only from specific IP ranges (e.g., CloudFlare, Google Cloud Load Balancer)
+  app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+} else {
+  // In development, trust localhost and Replit proxies
+  app.set('trust proxy', ['loopback', '169.254.0.0/16', '::ffff:169.254.0.0/112']);
+}
 
 // Export app for testing
 export { app };
@@ -193,9 +201,9 @@ app.use((req, res, next) => {
 });
 
 // Setup static file serving for production immediately
-const isProduction = process.env.NODE_ENV === 'production' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'development');
+const isProductionBuild = process.env.NODE_ENV === 'production' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'development');
 
-if (isProduction) {
+if (isProductionBuild) {
   log('🏗️ Setting up production static file serving immediately');
   const distPath = path.resolve(__dirname, 'public');
   

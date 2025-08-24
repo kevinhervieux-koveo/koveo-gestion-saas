@@ -174,6 +174,15 @@ export const rateLimitConfig = {
     },
     standardHeaders: true,
     legacyHeaders: false,
+    // Secure IP extraction for rate limiting
+    keyGenerator: (req, _res) => {
+      // Use a combination of IP and User-Agent for better accuracy
+      const forwarded = req.headers['x-forwarded-for'] as string;
+      const realIp = req.headers['x-real-ip'] as string;
+      const clientIp = forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      return `${clientIp}:${userAgent.substring(0, 50)}`;
+    },
   },
   
   // General API endpoints
