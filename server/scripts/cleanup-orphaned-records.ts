@@ -24,13 +24,21 @@ async function detectOrphans(): Promise<OrphanReport[]> {
   
   const reports: OrphanReport[] = [];
 
-  // Check for orphaned residences
+  // Check for orphaned residences (both non-existent and inactive buildings)
   const orphanedResidences = await db.execute(sql`
     SELECT 
-      r.id, r.unit_number, r.building_id
+      r.id, r.unit_number, r.building_id, 'no_building' as orphan_type
     FROM residences r 
     LEFT JOIN buildings b ON r.building_id = b.id 
-    WHERE b.id IS NULL
+    WHERE b.id IS NULL AND r.is_active = true
+    
+    UNION ALL
+    
+    SELECT 
+      r.id, r.unit_number, r.building_id, 'inactive_building' as orphan_type
+    FROM residences r 
+    JOIN buildings b ON r.building_id = b.id 
+    WHERE r.is_active = true AND b.is_active = false
   `);
   
   if (orphanedResidences.rows.length > 0) {
@@ -169,7 +177,14 @@ async function deleteOrphans(reports: OrphanReport[]): Promise<void> {
             SELECT r.id 
             FROM residences r 
             LEFT JOIN buildings b ON r.building_id = b.id 
-            WHERE b.id IS NULL
+            WHERE b.id IS NULL AND r.is_active = true
+            
+            UNION
+            
+            SELECT r.id 
+            FROM residences r 
+            JOIN buildings b ON r.building_id = b.id 
+            WHERE r.is_active = true AND b.is_active = false
           )
         `);
         break;
