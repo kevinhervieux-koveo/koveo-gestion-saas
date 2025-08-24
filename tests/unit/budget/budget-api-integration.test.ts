@@ -126,13 +126,13 @@ describe('Budget API Integration and Data Flow Testing', () => {
 
     it('handles empty budget data gracefully', () => {
       // Test with no bills scenario
-      const emptyBills: any[] = [];
+      const emptyBills: Array<{ totalAmount: number }> = [];
       const totalExpenses = emptyBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
       
       expect(totalExpenses).toBe(0);
       
       // Test with no buildings scenario
-      const emptyBuildings: any[] = [];
+      const emptyBuildings: unknown[] = [];
       const totalIncome = emptyBuildings.length * 2500;
       
       expect(totalIncome).toBe(0);
@@ -407,7 +407,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
 
   describe('Error Handling and Edge Cases', () => {
     it('handles missing building data gracefully', () => {
-      const emptyBuildings: any[] = [];
+      const emptyBuildings: unknown[] = [];
       
       // Generate budget with no buildings
       const budgetSummary = {

@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { requireAuth, requireRole } from '../../../server/middleware/auth-middleware';
 
 // Mock Express objects
-const createMockRequest = (sessionData?: any): Partial<Request> => ({
+const createMockRequest = (sessionData?: Record<string, unknown>): Partial<Request> => ({
   session: sessionData,
   path: '/api/test',
   method: 'GET',
@@ -20,7 +20,7 @@ const createMockRequest = (sessionData?: any): Partial<Request> => ({
 });
 
 const createMockResponse = (): Partial<Response> => {
-  const res: any = {
+  const res: Partial<Response> & { status: jest.Mock; json: jest.Mock; send: jest.Mock } = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
@@ -164,7 +164,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         { notUser: testUsers.admin }
       ];
 
-      malformedSessions.forEach((sessionData, index) => {
+      malformedSessions.forEach((sessionData, _index) => {
         const req = createMockRequest(sessionData);
         const res = createMockResponse();
         const next = createMockNext();
@@ -447,7 +447,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           { ...testUsers.admin }, // Missing role property
         ];
 
-        usersWithMalformedRoles.forEach((user, index) => {
+        usersWithMalformedRoles.forEach((user, _index) => {
           const middleware = requireRole(['admin']);
           const req = createMockRequest({ user });
           const res = createMockResponse();

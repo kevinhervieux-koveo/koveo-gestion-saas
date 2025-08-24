@@ -150,10 +150,10 @@ const testResidences = {
 };
 
 describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
-  let mockDb: any;
+  let mockDb: jest.Mocked<typeof db>;
 
   beforeEach(() => {
-    mockDb = db as any;
+    mockDb = db as jest.Mocked<typeof db>;
     jest.clearAllMocks();
   });
 
@@ -740,10 +740,10 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
 });
 
 describe('RBAC Integration Scenarios', () => {
-  let mockDb: any;
+  let mockDb: jest.Mocked<typeof db>;
 
   beforeEach(() => {
-    mockDb = db as any;
+    mockDb = db as jest.Mocked<typeof db>;
     jest.clearAllMocks();
   });
 

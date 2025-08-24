@@ -74,7 +74,7 @@ describe('Database Query Scoping Tests', () => {
           })
         })
       };
-      mockDb.select.mockReturnValue(mockQueryBuilder as any);
+      mockDb.select.mockReturnValue(mockQueryBuilder as typeof mockQueryBuilder);
 
       const userContext = await buildUserContext('tenant-123', 'tenant');
       
@@ -101,7 +101,7 @@ describe('Database Query Scoping Tests', () => {
           { id: 'residence-3' }
         ])
       };
-      mockDb.select.mockReturnValue(mockQueryBuilder as any);
+      mockDb.select.mockReturnValue(mockQueryBuilder as typeof mockQueryBuilder);
 
       const residenceIds = await getUserAccessibleResidenceIds(adminContext);
       
@@ -123,7 +123,7 @@ describe('Database Query Scoping Tests', () => {
           ])
         })
       };
-      mockDb.select.mockReturnValue(mockQueryBuilder as any);
+      mockDb.select.mockReturnValue(mockQueryBuilder as typeof mockQueryBuilder);
 
       const residenceIds = await getUserAccessibleResidenceIds(tenantContext);
       
@@ -144,7 +144,7 @@ describe('Database Query Scoping Tests', () => {
   });
 
   describe('Query Scoping by Entity Type', () => {
-    let mockQuery: any;
+    let mockQuery: { where: jest.Mock };
 
     beforeEach(() => {
       mockQuery = {

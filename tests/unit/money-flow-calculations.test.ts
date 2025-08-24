@@ -317,15 +317,10 @@ describe('Money Flow Calculations', () => {
 
 // Helper functions for testing
 /**
- *
- * @param startDate
- * @param endDate
- */
-/**
  * CalculateWeeklyOccurrences function.
- * @param startDate
- * @param endDate
- * @returns Function result.
+ * @param startDate Start date for calculation.
+ * @param endDate End date for calculation.
+ * @returns Number of weekly occurrences.
  */
 function calculateWeeklyOccurrences(startDate: Date, endDate: Date): number {
   if (startDate > endDate) {return 0;}
@@ -342,15 +337,10 @@ function calculateWeeklyOccurrences(startDate: Date, endDate: Date): number {
 }
 
 /**
- *
- * @param startDate
- * @param endDate
- */
-/**
  * CalculateMonthlyOccurrences function.
- * @param startDate
- * @param endDate
- * @returns Function result.
+ * @param startDate Start date for calculation.
+ * @param endDate End date for calculation.
+ * @returns Number of monthly occurrences.
  */
 function calculateMonthlyOccurrences(startDate: Date, endDate: Date): number {
   if (startDate > endDate) {return 0;}
@@ -367,15 +357,10 @@ function calculateMonthlyOccurrences(startDate: Date, endDate: Date): number {
 }
 
 /**
- *
- * @param startDate
- * @param endDate
- */
-/**
  * CalculateQuarterlyOccurrences function.
- * @param startDate
- * @param endDate
- * @returns Function result.
+ * @param startDate Start date for calculation.
+ * @param endDate End date for calculation.
+ * @returns Number of quarterly occurrences.
  */
 function calculateQuarterlyOccurrences(startDate: Date, endDate: Date): number {
   if (startDate > endDate) {return 0;}
@@ -392,15 +377,10 @@ function calculateQuarterlyOccurrences(startDate: Date, endDate: Date): number {
 }
 
 /**
- *
- * @param startDate
- * @param endDate
- */
-/**
  * CalculateYearlyOccurrences function.
- * @param startDate
- * @param endDate
- * @returns Function result.
+ * @param startDate Start date for calculation.
+ * @param endDate End date for calculation.
+ * @returns Number of yearly occurrences.
  */
 function calculateYearlyOccurrences(startDate: Date, endDate: Date): number {
   if (startDate > endDate) {return 0;}
@@ -417,17 +397,11 @@ function calculateYearlyOccurrences(startDate: Date, endDate: Date): number {
 }
 
 /**
- *
- * @param customDates
- * @param startDate
- * @param endDate
- */
-/**
  * CalculateCustomOccurrences function.
- * @param customDates
- * @param startDate
- * @param endDate
- * @returns Function result.
+ * @param customDates Array of custom date strings.
+ * @param startDate Start date for filtering.
+ * @param endDate End date for filtering.
+ * @returns Number of custom date occurrences within range.
  */
 function calculateCustomOccurrences(customDates: string[], startDate: Date, endDate: Date): number {
   return customDates.filter(dateStr => {
@@ -437,15 +411,10 @@ function calculateCustomOccurrences(customDates: string[], startDate: Date, endD
 }
 
 /**
- *
- * @param costs
- * @param occurrences
- */
-/**
  * CalculateTotalCost function.
- * @param costs
- * @param occurrences
- * @returns Function result.
+ * @param costs Array of cost strings to calculate from.
+ * @param occurrences Number of occurrences to calculate total for.
+ * @returns Total calculated cost rounded to 2 decimal places.
  */
 function calculateTotalCost(costs: string[], occurrences: number): number {
   if (costs.length === 0 || occurrences === 0) {return 0;}

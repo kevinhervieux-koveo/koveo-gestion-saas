@@ -269,8 +269,9 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Execute workflow pattern.
-   * @param patternName
-   * @param dryRun
+   * @param patternName The name of the workflow pattern to execute.
+   * @param dryRun Whether to run in dry-run mode without executing actions.
+   * @returns Promise resolving to execution results.
    */
   public async executeWorkflow(patternName: string, dryRun: boolean = false): Promise<{
     success: boolean;
@@ -381,7 +382,8 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Perform analysis action.
-   * @param payload
+   * @param payload The analysis payload containing target information.
+   * @returns Promise resolving to analysis results string.
    */
   private async performAnalysis(payload: unknown): Promise<string> {
     if (payload && typeof payload === 'object' && 'target' in payload && typeof (payload as any).target === 'string') {
@@ -577,14 +579,10 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Smart workflow recommendation engine.
-   * @param context - Context information for recommendations.
-   * @param context.recentFiles - Array of recently modified files.
-   * @param context.userIntent - User's stated intent or goal.
-   * @param context.projectPhase - Current phase of the project.
-   * @param _context
-   * @param _context.recentFiles
-   * @param _context.userIntent
-   * @param _context.projectPhase
+   * @param _context Context information for recommendations.
+   * @param _context.recentFiles Array of recently modified files.
+   * @param _context.userIntent User's stated intent or goal.
+   * @param _context.projectPhase Current phase of the project.
    * @returns Promise resolving to categorized workflow suggestions.
    */
   public async recommendWorkflows(_context: {
@@ -633,6 +631,7 @@ export class IntelligentWorkflowAssistant {
 
   /**
    * Generate workflow execution report.
+   * @returns JSON string containing workflow execution report.
    */
   public generateWorkflowReport(): string {
     const report = {

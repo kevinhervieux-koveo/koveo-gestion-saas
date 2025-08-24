@@ -23,7 +23,7 @@ describe('Building Access Prevention', () => {
       console.log(`Found ${adminUsers.length} active admin users`);
 
       // Check each admin user has at least one organization relationship
-      const orphanedAdmins: any[] = [];
+      const orphanedAdmins: Array<{ id: string; email: string; firstName: string; lastName: string }> = [];
       
       for (const user of adminUsers) {
         const userOrgs = await db.select()

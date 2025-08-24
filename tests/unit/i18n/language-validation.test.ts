@@ -186,20 +186,20 @@ const _testTranslations = {
 
 // Mock translation function
 const translate = (_key: string, _params: Record<string, unknown> = {}, language: 'en' | 'fr' = 'en'): string => {
-  const keys = key.split('.');
-  const _value: unknown = mockTranslations[language];
+  const keys = _key.split('.');
+  let _value: unknown = mockTranslations[language];
   
   for (const k of keys) {
-    value = value?.[k];
+    _value = _value?.[k];
   }
   
-  if (typeof value !== 'string') {
-    return `[Missing translation: ${key}]`;
+  if (typeof _value !== 'string') {
+    return `[Missing translation: ${_key}]`;
   }
   
   // Handle parameter interpolation
-  return value.replace(/\{(\w+)\}/g, (match, param) => {
-    return params[param]?.toString() || match;
+  return _value.replace(/\{(\w+)\}/g, (match, param) => {
+    return _params[param]?.toString() || match;
   });
 };
 

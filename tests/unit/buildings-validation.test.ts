@@ -406,7 +406,7 @@ describe('Building Validation Tests', () => {
       
       invalidUuids.forEach(uuid => {
         const data = { organizationId: uuid };
-        const result = buildingSearchSchema.safeParse(_data);
+        const result = buildingSearchSchema.safeParse(data);
         expect(result.success).toBe(false);
       });
     });
@@ -421,7 +421,7 @@ describe('Building Validation Tests', () => {
   describe('Business Logic Validation', () => {
     it('should validate logical consistency between floors and units', () => {
       // This would be implemented as a custom validation function
-      const validateBuildingLogic = (_data: any) => {
+      const validateBuildingLogic = (data: { totalFloors?: number; totalUnits?: number }) => {
         if (data.totalFloors && data.totalUnits) {
           const maxUnitsPerFloor = 50; // Business rule
           return data.totalUnits <= data.totalFloors * maxUnitsPerFloor;
@@ -445,7 +445,7 @@ describe('Building Validation Tests', () => {
     });
 
     it('should validate parking ratio constraints', () => {
-      const validateParkingRatio = (_data: any) => {
+      const validateParkingRatio = (data: { parkingSpaces?: number; totalUnits?: number }) => {
         if (data.parkingSpaces && data.totalUnits) {
           const maxParkingRatio = 2; // Max 2 parking spaces per unit
           return data.parkingSpaces <= data.totalUnits * maxParkingRatio;

@@ -385,16 +385,16 @@ describe('RBAC Unit Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle invalid roles gracefully', () => {
-      expect(hasPermission('invalid_role' as any, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
+      expect(hasPermission('invalid_role' as never, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
     });
 
     it('should handle invalid permissions gracefully', () => {
-      expect(hasPermission(ROLES.ADMIN, 'invalid_permission' as any)).toBe(false);
+      expect(hasPermission(ROLES.ADMIN, 'invalid_permission' as never)).toBe(false);
     });
 
     it('should handle null/undefined inputs', () => {
-      expect(hasPermission(null as any, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
-      expect(hasPermission(ROLES.ADMIN, undefined as any)).toBe(false);
+      expect(hasPermission(null as never, PERMISSIONS.VIEW_DEMANDS)).toBe(false);
+      expect(hasPermission(ROLES.ADMIN, undefined as never)).toBe(false);
     });
   });
 

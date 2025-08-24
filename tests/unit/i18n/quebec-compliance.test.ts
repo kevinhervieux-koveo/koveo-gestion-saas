@@ -306,9 +306,9 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
       ];
       
       consentTerms.forEach(({ en, fr: _fr }) => {
-        const key = en.replace(/\s+/g, '');
+        const _key = en.replace(/\s+/g, '');
         const hasEnProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, en.replace(' ', ''));
-        const hasFrProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(fr, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(fr, en.replace(' ', ''));
+        const hasFrProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(_fr, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(_fr, en.replace(' ', ''));
         
         // For now, just verify the terms exist in some form
         expect(hasEnProperty || en.includes('consent')).toBe(true);

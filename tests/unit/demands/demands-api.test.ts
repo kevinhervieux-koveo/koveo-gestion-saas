@@ -23,9 +23,9 @@ import { eq } from 'drizzle-orm';
 
 // Mock auth middleware for testing
 jest.mock('../../../server/auth/index', () => ({
-  requireAuth: jest.fn((req: any, res: any, next: () => void) => {
+  requireAuth: jest.fn((req: express.Request, res: express.Response, next: () => void) => {
     // Add test user to request
-    (req as any).user = (req as any).testUser || {
+    (req as express.Request & { user?: unknown; testUser?: unknown }).user = (req as express.Request & { testUser?: unknown }).testUser || {
       id: 'test-user-id',
       role: 'resident',
       organizationIds: ['test-org-1'],
