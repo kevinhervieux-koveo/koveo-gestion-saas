@@ -6,6 +6,8 @@ import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import { configureSecurityMiddleware, securityHealthCheck, addLaw25Headers, rateLimitConfig } from './middleware/security-middleware';
+import { memoryOptimization, startMemoryMonitoring } from './middleware/memory-optimization';
+import { devSecurityMiddleware, devCorsMiddleware } from './middleware/dev-security';
 import rateLimit from 'express-rate-limit';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -92,11 +94,18 @@ app.get('/ready', (req, res) => {
 // SECURITY: Configure comprehensive security middleware before any other middleware
 configureSecurityMiddleware(app);
 
+// SECURITY: Add development-specific security (mitigates esbuild vulnerability)
+app.use(devCorsMiddleware);
+app.use(devSecurityMiddleware);
+
 // SECURITY: Add security health check middleware
 app.use(securityHealthCheck);
 
 // SECURITY: Add Law 25 compliance headers for Quebec privacy regulations
 app.use(addLaw25Headers);
+
+// PERFORMANCE: Add memory optimization middleware
+app.use(memoryOptimization);
 
 // SECURITY: Configure rate limiting for different endpoint types
 const generalRateLimit = rateLimit(rateLimitConfig.api);
@@ -112,6 +121,9 @@ app.use('/api', generalRateLimit);
 // Body parsing middleware (after security)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Start memory monitoring
+startMemoryMonitoring();
 
 // Detailed API health endpoints (after middleware)
 app.get('/api/health', (req, res) => {
