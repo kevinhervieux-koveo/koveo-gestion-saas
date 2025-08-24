@@ -44,7 +44,7 @@ describe('Advanced SQL Injection Security Tests', () => {
         const result = await query;
         
         // Should return valid results without executing injection
-        expect(Array.isArray(_result)).toBe(true);
+        expect(Array.isArray(result)).toBe(true);
       } catch (_error) {
         // Should fail safely
         expect(error.message).not.toMatch(/syntax error|relation.*does not exist/i);
@@ -120,7 +120,7 @@ describe('Advanced SQL Injection Security Tests', () => {
             .where(eq(schema.users.email, payload));
             
           // Should not return unexpected results
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0); // No user should match malicious input
         } catch (_error) {
           expect(error.message).not.toMatch(/syntax error|unicode|encoding/i);
@@ -143,7 +143,7 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.username, decoded));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
         } catch (_error) {
           expect(error.message).not.toMatch(/syntax error|malformed|invalid/i);
@@ -169,11 +169,11 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, maliciousInput));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
           
           // Should not contain system information
-          expect(JSON.stringify(_result)).not.toMatch(/PostgreSQL|version|database|postgres/i);
+          expect(JSON.stringify(result)).not.toMatch(/PostgreSQL|version|database|postgres/i);
         } catch (_error) {
           expect(error.message).not.toMatch(/function.*does not exist|syntax error/i);
         }
@@ -198,7 +198,7 @@ describe('Advanced SQL Injection Security Tests', () => {
               .from(schema.users)
               .where(eq(schema.users.email, payload));
               
-            expect(Array.isArray(_result)).toBe(true);
+            expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBe(0);
             
             // Transaction should still be valid
@@ -227,11 +227,11 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           
           // Should not reveal table names or schema information
-          expect(JSON.stringify(_result)).not.toMatch(/users|organizations|buildings|residences/);
-          expect(JSON.stringify(_result)).not.toMatch(/information_schema|pg_tables/);
+          expect(JSON.stringify(result)).not.toMatch(/users|organizations|buildings|residences/);
+          expect(JSON.stringify(result)).not.toMatch(/information_schema|pg_tables/);
         } catch (_error) {
           expect(error.message).not.toMatch(/table.*exists|column.*does not exist/i);
         }
@@ -252,11 +252,11 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           
           // Should not reveal column information
-          expect(JSON.stringify(_result)).not.toMatch(/password|email|username|role/);
-          expect(JSON.stringify(_result)).not.toMatch(/column_name|information_schema/);
+          expect(JSON.stringify(result)).not.toMatch(/password|email|username|role/);
+          expect(JSON.stringify(result)).not.toMatch(/column_name|information_schema/);
         } catch (_error) {
           expect(error.message).not.toMatch(/column.*does not exist|ORDER BY position/i);
         }
@@ -280,7 +280,7 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
           
           // Verify no unauthorized admin users were created
@@ -320,9 +320,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (_error) {
+        } catch (error) {
           // Should not reveal PostgreSQL-specific error details
           expect(error.message).not.toMatch(/lo_import|COPY|CREATE FUNCTION|plpgsql/i);
         }
@@ -340,9 +340,9 @@ describe('Advanced SQL Injection Security Tests', () => {
           .from(schema.users)
           .where(eq(schema.users.email, longPayload));
           
-        expect(Array.isArray(_result)).toBe(true);
+        expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(0);
-      } catch (_error) {
+      } catch (error) {
         // Should handle long input gracefully
         expect(error.message).not.toMatch(/input too long|buffer overflow/i);
       }
@@ -361,9 +361,9 @@ describe('Advanced SQL Injection Security Tests', () => {
             .from(schema.users)
             .where(eq(schema.users.email, payload));
             
-          expect(Array.isArray(_result)).toBe(true);
+          expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (_error) {
+        } catch (error) {
           expect(error.message).not.toMatch(/null byte|invalid byte sequence/i);
         }
       }

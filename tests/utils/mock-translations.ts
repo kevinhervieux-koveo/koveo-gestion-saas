@@ -95,10 +95,13 @@ export const mockTranslations = {
     'success.created': 'Créé avec succès',
     'success.updated': 'Mis à jour avec succès',
     'success.deleted': 'Supprimé avec succès',
+    
+    // Translation keys validation
+    'translation.keys.validation': 'Validation des clés de traduction',
   }
 };
 
-export const translate = (_key: string, _params: Record<string, any> = {}, lang: string = 'en'): string => {
+export const translate = (key: string, params: Record<string, any> = {}, lang: string = 'en'): string => {
   const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
   let translation = translations[key as keyof typeof translations];
   
@@ -106,15 +109,20 @@ export const translate = (_key: string, _params: Record<string, any> = {}, lang:
     return `[Missing translation: ${key}]`;
   }
   
+  // Handle nested objects (like date.months)
+  if (typeof translation === 'object') {
+    return key; // Return key as fallback for object translations
+  }
+  
   // Replace parameters in translation
-  Object.keys(_params).forEach(param => {
-    translation = translation.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+  Object.keys(params).forEach(param => {
+    translation = (translation as string).replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
   });
   
-  return translation;
+  return translation as string;
 };
 
-export const hasTranslation = (_key: string, lang: string = 'en'): boolean => {
+export const hasTranslation = (key: string, lang: string = 'en'): boolean => {
   const translations = mockTranslations[lang as keyof typeof mockTranslations] || mockTranslations.en;
   return key in translations;
 };

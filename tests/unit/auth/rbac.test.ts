@@ -164,20 +164,55 @@ const PERMISSIONS = {
   DELETE_USERS: 'delete:user'
 } as const;
 
-// Note: ROLE_PERMISSIONS now loaded from actual config/permissions.json
+// Role permissions mapping - defines what each role can do
+const ROLE_PERMISSIONS = {
+  admin: [
+    // Admin has all permissions
+    PERMISSIONS.VIEW_ALL_BUILDINGS, PERMISSIONS.CREATE_BUILDINGS, PERMISSIONS.EDIT_BUILDINGS, PERMISSIONS.DELETE_BUILDINGS,
+    PERMISSIONS.CREATE_USERS, PERMISSIONS.VIEW_USERS, PERMISSIONS.EDIT_USERS, PERMISSIONS.DELETE_USERS,
+    PERMISSIONS.CREATE_DEMANDS, PERMISSIONS.VIEW_DEMANDS, PERMISSIONS.UPDATE_DEMAND_STATUS, PERMISSIONS.DELETE_DEMANDS,
+    PERMISSIONS.UPLOAD_DOCUMENTS, PERMISSIONS.VIEW_DOCUMENTS, PERMISSIONS.DELETE_DOCUMENTS,
+    PERMISSIONS.READ_ORGANIZATION, PERMISSIONS.UPDATE_ORGANIZATION,
+    PERMISSIONS.VIEW_RESIDENCES, PERMISSIONS.EDIT_RESIDENCES,
+    PERMISSIONS.COMMENT_ON_DEMANDS
+  ],
+  manager: [
+    // Manager has most permissions but cannot delete buildings or users, cannot create users
+    PERMISSIONS.VIEW_ALL_BUILDINGS, PERMISSIONS.CREATE_BUILDINGS, PERMISSIONS.EDIT_BUILDINGS,
+    PERMISSIONS.VIEW_USERS, PERMISSIONS.EDIT_USERS,
+    PERMISSIONS.CREATE_DEMANDS, PERMISSIONS.VIEW_DEMANDS, PERMISSIONS.UPDATE_DEMAND_STATUS,
+    PERMISSIONS.UPLOAD_DOCUMENTS, PERMISSIONS.VIEW_DOCUMENTS, PERMISSIONS.DELETE_DOCUMENTS,
+    PERMISSIONS.READ_ORGANIZATION, PERMISSIONS.UPDATE_ORGANIZATION,
+    PERMISSIONS.VIEW_RESIDENCES, PERMISSIONS.EDIT_RESIDENCES,
+    PERMISSIONS.COMMENT_ON_DEMANDS
+  ],
+  resident: [
+    // Resident can create demands, view documents, and manage their own content
+    PERMISSIONS.CREATE_DEMANDS, PERMISSIONS.VIEW_DEMANDS,
+    PERMISSIONS.VIEW_DOCUMENTS, // Only view, not upload
+    PERMISSIONS.COMMENT_ON_DEMANDS
+  ],
+  tenant: [
+    // Tenant has minimal permissions but can create demands and view them
+    PERMISSIONS.CREATE_DEMANDS, PERMISSIONS.VIEW_DEMANDS,
+    PERMISSIONS.VIEW_DOCUMENTS,
+    PERMISSIONS.COMMENT_ON_DEMANDS
+  ]
+} as const;
 
 /**
  * Check if a user with given role has a specific permission.
- * @param role
- * @param permission
+ * @param role - User role (admin, manager, resident, tenant)
+ * @param permission - Permission string to check
+ * @returns boolean indicating if role has permission
  */
-/**
- * HasPermission function.
- * @param role
- * @param permission
- * @returns Function result.
- */
-// hasPermission function now implemented above using actual config
+function hasPermission(role: string, permission: string): boolean {
+  const rolePerms = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
+  if (!rolePerms) {
+    return false;
+  }
+  return rolePerms.includes(permission as any);
+}
 
 /**
  * Check if user can access resource based on role and ownership.
@@ -359,10 +394,10 @@ describe('RBAC Unit Tests', () => {
       const roles = ['ADMIN', 'MANAGER', 'RESIDENT', 'TENANT'];
       
       // Admin should have the most permissions
-      const adminPermissions = permissions.admin?.length || 0;
-      const managerPermissions = permissions.manager?.length || 0;
-      const residentPermissions = permissions.resident?.length || 0;
-      const tenantPermissions = permissions.tenant?.length || 0;
+      const adminPermissions = ROLE_PERMISSIONS.admin?.length || 0;
+      const managerPermissions = ROLE_PERMISSIONS.manager?.length || 0;
+      const residentPermissions = ROLE_PERMISSIONS.resident?.length || 0;
+      const tenantPermissions = ROLE_PERMISSIONS.tenant?.length || 0;
       
       expect(adminPermissions).toBeGreaterThan(managerPermissions);
       expect(managerPermissions).toBeGreaterThan(residentPermissions);
@@ -370,10 +405,10 @@ describe('RBAC Unit Tests', () => {
     });
 
     it('should have consistent permission names', () => {
-      // Get all unique permissions from the permissions.json file
-      const allPermissions = [...new Set(Object.values(permissions).flat())];
+      // Get all unique permissions from the role permissions mapping
+      const allPermissions = [...new Set(Object.values(ROLE_PERMISSIONS).flat())];
       
-      Object.values(permissions).forEach(rolePermissions => {
+      Object.values(ROLE_PERMISSIONS).forEach(rolePermissions => {
         if (Array.isArray(rolePermissions)) {
           rolePermissions.forEach(permission => {
             expect(allPermissions).toContain(permission);

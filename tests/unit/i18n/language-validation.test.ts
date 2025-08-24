@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { translate, _hasTranslation, mockTranslations } from '../../utils/mock-translations';
+import { translate, hasTranslation, mockTranslations } from '../../utils/mock-translations';
 
 // Test functions using the imported mock translations
 const _testTranslations = {
@@ -363,9 +363,9 @@ describe('Language Validation Tests', () => {
 
     it('should validate French grammar for pluralization', () => {
       const pluralTestCases = [
-        { count: 0, _key: 'date.days_ago', expectedPattern: /0 jour/ },
-        { count: 1, _key: 'date.days_ago', expectedPattern: /1 jour/ },
-        { count: 2, _key: 'date.days_ago', expectedPattern: /2 jours/ }
+        { count: 0, key: 'date.days_ago', expectedPattern: /0 jour/ },
+        { count: 1, key: 'date.days_ago', expectedPattern: /1 jour/ },
+        { count: 2, key: 'date.days_ago', expectedPattern: /2 jours/ }
       ];
       
       pluralTestCases.forEach(({ count, key, expectedPattern }) => {
@@ -392,12 +392,12 @@ describe('Language Validation Tests', () => {
   describe('Parameter Interpolation', () => {
     it('should correctly interpolate parameters in English', () => {
       const result = translate('validation.min_length', { min: 5 }, 'en');
-      expect(_result).toBe('Must be at least 5 characters');
+      expect(result).toBe('Must be at least 5 characters');
     });
 
     it('should correctly interpolate parameters in French', () => {
       const result = translate('validation.min_length', { min: 5 }, 'fr');
-      expect(_result).toBe('Doit contenir au moins 5 caractères');
+      expect(result).toBe('Doit contenir au moins 5 caractères');
     });
 
     it('should handle multiple parameters', () => {
@@ -424,7 +424,7 @@ describe('Language Validation Tests', () => {
 
     it('should handle missing parameters gracefully', () => {
       const result = translate('validation.min_length', {} as Record<string, any>, 'en');
-      expect(_result).toBe('Must be at least {min} characters');
+      expect(result).toBe('Must be at least {min} characters');
     });
   });
 
