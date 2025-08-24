@@ -164,7 +164,9 @@ export default function OwnerSuggestionsWithFilter() {
     search,
     addFilter,
     removeFilter,
+    updateFilter,
     clearFilters,
+    setSort,
     toggleSort,
     setSearch,
     applyPreset,
@@ -172,7 +174,7 @@ export default function OwnerSuggestionsWithFilter() {
     activeFilterCount,
     resultCount,
   } = useFilterSort({
-    _data: suggestions,
+    data: suggestions,
     config: filterSortConfig,
     initialState: {
       sort: { field: 'createdAt', direction: 'desc' },
@@ -281,8 +283,9 @@ export default function OwnerSuggestionsWithFilter() {
             search={search}
             onAddFilter={addFilter}
             onRemoveFilter={removeFilter}
+            onFilterUpdate={updateFilter}
             onClearFilters={clearFilters}
-            onSetSort={() => {}}
+            onSetSort={setSort}
             onToggleSort={toggleSort}
             onSetSearch={setSearch}
             onApplyPreset={handleApplyPreset}

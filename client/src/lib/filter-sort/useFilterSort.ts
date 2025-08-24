@@ -8,24 +8,24 @@ import {
 } from './types';
 import { applyFilterSort } from './utils';
 
-/*
+/**
  * Configuration options for the useFilterSort hook.
  * Defines the data, configuration, and initial state for filter/sort functionality.
  * 
  * @template T - The type of data items being filtered and sorted.
-
+ */
 interface UseFilterSortOptions<T> {
-  _data: T[];
+  data: T[];
   config: FilterSortConfig;
   initialState?: Partial<FilterSortState>;
 }
 
-/*
+/**
  * Return type for the useFilterSort hook.
  * Provides filtered data, state management, and control functions for filter/sort operations.
  * 
  * @template T - The type of data items being filtered and sorted.
-
+ */
 interface UseFilterSortReturn<T> {
   // Filtered and sorted data
   filteredData: T[];
@@ -89,12 +89,12 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * });
  * ```
 
-/*
+/**
  * UseFilterSort function.
  * @param options
  * @returns Function result.
-
-export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
+ */
+export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
 
   // Load initial state from localStorage if persistence is enabled
@@ -116,14 +116,8 @@ export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSo
       if (stored) {
         try {
           return JSON.parse(stored);
-        }
-   * Catch function.
-
-   * Catch function.
-
-
- catch (___e) {
-          console.warn('Failed to parse stored filter state', __e);
+        } catch (e) {
+          console.warn('Failed to parse stored filter state', e);
         }
       }
     }
@@ -284,4 +278,3 @@ export function useFilterSort<T>(_options: UseFilterSortOptions<T>): UseFilterSo
     resultCount,
   };
 }
- */
