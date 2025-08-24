@@ -43,7 +43,7 @@ export function useFeatureDuplicateAnalysis(features: Feature[]) {
       
       // Compare with all other features
       features.forEach((otherFeature: Feature, otherIndex: number) => {
-        if (index === otherIndex) {
+        if (_index === otherIndex) {
           return;
         }
         
