@@ -33,7 +33,7 @@ describe('Backend API Endpoints - Data Modification', () => {
 
   beforeEach(() => {
     app = createMockApp();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('Organization Endpoints', () => {

@@ -3,6 +3,7 @@
  * Tests all data modification functionality for documents and bills.
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -224,7 +225,7 @@ describe('Document and Bill Management', () => {
   const user = userEvent.setup();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
@@ -234,7 +235,7 @@ describe('Document and Bill Management', () => {
 
   describe('Document Management', () => {
     it('should upload a new document successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -268,7 +269,7 @@ describe('Document and Bill Management', () => {
     });
 
     it('should edit document metadata successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -320,7 +321,7 @@ describe('Document and Bill Management', () => {
     it('should handle document upload errors', async () => {
       mockApiRequest.mockRejectedValueOnce(new Error('Upload failed'));
 
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -346,7 +347,7 @@ describe('Document and Bill Management', () => {
 
   describe('Bill Management', () => {
     it('should create a new bill successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -383,7 +384,7 @@ describe('Document and Bill Management', () => {
     });
 
     it('should edit an existing bill successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -433,7 +434,7 @@ describe('Document and Bill Management', () => {
       const billTypes = ['monthly_fee', 'special_assessment', 'utilities', 'parking', 'storage', 'other'];
       
       for (const billType of billTypes) {
-        const onSuccess = vi.fn();
+        const onSuccess = jest.fn();
 
         render(
           <TestProviders>
@@ -460,7 +461,7 @@ describe('Document and Bill Management', () => {
     it('should handle bill creation errors', async () => {
       mockApiRequest.mockRejectedValueOnce(new Error('Bill creation failed'));
 
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -502,7 +503,7 @@ describe('Document and Bill Management', () => {
     });
 
     it('should toggle tenant visibility correctly', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>

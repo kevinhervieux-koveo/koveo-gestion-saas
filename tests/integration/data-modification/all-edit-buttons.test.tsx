@@ -3,6 +3,7 @@
  * This ensures all data modification functionality works correctly across the application.
  */
 
+import React from 'react';
 import { describe, it, expect, beforeEach, jest, beforeAll } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -79,18 +80,18 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
   beforeAll(() => {
     // Mock API requests globally
-    vi.mock('../../../client/src/lib/queryClient', () => ({
+    jest.mock('../../../client/src/lib/queryClient', () => ({
       apiRequest: mockApiRequest,
       queryClient: {
-        invalidateQueries: vi.fn(),
-        setQueryData: vi.fn(),
-        getQueryData: vi.fn()
+        invalidateQueries: jest.fn(),
+        setQueryData: jest.fn(),
+        getQueryData: jest.fn()
       }
     }));
   });
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     // Reset API mock responses
     mockApiRequest.mockResolvedValue({
       ok: true,
@@ -101,8 +102,8 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
   describe('Organization Management', () => {
     it('should handle organization creation successfully', async () => {
-      const onOpenChange = vi.fn();
-      const onSuccess = vi.fn();
+      const onOpenChange = jest.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -142,8 +143,8 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     });
 
     it('should handle organization editing successfully', async () => {
-      const onOpenChange = vi.fn();
-      const onSuccess = vi.fn();
+      const onOpenChange = jest.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -180,9 +181,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={null}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -202,14 +203,14 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
   describe('User Management & Authentication', () => {
     it('should handle user invitation sending', async () => {
-      const onOpenChange = vi.fn();
+      const onOpenChange = jest.fn();
 
       render(
         <TestProviders>
           <SendInvitationDialog
             open={true}
             onOpenChange={onOpenChange}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -317,7 +318,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
   describe('Bill Management', () => {
     it('should handle bill creation', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -348,14 +349,14 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     });
 
     it('should handle bill editing', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
           <BillEditForm
             bill={mockBill}
             onSuccess={onSuccess}
-            onCancel={vi.fn()}
+            onCancel={jest.fn()}
           />
         </TestProviders>
       );
@@ -390,9 +391,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={null}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -418,7 +419,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <BillCreateForm
             buildingId="test-building-id"
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -451,9 +452,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={null}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -486,9 +487,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={null}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -500,9 +501,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={mockOrganization}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -517,9 +518,9 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
         <TestProviders>
           <OrganizationFormDialog
             open={true}
-            onOpenChange={vi.fn()}
+            onOpenChange={jest.fn()}
             organization={null}
-            onSuccess={vi.fn()}
+            onSuccess={jest.fn()}
           />
         </TestProviders>
       );
@@ -540,8 +541,8 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     });
 
     it('should reset form after successful submission', async () => {
-      const onOpenChange = vi.fn();
-      const onSuccess = vi.fn();
+      const onOpenChange = jest.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>

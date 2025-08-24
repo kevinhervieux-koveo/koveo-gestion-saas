@@ -168,7 +168,7 @@ describe('Building and Residence Management', () => {
   const user = userEvent.setup();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
@@ -178,7 +178,7 @@ describe('Building and Residence Management', () => {
 
   describe('Building Management', () => {
     it('should create a new building successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -212,7 +212,7 @@ describe('Building and Residence Management', () => {
     });
 
     it('should edit an existing building successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -261,7 +261,7 @@ describe('Building and Residence Management', () => {
     it('should handle building creation errors', async () => {
       mockApiRequest.mockRejectedValueOnce(new Error('Building creation failed'));
 
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -288,7 +288,7 @@ describe('Building and Residence Management', () => {
 
   describe('Residence Management', () => {
     it('should update residence information successfully', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -335,7 +335,7 @@ describe('Building and Residence Management', () => {
     });
 
     it('should handle empty parking spots and storage spaces', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -380,7 +380,7 @@ describe('Building and Residence Management', () => {
     it('should handle residence update errors', async () => {
       mockApiRequest.mockRejectedValueOnce(new Error('Residence update failed'));
 
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -400,7 +400,7 @@ describe('Building and Residence Management', () => {
 
   describe('Data Validation and Edge Cases', () => {
     it('should handle array parsing for parking spots correctly', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -423,7 +423,7 @@ describe('Building and Residence Management', () => {
     });
 
     it('should handle large building with many units', async () => {
-      const onSuccess = vi.fn();
+      const onSuccess = jest.fn();
 
       render(
         <TestProviders>
@@ -475,7 +475,7 @@ describe('Building and Residence Management', () => {
       const buildingTypes = ['apartment', 'condo', 'townhouse'];
       
       for (const buildingType of buildingTypes) {
-        const onSuccess = vi.fn();
+        const onSuccess = jest.fn();
 
         render(
           <TestProviders>

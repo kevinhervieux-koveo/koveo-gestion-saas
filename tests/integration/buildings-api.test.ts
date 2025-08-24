@@ -41,7 +41,7 @@ jest.mock('drizzle-orm', () => ({
 }));
 
 // Mock auth middleware
-const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
+const mockRequireAuth = (req: any, res: any, next: any) => {
   req.user = req.mockUser || {
     id: 'admin-123',
     role: 'admin',
@@ -118,7 +118,7 @@ describe('Buildings API Integration Tests', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    setupBuildingRoutes(app);
+    registerBuildingRoutes(app);
     jest.clearAllMocks();
   });
 

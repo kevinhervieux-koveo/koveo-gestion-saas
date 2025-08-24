@@ -7,7 +7,7 @@ import { jest } from '@jest/globals';
 /**
  * Mock API request function that can be configured for different responses.
  */
-export const mockApiRequest = jest.fn();
+export const mockApiRequest = jest.fn() as jest.MockedFunction<any>;
 
 /**
  * Reset all API mocks.

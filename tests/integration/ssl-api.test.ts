@@ -3,7 +3,7 @@ import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../../server/routes';
 import { db } from '../../server/db';
-import { sslCertificates, users } from '@shared/schema';
+import { sslCertificates, users } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 describe('SSL API Integration', () => {
@@ -16,7 +16,7 @@ describe('SSL API Integration', () => {
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    _server = await registerRoutes(app);
+    registerRoutes(app);
 
     // Create test admin user
     const [user] = await db.insert(users).values({
