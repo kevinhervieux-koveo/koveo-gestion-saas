@@ -1321,6 +1321,9 @@ export class MemStorage implements IStorage {
         userId: userPermissions.userId,
         permissionId: userPermissions.permissionId,
         granted: userPermissions.granted,
+        grantedBy: userPermissions.grantedBy,
+        reason: userPermissions.reason,
+        grantedAt: userPermissions.grantedAt,
         createdAt: userPermissions.createdAt,
         permission: {
           id: permissions.id,

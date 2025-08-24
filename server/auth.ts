@@ -259,7 +259,7 @@ export function requireRole(allowedRoles: string[]) {
 
 /**
  * Permission-based authorization middleware factory using the comprehensive RBAC system.
- * Validates user permissions based on the permissions.json configuration.
+ * Validates user permissions based on the database RBAC system.
  * Must be used after requireAuth middleware.
  * 
  * @param {string} permission - Specific permission required to access the route (e.g., 'read:bill', 'create:maintenance_request').
