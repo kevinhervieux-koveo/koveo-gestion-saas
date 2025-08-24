@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
       console.error('Forgot password _error:', _error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Une erreur est survenue lors de l\'envoi de l\'e-mail.',
+        description: (_error as any).message || 'Une erreur est survenue lors de l\'envoi de l\'e-mail.',
         variant: 'destructive',
       });
     } finally {
