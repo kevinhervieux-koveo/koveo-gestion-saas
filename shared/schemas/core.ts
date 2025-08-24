@@ -258,93 +258,90 @@ export const userPermissions = pgTable('user_permissions', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  email: true,
-  password: true,
-  firstName: true,
-  lastName: true,
-  phone: true,
-  profileImage: true,
-  language: true,
-  role: true,
+// Insert schemas - manual Zod schemas to avoid drizzle-zod compatibility issues
+export const insertUserSchema = z.object({
+  username: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(1),
+  firstName: z.string(),
+  lastName: z.string(),
+  phone: z.string().optional(),
+  profileImage: z.string().optional(),
+  language: z.string().default('fr'),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
 });
 
-export const insertOrganizationSchema = createInsertSchema(organizations).pick({
-  name: true,
-  type: true,
-  address: true,
-  city: true,
-  province: true,
-  postalCode: true,
-  phone: true,
-  email: true,
-  website: true,
-  registrationNumber: true,
+export const insertOrganizationSchema = z.object({
+  name: z.string().min(1),
+  type: z.string(),
+  address: z.string(),
+  city: z.string(),
+  province: z.string().default('QC'),
+  postalCode: z.string(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  website: z.string().url().optional(),
+  registrationNumber: z.string().optional(),
 });
 
-export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).pick({
-  userId: true,
-  organizationId: true,
-  organizationRole: true,
-  canAccessAllOrganizations: true,
+export const insertUserOrganizationSchema = z.object({
+  userId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+  organizationRole: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
+  canAccessAllOrganizations: z.boolean().default(false),
 });
 
-export const insertInvitationSchema = createInsertSchema(invitations).pick({
-  organizationId: true,
-  residenceId: true,
-  email: true,
-  role: true,
-  invitedByUserId: true,
-  expiresAt: true,
-}).extend({
-  // Allow ISO date strings for HTTP requests and convert to Date
+export const insertInvitationSchema = z.object({
+  organizationId: z.string().uuid().optional(),
+  residenceId: z.string().uuid().optional(),
+  email: z.string().email(),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  invitedByUserId: z.string().uuid(),
   expiresAt: z.union([
     z.date(),
     z.string().datetime().transform((str) => new Date(str))
   ])
 });
 
-export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).pick({
-  userId: true,
-  token: true,
-  tokenHash: true,
-  expiresAt: true,
-  ipAddress: true,
-  userAgent: true,
+export const insertPasswordResetTokenSchema = z.object({
+  userId: z.string().uuid(),
+  token: z.string(),
+  tokenHash: z.string(),
+  expiresAt: z.date(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
 });
 
-export const insertInvitationAuditLogSchema = createInsertSchema(invitationAuditLog).pick({
-  invitationId: true,
-  action: true,
-  performedBy: true,
-  ipAddress: true,
-  userAgent: true,
-  details: true,
-  previousStatus: true,
-  newStatus: true,
+export const insertInvitationAuditLogSchema = z.object({
+  invitationId: z.string().uuid(),
+  action: z.string(),
+  performedBy: z.string().uuid(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  details: z.record(z.string(), z.any()).optional(),
+  previousStatus: z.string().optional(),
+  newStatus: z.string().optional(),
 });
 
-export const insertPermissionSchema = createInsertSchema(permissions).pick({
-  name: true,
-  displayName: true,
-  description: true,
-  resourceType: true,
-  action: true,
-  conditions: true,
-  isActive: true,
+export const insertPermissionSchema = z.object({
+  name: z.string(),
+  displayName: z.string(),
+  description: z.string().optional(),
+  resourceType: z.string(),
+  action: z.string(),
+  conditions: z.record(z.string(), z.any()).optional(),
+  isActive: z.boolean().default(true),
 });
 
-export const insertRolePermissionSchema = createInsertSchema(rolePermissions).pick({
-  role: true,
-  permissionId: true,
+export const insertRolePermissionSchema = z.object({
+  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  permissionId: z.string().uuid(),
 });
 
-export const insertUserPermissionSchema = createInsertSchema(userPermissions).pick({
-  userId: true,
-  permissionId: true,
-  granted: true,
+export const insertUserPermissionSchema = z.object({
+  userId: z.string().uuid(),
+  permissionId: z.string().uuid(),
+  granted: z.boolean().default(true),
 });
 
 // Types
@@ -429,19 +426,25 @@ export type InsertInvitationAuditLog = z.infer<typeof insertInvitationAuditLogSc
  */
 export type InvitationAuditLog = typeof invitationAuditLog.$inferSelect;
 
-// Relations
+// Relations - Temporarily commented out due to drizzle-orm version compatibility
+// TODO: Fix relations import compatibility with current drizzle-orm version
+/*
 export const usersRelations = relations(users, ({ many }) => ({
   userOrganizations: many(userOrganizations),
   sentInvitations: many(invitations, { relationName: 'invitedByUserId' }),
   acceptedInvitations: many(invitations, { relationName: 'acceptedBy' }),
   passwordResetTokens: many(passwordResetTokens),
 }));
+*/
 
+/*
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   userOrganizations: many(userOrganizations),
   invitations: many(invitations),
 }));
+*/
 
+/*
 export const userOrganizationsRelations = relations(userOrganizations, ({ one }) => ({
   user: one(users, {
     fields: [userOrganizations.userId],
@@ -452,7 +455,9 @@ export const userOrganizationsRelations = relations(userOrganizations, ({ one })
     references: [organizations.id],
   }),
 }));
+*/
 
+/*
 export const invitationsRelations = relations(invitations, ({ one }) => ({
   organization: one(organizations, {
     fields: [invitations.organizationId],
@@ -469,10 +474,13 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
     relationName: 'acceptedBy',
   }),
 }));
+*/
 
+/*
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
   user: one(users, {
     fields: [passwordResetTokens.userId],
     references: [users.id],
   }),
 }));
+*/

@@ -161,41 +161,39 @@ export const demandComments = pgTable('demand_comments', {
 });
 
 // Insert schemas
-export const insertMaintenanceRequestSchema = createInsertSchema(maintenanceRequests).pick({
-  residenceId: true,
-  submittedBy: true,
-  assignedTo: true,
-  title: true,
-  description: true,
-  category: true,
-  priority: true,
-  estimatedCost: true,
-  scheduledDate: true,
-  notes: true,
-  images: true,
+export const insertMaintenanceRequestSchema = z.object({
+  residenceId: z.string().uuid(),
+  submittedBy: z.string().uuid(),
+  assignedTo: z.string().uuid().optional(),
+  title: z.string(),
+  description: z.string(),
+  category: z.string(),
+  priority: z.string().default('medium'),
+  estimatedCost: z.number().optional(),
+  scheduledDate: z.date().optional(),
+  notes: z.string().optional(),
+  images: z.array(z.string()).optional(),
 });
 
-export const insertNotificationSchema = createInsertSchema(notifications).pick({
-  userId: true,
-  type: true,
-  title: true,
-  message: true,
-  relatedEntityId: true,
-  relatedEntityType: true,
+export const insertNotificationSchema = z.object({
+  userId: z.string().uuid(),
+  type: z.string(),
+  title: z.string(),
+  message: z.string(),
+  relatedEntityId: z.string().uuid().optional(),
+  relatedEntityType: z.string().optional(),
 });
 
-export const insertDemandSchema = createInsertSchema(demands).pick({
-  submitterId: true,
-  type: true,
-  assignationResidenceId: true,
-  assignationBuildingId: true,
-  description: true,
-  residenceId: true,
-  buildingId: true,
-  status: true,
-  reviewNotes: true,
-}).extend({
+export const insertDemandSchema = z.object({
+  submitterId: z.string().uuid(),
+  type: z.string(),
+  assignationResidenceId: z.string().uuid().optional(),
+  assignationBuildingId: z.string().uuid().optional(),
   description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
+  residenceId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional(),
+  status: z.string().default('draft'),
+  reviewNotes: z.string().optional(),
 });
 
 export const insertDemandCommentSchema = createInsertSchema(demandComments).pick({

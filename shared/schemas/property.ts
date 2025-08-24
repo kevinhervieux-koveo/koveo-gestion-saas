@@ -144,57 +144,57 @@ export const contacts = pgTable('contacts', {
 });
 
 // Insert schemas
-export const insertBuildingSchema = createInsertSchema(buildings).pick({
-  organizationId: true,
-  name: true,
-  address: true,
-  city: true,
-  province: true,
-  postalCode: true,
-  buildingType: true,
-  yearBuilt: true,
-  totalUnits: true,
-  totalFloors: true,
-  parkingSpaces: true,
-  storageSpaces: true,
-  amenities: true,
-  managementCompany: true,
-  bankAccountNumber: true,
-  bankAccountNotes: true,
-  bankAccountStartDate: true,
-  bankAccountStartAmount: true,
-  bankAccountMinimums: true,
+export const insertBuildingSchema = z.object({
+  organizationId: z.string().uuid(),
+  name: z.string().min(1),
+  address: z.string(),
+  city: z.string(),
+  province: z.string().default('QC'),
+  postalCode: z.string(),
+  buildingType: z.string(),
+  yearBuilt: z.number().int().optional(),
+  totalUnits: z.number().int().optional(),
+  totalFloors: z.number().int().optional(),
+  parkingSpaces: z.number().int().optional(),
+  storageSpaces: z.number().int().optional(),
+  amenities: z.array(z.string()).optional(),
+  managementCompany: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankAccountNotes: z.string().optional(),
+  bankAccountStartDate: z.date().optional(),
+  bankAccountStartAmount: z.number().optional(),
+  bankAccountMinimums: z.record(z.string(), z.number()).optional(),
 });
 
-export const insertResidenceSchema = createInsertSchema(residences).pick({
-  buildingId: true,
-  unitNumber: true,
-  floor: true,
-  squareFootage: true,
-  bedrooms: true,
-  bathrooms: true,
-  balcony: true,
-  parkingSpaceNumbers: true,
-  storageSpaceNumbers: true,
-  ownershipPercentage: true,
-  monthlyFees: true,
+export const insertResidenceSchema = z.object({
+  buildingId: z.string().uuid(),
+  unitNumber: z.string(),
+  floor: z.number().int().optional(),
+  squareFootage: z.number().optional(),
+  bedrooms: z.number().int().optional(),
+  bathrooms: z.number().optional(),
+  balcony: z.boolean().optional(),
+  parkingSpaceNumbers: z.array(z.string()).optional(),
+  storageSpaceNumbers: z.array(z.string()).optional(),
+  ownershipPercentage: z.number().optional(),
+  monthlyFees: z.number().optional(),
 });
 
-export const insertUserResidenceSchema = createInsertSchema(userResidences).pick({
-  userId: true,
-  residenceId: true,
-  relationshipType: true,
-  startDate: true,
-  endDate: true,
+export const insertUserResidenceSchema = z.object({
+  userId: z.string().uuid(),
+  residenceId: z.string().uuid(),
+  relationshipType: z.string(),
+  startDate: z.date(),
+  endDate: z.date().optional(),
 });
 
-export const insertContactSchema = createInsertSchema(contacts).pick({
-  name: true,
-  email: true,
-  phone: true,
-  entity: true,
-  entityId: true,
-  contactCategory: true,
+export const insertContactSchema = z.object({
+  name: z.string(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  entity: z.string(),
+  entityId: z.string().uuid(),
+  contactCategory: z.string(),
 });
 
 // Types
@@ -234,7 +234,8 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
  */
 export type Contact = typeof contacts.$inferSelect;
 
-// Relations
+// Relations - Temporarily commented out due to drizzle-orm version compatibility
+/*
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [buildings.organizationId],
@@ -242,7 +243,9 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   }),
   residences: many(residences),
 }));
+*/
 
+/*
 export const residencesRelations = relations(residences, ({ one, many }) => ({
   building: one(buildings, {
     fields: [residences.buildingId],
@@ -250,7 +253,9 @@ export const residencesRelations = relations(residences, ({ one, many }) => ({
   }),
   userResidences: many(userResidences),
 }));
+*/
 
+/*
 export const userResidencesRelations = relations(userResidences, ({ one }) => ({
   user: one(users, {
     fields: [userResidences.userId],
@@ -261,4 +266,5 @@ export const userResidencesRelations = relations(userResidences, ({ one }) => ({
     references: [residences.id],
   }),
 }));
+*/
 
