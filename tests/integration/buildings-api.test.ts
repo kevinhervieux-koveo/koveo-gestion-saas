@@ -247,6 +247,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(validBuildingData)
         .expect(201);
 
@@ -264,6 +265,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(invalidData)
         .expect(400);
 
@@ -280,6 +282,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(dataWithInvalidNumbers)
         .expect(400);
 
@@ -306,6 +309,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(dataWithZeros)
         .expect(201);
 
@@ -336,6 +340,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(validBuildingData)
         .expect(500);
 
@@ -546,6 +551,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(longNameData)
         .expect(400);
 
@@ -575,6 +581,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(specialCharData)
         .expect(201);
 
@@ -634,6 +641,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(validQuebecData)
         .expect(201);
 
@@ -663,6 +671,7 @@ describe('Buildings API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/admin/buildings')
+        .set('Authorization', 'Bearer mock-token')
         .send(frenchBuildingData)
         .expect(201);
 
