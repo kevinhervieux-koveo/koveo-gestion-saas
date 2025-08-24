@@ -24,16 +24,16 @@ import { schemas, enumFields } from "@/lib/validations";
 
 // Document categories
 const DOCUMENT_CATEGORIES = [
-  { _value: 'bylaw', label: 'Bylaws' },
-  { _value: 'financial', label: 'Financial' },
-  { _value: 'maintenance', label: 'Maintenance' },
-  { _value: 'legal', label: 'Legal' },
-  { _value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { _value: 'insurance', label: 'Insurance' },
-  { _value: 'contracts', label: 'Contracts' },
-  { _value: 'permits', label: 'Permits' },
-  { _value: 'inspection', label: 'Inspection' },
-  { _value: 'other', label: 'Other' },
+  { value: 'bylaw', label: 'Bylaws' },
+  { value: 'financial', label: 'Financial' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'meeting_minutes', label: 'Meeting Minutes' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'contracts', label: 'Contracts' },
+  { value: 'permits', label: 'Permits' },
+  { value: 'inspection', label: 'Inspection' },
+  { value: 'other', label: 'Other' },
 ] as const;
 
 // Form schema for creating/editing documents
@@ -129,29 +129,29 @@ export default function /**
   const queryClient = useQueryClient();
 
   // Get current user info
-  const { _data: user } = useQuery<User>({
+  const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/user"],
   });
 
   // Get documents
-  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: Document[]}>({
+  const { data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: Document[]}>({
     queryKey: ["/api/documents"],
   });
   
   const documents = documentsResponse?.documents || [];
 
   // Get buildings for assignment
-  const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
+  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ["/api/manager/buildings"],
   });
 
   // Get residences for assignment
-  const { _data: residences = [] } = useQuery<Residence[]>({
+  const { data: residences = [] } = useQuery<Residence[]>({
     queryKey: ["/api/residences"],
   });
 
   // Get organizations
-  const { _data: organizationsResponse } = useQuery<{ organizations: Organization[] }>({
+  const { data: organizationsResponse } = useQuery<{ organizations: Organization[] }>({
     queryKey: ["/api/admin/organizations"],
   });
 
@@ -174,7 +174,7 @@ export default function /**
     onError: (_error: unknown) => {
       toast({
         title: "Error",
-        description: (error as any)?.message || "Failed to create document",
+        description: (_error as any)?.message || "Failed to create document",
         variant: "destructive",
       });
     },
@@ -182,8 +182,8 @@ export default function /**
 
   // Update document mutation
   const updateDocumentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; _data: Partial<DocumentFormData> }) => {
-      return apiRequest("PUT", `/api/documents/${id}`, _data);
+    mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
+      return apiRequest("PUT", `/api/documents/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -196,7 +196,7 @@ export default function /**
     onError: (_error: unknown) => {
       toast({
         title: "Error",
-        description: (error as any)?.message || "Failed to update document",
+        description: (_error as any)?.message || "Failed to update document",
         variant: "destructive",
       });
     },
@@ -217,7 +217,7 @@ export default function /**
     onError: (_error: unknown) => {
       toast({
         title: "Error",
-        description: (error as any)?.message || "Failed to delete document",
+        description: (_error as any)?.message || "Failed to delete document",
         variant: "destructive",
       });
     },
@@ -240,7 +240,7 @@ export default function /**
       setUploadingDocumentId(null);
       toast({
         title: "Error",
-        description: (error as any)?.message || "Failed to upload file",
+        description: (_error as any)?.message || "Failed to upload file",
         variant: "destructive",
       });
     },
@@ -262,8 +262,8 @@ export default function /**
    */
 
 
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
+    if (_result.successful && _result.successful.length > 0) {
+      const uploadedFile = _result.successful[0];
       const fileUrl = uploadedFile.uploadURL as string;
       const fileName = uploadedFile.name;
       const fileSize = uploadedFile.size || 0;
@@ -353,7 +353,7 @@ export default function /**
 
 
     if (selectedDocument) {
-      updateDocumentMutation.mutate({ id: selectedDocument.id, data });
+      updateDocumentMutation.mutate({ id: selectedDocument.id, data: _data });
     }
   }; /**
    * If function.

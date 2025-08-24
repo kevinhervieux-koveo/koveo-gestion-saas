@@ -117,24 +117,24 @@ export default function /**
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   // Fetch demands
-  const { _data: demands = [], isLoading } = useQuery({
+  const { data: demands = [], isLoading } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch buildings
-  const { _data: buildings = [] } = useQuery<Building[]>({
+  const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
 
   // Fetch residences
-  const { _data: residences = [] } = useQuery<Residence[]>({
+  const { data: residences = [] } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
   });
 
   // Review demand mutation
   const reviewDemandMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; _data: ReviewFormData }) => {
+    mutationFn: async ({ id, data }: { id: string; data: ReviewFormData }) => {
       const response = await fetch(`/api/demands/${id}`, {
         method: 'PUT',
         headers: {
@@ -220,7 +220,7 @@ export default function /**
 
 
     if (selectedDemand) {
-      reviewDemandMutation.mutate({ id: selectedDemand.id, data });
+      reviewDemandMutation.mutate({ id: selectedDemand.id, data: _data });
     }
   };
 
@@ -243,14 +243,14 @@ export default function /**
   const quickApprove = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      _data: { status: 'approved', reviewNotes: 'Approved by manager' }
+      data: { status: 'approved', reviewNotes: 'Approved by manager' }
     });
   };
 
   const quickReject = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      _data: { status: 'rejected', reviewNotes: 'Rejected by manager' }
+      data: { status: 'rejected', reviewNotes: 'Rejected by manager' }
     });
   };
 
@@ -398,7 +398,7 @@ export default function /**
           <Input
             placeholder="Search demands, users..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target._value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>

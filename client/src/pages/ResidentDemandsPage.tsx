@@ -329,7 +329,7 @@ export default function /**
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -352,7 +352,7 @@ export default function /**
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Building</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select building" />
@@ -381,6 +381,7 @@ export default function /**
                           placeholder="Describe your request in detail..."
                           className="min-h-[100px]"
                           {...field}
+                          value={field.value as string}
                         />
                       </FormControl>
                       <FormMessage />
@@ -403,15 +404,17 @@ export default function /**
 
       {/* Filters */}
       <DemandFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        typeFilter={typeFilter}
-        onTypeChange={setTypeFilter}
-        showBuildingFilter={false}
-        buildingFilter=""
-        onBuildingChange={() => {}}
+        filters={{
+          searchTerm,
+          statusFilter,
+          typeFilter,
+        }}
+        handlers={{
+          onSearchChange: setSearchTerm,
+          onStatusChange: setStatusFilter,
+          onTypeChange: setTypeFilter,
+        }}
+        userRole="resident"
       />
 
       {/* Demands List */}
