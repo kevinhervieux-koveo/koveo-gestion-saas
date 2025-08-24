@@ -10,6 +10,9 @@ import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, Home, Car, Pa
 import { Building as BuildingType, Contact } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
+/**
+ *
+ */
 interface BuildingWithStats extends BuildingType {
   organizationName: string;
   organizationType: string;
@@ -19,6 +22,9 @@ interface BuildingWithStats extends BuildingType {
   vacantUnits: number;
 }
 
+/**
+ *
+ */
 export default function MyBuilding() {
   const [, navigate] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);

@@ -2,13 +2,14 @@ import { Express } from 'express';
 import { requireAuth } from '../auth';
 
 /**
- * Orphan cleanup endpoints for managing orphaned database records
+ * Orphan cleanup endpoints for managing orphaned database records.
+ * @param app
  */
 export function registerCleanupOrphansRoutes(app: Express) {
   
   /**
    * POST /api/cleanup/orphans - Cleanup orphaned buildings and residences
-   * Admin endpoint to clean up records that have lost their parent relationships
+   * Admin endpoint to clean up records that have lost their parent relationships.
    */
   app.post('/api/cleanup/orphans', requireAuth, async (req: any, res) => {
     try {
@@ -50,7 +51,7 @@ export function registerCleanupOrphansRoutes(app: Express) {
 
   /**
    * GET /api/cleanup/orphan-report - Generate report of orphaned records
-   * Admin endpoint to view orphaned records without cleaning them up
+   * Admin endpoint to view orphaned records without cleaning them up.
    */
   app.get('/api/cleanup/orphan-report', requireAuth, async (req: any, res) => {
     try {

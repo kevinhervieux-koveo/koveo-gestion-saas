@@ -315,7 +315,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * PUT /api/users/:id/organizations - Updates user's organization assignments.
    * Admin: can assign/remove any organization
-   * Manager: cannot modify organization assignments
+   * Manager: cannot modify organization assignments.
    */
   app.put('/api/users/:id/organizations', requireAuth, async (req: any, res) => {
     try {
@@ -422,7 +422,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * PUT /api/users/:id/residences - Updates user's residence assignments.
    * Admin: can assign/remove any residence
-   * Manager: can assign/remove residences within their organizations only
+   * Manager: can assign/remove residences within their organizations only.
    */
   app.put('/api/users/:id/residences', requireAuth, async (req: any, res) => {
     try {

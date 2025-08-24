@@ -1,5 +1,5 @@
 /**
- * Residence Page Error Handling Tests
+ * Residence Page Error Handling Tests.
  * 
  * Specific tests for the residence page to ensure it handles various error scenarios
  * and data loading states gracefully, preventing runtime crashes.

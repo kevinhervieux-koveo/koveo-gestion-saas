@@ -1,6 +1,6 @@
 /**
- * @file Simple Icon Positioning Test
- * @description Focused test to ensure icons stay within card boundaries for "563 montée des pionniers, Terrebonne"
+ * @file Simple Icon Positioning Test.
+ * @description Focused test to ensure icons stay within card boundaries for "563 montée des pionniers, Terrebonne".
  */
 
 import React from 'react';

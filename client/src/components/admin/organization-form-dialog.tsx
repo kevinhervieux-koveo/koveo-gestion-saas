@@ -157,7 +157,7 @@ export function OrganizationFormDialog({
     onError: (_error: Error) => {
       toast({
         title: 'Error',
-        description: error.message || 'Something went wrong',
+        description: _error.message || 'Something went wrong',
         variant: 'destructive',
       });
     },

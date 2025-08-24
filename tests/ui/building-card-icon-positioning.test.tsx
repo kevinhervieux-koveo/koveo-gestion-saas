@@ -1,7 +1,7 @@
 /**
- * @file Building Card Icon Positioning Tests
+ * @file Building Card Icon Positioning Tests.
  * @description Tests to ensure icons stay within card boundaries and maintain proper positioning
- * especially with long building names like "563 montée des pionniers, Terrebonne"
+ * especially with long building names like "563 montée des pionniers, Terrebonne".
  */
 
 import React from 'react';

@@ -1,5 +1,5 @@
 /**
- * Navigation Accessibility Tests
+ * Navigation Accessibility Tests.
  * 
  * Tests to ensure navigation components are accessible and work correctly
  * across different user roles and authentication states.

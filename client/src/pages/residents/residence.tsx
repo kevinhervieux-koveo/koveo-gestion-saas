@@ -61,6 +61,9 @@ interface Residence {
   };
 }
 
+/**
+ *
+ */
 interface Contact {
   id: string;
   firstName: string;
@@ -79,8 +82,14 @@ const contactFormSchema = z.object({
   type: z.enum(['primary', 'emergency', 'other']),
 });
 
+/**
+ *
+ */
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
+/**
+ *
+ */
 export default function Residence() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -136,7 +145,7 @@ export default function Residence() {
   const { data: accessibleResidences = [], isLoading, error: residencesError, refetch: refetchResidences } = useQuery({
     queryKey: user?.role && ['admin', 'manager'].includes(user.role) ? ["/api/residences"] : ["/api/users/residences", user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) {return [];}
       
       let url = "";
       // Admin and manager users can see all residences in their organizations
@@ -170,7 +179,7 @@ export default function Residence() {
   const filteredResidences = useMemo(() => {
     if (user?.role && ['admin', 'manager'].includes(user.role)) {
       // For admin/manager, show all residences if no building filter is selected
-      if (!selectedBuildingId) return safeAccessibleResidences;
+      if (!selectedBuildingId) {return safeAccessibleResidences;}
       
       // Filter by selected building
       return safeAccessibleResidences.filter(r => r.buildingId === selectedBuildingId);

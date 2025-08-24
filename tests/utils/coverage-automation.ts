@@ -68,8 +68,7 @@ export class CoverageAutomationService {
   private quebecComplianceThreshold: number;
 
   /**
-   * Missing JSDoc documentation placeholder.
-   * @returns Missing return type documentation.
+   * Initializes the coverage automation service with default thresholds for Quebec property management compliance.
    */
   constructor() {
     this.projectRoot = process.cwd();
@@ -109,7 +108,11 @@ export class CoverageAutomationService {
       
       // 6. Generate comprehensive report
       const effectivenessData: TestEffectivenessData = {
-        testSuiteResults: testResults,
+        testSuiteResults: testResults.map(r => ({
+          name: r.suite,
+          status: r.error ? 'failed' as const : 'passed' as const,
+          coverage: 0 // Default coverage, would be calculated from actual results
+        })),
         coverageData,
         qualityScores,
         quebecSpecificMetrics: quebecMetrics,
@@ -130,9 +133,9 @@ export class CoverageAutomationService {
 
   /**
    * Runs all test suites in parallel for comprehensive coverage.
-   * @returns Promise<any[]> Test suite results.
+   * @returns Promise<Array<{suite: string; result?: unknown; error?: string; timestamp: string}>> Test suite results.
    */
-  private async runAllTestSuites(): Promise<any[]> {
+  private async runAllTestSuites(): Promise<Array<{suite: string; result?: unknown; error?: string; timestamp: string}>> {
     console.warn('📋 Running all test suites...');
 
     const testCommands = [
@@ -167,7 +170,7 @@ export class CoverageAutomationService {
         console.warn(`⚠️ Test suite failed: ${command}`);
         results.push({
           suite: command,
-          _error: (_error as Error).message,
+          error: (_error as Error).message,
           timestamp: new Date().toISOString()
         });
       }
@@ -178,9 +181,9 @@ export class CoverageAutomationService {
 
   /**
    * Generates comprehensive coverage reports with Quebec compliance analysis.
-   * @returns Promise<any> Coverage data with Quebec metrics.
+   * @returns Promise<CoverageMetrics> Coverage data with Quebec metrics.
    */
-  private async generateCoverageReports(): Promise<any> {
+  private async generateCoverageReports(): Promise<CoverageMetrics> {
     console.warn('📊 Generating coverage reports...');
 
     try {
@@ -204,12 +207,7 @@ export class CoverageAutomationService {
       // Analyze Quebec-specific file coverage
       const quebecFileCoverage = this.analyzeQuebecFileCoverage(coverageData);
       
-      return {
-        aggregate: aggregateMetrics,
-        files: coverageData,
-        quebecSpecific: quebecFileCoverage,
-        timestamp: new Date().toISOString()
-      };
+      return aggregateMetrics;
     } catch (_error) {
       console.error('❌ Coverage report generation failed:', _error);
       throw _error;

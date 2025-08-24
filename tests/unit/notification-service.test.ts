@@ -6,18 +6,18 @@ jest.mock('../../server/db', () => ({
   db: {
     select: jest.fn(() => ({
       from: jest.fn(() => ({
-        where: jest.fn().mockResolvedValue([]) as any
+        where: jest.fn().mockResolvedValue([])
       }))
     })),
     insert: jest.fn(() => ({
-      values: jest.fn().mockResolvedValue([]) as any
+      values: jest.fn().mockResolvedValue([])
     }))
   }
 }));
 
 jest.mock('@sendgrid/mail', () => ({
   setApiKey: jest.fn(),
-  send: jest.fn().mockResolvedValue([{ statusCode: 202 }]) as any
+  send: jest.fn().mockResolvedValue([{ statusCode: 202 }])
 }));
 
 describe('NotificationService', () => {

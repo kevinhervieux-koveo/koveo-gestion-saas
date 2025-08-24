@@ -1,5 +1,5 @@
 /**
- * Database Orphan Detection Tests
+ * Database Orphan Detection Tests.
  * 
  * This test suite detects orphaned records in the database where foreign key 
  * relationships have been broken. These tests should be run regularly to ensure

@@ -967,6 +967,16 @@ export default function UserManagement() {
 }
 
 // Organization Edit Form Component
+/**
+ *
+ * @param root0
+ * @param root0.user
+ * @param root0.organizations
+ * @param root0.userOrganizations
+ * @param root0.onSave
+ * @param root0.onCancel
+ * @param root0.isLoading
+ */
 function OrganizationEditForm({ 
   user, 
   organizations, 
@@ -1041,6 +1051,17 @@ function OrganizationEditForm({
 }
 
 // Residence Edit Form Component
+/**
+ *
+ * @param root0
+ * @param root0.user
+ * @param root0.residences
+ * @param root0.buildings
+ * @param root0.userResidences
+ * @param root0.onSave
+ * @param root0.onCancel
+ * @param root0.isLoading
+ */
 function ResidenceEditForm({ 
   user, 
   residences, 

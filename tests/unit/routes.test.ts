@@ -37,7 +37,7 @@ describe('Routes Integration Tests', () => {
         { id: '1', name: 'Feature 1', status: 'completed', category: 'core' },
         { id: '2', name: 'Feature 2', status: 'in-progress', category: 'ui' },
       ];
-      mockStorage.getFeatures.mockResolvedValue(mockFeatures as any);
+      mockStorage.getFeatures.mockResolvedValue(mockFeatures as never);
 
       const response = await request(app).get('/api/features').expect(200);
 
@@ -47,7 +47,7 @@ describe('Routes Integration Tests', () => {
 
     it('should filter features by roadmap=true', async () => {
       const mockFeatures = [{ id: '1', name: 'Public Feature', isPublicRoadmap: true }];
-      mockStorage.getFeatures.mockResolvedValue(mockFeatures as any);
+      mockStorage.getFeatures.mockResolvedValue(mockFeatures as never);
 
       await request(app).get('/api/features?roadmap=true').expect(200);
 

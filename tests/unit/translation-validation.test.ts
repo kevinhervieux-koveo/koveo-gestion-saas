@@ -73,7 +73,7 @@ describe('Translation Files Language Validation', () => {
    * Test to validate hardcoded strings in React components.
    */
   it('should identify hardcoded strings in React components that need translation', async () => {
-    const validator = testLanguageValidator;
+    const _validator = testLanguageValidator;
     
     try {
       const componentFiles = await glob('client/src/**/*.{tsx,jsx}', { cwd: process.cwd() });
@@ -188,7 +188,7 @@ describe('Translation Files Language Validation', () => {
     testCases.forEach(testCase => {
       // Test that incorrect terms are detected
       testCase.incorrect.forEach(incorrectTerm => {
-        const violations = validateText(incorrectTerm, `Test: ${testCase.context}`);
+        const violations = validateText(incorrectTerm, `Test: ${testCase._context}`);
         
         // Make more flexible - focus on function not crashing
         expect(Array.isArray(violations)).toBe(true);
@@ -199,7 +199,7 @@ describe('Translation Files Language Validation', () => {
       });
       
       // Test that correct terms pass validation - allow some flexibility
-      const correctViolations = validateText(testCase.correct, `Test: ${testCase.context}`);
+      const correctViolations = validateText(testCase.correct, `Test: ${testCase._context}`);
       const criticalViolations = correctViolations.filter(v => v.severity === 'error');
       
       expect(criticalViolations.length).toBeLessThanOrEqual(1); // Allow some flexibility

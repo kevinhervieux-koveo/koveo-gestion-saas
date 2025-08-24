@@ -1,12 +1,15 @@
 /**
  * Cleanup functions for orphaned records in the database
- * These functions help identify and remove records that have lost their parent relationships
+ * These functions help identify and remove records that have lost their parent relationships.
  */
 
 import { db } from '../db';
 import { eq, and, isNull } from 'drizzle-orm';
 import { buildings, organizations, residences, userOrganizations, userResidences } from '../../shared/schema';
 
+/**
+ *
+ */
 export interface OrphanCleanupReport {
   orphanBuildings: number;
   orphanResidences: number;
@@ -16,7 +19,7 @@ export interface OrphanCleanupReport {
 }
 
 /**
- * Find buildings that reference non-existent organizations
+ * Find buildings that reference non-existent organizations.
  */
 async function findOrphanBuildings() {
   const orphanBuildings = await db
@@ -38,7 +41,7 @@ async function findOrphanBuildings() {
 }
 
 /**
- * Find residences that reference non-existent buildings
+ * Find residences that reference non-existent buildings.
  */
 async function findOrphanResidences() {
   const orphanResidences = await db
@@ -60,7 +63,7 @@ async function findOrphanResidences() {
 }
 
 /**
- * Clean up all orphaned records
+ * Clean up all orphaned records.
  */
 export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
   console.log('🧹 Starting orphan cleanup process...');
@@ -115,7 +118,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
 }
 
 /**
- * Generate a report of orphaned records without cleaning them up
+ * Generate a report of orphaned records without cleaning them up.
  */
 export async function generateOrphanReport(): Promise<OrphanCleanupReport> {
   console.log('📊 Generating orphan report...');

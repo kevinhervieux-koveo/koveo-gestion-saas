@@ -1,24 +1,30 @@
 #!/usr/bin/env tsx
 
 /**
- * Cleanup Orphaned Records Script
+ * Cleanup Orphaned Records Script.
  * 
  * This script identifies and removes orphaned records from the database.
  * It should be run periodically or after major database operations to ensure data integrity.
  * 
- * Usage: npm run cleanup:orphans
+ * Usage: npm run cleanup:orphans.
  */
 
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import chalk from 'chalk';
 
+/**
+ *
+ */
 interface OrphanReport {
   entity: string;
   count: number;
   records?: any[];
 }
 
+/**
+ *
+ */
 async function detectOrphans(): Promise<OrphanReport[]> {
   console.log(chalk.blue('🔍 Scanning database for orphaned records...'));
   
@@ -163,6 +169,10 @@ async function detectOrphans(): Promise<OrphanReport[]> {
   return reports;
 }
 
+/**
+ *
+ * @param reports
+ */
 async function deleteOrphans(reports: OrphanReport[]): Promise<void> {
   console.log(chalk.yellow('🧹 Cleaning up orphaned records...'));
 
@@ -275,6 +285,9 @@ async function deleteOrphans(reports: OrphanReport[]): Promise<void> {
   }
 }
 
+/**
+ *
+ */
 async function main() {
   try {
     console.log(chalk.blue.bold('🚀 Starting Orphaned Records Cleanup'));

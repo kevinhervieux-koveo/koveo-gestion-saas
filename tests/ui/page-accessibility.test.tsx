@@ -1,5 +1,5 @@
 /**
- * Page Accessibility Tests
+ * Page Accessibility Tests.
  * 
  * Comprehensive tests to ensure all pages are accessible, handle errors gracefully,
  * and provide proper loading states for users across different scenarios.

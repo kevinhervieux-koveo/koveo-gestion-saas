@@ -8,7 +8,7 @@ vi.mock('path');
 
 describe('SSL Service', () => {
   let _sslService: SSLService;
-  let mockOptions: any;
+  let mockOptions: {email: string; staging: boolean; keySize: number; storageDir: string};
 
   beforeEach(() => {
     mockOptions = {

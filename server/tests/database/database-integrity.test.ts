@@ -1,5 +1,5 @@
 /**
- * Database Integrity Tests
+ * Database Integrity Tests.
  * 
  * This comprehensive test suite validates database structure, relationships,
  * and business rules to ensure data consistency and integrity.
