@@ -22,7 +22,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
       expect(budgetExpenses.length).toBe(demoBills.length);
       
       budgetExpenses.forEach((expense, _index) => {
-        const originalBill = demoBills[index];
+        const originalBill = demoBills[_index];
         expect(expense.id).toBe(originalBill.id);
         expect(expense.amount).toBe(originalBill.totalAmount);
         expect(expense.category).toBe(originalBill.category);
@@ -347,7 +347,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
         runningBalance += netCashFlow;
         
         return {
-          month: index + 1,
+          month: _index + 1,
           totalIncome: data.income,
           totalExpenses: data.expenses,
           netCashFlow,

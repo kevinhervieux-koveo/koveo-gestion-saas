@@ -1,8 +1,9 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import Budget from '@/pages/manager/budget';
+import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
 import { getDemoBuildings } from '../../utils/demo-data-helpers';
+import '@testing-library/jest-dom';
 import '../budget-test-setup';
 
 describe('Budget User Interactions and State Management', () => {

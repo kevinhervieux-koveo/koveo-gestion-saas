@@ -1,7 +1,8 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import Budget from '@/pages/manager/budget';
+import Budget from '../../../client/src/pages/manager/budget';
 import { renderBudgetComponent } from '../budget-test-setup';
+import '@testing-library/jest-dom';
 import '../budget-test-setup';
 
 describe('Budget Bank Account Management Tests', () => {
