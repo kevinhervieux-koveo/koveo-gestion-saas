@@ -930,7 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register improvement suggestions routes
   try {
     // GET /api/pillars/suggestions - Get improvement suggestions
-    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestion'), async (req: any, res: any) => {
+    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestions'), async (req: any, res: any) => {
       try {
         // Fetch only the columns that exist in the database
         const suggestions = await db
@@ -954,7 +954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/pillars/suggestions/:id/acknowledge - Acknowledge a suggestion
-    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestion'), async (req: any, res: any) => {
+    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestions'), async (req: any, res: any) => {
       try {
         // Update directly in database
         const [suggestion] = await db
@@ -974,7 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/pillars/suggestions/:id/complete - Complete a suggestion (delete it)
-    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestion'), async (req: any, res: any) => {
+    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestions'), async (req: any, res: any) => {
       try {
         // Delete the suggestion from database
         const [deletedSuggestion] = await db
