@@ -223,16 +223,24 @@ export default function Residence() {
   }, [selectedResidenceId, filteredResidences]);
 
   // Fetch contacts for selected residence
-  const { data: contacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
+  const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ["/api/contacts", selectedResidenceId],
-    queryFn: async () => selectedResidenceId ? await apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`) : [],
+    queryFn: async () => {
+      if (!selectedResidenceId) return [];
+      const response = await apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`);
+      return Array.isArray(response) ? response : [];
+    },
     enabled: !!selectedResidenceId,
   });
 
   // Fetch building contacts (read-only for residents)
-  const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery<Contact[]>({
+  const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
     queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
-    queryFn: async () => selectedResidence?.buildingId ? await apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`) : [],
+    queryFn: async () => {
+      if (!selectedResidence?.buildingId) return [];
+      const response = await apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`);
+      return Array.isArray(response) ? response : [];
+    },
     enabled: !!selectedResidence?.buildingId,
   });
 
@@ -333,7 +341,8 @@ export default function Residence() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
-          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
+          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -350,7 +359,8 @@ export default function Residence() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header 
-          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
+          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -372,7 +382,8 @@ export default function Residence() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header 
-        title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'} 
+        title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
+        subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
       />
 
       <div className='flex-1 overflow-auto p-6'>

@@ -46,6 +46,7 @@ import type {
   InsertPasswordResetToken,
 } from '@shared/schema';
 import type { IStorage } from './storage';
+import type { DevelopmentPillar } from '../shared/schemas/development';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
 import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
@@ -1071,7 +1072,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createImprovementSuggestion(suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
     const result = await dbPerformanceMonitor.trackQuery('createImprovementSuggestion', async () => {
-      return db.insert(schema.improvementSuggestions).values([suggestion]).returning();
+      return db.insert(schema.improvementSuggestions).values([{
+        ...suggestion,
+        category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App'
+      }]).returning();
     });
     
     queryCache.invalidate('improvement_suggestions');
@@ -2232,5 +2236,75 @@ export class OptimizedDatabaseStorage implements IStorage {
     
     queryCache.invalidate('contacts');
     return result[0];
+  }
+
+  /**
+   * Updates a contact.
+   * @param id
+   * @param updates
+   */
+  async updateContact(id: string, updates: Partial<Contact>): Promise<Contact | undefined> {
+    const result = await dbPerformanceMonitor.trackQuery('updateContact', async () => {
+      return db
+        .update(schema.contacts)
+        .set(updates as any)
+        .where(eq(schema.contacts.id, id))
+        .returning();
+    });
+    
+    queryCache.invalidate('contacts');
+    return result[0];
+  }
+
+  /**
+   * Deletes a contact.
+   * @param id
+   */
+  async deleteContact(id: string): Promise<boolean> {
+    const result = await dbPerformanceMonitor.trackQuery('deleteContact', async () => {
+      return db
+        .update(schema.contacts)
+        .set({ isActive: false })
+        .where(eq(schema.contacts.id, id))
+        .returning();
+    });
+    
+    queryCache.invalidate('contacts');
+    return result.length > 0;
+  }
+
+  /**
+   * Gets demands for a user.
+   * @param userId
+   */
+  async getDemandsForUser(userId: string): Promise<any[]> {
+    return this.withOptimizations(
+      'getDemandsForUser',
+      `demands_user:${userId}`,
+      'demands',
+      () => db
+        .select()
+        .from(schema.demands)
+        .where(eq(schema.demands.userId, userId))
+    );
+  }
+
+  /**
+   * Gets a specific demand.
+   * @param id
+   */
+  async getDemand(id: string): Promise<any | undefined> {
+    return this.withOptimizations(
+      'getDemand',
+      `demand:${id}`,
+      'demands',
+      async () => {
+        const result = await db
+          .select()
+          .from(schema.demands)
+          .where(eq(schema.demands.id, id));
+        return result[0];
+      }
+    );
   }
 }
