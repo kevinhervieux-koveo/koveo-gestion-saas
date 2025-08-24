@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
-import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
+import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
 import { checkPermission, permissions, getRolePermissions } from '../config';
@@ -43,18 +44,18 @@ export const sessionConfig = session({
 });
 
 /**
- * Enhanced password hashing using PBKDF2 with salt for Quebec Law 25 compliance.
- * Provides strong security using industry-standard key derivation function
- * with 10,000 iterations and SHA-512 hashing algorithm.
+ * Enhanced password hashing using bcrypt with salt for Quebec Law 25 compliance.
+ * Provides strong security using industry-standard bcrypt algorithm
+ * with configurable salt rounds (default: 12).
  * 
  * @param {string} password - Plain text password to hash.
- * @returns {{salt: string, hash: string}} Object containing hexadecimal salt and hashed password.
+ * @returns {Promise<string>} Promise resolving to bcrypt hashed password.
  * 
  * @example
  * ```typescript
- * const { salt, hash } = hashPassword('userPassword123');
- * // Store salt and hash securely in database
- * await storage.createUser({ ...userData, passwordSalt: salt, passwordHash: hash });
+ * const hashedPassword = await hashPassword('userPassword123');
+ * // Store hashed password securely in database
+ * await storage.createUser({ ...userData, password: hashedPassword });
  * ```
  */
 /**
@@ -62,25 +63,23 @@ export const sessionConfig = session({
  * @param password
  * @returns Function result.
  */
-export function hashPassword(password: string): { salt: string; hash: string } {
-  const salt = randomBytes(32).toString('hex');
-  const hash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-  return { salt, hash };
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12; // Recommended for production
+  return await bcrypt.hash(password, saltRounds);
 }
 
 /**
- * Verifies a password against stored hash and salt using constant-time comparison.
- * Uses the same PBKDF2 parameters as hashPassword to ensure consistency.
+ * Verifies a password against stored bcrypt hash using constant-time comparison.
+ * Uses bcrypt.compare for secure password verification.
  * 
  * @param {string} password - Plain text password to verify.
- * @param {string} salt - Stored hexadecimal salt value from user record.
- * @param {string} hash - Stored hexadecimal hash value from user record.
- * @returns {boolean} True if password matches, false otherwise.
+ * @param {string} hashedPassword - Stored bcrypt hash from user record.
+ * @returns {Promise<boolean>} Promise resolving to true if password matches, false otherwise.
  * 
  * @example
  * ```typescript
  * const user = await storage.getUserByEmail(email);
- * const isValid = verifyPassword(inputPassword, user.passwordSalt, user.passwordHash);
+ * const isValid = await verifyPassword(inputPassword, user.password);
  * if (isValid) {
  *   // Grant access
  * }
@@ -89,11 +88,24 @@ export function hashPassword(password: string): { salt: string; hash: string } {
 /**
  * VerifyPassword function.
  * @param password
- * @param salt
- * @param hash
+ * @param hashedPassword
  * @returns Function result.
  */
-export function verifyPassword(password: string, salt: string, hash: string): boolean {
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword);
+}
+
+/**
+ * Legacy PBKDF2 password verification for backward compatibility during migration.
+ * Used to verify old PBKDF2 passwords and migrate them to bcrypt.
+ * 
+ * @param {string} password - Plain text password to verify.
+ * @param {string} salt - Stored hexadecimal salt value.
+ * @param {string} hash - Stored hexadecimal hash value.
+ * @returns {boolean} True if password matches, false otherwise.
+ */
+export function verifyLegacyPassword(password: string, salt: string, hash: string): boolean {
+  const { pbkdf2Sync } = require('crypto');
   const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   return hash === verifyHash;
 }
@@ -336,24 +348,32 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Handle both new hashed passwords (salt:hash) and legacy plain text passwords
-      const passwordParts = user.password.split(':');
+      // Handle bcrypt hashes, legacy PBKDF2 (salt:hash), and plain text passwords
       let isValidPassword = false;
       
-      if (passwordParts.length === 2) {
-        // New format: salt:hash
-        const [salt, hash] = passwordParts;
-        isValidPassword = verifyPassword(password, salt, hash);
+      if (user.password.startsWith('$2')) {
+        // Modern format: bcrypt hash
+        isValidPassword = await verifyPassword(password, user.password);
+      } else if (user.password.includes(':')) {
+        // Legacy PBKDF2 format: salt:hash (migrate to bcrypt)
+        const [salt, hash] = user.password.split(':');
+        isValidPassword = verifyLegacyPassword(password, salt, hash);
+        
+        if (isValidPassword) {
+          // Automatically upgrade to bcrypt
+          const hashedPassword = await hashPassword(password);
+          await storage.updateUser(user.id, { password: hashedPassword });
+          console.warn(`Password upgraded from PBKDF2 to bcrypt for user: ${user.id}`);
+        }
       } else {
-        // Legacy format: plain text (migrate to hashed)
+        // Legacy format: plain text (migrate to bcrypt)
         if (user.password === password) {
           isValidPassword = true;
           
-          // Automatically upgrade to hashed password
-          const { salt, hash } = hashPassword(password);
-          const hashedPassword = `${salt}:${hash}`;
+          // Automatically upgrade to bcrypt
+          const hashedPassword = await hashPassword(password);
           await storage.updateUser(user.id, { password: hashedPassword });
-          console.warn(`Password upgraded to hashed format for user: ${user.id}`);
+          console.warn(`Password upgraded from plain text to bcrypt for user: ${user.id}`);
         }
       }
       
@@ -442,9 +462,8 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Create user with hashed password
-      const { salt, hash } = hashPassword(password);
-      const hashedPassword = `${salt}:${hash}`;
+      // Create user with bcrypt hashed password
+      const hashedPassword = await hashPassword(password);
       
       const newUser = await storage.createUser({
         email: email.toLowerCase(),
@@ -619,9 +638,8 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Update user password with hashed version
-      const { salt, hash } = hashPassword(password);
-      const hashedPassword = `${salt}:${hash}`;
+      // Update user password with bcrypt hashed version
+      const hashedPassword = await hashPassword(password);
       
       await storage.updateUser(user.id, { 
         password: hashedPassword,

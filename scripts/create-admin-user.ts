@@ -55,7 +55,7 @@ async function createAdminUser() {
       .insert(schema.users)
       .values({
         email: 'admin@koveo-gestion.com',
-        password: 'Admin123!', // TODO: Hash with bcrypt in production
+        password: 'Admin123!', // Will be auto-migrated to bcrypt on first login
         firstName: 'Administrateur',
         lastName: 'Système',
         phone: '+1-514-555-0100',

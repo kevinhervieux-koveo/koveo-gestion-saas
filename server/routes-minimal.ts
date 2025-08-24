@@ -855,9 +855,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Create user with hashed password
-        const { salt, hash } = hashPassword(password);
-        const hashedPassword = `${salt}:${hash}`;
+        // Create user with bcrypt hashed password
+        const hashedPassword = await hashPassword(password);
 
         // Generate username from email (part before @)
         const username = invitationData.email.split('@')[0].toLowerCase();
