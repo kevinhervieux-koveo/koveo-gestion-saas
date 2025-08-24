@@ -471,10 +471,10 @@ describe('Building and Residence Management', () => {
   });
 
   describe('Building Type Management', () => {
-    it('should handle all building types correctly', async () => {
-      const buildingTypes = ['apartment', 'condo', 'townhouse'];
-      
-      for (const buildingType of buildingTypes) {
+    const buildingTypes = ['apartment', 'condo', 'townhouse'];
+    
+    buildingTypes.forEach((buildingType) => {
+      it(`should handle ${buildingType} building type correctly`, async () => {
         const onSuccess = jest.fn();
 
         render(
@@ -496,7 +496,7 @@ describe('Building and Residence Management', () => {
             buildingType
           }));
         });
-      }
+      });
     });
   });
 });

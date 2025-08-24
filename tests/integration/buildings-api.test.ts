@@ -38,6 +38,7 @@ jest.mock('drizzle-orm', () => ({
   like: jest.fn(),
   ilike: jest.fn(),
   or: jest.fn(),
+  sql: jest.fn(),
 }));
 
 // Mock auth middleware
@@ -53,6 +54,7 @@ const mockRequireAuth = (req: any, res: any, next: any) => {
 
 jest.mock('../../server/auth', () => ({
   requireAuth: mockRequireAuth,
+  requireRole: jest.fn((role: string) => (req: any, res: any, next: any) => next()),
 }));
 
 // Import the building routes

@@ -8,7 +8,6 @@ import { eq } from 'drizzle-orm';
 
 describe('SSL API Integration', () => {
   let app: express.Application;
-  let _server: unknown;
   let adminUser: { id: string; email: string; role: string; };
   let testCertificateId: string;
   let authCookie: string;
@@ -20,6 +19,7 @@ describe('SSL API Integration', () => {
 
     // Create test admin user
     const [user] = await db.insert(users).values({
+      username: 'ssl-admin',
       email: 'ssl-admin@test.com',
       password: 'hashedpassword123',
       firstName: 'SSL',
@@ -88,6 +88,7 @@ describe('SSL API Integration', () => {
     it('should return 403 for non-admin users', async () => {
       // Create regular user
       const [regularUser] = await db.insert(users).values({
+        username: 'regular-user',
         email: 'regular@test.com',
         password: 'hashedpassword123',
         firstName: 'Regular',
