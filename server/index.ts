@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from './vite';
 import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
+import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -472,6 +473,11 @@ async function initializeApplication() {
         }
       });
       log('✅ User organizations route registered');
+      
+      // Add error handling middleware for API routes only
+      app.use('/api', notFoundHandler);
+      app.use(errorHandler);
+      log('✅ Error handling middleware configured');
       
     } catch (_error) {
       log(`❌ Route registration failed: ${_error}`, 'error');
