@@ -11,6 +11,14 @@ import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 
+// Start memory monitoring for better performance
+memoryOptimizer.start();
+
+// Make queryClient available globally for memory cleanup
+if (typeof window !== 'undefined') {
+  (window as any).queryClient = queryClient;
+}
+
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 
 // Optimized lazy-loaded Admin pages

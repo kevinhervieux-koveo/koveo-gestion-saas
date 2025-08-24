@@ -148,7 +148,7 @@ export function preloadComponent(
  */
 export function clearComponentCache(keys?: string[]): void {
   if (keys) {
-    keys.forEach(key => componentCache.delete(_key));
+    keys.forEach(key => componentCache.delete(key));
   } else {
     componentCache.clear();
   }

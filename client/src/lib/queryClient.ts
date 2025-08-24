@@ -1,5 +1,18 @@
 import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack/react-query';
 
+// Enhanced query client with aggressive memory management for Quebec property management
+const MAX_CACHE_SIZE = 50; // Limit cache to 50 queries
+const MEMORY_CLEANUP_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
+// Track query cache size and clean up when needed
+let queryCount = 0;
+const cleanupOldQueries = () => {
+  if (queryCount > MAX_CACHE_SIZE) {
+    queryClient.getQueryCache().clear();
+    queryCount = 0;
+  }
+};
+
 /**
  * Throws an error if the HTTP response is not successful (status not ok).
  * Extracts error message from response body or uses status text as fallback.
@@ -78,11 +91,15 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      // Allow data to become stale after 5 minutes to enable garbage collection
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      // Cache data for 10 minutes before removal
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      retry: false,
+      // Allow data to become stale after 2 minutes for better performance
+      staleTime: 2 * 60 * 1000, // 2 minutes
+      // Cache data for 5 minutes before removal to prevent memory bloat
+      gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+      retry: (failureCount, error: any) => {
+        // Don't retry on client errors (4xx)
+        if (error?.message?.includes('4')) return false;
+        return failureCount < 2;
+      },
     },
     mutations: {
       retry: false,
@@ -92,14 +109,26 @@ export const queryClient = new QueryClient({
   },
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
-    onError: (_error) => {
-      console.error('Query _error:', _error);
+    onError: (error) => {
+      console.error('Query error:', error);
+    },
+    onSuccess: () => {
+      queryCount++;
+      if (queryCount % 10 === 0) {
+        // Check memory usage every 10 queries
+        cleanupOldQueries();
+      }
     },
   }),
   // Limit mutation cache size
   mutationCache: new MutationCache({
-    onError: (_error) => {
-      console.error('Mutation _error:', _error);
+    onError: (error) => {
+      console.error('Mutation error:', error);
     },
   }),
 });
+
+// Set up automatic memory cleanup
+setInterval(() => {
+  cleanupOldQueries();
+}, MEMORY_CLEANUP_INTERVAL);

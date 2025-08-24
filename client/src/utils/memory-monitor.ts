@@ -119,10 +119,24 @@ export class MemoryOptimizer {
     this.cleanupCallbacks.forEach((callback) => {
       try {
         callback();
-      } catch (_error) {
-        console.warn('Memory cleanup callback failed:', _error);
+      } catch (error) {
+        console.warn('Memory cleanup callback failed:', error);
       }
     });
+
+    // Clear unused React Query cache
+    if (typeof window !== 'undefined' && (window as any).queryClient) {
+      const client = (window as any).queryClient;
+      const cache = client.getQueryCache();
+      const queries = cache.getAll();
+      
+      // Remove stale queries to free memory
+      queries.forEach((query: any) => {
+        if (query.isStale() && !query.getObserversCount()) {
+          cache.remove(query);
+        }
+      });
+    }
 
     // Suggest garbage collection if available
     if ('gc' in window && typeof window.gc === 'function') {
@@ -207,8 +221,8 @@ export function loadImageOptimized(
     img.decoding = 'async';
     
     // Apply size constraints if provided
-    if (options.width) {img.width = options.width;}
-    if (options.height) {img.height = options.height;}
+    if (_options.width) {img.width = _options.width;}
+    if (_options.height) {img.height = _options.height;}
     
     img.onload = () => resolve(img);
     img.onerror = reject;
