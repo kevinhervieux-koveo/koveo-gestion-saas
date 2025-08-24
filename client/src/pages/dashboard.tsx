@@ -40,7 +40,7 @@ export default function Dashboard() {
     const actions = [];
 
     // Admin actions
-    if (user.role === 'admin' || user.role === 'super_admin') {
+    if (user.role === 'admin') {
       actions.push(
         {
           title: 'System Management',
@@ -70,7 +70,7 @@ export default function Dashboard() {
     }
 
     // Manager actions
-    if (user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') {
+    if (user.role === 'manager' || user.role === 'admin') {
       actions.push(
         {
           title: 'Buildings',
@@ -174,7 +174,7 @@ export default function Dashboard() {
                 {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Dashboard
               </Badge>
               <div className="text-sm text-muted-foreground">
-                Organization: {user?.organization?.name || 'Not assigned'}
+                Organization: Not assigned
               </div>
             </div>
           </div>

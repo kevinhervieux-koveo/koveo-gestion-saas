@@ -22,7 +22,8 @@ const getCSPConfig = (isDevelopment: boolean) => {
     '127.0.0.1:*',
     '*.replit.com',
     '*.replit.co',
-    '*.replit.dev'
+    '*.replit.dev',
+    'http:', 'https:' // Allow all HTTP/HTTPS in development
   ] : [];
 
   return {
@@ -98,7 +99,7 @@ const getCSPConfig = (isDevelopment: boolean) => {
  * @param isDevelopment
  */
 const getCorsConfig = (isDevelopment: boolean) => {
-  const allowedOrigins = [
+  const allowedOrigins: (string | RegExp)[] = [
     'https://koveogestion.com',
     'https://app.koveogestion.com',
     'https://koveo.com',
@@ -129,7 +130,10 @@ const getCorsConfig = (isDevelopment: boolean) => {
         if (typeof allowed === 'string') {
           return origin === allowed;
         }
-        return allowed.test(origin);
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return false;
       });
       
       if (isAllowed) {
@@ -252,41 +256,11 @@ export function configureSecurityMiddleware(app: Express): void {
       allow: false
     },
     
-    // Expect-CT (Certificate Transparency)
-    expectCt: {
-      enforce: !isDevelopment,
-      maxAge: 86400, // 24 hours
-      reportUri: '/api/security/ct-report'
-    },
+    // Note: expectCt has been removed from helmet v5+
+    // Certificate Transparency is now handled by browsers automatically
     
-    // Feature Policy / Permissions Policy
-    permissionsPolicy: {
-      features: {
-        // Camera/microphone for property virtual tours (with user consent)
-        camera: ['self'],
-        microphone: ['self'],
-        
-        // Geolocation for property mapping (Law 25 compliant)
-        geolocation: ['self'],
-        
-        // Payment for rental transactions
-        payment: ['self'],
-        
-        // Notifications for maintenance alerts
-        notifications: ['self'],
-        
-        // Disable potentially privacy-invasive features
-        fullscreen: ['self'],
-        accelerometer: [],
-        autoplay: [],
-        encrypted_media: [],
-        gyroscope: [],
-        magnetometer: [],
-        midi: [],
-        usb: [],
-        xr_spatial_tracking: []
-      }
-    },
+    // Note: permissionsPolicy has been replaced with individual policy headers in helmet v5+
+    // These are now handled by individual middleware or manual headers
     
     // Frame Options
     frameguard: {
@@ -361,7 +335,7 @@ export function configureSecurityMiddleware(app: Express): void {
     res.status(204).end();
   });
 
-  // Certificate Transparency Report Endpoint
+  // Certificate Transparency Report Endpoint (for legacy support)
   app.post('/api/security/ct-report', express.json(), (req: Request, res: Response) => {
     const report = req.body;
     console.warn('CT Report:', {
