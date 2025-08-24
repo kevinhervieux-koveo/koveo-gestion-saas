@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, pbkdf2Sync } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
@@ -132,7 +132,6 @@ export async function verifyPassword(password: string, hashedPassword: string): 
  * @returns {boolean} True if password matches, false otherwise.
  */
 export function verifyLegacyPassword(password: string, salt: string, hash: string): boolean {
-  const { pbkdf2Sync } = require('crypto');
   const verifyHash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   return hash === verifyHash;
 }
