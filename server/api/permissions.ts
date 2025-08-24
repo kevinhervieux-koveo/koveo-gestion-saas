@@ -1,5 +1,5 @@
 import type { Express } from 'express';
-import { permissions as permissionsConfig, checkPermission, getRolePermissions, PERMISSION_CATEGORIES } from '../../config';
+// Database-based permissions system - no config files needed
 import { requireAuth, authorize } from '../auth';
 import { storage } from '../storage';
 
@@ -17,14 +17,22 @@ function transformPermission(permission: string) {
   const [action, resource] = permission.split(':');
   const resourceType = resource.replace(/_/g, ' ');
   
-  // Find the category for this permission
+  // Determine category based on resource type
   let category = 'Other';
-  for (const [categoryName, categoryPermissions] of Object.entries(PERMISSION_CATEGORIES)) {
-    if (categoryPermissions.includes(permission as never)) {
-      category = categoryName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-      break;
-    }
-  }
+  const categoryMap: { [key: string]: string } = {
+    'users': 'User Management',
+    'organizations': 'Organization Management', 
+    'buildings': 'Building Management',
+    'residences': 'Residence Management',
+    'bills': 'Financial Management',
+    'budgets': 'Financial Management',
+    'maintenance_requests': 'Maintenance Management',
+    'documents': 'Document Management',
+    'notifications': 'Communication',
+    'features': 'System Features',
+    'reports': 'Reports & Analytics'
+  };
+  category = categoryMap[resource] || 'Other';
 
   return {
     id: permission,
@@ -110,11 +118,7 @@ export function registerPermissionsRoutes(app: Express) {
   // Get user-specific permissions (overrides)
   app.get('/api/user-permissions', requireAuth, authorize('read:user'), async (req, res) => {
     try {
-      // For now, return empty array as user-specific permission overrides
-      // would need to be implemented in the database schema
-      // This is where you would query user_permissions table if it existed
-      const userPermissions: unknown[] = [];
-      
+      const userPermissions = await storage.getUserPermissions();
       res.json(userPermissions);
     } catch (error) {
       console.error('Error fetching user permissions:', error);
@@ -133,13 +137,12 @@ export function registerPermissionsRoutes(app: Express) {
         });
       }
 
-      // Validate that the permission exists
-      const allPermissions = new Set<string>();
-      Object.values(permissionsConfig as any).forEach((rolePermissions: unknown) => {
-        (rolePermissions as string[]).forEach(permission => allPermissions.add(permission));
-      });
+      // Validate that the permission exists in database
+      const permission = await storage.getPermissions().then(perms => 
+        perms.find(p => p.id === permissionId || p.name === permissionId)
+      );
       
-      if (!allPermissions.has(permissionId)) {
+      if (!permission) {
         return res.status(400).json({ 
           message: 'Invalid permission' 
         });
@@ -205,11 +208,36 @@ export function registerPermissionsRoutes(app: Express) {
   // Get permission categories for organization
   app.get('/api/permission-categories', requireAuth, authorize('read:user'), async (req, res) => {
     try {
-      const categories = Object.entries(PERMISSION_CATEGORIES).map(([name, permissions]) => ({
-        id: name.toLowerCase().replace(/_/g, '-'),
-        name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        permissions: permissions.map(p => transformPermission(p)),
-        count: permissions.length
+      // Generate categories based on database permissions
+      const permissions = await storage.getPermissions();
+      const categoryMap: { [key: string]: any[] } = {};
+      
+      permissions.forEach(permission => {
+        const categoryName = {
+          'users': 'User Management',
+          'organizations': 'Organization Management', 
+          'buildings': 'Building Management',
+          'residences': 'Residence Management',
+          'bills': 'Financial Management',
+          'budgets': 'Financial Management',
+          'maintenance_requests': 'Maintenance Management',
+          'documents': 'Document Management',
+          'notifications': 'Communication',
+          'features': 'System Features',
+          'reports': 'Reports & Analytics'
+        }[permission.resourceType] || 'Other';
+        
+        if (!categoryMap[categoryName]) {
+          categoryMap[categoryName] = [];
+        }
+        categoryMap[categoryName].push(permission);
+      });
+      
+      const categories = Object.entries(categoryMap).map(([name, perms]) => ({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name,
+        permissions: perms,
+        count: perms.length
       }));
       
       res.json(categories);
@@ -228,7 +256,11 @@ export function registerPermissionsRoutes(app: Express) {
         return res.status(400).json({ message: 'Permission is required' });
       }
 
-      const hasPermission = checkPermission(permissionsConfig as any, req.user!.role as any, permission as any);
+      // Check permission via database
+      const rolePermissions = await storage.getRolePermissions();
+      const hasPermission = rolePermissions.some((rp: any) => 
+        rp.role === req.user!.role && rp.permission && rp.permission.name === permission
+      );
       
       res.json({
         hasPermission,

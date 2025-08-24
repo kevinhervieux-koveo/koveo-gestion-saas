@@ -5,12 +5,39 @@ import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
-import { checkPermission, permissions, getRolePermissions } from '../config';
+// Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { EmailService } from './services/email-service';
+
+/**
+ * Check if a user role has a specific permission via database lookup.
+ * @param userRole - The user's role (admin, manager, tenant, resident)
+ * @param permissionName - The permission name (e.g., 'read:user', 'create:building')
+ * @returns Promise<boolean> - True if user has permission
+ */
+async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
+  try {
+    const result = await db
+      .select()
+      .from(schema.rolePermissions)
+      .leftJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
+      .where(
+        and(
+          eq(schema.rolePermissions.role, userRole as any),
+          eq(schema.permissions.name, permissionName)
+        )
+      )
+      .limit(1);
+
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error checking user permission:', error);
+    return false;
+  }
+}
 
 // Initialize email service
 const emailService = new EmailService();
@@ -155,12 +182,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       });
     }
 
-    // Ensure session has role and permissions (for backwards compatibility)
-    if (!req.session.role || !req.session.permissions) {
-      const userPermissions = getRolePermissions(permissions, user.role as any);
-      req.session.role = user.role;
-      req.session.permissions = userPermissions;
-    }
+    // Set session role (permissions handled via database)
+    req.session.role = user.role;
 
     // Add organization information to the user object - temporarily simplified due to relations issue
     const userOrganizations = await db.select({
@@ -271,8 +294,8 @@ export function authorize(permission: string) {
     }
 
     try {
-      // Check if the user's role has the required permission
-      const hasPermission = checkPermission(permissions, req.user.role as any, permission as any);
+      // Check if the user's role has the required permission via database
+      const hasPermission = await checkUserPermission(req.user.role as any, permission);
 
       if (!hasPermission) {
         return res.status(403).json({
@@ -387,14 +410,10 @@ export function setupAuthRoutes(app: any) {
       // Update last login
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
-      // Get user permissions based on role
-      const userPermissions = getRolePermissions(permissions, user.role as any);
-
-      // Set session with user data and permissions
+      // Set session with user data
       req.session.userId = user.id;
       req.session.userRole = user.role;
       req.session.role = user.role;
-      req.session.permissions = userPermissions;
 
       // Return user data (without password)
       const { password: _, ...userData } = user;

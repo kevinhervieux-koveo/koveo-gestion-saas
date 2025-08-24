@@ -3,7 +3,8 @@ import { eq, and, or, desc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@shared/schema';
-import { permissions, checkPermission, hasRoleOrHigher } from '../../config';
+import { hasRoleOrHigher } from '../../config';
+// Database-based permission checking - no config permissions needed
 // Note: createInvitationAuditLog will be defined locally or imported when needed
 import ws from 'ws';
 
@@ -413,8 +414,8 @@ export function requireInvitationPermission(
     }
 
     try {
-      // Check basic permission
-      const hasPermission = checkPermission(permissions, req.user.role as any, action as any);
+      // Check basic permission based on role hierarchy
+      const hasPermission = hasRoleOrHigher(req.user.role as any, 'manager' as any);
       
       if (!hasPermission) {
         await InvitationSecurityMonitor.triggerAlert({
@@ -614,8 +615,8 @@ export function withPermissionInheritance(baseAction: string) {
     }
 
     try {
-      // Check if user has direct permission
-      const hasDirectPermission = checkPermission(permissions, req.user.role as any, baseAction as any);
+      // Check if user has direct permission based on role hierarchy
+      const hasDirectPermission = hasRoleOrHigher(req.user.role as any, 'manager' as any);
       
       if (hasDirectPermission) {
         return next();

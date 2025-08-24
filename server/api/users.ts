@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
-import { permissions, getRolePermissions } from '../../config';
+// Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -267,16 +267,12 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Validate the role exists in permissions
-      if (!permissions[userRole as keyof typeof permissions]) {
-        return res.status(400).json({
-          _error: 'Bad request', 
-          message: 'Invalid user role',
-        });
-      }
-
-      // Get permissions for the user's role
-      const userPermissions = getRolePermissions(permissions as any, userRole as any);
+      // Get permissions for the user's role from database
+      const rolePermissions = await storage.getRolePermissions();
+      const userPermissions = rolePermissions
+        .filter((rp: any) => rp.role === userRole)
+        .map((rp: any) => rp.permission?.name)
+        .filter(Boolean);
       
       // Create response with Zod validation
       const responseData = {
