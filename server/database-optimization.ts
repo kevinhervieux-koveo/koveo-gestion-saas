@@ -35,8 +35,8 @@ export class PaginationHelper {
    * @param _options
    */
   static getPaginationClause(_options: PaginationOptions): string {
-    const offset = (options.page - 1) * options.pageSize;
-    return `LIMIT ${options.pageSize} OFFSET ${offset}`;
+    const offset = (_options.page - 1) * _options.pageSize;
+    return `LIMIT ${_options.pageSize} OFFSET ${offset}`;
   }
   
   /**
@@ -45,8 +45,8 @@ export class PaginationHelper {
    * @param _options
    */
   static getSortClause(_options: PaginationOptions): string {
-    if (!options.sortBy) {return '';}
-    return `ORDER BY ${options.sortBy} ${options.sortDirection || 'ASC'}`;
+    if (!_options.sortBy) {return '';}
+    return `ORDER BY ${_options.sortBy} ${_options.sortDirection || 'ASC'}`;
   }
   
   /**
@@ -64,10 +64,10 @@ export class PaginationHelper {
    * @param _options
    */
   static validatePagination(_options: PaginationOptions): void {
-    if (options.page < 1) {
+    if (_options.page < 1) {
       throw new Error('Page number must be 1 or greater');
     }
-    if (options.pageSize < 1 || options.pageSize > 1000) {
+    if (_options.pageSize < 1 || _options.pageSize > 1000) {
       throw new Error('Page size must be between 1 and 1000');
     }
   }
@@ -368,8 +368,8 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.warn(`✓ Applied: ${indexQuery}`);
-      } catch (____error) {
-        console.warn(`⚠ Failed to apply _index: ${indexQuery}`, _error);
+      } catch (error) {
+        console.warn(`⚠ Failed to apply index: ${indexQuery}`, error);
       }
     }
     
@@ -378,8 +378,8 @@ export class QueryOptimizer {
       try {
         await sql`${indexQuery}`;
         console.warn(`✓ Applied covering _index: ${indexQuery}`);
-      } catch (____error) {
-        console.warn(`⚠ Failed to apply covering _index: ${indexQuery}`, _error);
+      } catch (error) {
+        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, error);
       }
     }
     
@@ -388,8 +388,8 @@ export class QueryOptimizer {
       try {
         await sql`${viewQuery}`;
         console.warn(`✓ Created materialized view`);
-      } catch (____error) {
-        console.warn(`⚠ Failed to create materialized view`, _error);
+      } catch (error) {
+        console.warn(`⚠ Failed to create materialized view`, error);
       }
     }
     
@@ -462,18 +462,18 @@ export class QueryOptimizer {
     let optimizedQuery = baseQuery;
     
     // Add LIMIT clause if not present and limit specified
-    if (options.limit && !optimizedQuery.toLowerCase().includes('limit')) {
-      optimizedQuery += ` LIMIT ${options.limit}`;
+    if (_options.limit && !optimizedQuery.toLowerCase().includes('limit')) {
+      optimizedQuery += ` LIMIT ${_options.limit}`;
     }
     
     // Replace IN with EXISTS for better performance
-    if (options.useExists && optimizedQuery.toLowerCase().includes(' in (')) {
+    if (_options.useExists && optimizedQuery.toLowerCase().includes(' in (')) {
       // This is a simplified replacement - in practice, this would need more sophisticated parsing
       console.warn('Consider replacing IN subqueries with EXISTS for better performance');
     }
     
     // Suggest JOIN order optimization
-    if (optimizedQuery.toLowerCase().includes('join') && options.optimizeJoins) {
+    if (optimizedQuery.toLowerCase().includes('join') && _options.optimizeJoins) {
       console.warn('Tip: Place most selective tables first in JOIN sequence');
     }
     

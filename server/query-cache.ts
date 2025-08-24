@@ -143,12 +143,12 @@ class QueryCacheManager {
     const stats: Record<string, any> = {};
     
     for (const [_type, cache] of this.caches) {
-      const hits = this.hitCounts.get(type) || 0;
-      const misses = this.missCounts.get(type) || 0;
+      const hits = this.hitCounts.get(_type) || 0;
+      const misses = this.missCounts.get(_type) || 0;
       const total = hits + misses;
       const hitRate = total > 0 ? ((hits / total) * 100).toFixed(2) : '0.00';
       
-      stats[type] = {
+      stats[_type] = {
         size: cache.size,
         maxSize: cache.max,
         hits,
@@ -167,8 +167,8 @@ class QueryCacheManager {
   clearAll(): void {
     for (const [_type, cache] of this.caches) {
       cache.clear();
-      this.hitCounts.set(type, 0);
-      this.missCounts.set(type, 0);
+      this.hitCounts.set(_type, 0);
+      this.missCounts.set(_type, 0);
     }
     console.warn('All caches cleared');
   }
@@ -191,7 +191,7 @@ class QueryCacheManager {
   private estimateMemoryUsage(cache: LRUCache<string, any>): string {
     let totalSize = 0;
     for (const value of cache.values()) {
-      totalSize += JSON.stringify(_value).length * 2; // Rough estimate
+      totalSize += JSON.stringify(value).length * 2; // Rough estimate
     }
     return `${(totalSize / 1024).toFixed(2)} KB`;
   }
@@ -234,11 +234,11 @@ export function withCache<T>(
       const result = await operation();
       
       // Cache the result
-      queryCache.set(cacheType, cacheKey, _result);
+      queryCache.set(cacheType, cacheKey, result);
       
-      resolve(_result);
-    } catch (____error) {
-      reject(_error);
+      resolve(result);
+    } catch (error) {
+      reject(error);
     }
   });
 }
@@ -329,7 +329,7 @@ export class CacheMonitor {
     const stats = queryCache.getStats();
     let totalMemory = 0;
     
-    Object.values(stats).forEach((stat: unknown) => {
+    Object.values(stats).forEach((stat: any) => {
       totalMemory += parseFloat(stat.memoryUsage.replace(' KB', ''));
     });
     
