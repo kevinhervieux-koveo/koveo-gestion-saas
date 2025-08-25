@@ -134,6 +134,8 @@ export function Sidebar() {
         'Settings': { fr: 'Paramètres', en: 'Settings' },
         'Bug Reports': { fr: 'Rapports de bogues', en: 'Bug Reports' },
         'Idea Box': { fr: 'Boîte à idées', en: 'Idea Box' },
+        'Common Spaces': { fr: 'Espaces Communs', en: 'Common Spaces' },
+        'Manage Common Spaces': { fr: 'Gestion Espaces Communs', en: 'Manage Common Spaces' },
       };
       
       const translation = translations[name];

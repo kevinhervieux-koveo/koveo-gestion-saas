@@ -5,6 +5,7 @@ import {
   Settings,
   User,
   Building,
+  Building2,
   Users,
   DollarSign,
   FileText,
@@ -12,6 +13,7 @@ import {
   Lightbulb,
   Shield,
   LayoutDashboard,
+  AreaChart,
 } from 'lucide-react';
 
 /**
@@ -60,6 +62,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'My Residence', href: '/residents/residence', icon: Home },
       { name: 'My Building', href: '/residents/building', icon: Building },
       { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
+      { name: 'Common Spaces', href: '/resident/common-spaces', icon: Building2, requiredRole: 'resident' },
     ],
   },
   {
@@ -74,6 +77,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'Bills', href: '/manager/bills', icon: FileText },
       { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
       { name: 'User Management', href: '/manager/user-management', icon: Users },
+      { name: 'Manage Common Spaces', href: '/manager/common-spaces-stats', icon: AreaChart },
     ],
   },
 
