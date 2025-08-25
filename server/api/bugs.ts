@@ -131,7 +131,7 @@ export function registerBugRoutes(app: Express): void {
 
   /**
    * PATCH /api/bugs/:id - Updates an existing bug.
-   * Only admins and managers can update bugs.
+   * Users can edit their own bugs, admins and managers can edit any bug.
    */
   app.patch('/api/bugs/:id', requireAuth, async (req: any, res) => {
     try {
@@ -154,8 +154,14 @@ export function registerBugRoutes(app: Express): void {
 
       // Validate the request body
       const updateSchema = z.object({
-        status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
+        title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters").optional(),
+        description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters").optional(),
+        category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']).optional(),
+        page: z.string().min(1, "Page is required").optional(),
         priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+        reproductionSteps: z.string().optional(),
+        environment: z.string().optional(),
+        status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
         assignedTo: z.string().uuid().nullable().optional(),
         notes: z.string().optional(),
         resolvedBy: z.string().uuid().nullable().optional(),

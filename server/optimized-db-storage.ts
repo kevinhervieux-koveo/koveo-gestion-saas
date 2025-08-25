@@ -2401,8 +2401,21 @@ export class OptimizedDatabaseStorage implements IStorage {
     userId: string,
     userRole: string
   ): Promise<Bug | undefined> {
-    // Only admins and managers can update bugs
-    if (userRole !== 'admin' && userRole !== 'manager') {
+    // First check if the bug exists and get its current data
+    const [existingBug] = await db.select()
+      .from(schema.bugs)
+      .where(eq(schema.bugs.id, id));
+    
+    if (!existingBug) {
+      return undefined;
+    }
+    
+    // Access control: users can edit their own bugs, admins and managers can edit any bug
+    const canEdit = userRole === 'admin' || 
+                   userRole === 'manager' || 
+                   existingBug.createdBy === userId;
+    
+    if (!canEdit) {
       return undefined;
     }
     
@@ -2427,8 +2440,19 @@ export class OptimizedDatabaseStorage implements IStorage {
     userId: string,
     userRole: string
   ): Promise<boolean> {
-    // Only admins can delete bugs
-    if (userRole !== 'admin') {
+    // First check if the bug exists and get its current data
+    const [existingBug] = await db.select()
+      .from(schema.bugs)
+      .where(eq(schema.bugs.id, id));
+    
+    if (!existingBug) {
+      return false;
+    }
+    
+    // Access control: users can delete their own bugs, admins can delete any bug
+    const canDelete = userRole === 'admin' || existingBug.createdBy === userId;
+    
+    if (!canDelete) {
       return false;
     }
     
