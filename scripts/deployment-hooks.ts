@@ -31,10 +31,10 @@ function runCommand(command: string, description: string): void {
     }
     console.warn(`✅ ${description} completed`);
   } catch (_error: unknown) {
-    console.error(`❌ ${description} failed:`, error.message);
-    if (error.stdout) {console.warn('STDOUT:', error.stdout);}
-    if (error.stderr) {console.warn('STDERR:', error.stderr);}
-    throw error;
+    console.error(`❌ ${description} failed:`, _error);
+    if ((_error as any).stdout) {console.warn('STDOUT:', (_error as any).stdout);}
+    if ((_error as any).stderr) {console.warn('STDERR:', (_error as any).stderr);}
+    throw _error;
   }
 }
 
@@ -67,7 +67,15 @@ async function runDeploymentHooks(): Promise<void> {
       console.warn('\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)');
     }
 
-    // 3. Warm up the application
+    // 3. Sync features table to production
+    console.warn('\n📊 Features sync to production');
+    try {
+      runCommand('tsx scripts/sync-features-to-production.ts', 'Syncing features table to production');
+    } catch (syncError) {
+      console.warn('⚠️  Features sync failed but deployment continues:', syncError);
+    }
+
+    // 4. Warm up the application
     if (process.env.WARMUP_ON_DEPLOY === 'true') {
       let port = parseInt(process.env.PORT || '8080', 10);
       if (isNaN(port) || port < 1 || port > 65535) {
@@ -87,5 +95,5 @@ async function runDeploymentHooks(): Promise<void> {
 
 // Run deployment hooks
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runDeploymentHooks().catch(console._error);
+  runDeploymentHooks().catch(console.error);
 }
