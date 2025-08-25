@@ -189,7 +189,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                 <Button
                   variant="ghost"
                   className="w-full justify-start h-10"
-                  onClick={() => handleNavigation('/profile')}
+                  onClick={() => handleNavigation('/settings/settings')}
                   data-testid="nav-profile"
                 >
                   <Settings className="mr-3 h-4 w-4" />
