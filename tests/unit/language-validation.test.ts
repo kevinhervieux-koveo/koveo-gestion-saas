@@ -2,6 +2,8 @@ import { JSDOM } from 'jsdom';
 import { render } from '@testing-library/react';
 import React from 'react';
 
+/// <reference types="@types/jsdom" />
+
 /**
  * Quebec French Language Validation Test Suite.
  * 
@@ -92,34 +94,25 @@ const QUEBEC_LEGAL_TERMS = {
 
 /**
  * Extracts all visible text from a rendered React component.
- * @param container - The HTML element to extract text from.
- * @returns Array of visible text strings.
- */
-/**
- * ExtractVisibleText function.
  * @param container - The HTML element to extract text from
- * @returns Array of visible text strings
+ * @returns Array of visible text strings.
  */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
   
   /**
    * Traverses DOM nodes to extract text content.
-   * @param node - The DOM node to traverse.
-   */
-  /**
-   * Traverse function.
    * @param node - The DOM node to traverse
-   * @returns void
+   * @returns void.
    */
-  function traverse(node: Node) {
-    if (node.nodeType === Node.TEXT_NODE) { // 3 = TEXT_NODE
+  function traverse(node: globalThis.Node) {
+    if (node.nodeType === globalThis.Node.TEXT_NODE) { // 3 = TEXT_NODE
       const text = node.textContent?.trim();
       if (text) {
         textNodes.push(text);
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) { // 1 = ELEMENT_NODE
-      const element = node as Element;
+    } else if (node.nodeType === globalThis.Node.ELEMENT_NODE) { // 1 = ELEMENT_NODE
+      const element = node as globalThis.Element;
       // Skip hidden elements
       const htmlElement = element as HTMLElement;
       if (element.getAttribute('hidden') !== null || 

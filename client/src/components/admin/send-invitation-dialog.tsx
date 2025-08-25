@@ -171,19 +171,11 @@ interface Residence {
  * 
  * Allows sending single or bulk invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
- * @param root0 - Component props.
- * @param root0.open - Whether dialog is open.
- * @param root0.onOpenChange - Handler for dialog open state changes.
- * @param root0.onSuccess - Handler called when invitation is sent successfully.
- * @returns JSX element for the invitation dialog.
- */
-/**
- * SendInvitationDialog function.
- * @param root0
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.onSuccess
- * @returns Function result.
+ * @param props - Component props
+ * @param props.open - Whether dialog is open
+ * @param props.onOpenChange - Handler for dialog open state changes
+ * @param props.onSuccess - Handler called when invitation is sent successfully
+ * @returns JSX element for the invitation dialog
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();

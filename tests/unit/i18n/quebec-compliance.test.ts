@@ -307,8 +307,8 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
       
       consentTerms.forEach(({ en, fr: _fr }) => {
         const _key = en.replace(/\s+/g, '');
-        const hasEnProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(en, en.replace(' ', ''));
-        const hasFrProperty = quebecComplianceTerms.Object.prototype.hasOwnProperty.call(_fr, _key) || quebecComplianceTerms.Object.prototype.hasOwnProperty.call(_fr, en.replace(' ', ''));
+        const hasEnProperty = globalThis.Object.prototype.hasOwnProperty.call(quebecComplianceTerms.en || {}, _key) || globalThis.Object.prototype.hasOwnProperty.call(quebecComplianceTerms.en || {}, en.replace(' ', ''));
+        const hasFrProperty = globalThis.Object.prototype.hasOwnProperty.call(quebecComplianceTerms.fr || {}, _key) || globalThis.Object.prototype.hasOwnProperty.call(quebecComplianceTerms.fr || {}, en.replace(' ', ''));
         
         // For now, just verify the terms exist in some form
         expect(hasEnProperty || en.includes('consent')).toBe(true);
@@ -454,7 +454,7 @@ describe('Quebec Law 25 Compliance and French Language Tests', () => {
         { _value: 1000000, enFormat: '$1,000,000.00', frFormat: '1 000 000,00 $' }
       ];
       
-      amounts.forEach(({ value, enFormat: _enFormat, frFormat: _frFormat }) => {
+      amounts.forEach(({ _value, enFormat: _enFormat, frFormat: _frFormat }) => {
         // English Canadian format
         const enFormatted = new Intl.NumberFormat('en-CA', {
           style: 'currency',
