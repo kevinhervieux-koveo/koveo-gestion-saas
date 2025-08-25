@@ -508,19 +508,31 @@ export function setupAuthRoutes(app: any) {
       } as any);
 
       // Send password reset email
-      // Properly detect development vs production environment
+      // Debug logging for environment detection
       const host = req.get('host') || '';
-      const isDev = process.env.NODE_ENV === 'development' || host.includes('replit.dev') || host.includes('replit.com') || host.includes('replit.co');
+      const nodeEnv = process.env.NODE_ENV;
+      const frontendEnvVar = process.env.FRONTEND_URL;
+      
+      console.log('Debug - Host:', host);
+      console.log('Debug - NODE_ENV:', nodeEnv);
+      console.log('Debug - FRONTEND_URL env var:', frontendEnvVar);
+      
+      // Properly detect development vs production environment
+      const isDev = nodeEnv === 'development' || host.includes('replit.dev') || host.includes('replit.com') || host.includes('replit.co');
+      console.log('Debug - isDev:', isDev);
       
       let frontendUrl;
-      if (process.env.FRONTEND_URL) {
-        frontendUrl = process.env.FRONTEND_URL;
-      } else if (isDev) {
-        // Use the current development URL (Replit development environment)
+      if (isDev) {
+        // Always use current development URL in development/Replit environment
         frontendUrl = `${req.protocol}://${host}`;
+        console.log('Debug - Using development URL from request');
+      } else if (frontendEnvVar) {
+        frontendUrl = frontendEnvVar;
+        console.log('Debug - Using FRONTEND_URL env var');
       } else {
         // Production environment
         frontendUrl = `https://${host}`;
+        console.log('Debug - Using production URL');
       }
       
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
