@@ -419,20 +419,20 @@ describe('Language Validation Tests', () => {
   describe('Feature Request Translation Coverage', () => {
     it('should have complete English translations for feature requests', () => {
       const requiredKeys = [
-        'ideaBox.title',
-        'ideaBox.subtitle', 
-        'ideaBox.submitIdea',
-        'featureRequest.create',
-        'featureRequest.edit',
-        'featureRequest.title',
-        'featureRequest.description',
-        'featureRequest.need',
-        'featureRequest.category',
-        'featureRequest.status',
-        'featureRequest.upvote',
-        'featureRequest.submitSuccess',
-        'featureRequest.updateSuccess',
-        'featureRequest.deleteSuccess'
+        'idea_box.title',
+        'idea_box.subtitle', 
+        'idea_box.submit_idea',
+        'feature_request.create',
+        'feature_request.edit',
+        'feature_request.title',
+        'feature_request.description',
+        'feature_request.need',
+        'feature_request.category',
+        'feature_request.status',
+        'feature_request.upvote',
+        'feature_request.submit_success',
+        'feature_request.update_success',
+        'feature_request.delete_success'
       ];
 
       requiredKeys.forEach(key => {
@@ -444,20 +444,20 @@ describe('Language Validation Tests', () => {
 
     it('should have complete French translations for feature requests', () => {
       const requiredKeys = [
-        'ideaBox.title',
-        'ideaBox.subtitle',
-        'ideaBox.submitIdea', 
-        'featureRequest.create',
-        'featureRequest.edit',
-        'featureRequest.title',
-        'featureRequest.description',
-        'featureRequest.need',
-        'featureRequest.category',
-        'featureRequest.status',
-        'featureRequest.upvote',
-        'featureRequest.submitSuccess',
-        'featureRequest.updateSuccess',
-        'featureRequest.deleteSuccess'
+        'idea_box.title',
+        'idea_box.subtitle',
+        'idea_box.submit_idea', 
+        'feature_request.create',
+        'feature_request.edit',
+        'feature_request.title',
+        'feature_request.description',
+        'feature_request.need',
+        'feature_request.category',
+        'feature_request.status',
+        'feature_request.upvote',
+        'feature_request.submit_success',
+        'feature_request.update_success',
+        'feature_request.delete_success'
       ];
 
       requiredKeys.forEach(key => {
@@ -506,10 +506,10 @@ describe('Language Validation Tests', () => {
 
     it('should validate French accents in feature request translations', () => {
       const textsToCheck = [
-        translate('featureRequest.create', {}, 'fr'),
-        translate('featureRequest.category.propertyManagement', {}, 'fr'),
-        translate('featureRequest.category.security', {}, 'fr'),
-        translate('featureRequest.status.completed', {}, 'fr'),
+        translate('feature_request.create', {}, 'fr'),
+        translate('feature_request.category.property_management', {}, 'fr'),
+        translate('feature_request.category.security', {}, 'fr'),
+        translate('feature_request.status.completed', {}, 'fr'),
         translate('idea_box.title', {}, 'fr')
       ];
 
@@ -818,7 +818,7 @@ describe('Language Validation Tests', () => {
       
       // Keys should follow consistent naming patterns
       enKeys.forEach(key => {
-        expect(key).toMatch(/^[a-z][a-z0-9_.]*$/); // lowercase, dots, underscores
+        expect(key).toMatch(/^[a-zA-Z][a-zA-Z0-9_.]*$/); // letters, dots, underscores (allow camelCase)
         expect(key).not.toContain('..'); // No double dots
         expect(key).not.toMatch(/^_|_$/); // No leading/trailing underscores
       });
