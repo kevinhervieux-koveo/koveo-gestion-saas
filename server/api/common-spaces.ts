@@ -401,7 +401,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.errors
+          errors: paramValidation.error.issues
         });
       }
 
@@ -409,7 +409,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!queryValidation.success) {
         return res.status(400).json({
           message: 'Invalid query parameters',
-          errors: queryValidation.error.errors
+          errors: queryValidation.error.issues
         });
       }
 
@@ -499,7 +499,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.errors
+          errors: paramValidation.error.issues
         });
       }
 
@@ -507,7 +507,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!bodyValidation.success) {
         return res.status(400).json({
           message: 'Invalid booking data',
-          errors: bodyValidation.error.errors
+          errors: bodyValidation.error.issues
         });
       }
 
@@ -636,6 +636,157 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/common-spaces/calendar/:spaceId - Get calendar data for a specific space
+   */
+  app.get('/api/common-spaces/calendar/:spaceId', requireAuth, async (req: any, res: Response) => {
+    try {
+      const user = req.user || req.session?.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Validate parameters
+      const paramValidation = spaceIdSchema.safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid space ID',
+          errors: paramValidation.error.issues
+        });
+      }
+
+      const queryValidation = calendarQuerySchema.safeParse(req.query);
+      if (!queryValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid query parameters',
+          errors: queryValidation.error.issues
+        });
+      }
+
+      const { spaceId } = paramValidation.data;
+      const { start_date, end_date, view } = queryValidation.data;
+
+      // Get space details and check access
+      const space = await db
+        .select({
+          id: commonSpaces.id,
+          name: commonSpaces.name,
+          buildingId: commonSpaces.buildingId,
+          isReservable: commonSpaces.isReservable,
+          openingHours: commonSpaces.openingHours,
+          capacity: commonSpaces.capacity
+        })
+        .from(commonSpaces)
+        .where(eq(commonSpaces.id, spaceId))
+        .limit(1);
+
+      if (space.length === 0) {
+        return res.status(404).json({
+          message: 'Common space not found',
+          code: 'NOT_FOUND'
+        });
+      }
+
+      const commonSpace = space[0];
+
+      // Check user access to building
+      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
+        return res.status(403).json({
+          message: 'Access denied to this common space',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // Get bookings for the specified date range
+      const conditions = [
+        eq(bookings.commonSpaceId, spaceId),
+        eq(bookings.status, 'confirmed'),
+        gte(bookings.startTime, new Date(start_date)),
+        lte(bookings.endTime, new Date(end_date))
+      ];
+
+      const spaceBookings = await db
+        .select({
+          id: bookings.id,
+          startTime: bookings.startTime,
+          endTime: bookings.endTime,
+          status: bookings.status,
+          userId: bookings.userId,
+          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          userEmail: users.email,
+          userRole: users.role
+        })
+        .from(bookings)
+        .innerJoin(users, eq(bookings.userId, users.id))
+        .where(and(...conditions))
+        .orderBy(bookings.startTime);
+
+      // Determine permissions
+      const canViewDetails = ['admin', 'manager'].includes(user.role);
+
+      // Transform bookings to calendar events
+      const events = spaceBookings.map(booking => ({
+        id: booking.id,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        status: booking.status,
+        userId: booking.userId,
+        userName: canViewDetails || booking.userId === user.id ? booking.userName : 'Déjà Réservé',
+        userEmail: canViewDetails || booking.userId === user.id ? booking.userEmail : null,
+        isOwnBooking: booking.userId === user.id,
+        spaceId: spaceId,
+        spaceName: commonSpace.name,
+        userRole: booking.userRole
+      }));
+
+      // Calculate summary statistics
+      const totalBookings = events.length;
+      const totalHours = events.reduce((sum, event) => {
+        const duration = (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60 * 60);
+        return sum + duration;
+      }, 0);
+      const uniqueUsers = new Set(events.map(e => e.userId)).size;
+
+      // Build calendar response
+      const calendarData = {
+        space: {
+          id: commonSpace.id,
+          name: commonSpace.name,
+          isReservable: commonSpace.isReservable,
+          openingHours: commonSpace.openingHours
+        },
+        calendar: {
+          view,
+          startDate: start_date,
+          endDate: end_date,
+          events
+        },
+        permissions: {
+          canViewDetails,
+          canCreateBookings: commonSpace.isReservable && !await isUserBlocked(user.id, spaceId)
+        },
+        summary: {
+          totalBookings,
+          totalHours: Math.round(totalHours * 10) / 10,
+          uniqueUsers
+        }
+      };
+
+      res.json(calendarData);
+
+    } catch (error) {
+      console.error('Error fetching calendar data:', error);
+      res.status(500).json({
+        message: 'Failed to fetch calendar data',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
    * DELETE /api/common-spaces/bookings/:bookingId - Cancel a booking
    */
   app.delete('/api/common-spaces/bookings/:bookingId', requireAuth, async (req: any, res: Response) => {
@@ -653,7 +804,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid booking ID',
-          errors: paramValidation.error.errors
+          errors: paramValidation.error.issues
         });
       }
 
@@ -740,7 +891,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.errors
+          errors: paramValidation.error.issues
         });
       }
 
