@@ -70,14 +70,14 @@ class MockAPIClient {
    * @param _key
    */
   private getTranslation(_key: string): string {
-    const keys = key.split('.');
-    const _value: any = mockTranslations[this.language];
+    const keys = _key.split('.');
+    let _value: any = mockTranslations[this.language];
     
     for (const k of keys) {
-      value = value?.[k];
+      _value = _value?.[k];
     }
     
-    return value || key;
+    return _value || _key;
   }
 
   /**
@@ -102,12 +102,12 @@ class MockAPIClient {
    * @param _data
    */
   async createBuilding(_data: any) {
-    if (!data.name) {
+    if (!_data.name) {
       throw new Error(this.getTranslation('validation.required'));
     }
     
     return {
-      _data: { id: '2', ...data },
+      _data: { id: '2', ..._data },
       message: this.getTranslation('messages.created'),
     };
   }
@@ -197,7 +197,7 @@ describe('Comprehensive Translation API Tests', () => {
       try {
         await apiClient.createBuilding({});
       } catch (_error) {
-        expect(error.message).toBe('This field is required');
+        expect(_error.message).toBe('This field is required');
       }
     });
 
@@ -205,23 +205,23 @@ describe('Comprehensive Translation API Tests', () => {
       try {
         await apiClient.getNotFound();
       } catch (_error) {
-        expect(error.message).toBe('Resource not found');
+        expect(_error.message).toBe('Resource not found');
       }
     });
 
     it('returns English content data', async () => {
       const result = await apiClient.getBudget();
-      expect(result.data.categories).toContain('Condo Fees');
-      expect(result.data.categories).toContain('Maintenance');
-      expect(result.data.categories).toContain('Insurance');
+      expect(result._data.categories).toContain('Condo Fees');
+      expect(result._data.categories).toContain('Maintenance');
+      expect(result._data.categories).toContain('Insurance');
     });
 
     it('validates user data with English messages', async () => {
       try {
         await apiClient.validateUser({ email: 'invalid', password: '123' });
       } catch (_error) {
-        expect(error.message).toContain('Please enter a valid email address');
-        expect(error.message).toContain('Password must be at least 8 characters');
+        expect(_error.message).toContain('Please enter a valid email address');
+        expect(_error.message).toContain('Password must be at least 8 characters');
       }
     });
   });
@@ -240,7 +240,7 @@ describe('Comprehensive Translation API Tests', () => {
       try {
         await apiClient.createBuilding({});
       } catch (_error) {
-        expect(error.message).toBe('Ce champ est obligatoire');
+        expect(_error.message).toBe('Ce champ est obligatoire');
       }
     });
 
@@ -248,23 +248,23 @@ describe('Comprehensive Translation API Tests', () => {
       try {
         await apiClient.getNotFound();
       } catch (_error) {
-        expect(error.message).toBe('Ressource non trouvée');
+        expect(_error.message).toBe('Ressource non trouvée');
       }
     });
 
     it('returns French content data', async () => {
       const result = await apiClient.getBudget();
-      expect(result.data.categories).toContain('Frais de copropriété');
-      expect(result.data.categories).toContain('Entretien');
-      expect(result.data.categories).toContain('Assurance');
+      expect(result._data.categories).toContain('Frais de copropriété');
+      expect(result._data.categories).toContain('Entretien');
+      expect(result._data.categories).toContain('Assurance');
     });
 
     it('validates user data with French messages', async () => {
       try {
         await apiClient.validateUser({ email: 'invalid', password: '123' });
       } catch (_error) {
-        expect(error.message).toContain('Veuillez entrer une adresse courriel valide');
-        expect(error.message).toContain('Le mot de passe doit contenir au moins 8 caractères');
+        expect(_error.message).toContain('Veuillez entrer une adresse courriel valide');
+        expect(_error.message).toContain('Le mot de passe doit contenir au moins 8 caractères');
       }
     });
 
@@ -273,7 +273,7 @@ describe('Comprehensive Translation API Tests', () => {
         await apiClient.validateUser({ password: '123' });
       } catch (_error) {
         // Should use "courriel" instead of "email" in Quebec French
-        expect(error.message).toContain('courriel');
+        expect(_error.message).toContain('courriel');
       }
     });
   });
@@ -316,8 +316,8 @@ describe('Comprehensive Translation API Tests', () => {
         await apiClient.validateUser({});
       } catch (_error) {
         // Quebec Law 25 requires specific terminology
-        expect(error.message).toContain('obligatoire'); // Required
-        expect(error.message).not.toContain('requis'); // Avoid anglicism
+        expect(_error.message).toContain('obligatoire'); // Required
+        expect(_error.message).not.toContain('requis'); // Avoid anglicism
       }
     });
 
@@ -325,7 +325,7 @@ describe('Comprehensive Translation API Tests', () => {
       try {
         await apiClient.getUnauthorized();
       } catch (_error) {
-        expect(error.message).toBe('Accès refusé');
+        expect(_error.message).toBe('Accès refusé');
       }
     });
 
@@ -334,8 +334,8 @@ describe('Comprehensive Translation API Tests', () => {
       const budgetResult = await apiClient.getBudget();
       
       // Both should use Quebec French
-      expect(buildingResult.data[0].address).toContain('Rue');
-      expect(budgetResult.data.categories).toContain('Frais de copropriété');
+      expect(buildingResult._data[0].address).toContain('Rue');
+      expect(budgetResult._data.categories).toContain('Frais de copropriété');
     });
   });
 
@@ -361,7 +361,7 @@ describe('Comprehensive Translation API Tests', () => {
           await apiClient.validateUser(testCase._data);
         } catch (_error) {
           testCase.expectedErrors.forEach(expectedError => {
-            expect(error.message).toContain(expectedError);
+            expect(_error.message).toContain(expectedError);
           });
         }
       }
@@ -379,7 +379,7 @@ describe('Comprehensive Translation API Tests', () => {
         try {
           await (apiClient as any)[test.method]();
         } catch (_error) {
-          expect(error.message).toBe(test.en);
+          expect(_error.message).toBe(test.en);
         }
 
         // Test French
@@ -387,7 +387,7 @@ describe('Comprehensive Translation API Tests', () => {
         try {
           await (apiClient as any)[test.method]();
         } catch (_error) {
-          expect(error.message).toBe(test.fr);
+          expect(_error.message).toBe(test.fr);
         }
       }
     });
@@ -434,9 +434,9 @@ describe('Comprehensive Translation API Tests', () => {
       const frenchResult = await apiClient.getBudget();
       
       // Structure should be identical
-      expect(englishResult.data.totalIncome).toBe(frenchResult.data.totalIncome);
-      expect(englishResult.data.totalExpenses).toBe(frenchResult.data.totalExpenses);
-      expect(englishResult.data.categories.length).toBe(frenchResult.data.categories.length);
+      expect(englishResult._data.totalIncome).toBe(frenchResult._data.totalIncome);
+      expect(englishResult._data.totalExpenses).toBe(frenchResult._data.totalExpenses);
+      expect(englishResult._data.categories.length).toBe(frenchResult._data.categories.length);
     });
 
     it('translates only user-facing content, not system data', async () => {
@@ -447,10 +447,10 @@ describe('Comprehensive Translation API Tests', () => {
       const frenchBuilding = await apiClient.getBuildings();
       
       // ID should remain the same
-      expect(englishBuilding.data[0].id).toBe(frenchBuilding.data[0].id);
+      expect(englishBuilding._data[0].id).toBe(frenchBuilding._data[0].id);
       
       // Address should be translated (for demo purposes)
-      expect(englishBuilding.data[0].address).not.toBe(frenchBuilding.data[0].address);
+      expect(englishBuilding._data[0].address).not.toBe(frenchBuilding._data[0].address);
     });
   });
 });
