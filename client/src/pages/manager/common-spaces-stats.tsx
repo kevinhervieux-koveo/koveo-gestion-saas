@@ -143,13 +143,15 @@ function CommonSpacesStatsPage() {
 
   // Fetch common spaces for selected building
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
-    queryKey: ['/api/common-spaces', { building_id: selectedBuildingId }],
+    queryKey: ['/api/common-spaces', selectedBuildingId],
+    queryFn: () => fetch(`/api/common-spaces?building_id=${selectedBuildingId}`).then(res => res.json()),
     enabled: !!selectedBuildingId,
   });
 
   // Fetch statistics for selected space
   const { data: spaceStats, isLoading: statsLoading } = useQuery<SpaceStatsResponse>({
     queryKey: ['/api/common-spaces', selectedSpaceId, 'stats'],
+    queryFn: () => fetch(`/api/common-spaces/${selectedSpaceId}/stats`).then(res => res.json()),
     enabled: !!selectedSpaceId,
   });
 
