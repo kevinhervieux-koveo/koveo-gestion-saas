@@ -25,7 +25,7 @@ describe('Security Headers and Law 25 Compliance Tests', () => {
     app = express();
     
     // Configure security middleware with mocks
-    mockConfigureSecurityMiddleware.mockImplementation((expressApp) => {
+    mockConfigureSecurityMiddleware.mockImplementation((expressApp: any) => {
       // Add basic security headers for testing
       expressApp.use((req: any, res: any, next: any) => {
         res.setHeader('content-security-policy', "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'");
@@ -96,7 +96,7 @@ describe('Security Headers and Law 25 Compliance Tests', () => {
       process.env.NODE_ENV = 'production';
       
       const prodApp = express();
-      configureSecurityMiddleware(prodApp);
+      mockConfigureSecurityMiddleware(prodApp);
       prodApp.get('/test', (req, res) => res.json({ message: 'test' }));
       
       const response = await request(prodApp).get('/test');
@@ -244,7 +244,7 @@ describe('Security Headers and Law 25 Compliance Tests', () => {
       process.env.NODE_ENV = 'development';
       
       const devApp = express();
-      configureSecurityMiddleware(devApp);
+      mockConfigureSecurityMiddleware(devApp);
       devApp.get('/test', (req, res) => res.json({ message: 'test' }));
       
       const response = await request(devApp).get('/test');
